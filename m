@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch added to -mm tree
-Date: Thu, 09 Aug 2007 17:36:33 -0700
-Message-ID: <200708100041.l7A0fQjq027434@imap1.linux-foundation.org>
+Subject: + scsi-ipsc-warning-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 17:36:31 -0700
+Message-ID: <200708100041.l7A0fOqJ027431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44479 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792AbXHJAlh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 20:41:37 -0400
+	by vger.kernel.org with ESMTP id S1754575AbXHJAmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 20:42:05 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7A0fTmp001986
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 9 Aug 2007 17:41:34 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eugeneteo@kernel.sg
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
+     scsi: ipsc warning fix
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
+     scsi-ipsc-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +29,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
+Subject: scsi: ipsc warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Eugene Teo <eugeneteo@kernel.sg>
+drivers/scsi/ips.c: In function 'ips_insert_device':
+drivers/scsi/ips.c:6957: warning: 'index' may be used uninitialized in this function
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/scsi/ips.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
+diff -puN drivers/scsi/ips.c~scsi-ipsc-warning-fix drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~scsi-ipsc-warning-fix
 +++ a/drivers/scsi/ips.c
-@@ -6872,7 +6872,7 @@ ips_register_scsi(int index)
- 	return 0;
+@@ -6954,7 +6954,7 @@ module_exit(ips_module_exit);
+ static int __devinit
+ ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent)
+ {
+-	int index;
++	int unintialized_var(index);
+ 	int rc;
  
- err_free_irq:
--	free_irq(ha->irq);
-+	free_irq(ha->irq, ha);
- err_put_sh:
- 	scsi_host_put(sh);
- 	return rc;
+ 	METHOD_TRACE("ips_insert_device", 1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
