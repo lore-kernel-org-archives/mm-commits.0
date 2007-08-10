@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - implement-cpu_physical_id-on-smp=n.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 21:23:40 -0700
-Message-ID: <200708100428.l7A4SXht003477@imap1.linux-foundation.org>
+Subject: - implement-cpu_physical_id-on-smp=n-fix.patch removed from -mm tree
+Date: Thu, 09 Aug 2007 21:23:49 -0700
+Message-ID: <200708100428.l7A4ShSV003485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750926AbXHJE3P (ORCPT
+	by vger.kernel.org with ESMTP id S1750934AbXHJE3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 00:29:15 -0400
+	Fri, 10 Aug 2007 00:29:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Implement cpu_physical_id() on SMP=n
+     implement-cpu_physical_id-on-smp=n-fix
 has been removed from the -mm tree.  Its filename was
-     implement-cpu_physical_id-on-smp=n.patch
+     implement-cpu_physical_id-on-smp=n-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Implement cpu_physical_id() on SMP=n
+Subject: implement-cpu_physical_id-on-smp=n-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386, x86_64 and ia64 implement cpu_physical_id() if CONFIG_SMP=y.
+this is sooooooo screwed up.
 
-Provide a uniprocessor stub so that callers will dtrt.
-
-Cc: Andi Kleen <ak@suse.de>
 Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    5 +++++
- 1 files changed, 5 insertions(+)
+ include/linux/smp.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n include/linux/smp.h
---- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n
+diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix include/linux/smp.h
+--- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix
 +++ a/include/linux/smp.h
-@@ -108,6 +108,11 @@ static inline void smp_send_reschedule(i
+@@ -108,10 +108,9 @@ static inline void smp_send_reschedule(i
  	0;			\
  })
  
-+static inline unsigned cpu_physical_id(unsigned cpu)
-+{
-+	return 0;
-+}
-+
+-static inline unsigned cpu_physical_id(unsigned cpu)
+-{
+-	return 0;
+-}
++#ifndef cpu_physical_id
++#define cpu_physical_id(cpu) (0)
++#endif
+ 
  #endif /* !SMP */
  
- /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -147,7 +147,6 @@ core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-implement-cpu_physical_id-on-smp=n.patch
 implement-cpu_physical_id-on-smp=n-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
