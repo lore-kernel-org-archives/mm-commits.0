@@ -1,172 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:46:39 -0700
-Message-ID: <200708102146.l7ALkdLV011163@imap1.linux-foundation.org>
+Subject: - i386-vdso-install-unstripped-copies-on-disk-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:54:41 -0700
+Message-ID: <200708102154.l7ALsf4u011583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187AbXHJVqs (ORCPT
+	by vger.kernel.org with ESMTP id S1750763AbXHJVzj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:46:48 -0400
+	Fri, 10 Aug 2007 17:55:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eugeneteo@kernel.sg, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
+     i386-vdso-install-unstripped-copies-on-disk fix
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
+     i386-vdso-install-unstripped-copies-on-disk-fix.patch
 
-This patch was dropped because it was folded into drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
+This patch was dropped because it was folded into i386-vdso-install-unstripped-copies-on-disk.patch
 
 ------------------------------------------------------
-Subject: drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386-vdso-install-unstripped-copies-on-disk fix
+From: Roland McGrath <roland@redhat.com>
 
-Cc: Eugene Teo <eugeneteo@kernel.sg>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/Makefile |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~drivers-scsi-ipsc-fix-scsi_add_host-warning-fix
-+++ a/drivers/scsi/ips.c
-@@ -6872,7 +6872,7 @@ ips_register_scsi(int index)
- 	return 0;
+diff -puN arch/i386/kernel/Makefile~i386-vdso-install-unstripped-copies-on-disk-fix arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~i386-vdso-install-unstripped-copies-on-disk-fix
++++ a/arch/i386/kernel/Makefile
+@@ -65,12 +65,12 @@ export CPPFLAGS_vsyscall.lds += -P -C -U
  
- err_free_irq:
--	free_irq(ha->irq);
-+	free_irq(ha->irq, ha);
- err_put_sh:
- 	scsi_host_put(sh);
- 	return rc;
+ vsyscall-flags = -shared -Wl,-soname=linux-gate.so.1 \
+ 		 $(call ld-option, -Wl$(comma)--hash-style=sysv)
+-SYSCFLAGS_vsyscall-sysenter.so	= $(vsyscall-flags)
+-SYSCFLAGS_vsyscall-int80.so	= $(vsyscall-flags)
++SYSCFLAGS_vsyscall-sysenter.so.dbg	= $(vsyscall-flags)
++SYSCFLAGS_vsyscall-int80.so.dbg		= $(vsyscall-flags)
+ 
+ $(obj)/vsyscall-int80.so.dbg $(obj)/vsyscall-sysenter.so.dbg: \
+ $(obj)/vsyscall-%.so.dbg: $(src)/vsyscall.lds \
+-			  $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
++				  $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
+ 	$(call if_changed,syscall)
+ 
+ $(obj)/%.so: OBJCOPYFLAGS := -S
+@@ -81,7 +81,7 @@ vdsos := vdso-int80.so vdso-sysenter.so
+ 
+ quiet_cmd_vdso_install = INSTALL $@
+       cmd_vdso_install = cp $(@:vdso-%.so=$(obj)/vsyscall-%.so.dbg) \
+-			    $(MODLIB)/vdso/$@
++				    $(MODLIB)/vdso/$@
+ 
+ $(vdsos):
+ 	@mkdir -p $(MODLIB)/vdso
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
-fbcon-kill-compile-warning.patch
-fix-serial-buffer-memory-leak.patch
-mtdchar-build-fix.patch
-fix-compilation-with-gcc-42.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dma-up-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-ax88796-printk-fixes.patch
-natsemi-fix-netdev-error-acounting.patch
-git-ixgbe-build-fix.patch
-git-net-fixup.patch
-ip_auto_config-fix.patch
-fib_trie-cleanup.patch
-introduce-u16_max-and-u32_max.patch
-introduce-strtol_check_range.patch
-git-nfsd.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-bsg-declare-request_queue.patch
-aacraid-rename-check_reset.patch
-drivers-scsi-ipsc-fix-scsi_add_host-warning.patch
-drivers-scsi-ipsc-fix-scsi_add_host-warning-fix.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-disable-b44-and-bcm43xx.patch
-revert-x86_64-mm-pci-mmconfig-eax.patch
-fix-x86_64-mm-early-quirks-unification.patch
-x86_64-clean-up-apicid_to_node-declaration.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-mmconfig-validate-against-acpi-motherboard-resources.patch
-x86_64-get-mp_bus_to_node-as-early-v3-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+pass-g-to-assembler-under-config_debug_info.patch
+i386-vdso-install-unstripped-copies-on-disk.patch
+i386-vdso-install-unstripped-copies-on-disk-fix.patch
+x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+x86_64-vdso-install-unstripped-copies-on-disk.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+add-mmf_dump_elf_headers.patch
