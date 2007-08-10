@@ -1,31 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - implement-cpu_physical_id-on-smp=n-fix.patch removed from -mm tree
-Date: Thu, 09 Aug 2007 21:23:49 -0700
-Message-ID: <200708100428.l7A4ShSV003485@imap1.linux-foundation.org>
+Subject: + git-dma-up-fix.patch added to -mm tree
+Date: Thu, 09 Aug 2007 21:27:54 -0700
+Message-ID: <200708100432.l7A4Wldj003604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750934AbXHJE3W (ORCPT
+	by vger.kernel.org with ESMTP id S1750714AbXHJEd1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 00:29:22 -0400
+	Fri, 10 Aug 2007 00:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     implement-cpu_physical_id-on-smp=n-fix
-has been removed from the -mm tree.  Its filename was
-     implement-cpu_physical_id-on-smp=n-fix.patch
+     git-dma-up-fix
+has been added to the -mm tree.  Its filename is
+     git-dma-up-fix.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: implement-cpu_physical_id-on-smp=n-fix
+Subject: git-dma-up-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this is sooooooo screwed up.
+drivers/dma/ioat_dca.c: In function 'ioat_dca_get_tag':
+drivers/dma/ioat_dca.c:177: error: implicit declaration of function 'cpu_physical_id'
+
+This is soooo screwed up.  Root cause: linux/smp.h only includes asm/smp.h if
+CONFIG_SMP=y.
+
+To get at cpu_physical_id() on UP, the user must include asm/smp.h, not
+linux/smp.h.
 
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -33,25 +44,21 @@ Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/dma/ioat_dca.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix include/linux/smp.h
---- a/include/linux/smp.h~implement-cpu_physical_id-on-smp=n-fix
-+++ a/include/linux/smp.h
-@@ -108,10 +108,9 @@ static inline void smp_send_reschedule(i
- 	0;			\
- })
- 
--static inline unsigned cpu_physical_id(unsigned cpu)
--{
--	return 0;
--}
-+#ifndef cpu_physical_id
-+#define cpu_physical_id(cpu) (0)
-+#endif
- 
- #endif /* !SMP */
+diff -puN drivers/dma/ioat_dca.c~git-dma-up-fix drivers/dma/ioat_dca.c
+--- a/drivers/dma/ioat_dca.c~git-dma-up-fix
++++ a/drivers/dma/ioat_dca.c
+@@ -25,6 +25,9 @@
+ #include <linux/smp.h>
+ #include <linux/interrupt.h>
+ #include <linux/dca.h>
++
++#include <asm/smp.h>
++
+ #include "ioatdma.h"
+ #include "ioatdma_registers.h"
  
 _
 
@@ -69,6 +76,7 @@ acpi-add-reboot-mechanism-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 revert-gregkh-driver-block-device.patch
 dma-arch-fix.patch
+git-dma-up-fix.patch
 git-dvb-fixup-2.patch
 adbhid-produce-all-capslock-key-events-fix.patch
 m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
@@ -147,7 +155,6 @@ core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-implement-cpu_physical_id-on-smp=n-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
