@@ -1,77 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - ip_auto_config-fix-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:06:26 -0700
-Message-ID: <200708102106.l7AL6QlL009087@imap1.linux-foundation.org>
+Subject: - add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:16:01 -0700
+Message-ID: <200708102116.l7ALG1Dw009689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38717 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759952AbXHJVP7 (ORCPT
+	by vger.kernel.org with ESMTP id S1762216AbXHJVQa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:15:59 -0400
+	Fri, 10 Aug 2007 17:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, joakim.tjernlund@transmode.se, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, rmk+lkml@arm.linux.org.uk, schmidt@digadd.de, yinghai.lu@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ip_auto_config-fix fix
+     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
 has been removed from the -mm tree.  Its filename was
-     ip_auto_config-fix-fix.patch
+     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 
-This patch was dropped because it was folded into ip_auto_config-fix.patch
+This patch was dropped because it was folded into add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
 
 ------------------------------------------------------
-Subject: ip_auto_config-fix fix
+Subject: add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Davem said (in February!):
+- ARRAY_SIZE is neater and tighter than the terminate-it-in-null thing.
 
-  Well, first of all the change in question is not in 2.4.x either.  I just
-  checked the current 2.4.x GIT tree and the test is exactly:
+- fix lots of broken whitespace
 
-	if (ic_myaddr == INADDR_NONE ||
-#ifdef CONFIG_ROOT_NFS
-	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
-	     && root_server_addr == INADDR_NONE
-	     && ic_servaddr == INADDR_NONE) ||
-#endif
-	    ic_first_dev->next) {
-
-  which matches 2.6.x
-
-  I even checked 2.4.x when it was branched for 2.5.x and the test was the
-  same at the point in time too.
-
-  Looking at the proposed change a bit it appears that it is probably
-  correct, as it's trying to check that ROOT_DEV is nfs root.  But if it is
-  correct then the UNNAMED_MAJOR comparison in the same code block should be
-  removed as it becomes superfluous.
-
-  I'm happy to apply this patch with that modification made.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Christian Schmidt <schmidt@digadd.de>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ipconfig.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/serial/8250_pci.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN net/ipv4/ipconfig.c~ip_auto_config-fix-fix net/ipv4/ipconfig.c
---- a/net/ipv4/ipconfig.c~ip_auto_config-fix-fix
-+++ a/net/ipv4/ipconfig.c
-@@ -1281,8 +1281,7 @@ static int __init ip_auto_config(void)
+diff -puN drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
++++ a/drivers/serial/8250_pci.c
+@@ -1653,8 +1653,7 @@ static struct pciserial_board pci_boards
+ };
+ 
+ static const struct pci_device_id softmodem_blacklist[] = {
+-     { PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
+-     { }
++	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
+ };
+ 
+ /*
+@@ -1665,7 +1664,7 @@ static const struct pci_device_id softmo
+ static int __devinit
+ serial_pci_guess_board(struct pci_dev *dev, struct pciserial_board *board)
+ {
+-        const struct pci_device_id * blacklist;
++	const struct pci_device_id *blacklist;
+ 	int num_iomem, num_port, first_port = -1, i;
+ 	
+ 	/*
+@@ -1684,10 +1683,12 @@ serial_pci_guess_board(struct pci_dev *d
+ 	 * Do not access blacklisted devices that are known not to
+ 	 * feature serial ports.
  	 */
- 	if (ic_myaddr == NONE ||
- #ifdef CONFIG_ROOT_NFS
--	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
--	     && root_server_addr == NONE
-+	    (root_server_addr == NONE
- 	     && ic_servaddr == NONE
- 	     && ROOT_DEV == Root_NFS) ||
- #endif
+-	for (blacklist = softmodem_blacklist; blacklist->vendor; blacklist++) {
+-	        if ((dev->vendor == blacklist->vendor) &&
+-	            (dev->device == blacklist->device))
+-		        return -ENODEV;
++	for (blacklist = softmodem_blacklist;
++	     blacklist < softmodem_blacklist + ARRAY_SIZE(softmodem_blacklist);
++	     blacklist++) {
++		if (dev->vendor == blacklist->vendor &&
++		    dev->device == blacklist->device)
++			return -ENODEV;
+ 	}
+ 
+ 	num_iomem = num_port = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,12 +116,12 @@ natsemi-fix-netdev-error-acounting.patch
 git-ixgbe-build-fix.patch
 git-net-fixup.patch
 ip_auto_config-fix.patch
-ip_auto_config-fix-fix.patch
-fib_trie-cleanup-fix.patch
-introduce-u16_max-and-u32_max-fix.patch
-introduce-strtol_check_range-fix.patch
+fib_trie-cleanup.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
 git-nfsd.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr-fix.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
