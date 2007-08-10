@@ -1,70 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - ds1682-add-sesnsors-kconfig-variable-prefix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 15:09:20 -0700
-Message-ID: <200708102209.l7AM9L4R012463@imap1.linux-foundation.org>
+Subject: + fix-serial-buffer-memory-leak-fix.patch added to -mm tree
+Date: Fri, 10 Aug 2007 15:09:00 -0700
+Message-ID: <200708102209.l7AM90kV012452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45433 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765194AbXHJWKD (ORCPT
+	by vger.kernel.org with ESMTP id S934268AbXHJWJg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 18:10:03 -0400
+	Fri, 10 Aug 2007 18:09:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: max@stro.at, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, laurentp@cse-semaphore.com, paulkf@microgate.com
 
 
 The patch titled
-     DS1682 add SESNSORS Kconfig variable prefix
-has been removed from the -mm tree.  Its filename was
-     ds1682-add-sesnsors-kconfig-variable-prefix.patch
+     fix "serial buffer memory leak fix"
+has been added to the -mm tree.  Its filename is
+     fix-serial-buffer-memory-leak-fix.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: DS1682 add SESNSORS Kconfig variable prefix
-From: maximilian attems <max@stro.at>
+Subject: fix "serial buffer memory leak fix"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The new DS1682 chip driver "polluates" global Kconfig namespace.  make it
-consistent with ds1337, ds1374 and friends.
+Alan said:
 
-Signed-off-by: maximilian attems <max@stro.at>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+This requires a wakeup().  It works and it passes testing simply because the
+wake up occurs next character typed, but if no further input occurs we will
+get stuck.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Laurent Pinchart <laurentp@cse-semaphore.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/Kconfig  |    2 +-
- drivers/i2c/chips/Makefile |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/tty_io.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Kconfig
---- a/drivers/i2c/chips/Kconfig~ds1682-add-sesnsors-kconfig-variable-prefix
-+++ a/drivers/i2c/chips/Kconfig
-@@ -30,7 +30,7 @@ config SENSORS_DS1374
- 	  This driver is deprecated and will be dropped soon. Use
- 	  rtc-ds1374 instead.
- 
--config DS1682
-+config SENSORS_DS1682
- 	tristate "Dallas DS1682 Total Elapsed Time Recorder with Alarm"
- 	depends on EXPERIMENTAL
- 	help
-diff -puN drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix drivers/i2c/chips/Makefile
---- a/drivers/i2c/chips/Makefile~ds1682-add-sesnsors-kconfig-variable-prefix
-+++ a/drivers/i2c/chips/Makefile
-@@ -4,7 +4,7 @@
- 
- obj-$(CONFIG_SENSORS_DS1337)	+= ds1337.o
- obj-$(CONFIG_SENSORS_DS1374)	+= ds1374.o
--obj-$(CONFIG_DS1682)		+= ds1682.o
-+obj-$(CONFIG_SENSORS_DS1682)	+= ds1682.o
- obj-$(CONFIG_SENSORS_EEPROM)	+= eeprom.o
- obj-$(CONFIG_SENSORS_MAX6875)	+= max6875.o
- obj-$(CONFIG_SENSORS_M41T00)	+= m41t00.o
+diff -puN drivers/char/tty_io.c~fix-serial-buffer-memory-leak-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~fix-serial-buffer-memory-leak-fix
++++ a/drivers/char/tty_io.c
+@@ -3663,6 +3663,7 @@ static void flush_to_ldisc(struct work_s
+ 	if (test_bit(TTY_FLUSHPENDING, &tty->flags)) {
+ 		__tty_buffer_flush(tty);
+ 		clear_bit(TTY_FLUSHPENDING, &tty->flags);
++		wake_up(&tty->read_wait);
+ 	}
+ 	clear_bit(TTY_FLUSHING, &tty->flags);
+ 	spin_unlock_irqrestore(&tty->buf.lock, flags);
 _
 
-Patches currently in -mm which might be from max@stro.at are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-ds1682-add-sesnsors-kconfig-variable-prefix.patch
+fbcon-kill-compile-warning.patch
+fix-serial-buffer-memory-leak.patch
+fix-serial-buffer-memory-leak-fix.patch
+mtdchar-build-fix.patch
+fix-compilation-with-gcc-42.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dma-up-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
 git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+git-net-fixup.patch
+ip_auto_config-fix.patch
+fib_trie-cleanup.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
+git-nfsd.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+bsg-declare-request_queue.patch
+aacraid-rename-check_reset.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+disable-b44-and-bcm43xx.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
