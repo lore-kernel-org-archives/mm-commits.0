@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:41:55 -0700
-Message-ID: <200708100141.l7A1ftnd029565@imap1.linux-foundation.org>
+Subject: + sysctl-x86_64-remove-unnecessary-binary-paths.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:42:01 -0700
+Message-ID: <200708100142.l7A1g1ZZ029579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56118 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36047 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753879AbXHJBmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:38 -0400
+	by vger.kernel.org with ESMTP id S1754319AbXHJBmr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru
+Cc: ebiederm@xmission.com, adobriyan@sw.ru, ak@suse.de
 
 
 The patch titled
-     sysctl: remove binary sysctl support where it clearly doesn't work
+     sysctl: x86_64 remove unnecessary binary paths
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+     sysctl-x86_64-remove-unnecessary-binary-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove binary sysctl support where it clearly doesn't work
+Subject: sysctl: x86_64 remove unnecessary binary paths
 From: Eric W. Biederman <ebiederm@xmission.com>
-
-These functions are all wrapper functions for the proc interface that are
-needed for them to work correctly.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/x86_64/ia32/ia32_binfmt.c |    1 -
+ arch/x86_64/kernel/vsyscall.c  |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work
-+++ a/kernel/sysctl.c
-@@ -363,7 +363,6 @@ static struct ctl_table kern_table[] = {
- 	},
- #ifdef CONFIG_PROC_SYSCTL
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -258,7 +258,6 @@ static void elf32_init(struct pt_regs *r
+ 
+ static ctl_table abi_table2[] = {
  	{
--		.ctl_name	= KERN_TAINTED,
- 		.procname	= "tainted",
- 		.data		= &tainted,
+-		.ctl_name	= 99,
+ 		.procname	= "vsyscall32",
+ 		.data		= &sysctl_vsyscall32,
  		.maxlen		= sizeof(int),
-@@ -372,7 +371,6 @@ static struct ctl_table kern_table[] = {
- 	},
- #endif
- 	{
--		.ctl_name	= KERN_CAP_BSET,
- 		.procname	= "cap-bound",
- 		.data		= &cap_bset,
- 		.maxlen		= sizeof(kernel_cap_t),
-@@ -648,7 +646,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler   = &proc_dointvec,
- 	},
- 	{
--		.ctl_name       = KERN_NMI_WATCHDOG,
- 		.procname       = "nmi_watchdog",
- 		.data           = &nmi_watchdog_enabled,
- 		.maxlen         = sizeof (int),
-@@ -837,7 +834,6 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &one_hundred,
- 	},
- 	{
--		.ctl_name	= VM_DIRTY_WB_CS,
- 		.procname	= "dirty_writeback_centisecs",
- 		.data		= &dirty_writeback_interval,
- 		.maxlen		= sizeof(dirty_writeback_interval),
-@@ -845,7 +841,6 @@ static struct ctl_table vm_table[] = {
- 		.proc_handler	= &dirty_writeback_centisecs_handler,
- 	},
- 	{
--		.ctl_name	= VM_DIRTY_EXPIRE_CS,
- 		.procname	= "dirty_expire_centisecs",
- 		.data		= &dirty_expire_interval,
- 		.maxlen		= sizeof(dirty_expire_interval),
-@@ -873,7 +868,6 @@ static struct ctl_table vm_table[] = {
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	 {
--		.ctl_name	= VM_HUGETLB_PAGES,
- 		.procname	= "nr_hugepages",
- 		.data		= &max_huge_pages,
- 		.maxlen		= sizeof(unsigned long),
-@@ -1124,7 +1118,6 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
--		.ctl_name	= FS_NRFILE,
- 		.procname	= "file-nr",
- 		.data		= &files_stat,
- 		.maxlen		= 3*sizeof(int),
+diff -puN arch/x86_64/kernel/vsyscall.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~sysctl-x86_64-remove-unnecessary-binary-paths
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -260,18 +260,10 @@ out:
+ 	return ret;
+ }
+ 
+-static int vsyscall_sysctl_nostrat(ctl_table *t, int __user *name, int nlen,
+-				void __user *oldval, size_t __user *oldlenp,
+-				void __user *newval, size_t newlen)
+-{
+-	return -ENOSYS;
+-}
+-
+ static ctl_table kernel_table2[] = {
+-	{ .ctl_name = 99, .procname = "vsyscall64",
++	{ .procname = "vsyscall64",
+ 	  .data = &vsyscall_gtod_data.sysctl_enabled, .maxlen = sizeof(int),
+ 	  .mode = 0644,
+-	  .strategy = vsyscall_sysctl_nostrat,
+ 	  .proc_handler = vsyscall_sysctl_change },
+ 	{}
+ };
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
