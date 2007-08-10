@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-neighbour-table-sysctls.patch added to -mm tree
-Date: Thu, 09 Aug 2007 18:41:56 -0700
-Message-ID: <200708100141.l7A1fu7W029568@imap1.linux-foundation.org>
+Subject: + sysctl-remove-broken-cdrom-binary-sysctls.patch added to -mm tree
+Date: Thu, 09 Aug 2007 18:42:02 -0700
+Message-ID: <200708100142.l7A1g2ei029588@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60214 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755159AbXHJBml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:41 -0400
+	by vger.kernel.org with ESMTP id S1755378AbXHJBmu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2007 21:42:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, adobriyan@sw.ru, davem@davemloft.net
+Cc: ebiederm@xmission.com, adobriyan@sw.ru, alan@lxorguk.ukuu.org.uk, jens.axboe@oracle.com
 
 
 The patch titled
-     sysctl: fix neighbour table sysctls.
+     sysctl: remove broken cdrom binary sysctls
 has been added to the -mm tree.  Its filename is
-     sysctl-fix-neighbour-table-sysctls.patch
+     sysctl-remove-broken-cdrom-binary-sysctls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,220 +25,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: fix neighbour table sysctls.
+Subject: sysctl: remove broken cdrom binary sysctls
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-- In ipv6 ndisc_ifinfo_syctl_change so it doesn't depend on binary
-  sysctl names for a function that works with proc.
-
-- In neighbour.c reorder the table to put the possibly unused entries
-  at the end so we can remove them by terminating the table early.
-
-- In neighbour.c kill the entries with questionable binary sysctl
-  handling behavior.
-
-- In neighbour.c if we don't have a strategy routine remove the
-  binary path.  So we don't the default sysctl strategy routine
-  on data that is not ready for it.
+The binary interface for the cdrom sysctls can't possilby work.  So remove the
+binary sysctls and update the test for finding out which sysctl table entry we
+are dealy with to use the procname and not the ctl_name (which I am removing).
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/neighbour.c |   75 +++++++++++++++++++++--------------------
- net/ipv6/ndisc.c     |   24 +++++--------
- 2 files changed, 49 insertions(+), 50 deletions(-)
+ drivers/cdrom/cdrom.c |   31 +++++++++----------------------
+ 1 file changed, 9 insertions(+), 22 deletions(-)
 
-diff -puN net/core/neighbour.c~sysctl-fix-neighbour-table-sysctls net/core/neighbour.c
---- a/net/core/neighbour.c~sysctl-fix-neighbour-table-sysctls
-+++ a/net/core/neighbour.c
-@@ -2498,7 +2498,6 @@ static struct neigh_sysctl_table {
- 			.proc_handler	= &proc_dointvec,
- 		},
- 		{
--			.ctl_name	= NET_NEIGH_RETRANS_TIME,
- 			.procname	= "retrans_time",
- 			.maxlen		= sizeof(int),
- 			.mode		= 0644,
-@@ -2543,27 +2542,40 @@ static struct neigh_sysctl_table {
- 			.proc_handler	= &proc_dointvec,
- 		},
- 		{
--			.ctl_name	= NET_NEIGH_ANYCAST_DELAY,
- 			.procname	= "anycast_delay",
- 			.maxlen		= sizeof(int),
- 			.mode		= 0644,
- 			.proc_handler	= &proc_dointvec_userhz_jiffies,
- 		},
- 		{
--			.ctl_name	= NET_NEIGH_PROXY_DELAY,
- 			.procname	= "proxy_delay",
- 			.maxlen		= sizeof(int),
- 			.mode		= 0644,
- 			.proc_handler	= &proc_dointvec_userhz_jiffies,
- 		},
- 		{
--			.ctl_name	= NET_NEIGH_LOCKTIME,
- 			.procname	= "locktime",
- 			.maxlen		= sizeof(int),
- 			.mode		= 0644,
- 			.proc_handler	= &proc_dointvec_userhz_jiffies,
- 		},
- 		{
-+			.ctl_name	= NET_NEIGH_RETRANS_TIME_MS,
-+			.procname	= "retrans_time_ms",
-+			.maxlen		= sizeof(int),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_dointvec_ms_jiffies,
-+			.strategy	= &sysctl_ms_jiffies,
-+		},
-+		{
-+			.ctl_name	= NET_NEIGH_REACHABLE_TIME_MS,
-+			.procname	= "base_reachable_time_ms",
-+			.maxlen		= sizeof(int),
-+			.mode		= 0644,
-+			.proc_handler	= &proc_dointvec_ms_jiffies,
-+			.strategy	= &sysctl_ms_jiffies,
-+		},
-+		{
- 			.ctl_name	= NET_NEIGH_GC_INTERVAL,
- 			.procname	= "gc_interval",
- 			.maxlen		= sizeof(int),
-@@ -2592,22 +2604,7 @@ static struct neigh_sysctl_table {
- 			.mode		= 0644,
- 			.proc_handler	= &proc_dointvec,
- 		},
--		{
--			.ctl_name	= NET_NEIGH_RETRANS_TIME_MS,
--			.procname	= "retrans_time_ms",
--			.maxlen		= sizeof(int),
--			.mode		= 0644,
--			.proc_handler	= &proc_dointvec_ms_jiffies,
--			.strategy	= &sysctl_ms_jiffies,
--		},
--		{
--			.ctl_name	= NET_NEIGH_REACHABLE_TIME_MS,
--			.procname	= "base_reachable_time_ms",
--			.maxlen		= sizeof(int),
--			.mode		= 0644,
--			.proc_handler	= &proc_dointvec_ms_jiffies,
--			.strategy	= &sysctl_ms_jiffies,
--		},
-+		{}
+diff -puN drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls
++++ a/drivers/cdrom/cdrom.c
+@@ -3468,32 +3468,25 @@ static int cdrom_sysctl_handler(ctl_tabl
+ 		else
+ 			*valp = 0;
+ 
+-		switch (ctl->ctl_name) {
+-		case DEV_CDROM_AUTOCLOSE: {
++		if (strcmp(ctl->procname, "autoclose") == 0) {
+ 			if (valp == &cdrom_sysctl_settings.autoclose)
+ 				autoclose = cdrom_sysctl_settings.autoclose;
+-			break;
+-			}
+-		case DEV_CDROM_AUTOEJECT: {
++		}
++		else if (strcmp(ctl->procname, "autoeject") == 0) {
+ 			if (valp == &cdrom_sysctl_settings.autoeject)
+ 				autoeject = cdrom_sysctl_settings.autoeject;
+-			break;
+-			}
+-		case DEV_CDROM_DEBUG: {
++		}
++		else if (strcmp(ctl->procname, "debug") == 0) {
+ 			if (valp == &cdrom_sysctl_settings.debug)
+ 				debug = cdrom_sysctl_settings.debug;
+-			break;
+-			}
+-		case DEV_CDROM_LOCK: {
++		}
++		else if (strcmp(ctl->procname, "lock") == 0) {
+ 			if (valp == &cdrom_sysctl_settings.lock)
+ 				lockdoor = cdrom_sysctl_settings.lock;
+-			break;
+-			}
+-		case DEV_CDROM_CHECK_MEDIA: {
++		}
++		else if (strcmp(ctl->procname, "check_media") == 0) {
+ 			if (valp == &cdrom_sysctl_settings.check)
+ 				check_media_type = cdrom_sysctl_settings.check;
+-			break;
+-			}
+ 		}
+ 		/* update the option flags according to the changes. we
+ 		   don't have per device options through sysctl yet,
+@@ -3507,7 +3500,6 @@ static int cdrom_sysctl_handler(ctl_tabl
+ /* Place files in /proc/sys/dev/cdrom */
+ static ctl_table cdrom_table[] = {
+ 	{
+-		.ctl_name	= DEV_CDROM_INFO,
+ 		.procname	= "info",
+ 		.data		= &cdrom_sysctl_settings.info, 
+ 		.maxlen		= CDROM_STR_SIZE,
+@@ -3515,7 +3507,6 @@ static ctl_table cdrom_table[] = {
+ 		.proc_handler	= &cdrom_sysctl_info,
  	},
- 	.neigh_dev = {
- 		{
-@@ -2660,42 +2657,48 @@ int neigh_sysctl_register(struct net_dev
- 	t->neigh_vars[9].data  = &p->anycast_delay;
- 	t->neigh_vars[10].data = &p->proxy_delay;
- 	t->neigh_vars[11].data = &p->locktime;
-+	t->neigh_vars[12].data  = &p->retrans_time;
-+	t->neigh_vars[13].data  = &p->base_reachable_time;
- 
- 	if (dev) {
- 		dev_name_source = dev->name;
- 		t->neigh_dev[0].ctl_name = dev->ifindex;
--		t->neigh_vars[12].procname = NULL;
--		t->neigh_vars[13].procname = NULL;
--		t->neigh_vars[14].procname = NULL;
--		t->neigh_vars[15].procname = NULL;
-+		/* Terminate the table early */
-+		memset(&t->neigh_vars[14], 0, sizeof(t->neigh_vars[14]));
- 	} else {
- 		dev_name_source = t->neigh_dev[0].procname;
--		t->neigh_vars[12].data = (int *)(p + 1);
--		t->neigh_vars[13].data = (int *)(p + 1) + 1;
--		t->neigh_vars[14].data = (int *)(p + 1) + 2;
--		t->neigh_vars[15].data = (int *)(p + 1) + 3;
-+		t->neigh_vars[14].data = (int *)(p + 1);
-+		t->neigh_vars[15].data = (int *)(p + 1) + 1;
-+		t->neigh_vars[16].data = (int *)(p + 1) + 2;
-+		t->neigh_vars[17].data = (int *)(p + 1) + 3;
- 	}
- 
--	t->neigh_vars[16].data  = &p->retrans_time;
--	t->neigh_vars[17].data  = &p->base_reachable_time;
- 
- 	if (handler || strategy) {
- 		/* RetransTime */
- 		t->neigh_vars[3].proc_handler = handler;
- 		t->neigh_vars[3].strategy = strategy;
- 		t->neigh_vars[3].extra1 = dev;
-+		if (!strategy)
-+			t->neigh_vars[3].ctl_name = CTL_UNNUMBERED;
- 		/* ReachableTime */
- 		t->neigh_vars[4].proc_handler = handler;
- 		t->neigh_vars[4].strategy = strategy;
- 		t->neigh_vars[4].extra1 = dev;
-+		if (!strategy)
-+			t->neigh_vars[4].ctl_name = CTL_UNNUMBERED;
- 		/* RetransTime (in milliseconds)*/
--		t->neigh_vars[16].proc_handler = handler;
--		t->neigh_vars[16].strategy = strategy;
--		t->neigh_vars[16].extra1 = dev;
-+		t->neigh_vars[12].proc_handler = handler;
-+		t->neigh_vars[12].strategy = strategy;
-+		t->neigh_vars[12].extra1 = dev;
-+		if (!strategy)
-+			t->neigh_vars[12].ctl_name = CTL_UNNUMBERED;
- 		/* ReachableTime (in milliseconds) */
--		t->neigh_vars[17].proc_handler = handler;
--		t->neigh_vars[17].strategy = strategy;
--		t->neigh_vars[17].extra1 = dev;
-+		t->neigh_vars[13].proc_handler = handler;
-+		t->neigh_vars[13].strategy = strategy;
-+		t->neigh_vars[13].extra1 = dev;
-+		if (!strategy)
-+			t->neigh_vars[13].ctl_name = CTL_UNNUMBERED;
- 	}
- 
- 	dev_name = kstrdup(dev_name_source, GFP_KERNEL);
-diff -puN net/ipv6/ndisc.c~sysctl-fix-neighbour-table-sysctls net/ipv6/ndisc.c
---- a/net/ipv6/ndisc.c~sysctl-fix-neighbour-table-sysctls
-+++ a/net/ipv6/ndisc.c
-@@ -1570,30 +1570,26 @@ int ndisc_ifinfo_sysctl_change(struct ct
- 	struct inet6_dev *idev;
- 	int ret;
- 
--	if (ctl->ctl_name == NET_NEIGH_RETRANS_TIME ||
--	    ctl->ctl_name == NET_NEIGH_REACHABLE_TIME)
-+	if ((strcmp(ctl->procname, "retrans_time") == 0) ||
-+	    (strcmp(ctl->procname, "base_reachable_time") == 0))
- 		ndisc_warn_deprecated_sysctl(ctl, "syscall", dev ? dev->name : "default");
- 
--	switch (ctl->ctl_name) {
--	case NET_NEIGH_RETRANS_TIME:
-+	if (strcmp(ctl->procname, "retrans_time") == 0)
- 		ret = proc_dointvec(ctl, write, filp, buffer, lenp, ppos);
--		break;
--	case NET_NEIGH_REACHABLE_TIME:
-+
-+	else if (strcmp(ctl->procname, "base_reachable_time") == 0)
- 		ret = proc_dointvec_jiffies(ctl, write,
- 					    filp, buffer, lenp, ppos);
--		break;
--	case NET_NEIGH_RETRANS_TIME_MS:
--	case NET_NEIGH_REACHABLE_TIME_MS:
-+
-+	else if ((strcmp(ctl->procname, "retrans_time_ms") == 0) ||
-+		 (strcmp(ctl->procname, "base_reacable_time_ms") == 0))
- 		ret = proc_dointvec_ms_jiffies(ctl, write,
- 					       filp, buffer, lenp, ppos);
--		break;
--	default:
-+	else
- 		ret = -1;
--	}
- 
- 	if (write && ret == 0 && dev && (idev = in6_dev_get(dev)) != NULL) {
--		if (ctl->ctl_name == NET_NEIGH_REACHABLE_TIME ||
--		    ctl->ctl_name == NET_NEIGH_REACHABLE_TIME_MS)
-+		if (ctl->data == &idev->nd_parms->base_reachable_time)
- 			idev->nd_parms->reachable_time = neigh_rand_reach_time(idev->nd_parms->base_reachable_time);
- 		idev->tstamp = jiffies;
- 		inet6_ifinfo_notify(RTM_NEWLINK, idev);
+ 	{
+-		.ctl_name	= DEV_CDROM_AUTOCLOSE,
+ 		.procname	= "autoclose",
+ 		.data		= &cdrom_sysctl_settings.autoclose,
+ 		.maxlen		= sizeof(int),
+@@ -3523,7 +3514,6 @@ static ctl_table cdrom_table[] = {
+ 		.proc_handler	= &cdrom_sysctl_handler,
+ 	},
+ 	{
+-		.ctl_name	= DEV_CDROM_AUTOEJECT,
+ 		.procname	= "autoeject",
+ 		.data		= &cdrom_sysctl_settings.autoeject,
+ 		.maxlen		= sizeof(int),
+@@ -3531,7 +3521,6 @@ static ctl_table cdrom_table[] = {
+ 		.proc_handler	= &cdrom_sysctl_handler,
+ 	},
+ 	{
+-		.ctl_name	= DEV_CDROM_DEBUG,
+ 		.procname	= "debug",
+ 		.data		= &cdrom_sysctl_settings.debug,
+ 		.maxlen		= sizeof(int),
+@@ -3539,7 +3528,6 @@ static ctl_table cdrom_table[] = {
+ 		.proc_handler	= &cdrom_sysctl_handler,
+ 	},
+ 	{
+-		.ctl_name	= DEV_CDROM_LOCK,
+ 		.procname	= "lock",
+ 		.data		= &cdrom_sysctl_settings.lock,
+ 		.maxlen		= sizeof(int),
+@@ -3547,7 +3535,6 @@ static ctl_table cdrom_table[] = {
+ 		.proc_handler	= &cdrom_sysctl_handler,
+ 	},
+ 	{
+-		.ctl_name	= DEV_CDROM_CHECK_MEDIA,
+ 		.procname	= "check_media",
+ 		.data		= &cdrom_sysctl_settings.check,
+ 		.maxlen		= sizeof(int),
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
