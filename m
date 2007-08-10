@@ -1,84 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 14:16:01 -0700
-Message-ID: <200708102116.l7ALG1Dw009689@imap1.linux-foundation.org>
+Subject: - restore-acpi-change-for-scsi.patch removed from -mm tree
+Date: Fri, 10 Aug 2007 14:45:59 -0700
+Message-ID: <200708102145.l7ALjxSM011146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44799 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762216AbXHJVQa (ORCPT
+	by vger.kernel.org with ESMTP id S1750934AbXHJVqT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 17:16:30 -0400
+	Fri, 10 Aug 2007 17:46:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, rmk+lkml@arm.linux.org.uk, schmidt@digadd.de, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
+     restore-acpi-change-for-scsi
 has been removed from the -mm tree.  Its filename was
-     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
+     restore-acpi-change-for-scsi.patch
 
-This patch was dropped because it was folded into add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
+Subject: restore-acpi-change-for-scsi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- ARRAY_SIZE is neater and tighter than the terminate-it-in-null thing.
+resigh
 
-- fix lots of broken whitespace
-
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Christian Schmidt <schmidt@digadd.de>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/scsi/lpfc/lpfc_attr.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix
-+++ a/drivers/serial/8250_pci.c
-@@ -1653,8 +1653,7 @@ static struct pciserial_board pci_boards
+diff -puN drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
+--- a/drivers/scsi/lpfc/lpfc_attr.c~restore-acpi-change-for-scsi
++++ a/drivers/scsi/lpfc/lpfc_attr.c
+@@ -1405,7 +1405,8 @@ struct class_device_attribute *lpfc_hba_
  };
  
- static const struct pci_device_id softmodem_blacklist[] = {
--     { PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
--     { }
-+	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
- };
- 
- /*
-@@ -1665,7 +1664,7 @@ static const struct pci_device_id softmo
- static int __devinit
- serial_pci_guess_board(struct pci_dev *dev, struct pciserial_board *board)
+ static ssize_t
+-sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
++		   char *buf, loff_t off, size_t count)
  {
--        const struct pci_device_id * blacklist;
-+	const struct pci_device_id *blacklist;
- 	int num_iomem, num_port, first_port = -1, i;
- 	
- 	/*
-@@ -1684,10 +1683,12 @@ serial_pci_guess_board(struct pci_dev *d
- 	 * Do not access blacklisted devices that are known not to
- 	 * feature serial ports.
- 	 */
--	for (blacklist = softmodem_blacklist; blacklist->vendor; blacklist++) {
--	        if ((dev->vendor == blacklist->vendor) &&
--	            (dev->device == blacklist->device))
--		        return -ENODEV;
-+	for (blacklist = softmodem_blacklist;
-+	     blacklist < softmodem_blacklist + ARRAY_SIZE(softmodem_blacklist);
-+	     blacklist++) {
-+		if (dev->vendor == blacklist->vendor &&
-+		    dev->device == blacklist->device)
-+			return -ENODEV;
- 	}
+ 	size_t buf_off;
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+@@ -1437,7 +1438,8 @@ sysfs_ctlreg_write(struct kobject *kobj,
+ }
  
- 	num_iomem = num_port = 0;
+ static ssize_t
+-sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
++		  char *buf, loff_t off, size_t count)
+ {
+ 	size_t buf_off;
+ 	uint32_t * tmp_ptr;
+@@ -1495,7 +1497,8 @@ sysfs_mbox_idle(struct lpfc_hba *phba)
+ }
+ 
+ static ssize_t
+-sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
++		 char *buf, loff_t off, size_t count)
+ {
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+ 						 kobj);
+@@ -1549,7 +1552,8 @@ sysfs_mbox_write(struct kobject *kobj, c
+ }
+ 
+ static ssize_t
+-sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
++sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
++		char *buf, loff_t off, size_t count)
+ {
+ 	struct class_device *cdev = container_of(kobj, struct class_device,
+ 						 kobj);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +120,6 @@ introduce-strtol_check_range.patch
 git-nfsd.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
