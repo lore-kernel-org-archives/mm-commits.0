@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch removed from -mm tree
-Date: Fri, 10 Aug 2007 16:47:31 -0700
-Message-ID: <200708102347.l7ANlVWZ016150@imap1.linux-foundation.org>
+Subject: + optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch added to -mm tree
+Date: Fri, 10 Aug 2007 17:10:08 -0700
+Message-ID: <200708110010.l7B0A8Ue016916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752843AbXHJXsA (ORCPT
+	by vger.kernel.org with ESMTP id S1754809AbXHKAKi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Aug 2007 19:48:00 -0400
+	Fri, 10 Aug 2007 20:10:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, ak@suse.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, linux-arch@vger.kernel.org, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hch@lst.de, ak@suse.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, linux-arch@vger.kernel.org, prasanna@in.ibm.com
 
 
 The patch titled
      x86: optimize page faults like all other achitectures and kill notifier cruft
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: x86: optimize page faults like all other achitectures and kill notifier cruft
@@ -147,7 +151,7 @@ diff -puN arch/i386/mm/fault.c~optimize-x86-page-faults-like-all-other-achitectu
  
  /*
   * Return EIP plus the CS segment base.  The segment limit is also
-@@ -328,7 +323,7 @@ fastcall void __kprobes do_page_fault(st
+@@ -330,7 +325,7 @@ fastcall void __kprobes do_page_fault(st
  	if (unlikely(address >= TASK_SIZE)) {
  		if (!(error_code & 0x0000000d) && vmalloc_fault(address) >= 0)
  			return;
@@ -156,7 +160,7 @@ diff -puN arch/i386/mm/fault.c~optimize-x86-page-faults-like-all-other-achitectu
  			return;
  		/*
  		 * Don't take the mm semaphore here. If we fixup a prefetch
-@@ -337,7 +332,7 @@ fastcall void __kprobes do_page_fault(st
+@@ -339,7 +334,7 @@ fastcall void __kprobes do_page_fault(st
  		goto bad_area_nosemaphore;
  	}
  
@@ -238,7 +242,7 @@ diff -puN arch/x86_64/mm/fault.c~optimize-x86-page-faults-like-all-other-achitec
  
  /* Sometimes the CPU reports invalid exceptions on prefetch.
     Check that here and ignore.
-@@ -355,7 +349,7 @@ asmlinkage void __kprobes do_page_fault(
+@@ -345,7 +339,7 @@ asmlinkage void __kprobes do_page_fault(
  			if (vmalloc_fault(address) >= 0)
  				return;
  		}
@@ -247,7 +251,7 @@ diff -puN arch/x86_64/mm/fault.c~optimize-x86-page-faults-like-all-other-achitec
  			return;
  		/*
  		 * Don't take the mm semaphore here. If we fixup a prefetch
-@@ -364,7 +358,7 @@ asmlinkage void __kprobes do_page_fault(
+@@ -354,7 +348,7 @@ asmlinkage void __kprobes do_page_fault(
  		goto bad_area_nosemaphore;
  	}
  
