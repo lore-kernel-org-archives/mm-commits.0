@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + free_irq-fix-debug_shirq-handling.patch added to -mm tree
-Date: Sat, 11 Aug 2007 23:31:23 -0700
-Message-ID: <200708120631.l7C6VOFT010393@imap1.linux-foundation.org>
+Subject: + revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch added to -mm tree
+Date: Sun, 12 Aug 2007 09:27:55 -0700
+Message-ID: <200708121627.l7CGRtwf003098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34852 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752035AbXHLGb4 (ORCPT
+	by vger.kernel.org with ESMTP id S933084AbXHLQ2l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 12 Aug 2007 02:31:56 -0400
+	Sun, 12 Aug 2007 12:28:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, ilpo.jarvinen@helsinki.fi, len.brown@intel.com, michal.k.k.piotrowski@gmail.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     free_irq(): fix DEBUG_SHIRQ handling
+     revert "ACPI: Enable C3 even when PM2_control is zero"
 has been added to the -mm tree.  Its filename is
-     free_irq-fix-debug_shirq-handling.patch
+     revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: free_irq(): fix DEBUG_SHIRQ handling
+Subject: revert "ACPI: Enable C3 even when PM2_control is zero"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If we're going to run the handler from free_irq() then we must do it with
-local irq's disabled.  Otherwise lockdep complains that the handler is taking
-irq-safe spinlocks in a non-irq-safe fashion.
+Revert 18eab8550397f1f3d4b8b2c5257c88dae25d58ed.  Due to
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Woodhouse <dwmw2@infradead.org>
+"Ilpo Jarvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+> 
+> I noticed that v2.6.23-rc1 locks up during boot, same thing happens now 
+> with the latest linus' tree (+net-2.6.24 and tcp-2.6 tree stuff on top 
+> of it; in -rc1 test they weren't though). The exact location of hang
+> varies a bit though. No OOPS, does not respond to sysrq or anything else 
+> besides reset. Last known bootable one is something like 2.6.22-rc4 
+> (I usually run 2.6.21.5 on this machine, haven't tried any 2.6.22 on
+> this after those rcs). Problem seems to start after this line:
+> 
+> Time: acpi_pm clocksource has been installed.
+> 
+> ...the power led starts blinking (not periodic cycle but more or less 
+> varying on-off cycle, never seen that led blink before at all, didn't know 
+> that one can make it blink :-)) and the machine gets consideably slower 
+> too. Never have it been able to complete booting all they way up to login 
+> prompt before lock up.
+
+Cc: "Ilpo Jarvinen" <ilpo.jarvinen@helsinki.fi>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/processor_idle.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN kernel/irq/manage.c~free_irq-fix-debug_shirq-handling kernel/irq/manage.c
---- a/kernel/irq/manage.c~free_irq-fix-debug_shirq-handling
-+++ a/kernel/irq/manage.c
-@@ -462,7 +462,9 @@ void free_irq(unsigned int irq, void *de
- 		 * We do this after actually deregistering it, to make sure that
- 		 * a 'real' IRQ doesn't run in parallel with our fake
- 		 */
-+		local_irq_save(flags);
- 		handler(irq, dev_id);
-+		local_irq_restore(flags);
- 	}
- #endif
- }
+diff -puN drivers/acpi/processor_idle.c~revert-acpi-enable-c3-even-when-pm2_control-is-zero drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~revert-acpi-enable-c3-even-when-pm2_control-is-zero
++++ a/drivers/acpi/processor_idle.c
+@@ -490,17 +490,7 @@ static void acpi_processor_idle(void)
+ 
+ 	case ACPI_STATE_C3:
+ 
+-		/*
+-		 * disable bus master
+-		 * bm_check implies we need ARB_DIS
+-		 * !bm_check implies we need cache flush
+-		 * bm_control implies whether we can do ARB_DIS
+-		 *
+-		 * That leaves a case where bm_check is set and bm_control is
+-		 * not set. In that case we cannot do much, we enter C3
+-		 * without doing anything.
+-		 */
+-		if (pr->flags.bm_check && pr->flags.bm_control) {
++		if (pr->flags.bm_check) {
+ 			if (atomic_inc_return(&c3_cpu_count) ==
+ 			    num_online_cpus()) {
+ 				/*
+@@ -509,7 +499,7 @@ static void acpi_processor_idle(void)
+ 				 */
+ 				acpi_set_register(ACPI_BITREG_ARB_DISABLE, 1);
+ 			}
+-		} else if (!pr->flags.bm_check) {
++		} else {
+ 			/* SMP with no shared cache... Invalidate cache  */
+ 			ACPI_FLUSH_CPU_CACHE();
+ 		}
+@@ -521,7 +511,7 @@ static void acpi_processor_idle(void)
+ 		acpi_cstate_enter(cx);
+ 		/* Get end time (ticks) */
+ 		t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+-		if (pr->flags.bm_check && pr->flags.bm_control) {
++		if (pr->flags.bm_check) {
+ 			/* Enable bus master arbitration */
+ 			atomic_dec(&c3_cpu_count);
+ 			acpi_set_register(ACPI_BITREG_ARB_DISABLE, 0);
+@@ -971,9 +961,9 @@ static void acpi_processor_power_verify_
+ 	if (pr->flags.bm_check) {
+ 		/* bus mastering control is necessary */
+ 		if (!pr->flags.bm_control) {
+-			/* In this case we enter C3 without bus mastering */
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				"C3 support without bus mastering control\n"));
++					  "C3 support requires bus mastering control\n"));
++			return;
+ 		}
+ 	} else {
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +123,9 @@ fix-compilation-with-gcc-42.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
 remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
@@ -178,4 +237,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-free_irq-fix-debug_shirq-handling.patch
