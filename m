@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch added to -mm tree
-Date: Sun, 12 Aug 2007 09:27:55 -0700
-Message-ID: <200708121627.l7CGRtwf003098@imap1.linux-foundation.org>
+Subject: - revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch removed from -mm tree
+Date: Sun, 12 Aug 2007 10:28:18 -0700
+Message-ID: <200708121728.l7CHSIqW012538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933084AbXHLQ2l (ORCPT
+	by vger.kernel.org with ESMTP id S1753684AbXHLR3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 12 Aug 2007 12:28:41 -0400
+	Sun, 12 Aug 2007 13:29:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ilpo.jarvinen@helsinki.fi, len.brown@intel.com, michal.k.k.piotrowski@gmail.com, venkatesh.pallipadi@intel.com
+To: akpm@linux-foundation.org, ilpo.jarvinen@helsinki.fi, len.brown@intel.com, michal.k.k.piotrowski@gmail.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      revert "ACPI: Enable C3 even when PM2_control is zero"
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      revert-acpi-enable-c3-even-when-pm2_control-is-zero.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: revert "ACPI: Enable C3 even when PM2_control is zero"
