@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array.patch added to -mm tree
-Date: Tue, 14 Aug 2007 12:33:16 -0700
-Message-ID: <200708141933.l7EJXG2W017371@imap1.linux-foundation.org>
+Subject: + fix-a-memory-leak-in-em28xx_usb_probe.patch added to -mm tree
+Date: Tue, 14 Aug 2007 12:34:39 -0700
+Message-ID: <200708141934.l7EJYd7D017438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58071 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935030AbXHNTd3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753765AbXHNTew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:33:29 -0400
+	Tue, 14 Aug 2007 15:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, James.Bottomley@steeleye.com, james.smart@emulex.com
+Cc: jesper.juhl@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     Emulex FC HBA driver: fix overflow of statically allocated array
+     Fix a memory leak in em28xx_usb_probe()
 has been added to the -mm tree.  Its filename is
-     emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array.patch
+     fix-a-memory-leak-in-em28xx_usb_probe.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Emulex FC HBA driver: fix overflow of statically allocated array
+Subject: Fix a memory leak in em28xx_usb_probe()
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-The Coverity checker noticed that we may overrun a statically allocated
-array in drivers/scsi/lpfc/lpfc_sli.c::lpfc_sli_hbqbuf_find().
+If, in em28xx_usb_probe() the memory allocation
+	dev->alt_max_pkt_size = kmalloc(32*
+						dev->num_alt,GFP_KERNEL);
+fails, then we'll bail out and return -ENOMEM.
+The problem is that in that case we don't free the storage allocated
+to 'dev', thus causing a memory leak.
 
-The case is this; In 'struct lpfc_hba' we have
-
-	#define LPFC_MAX_HBQS  4
-	...
-	struct lpfc_hba {
-		...
-		struct hbq_s hbqs[LPFC_MAX_HBQS];
-		...
-	};
-
-But then in lpfc_sli_hbqbuf_find() we have this code
-
-	hbqno = tag >> 16;
-	if (hbqno > LPFC_MAX_HBQS)
-		return NULL;
-
-if 'hbqno' ends up as exactely 4, then we won't return, and then this
-
-	list_for_each_entry(d_buf, &phba->hbqs[hbqno].hbq_buffer_list, list) {
-
-will cause an overflow of the statically allocated array at index 4,
-since the valid indices are only 0-3.
-
-I propose this patch, that simply changes the 'hbqno > LPFC_MAX_HBQS'
-into 'hbqno >= LPFC_MAX_HBQS' as a possible fix.
+This patch fixes the leak by freeing 'dev' before we return -ENOMEM.
+This fixes Coverity bug #647.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: James Smart <james.smart@emulex.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/lpfc/lpfc_sli.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/em28xx/em28xx-video.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/scsi/lpfc/lpfc_sli.c~emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array drivers/scsi/lpfc/lpfc_sli.c
---- a/drivers/scsi/lpfc/lpfc_sli.c~emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array
-+++ a/drivers/scsi/lpfc/lpfc_sli.c
-@@ -675,7 +675,7 @@ lpfc_sli_hbqbuf_find(struct lpfc_hba *ph
- 	uint32_t hbqno;
+diff -puN drivers/media/video/em28xx/em28xx-video.c~fix-a-memory-leak-in-em28xx_usb_probe drivers/media/video/em28xx/em28xx-video.c
+--- a/drivers/media/video/em28xx/em28xx-video.c~fix-a-memory-leak-in-em28xx_usb_probe
++++ a/drivers/media/video/em28xx/em28xx-video.c
+@@ -1770,6 +1770,7 @@ static int em28xx_usb_probe(struct usb_i
+ 	if (dev->alt_max_pkt_size == NULL) {
+ 		em28xx_errdev("out of memory!\n");
+ 		em28xx_devused&=~(1<<nr);
++		kfree(dev);
+ 		return -ENOMEM;
+ 	}
  
- 	hbqno = tag >> 16;
--	if (hbqno > LPFC_MAX_HBQS)
-+	if (hbqno >= LPFC_MAX_HBQS)
- 		return NULL;
- 
- 	list_for_each_entry(d_buf, &phba->hbqs[hbqno].hbq_buffer_list, list) {
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
@@ -90,6 +69,7 @@ fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_page
 powerpc-clean-out-a-bunch-of-duplicate-includes.patch
 mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
+fix-a-memory-leak-in-em28xx_usb_probe.patch
 git-gfs2-nmw.patch
 clean-up-duplicate-includes-in-drivers-input.patch
 scripts-ver_linux-correct-printing-of-binutils-version.patch
