@@ -1,123 +1,339 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-clear-io_apic-before-enabing-apic-error-vector.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:52 -0700
-Message-ID: <200708141914.l7EJEqsm016658@imap1.linux-foundation.org>
+Subject: - mmconfig-validate-against-acpi-motherboard-resources.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:00 -0700
+Message-ID: <200708141914.l7EJE0BD016564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53898 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40951 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933315AbXHNTVE (ORCPT
+	by vger.kernel.org with ESMTP id S932951AbXHNTVA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:04 -0400
+	Tue, 14 Aug 2007 15:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@sun.com, ak@suse.de, ebiederm@xmission.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: clear IO_APIC before enabing apic error vector
+     MMCONFIG: validate against ACPI motherboard resources
 has been removed from the -mm tree.  Its filename was
-     x86_64-clear-io_apic-before-enabing-apic-error-vector.patch
+     mmconfig-validate-against-acpi-motherboard-resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: clear IO_APIC before enabing apic error vector
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: MMCONFIG: validate against ACPI motherboard resources
+From: Robert Hancock <hancockr@shaw.ca>
 
-Some apic id lifting system: 4 socket quad core, 8 socket quad core will do
-apic id lifting for BSP.
+This path adds validation of the MMCONFIG table against the ACPI reserved
+motherboard resources.  If the MMCONFIG table is found to be reserved in
+ACPI, we don't bother checking the E820 table.  The PCI Express firmware
+spec apparently tells BIOS developers that reservation in ACPI is required
+and E820 reservation is optional, so checking against ACPI first makes
+sense.  Many BIOSes don't reserve the MMCONFIG region in E820 even though
+it is perfectly functional, the existing check needlessly disables MMCONFIG
+in these cases.
 
-but io-apic regs for ExtINT still use 0 as dest.
+In order to do this, MMCONFIG setup has been split into two phases.  If PCI
+configuration type 1 is not available then MMCONFIG is enabled early as
+before.  Otherwise, it is enabled later after the ACPI interpreter is
+enabled, since we need to be able to execute control methods in order to
+check the ACPI reserved resources.  Presently this is just triggered off
+the end of ACPI interpreter initialization.
 
-so when we enable apic error vector in BSP, we will get one APIC error.
+There are a few other behavioral changes here:
 
-CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
-CPU: L2 Cache: 512K (64 bytes/line)
-CPU 0/4 -> Node 0
-CPU: Physical Processor ID: 1
-CPU: Processor Core ID: 0
-SMP alternatives: switching to UP code
-ACPI: Core revision 20070126
-enabled ExtINT on CPU#0
-ESR value after enabling vector: 00000000, after 0000000c
-APIC error on CPU0: 0c(08)
-ENABLING IO-APIC IRQs
-Synchronizing Arb IDs.
+- Validate all MMCONFIG configurations provided, not just the first one.
 
-So move enable_IO_APIC from setup_IO_APIC into setup_local_APIC and call it
-before enabling apic error vector.
+- Validate the entire required length of each configuration according to
+  the provided ending bus number is reserved, not just the minimum required
+  allocation.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+- Validate that the area is reserved even if we read it from the chipset
+  directly and not from the MCFG table.  This catches the case where the
+  BIOS didn't set the location properly in the chipset and has mapped it
+  over other things it shouldn't have.
+
+This also cleans up the MMCONFIG initialization functions so that they
+simply do nothing if MMCONFIG is not compiled in.
+
+Based on an original patch by Rajesh Shah from Intel.
+
+[akpm@linux-foundation.org: many fixes and cleanups]
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Rajesh Shah <rajesh.shah@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c    |    8 ++++++++
- arch/x86_64/kernel/io_apic.c |    7 +++++--
- include/asm-x86_64/hw_irq.h  |    1 +
- 3 files changed, 14 insertions(+), 2 deletions(-)
+ arch/i386/pci/init.c            |    4 
+ arch/i386/pci/mmconfig-shared.c |  151 ++++++++++++++++++++++++++----
+ arch/i386/pci/pci.h             |    1 
+ drivers/acpi/bus.c              |    2 
+ include/linux/pci.h             |    8 +
+ 5 files changed, 144 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/arch/x86_64/kernel/apic.c
-@@ -418,6 +418,14 @@ void __cpuinit setup_local_APIC (void)
- 		value = APIC_DM_NMI | APIC_LVT_MASKED;
- 	apic_write(APIC_LVT1, value);
+diff -puN arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/init.c
+--- a/arch/i386/pci/init.c~mmconfig-validate-against-acpi-motherboard-resources
++++ a/arch/i386/pci/init.c
+@@ -11,9 +11,7 @@ static __init int pci_access_init(void)
+ #ifdef CONFIG_PCI_DIRECT
+ 	type = pci_direct_probe();
+ #endif
+-#ifdef CONFIG_PCI_MMCONFIG
+-	pci_mmcfg_init(type);
+-#endif
++	pci_mmcfg_early_init(type);
+ 	if (raw_pci_ops)
+ 		return 0;
+ #ifdef CONFIG_PCI_BIOS
+diff -puN arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~mmconfig-validate-against-acpi-motherboard-resources
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -206,9 +206,78 @@ static void __init pci_mmcfg_insert_reso
+ 	pci_mmcfg_resources_inserted = 1;
+ }
  
-+	/*
-+	 * Now enable IO-APICs, actually call clear_IO_APIC
-+	 * We need clear_IO_APIC before enabling vector on BP
-+	 */
-+	if (!smp_processor_id())
-+	if (!skip_ioapic_setup && nr_ioapics)
-+		enable_IO_APIC();
+-static void __init pci_mmcfg_reject_broken(int type)
++static acpi_status __init check_mcfg_resource(struct acpi_resource *res,
++					      void *data)
++{
++	struct resource *mcfg_res = data;
++	struct acpi_resource_address64 address;
++	acpi_status status;
 +
- 	{
- 		unsigned oldvalue;
- 		maxlvt = get_maxlvt();
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1165,7 +1165,7 @@ void __apicdebuginit print_PIC(void)
- 
- #endif  /*  0  */
- 
--static void __init enable_IO_APIC(void)
-+void __init enable_IO_APIC(void)
- {
- 	union IO_APIC_reg_01 reg_01;
- 	int i8259_apic, i8259_pin;
-@@ -1774,7 +1774,10 @@ __setup("no_timer_check", notimercheck);
- 
- void __init setup_IO_APIC(void)
- {
--	enable_IO_APIC();
++	if (res->type == ACPI_RESOURCE_TYPE_FIXED_MEMORY32) {
++		struct acpi_resource_fixed_memory32 *fixmem32 =
++			&res->data.fixed_memory32;
++		if (!fixmem32)
++			return AE_OK;
++		if ((mcfg_res->start >= fixmem32->address) &&
++		    (mcfg_res->end < (fixmem32->address +
++		    		      fixmem32->address_length))) {
++			mcfg_res->flags = 1;
++			return AE_CTRL_TERMINATE;
++		}
++	}
++	if ((res->type != ACPI_RESOURCE_TYPE_ADDRESS32) &&
++	    (res->type != ACPI_RESOURCE_TYPE_ADDRESS64))
++		return AE_OK;
 +
-+	/*
-+	 * calling enable_IO_APIC() is moved to setup_local_APIC for BP
-+	 */
++	status = acpi_resource_to_address64(res, &address);
++	if (ACPI_FAILURE(status) ||
++	   (address.address_length <= 0) ||
++	   (address.resource_type != ACPI_MEMORY_RANGE))
++		return AE_OK;
++
++	if ((mcfg_res->start >= address.minimum) &&
++	    (mcfg_res->end < (address.minimum + address.address_length))) {
++		mcfg_res->flags = 1;
++		return AE_CTRL_TERMINATE;
++	}
++	return AE_OK;
++}
++
++static acpi_status __init find_mboard_resource(acpi_handle handle, u32 lvl,
++		void *context, void **rv)
++{
++	struct resource *mcfg_res = context;
++
++	acpi_walk_resources(handle, METHOD_NAME__CRS,
++	  		    check_mcfg_resource, context);
++
++	if (mcfg_res->flags)
++		return AE_CTRL_TERMINATE;
++
++	return AE_OK;
++}
++
++static int __init is_acpi_reserved(unsigned long start, unsigned long end)
++{
++	struct resource mcfg_res;
++
++	mcfg_res.start = start;
++	mcfg_res.end = end;
++	mcfg_res.flags = 0;
++
++	acpi_get_devices("PNP0C01", find_mboard_resource, &mcfg_res, NULL);
++
++	if (!mcfg_res.flags)
++		acpi_get_devices("PNP0C02", find_mboard_resource, &mcfg_res,
++				 NULL);
++
++	return mcfg_res.flags;
++}
++
++static void __init pci_mmcfg_reject_broken(void)
+ {
+ 	typeof(pci_mmcfg_config[0]) *cfg;
++	int i;
  
- 	if (acpi_ioapic)
- 		io_apic_irqs = ~0;	/* all IRQs go through IOAPIC */
-diff -puN include/asm-x86_64/hw_irq.h~x86_64-clear-io_apic-before-enabing-apic-error-vector include/asm-x86_64/hw_irq.h
---- a/include/asm-x86_64/hw_irq.h~x86_64-clear-io_apic-before-enabing-apic-error-vector
-+++ a/include/asm-x86_64/hw_irq.h
-@@ -135,6 +135,7 @@ extern void init_8259A(int aeoi);
- extern void send_IPI_self(int vector);
- extern void init_VISWS_APIC_irqs(void);
- extern void setup_IO_APIC(void);
-+extern void enable_IO_APIC(void);
- extern void disable_IO_APIC(void);
- extern void print_IO_APIC(void);
- extern int IO_APIC_get_PCI_irq_vector(int bus, int slot, int fn);
+ 	if ((pci_mmcfg_config_num == 0) ||
+ 	    (pci_mmcfg_config == NULL) ||
+@@ -229,17 +298,37 @@ static void __init pci_mmcfg_reject_brok
+ 		goto reject;
+ 	}
+ 
+-	/*
+-	 * Only do this check when type 1 works. If it doesn't work
+-	 * assume we run on a Mac and always use MCFG
+-	 */
+-	if (type == 1 && !e820_all_mapped(cfg->address,
+-					  cfg->address + MMCONFIG_APER_MIN,
+-					  E820_RESERVED)) {
+-		printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
+-		       " E820-reserved\n", cfg->address);
+-		goto reject;
++	for (i = 0; i < pci_mmcfg_config_num; i++) {
++		u32 size = (cfg->end_bus_number + 1) << 20;
++		cfg = &pci_mmcfg_config[i];
++		printk(KERN_NOTICE "PCI: MCFG configuration %d: base %lu "
++		       "segment %hu buses %u - %u\n",
++		       i, (unsigned long)cfg->address, cfg->pci_segment,
++		       (unsigned int)cfg->start_bus_number,
++		       (unsigned int)cfg->end_bus_number);
++		if (is_acpi_reserved(cfg->address, cfg->address + size - 1)) {
++			printk(KERN_NOTICE "PCI: MCFG area at %Lx reserved "
++			       "in ACPI motherboard resources\n",
++			       cfg->address);
++		} else {
++			printk(KERN_ERR "PCI: BIOS Bug: MCFG area at %Lx is not"
++			       " reserved in ACPI motherboard resources\n",
++			       cfg->address);
++			/* Don't try to do this check unless configuration
++			   type 1 is available. */
++			if ((pci_probe & PCI_PROBE_CONF1) &&
++			    e820_all_mapped(cfg->address,
++			                    cfg->address + size - 1,
++					    E820_RESERVED))
++				printk(KERN_NOTICE
++				       "PCI: MCFG area at %Lx reserved in "
++					"E820\n",
++				       cfg->address);
++			else
++				goto reject;
++		}
+ 	}
++
+ 	return;
+ 
+ reject:
+@@ -249,20 +338,46 @@ reject:
+ 	pci_mmcfg_config_num = 0;
+ }
+ 
+-void __init pci_mmcfg_init(int type)
++void __init pci_mmcfg_early_init(int type)
++{
++	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
++		return;
++
++	/* If type 1 access is available, no need to enable MMCONFIG yet, we can
++	   defer until later when the ACPI interpreter is available to better
++	   validate things. */
++	if (type == 1)
++		return;
++
++	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
++
++	if ((pci_mmcfg_config_num == 0) ||
++	    (pci_mmcfg_config == NULL) ||
++	    (pci_mmcfg_config[0].address == 0))
++		return;
++
++	if (pci_mmcfg_arch_init())
++		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
++}
++
++void __init pci_mmcfg_late_init(void)
+ {
+ 	int known_bridge = 0;
+ 
++	/* MMCONFIG disabled */
+ 	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+ 		return;
+ 
+-	if (type == 1 && pci_mmcfg_check_hostbridge())
+-		known_bridge = 1;
++	/* MMCONFIG already enabled */
++	if (!(pci_probe & PCI_PROBE_MASK & ~PCI_PROBE_MMCONF))
++		return;
+ 
+-	if (!known_bridge) {
++	if ((pci_probe & PCI_PROBE_CONF1) && pci_mmcfg_check_hostbridge())
++		known_bridge = 1;
++	else
+ 		acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
+-		pci_mmcfg_reject_broken(type);
+-	}
++
++	pci_mmcfg_reject_broken();
+ 
+ 	if ((pci_mmcfg_config_num == 0) ||
+ 	    (pci_mmcfg_config == NULL) ||
+@@ -270,7 +385,7 @@ void __init pci_mmcfg_init(int type)
+ 		return;
+ 
+ 	if (pci_mmcfg_arch_init()) {
+-		if (type == 1)
++		if (pci_probe & PCI_PROBE_CONF1)
+ 			unreachable_devices();
+ 		if (known_bridge)
+ 			pci_mmcfg_insert_resources(IORESOURCE_BUSY);
+diff -puN arch/i386/pci/pci.h~mmconfig-validate-against-acpi-motherboard-resources arch/i386/pci/pci.h
+--- a/arch/i386/pci/pci.h~mmconfig-validate-against-acpi-motherboard-resources
++++ a/arch/i386/pci/pci.h
+@@ -91,7 +91,6 @@ extern int pci_conf1_read(unsigned int s
+ extern int pci_direct_probe(void);
+ extern void pci_direct_init(int type);
+ extern void pci_pcbios_init(void);
+-extern void pci_mmcfg_init(int type);
+ extern void pcibios_sort(void);
+ 
+ /* pci-mmconfig.c */
+diff -puN drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c~mmconfig-validate-against-acpi-motherboard-resources
++++ a/drivers/acpi/bus.c
+@@ -35,6 +35,7 @@
+ #ifdef CONFIG_X86
+ #include <asm/mpspec.h>
+ #endif
++#include <linux/pci.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+ 
+@@ -761,6 +762,7 @@ static int __init acpi_init(void)
+ 	result = acpi_bus_init();
+ 
+ 	if (!result) {
++		pci_mmcfg_late_init();
+ #ifdef CONFIG_PM_LEGACY
+ 		if (!PM_IS_ACTIVE())
+ 			pm_active = 1;
+diff -puN include/linux/pci.h~mmconfig-validate-against-acpi-motherboard-resources include/linux/pci.h
+--- a/include/linux/pci.h~mmconfig-validate-against-acpi-motherboard-resources
++++ a/include/linux/pci.h
+@@ -892,5 +892,13 @@ extern unsigned long pci_cardbus_mem_siz
+ 
+ extern int pcibios_add_platform_entries(struct pci_dev *dev);
+ 
++#ifdef CONFIG_PCI_MMCONFIG
++extern void __init pci_mmcfg_early_init(int type);
++extern void __init pci_mmcfg_late_init(void);
++#else
++static inline void pci_mmcfg_early_init(int type) { }
++static inline void pci_mmcfg_late_init(void) { }
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* LINUX_PCI_H */
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sata_nv-allow-changing-queue-depth.patch
+libata-add-human-readable-error-value-decoding-v3.patch
+pci-disable-decode-of-io-memory-during-bar-sizing.patch
