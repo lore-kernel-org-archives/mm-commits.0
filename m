@@ -1,171 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - fix-several-memory-leaks-in-cr_backlight_probe-take2.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:21 -0700
-Message-ID: <200708141913.l7EJDL1h016496@imap1.linux-foundation.org>
+Subject: - arch-i386-mm-discontigc-make-some-variables-static.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:39 -0700
+Message-ID: <200708141914.l7EJEdNV016637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43007 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763985AbXHNTUu (ORCPT
+	by vger.kernel.org with ESMTP id S1765162AbXHNTUw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:50 -0400
+	Tue, 14 Aug 2007 15:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix several memory leaks in cr_backlight_probe()
+     arch/i386/mm/discontig.c: make some variables static
 has been removed from the -mm tree.  Its filename was
-     fix-several-memory-leaks-in-cr_backlight_probe-take2.patch
+     arch-i386-mm-discontigc-make-some-variables-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix several memory leaks in cr_backlight_probe()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: arch/i386/mm/discontig.c: make some variables static
+From: Adrian Bunk <bunk@stusta.de>
 
-After fixing the too small memory allocation in cr_backlight_probe()
-from drivers/video/backlight/cr_bllcd.c
-(commit e3bbb3f05339de438faf54124f25c92e6fe4ac2e) I noticed that the
-Coverity checker also thought there were a few memory leaks in there.
-I took a closer look and confirmed that there were indeed several
-leaks.
+This patch makes some needlessly global variables static.
 
-At the start of the function we allocate storage for a
-'struct cr_panel' and store the pointer in a variable named 'crp'.
-
-Then we call pci_get_device() and pci_read_config_byte() and if
-either of them fail we return without freeing the memory allocated
-for the 'struct cr_panel'. These two leaks are easy to fix since we
-don't even use 'crp' for anything up to this point, so I simply
-moved the allocation further down in the function so it only happens
-just before we actually need it.
-
-A bit further down we call backlight_device_register() and store the
-result in 'crp->cr_backlight_device'. In case of error we return
-'crp->cr_backlight_device' from the function, thus leaking 'crp'
-itself. The same thing happens with the call to lcd_device_register().
-To fix these two leaks I declare two new pointers to hold the return
-values, so that in case of error we can return the pointer (as before)
-but without leaking 'crp'.
-
-This version of the patch also adds missing
-backlight_device_unregister() / lcd_device_unregister() / pci_dev_put()
-calls to error paths.
-  Thanks to Richard Purdie <rpurdie@rpsys.net> for noticing.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |   35 +++++++++++++++------------
- 1 files changed, 20 insertions(+), 15 deletions(-)
+ arch/i386/mm/discontig.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2 drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -171,13 +171,11 @@ static struct lcd_ops cr_lcd_ops = {
+diff -puN arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static arch/i386/mm/discontig.c
+--- a/arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static
++++ a/arch/i386/mm/discontig.c
+@@ -103,14 +103,14 @@ extern unsigned long highend_pfn, highst
  
- static int cr_backlight_probe(struct platform_device *pdev)
- {
-+	struct backlight_device *bdp;
-+	struct lcd_device *ldp;
- 	struct cr_panel *crp;
- 	u8 dev_en;
+ #define LARGE_PAGE_BYTES (PTRS_PER_PTE * PAGE_SIZE)
  
--	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
--	if (crp == NULL)
--		return -ENOMEM;
--
- 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 					CRVML_DEVICE_LPC, NULL);
- 	if (!lpc_dev) {
-@@ -193,27 +191,34 @@ static int cr_backlight_probe(struct pla
- 		return -ENODEV;
- 	}
+-unsigned long node_remap_start_pfn[MAX_NUMNODES];
++static unsigned long node_remap_start_pfn[MAX_NUMNODES];
+ unsigned long node_remap_size[MAX_NUMNODES];
+-unsigned long node_remap_offset[MAX_NUMNODES];
+-void *node_remap_start_vaddr[MAX_NUMNODES];
++static unsigned long node_remap_offset[MAX_NUMNODES];
++static void *node_remap_start_vaddr[MAX_NUMNODES];
+ void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags);
  
--	crp->cr_backlight_device = backlight_device_register("cr-backlight",
--							     &pdev->dev, NULL,
--							     &cr_backlight_ops);
--	if (IS_ERR(crp->cr_backlight_device)) {
-+	bdp = backlight_device_register("cr-backlight",
-+					&pdev->dev, NULL, &cr_backlight_ops);
-+	if (IS_ERR(bdp)) {
- 		pci_dev_put(lpc_dev);
--		return PTR_ERR(crp->cr_backlight_device);
-+		return PTR_ERR(bdp);
- 	}
- 
--	crp->cr_lcd_device = lcd_device_register("cr-lcd",
--							&pdev->dev, NULL,
--							&cr_lcd_ops);
--
--	if (IS_ERR(crp->cr_lcd_device)) {
-+	ldp = lcd_device_register("cr-lcd", &pdev->dev, NULL, &cr_lcd_ops);
-+	if (IS_ERR(ldp)) {
-+		backlight_device_unregister(bdp);
- 		pci_dev_put(lpc_dev);
--		return PTR_ERR(crp->cr_backlight_device);
-+		return PTR_ERR(bdp);
- 	}
- 
- 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
- 			      &gpio_bar);
- 	gpio_bar &= ~0x3F;
- 
-+	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
-+	if (!crp) {
-+		lcd_device_unregister(ldp);
-+		backlight_device_unregister(bdp);
-+		pci_dev_put(lpc_dev);
-+		return -ENOMEM;
-+	}
-+
-+	crp->cr_backlight_device = bdp;
-+	crp->cr_lcd_device = ldp;
- 	crp->cr_backlight_device->props.power = FB_BLANK_UNBLANK;
- 	crp->cr_backlight_device->props.brightness = 0;
- 	crp->cr_backlight_device->props.max_brightness = 0;
+-void *node_remap_end_vaddr[MAX_NUMNODES];
+-void *node_remap_alloc_vaddr[MAX_NUMNODES];
++static void *node_remap_end_vaddr[MAX_NUMNODES];
++static void *node_remap_alloc_vaddr[MAX_NUMNODES];
+ static unsigned long kva_start_pfn;
+ static unsigned long kva_pages;
+ /*
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+kernel-auditscc-fix-an-off-by-one.patch
+slow-down-printk-during-boot-fix-3.patch
+git-acpi.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
 git-mtd.patch
-git-ubi.patch
+remove-fs-jffs2-ioctlc.patch
 git-netdev-all.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
 git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+parisc-extern-inline-static-inline.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
+git-unionfs.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+git-cryptodev.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
