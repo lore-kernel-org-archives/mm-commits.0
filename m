@@ -1,91 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-remove-sync_arb_ids.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:50 -0700
-Message-ID: <200708141914.l7EJEoAD016654@imap1.linux-foundation.org>
+Subject: - netconsole-remove-bogus-check.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:02 -0700
+Message-ID: <200708141913.l7EJD2a3016466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933061AbXHNTVC (ORCPT
+	by vger.kernel.org with ESMTP id S932884AbXHNTVA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:02 -0400
+	Tue, 14 Aug 2007 15:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@sun.com, ak@suse.de, ebiederm@xmission.com, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: remove sync_Arb_IDs
+     netconsole: Remove bogus check
 has been removed from the -mm tree.  Its filename was
-     x86_64-remove-sync_arb_ids.patch
+     netconsole-remove-bogus-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: remove sync_Arb_IDs
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: netconsole: Remove bogus check
+From: Satyam Sharma <satyam@infradead.org>
 
-i386 code said
-       /*
-        * Unsupported on P4 - see Intel Dev. Manual Vol. 3, Ch. 8.6.1 And not
-        * needed on AMD.
-        */
-So we don't need sync_Arb_IDs for x86_64...
+Based upon initial work by Keiichi Kii <k-keiichi@bx.jp.nec.com>.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+The (!np.dev) check in write_msg() is bogus (always false), because: np.dev is
+set by netpoll_setup(), which is called by init_netconsole() before
+register_console(), so write_msg() cannot be triggered unless netpoll_setup()
+successfully set np.dev.  Also np.dev cannot go away from under us, because
+netpoll_setup() grabs us reference on it.  So let's remove the bogus check.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Acked-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c    |   17 -----------------
- arch/x86_64/kernel/io_apic.c |    1 -
- 2 files changed, 18 deletions(-)
+ drivers/net/netconsole.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-remove-sync_arb_ids arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-remove-sync_arb_ids
-+++ a/arch/x86_64/kernel/apic.c
-@@ -282,23 +282,6 @@ int __init verify_local_APIC(void)
- 	return 1;
- }
+diff -puN drivers/net/netconsole.c~netconsole-remove-bogus-check drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-remove-bogus-check
++++ a/drivers/net/netconsole.c
+@@ -67,9 +67,6 @@ static void write_msg(struct console *co
+ 	int frag, left;
+ 	unsigned long flags;
  
--void __init sync_Arb_IDs(void)
--{
--	/* Unsupported on P4 - see Intel Dev. Manual Vol. 3, Ch. 8.6.1 */
--	unsigned int ver = GET_APIC_VERSION(apic_read(APIC_LVR));
--	if (ver >= 0x14)	/* P4 or higher */
+-	if (!np.dev)
 -		return;
 -
--	/*
--	 * Wait for idle.
--	 */
--	apic_wait_icr_idle();
--
--	apic_printk(APIC_DEBUG, "Synchronizing Arb IDs.\n");
--	apic_write(APIC_ICR, APIC_DEST_ALLINC | APIC_INT_LEVELTRIG
--				| APIC_DM_INIT);
--}
--
- /*
-  * An initial setup of the virtual wire mode.
-  */
-diff -puN arch/x86_64/kernel/io_apic.c~x86_64-remove-sync_arb_ids arch/x86_64/kernel/io_apic.c
---- a/arch/x86_64/kernel/io_apic.c~x86_64-remove-sync_arb_ids
-+++ a/arch/x86_64/kernel/io_apic.c
-@@ -1783,7 +1783,6 @@ void __init setup_IO_APIC(void)
+ 	local_irq_save(flags);
  
- 	apic_printk(APIC_VERBOSE, "ENABLING IO-APIC IRQs\n");
- 
--	sync_Arb_IDs();
- 	setup_IO_APIC_irqs();
- 	init_IO_APIC_traps();
- 	check_timer();
+ 	for (left = len; left;) {
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+git-netdev-all.patch
+git-net.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
