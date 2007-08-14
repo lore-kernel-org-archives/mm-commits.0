@@ -1,73 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - i386-remove-maccumulate-outgoing-args.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:29 -0700
-Message-ID: <200708141914.l7EJETil016621@imap1.linux-foundation.org>
+Subject: - arch-i386-mach-es7000-es7000platc-cleanups.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:33 -0700
+Message-ID: <200708141914.l7EJEXu0016627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37527 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58307 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765776AbXHNTUk (ORCPT
+	by vger.kernel.org with ESMTP id S1765585AbXHNTUi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:40 -0400
+	Tue, 14 Aug 2007 15:20:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: remove -maccumulate-outgoing-args
+     arch/i386/mach-es7000/es7000plat.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     i386-remove-maccumulate-outgoing-args.patch
+     arch-i386-mach-es7000-es7000platc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: remove -maccumulate-outgoing-args
+Subject: arch/i386/mach-es7000/es7000plat.c: cleanups
 From: Adrian Bunk <bunk@stusta.de>
 
-Contrary to the comment "newer gccs do it by default", newer gcc versions
-default to -maccumulate-outgoing-args only with CONFIG_CC_OPTIMIZE_FOR_SIZE=n,
-and then only with some CPU settings.
-
-Measured with an i386 defconfig, gcc 4.2.1 and kernel 2.6.23-rc1 ("orig" is
-the plain kernel, "changed is with -maccumulate-outgoing-args removed):
-
-$ ls -la vmlinux*
--rwxrwxr-x 1 bunk bunk 6269713 2007-07-24 22:19 vmlinux.changed
--rwxrwxr-x 1 bunk bunk 6425361 2007-07-24 22:19 vmlinux.orig
-$ size vmlinux.*
-   text    data     bss     dec     hex filename
-4493465  504108  614400 5611973  55a1c5 vmlinux.changed
-4646160  504108  614400 5764668  57f63c vmlinux.orig
-$
-
-That's a 2.5% size increase that does for sure hurt small systems.
-
-If the stack unwinder ever comes back and needs this as indicated in the
-comment, adding it to the cflags when the user enabled the unwinder should be
-a better option.
+This patch contains the following cleanups:
+- make some needlessly global functions static
+- #if 0 the unused es7000_stop_cpu()
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Makefile |    4 ----
- 1 files changed, 4 deletions(-)
+ arch/i386/mach-es7000/es7000plat.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/Makefile~i386-remove-maccumulate-outgoing-args arch/i386/Makefile
---- a/arch/i386/Makefile~i386-remove-maccumulate-outgoing-args
-+++ a/arch/i386/Makefile
-@@ -42,10 +42,6 @@ include $(srctree)/arch/i386/Makefile.cp
- # temporary until string.h is fixed
- cflags-y += -ffreestanding
+diff -puN arch/i386/mach-es7000/es7000plat.c~arch-i386-mach-es7000-es7000platc-cleanups arch/i386/mach-es7000/es7000plat.c
+--- a/arch/i386/mach-es7000/es7000plat.c~arch-i386-mach-es7000-es7000platc-cleanups
++++ a/arch/i386/mach-es7000/es7000plat.c
+@@ -46,11 +46,11 @@
+  * ES7000 Globals
+  */
  
--# this works around some issues with generating unwind tables in older gccs
--# newer gccs do it by default
--cflags-y += -maccumulate-outgoing-args
--
- # Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
- # a lot more stack due to the lack of sharing of stacklots:
- CFLAGS				+= $(shell if [ $(call cc-version) -lt 0400 ] ; then echo $(call cc-option,-fno-unit-at-a-time); fi ;)
+-volatile unsigned long	*psai = NULL;
+-struct mip_reg		*mip_reg;
+-struct mip_reg		*host_reg;
+-int 			mip_port;
+-unsigned long		mip_addr, host_addr;
++static volatile unsigned long	*psai = NULL;
++static struct mip_reg		*mip_reg;
++static struct mip_reg		*host_reg;
++static int 			mip_port;
++static unsigned long		mip_addr, host_addr;
+ 
+ /*
+  * GSI override for ES7000 platforms.
+@@ -288,6 +288,7 @@ es7000_start_cpu(int cpu, unsigned long 
+ 
+ }
+ 
++#if 0
+ int
+ es7000_stop_cpu(int cpu)
+ {
+@@ -307,6 +308,7 @@ es7000_stop_cpu(int cpu)
+ 	return 0;
+ 
+ }
++#endif  /*  0  */
+ 
+ void __init
+ es7000_sw_apic()
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
