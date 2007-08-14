@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch added to -mm tree
-Date: Tue, 14 Aug 2007 13:05:15 -0700
-Message-ID: <200708142005.l7EK5FFV018696@imap1.linux-foundation.org>
+Subject: + pid-namespaces-remove-the-struct-pid-unneeded-fields.patch added to -mm tree
+Date: Tue, 14 Aug 2007 13:05:28 -0700
+Message-ID: <200708142005.l7EK5Sdt018715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754483AbXHNUKh (ORCPT
+	by vger.kernel.org with ESMTP id S935535AbXHNUML (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 16:10:37 -0400
+	Tue, 14 Aug 2007 16:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru,
 
 
 The patch titled
-     pid namespaces: make proc_flush_task() actually from entries from multiple namespaces
+     pid namespaces: remove the struct pid unneeded fields
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+     pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: make proc_flush_task() actually from entries from multiple namespaces
+Subject: pid namespaces: remove the struct pid unneeded fields
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This means that proc_flush_task_mnt() is to be called for many proc mounts and
-with different ids, depending on the namespace this pid is to be flushed from.
+Since we've switched from using pid->nr to pid->upids->nr some
+fields on struct pid are no longer needed
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -40,37 +40,48 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+ include/linux/init_task.h |    3 ---
+ include/linux/pid.h       |    3 ---
+ kernel/pid.c              |    1 -
+ 3 files changed, 7 deletions(-)
 
-diff -puN fs/proc/base.c~pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces fs/proc/base.c
---- a/fs/proc/base.c~pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces
-+++ a/fs/proc/base.c
-@@ -2177,8 +2177,22 @@ out:
+diff -puN include/linux/init_task.h~pid-namespaces-remove-the-struct-pid-unneeded-fields include/linux/init_task.h
+--- a/include/linux/init_task.h~pid-namespaces-remove-the-struct-pid-unneeded-fields
++++ a/include/linux/init_task.h
+@@ -93,9 +93,6 @@ extern struct group_info init_groups;
  
- void proc_flush_task(struct task_struct *task)
+ #define INIT_STRUCT_PID {						\
+ 	.count 		= ATOMIC_INIT(1),				\
+-	.nr		= 0, 						\
+-	/* Don't put this struct pid in pid_hash */			\
+-	.pid_chain	= { .next = NULL, .pprev = NULL },		\
+ 	.tasks		= {						\
+ 		{ .first = &init_task.pids[PIDTYPE_PID].node },		\
+ 		{ .first = &init_task.pids[PIDTYPE_PGID].node },	\
+diff -puN include/linux/pid.h~pid-namespaces-remove-the-struct-pid-unneeded-fields include/linux/pid.h
+--- a/include/linux/pid.h~pid-namespaces-remove-the-struct-pid-unneeded-fields
++++ a/include/linux/pid.h
+@@ -57,9 +57,6 @@ struct upid {
+ struct pid
  {
--	proc_flush_task_mnt(proc_mnt, task->pid,
--			thread_group_leader(task) ? 0 : task->tgid);
-+	int i, leader;
-+	struct pid *pid, *tgid;
-+	struct upid *upid;
-+
-+	leader = thread_group_leader(task);
-+	proc_flush_task_mnt(proc_mnt, task->pid, leader ? task->tgid : 0);
-+	pid = task_pid(task);
-+	if (pid->level == 0)
-+		return;
-+
-+	tgid = task_tgid(task);
-+	for (i = 1; i <= pid->level; i++) {
-+		upid = &pid->numbers[i];
-+		proc_flush_task_mnt(upid->ns->proc_mnt, upid->nr,
-+				leader ? 0 : tgid->numbers[i].nr);
-+	}
- }
+ 	atomic_t count;
+-	/* Try to keep pid_chain in the same cacheline as nr for find_pid */
+-	int nr;
+-	struct hlist_node pid_chain;
+ 	/* lists of tasks that use this pid */
+ 	struct hlist_head tasks[PIDTYPE_MAX];
+ 	struct rcu_head rcu;
+diff -puN kernel/pid.c~pid-namespaces-remove-the-struct-pid-unneeded-fields kernel/pid.c
+--- a/kernel/pid.c~pid-namespaces-remove-the-struct-pid-unneeded-fields
++++ a/kernel/pid.c
+@@ -262,7 +262,6 @@ struct pid *alloc_pid(struct pid_namespa
  
- static struct dentry *proc_pid_instantiate(struct inode *dir,
+ 	get_pid_ns(ns);
+ 	pid->level = ns->level;
+-	pid->nr = pid->numbers[0].nr;
+ 	atomic_set(&pid->count, 1);
+ 	for (type = 0; type < PIDTYPE_MAX; ++type)
+ 		INIT_HLIST_HEAD(&pid->tasks[type]);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
