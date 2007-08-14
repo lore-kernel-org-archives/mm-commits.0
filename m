@@ -1,161 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-remove-superfluous-memset.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:15 -0700
-Message-ID: <200708141912.l7EJCFBD016387@imap1.linux-foundation.org>
+Subject: - natsemi-fix-netdev-error-acounting.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:12 -0700
+Message-ID: <200708141912.l7EJCC3E016383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934661AbXHNTM0 (ORCPT
+	by vger.kernel.org with ESMTP id S934727AbXHNTM3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:12:26 -0400
+	Tue, 14 Aug 2007 15:12:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, loveminix@yahoo.com.cn, protasnb@gmail.com, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net: remove superfluous memset
+     natsemi: fix netdev error acounting
 has been removed from the -mm tree.  Its filename was
-     drivers-net-remove-superfluous-memset.patch
+     natsemi-fix-netdev-error-acounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/net: remove superfluous memset
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: natsemi: fix netdev error acounting
+From: Andrew Morton <akpm@linux-foundation.org>
 
-	This patch covers something like this:
+When a detailed netdev error is counted, we also must account for it in the
+aggregated error count.
 
-dev = alloc_*dev(...
-...
-priv = netdev_priv(dev);
-memset(priv, 0, sizeof(*priv));
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8106
 
-The memset() here is superfluous. alloc_netdev() uses kzalloc()
-to allocate needed memory so there is no need to zero the priv region
-twice.
-
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Tim Hockin <thockin@hockin.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Chongfeng Hu <loveminix@yahoo.com.cn>
+Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/fs_enet/fs_enet-main.c   |    1 -
- drivers/net/myri10ge/myri10ge.c      |    1 -
- drivers/net/netxen/netxen_nic_main.c |    1 -
- drivers/net/sunlance.c               |    1 -
- drivers/net/usb/pegasus.c            |    1 -
- drivers/net/usb/rtl8150.c            |    1 -
- 6 files changed, 6 deletions(-)
+ drivers/net/natsemi.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/net/fs_enet/fs_enet-main.c~drivers-net-remove-superfluous-memset drivers/net/fs_enet/fs_enet-main.c
---- a/drivers/net/fs_enet/fs_enet-main.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/fs_enet/fs_enet-main.c
-@@ -962,7 +962,6 @@ static struct net_device *fs_init_instan
- 	SET_MODULE_OWNER(ndev);
- 
- 	fep = netdev_priv(ndev);
--	memset(fep, 0, privsize);	/* clear everything */
- 
- 	fep->dev = dev;
- 	dev_set_drvdata(dev, ndev);
-diff -puN drivers/net/myri10ge/myri10ge.c~drivers-net-remove-superfluous-memset drivers/net/myri10ge/myri10ge.c
---- a/drivers/net/myri10ge/myri10ge.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/myri10ge/myri10ge.c
-@@ -2852,7 +2852,6 @@ static int myri10ge_probe(struct pci_dev
- 	SET_NETDEV_DEV(netdev, &pdev->dev);
- 
- 	mgp = netdev_priv(netdev);
--	memset(mgp, 0, sizeof(*mgp));
- 	mgp->dev = netdev;
- 	mgp->pdev = pdev;
- 	mgp->csum_flag = MXGEFW_FLAGS_CKSUM;
-diff -puN drivers/net/netxen/netxen_nic_main.c~drivers-net-remove-superfluous-memset drivers/net/netxen/netxen_nic_main.c
---- a/drivers/net/netxen/netxen_nic_main.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/netxen/netxen_nic_main.c
-@@ -329,7 +329,6 @@ netxen_nic_probe(struct pci_dev *pdev, c
- 	SET_NETDEV_DEV(netdev, &pdev->dev);
- 
- 	adapter = netdev->priv;
--	memset(adapter, 0 , sizeof(struct netxen_adapter));
- 
- 	adapter->ahw.pdev = pdev;
- 	adapter->ahw.pci_func  = pci_func_id;
-diff -puN drivers/net/sunlance.c~drivers-net-remove-superfluous-memset drivers/net/sunlance.c
---- a/drivers/net/sunlance.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/sunlance.c
-@@ -1335,7 +1335,6 @@ static int __devinit sparc_lance_probe_o
- 		return -ENOMEM;
- 
- 	lp = netdev_priv(dev);
--	memset(lp, 0, sizeof(*lp));
- 
- 	if (sparc_lance_debug && version_printed++ == 0)
- 		printk (KERN_INFO "%s", version);
-diff -puN drivers/net/usb/pegasus.c~drivers-net-remove-superfluous-memset drivers/net/usb/pegasus.c
---- a/drivers/net/usb/pegasus.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/usb/pegasus.c
-@@ -1306,7 +1306,6 @@ static int pegasus_probe(struct usb_inte
+diff -puN drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting drivers/net/natsemi.c
+--- a/drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting
++++ a/drivers/net/natsemi.c
+@@ -2438,13 +2438,16 @@ static void netdev_error(struct net_devi
+ 				dev->name);
+ 		}
+ 		np->stats.rx_fifo_errors++;
++		np->stats.rx_errors++;
  	}
- 
- 	pegasus = netdev_priv(net);
--	memset(pegasus, 0, sizeof (struct pegasus));
- 	pegasus->dev_index = dev_index;
- 	init_waitqueue_head(&pegasus->ctrl_wait);
- 
-diff -puN drivers/net/usb/rtl8150.c~drivers-net-remove-superfluous-memset drivers/net/usb/rtl8150.c
---- a/drivers/net/usb/rtl8150.c~drivers-net-remove-superfluous-memset
-+++ a/drivers/net/usb/rtl8150.c
-@@ -905,7 +905,6 @@ static int rtl8150_probe(struct usb_inte
+ 	/* Hmmmmm, it's not clear how to recover from PCI faults. */
+ 	if (intr_status & IntrPCIErr) {
+ 		printk(KERN_NOTICE "%s: PCI error %#08x\n", dev->name,
+ 			intr_status & IntrPCIErr);
+ 		np->stats.tx_fifo_errors++;
++		np->stats.tx_errors++;
+ 		np->stats.rx_fifo_errors++;
++		np->stats.rx_errors++;
  	}
- 
- 	dev = netdev_priv(netdev);
--	memset(dev, 0, sizeof(rtl8150_t));
- 
- 	dev->intr_buff = kmalloc(INTBUFSIZE, GFP_KERNEL);
- 	if (!dev->intr_buff) {
+ 	spin_unlock(&np->lock);
+ }
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
 git-alsa.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
-git-dvb.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-git-mmc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dma-up-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
 git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
 git-netdev-all.patch
-drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
-drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
-usb-remove-redundant-memset-from-amd5536udc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-ixgbe-build-fix.patch
+git-net.patch
+git-net-fixup.patch
+introduce-strtol_check_range.patch
+git-backlight.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+bsg-declare-request_queue.patch
+aacraid-rename-check_reset.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
