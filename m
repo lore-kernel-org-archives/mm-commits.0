@@ -1,56 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:58 -0700
-Message-ID: <200708141913.l7EJDwG2016561@imap1.linux-foundation.org>
+Subject: - i386-remove-maccumulate-outgoing-args.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:29 -0700
+Message-ID: <200708141914.l7EJETil016621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57775 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765768AbXHNTUi (ORCPT
+	by vger.kernel.org with ESMTP id S1765776AbXHNTUk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:38 -0400
+	Tue, 14 Aug 2007 15:20:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/kernel/smpboot.c:setup_trampoline() must be __cpuinit
+     i386: remove -maccumulate-outgoing-args
 has been removed from the -mm tree.  Its filename was
-     arch-i386-kernel-smpbootcsetup_trampoline-must-be.patch
+     i386-remove-maccumulate-outgoing-args.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/kernel/smpboot.c:setup_trampoline() must be __cpuinit
+Subject: i386: remove -maccumulate-outgoing-args
 From: Adrian Bunk <bunk@stusta.de>
 
-WARNING: arch/i386/kernel/built-in.o(.text+0xf201): Section mismatch: reference to .init.data:trampoline_end (between 'setup_trampoline' and 'cpu_coregroup_map')
-WARNING: arch/i386/kernel/built-in.o(.text+0xf207): Section mismatch: reference to .init.data:trampoline_data (between 'setup_trampoline' and 'cpu_coregroup_map')
-WARNING: arch/i386/kernel/built-in.o(.text+0xf21a): Section mismatch: reference to .init.data:trampoline_data (between 'setup_trampoline' and 'cpu_coregroup_map')
+Contrary to the comment "newer gccs do it by default", newer gcc versions
+default to -maccumulate-outgoing-args only with CONFIG_CC_OPTIMIZE_FOR_SIZE=n,
+and then only with some CPU settings.
 
-Harmless but annoying warnings present when building an i386 SMP kernel
-with CONFIG_HOTPLUG_CPU=n and gcc < 4.0 .
+Measured with an i386 defconfig, gcc 4.2.1 and kernel 2.6.23-rc1 ("orig" is
+the plain kernel, "changed is with -maccumulate-outgoing-args removed):
+
+$ ls -la vmlinux*
+-rwxrwxr-x 1 bunk bunk 6269713 2007-07-24 22:19 vmlinux.changed
+-rwxrwxr-x 1 bunk bunk 6425361 2007-07-24 22:19 vmlinux.orig
+$ size vmlinux.*
+   text    data     bss     dec     hex filename
+4493465  504108  614400 5611973  55a1c5 vmlinux.changed
+4646160  504108  614400 5764668  57f63c vmlinux.orig
+$
+
+That's a 2.5% size increase that does for sure hurt small systems.
+
+If the stack unwinder ever comes back and needs this as indicated in the
+comment, adding it to the cflags when the user enabled the unwinder should be
+a better option.
 
 Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/smpboot.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/Makefile |    4 ----
+ 1 files changed, 4 deletions(-)
 
-diff -puN arch/i386/kernel/smpboot.c~arch-i386-kernel-smpbootcsetup_trampoline-must-be arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~arch-i386-kernel-smpbootcsetup_trampoline-must-be
-+++ a/arch/i386/kernel/smpboot.c
-@@ -118,7 +118,7 @@ DEFINE_PER_CPU(int, cpu_state) = { 0 };
-  * has made sure it's suitably aligned.
-  */
+diff -puN arch/i386/Makefile~i386-remove-maccumulate-outgoing-args arch/i386/Makefile
+--- a/arch/i386/Makefile~i386-remove-maccumulate-outgoing-args
++++ a/arch/i386/Makefile
+@@ -42,10 +42,6 @@ include $(srctree)/arch/i386/Makefile.cp
+ # temporary until string.h is fixed
+ cflags-y += -ffreestanding
  
--static unsigned long __devinit setup_trampoline(void)
-+static unsigned long __cpuinit setup_trampoline(void)
- {
- 	memcpy(trampoline_base, trampoline_data, trampoline_end - trampoline_data);
- 	return virt_to_phys(trampoline_base);
+-# this works around some issues with generating unwind tables in older gccs
+-# newer gccs do it by default
+-cflags-y += -maccumulate-outgoing-args
+-
+ # Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
+ # a lot more stack due to the lack of sharing of stacklots:
+ CFLAGS				+= $(shell if [ $(call cc-version) -lt 0400 ] ; then echo $(call cc-option,-fno-unit-at-a-time); fi ;)
 _
 
 Patches currently in -mm which might be from bunk@stusta.de are
