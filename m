@@ -1,101 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-werror-fixes-for-sys_titanc.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:03:49 -0700
-Message-ID: <200708140503.l7E53nHb032093@imap1.linux-foundation.org>
+Subject: - docs-note-about-select-in-kconfig-languagetxt.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:22 -0700
+Message-ID: <200708140503.l7E53Mt8032054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935134AbXHNFLT (ORCPT
+	by vger.kernel.org with ESMTP id S934654AbXHNFLU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:19 -0400
+	Tue, 14 Aug 2007 01:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jay.estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: jarkao2@o2.pl, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: -Werror fixes for sys_titan.c
+     docs: note about select in kconfig-language.txt
 has been removed from the -mm tree.  Its filename was
-     alpha-werror-fixes-for-sys_titanc.patch
+     docs-note-about-select-in-kconfig-languagetxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: -Werror fixes for sys_titan.c
-From: Jay Estabrook <jay.estabrook@hp.com>
+Subject: docs: note about select in kconfig-language.txt
+From: Jarek Poplawski <jarkao2@o2.pl>
 
-Files:
+A warning note from Sam Ravnborg about kconfig's select evilness,
+dependencies and the future (slightly corrected).
 
-arch/alpha/kernel/sys_titan.c
-
-This code corrects the usage of the request_irq() routine.
-
-Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/sys_titan.c |   27 ++++++++++++++++++++-------
- 1 files changed, 20 insertions(+), 7 deletions(-)
+ Documentation/kbuild/kconfig-language.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN arch/alpha/kernel/sys_titan.c~alpha-werror-fixes-for-sys_titanc arch/alpha/kernel/sys_titan.c
---- a/arch/alpha/kernel/sys_titan.c~alpha-werror-fixes-for-sys_titanc
-+++ a/arch/alpha/kernel/sys_titan.c
-@@ -271,6 +271,19 @@ titan_dispatch_irqs(u64 mask)
-  * Titan Family
-  */
- static void __init
-+titan_request_irq(unsigned int irq, irq_handler_t handler,
-+		  unsigned long irqflags, const char *devname,
-+		  void *dev_id)
-+{
-+	int err;
-+	err = request_irq(irq, handler, irqflags, devname, dev_id);
-+	if (err) {
-+		printk("titan_request_irq for IRQ %d returned %d; ignoring\n",
-+		       irq, err);
-+	}
-+}
-+
-+static void __init
- titan_late_init(void)
- {
- 	/*
-@@ -278,15 +291,15 @@ titan_late_init(void)
- 	 * all reported to the kernel as machine checks, so the handler
- 	 * is a nop so it can be called to count the individual events.
- 	 */
--	request_irq(63+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(63+16, titan_intr_nop, IRQF_DISABLED,
- 		    "CChip Error", NULL);
--	request_irq(62+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(62+16, titan_intr_nop, IRQF_DISABLED,
- 		    "PChip 0 H_Error", NULL);
--	request_irq(61+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(61+16, titan_intr_nop, IRQF_DISABLED,
- 		    "PChip 1 H_Error", NULL);
--	request_irq(60+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(60+16, titan_intr_nop, IRQF_DISABLED,
- 		    "PChip 0 C_Error", NULL);
--	request_irq(59+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(59+16, titan_intr_nop, IRQF_DISABLED,
- 		    "PChip 1 C_Error", NULL);
+diff -puN Documentation/kbuild/kconfig-language.txt~docs-note-about-select-in-kconfig-languagetxt Documentation/kbuild/kconfig-language.txt
+--- a/Documentation/kbuild/kconfig-language.txt~docs-note-about-select-in-kconfig-languagetxt
++++ a/Documentation/kbuild/kconfig-language.txt
+@@ -98,6 +98,15 @@ applicable everywhere (see syntax).
+   times, the limit is set to the largest selection.
+   Reverse dependencies can only be used with boolean or tristate
+   symbols.
++  Note:
++	select is evil.... select will by brute force set a symbol
++	equal to 'y' without visiting the dependencies. So abusing
++	select you are able to select a symbol FOO even if FOO depends
++	on BAR that is not set. In general use select only for
++	non-visible symbols (no promts anywhere) and for symbols with
++	no dependencies. That will limit the usefulness but on the
++	other hand avoid the illegal configurations all over. kconfig
++	should one day warn about such things.
  
- 	/* 
-@@ -345,9 +358,9 @@ privateer_init_pci(void)
- 	 * Hook a couple of extra err interrupts that the
- 	 * common titan code won't.
- 	 */
--	request_irq(53+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(53+16, titan_intr_nop, IRQF_DISABLED,
- 		    "NMI", NULL);
--	request_irq(50+16, titan_intr_nop, IRQF_DISABLED,
-+	titan_request_irq(50+16, titan_intr_nop, IRQF_DISABLED,
- 		    "Temperature Warning", NULL);
- 
- 	/*
+ - numerical ranges: "range" <symbol> <symbol> ["if" <expr>]
+   This allows to limit the range of possible input values for int
 _
 
-Patches currently in -mm which might be from jay.estabrook@hp.com are
+Patches currently in -mm which might be from jarkao2@o2.pl are
