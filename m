@@ -1,120 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - sysace-hdio_getgeo-has-its-own-method-for-ages.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:34 -0700
-Message-ID: <200708141913.l7EJDYGO016520@imap1.linux-foundation.org>
+Subject: - x86_64-store-core-id-bits-in-cpuinfo_x8.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:17 -0700
+Message-ID: <200708141914.l7EJEH2K016602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44280 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933752AbXHNTVO (ORCPT
+	by vger.kernel.org with ESMTP id S933729AbXHNTVP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:14 -0400
+	Tue, 14 Aug 2007 15:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, grant.likely@secretlab.ca, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysace: HDIO_GETGEO has it's own method for ages
+     x86_64: store core id bits in cpuinfo_x8
 has been removed from the -mm tree.  Its filename was
-     sysace-hdio_getgeo-has-its-own-method-for-ages.patch
+     x86_64-store-core-id-bits-in-cpuinfo_x8.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysace: HDIO_GETGEO has it's own method for ages
-From: Christoph Hellwig <hch@lst.de>
+Subject: x86_64: store core id bits in cpuinfo_x8
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 
-The way this driver tries to implement HDIO_GETGEO it'll never be called. 
-Then again on ppc it probably will never be called anyway because it's
-utterly pointless.
+We need to store core id bits to cpuinfo_x86 in early_identify_cpu. So we
+use it to create acpiid_to_node array in k8topolgy.c
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/xsysace.c |   29 ++++++++++-------------------
- 1 files changed, 10 insertions(+), 19 deletions(-)
+ arch/x86_64/kernel/setup.c     |   72 ++++++++++++++++++++-----------
+ include/asm-x86_64/processor.h |    1 
+ 2 files changed, 49 insertions(+), 24 deletions(-)
 
-diff -puN drivers/block/xsysace.c~sysace-hdio_getgeo-has-its-own-method-for-ages drivers/block/xsysace.c
---- a/drivers/block/xsysace.c~sysace-hdio_getgeo-has-its-own-method-for-ages
-+++ a/drivers/block/xsysace.c
-@@ -902,26 +902,17 @@ static int ace_release(struct inode *ino
- 	return 0;
- }
- 
--static int ace_ioctl(struct inode *inode, struct file *filp,
--		     unsigned int cmd, unsigned long arg)
-+static int ace_getgeo(struct block_device *bdev, struct hd_geometry *geo)
- {
--	struct ace_device *ace = inode->i_bdev->bd_disk->private_data;
--	struct hd_geometry __user *geo = (struct hd_geometry __user *)arg;
--	struct hd_geometry g;
--	dev_dbg(ace->dev, "ace_ioctl()\n");
+diff -puN arch/x86_64/kernel/setup.c~x86_64-store-core-id-bits-in-cpuinfo_x8 arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86_64-store-core-id-bits-in-cpuinfo_x8
++++ a/arch/x86_64/kernel/setup.c
+@@ -499,18 +499,7 @@ static void __init amd_detect_cmp(struct
+ 	int node = 0;
+ 	unsigned apicid = hard_smp_processor_id();
+ #endif
+-	unsigned ecx = cpuid_ecx(0x80000008);
 -
--	switch (cmd) {
--	case HDIO_GETGEO:
--		g.heads = ace->cf_id.heads;
--		g.sectors = ace->cf_id.sectors;
--		g.cylinders = ace->cf_id.cyls;
--		g.start = 0;
--		return copy_to_user(geo, &g, sizeof(g)) ? -EFAULT : 0;
-+	struct ace_device *ace = bdev->bd_disk->private_data;
- 
--	default:
--		return -ENOTTY;
+-	c->x86_max_cores = (ecx & 0xff) + 1;
+-
+-	/* CPU telling us the core id bits shift? */
+-	bits = (ecx >> 12) & 0xF;
+-
+-	/* Otherwise recompute */
+-	if (bits == 0) {
+-		while ((1 << bits) < c->x86_max_cores)
+-			bits++;
 -	}
--	return -ENOTTY;
-+	dev_dbg(ace->dev, "ace_getgeo()\n");
-+
-+	geo->heads = ace->cf_id.heads;
-+	geo->sectors = ace->cf_id.sectors;
-+	geo->cylinders = ace->cf_id.cyls;
-+
-+	return 0;
++	bits = c->x86_coreid_bits;
+ 
+ 	/* Low order bits define the core id (index of core in socket) */
+ 	c->cpu_core_id = c->phys_proc_id & ((1 << bits)-1);
+@@ -546,6 +535,34 @@ static void __init amd_detect_cmp(struct
+ #endif
  }
  
- static struct block_device_operations ace_fops = {
-@@ -930,7 +921,7 @@ static struct block_device_operations ac
- 	.release = ace_release,
- 	.media_changed = ace_media_changed,
- 	.revalidate_disk = ace_revalidate_disk,
--	.ioctl = ace_ioctl,
-+	.getgeo = ace_getgeo,
- };
++static void __cpuinit early_init_amd(struct cpuinfo_x86 *c)
++{
++#ifdef CONFIG_SMP
++	unsigned bits;
++	unsigned ecx;
++
++	/* Multi core CPU? */
++	if (c->extended_cpuid_level < 0x80000008)
++		return;
++
++	ecx = cpuid_ecx(0x80000008);
++
++	c->x86_max_cores = (ecx & 0xff) + 1;
++
++	/* CPU telling us the core id bits shift? */
++	bits = (ecx >> 12) & 0xF;
++
++	/* Otherwise recompute */
++	if (bits == 0) {
++		while ((1 << bits) < c->x86_max_cores)
++			bits++;
++	}
++
++	c->x86_coreid_bits = bits;
++
++#endif
++}
++
+ static void __cpuinit init_amd(struct cpuinfo_x86 *c)
+ {
+ 	unsigned level;
+@@ -776,6 +793,7 @@ struct cpu_model_info {
+ void __cpuinit early_identify_cpu(struct cpuinfo_x86 *c)
+ {
+ 	u32 tfms;
++	u32 xlvl;
  
- /* --------------------------------------------------------------------
+ 	c->loops_per_jiffy = loops_per_jiffy;
+ 	c->x86_cache_size = -1;
+@@ -786,6 +804,7 @@ void __cpuinit early_identify_cpu(struct
+ 	c->x86_clflush_size = 64;
+ 	c->x86_cache_alignment = c->x86_clflush_size;
+ 	c->x86_max_cores = 1;
++	c->x86_coreid_bits = 0;
+ 	c->extended_cpuid_level = 0;
+ 	memset(&c->x86_capability, 0, sizeof c->x86_capability);
+ 
+@@ -822,18 +841,6 @@ void __cpuinit early_identify_cpu(struct
+ #ifdef CONFIG_SMP
+ 	c->phys_proc_id = (cpuid_ebx(1) >> 24) & 0xff;
+ #endif
+-}
+-
+-/*
+- * This does the hard work of actually picking apart the CPU stuff...
+- */
+-void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
+-{
+-	int i;
+-	u32 xlvl;
+-
+-	early_identify_cpu(c);
+-
+ 	/* AMD-defined flags: level 0x80000001 */
+ 	xlvl = cpuid_eax(0x80000000);
+ 	c->extended_cpuid_level = xlvl;
+@@ -854,6 +861,23 @@ void __cpuinit identify_cpu(struct cpuin
+ 			c->x86_capability[2] = cpuid_edx(0x80860001);
+ 	}
+ 
++	switch (c->x86_vendor) {
++	case X86_VENDOR_AMD:
++		early_init_amd(c);
++		break;
++	}
++
++}
++
++/*
++ * This does the hard work of actually picking apart the CPU stuff...
++ */
++void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
++{
++	int i;
++
++	early_identify_cpu(c);
++
+ 	init_scattered_cpuid_features(c);
+ 
+ 	c->apicid = phys_pkg_id(0);
+diff -puN include/asm-x86_64/processor.h~x86_64-store-core-id-bits-in-cpuinfo_x8 include/asm-x86_64/processor.h
+--- a/include/asm-x86_64/processor.h~x86_64-store-core-id-bits-in-cpuinfo_x8
++++ a/include/asm-x86_64/processor.h
+@@ -63,6 +63,7 @@ struct cpuinfo_x86 {
+ 	int	x86_tlbsize;	/* number of 4K pages in DTLB/ITLB combined(in pages)*/
+         __u8    x86_virt_bits, x86_phys_bits;
+ 	__u8	x86_max_cores;	/* cpuid returned max cores value */
++	__u8	x86_coreid_bits; /* cpuid returned core id bits */
+         __u32   x86_power; 	
+ 	__u32   extended_cpuid_level;	/* Max extended CPUID function supported */
+ 	unsigned long loops_per_jiffy;
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from yhlu.kernel@gmail.com are
 
-remove-bdput-from-do_open-in-fs-block_devc.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-git-nfs.patch
-git-nfsd.patch
-partially-fix-up-the-lookup_one_noperm-mess.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-git-xfs.patch
-sysv-convert-to-new-aops.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
-fix-execute-checking-in-permission.patch
-exec-remove-unnecessary-check-for-mnt_noexec.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
