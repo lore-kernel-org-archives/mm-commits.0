@@ -1,117 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - i386-alternativec-really-stop-mces-during-code.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:35 -0700
-Message-ID: <200708141914.l7EJEZLE016630@imap1.linux-foundation.org>
+Subject: - x86_64-remove-x86_cpu_to_log_apicid.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:58 -0700
+Message-ID: <200708141914.l7EJEwoE016669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42462 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760505AbXHNTUg (ORCPT
+	by vger.kernel.org with ESMTP id S1765162AbXHNTUh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:36 -0400
+	Tue, 14 Aug 2007 15:20:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: travis@sgi.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 alternative.c: really stop MCEs during code patching
+     x86_64: remove x86_cpu_to_log_apicid
 has been removed from the -mm tree.  Its filename was
-     i386-alternativec-really-stop-mces-during-code.patch
+     x86_64-remove-x86_cpu_to_log_apicid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 alternative.c: really stop MCEs during code patching
-From: Adrian Bunk <bunk@stusta.de>
+Subject: x86_64: remove x86_cpu_to_log_apicid
+From: Mike Travis <travis@sgi.com>
 
-It's CONFIG_X86_MCE, not CONFIG_MCE.
+Remove the x86_cpu_to_log_apicid array.  It is set in
+arch/x86_64/kernel/genapic_flat.c:flat_init_apic_ldr() and
+arch/x86_64/kernel/smpboot.c:do_boot_cpu() but it is never
+referenced.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/genapic.c      |    2 --
+ arch/x86_64/kernel/genapic_flat.c |    1 -
+ arch/x86_64/kernel/smpboot.c      |    1 -
+ include/asm-x86_64/smp.h          |    1 -
+ 4 files changed, 5 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~i386-alternativec-really-stop-mces-during-code
-+++ a/arch/i386/kernel/alternative.c
-@@ -379,7 +379,7 @@ void __init alternative_instructions(voi
- 	   that might execute the to be patched code.
- 	   Other CPUs are not running. */
- 	stop_nmi();
--#ifdef CONFIG_MCE
-+#ifdef CONFIG_X86_MCE
- 	stop_mce();
- #endif
+diff -puN arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic.c
+--- a/arch/x86_64/kernel/genapic.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/genapic.c
+@@ -29,8 +29,6 @@ u8 x86_cpu_to_apicid[NR_CPUS] __read_mos
+ 					= { [0 ... NR_CPUS-1] = BAD_APICID };
+ EXPORT_SYMBOL(x86_cpu_to_apicid);
  
-@@ -417,7 +417,7 @@ void __init alternative_instructions(voi
- 	local_irq_restore(flags);
+-u8 x86_cpu_to_log_apicid[NR_CPUS]	= { [0 ... NR_CPUS-1] = BAD_APICID };
+-
+ struct genapic __read_mostly *genapic = &apic_flat;
  
- 	restart_nmi();
--#ifdef CONFIG_MCE
-+#ifdef CONFIG_X86_MCE
- 	restart_mce();
- #endif
- }
+ /*
+diff -puN arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/genapic_flat.c
+--- a/arch/x86_64/kernel/genapic_flat.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/genapic_flat.c
+@@ -52,7 +52,6 @@ static void flat_init_apic_ldr(void)
+ 
+ 	num = smp_processor_id();
+ 	id = 1UL << num;
+-	x86_cpu_to_log_apicid[num] = id;
+ 	apic_write(APIC_DFR, APIC_DFR_FLAT);
+ 	val = apic_read(APIC_LDR) & ~APIC_LDR_MASK;
+ 	val |= SET_APIC_LOGICAL_ID(id);
+diff -puN arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86_64-remove-x86_cpu_to_log_apicid
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -702,7 +702,6 @@ do_rest:
+ 		cpu_clear(cpu, cpu_present_map);
+ 		cpu_clear(cpu, cpu_possible_map);
+ 		x86_cpu_to_apicid[cpu] = BAD_APICID;
+-		x86_cpu_to_log_apicid[cpu] = BAD_APICID;
+ 		return -EIO;
+ 	}
+ 
+diff -puN include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~x86_64-remove-x86_cpu_to_log_apicid
++++ a/include/asm-x86_64/smp.h
+@@ -78,7 +78,6 @@ static inline int hard_smp_processor_id(
+  * the real APIC ID <-> CPU # mapping.
+  */
+ extern u8 x86_cpu_to_apicid[NR_CPUS];	/* physical ID */
+-extern u8 x86_cpu_to_log_apicid[NR_CPUS];
+ extern u8 bios_cpu_apicid[];
+ 
+ static inline int cpu_present_to_apicid(int mps_cpu)
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
-
-origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
-git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+Patches currently in -mm which might be from travis@sgi.com are
