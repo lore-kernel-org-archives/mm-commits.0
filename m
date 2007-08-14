@@ -1,108 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - make-drivers-acpi-eventcacpi_event_seqnum-static.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:11:57 -0700
-Message-ID: <200708141911.l7EJBvlT016339@imap1.linux-foundation.org>
+Subject: - drivers-net-remove-superfluous-memset.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:15 -0700
+Message-ID: <200708141912.l7EJCFBD016387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38612 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41722 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933926AbXHNTMO (ORCPT
+	by vger.kernel.org with ESMTP id S934661AbXHNTM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:12:14 -0400
+	Tue, 14 Aug 2007 15:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make drivers/acpi/event.c:acpi_event_seqnum static
+     drivers/net: remove superfluous memset
 has been removed from the -mm tree.  Its filename was
-     make-drivers-acpi-eventcacpi_event_seqnum-static.patch
+     drivers-net-remove-superfluous-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make drivers/acpi/event.c:acpi_event_seqnum static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: drivers/net: remove superfluous memset
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This patch makes the needlessly global "acpi_event_seqnum" static.
+	This patch covers something like this:
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+dev = alloc_*dev(...
+...
+priv = netdev_priv(dev);
+memset(priv, 0, sizeof(*priv));
+
+The memset() here is superfluous. alloc_netdev() uses kzalloc()
+to allocate needed memory so there is no need to zero the priv region
+twice.
+
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/event.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/fs_enet/fs_enet-main.c   |    1 -
+ drivers/net/myri10ge/myri10ge.c      |    1 -
+ drivers/net/netxen/netxen_nic_main.c |    1 -
+ drivers/net/sunlance.c               |    1 -
+ drivers/net/usb/pegasus.c            |    1 -
+ drivers/net/usb/rtl8150.c            |    1 -
+ 6 files changed, 6 deletions(-)
 
-diff -puN drivers/acpi/event.c~make-drivers-acpi-eventcacpi_event_seqnum-static drivers/acpi/event.c
---- a/drivers/acpi/event.c~make-drivers-acpi-eventcacpi_event_seqnum-static
-+++ a/drivers/acpi/event.c
-@@ -108,7 +108,7 @@ static const struct file_operations acpi
- };
+diff -puN drivers/net/fs_enet/fs_enet-main.c~drivers-net-remove-superfluous-memset drivers/net/fs_enet/fs_enet-main.c
+--- a/drivers/net/fs_enet/fs_enet-main.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/fs_enet/fs_enet-main.c
+@@ -962,7 +962,6 @@ static struct net_device *fs_init_instan
+ 	SET_MODULE_OWNER(ndev);
  
- #ifdef CONFIG_NET
--unsigned int acpi_event_seqnum;
-+static unsigned int acpi_event_seqnum;
- struct acpi_genl_event {
- 	acpi_device_class device_class;
- 	char bus_id[15];
+ 	fep = netdev_priv(ndev);
+-	memset(fep, 0, privsize);	/* clear everything */
+ 
+ 	fep->dev = dev;
+ 	dev_set_drvdata(dev, ndev);
+diff -puN drivers/net/myri10ge/myri10ge.c~drivers-net-remove-superfluous-memset drivers/net/myri10ge/myri10ge.c
+--- a/drivers/net/myri10ge/myri10ge.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/myri10ge/myri10ge.c
+@@ -2852,7 +2852,6 @@ static int myri10ge_probe(struct pci_dev
+ 	SET_NETDEV_DEV(netdev, &pdev->dev);
+ 
+ 	mgp = netdev_priv(netdev);
+-	memset(mgp, 0, sizeof(*mgp));
+ 	mgp->dev = netdev;
+ 	mgp->pdev = pdev;
+ 	mgp->csum_flag = MXGEFW_FLAGS_CKSUM;
+diff -puN drivers/net/netxen/netxen_nic_main.c~drivers-net-remove-superfluous-memset drivers/net/netxen/netxen_nic_main.c
+--- a/drivers/net/netxen/netxen_nic_main.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/netxen/netxen_nic_main.c
+@@ -329,7 +329,6 @@ netxen_nic_probe(struct pci_dev *pdev, c
+ 	SET_NETDEV_DEV(netdev, &pdev->dev);
+ 
+ 	adapter = netdev->priv;
+-	memset(adapter, 0 , sizeof(struct netxen_adapter));
+ 
+ 	adapter->ahw.pdev = pdev;
+ 	adapter->ahw.pci_func  = pci_func_id;
+diff -puN drivers/net/sunlance.c~drivers-net-remove-superfluous-memset drivers/net/sunlance.c
+--- a/drivers/net/sunlance.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/sunlance.c
+@@ -1335,7 +1335,6 @@ static int __devinit sparc_lance_probe_o
+ 		return -ENOMEM;
+ 
+ 	lp = netdev_priv(dev);
+-	memset(lp, 0, sizeof(*lp));
+ 
+ 	if (sparc_lance_debug && version_printed++ == 0)
+ 		printk (KERN_INFO "%s", version);
+diff -puN drivers/net/usb/pegasus.c~drivers-net-remove-superfluous-memset drivers/net/usb/pegasus.c
+--- a/drivers/net/usb/pegasus.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/usb/pegasus.c
+@@ -1306,7 +1306,6 @@ static int pegasus_probe(struct usb_inte
+ 	}
+ 
+ 	pegasus = netdev_priv(net);
+-	memset(pegasus, 0, sizeof (struct pegasus));
+ 	pegasus->dev_index = dev_index;
+ 	init_waitqueue_head(&pegasus->ctrl_wait);
+ 
+diff -puN drivers/net/usb/rtl8150.c~drivers-net-remove-superfluous-memset drivers/net/usb/rtl8150.c
+--- a/drivers/net/usb/rtl8150.c~drivers-net-remove-superfluous-memset
++++ a/drivers/net/usb/rtl8150.c
+@@ -905,7 +905,6 @@ static int rtl8150_probe(struct usb_inte
+ 	}
+ 
+ 	dev = netdev_priv(netdev);
+-	memset(dev, 0, sizeof(rtl8150_t));
+ 
+ 	dev->intr_buff = kmalloc(INTBUFSIZE, GFP_KERNEL);
+ 	if (!dev->intr_buff) {
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
 git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
 git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
