@@ -1,120 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - arch-i386-mm-discontigc-make-some-variables-static.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:39 -0700
-Message-ID: <200708141914.l7EJEdNV016637@imap1.linux-foundation.org>
+Subject: - msr-driver-simplify-smp_call_function_single-call-sequence.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:15 -0700
+Message-ID: <200708141914.l7EJEFdK016599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43007 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765162AbXHNTUw (ORCPT
+	by vger.kernel.org with ESMTP id S932395AbXHNTUt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:52 -0400
+	Tue, 14 Aug 2007 15:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, ak@suse.de, mm-commits@vger.kernel.org
+To: avi@qumranet.com, ak@suse.de, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/mm/discontig.c: make some variables static
+     msr driver: simplify smp_call_function_single() call sequence
 has been removed from the -mm tree.  Its filename was
-     arch-i386-mm-discontigc-make-some-variables-static.patch
+     msr-driver-simplify-smp_call_function_single-call-sequence.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/mm/discontig.c: make some variables static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: msr driver: simplify smp_call_function_single() call sequence
+From: Avi Kivity <avi@qumranet.com>
 
-This patch makes some needlessly global variables static.
+smp_call_function_single() now knows how to call the function on the
+current cpu.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/discontig.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/i386/lib/msr-on-cpu.c |   62 ++++++++++++-----------------------
+ 1 files changed, 22 insertions(+), 40 deletions(-)
 
-diff -puN arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static arch/i386/mm/discontig.c
---- a/arch/i386/mm/discontig.c~arch-i386-mm-discontigc-make-some-variables-static
-+++ a/arch/i386/mm/discontig.c
-@@ -103,14 +103,14 @@ extern unsigned long highend_pfn, highst
+diff -puN arch/i386/lib/msr-on-cpu.c~msr-driver-simplify-smp_call_function_single-call-sequence arch/i386/lib/msr-on-cpu.c
+--- a/arch/i386/lib/msr-on-cpu.c~msr-driver-simplify-smp_call_function_single-call-sequence
++++ a/arch/i386/lib/msr-on-cpu.c
+@@ -26,27 +26,18 @@ static void __rdmsr_safe_on_cpu(void *in
+ static int _rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h, int safe)
+ {
+ 	int err = 0;
+-	preempt_disable();
+-	if (smp_processor_id() == cpu)
+-		if (safe)
+-			err = rdmsr_safe(msr_no, l, h);
+-		else
+-			rdmsr(msr_no, *l, *h);
+-	else {
+-		struct msr_info rv;
+-
+-		rv.msr_no = msr_no;
+-		if (safe) {
+-			smp_call_function_single(cpu, __rdmsr_safe_on_cpu,
+-						 &rv, 0, 1);
+-			err = rv.err;
+-		} else {
+-			smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
+-		}
+-		*l = rv.l;
+-		*h = rv.h;
++	struct msr_info rv;
++
++	rv.msr_no = msr_no;
++	if (safe) {
++		smp_call_function_single(cpu, __rdmsr_safe_on_cpu, &rv, 0, 1);
++		err = rv.err;
++	} else {
++		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
+ 	}
+-	preempt_enable();
++	*l = rv.l;
++	*h = rv.h;
++
+ 	return err;
+ }
  
- #define LARGE_PAGE_BYTES (PTRS_PER_PTE * PAGE_SIZE)
+@@ -67,27 +58,18 @@ static void __wrmsr_safe_on_cpu(void *in
+ static int _wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h, int safe)
+ {
+ 	int err = 0;
+-	preempt_disable();
+-	if (smp_processor_id() == cpu)
+-		if (safe)
+-			err = wrmsr_safe(msr_no, l, h);
+-		else
+-			wrmsr(msr_no, l, h);
+-	else {
+-		struct msr_info rv;
+-
+-		rv.msr_no = msr_no;
+-		rv.l = l;
+-		rv.h = h;
+-		if (safe) {
+-			smp_call_function_single(cpu, __wrmsr_safe_on_cpu,
+-						 &rv, 0, 1);
+-			err = rv.err;
+-		} else {
+-			smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
+-		}
++	struct msr_info rv;
++
++	rv.msr_no = msr_no;
++	rv.l = l;
++	rv.h = h;
++	if (safe) {
++		smp_call_function_single(cpu, __wrmsr_safe_on_cpu, &rv, 0, 1);
++		err = rv.err;
++	} else {
++		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
+ 	}
+-	preempt_enable();
++
+ 	return err;
+ }
  
--unsigned long node_remap_start_pfn[MAX_NUMNODES];
-+static unsigned long node_remap_start_pfn[MAX_NUMNODES];
- unsigned long node_remap_size[MAX_NUMNODES];
--unsigned long node_remap_offset[MAX_NUMNODES];
--void *node_remap_start_vaddr[MAX_NUMNODES];
-+static unsigned long node_remap_offset[MAX_NUMNODES];
-+static void *node_remap_start_vaddr[MAX_NUMNODES];
- void set_pmd_pfn(unsigned long vaddr, unsigned long pfn, pgprot_t flags);
- 
--void *node_remap_end_vaddr[MAX_NUMNODES];
--void *node_remap_alloc_vaddr[MAX_NUMNODES];
-+static void *node_remap_end_vaddr[MAX_NUMNODES];
-+static void *node_remap_alloc_vaddr[MAX_NUMNODES];
- static unsigned long kva_start_pfn;
- static unsigned long kva_pages;
- /*
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
-git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
 git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+time-simplify-smp_call_function_single-call-sequence.patch
