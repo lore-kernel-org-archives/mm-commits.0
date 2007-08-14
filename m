@@ -1,65 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - via-rhine-disable-rx_copybreak-on-archs-that.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:05 -0700
-Message-ID: <200708141912.l7EJC51A016374@imap1.linux-foundation.org>
+Subject: - net-tulip-xircom_cbc-remove-superfulous-priv-assignment.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:17 -0700
+Message-ID: <200708141912.l7EJCHm1016390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33569 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934739AbXHNTMd (ORCPT
+	by vger.kernel.org with ESMTP id S933681AbXHNTMc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:12:33 -0400
+	Tue, 14 Aug 2007 15:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jailbird@alcatraz.fdf.net, ink@jurassic.park.msu.ru, jeff@garzik.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via-rhine: disable rx_copybreak on archs that don't allow unaligned DMA access
+     net/tulip/xircom_cb.c: remove superfulous priv assignment
 has been removed from the -mm tree.  Its filename was
-     via-rhine-disable-rx_copybreak-on-archs-that.patch
+     net-tulip-xircom_cbc-remove-superfulous-priv-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: via-rhine: disable rx_copybreak on archs that don't allow unaligned DMA access
-From: Dustin Marquess <jailbird@alcatraz.fdf.net>
+Subject: net/tulip/xircom_cb.c: remove superfulous priv assignment
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Patch to disable the rx_copybreak feature on hardware architectures that
-don't allow unaligned DMA access.
+It does
 
-#ifdef code taken from tulip_core.c.  Problem pointed out by Ivan
-Kokshaysky.
+dev = alloc_etherdev(...
+private = netdev_priv(dev);
+...
+dev->priv = private;
 
-Signed-off-by: Dustin Marquess <jailbird@alcatraz.fdf.net>
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Jeff Garzik <jeff@garzik.org>
+which doesn't make much sense (does it?) because this is done in
+alloc_netdev() already.
+
+struct net_device *alloc_netdev(...
+{
+...
+	if (sizeof_priv)
+		dev->priv = netdev_priv(dev);
+
+This patch removes superfluous code.
+
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/via-rhine.c |    6 ++++++
- 1 files changed, 6 insertions(+)
+ drivers/net/tulip/xircom_cb.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/net/via-rhine.c~via-rhine-disable-rx_copybreak-on-archs-that drivers/net/via-rhine.c
---- a/drivers/net/via-rhine.c~via-rhine-disable-rx_copybreak-on-archs-that
-+++ a/drivers/net/via-rhine.c
-@@ -42,7 +42,13 @@ static int max_interrupt_work = 20;
- 
- /* Set the copy breakpoint for the copy-only-tiny-frames scheme.
-    Setting to > 1518 effectively disables this feature. */
-+#if defined(__alpha__) || defined(__arm__) || defined(__hppa__) \
-+       || defined(CONFIG_SPARC) || defined(__ia64__) \
-+       || defined(__sh__) || defined(__mips__)
-+static int rx_copybreak = 1518;
-+#else
- static int rx_copybreak;
-+#endif
- 
- /* Work-around for broken BIOSes: they are unable to get the chip back out of
-    power state D3 so PXE booting fails. bootparam(7): via-rhine.avoid_D3=1 */
+diff -puN drivers/net/tulip/xircom_cb.c~net-tulip-xircom_cbc-remove-superfulous-priv-assignment drivers/net/tulip/xircom_cb.c
+--- a/drivers/net/tulip/xircom_cb.c~net-tulip-xircom_cbc-remove-superfulous-priv-assignment
++++ a/drivers/net/tulip/xircom_cb.c
+@@ -271,7 +271,6 @@ static int __devinit xircom_probe(struct
+ 	dev->hard_start_xmit = &xircom_start_xmit;
+ 	dev->stop = &xircom_close;
+ 	dev->get_stats = &xircom_get_stats;
+-	dev->priv = private;
+ #ifdef CONFIG_NET_POLL_CONTROLLER
+ 	dev->poll_controller = &xircom_poll_controller;
+ #endif
 _
 
-Patches currently in -mm which might be from jailbird@alcatraz.fdf.net are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+git-alsa.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
+git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
