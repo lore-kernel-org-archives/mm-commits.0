@@ -1,126 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - msr-driver-simplify-smp_call_function_single-call-sequence.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:15 -0700
-Message-ID: <200708141914.l7EJEFdK016599@imap1.linux-foundation.org>
+Subject: - usb-enable-hcd-support-on-sh-unconditionally.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:38 -0700
+Message-ID: <200708141913.l7EJDc9S016526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48367 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932395AbXHNTUt (ORCPT
+	by vger.kernel.org with ESMTP id S1765571AbXHNTUw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:49 -0400
+	Tue, 14 Aug 2007 15:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, ak@suse.de, hpa@zytor.com, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     msr driver: simplify smp_call_function_single() call sequence
+     usb: enable hcd support on SH unconditionally.
 has been removed from the -mm tree.  Its filename was
-     msr-driver-simplify-smp_call_function_single-call-sequence.patch
+     usb-enable-hcd-support-on-sh-unconditionally.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: msr driver: simplify smp_call_function_single() call sequence
-From: Avi Kivity <avi@qumranet.com>
+Subject: usb: enable hcd support on SH unconditionally.
+From: Paul Mundt <lethal@linux-sh.org>
 
-smp_call_function_single() now knows how to call the function on the
-current cpu.
+Previous boards were likely seeing USB_ARCH_HAS_HCD selected by way of
+PCMCIA or PCI, though none of those are required for hcd support on SH. 
+Enable support unconditionally.
 
-Cc: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/lib/msr-on-cpu.c |   62 ++++++++++++-----------------------
- 1 files changed, 22 insertions(+), 40 deletions(-)
+ drivers/usb/Kconfig |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/i386/lib/msr-on-cpu.c~msr-driver-simplify-smp_call_function_single-call-sequence arch/i386/lib/msr-on-cpu.c
---- a/arch/i386/lib/msr-on-cpu.c~msr-driver-simplify-smp_call_function_single-call-sequence
-+++ a/arch/i386/lib/msr-on-cpu.c
-@@ -26,27 +26,18 @@ static void __rdmsr_safe_on_cpu(void *in
- static int _rdmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 *l, u32 *h, int safe)
- {
- 	int err = 0;
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		if (safe)
--			err = rdmsr_safe(msr_no, l, h);
--		else
--			rdmsr(msr_no, *l, *h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		if (safe) {
--			smp_call_function_single(cpu, __rdmsr_safe_on_cpu,
--						 &rv, 0, 1);
--			err = rv.err;
--		} else {
--			smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
--		}
--		*l = rv.l;
--		*h = rv.h;
-+	struct msr_info rv;
-+
-+	rv.msr_no = msr_no;
-+	if (safe) {
-+		smp_call_function_single(cpu, __rdmsr_safe_on_cpu, &rv, 0, 1);
-+		err = rv.err;
-+	} else {
-+		smp_call_function_single(cpu, __rdmsr_on_cpu, &rv, 0, 1);
- 	}
--	preempt_enable();
-+	*l = rv.l;
-+	*h = rv.h;
-+
- 	return err;
- }
+diff -puN drivers/usb/Kconfig~usb-enable-hcd-support-on-sh-unconditionally drivers/usb/Kconfig
+--- a/drivers/usb/Kconfig~usb-enable-hcd-support-on-sh-unconditionally
++++ a/drivers/usb/Kconfig
+@@ -18,6 +18,7 @@ config USB_ARCH_HAS_HCD
+ 	default y if USB_ARCH_HAS_EHCI
+ 	default y if PCMCIA && !M32R			# sl811_cs
+ 	default y if ARM				# SL-811
++	default y if SUPERH				# r8a66597-hcd
+ 	default PCI
  
-@@ -67,27 +58,18 @@ static void __wrmsr_safe_on_cpu(void *in
- static int _wrmsr_on_cpu(unsigned int cpu, u32 msr_no, u32 l, u32 h, int safe)
- {
- 	int err = 0;
--	preempt_disable();
--	if (smp_processor_id() == cpu)
--		if (safe)
--			err = wrmsr_safe(msr_no, l, h);
--		else
--			wrmsr(msr_no, l, h);
--	else {
--		struct msr_info rv;
--
--		rv.msr_no = msr_no;
--		rv.l = l;
--		rv.h = h;
--		if (safe) {
--			smp_call_function_single(cpu, __wrmsr_safe_on_cpu,
--						 &rv, 0, 1);
--			err = rv.err;
--		} else {
--			smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
--		}
-+	struct msr_info rv;
-+
-+	rv.msr_no = msr_no;
-+	rv.l = l;
-+	rv.h = h;
-+	if (safe) {
-+		smp_call_function_single(cpu, __wrmsr_safe_on_cpu, &rv, 0, 1);
-+		err = rv.err;
-+	} else {
-+		smp_call_function_single(cpu, __wrmsr_on_cpu, &rv, 0, 1);
- 	}
--	preempt_enable();
-+
- 	return err;
- }
- 
+ # many non-PCI SOC chips embed OHCI
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-git-kvm.patch
-time-simplify-smp_call_function_single-call-sequence.patch
+apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+git-sh.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+nohz-fix-nohz-x86-dyntick-idle-handling.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+clean-up-duplicate-includes-in-mm.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
