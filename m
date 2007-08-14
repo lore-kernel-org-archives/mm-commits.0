@@ -1,132 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - matroxfb-rectify-jitter-g450-g550.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:44 -0700
-Message-ID: <200708140502.l7E52iUu031998@imap1.linux-foundation.org>
+Subject: - spi_mpc83xx-fix-prescale-modulus-calculation.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:14 -0700
+Message-ID: <200708140503.l7E53EnK032040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37174 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765142AbXHNFLJ (ORCPT
+	by vger.kernel.org with ESMTP id S932632AbXHNFLL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:09 -0400
+	Tue, 14 Aug 2007 01:11:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pc@us.ibm.com, adaplas@gmail.com, petr@vandrovec.name, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     matroxfb: rectify jitter (G450/G550)
+     spi_mpc83xx: fix prescale modulus calculation
 has been removed from the -mm tree.  Its filename was
-     matroxfb-rectify-jitter-g450-g550.patch
+     spi_mpc83xx-fix-prescale-modulus-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: matroxfb: rectify jitter (G450/G550)
-From: Paul A. Clarke <pc@us.ibm.com>
+Subject: spi_mpc83xx: fix prescale modulus calculation
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-This builds upon my previous attempts to resolve some jitter problems seen
-with the Matrox G450 and G550 -based cards, including odd disparities observed
-between x86 and Power -based machines in a somewhat less hackish way (removing
-the hacked ifdefs).
+Long ago I've noticed (but didn't pay much attention) that
+spi_mpc83xx using PM calculations that differs from what
+specs describe. I.e.
 
-Apparently, preference should be given to use the DVI PLL when frequencies
-permit, the Standard PLL otherwise.  The max pixel clock for the panellink
-interface is extracted from the PInS information on the card and used as a
-limit to determine which PLL to use.
+u8 pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 4);
 
-Signed-off-by: Paul A. Clarke <pc@us.ibm.com>
-Acked-by: Petr Vandrovec <petr@vandrovec.name>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+While specs says: "The SPI baud rate generator clock source (either
+system clock or system clock divided by 16, depending on DIV16 bit) is
+divided by 4 * ([PM] + 1), a range from 4 to 64.".
+
+Thus " - 1" is missing in the spi_mpc83xx's formula.
+
+Why nobody noticed that bug? Probably because sysclk usually less then
+user expects, e.g. you expect 200 MHz, but real clock is 198 MHz,
+and integer rounding helps when this formula is used.
+
+Suppose it's SPI in QE, SYSCLK at 198 MHz, thus SPIBRG at 99MHz, 25 MHz
+requested.
+
+PM = (99MHz / ( 25 MHz * 4 )), PM == 0, output SPICLK will be 24.75 MHz
+
+At lower frequencies this bug is more noticeable, though.
+
+And this bug shows itself in all its beauty if SYSCLK is equal or a bit
+more than you expect (200 MHz SYSCLK, 100 MHz SPIBRG):
+PM = (100MHz / ( 25 MHz * 4 )), PM == 1, output SPICLK will be 12.625 MHz!
+
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/g450_pll.c         |   23 ++++++++++++----------
- drivers/video/matrox/matroxfb_DAC1064.h |   15 ++++++++++++++
- drivers/video/matrox/matroxfb_base.h    |    1 
- drivers/video/matrox/matroxfb_misc.c    |    1 
- 4 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/spi/spi_mpc83xx.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/matrox/g450_pll.c~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/g450_pll.c
---- a/drivers/video/matrox/g450_pll.c~matroxfb-rectify-jitter-g450-g550
-+++ a/drivers/video/matrox/g450_pll.c
-@@ -331,16 +331,19 @@ static int __g450_setclk(WPMINFO unsigne
- 					tmp |= M1064_XPIXCLKCTRL_PLL_UP;
- 				}
- 				matroxfb_DAC_out(PMINFO M1064_XPIXCLKCTRL, tmp);
--#ifdef __powerpc__
--				/* This is necessary to avoid jitter on PowerPC
--				 * (OpenFirmware) systems, but apparently
--				 * introduces jitter, at least on a x86-64
--				 * using DVI.
--				 * A simple workaround is disable for non-PPC.
--				 */
--				matroxfb_DAC_out(PMINFO M1064_XDVICLKCTRL, 0);
--#endif /* __powerpc__ */
--				matroxfb_DAC_out(PMINFO M1064_XPWRCTRL, xpwrctrl);
-+				/* DVI PLL preferred for frequencies up to
-+				   panel link max, standard PLL otherwise */
-+				if (fout >= MINFO->max_pixel_clock_panellink)
-+					tmp = 0;
-+				else tmp =
-+					M1064_XDVICLKCTRL_DVIDATAPATHSEL |
-+					M1064_XDVICLKCTRL_C1DVICLKSEL |
-+					M1064_XDVICLKCTRL_C1DVICLKEN |
-+					M1064_XDVICLKCTRL_DVILOOPCTL |
-+					M1064_XDVICLKCTRL_P1LOOPBWDTCTL;
-+				matroxfb_DAC_out(PMINFO M1064_XDVICLKCTRL,tmp);
-+				matroxfb_DAC_out(PMINFO M1064_XPWRCTRL,
-+						 xpwrctrl);
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-prescale-modulus-calculation drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-fix-prescale-modulus-calculation
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -148,6 +148,8 @@ static void mpc83xx_spi_chipselect(struc
+ 	if (value == BITBANG_CS_ACTIVE) {
+ 		u32 regval = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
+ 		u32 len = spi->bits_per_word;
++		u8 pm;
++
+ 		if (len == 32)
+ 			len = 0;
+ 		else
+@@ -170,7 +172,7 @@ static void mpc83xx_spi_chipselect(struc
+ 		regval |= SPMODE_LEN(len);
  
- 				matroxfb_DAC_unlock_irqrestore(flags);
+ 		if ((mpc83xx_spi->spibrg / spi->max_speed_hz) >= 64) {
+-			u8 pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 64);
++			pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 64) - 1;
+ 			if (pm > 0x0f) {
+ 				dev_err(&spi->dev, "Requested speed is too "
+ 					"low: %d Hz. Will use %d Hz instead.\n",
+@@ -180,7 +182,9 @@ static void mpc83xx_spi_chipselect(struc
  			}
-diff -puN drivers/video/matrox/matroxfb_DAC1064.h~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_DAC1064.h
---- a/drivers/video/matrox/matroxfb_DAC1064.h~matroxfb-rectify-jitter-g450-g550
-+++ a/drivers/video/matrox/matroxfb_DAC1064.h
-@@ -33,6 +33,21 @@ void DAC1064_global_restore(WPMINFO2);
- #define     M1064_XCURCTRL_3COLOR	0x01	/* transparent, 0, 1, 2 */
- #define     M1064_XCURCTRL_XGA		0x02	/* 0, 1, transparent, complement */
- #define     M1064_XCURCTRL_XWIN		0x03	/* transparent, transparent, 0, 1 */
-+	/* drive DVI by standard(0)/DVI(1) PLL */
-+	/* if set(1), C?DVICLKEN and C?DVICLKSEL must be set(1) */
-+#define      M1064_XDVICLKCTRL_DVIDATAPATHSEL   0x01
-+	/* drive CRTC1 by standard(0)/DVI(1) PLL */
-+#define      M1064_XDVICLKCTRL_C1DVICLKSEL      0x02
-+	/* drive CRTC2 by standard(0)/DVI(1) PLL */
-+#define      M1064_XDVICLKCTRL_C2DVICLKSEL      0x04
-+	/* pixel clock allowed to(0)/blocked from(1) driving CRTC1 */
-+#define      M1064_XDVICLKCTRL_C1DVICLKEN       0x08
-+	/* DVI PLL loop filter bandwidth selection bits */
-+#define      M1064_XDVICLKCTRL_DVILOOPCTL       0x30
-+	/* CRTC2 pixel clock allowed to(0)/blocked from(1) driving CRTC2 */
-+#define      M1064_XDVICLKCTRL_C2DVICLKEN       0x40
-+	/* P1PLL loop filter bandwith selection */
-+#define      M1064_XDVICLKCTRL_P1LOOPBWDTCTL    0x80
- #define M1064_XCURCOL0RED	0x08
- #define M1064_XCURCOL0GREEN	0x09
- #define M1064_XCURCOL0BLUE	0x0A
-diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_base.h
---- a/drivers/video/matrox/matroxfb_base.h~matroxfb-rectify-jitter-g450-g550
-+++ a/drivers/video/matrox/matroxfb_base.h
-@@ -424,6 +424,7 @@ struct matrox_fb_info {
- 		      } mmio;
- 
- 	unsigned int	max_pixel_clock;
-+	unsigned int	max_pixel_clock_panellink;
- 
- 	struct matrox_switch*	hw_switch;
- 
-diff -puN drivers/video/matrox/matroxfb_misc.c~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_misc.c
---- a/drivers/video/matrox/matroxfb_misc.c~matroxfb-rectify-jitter-g450-g550
-+++ a/drivers/video/matrox/matroxfb_misc.c
-@@ -658,6 +658,7 @@ static int parse_pins5(WPMINFO const str
- 		MINFO->values.reg.mctlwtst_core = (MINFO->values.reg.mctlwtst & ~7) |
- 		                                  wtst_xlat[MINFO->values.reg.mctlwtst & 7];
- 	}
-+	MINFO->max_pixel_clock_panellink = bd->pins[47] * 4000;
- 	return 0;
- }
+ 			regval |= SPMODE_PM(pm) | SPMODE_DIV16;
+ 		} else {
+-			u8 pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 4);
++			pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 4);
++			if (pm)
++				pm--;
+ 			regval |= SPMODE_PM(pm);
+ 		}
  
 _
 
-Patches currently in -mm which might be from pc@us.ibm.com are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
