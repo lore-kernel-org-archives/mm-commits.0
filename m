@@ -1,164 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-fixup.patch added to -mm tree
-Date: Tue, 14 Aug 2007 11:58:50 -0700
-Message-ID: <200708141858.l7EIwo14015839@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-pci-mmconfig-eax.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 11:59:58 -0700
+Message-ID: <200708141859.l7EIxwDf015872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760573AbXHNS66 (ORCPT
+	by vger.kernel.org with ESMTP id S932355AbXHNTAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 14:58:58 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7EIwtUl013048
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2007 11:58:56 -0700
+	Tue, 14 Aug 2007 15:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless-fixup
-has been added to the -mm tree.  Its filename is
-     git-wireless-fixup.patch
+     revert x86_64-mm-pci-mmconfig-eax
+has been removed from the -mm tree.  Its filename was
+     revert-x86_64-mm-pci-mmconfig-eax.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it doesn't apply and I need to see if we fixed it
 
 ------------------------------------------------------
-Subject: git-wireless-fixup
+Subject: revert x86_64-mm-pci-mmconfig-eax
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Kills the Vaio: no netconsole, fails at "mountL could not find filesystem
+/dev/root" in initrd.
+
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig  |   34 ------------------
- drivers/net/wireless/Makefile |   60 ++++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+), 34 deletions(-)
+ arch/i386/pci/mmconfig.c   |   14 ++++++-----
+ arch/i386/pci/pci.h        |   43 -----------------------------------
+ arch/x86_64/pci/mmconfig.c |   12 ++++-----
+ 3 files changed, 14 insertions(+), 55 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-wireless-fixup
-+++ a/drivers/net/wireless/Kconfig
-@@ -451,40 +451,6 @@ config PCMCIA_ATMEL
- 	  Enable support for PCMCIA cards containing the
- 	  Atmel at76c502 and at76c504 chips.
+diff -puN arch/i386/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax arch/i386/pci/mmconfig.c
+--- a/arch/i386/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax
++++ a/arch/i386/pci/mmconfig.c
+@@ -82,15 +82,16 @@ static int pci_mmcfg_read(unsigned int s
  
--config ATMEL
--      tristate "Atmel at76c50x chipset  802.11b support"
--      depends on (PCI || PCMCIA) && WLAN_80211
--      select WIRELESS_EXT
--      select FW_LOADER
--      select CRC32
--       ---help---
--        A driver 802.11b wireless cards based on the Atmel fast-vnet
--        chips. This driver supports standard Linux wireless extensions.
--
--        Many  cards based on this chipset do not have flash memory
--        and need their firmware loaded at start-up. If yours is
--        one of these, you will need to provide a firmware image
--        to be loaded into the card by the driver. The Atmel
--        firmware package can be downloaded from
--        <http://www.thekelleys.org.uk/atmel>
--
--config PCI_ATMEL
--      tristate "Atmel at76c506 PCI cards"
--      depends on ATMEL && PCI
--       ---help---
--        Enable support for PCI and mini-PCI cards containing the
--        Atmel at76c506 chip.
--
--config PCMCIA_ATMEL
--	tristate "Atmel at76c502/at76c504 PCMCIA cards"
--	depends on ATMEL && PCMCIA
--	select WIRELESS_EXT
--	select FW_LOADER
--	select CRC32
--	---help---
--	  Enable support for PCMCIA cards containing the
--	  Atmel at76c502 and at76c504 chips.
--
- config AIRO_CS
- 	tristate "Cisco/Aironet 34X/35X/4500/4800 PCMCIA cards"
- 	depends on PCMCIA && (BROKEN || !M32R) && WLAN_80211
-diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
---- a/drivers/net/wireless/Makefile~git-wireless-fixup
-+++ a/drivers/net/wireless/Makefile
-@@ -36,7 +36,9 @@ obj-$(CONFIG_PRISM54)		+= prism54/
+ 	switch (len) {
+ 	case 1:
+-		*value = mmio_config_readb(mmcfg_virt_addr + reg);
++		*value = readb(mmcfg_virt_addr + reg);
+ 		break;
+ 	case 2:
+-		*value = mmio_config_readw(mmcfg_virt_addr + reg);
++		*value = readw(mmcfg_virt_addr + reg);
+ 		break;
+ 	case 4:
+-		*value = mmio_config_readl(mmcfg_virt_addr + reg);
++		*value = readl(mmcfg_virt_addr + reg);
+ 		break;
+ 	}
++
+ 	spin_unlock_irqrestore(&pci_config_lock, flags);
  
- obj-$(CONFIG_HOSTAP)		+= hostap/
- obj-$(CONFIG_BCM43XX)		+= bcm43xx/
-+obj-$(CONFIG_B43)		+= b43/
- obj-$(CONFIG_ZD1211RW)		+= zd1211rw/
-+obj-$(CONFIG_ZD1211RW_MAC80211)	+= zd1211rw-mac80211/
+ 	return 0;
+@@ -115,15 +116,16 @@ static int pci_mmcfg_write(unsigned int 
  
- # 16-bit wireless PCMCIA client drivers
- obj-$(CONFIG_PCMCIA_RAYCS)	+= ray_cs.o
-@@ -47,3 +49,61 @@ obj-$(CONFIG_LIBERTAS)      += libertas/
+ 	switch (len) {
+ 	case 1:
+-		mmio_config_writeb(mmcfg_virt_addr, value);
++		writeb(value, mmcfg_virt_addr + reg);
+ 		break;
+ 	case 2:
+-		mmio_config_writew(mmcfg_virt_addr, value);
++		writew(value, mmcfg_virt_addr + reg);
+ 		break;
+ 	case 4:
+-		mmio_config_writel(mmcfg_virt_addr, value);
++		writel(value, mmcfg_virt_addr + reg);
+ 		break;
+ 	}
++
+ 	spin_unlock_irqrestore(&pci_config_lock, flags);
  
- rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
- obj-$(CONFIG_RTL8187)	+= rtl8187.o
-+
-+obj-$(CONFIG_ADM8211)		+= adm8211.o
-+
-+obj-$(CONFIG_P54_COMMON)	+= p54common.o
-+obj-$(CONFIG_P54_USB)		+= p54usb.o
-+obj-$(CONFIG_P54_PCI)		+= p54pci.o
-+
-+rt2x00lib-objs := rt2x00dev.o rt2x00mac.o rt2x00config.o
-+
-+ifeq ($(CONFIG_RT2X00_LIB_DEBUGFS),y)
-+	rt2x00lib-objs += rt2x00debug.o
-+endif
-+
-+ifeq ($(CONFIG_RT2X00_LIB_RFKILL),y)
-+	rt2x00lib-objs += rt2x00rfkill.o
-+endif
-+
-+ifeq ($(CONFIG_RT2X00_LIB_FIRMWARE),y)
-+	rt2x00lib-objs += rt2x00firmware.o
-+endif
-+
-+obj-$(CONFIG_RT2X00_LIB)	+= rt2x00lib.o
-+obj-$(CONFIG_RT2X00_LIB_PCI)	+= rt2x00pci.o
-+obj-$(CONFIG_RT2X00_LIB_USB)	+= rt2x00usb.o
-+obj-$(CONFIG_RT2400PCI)		+= rt2400pci.o
-+obj-$(CONFIG_RT2500PCI)		+= rt2500pci.o
-+obj-$(CONFIG_RT61PCI)		+= rt61pci.o
-+obj-$(CONFIG_RT2500USB)		+= rt2500usb.o
-+obj-$(CONFIG_RT73USB)		+= rt73usb.o
-+
-+# NOTE:  We use common code from iwl-base.c to build driver
-+# specific binaries based on the #define IWL -- the target
-+# setup below creates a specific driver target from iwl-base.c
-+#
-+# NOTE2: iwl-base-XXXX.o has -D"KBUILD_MODNAME=KBUILD_STR(...)" in order to
-+# prevent the following kbuild error:
-+# 	include/linux/pci.h:603: error: `KBUILD_MODNAME' undeclared (first \
-+#		use in this function)
-+#
-+# -jpk
-+
-+obj-$(CONFIG_IWL3945)	+= iwl3945.o
-+iwl3945-objs		= iwl-base-3945.o iwl-3945.o iwl-3945-rs.o
-+CFLAGS_iwl-3945.o	= -DIWL=3945
-+CFLAGS_iwl-3945-rs.o	= -DIWL=3945
-+CFLAGS_iwl-base-3945.o	= -DIWL=3945 -D"KBUILD_MODNAME=KBUILD_STR(iwl3945)"
-+$(obj)/iwl-base-3945.o: $(src)/iwl-base.c FORCE
-+	$(call cmd,force_checksrc)
-+	$(call if_changed_rule,cc_o_c)
-+
-+obj-$(CONFIG_IWL4965)	+= iwl4965.o
-+iwl4965-objs		= iwl-base-4965.o iwl-4965.o iwl-4965-rs.o
-+CFLAGS_iwl-4965.o	= -DIWL=4965
-+CFLAGS_iwl-4965-rs.o	= -DIWL=4965
-+CFLAGS_iwl-base-4965.o	= -DIWL=4965 -D"KBUILD_MODNAME=KBUILD_STR(iwl4965)"
-+$(obj)/iwl-base-4965.o: $(src)/iwl-base.c FORCE
-+	$(call cmd,force_checksrc)
-+	$(call if_changed_rule,cc_o_c)
+ 	return 0;
+diff -puN arch/i386/pci/pci.h~revert-x86_64-mm-pci-mmconfig-eax arch/i386/pci/pci.h
+--- a/arch/i386/pci/pci.h~revert-x86_64-mm-pci-mmconfig-eax
++++ a/arch/i386/pci/pci.h
+@@ -104,46 +104,3 @@ extern DECLARE_BITMAP(pci_mmcfg_fallback
+ extern int __init pci_mmcfg_arch_reachable(unsigned int seg, unsigned int bus,
+ 					   unsigned int devfn);
+ extern int __init pci_mmcfg_arch_init(void);
+-
+-/*
+- * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+- * on their northbrige except through the * %eax register. As such, you MUST
+- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+- * accessor functions.
+- * In fact just use pci_config_*, nothing else please.
+- */
+-static inline unsigned char mmio_config_readb(void __iomem *pos)
+-{
+-	u8 val;
+-	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
+-	return val;
+-}
+-
+-static inline unsigned short mmio_config_readw(void __iomem *pos)
+-{
+-	u16 val;
+-	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
+-	return val;
+-}
+-
+-static inline unsigned int mmio_config_readl(void __iomem *pos)
+-{
+-	u32 val;
+-	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
+-	return val;
+-}
+-
+-static inline void mmio_config_writeb(void __iomem *pos, u8 val)
+-{
+-	asm volatile("movb %%al,(%1)" :: "a" (val), "r" (pos) : "memory");
+-}
+-
+-static inline void mmio_config_writew(void __iomem *pos, u16 val)
+-{
+-	asm volatile("movw %%ax,(%1)" :: "a" (val), "r" (pos) : "memory");
+-}
+-
+-static inline void mmio_config_writel(void __iomem *pos, u32 val)
+-{
+-	asm volatile("movl %%eax,(%1)" :: "a" (val), "r" (pos) : "memory");
+-}
+diff -puN arch/x86_64/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax arch/x86_64/pci/mmconfig.c
+--- a/arch/x86_64/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax
++++ a/arch/x86_64/pci/mmconfig.c
+@@ -66,13 +66,13 @@ static int pci_mmcfg_read(unsigned int s
+ 
+ 	switch (len) {
+ 	case 1:
+-		*value = mmio_config_readb(addr + reg);
++		*value = readb(addr + reg);
+ 		break;
+ 	case 2:
+-		*value = mmio_config_readw(addr + reg);
++		*value = readw(addr + reg);
+ 		break;
+ 	case 4:
+-		*value = mmio_config_readl(addr + reg);
++		*value = readl(addr + reg);
+ 		break;
+ 	}
+ 
+@@ -94,13 +94,13 @@ static int pci_mmcfg_write(unsigned int 
+ 
+ 	switch (len) {
+ 	case 1:
+-		mmio_config_writeb(addr + reg, value);
++		writeb(value, addr + reg);
+ 		break;
+ 	case 2:
+-		mmio_config_writew(addr + reg, value);
++		writew(value, addr + reg);
+ 		break;
+ 	case 4:
+-		mmio_config_writel(addr + reg, value);
++		writel(value, addr + reg);
+ 		break;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -210,7 +218,6 @@ git-unionfs-fix-2.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
 git-wireless-fixup.patch
-disable-b44-and-bcm43xx.patch
 revert-x86_64-mm-pci-mmconfig-eax.patch
 fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
