@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-missing-include.patch added to -mm tree
-Date: Tue, 14 Aug 2007 12:42:50 -0700
-Message-ID: <200708141942.l7EJgo5i017755@imap1.linux-foundation.org>
+Subject: + move-mm_struct-and-vm_area_struct-fix.patch added to -mm tree
+Date: Tue, 14 Aug 2007 12:46:26 -0700
+Message-ID: <200708141946.l7EJkVog017956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38276 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934912AbXHNTnF (ORCPT
+	by vger.kernel.org with ESMTP id S1763769AbXHNTq6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:43:05 -0400
+	Tue, 14 Aug 2007 15:46:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+Cc: aurelien@aurel32.net, schwidefsky@de.ibm.com
 
 
 The patch titled
-     h8300: missing include
+     move-mm_struct-and-vm_area_struct fix
 has been added to the -mm tree.  Its filename is
-     h8300-missing-include.patch
+     move-mm_struct-and-vm_area_struct-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: h8300: missing include
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: move-mm_struct-and-vm_area_struct fix
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-Build error fix.
+  CC      arch/mips/kernel/asm-offsets.s
+In file included from include/linux/sched.h:58,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/linux/mm_types.h:115: error: expected specifier-qualifier-list before 'pgprot_t'
+include/linux/mm_types.h:169: warning: 'struct file' declared inside parameter list
+include/linux/mm_types.h:169: warning: its scope is only this definition or declaration, which is probably not what you want
+include/linux/mm_types.h:175: error: expected specifier-qualifier-list before 'pgd_t'
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/process.c   |    1 +
- arch/h8300/kernel/sys_h8300.c |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/mm_types.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/h8300/kernel/process.c~h8300-missing-include arch/h8300/kernel/process.c
---- a/arch/h8300/kernel/process.c~h8300-missing-include
-+++ a/arch/h8300/kernel/process.c
-@@ -37,6 +37,7 @@
- #include <linux/a.out.h>
- #include <linux/interrupt.h>
- #include <linux/reboot.h>
-+#include <linux/fs.h>
+diff -puN include/linux/mm_types.h~move-mm_struct-and-vm_area_struct-fix include/linux/mm_types.h
+--- a/include/linux/mm_types.h~move-mm_struct-and-vm_area_struct-fix
++++ a/include/linux/mm_types.h
+@@ -10,6 +10,7 @@
+ #include <linux/rbtree.h>
+ #include <linux/rwsem.h>
+ #include <linux/completion.h>
++#include <asm/page.h>
+ #include <asm/mmu.h>
  
- #include <asm/uaccess.h>
- #include <asm/system.h>
-diff -puN arch/h8300/kernel/sys_h8300.c~h8300-missing-include arch/h8300/kernel/sys_h8300.c
---- a/arch/h8300/kernel/sys_h8300.c~h8300-missing-include
-+++ a/arch/h8300/kernel/sys_h8300.c
-@@ -18,6 +18,7 @@
- #include <linux/mman.h>
- #include <linux/file.h>
- #include <linux/utsname.h>
-+#include <linux/fs.h>
- 
- #include <asm/setup.h>
- #include <asm/uaccess.h>
+ struct address_space;
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-h8300-missing-include.patch
+git-kvm.patch
+mips-detect-bcm947xx-cpus.patch
+mips-bcm947xx-support.patch
+rfc-add-bcm947xx-to-kconfig.patch
+mips-add-bcm947xx-to-makefile.patch
+git-wireless.patch
+move-mm_struct-and-vm_area_struct-fix.patch
