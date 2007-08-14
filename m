@@ -1,69 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - direct-io-fix-error-path-crashes.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:29 -0700
-Message-ID: <200708140502.l7E52Taf031979@imap1.linux-foundation.org>
+Subject: - linux-audit-list-is-subscribers-only.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:02:56 -0700
+Message-ID: <200708140502.l7E52uDT032012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40295 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51083 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761736AbXHNFDa (ORCPT
+	by vger.kernel.org with ESMTP id S1763300AbXHNFDj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:03:30 -0400
+	Tue, 14 Aug 2007 01:03:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, gurudas.pai@oracle.com, joe.jin@oracle.com, stable@kernel.org, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: nix.or.die@googlemail.com, dwmw2@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     direct-io: fix error-path crashes
+     linux-audit list is subscribers-only
 has been removed from the -mm tree.  Its filename was
-     direct-io-fix-error-path-crashes.patch
+     linux-audit-list-is-subscribers-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: direct-io: fix error-path crashes
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: linux-audit list is subscribers-only
+From: Gabriel C <nix.or.die@googlemail.com>
 
-Need to initialize map_bh.b_state to zero.  Otherwise, in case of a faulty
-user-buffer its possible to go into dio_zero_block() and submit a page by
-mistake - since it checks for buffer_new().
-
-http://marc.info/?l=linux-kernel&m=118551339032528&w=2
-
-akpm: Linus had a (better) patch to just do a kzalloc() in there, but it got
-lost.  Probably this version is better for -stable anwyay.
-
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Acked-by: Joe Jin <joe.jin@oracle.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
-Cc: gurudas pai <gurudas.pai@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    1 +
- 1 files changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/direct-io.c~direct-io-fix-error-path-crashes fs/direct-io.c
---- a/fs/direct-io.c~direct-io-fix-error-path-crashes
-+++ a/fs/direct-io.c
-@@ -974,6 +974,7 @@ direct_io_worker(int rw, struct kiocb *i
- 	dio->get_block = get_block;
- 	dio->end_io = end_io;
- 	dio->map_bh.b_private = NULL;
-+	dio->map_bh.b_state = 0;
- 	dio->final_block_in_bio = -1;
- 	dio->next_block_for_io = -1;
- 
+diff -puN MAINTAINERS~linux-audit-list-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~linux-audit-list-is-subscribers-only
++++ a/MAINTAINERS
+@@ -664,7 +664,7 @@ S:	Maintained
+ AUDIT SUBSYSTEM
+ P:	David Woodhouse
+ M:	dwmw2@infradead.org
+-L:	linux-audit@redhat.com
++L:	linux-audit@redhat.com (subscribers-only)
+ W:	http://people.redhat.com/sgrubb/audit/
+ T:	git kernel.org:/pub/scm/linux/kernel/git/dwmw2/audit-2.6.git
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
-ext3-convert-to-new-aops.patch
-ext4-convert-to-new-aops.patch
-hugetlbfs-read-support.patch
-hugetlbfs-read-support-fix.patch
-ext2-statfs-improvement-for-block-and-inode-free-count.patch
-fix-for-ext2-reservation.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+git-kvm.patch
+fix-libata-warnings-with-config_pm=n.patch
+drivers-scsi-g_ncr5380c-ncr53c400_pseudo_dma-is-not.patch
+fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
