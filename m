@@ -1,125 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - netconsole-simplify-boot-module-option-setup-logic.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:04 -0700
-Message-ID: <200708141913.l7EJD4NK016469@imap1.linux-foundation.org>
+Subject: - calgary-fix-mis-handled-pci-topology.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:15:06 -0700
+Message-ID: <200708141915.l7EJF6ld016758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60135 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35010 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933448AbXHNTVI (ORCPT
+	by vger.kernel.org with ESMTP id S1765776AbXHNTVH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:08 -0400
+	Tue, 14 Aug 2007 15:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: bernarde@br.ibm.com, ak@suse.de, mfb@br.ibm.com, muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netconsole: Simplify boot/module option setup logic
+     Calgary: fix mis-handled PCI topology
 has been removed from the -mm tree.  Its filename was
-     netconsole-simplify-boot-module-option-setup-logic.patch
+     calgary-fix-mis-handled-pci-topology.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netconsole: Simplify boot/module option setup logic
-From: Satyam Sharma <satyam@infradead.org>
+Subject: Calgary: fix mis-handled PCI topology
+From: Murillo Fernandes Bernardes <bernarde@br.ibm.com>
 
-Based upon initial work by Keiichi Kii <k-keiichi@bx.jp.nec.com>.
+Current code assumed that devices were directly connected to a Calgary
+bridge, as it tried to get the iommu table directly from the parent bus
+controller.
 
-Presently, boot/module parameters are set up quite differently for the case of
-built-in netconsole (__setup() -> obsolete_checksetup() ->
-netpoll_parse_options() -> strlen(config) == 0 in init_netconsole()) vs
-modular netconsole (module_param_string() -> string copied to the config
-variable -> strlen(config) != 0 init_netconsole() -> netpoll_parse_options()).
+When we have another bridge between the Calgary/CalIOC2 bridge and the
+device we should look upwards until we get to the top (Calgary/CalIOC2
+bridge), where the iommu table resides.
 
-This patch makes both of them similar by doing exactly the equivalent of a
-module_param_string() in option_setup() also -- just copying the param string
-passed from the kernel command line into "config" variable.  So,
-strlen(config) != 0 in both cases, and netpoll_parse_options() is always
-called from init_netconsole(), thus making the setup logic for both cases
-similar.
-
-Now, option_setup() is only ever called / used for the built-in case, so we
-put it inside a #ifndef MODULE, otherwise gcc will complain about
-option_setup() being "defined but not used".  Also, the "configured" variable
-is redundant with this patch and hence removed.
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Murillo Fernandes Bernardes <mfb@br.ibm.com>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netconsole.c |   27 ++++++++++++++-------------
- 1 files changed, 14 insertions(+), 13 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   13 ++++++-------
+ 1 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/netconsole.c~netconsole-simplify-boot-module-option-setup-logic drivers/net/netconsole.c
---- a/drivers/net/netconsole.c~netconsole-simplify-boot-module-option-setup-logic
-+++ a/drivers/net/netconsole.c
-@@ -53,6 +53,15 @@ static char config[MAX_PARAM_LENGTH];
- module_param_string(netconsole, config, MAX_PARAM_LENGTH, 0);
- MODULE_PARM_DESC(netconsole, " netconsole=[src-port]@[src-ip]/[dev],[tgt-port]@<tgt-ip>/[tgt-macaddr]\n");
+diff -puN arch/x86_64/kernel/pci-calgary.c~calgary-fix-mis-handled-pci-topology arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~calgary-fix-mis-handled-pci-topology
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -367,16 +367,15 @@ static inline struct iommu_table *find_i
  
-+#ifndef	MODULE
-+static int __init option_setup(char *opt)
-+{
-+	strlcpy(config, opt, MAX_PARAM_LENGTH);
-+	return 1;
-+}
-+__setup("netconsole=", option_setup);
-+#endif	/* MODULE */
+ 	pdev = to_pci_dev(dev);
+ 
+-	/* is the device behind a bridge? */
+-	if (unlikely(pdev->bus->parent))
+-		pbus = pdev->bus->parent;
+-	else
+-		pbus = pdev->bus;
++	pbus = pdev->bus;
 +
- static struct netpoll np = {
- 	.name		= "netconsole",
- 	.dev_name	= "eth0",
-@@ -60,7 +69,6 @@ static struct netpoll np = {
- 	.remote_port	= 6666,
- 	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
- };
--static int configured;
++	/* is the device behind a bridge? Look for the root bus */
++	while (pbus->parent)
++		pbus = pbus->parent;
  
- static void write_msg(struct console *con, const char *msg, unsigned int len)
- {
-@@ -85,26 +93,19 @@ static struct console netconsole = {
- 	.write	= write_msg,
- };
+ 	tbl = pci_iommu(pbus);
  
--static int __init option_setup(char *opt)
--{
--	configured = !netpoll_parse_options(&np, opt);
--	return 1;
--}
--
--__setup("netconsole=", option_setup);
--
- static int __init init_netconsole(void)
- {
- 	int err = 0;
+-	BUG_ON(pdev->bus->parent &&
+-	       (tbl->it_busno != pdev->bus->parent->number));
++	BUG_ON(tbl && (tbl->it_busno != pbus->number));
  
--	if (strnlen(config, MAX_PARAM_LENGTH))
--		option_setup(config);
--
--	if (!configured) {
-+	if (!strnlen(config, MAX_PARAM_LENGTH)) {
- 		printk(KERN_INFO "netconsole: not configured, aborting\n");
- 		goto out;
- 	}
- 
-+	err = netpoll_parse_options(&np, config);
-+	if (err)
-+		goto out;
-+
- 	err = netpoll_setup(&np);
- 	if (err)
- 		goto out;
+ 	return tbl;
+ }
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
-
-git-netdev-all.patch
-git-net.patch
-introduce-u16_max-and-u32_max.patch
-introduce-strtol_check_range.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+Patches currently in -mm which might be from bernarde@br.ibm.com are
