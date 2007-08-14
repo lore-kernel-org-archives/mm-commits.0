@@ -1,76 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - pvr2fb-consolidated-cleanup-of-pvr2fbc.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:39 -0700
-Message-ID: <200708140502.l7E52dxV031991@imap1.linux-foundation.org>
+Subject: - alpha-werror-fixes-for-sys_titanc.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:49 -0700
+Message-ID: <200708140503.l7E53nHb032093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765983AbXHNFLM (ORCPT
+	by vger.kernel.org with ESMTP id S935134AbXHNFLT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:12 -0400
+	Tue, 14 Aug 2007 01:11:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian@mcmen.demon.co.uk, adaplas@gmail.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: jay.estabrook@hp.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pvr2fb: Consolidated cleanup of pvr2fb.c
+     alpha: -Werror fixes for sys_titan.c
 has been removed from the -mm tree.  Its filename was
-     pvr2fb-consolidated-cleanup-of-pvr2fbc.patch
+     alpha-werror-fixes-for-sys_titanc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pvr2fb: Consolidated cleanup of pvr2fb.c
-From: Adrian McMenamin <adrian@mcmen.demon.co.uk>
+Subject: alpha: -Werror fixes for sys_titan.c
+From: Jay Estabrook <jay.estabrook@hp.com>
 
-- better handling of the pvr2 registers based on more up to date information.
+Files:
 
-Testing shows that it seems to work pretty well at 16bpp, 24bpp and 32bpp -
-including proper rendering of the boot logo at all levels (previously this was
-a bit broken even at 16bpp) and giving white against black text.  Really
-detailed testing (eg with X11) requires support for the maple bus - which
-isn't (currently - next project assuming this is okay) available, but I have
-no reason to think this is broken.
+arch/alpha/kernel/sys_titan.c
 
-Signed-off by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+This code corrects the usage of the request_irq() routine.
+
+Signed-off-by: Jay Estabrook <jay.estabrook@hp.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pvr2fb.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ arch/alpha/kernel/sys_titan.c |   27 ++++++++++++++++++++-------
+ 1 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/pvr2fb.c~pvr2fb-consolidated-cleanup-of-pvr2fbc drivers/video/pvr2fb.c
---- a/drivers/video/pvr2fb.c~pvr2fb-consolidated-cleanup-of-pvr2fbc
-+++ a/drivers/video/pvr2fb.c
-@@ -94,6 +94,7 @@
- #define DISP_DIWCONF (DISP_BASE + 0xe8)
- #define DISP_DIWHSTRT (DISP_BASE + 0xec)
- #define DISP_DIWVSTRT (DISP_BASE + 0xf0)
-+#define DISP_PIXDEPTH (DISP_BASE + 0x108)
+diff -puN arch/alpha/kernel/sys_titan.c~alpha-werror-fixes-for-sys_titanc arch/alpha/kernel/sys_titan.c
+--- a/arch/alpha/kernel/sys_titan.c~alpha-werror-fixes-for-sys_titanc
++++ a/arch/alpha/kernel/sys_titan.c
+@@ -271,6 +271,19 @@ titan_dispatch_irqs(u64 mask)
+  * Titan Family
+  */
+ static void __init
++titan_request_irq(unsigned int irq, irq_handler_t handler,
++		  unsigned long irqflags, const char *devname,
++		  void *dev_id)
++{
++	int err;
++	err = request_irq(irq, handler, irqflags, devname, dev_id);
++	if (err) {
++		printk("titan_request_irq for IRQ %d returned %d; ignoring\n",
++		       irq, err);
++	}
++}
++
++static void __init
+ titan_late_init(void)
+ {
+ 	/*
+@@ -278,15 +291,15 @@ titan_late_init(void)
+ 	 * all reported to the kernel as machine checks, so the handler
+ 	 * is a nop so it can be called to count the individual events.
+ 	 */
+-	request_irq(63+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(63+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "CChip Error", NULL);
+-	request_irq(62+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(62+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "PChip 0 H_Error", NULL);
+-	request_irq(61+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(61+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "PChip 1 H_Error", NULL);
+-	request_irq(60+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(60+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "PChip 0 C_Error", NULL);
+-	request_irq(59+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(59+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "PChip 1 C_Error", NULL);
  
- /* Pixel clocks, one for TV output, doubled for VGA output */
- #define TV_CLK 74239
-@@ -600,6 +601,7 @@ static void pvr2_init_display(struct fb_
+ 	/* 
+@@ -345,9 +358,9 @@ privateer_init_pci(void)
+ 	 * Hook a couple of extra err interrupts that the
+ 	 * common titan code won't.
+ 	 */
+-	request_irq(53+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(53+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "NMI", NULL);
+-	request_irq(50+16, titan_intr_nop, IRQF_DISABLED,
++	titan_request_irq(50+16, titan_intr_nop, IRQF_DISABLED,
+ 		    "Temperature Warning", NULL);
  
- 	/* bits per pixel */
- 	fb_writel(fb_readl(DISP_DIWMODE) | (--bytesperpixel << 2), DISP_DIWMODE);
-+	fb_writel(bytesperpixel << 2, DISP_PIXDEPTH);
- 
- 	/* video enable, color sync, interlace,
- 	 * hsync and vsync polarity (currently unused) */
-@@ -808,6 +810,8 @@ static int __devinit pvr2fb_common_init(
- 
- 	if (register_framebuffer(fb_info) < 0)
- 		goto out_err;
-+	/*Must write PIXDEPTH to register before anything is displayed - so force init */
-+	pvr2_init_display(fb_info);
- 
- 	modememused = get_line_length(fb_info->var.xres_virtual,
- 				      fb_info->var.bits_per_pixel);
+ 	/*
 _
 
-Patches currently in -mm which might be from adrian@mcmen.demon.co.uk are
+Patches currently in -mm which might be from jay.estabrook@hp.com are
