@@ -1,170 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86_64-mm-early-quirks-unification.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:43 -0700
-Message-ID: <200708141913.l7EJDhHH016532@imap1.linux-foundation.org>
+Subject: - fib_trie-cleanup.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:45 -0700
+Message-ID: <200708141912.l7EJCjsw016431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53617 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755054AbXHNTU2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752975AbXHNTU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Aug 2007 15:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, davem@davemloft.net, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix x86_64-mm-early-quirks-unification
+     fib_trie: cleanup
 has been removed from the -mm tree.  Its filename was
-     fix-x86_64-mm-early-quirks-unification.patch
+     fib_trie-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix x86_64-mm-early-quirks-unification
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fib_trie: cleanup
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c: In function 'ati_bugs':
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: 'timer_over_8254' undeclared (first use in this function)
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: (Each undeclared identifier is reported only once
-arch/i386/kernel/../../x86_64/kernel/early-quirks.c:58: error: for each function it appears in.)
-distcc[28590] ERROR: compile arch/i386/kernel/../../x86_64/kernel/early-quirks.c on bix/32 failed
+Try this out:
+     * replace macro's with inlines
+     * get rid of places doing multiple evaluations of NODE_PARENT
 
-Cc: Andi Kleen <ak@suse.de>
+[akpm@linux-foundation.org: rcu_dereference wants an lval]
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/early-quirks.c |    2 ++
- 1 files changed, 2 insertions(+)
+ net/ipv4/fib_trie.c |   68 ++++++++++++++++++++++--------------------
+ 1 files changed, 36 insertions(+), 32 deletions(-)
 
-diff -puN arch/x86_64/kernel/early-quirks.c~fix-x86_64-mm-early-quirks-unification arch/x86_64/kernel/early-quirks.c
---- a/arch/x86_64/kernel/early-quirks.c~fix-x86_64-mm-early-quirks-unification
-+++ a/arch/x86_64/kernel/early-quirks.c
-@@ -12,9 +12,11 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/pci_ids.h>
-+
- #include <asm/pci-direct.h>
- #include <asm/dma.h>
- #include <asm/io_apic.h>
-+#include <asm/apic.h>
+diff -puN net/ipv4/fib_trie.c~fib_trie-cleanup net/ipv4/fib_trie.c
+--- a/net/ipv4/fib_trie.c~fib_trie-cleanup
++++ a/net/ipv4/fib_trie.c
+@@ -93,15 +93,8 @@ typedef unsigned int t_key;
+ #define T_TNODE 0
+ #define T_LEAF  1
+ #define NODE_TYPE_MASK	0x1UL
+-#define NODE_PARENT(node) \
+-	((struct tnode *)rcu_dereference(((node)->parent & ~NODE_TYPE_MASK)))
+-
+ #define NODE_TYPE(node) ((node)->parent & NODE_TYPE_MASK)
  
- #ifdef CONFIG_IOMMU
- #include <asm/iommu.h>
+-#define NODE_SET_PARENT(node, ptr)		\
+-	rcu_assign_pointer((node)->parent,	\
+-			   ((unsigned long)(ptr)) | NODE_TYPE(node))
+-
+ #define IS_TNODE(n) (!(n->parent & T_LEAF))
+ #define IS_LEAF(n) (n->parent & T_LEAF)
+ 
+@@ -174,6 +167,19 @@ static void tnode_free(struct tnode *tn)
+ static struct kmem_cache *fn_alias_kmem __read_mostly;
+ static struct trie *trie_local = NULL, *trie_main = NULL;
+ 
++static inline struct tnode *node_parent(struct node *node)
++{
++	struct tnode *ret;
++
++	ret = (struct tnode *)(node->parent & ~NODE_TYPE_MASK);
++	return rcu_dereference(ret);
++}
++
++static inline void node_set_parent(struct node *node, struct tnode *ptr)
++{
++	rcu_assign_pointer(node->parent,
++			   (unsigned long)ptr | NODE_TYPE(node));
++}
+ 
+ /* rcu_read_lock needs to be hold by caller from readside */
+ 
+@@ -446,7 +452,7 @@ static void tnode_put_child_reorg(struct
+ 		tn->full_children++;
+ 
+ 	if (n)
+-		NODE_SET_PARENT(n, tn);
++		node_set_parent(n, tn);
+ 
+ 	rcu_assign_pointer(tn->child[i], n);
+ }
+@@ -481,7 +487,7 @@ static struct node *resize(struct trie *
+ 				continue;
+ 
+ 			/* compress one level */
+-			NODE_SET_PARENT(n, NULL);
++			node_set_parent(n, NULL);
+ 			tnode_free(tn);
+ 			return n;
+ 		}
+@@ -636,7 +642,7 @@ static struct node *resize(struct trie *
+ 
+ 			/* compress one level */
+ 
+-			NODE_SET_PARENT(n, NULL);
++			node_set_parent(n, NULL);
+ 			tnode_free(tn);
+ 			return n;
+ 		}
+@@ -961,24 +967,21 @@ fib_find_node(struct trie *t, u32 key)
+ static struct node *trie_rebalance(struct trie *t, struct tnode *tn)
+ {
+ 	int wasfull;
+-	t_key cindex, key;
+-	struct tnode *tp = NULL;
+-
+-	key = tn->key;
++	t_key cindex, key = tn->key;
++	struct tnode *tp;
+ 
+-	while (tn != NULL && NODE_PARENT(tn) != NULL) {
+-
+-		tp = NODE_PARENT(tn);
++	while (tn != NULL && (tp = node_parent((struct node *)tn)) != NULL) {
+ 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
+ 		wasfull = tnode_full(tp, tnode_get_child(tp, cindex));
+ 		tn = (struct tnode *) resize (t, (struct tnode *)tn);
+ 		tnode_put_child_reorg((struct tnode *)tp, cindex,(struct node*)tn, wasfull);
+ 
+-		if (!NODE_PARENT(tn))
++		tp = node_parent((struct node *) tn);
++		if (!tp)
+ 			break;
+-
+-		tn = NODE_PARENT(tn);
++		tn = tp;
+ 	}
++
+ 	/* Handle last (top) tnode */
+ 	if (IS_TNODE(tn))
+ 		tn = (struct tnode*) resize(t, (struct tnode *)tn);
+@@ -1031,7 +1034,7 @@ fib_insert_node(struct trie *t, int *err
+ 			pos = tn->pos + tn->bits;
+ 			n = tnode_get_child(tn, tkey_extract_bits(key, tn->pos, tn->bits));
+ 
+-			BUG_ON(n && NODE_PARENT(n) != tn);
++			BUG_ON(n && node_parent(n) != tn);
+ 		} else
+ 			break;
+ 	}
+@@ -1083,7 +1086,7 @@ fib_insert_node(struct trie *t, int *err
+ 	if (t->trie && n == NULL) {
+ 		/* Case 2: n is NULL, and will just insert a new leaf */
+ 
+-		NODE_SET_PARENT(l, tp);
++		node_set_parent((struct node *)l, tp);
+ 
+ 		cindex = tkey_extract_bits(key, tp->pos, tp->bits);
+ 		put_child(t, (struct tnode *)tp, cindex, (struct node *)l);
+@@ -1114,7 +1117,7 @@ fib_insert_node(struct trie *t, int *err
+ 			goto err;
+ 		}
+ 
+-		NODE_SET_PARENT(tn, tp);
++		node_set_parent((struct node *)tn, tp);
+ 
+ 		missbit = tkey_extract_bits(key, newpos, 1);
+ 		put_child(t, tn, missbit, (struct node *)l);
+@@ -1495,12 +1498,13 @@ backtrace:
+ 		if (chopped_off <= pn->bits) {
+ 			cindex &= ~(1 << (chopped_off-1));
+ 		} else {
+-			if (NODE_PARENT(pn) == NULL)
++			struct tnode *parent = node_parent((struct node *) pn);
++			if (!parent)
+ 				goto failed;
+ 
+ 			/* Get Child's index */
+-			cindex = tkey_extract_bits(pn->key, NODE_PARENT(pn)->pos, NODE_PARENT(pn)->bits);
+-			pn = NODE_PARENT(pn);
++			cindex = tkey_extract_bits(pn->key, parent->pos, parent->bits);
++			pn = parent;
+ 			chopped_off = 0;
+ 
+ #ifdef CONFIG_IP_FIB_TRIE_STATS
+@@ -1536,7 +1540,7 @@ static int trie_leaf_remove(struct trie 
+ 		check_tnode(tn);
+ 		n = tnode_get_child(tn ,tkey_extract_bits(key, tn->pos, tn->bits));
+ 
+-		BUG_ON(n && NODE_PARENT(n) != tn);
++		BUG_ON(n && node_parent(n) != tn);
+ 	}
+ 	l = (struct leaf *) n;
+ 
+@@ -1551,7 +1555,7 @@ static int trie_leaf_remove(struct trie 
+ 	t->revision++;
+ 	t->size--;
+ 
+-	tp = NODE_PARENT(n);
++	tp = node_parent(n);
+ 	tnode_free((struct tnode *) n);
+ 
+ 	if (tp) {
+@@ -1703,7 +1707,7 @@ static struct leaf *nextleaf(struct trie
+ 
+ 		p = (struct tnode*) trie;  /* Start */
+ 	} else
+-		p = (struct tnode *) NODE_PARENT(c);
++		p = node_parent(c);
+ 
+ 	while (p) {
+ 		int pos, last;
+@@ -1740,7 +1744,7 @@ static struct leaf *nextleaf(struct trie
+ up:
+ 		/* No more children go up one step  */
+ 		c = (struct node *) p;
+-		p = (struct tnode *) NODE_PARENT(p);
++		p = node_parent(c);
+ 	}
+ 	return NULL; /* Ready. Root of trie */
+ }
+@@ -2043,7 +2047,7 @@ rescan:
+ 	}
+ 
+ 	/* Current node exhausted, pop back up */
+-	p = NODE_PARENT(tn);
++	p = node_parent((struct node *)tn);
+ 	if (p) {
+ 		cindex = tkey_extract_bits(tn->key, p->pos, p->bits)+1;
+ 		tn = p;
+@@ -2317,7 +2321,7 @@ static int fib_trie_seq_show(struct seq_
+ 	if (v == SEQ_START_TOKEN)
+ 		return 0;
+ 
+-	if (!NODE_PARENT(n)) {
++	if (!node_parent(n)) {
+ 		if (iter->trie == trie_local)
+ 			seq_puts(seq, "<local>:\n");
+ 		else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-dma-arch-fix.patch
-git-dma-up-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-ixgbe-build-fix.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
 git-net.patch
-git-net-fixup.patch
-introduce-strtol_check_range.patch
-git-backlight.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-bsg-declare-request_queue.patch
-aacraid-rename-check_reset.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
