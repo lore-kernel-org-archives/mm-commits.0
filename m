@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch added to -mm tree
-Date: Tue, 14 Aug 2007 12:37:52 -0700
-Message-ID: <200708141937.l7EJbqcH017544@imap1.linux-foundation.org>
+Subject: + ext4-remove-obsolete-fragments.patch added to -mm tree
+Date: Tue, 14 Aug 2007 12:40:19 -0700
+Message-ID: <200708141940.l7EJeJaU017708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53685 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758723AbXHNTj0 (ORCPT
+	by vger.kernel.org with ESMTP id S1759688AbXHNTlH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:39:26 -0400
+	Tue, 14 Aug 2007 15:41:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@debian.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk
+Cc: coyli@suse.de, adilger@clusterfs.com
 
 
 The patch titled
-     serial: turn serial console suspend a boot rather than compile time option
+     ext4: remove obsolete `fragments'
 has been added to the -mm tree.  Its filename is
-     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+     ext4-remove-obsolete-fragments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,208 +26,237 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: turn serial console suspend a boot rather than compile time option
-From: Andres Salomon <dilinger@debian.org>
+Subject: ext4: remove obsolete `fragments'
+From: Coly Li <coyli@suse.de>
 
-Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
-the serial console from being suspended when the rest of the machine goes
-to sleep.  This is incredibly useful for debugging power management-related
-things; however, having it as a compile-time option has proved to be
-incredibly inconvenient for us (OLPC).  There are plenty of times that we
-want serial console to not suspend, but for the most part we'd like serial
-console to be suspended.
+Once ext4 will not implement fragment, it is believed it will never be
+implement in future.  Therefore fragment related source code in ext4 should
+be obsoleted -- no one will use it.
 
-This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
-boot parameter (no_console_suspend).  By default, the serial console will
-be suspended along with the rest of the system; by passing
-'no_console_suspend' to the kernel during boot, serial console will remain
-alive during suspend.
+This patch obsolete fragment from ext4.  Another patch posted on linux-ext4
+removing fragment supporting from e2fsprogs.
 
-For now, this is pretty serial console specific; further fixes could be
-applied to make this work for things like netconsole.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@suspend2.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Coly Li <coyli@suse.de>
+Acked-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt        |   10 ++++++++++
- Documentation/power/basic-pm-debugging.txt |    4 ++--
- arch/powerpc/configs/pmac32_defconfig      |    1 -
- drivers/serial/serial_core.c               |   10 ++++------
- include/linux/console.h                    |    7 ++-----
- kernel/power/Kconfig                       |   11 -----------
- kernel/printk.c                            |   15 +++++++++++++--
- 7 files changed, 31 insertions(+), 27 deletions(-)
+ fs/ext4/ialloc.c           |    5 -----
+ fs/ext4/inode.c            |   10 ----------
+ fs/ext4/super.c            |   15 ---------------
+ include/linux/ext4_fs.h    |   35 ++++++-----------------------------
+ include/linux/ext4_fs_i.h  |    5 -----
+ include/linux/ext4_fs_sb.h |    3 ---
+ 6 files changed, 6 insertions(+), 67 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -477,6 +477,16 @@ and is between 256 and 4096 characters. 
- 			UART at the specified I/O port or MMIO address.
- 			The options are the same as for ttyS, above.
- 
-+	no_console_suspend
-+			[HW] Never suspend the console
-+			Disable suspending of consoles during suspend and
-+			hibernate operations.  Once disabled, debugging
-+			messages can reach various consoles while the rest
-+			of the system is being put to sleep (ie, while
-+			debugging driver suspend/resume hooks).  This may
-+			not work reliably with all consoles, but is known
-+			to work with serial and VGA consoles.
-+
- 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
- 			Format:
- 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
-diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
---- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -78,8 +78,8 @@ c) Advanced debugging
- In case the STD does not work on your system even in the minimal configuration
- and compiling more drivers as modules is not practical or some modules cannot
- be unloaded, you can use one of the more advanced debugging techniques to find
--the problem.  First, if there is a serial port in your box, you can set the
--CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
-+the problem.  First, if there is a serial port in your box, you can boot the
-+kernel with the 'no_console_suspend' parameter and try to log kernel
- messages using the serial console.  This may provide you with some information
- about the reasons of the suspend (resume) failure.  Alternatively, it may be
- possible to use a FireWire port for debugging with firescope
-diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
---- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/arch/powerpc/configs/pmac32_defconfig
-@@ -216,7 +216,6 @@ CONFIG_PROC_DEVICETREE=y
- CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- CONFIG_PM_DEBUG=y
--# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
- CONFIG_PM_SYSFS_DEPRECATED=y
- CONFIG_HIBERNATION=y
- CONFIG_PM_STD_PARTITION=""
-diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/drivers/serial/serial_core.c
-@@ -1954,12 +1954,11 @@ int uart_suspend_port(struct uart_driver
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!console_suspend_enabled && uart_console(port)) {
-+		/* we're going to avoid suspending serial console */
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
+diff -puN fs/ext4/ialloc.c~ext4-remove-obsolete-fragments fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/ialloc.c
+@@ -573,11 +573,6 @@ got:
+ 	/* dirsync only applies to directories */
+ 	if (!S_ISDIR(mode))
+ 		ei->i_flags &= ~EXT4_DIRSYNC_FL;
+-#ifdef EXT4_FRAGMENTS
+-	ei->i_faddr = 0;
+-	ei->i_frag_no = 0;
+-	ei->i_frag_size = 0;
 -#endif
- 
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
-@@ -2002,12 +2001,11 @@ int uart_resume_port(struct uart_driver 
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!console_suspend_enabled && uart_console(port)) {
-+		/* no need to resume serial console, it wasn't suspended */
- 		mutex_unlock(&state->mutex);
- 		return 0;
+ 	ei->i_file_acl = 0;
+ 	ei->i_dir_acl = 0;
+ 	ei->i_dtime = 0;
+diff -puN fs/ext4/inode.c~ext4-remove-obsolete-fragments fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/inode.c
+@@ -2744,11 +2744,6 @@ void ext4_read_inode(struct inode * inod
  	}
+ 	inode->i_blocks = le32_to_cpu(raw_inode->i_blocks);
+ 	ei->i_flags = le32_to_cpu(raw_inode->i_flags);
+-#ifdef EXT4_FRAGMENTS
+-	ei->i_faddr = le32_to_cpu(raw_inode->i_faddr);
+-	ei->i_frag_no = raw_inode->i_frag;
+-	ei->i_frag_size = raw_inode->i_fsize;
 -#endif
+ 	ei->i_file_acl = le32_to_cpu(raw_inode->i_file_acl);
+ 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
+ 	    cpu_to_le32(EXT4_OS_HURD))
+@@ -2900,11 +2895,6 @@ static int ext4_do_update_inode(handle_t
+ 	raw_inode->i_blocks = cpu_to_le32(inode->i_blocks);
+ 	raw_inode->i_dtime = cpu_to_le32(ei->i_dtime);
+ 	raw_inode->i_flags = cpu_to_le32(ei->i_flags);
+-#ifdef EXT4_FRAGMENTS
+-	raw_inode->i_faddr = cpu_to_le32(ei->i_faddr);
+-	raw_inode->i_frag = ei->i_frag_no;
+-	raw_inode->i_fsize = ei->i_frag_size;
+-#endif
+ 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
+ 	    cpu_to_le32(EXT4_OS_HURD))
+ 		raw_inode->i_file_acl_high =
+diff -puN fs/ext4/super.c~ext4-remove-obsolete-fragments fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/super.c
+@@ -1753,14 +1753,6 @@ static int ext4_fill_super (struct super
+ 		if (sbi->s_inode_size > EXT4_GOOD_OLD_INODE_SIZE)
+ 			sb->s_time_gran = 1 << (EXT4_EPOCH_BITS - 2);
+ 	}
+-	sbi->s_frag_size = EXT4_MIN_FRAG_SIZE <<
+-				   le32_to_cpu(es->s_log_frag_size);
+-	if (blocksize != sbi->s_frag_size) {
+-		printk(KERN_ERR
+-		       "EXT4-fs: fragsize %lu != blocksize %u (unsupported)\n",
+-		       sbi->s_frag_size, blocksize);
+-		goto failed_mount;
+-	}
+ 	sbi->s_desc_size = le16_to_cpu(es->s_desc_size);
+ 	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_64BIT)) {
+ 		if (sbi->s_desc_size < EXT4_MIN_DESC_SIZE_64BIT ||
+@@ -1774,7 +1766,6 @@ static int ext4_fill_super (struct super
+ 	} else
+ 		sbi->s_desc_size = EXT4_MIN_DESC_SIZE;
+ 	sbi->s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
+-	sbi->s_frags_per_group = le32_to_cpu(es->s_frags_per_group);
+ 	sbi->s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
+ 	if (EXT4_INODE_SIZE(sb) == 0)
+ 		goto cantfind_ext4;
+@@ -1798,12 +1789,6 @@ static int ext4_fill_super (struct super
+ 			sbi->s_blocks_per_group);
+ 		goto failed_mount;
+ 	}
+-	if (sbi->s_frags_per_group > blocksize * 8) {
+-		printk (KERN_ERR
+-			"EXT4-fs: #fragments per group too big: %lu\n",
+-			sbi->s_frags_per_group);
+-		goto failed_mount;
+-	}
+ 	if (sbi->s_inodes_per_group > blocksize * 8) {
+ 		printk (KERN_ERR
+ 			"EXT4-fs: #inodes per group too big: %lu\n",
+diff -puN include/linux/ext4_fs.h~ext4-remove-obsolete-fragments include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs.h
+@@ -105,20 +105,6 @@
+ #define EXT4_BLOCK_ALIGN(size, blkbits)		ALIGN((size), (1 << (blkbits)))
  
- 	uart_change_pm(state, 0);
- 
-diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
---- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/include/linux/console.h
-@@ -121,14 +121,11 @@ extern void console_stop(struct console 
- extern void console_start(struct console *);
- extern int is_console_locked(void);
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+extern int console_suspend_enabled;
-+
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
+ /*
+- * Macro-instructions used to manage fragments
+- */
+-#define EXT4_MIN_FRAG_SIZE		1024
+-#define	EXT4_MAX_FRAG_SIZE		4096
+-#define EXT4_MIN_FRAG_LOG_SIZE		  10
+-#ifdef __KERNEL__
+-# define EXT4_FRAG_SIZE(s)		(EXT4_SB(s)->s_frag_size)
+-# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_SB(s)->s_frags_per_block)
 -#else
--static inline void suspend_console(void) {}
--static inline void resume_console(void) {}
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- int mda_console_init(void);
- void prom_con_init(void);
-diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
---- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/power/Kconfig
-@@ -44,17 +44,6 @@ config PM_VERBOSE
- 	---help---
- 	This option enables verbose messages from the Power Management code.
- 
--config DISABLE_CONSOLE_SUSPEND
--	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
--	depends on PM_DEBUG && PM_SLEEP
--	default n
--	---help---
--	This option turns off the console suspend mechanism that prevents
--	debug messages from reaching the console during the suspend/resume
--	operations.  This may be helpful when debugging device drivers'
--	suspend/resume routines, but may itself lead to problems, for example
--	if netconsole is used.
+-# define EXT4_FRAG_SIZE(s)		(EXT4_MIN_FRAG_SIZE << (s)->s_log_frag_size)
+-# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_BLOCK_SIZE(s) / EXT4_FRAG_SIZE(s))
+-#endif
 -
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
- 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
-diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
---- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/printk.c
-@@ -810,7 +810,15 @@ int update_console_cmdline(char *name, i
- 	return -1;
- }
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+int console_suspend_enabled = 1;
-+
-+static int __init console_suspend_disable(char *str)
-+{
-+	console_suspend_enabled = 0;
-+	return 1;
-+}
-+__setup("no_console_suspend", console_suspend_disable);
-+
- /**
-  * suspend_console - suspend the console subsystem
-  *
-@@ -818,6 +826,8 @@ int update_console_cmdline(char *name, i
+-/*
+  * Structure of a blocks group descriptor
   */
- void suspend_console(void)
- {
-+	if (!console_suspend_enabled)
-+		return;
- 	printk("Suspending console(s)\n");
- 	acquire_console_sem();
- 	console_suspended = 1;
-@@ -825,10 +835,11 @@ void suspend_console(void)
+ struct ext4_group_desc
+@@ -312,27 +298,24 @@ struct ext4_inode {
+ 	__le32	i_generation;	/* File version (for NFS) */
+ 	__le32	i_file_acl;	/* File ACL */
+ 	__le32	i_dir_acl;	/* Directory ACL */
+-	__le32	i_faddr;	/* Fragment address */
++	__le32	i_obso_faddr;	/* Obsoleted fragment address */
+ 	union {
+ 		struct {
+-			__u8	l_i_frag;	/* Fragment number */
+-			__u8	l_i_fsize;	/* Fragment size */
++			__le16	l_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__le16	l_i_file_acl_high;
+ 			__le16	l_i_uid_high;	/* these 2 fields */
+ 			__le16	l_i_gid_high;	/* were reserved2[0] */
+ 			__u32	l_i_reserved2;
+ 		} linux2;
+ 		struct {
+-			__u8	h_i_frag;	/* Fragment number */
+-			__u8	h_i_fsize;	/* Fragment size */
++			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__u16	h_i_mode_high;
+ 			__u16	h_i_uid_high;
+ 			__u16	h_i_gid_high;
+ 			__u32	h_i_author;
+ 		} hurd2;
+ 		struct {
+-			__u8	m_i_frag;	/* Fragment number */
+-			__u8	m_i_fsize;	/* Fragment size */
++			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__le16	m_i_file_acl_high;
+ 			__u32	m_i_reserved2[2];
+ 		} masix2;
+@@ -423,8 +406,6 @@ do {									       \
  
- void resume_console(void)
- {
-+	if (!console_suspend_enabled)
-+		return;
- 	console_suspended = 0;
- 	release_console_sem();
- }
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ #if defined(__KERNEL__) || defined(__linux__)
+ #define i_reserved1	osd1.linux1.l_i_reserved1
+-#define i_frag		osd2.linux2.l_i_frag
+-#define i_fsize		osd2.linux2.l_i_fsize
+ #define i_file_acl_high	osd2.linux2.l_i_file_acl_high
+ #define i_uid_low	i_uid
+ #define i_gid_low	i_gid
+@@ -435,8 +416,6 @@ do {									       \
+ #elif defined(__GNU__)
  
- /**
-  * acquire_console_sem - lock the console system for exclusive use.
+ #define i_translator	osd1.hurd1.h_i_translator
+-#define i_frag		osd2.hurd2.h_i_frag;
+-#define i_fsize		osd2.hurd2.h_i_fsize;
+ #define i_uid_high	osd2.hurd2.h_i_uid_high
+ #define i_gid_high	osd2.hurd2.h_i_gid_high
+ #define i_author	osd2.hurd2.h_i_author
+@@ -444,8 +423,6 @@ do {									       \
+ #elif defined(__masix__)
+ 
+ #define i_reserved1	osd1.masix1.m_i_reserved1
+-#define i_frag		osd2.masix2.m_i_frag
+-#define i_fsize		osd2.masix2.m_i_fsize
+ #define i_file_acl_high	osd2.masix2.m_i_file_acl_high
+ #define i_reserved2	osd2.masix2.m_i_reserved2
+ 
+@@ -535,9 +512,9 @@ struct ext4_super_block {
+ /*10*/	__le32	s_free_inodes_count;	/* Free inodes count */
+ 	__le32	s_first_data_block;	/* First Data Block */
+ 	__le32	s_log_block_size;	/* Block size */
+-	__le32	s_log_frag_size;	/* Fragment size */
++	__le32	s_obso_log_frag_size;	/* Obsoleted fragment size */
+ /*20*/	__le32	s_blocks_per_group;	/* # Blocks per group */
+-	__le32	s_frags_per_group;	/* # Fragments per group */
++	__le32	s_obso_frags_per_group;	/* Obsoleted fragments per group */
+ 	__le32	s_inodes_per_group;	/* # Inodes per group */
+ 	__le32	s_mtime;		/* Mount time */
+ /*30*/	__le32	s_wtime;		/* Write time */
+diff -puN include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_i.h
+--- a/include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs_i.h
+@@ -78,11 +78,6 @@ struct ext4_ext_cache {
+ struct ext4_inode_info {
+ 	__le32	i_data[15];	/* unconverted */
+ 	__u32	i_flags;
+-#ifdef EXT4_FRAGMENTS
+-	__u32	i_faddr;
+-	__u8	i_frag_no;
+-	__u8	i_frag_size;
+-#endif
+ 	ext4_fsblk_t	i_file_acl;
+ 	__u32	i_dir_acl;
+ 	__u32	i_dtime;
+diff -puN include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_sb.h
+--- a/include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs_sb.h
+@@ -30,11 +30,8 @@ struct ext4_reservation_slot;
+  * third extended-fs super-block data in memory
+  */
+ struct ext4_sb_info {
+-	unsigned long s_frag_size;	/* Size of a fragment in bytes */
+ 	unsigned long s_desc_size;	/* Size of a group descriptor in bytes */
+-	unsigned long s_frags_per_block;/* Number of fragments per block */
+ 	unsigned long s_inodes_per_block;/* Number of inodes per block */
+-	unsigned long s_frags_per_group;/* Number of fragments in a group */
+ 	unsigned long s_blocks_per_group;/* Number of blocks in a group */
+ 	unsigned long s_inodes_per_group;/* Number of inodes in a group */
+ 	unsigned long s_itb_per_group;	/* Number of inode table blocks per group */
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from coyli@suse.de are
 
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+ext4-remove-obsolete-fragments.patch
