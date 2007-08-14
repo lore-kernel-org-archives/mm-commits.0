@@ -1,151 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - i386-clean-up-oops-bug-reports.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:56 -0700
-Message-ID: <200708141914.l7EJEun9016666@imap1.linux-foundation.org>
+Subject: - i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:47 -0700
+Message-ID: <200708141913.l7EJDlC9016538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51379 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764648AbXHNTUd (ORCPT
+	by vger.kernel.org with ESMTP id S1765140AbXHNTUf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:33 -0400
+	Tue, 14 Aug 2007 15:20:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: clean up oops/bug reports
+     i386: deactivate the test for the dead CONFIG_DEBUG_PAGE_TYPE
 has been removed from the -mm tree.  Its filename was
-     i386-clean-up-oops-bug-reports.patch
+     i386-deactivate-the-test-for-the-dead-config_debug_page_type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: clean up oops/bug reports
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: i386: deactivate the test for the dead CONFIG_DEBUG_PAGE_TYPE
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Typically the oops first lines look like this:
-
-BUG: unable to handle kernel NULL pointer dereference at virtual address 00000000
- printing eip:
-c049dfbd
-*pde = 00000000
-Oops: 0002 [#1]
-PREEMPT SMP
-...
-
-Such output is gained with some ugly if (!nl) printk("\n"); code and
-besides being a waste of lines, this is also annoying to read. The
-following output looks better (and it is how it looks on x86_64):
-
-BUG: unable to handle kernel NULL pointer dereference at virtual address 00000000
-printing eip: c049dfbd *pde = 00000000
-Oops: 0002 [#1] PREEMPT SMP
-...
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Zachary Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c |   16 ++++------------
- arch/i386/mm/fault.c     |   13 +++++++------
- 2 files changed, 11 insertions(+), 18 deletions(-)
+ arch/i386/kernel/vmi.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~i386-clean-up-oops-bug-reports arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~i386-clean-up-oops-bug-reports
-+++ a/arch/i386/kernel/traps.c
-@@ -367,31 +367,23 @@ void die(const char * str, struct pt_reg
- 		local_save_flags(flags);
+diff -puN arch/i386/kernel/vmi.c~i386-deactivate-the-test-for-the-dead-config_debug_page_type arch/i386/kernel/vmi.c
+--- a/arch/i386/kernel/vmi.c~i386-deactivate-the-test-for-the-dead-config_debug_page_type
++++ a/arch/i386/kernel/vmi.c
+@@ -235,7 +235,7 @@ static void vmi_nop(void)
+ {
+ }
  
- 	if (++die.lock_owner_depth < 3) {
--		int nl = 0;
- 		unsigned long esp;
- 		unsigned short ss;
+-#ifdef CONFIG_DEBUG_PAGE_TYPE
++#if 0 /* debug page type */
  
- 		report_bug(regs->eip, regs);
- 
--		printk(KERN_EMERG "%s: %04lx [#%d]\n", str, err & 0xffff, ++die_counter);
-+		printk(KERN_EMERG "%s: %04lx [#%d] ", str, err & 0xffff, ++die_counter);
- #ifdef CONFIG_PREEMPT
--		printk(KERN_EMERG "PREEMPT ");
--		nl = 1;
-+		printk("PREEMPT ");
- #endif
- #ifdef CONFIG_SMP
--		if (!nl)
--			printk(KERN_EMERG);
- 		printk("SMP ");
--		nl = 1;
- #endif
- #ifdef CONFIG_DEBUG_PAGEALLOC
--		if (!nl)
--			printk(KERN_EMERG);
- 		printk("DEBUG_PAGEALLOC");
--		nl = 1;
- #endif
--		if (nl)
--			printk("\n");
-+		printk("\n");
-+
- 		if (notify_die(DIE_OOPS, str, regs, err,
- 					current->thread.trap_no, SIGSEGV) !=
- 				NOTIFY_STOP) {
-diff -puN arch/i386/mm/fault.c~i386-clean-up-oops-bug-reports arch/i386/mm/fault.c
---- a/arch/i386/mm/fault.c~i386-clean-up-oops-bug-reports
-+++ a/arch/i386/mm/fault.c
-@@ -528,23 +528,22 @@ no_context:
- 			printk(KERN_ALERT "BUG: unable to handle kernel paging"
- 					" request");
- 		printk(" at virtual address %08lx\n",address);
--		printk(KERN_ALERT " printing eip:\n");
--		printk("%08lx\n", regs->eip);
-+		printk(KERN_ALERT "printing eip: %08lx ", regs->eip);
- 
- 		page = read_cr3();
- 		page = ((__typeof__(page) *) __va(page))[address >> PGDIR_SHIFT];
  #ifdef CONFIG_X86_PAE
--		printk(KERN_ALERT "*pdpt = %016Lx\n", page);
-+		printk("*pdpt = %016Lx ", page);
- 		if ((page >> PAGE_SHIFT) < max_low_pfn
- 		    && page & _PAGE_PRESENT) {
- 			page &= PAGE_MASK;
- 			page = ((__typeof__(page) *) __va(page))[(address >> PMD_SHIFT)
- 			                                         & (PTRS_PER_PMD - 1)];
--			printk(KERN_ALERT "*pde = %016Lx\n", page);
-+			printk(KERN_ALERT "*pde = %016Lx ", page);
- 			page &= ~_PAGE_NX;
- 		}
+ #define MAX_BOOT_PTS (2048+4+1)
+@@ -336,7 +336,7 @@ static void vmi_check_page_type(u32 pfn,
  #else
--		printk(KERN_ALERT "*pde = %08lx\n", page);
-+		printk("*pde = %08lx ", page);
- #endif
+ #define vmi_set_page_type(p,t) do { } while (0)
+ #define vmi_check_page_type(p,t) do { } while (0)
+-#endif
++#endif /* debug page type */
  
- 		/*
-@@ -558,8 +557,10 @@ no_context:
- 			page &= PAGE_MASK;
- 			page = ((__typeof__(page) *) __va(page))[(address >> PAGE_SHIFT)
- 			                                         & (PTRS_PER_PTE - 1)];
--			printk(KERN_ALERT "*pte = %0*Lx\n", sizeof(page)*2, (u64)page);
-+			printk("*pte = %0*Lx ", sizeof(page)*2, (u64)page);
- 		}
-+
-+		printk("\n");
- 	}
- 
- 	tsk->thread.cr2 = address;
+ #ifdef CONFIG_HIGHPTE
+ static void *vmi_kmap_atomic_pte(struct page *page, enum km_type type)
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-net.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
+git-kvm.patch
+git-mtd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
