@@ -1,148 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - changing-include-asm-generic-pgtableh-for-non-mmu.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:11:52 -0700
-Message-ID: <200708141911.l7EJBq2e016333@imap1.linux-foundation.org>
+Subject: - ip_auto_config-fix.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:23 -0700
+Message-ID: <200708141912.l7EJCNSX016401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39809 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933942AbXHNTNj (ORCPT
+	by vger.kernel.org with ESMTP id S933415AbXHNTNV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:13:39 -0400
+	Tue, 14 Aug 2007 15:13:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerg@snapgear.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: joakim.tjernlund@transmode.se, akpm@linux-foundation.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     changing include/asm-generic/pgtable.h for non-mmu
+     ip_auto_config fix
 has been removed from the -mm tree.  Its filename was
-     changing-include-asm-generic-pgtableh-for-non-mmu.patch
+     ip_auto_config-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: changing include/asm-generic/pgtable.h for non-mmu
-From: Greg Ungerer <gerg@snapgear.com>
+Subject: ip_auto_config fix
+From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
 
-There are some parts of include/asm-generic/pgtable.h that are relevant to
-the non-mmu architectures.  To make it easier to include this from them I
-would like to ifdef the relevant parts.
+The following commandline:
 
-Without this there is a handful of functions that are referenced in here
-that are not defined on many non-mmu architectures.  They could be defined
-out of course, as an alternative approach.
+ root=/dev/mtdblock6 rw rootfstype=jffs2 ip=192.168.1.10:::255.255.255.0:localhost.localdomain:eth1:off console=ttyS0,115200
 
-Cc: David Howells <dhowells@redhat.com>
+makes ip_auto_config fall back to DHCP and complain "IP-Config: Incomplete
+network configuration information." depending on if CONFIG_IP_PNP_DHCP is
+set or not.
+
+The only way I can make ip_auto_config accept my IP config is to add an
+entry for the server IP:
+
+ip=192.168.1.10:192.168.1.15::255.255.255.0:localhost.localdomain:eth1:off
+
+I think this is a bug since I am not using a NFS root FS.
+
+The following patch fixes the above problem.
+
+
+
+Davem said (in February!):
+
+  Well, first of all the change in question is not in 2.4.x either.  I just
+  checked the current 2.4.x GIT tree and the test is exactly:
+
+	if (ic_myaddr == INADDR_NONE ||
+#ifdef CONFIG_ROOT_NFS
+	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
+	     && root_server_addr == INADDR_NONE
+	     && ic_servaddr == INADDR_NONE) ||
+#endif
+	    ic_first_dev->next) {
+
+  which matches 2.6.x
+
+  I even checked 2.4.x when it was branched for 2.5.x and the test was the
+  same at the point in time too.
+
+  Looking at the proposed change a bit it appears that it is probably
+  correct, as it's trying to check that ROOT_DEV is nfs root.  But if it is
+  correct then the UNNAMED_MAJOR comparison in the same code block should be
+  removed as it becomes superfluous.
+
+  I'm happy to apply this patch with that modification made.
+
+
+Signed-off-by: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   73 ++++++++++++++++----------------
- 1 files changed, 38 insertions(+), 35 deletions(-)
+ net/ipv4/ipconfig.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~changing-include-asm-generic-pgtableh-for-non-mmu include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~changing-include-asm-generic-pgtableh-for-non-mmu
-+++ a/include/asm-generic/pgtable.h
-@@ -2,6 +2,7 @@
- #define _ASM_GENERIC_PGTABLE_H
- 
- #ifndef __ASSEMBLY__
-+#ifdef CONFIG_MMU
- 
- #ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
- /*
-@@ -133,41 +134,6 @@ static inline void ptep_set_wrprotect(st
+diff -puN net/ipv4/ipconfig.c~ip_auto_config-fix net/ipv4/ipconfig.c
+--- a/net/ipv4/ipconfig.c~ip_auto_config-fix
++++ a/net/ipv4/ipconfig.c
+@@ -1281,9 +1281,9 @@ static int __init ip_auto_config(void)
+ 	 */
+ 	if (ic_myaddr == NONE ||
+ #ifdef CONFIG_ROOT_NFS
+-	    (MAJOR(ROOT_DEV) == UNNAMED_MAJOR
+-	     && root_server_addr == NONE
+-	     && ic_servaddr == NONE) ||
++	    (root_server_addr == NONE
++	     && ic_servaddr == NONE
++	     && ROOT_DEV == Root_NFS) ||
  #endif
- 
- /*
-- * A facility to provide lazy MMU batching.  This allows PTE updates and
-- * page invalidations to be delayed until a call to leave lazy MMU mode
-- * is issued.  Some architectures may benefit from doing this, and it is
-- * beneficial for both shadow and direct mode hypervisors, which may batch
-- * the PTE updates which happen during this window.  Note that using this
-- * interface requires that read hazards be removed from the code.  A read
-- * hazard could result in the direct mode hypervisor case, since the actual
-- * write to the page tables may not yet have taken place, so reads though
-- * a raw PTE pointer after it has been modified are not guaranteed to be
-- * up to date.  This mode can only be entered and left under the protection of
-- * the page table locks for all page tables which may be modified.  In the UP
-- * case, this is required so that preemption is disabled, and in the SMP case,
-- * it must synchronize the delayed page table writes properly on other CPUs.
-- */
--#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
--#define arch_enter_lazy_mmu_mode()	do {} while (0)
--#define arch_leave_lazy_mmu_mode()	do {} while (0)
--#define arch_flush_lazy_mmu_mode()	do {} while (0)
--#endif
--
--/*
-- * A facility to provide batching of the reload of page tables with the
-- * actual context switch code for paravirtualized guests.  By convention,
-- * only one of the lazy modes (CPU, MMU) should be active at any given
-- * time, entry should never be nested, and entry and exits should always
-- * be paired.  This is for sanity of maintaining and reasoning about the
-- * kernel code.
-- */
--#ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
--#define arch_enter_lazy_cpu_mode()	do {} while (0)
--#define arch_leave_lazy_cpu_mode()	do {} while (0)
--#define arch_flush_lazy_cpu_mode()	do {} while (0)
--#endif
--
--/*
-  * When walking page tables, get the address of the next boundary,
-  * or the end address of the range if that comes earlier.  Although no
-  * vma end wraps to 0, rounded up __boundary may wrap to 0 throughout.
-@@ -233,6 +199,43 @@ static inline int pmd_none_or_clear_bad(
- 	}
- 	return 0;
- }
-+#endif /* CONFIG_MMU */
-+
-+/*
-+ * A facility to provide lazy MMU batching.  This allows PTE updates and
-+ * page invalidations to be delayed until a call to leave lazy MMU mode
-+ * is issued.  Some architectures may benefit from doing this, and it is
-+ * beneficial for both shadow and direct mode hypervisors, which may batch
-+ * the PTE updates which happen during this window.  Note that using this
-+ * interface requires that read hazards be removed from the code.  A read
-+ * hazard could result in the direct mode hypervisor case, since the actual
-+ * write to the page tables may not yet have taken place, so reads though
-+ * a raw PTE pointer after it has been modified are not guaranteed to be
-+ * up to date.  This mode can only be entered and left under the protection of
-+ * the page table locks for all page tables which may be modified.  In the UP
-+ * case, this is required so that preemption is disabled, and in the SMP case,
-+ * it must synchronize the delayed page table writes properly on other CPUs.
-+ */
-+#ifndef __HAVE_ARCH_ENTER_LAZY_MMU_MODE
-+#define arch_enter_lazy_mmu_mode()	do {} while (0)
-+#define arch_leave_lazy_mmu_mode()	do {} while (0)
-+#define arch_flush_lazy_mmu_mode()	do {} while (0)
-+#endif
-+
-+/*
-+ * A facility to provide batching of the reload of page tables with the
-+ * actual context switch code for paravirtualized guests.  By convention,
-+ * only one of the lazy modes (CPU, MMU) should be active at any given
-+ * time, entry should never be nested, and entry and exits should always
-+ * be paired.  This is for sanity of maintaining and reasoning about the
-+ * kernel code.
-+ */
-+#ifndef __HAVE_ARCH_ENTER_LAZY_CPU_MODE
-+#define arch_enter_lazy_cpu_mode()	do {} while (0)
-+#define arch_leave_lazy_cpu_mode()	do {} while (0)
-+#define arch_flush_lazy_cpu_mode()	do {} while (0)
-+#endif
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_GENERIC_PGTABLE_H */
+ 	    ic_first_dev->next) {
+ #ifdef IPCONFIG_DYNAMIC
 _
 
-Patches currently in -mm which might be from gerg@snapgear.com are
+Patches currently in -mm which might be from joakim.tjernlund@transmode.se are
 
-git-mtd.patch
-m68knommu-remove-unused-config-symbol-config_disktel.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
+origin.patch
