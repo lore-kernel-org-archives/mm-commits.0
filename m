@@ -1,90 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:20 -0700
-Message-ID: <200708140502.l7E52LiJ031970@imap1.linux-foundation.org>
+Subject: - fbcon-kill-compile-warning.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:02:35 -0700
+Message-ID: <200708140502.l7E52ZJn031985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32851 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760995AbXHNFDE (ORCPT
+	by vger.kernel.org with ESMTP id S1760475AbXHNFDO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:03:04 -0400
+	Tue, 14 Aug 2007 01:03:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@analog.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin arch: after removing fs.h from mm.h, fix the broken on Blackfin arch
+     fbcon: Kill compile warning
 has been removed from the -mm tree.  Its filename was
-     blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch.patch
+     fbcon-kill-compile-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Blackfin arch: after removing fs.h from mm.h, fix the broken on Blackfin arch
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: fbcon: Kill compile warning
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Fix compile warning ('map_override unused') if fbcon is compiled as a module
+and CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=n.
+
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/init_task.c |    1 +
- arch/blackfin/kernel/process.c   |    2 ++
- arch/blackfin/kernel/sys_bfin.c  |    1 +
- arch/blackfin/kernel/traps.c     |    1 +
- 4 files changed, 5 insertions(+)
+ drivers/video/console/fbcon.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/blackfin/kernel/init_task.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/init_task.c
---- a/arch/blackfin/kernel/init_task.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/init_task.c
-@@ -31,6 +31,7 @@
- #include <linux/module.h>
- #include <linux/init_task.h>
- #include <linux/mqueue.h>
-+#include <linux/fs.h>
+diff -puN drivers/video/console/fbcon.c~fbcon-kill-compile-warning drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon-kill-compile-warning
++++ a/drivers/video/console/fbcon.c
+@@ -127,8 +127,20 @@ static int last_fb_vc = MAX_NR_CONSOLES 
+ static int fbcon_is_default = 1; 
+ static int fbcon_has_exited;
+ static int primary_device = -1;
++
++#ifdef CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY
+ static int map_override;
  
- static struct fs_struct init_fs = INIT_FS;
- static struct files_struct init_files = INIT_FILES;
-diff -puN arch/blackfin/kernel/process.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/process.c
---- a/arch/blackfin/kernel/process.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/process.c
-@@ -33,6 +33,8 @@
- #include <linux/user.h>
- #include <linux/a.out.h>
- #include <linux/uaccess.h>
-+#include <linux/fs.h>
-+#include <linux/err.h>
++static inline void fbcon_map_override(void)
++{
++	map_override = 1;
++}
++#else
++static inline void fbcon_map_override(void)
++{
++}
++#endif /* CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY */
++
+ /* font data */
+ static char fontname[40];
  
- #include <asm/blackfin.h>
- #include <asm/fixed_code.h>
-diff -puN arch/blackfin/kernel/sys_bfin.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/sys_bfin.c
---- a/arch/blackfin/kernel/sys_bfin.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/sys_bfin.c
-@@ -37,6 +37,7 @@
- #include <linux/syscalls.h>
- #include <linux/mman.h>
- #include <linux/file.h>
-+#include <linux/fs.h>
- #include <linux/uaccess.h>
- #include <linux/ipc.h>
- #include <linux/unistd.h>
-diff -puN arch/blackfin/kernel/traps.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch arch/blackfin/kernel/traps.c
---- a/arch/blackfin/kernel/traps.c~blackfin-arch-after-removing-fsh-from-mmh-fix-the-broken-on-blackfin-arch
-+++ a/arch/blackfin/kernel/traps.c
-@@ -31,6 +31,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/kallsyms.h>
-+#include <linux/fs.h>
- #include <asm/traps.h>
- #include <asm/cacheflush.h>
- #include <asm/blackfin.h>
+@@ -506,7 +518,7 @@ static int __init fb_console_setup(char 
+ 						(options[j++]-'0') % FB_MAX;
+ 				}
+ 
+-				map_override = 1;
++				fbcon_map_override();
+ 			}
+ 
+ 			return 1;
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
+git-avr32.patch
+fbdev-export-fb_destroy_modelist.patch
+connector-change-connectors-max-message-size.patch
+uvesafb-add-connector-entries.patch
+uvesafb-the-driver-core.patch
+uvesafb-documentation.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+sm501fb-update-suspend-and-resume-code.patch
+sm501fb-call-fb-suspend-function-during-suspend-and-resume.patch
+sm501fb-ensure-panel-interface-is-not-tristated-when-setup.patch
+mbxfb-improvements-and-new-features.patch
+pxafb-add-support-for-other-palette-formats.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+fbdev-fix-incorrect-timings-in-some-modedb-entries.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
