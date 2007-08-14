@@ -1,92 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-net-sunrpc.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:37 -0700
-Message-ID: <200708141912.l7EJCbdv016419@imap1.linux-foundation.org>
+Subject: - sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:15:16 -0700
+Message-ID: <200708141915.l7EJFGtR016774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933942AbXHNTVf (ORCPT
+	by vger.kernel.org with ESMTP id S932518AbXHNTVi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:35 -0400
+	Tue, 14 Aug 2007 15:21:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: Trond.Myklebust@netapp.com, davem@davemloft.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in net/sunrpc/
+     SUNRPC: convert rpc_pipefs to use the generic filesystem notification hooks
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-net-sunrpc.patch
+     sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/sunrpc/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: SUNRPC: convert rpc_pipefs to use the generic filesystem notification hooks
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
 
-This patch cleans up duplicate includes in
-	net/sunrpc/
+This will allow rpc.gssd to use inotify instead of dnotify in order to
+locate new rpc upcall pipes.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
+This also requires the exporting of __audit_inode_child(), which is used by
+fsnotify_create() and fsnotify_mkdir().  Ccing David Woodhouse.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth_gss/svcauth_gss.c |    1 -
- 1 files changed, 1 deletion(-)
+ kernel/auditsc.c      |    1 +
+ net/sunrpc/rpc_pipe.c |    7 ++++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc net/sunrpc/auth_gss/svcauth_gss.c
---- a/net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc
-+++ a/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -42,7 +42,6 @@
- #include <linux/pagemap.h>
+diff -puN kernel/auditsc.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks kernel/auditsc.c
+--- a/kernel/auditsc.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks
++++ a/kernel/auditsc.c
+@@ -1736,6 +1736,7 @@ add_names:
+ 			context->names[idx].ino = (unsigned long)-1;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(__audit_inode_child);
  
- #include <linux/sunrpc/auth_gss.h>
--#include <linux/sunrpc/svcauth.h>
- #include <linux/sunrpc/gss_err.h>
- #include <linux/sunrpc/svcauth.h>
- #include <linux/sunrpc/svcauth_gss.h>
+ /**
+  * auditsc_get_stamp - get local copies of audit_context values
+diff -puN net/sunrpc/rpc_pipe.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~sunrpc-convert-rpc_pipefs-to-use-the-generic-filesystem-notification-hooks
++++ a/net/sunrpc/rpc_pipe.c
+@@ -14,7 +14,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
+-#include <linux/dnotify.h>
++#include <linux/fsnotify.h>
+ #include <linux/kernel.h>
+ 
+ #include <asm/ioctls.h>
+@@ -585,6 +585,7 @@ rpc_populate(struct dentry *parent,
+ 		if (S_ISDIR(mode))
+ 			inc_nlink(dir);
+ 		d_add(dentry, inode);
++		fsnotify_create(dir, dentry);
+ 	}
+ 	mutex_unlock(&dir->i_mutex);
+ 	return 0;
+@@ -606,7 +607,7 @@ __rpc_mkdir(struct inode *dir, struct de
+ 	inode->i_ino = iunique(dir->i_sb, 100);
+ 	d_instantiate(dentry, inode);
+ 	inc_nlink(dir);
+-	inode_dir_notify(dir, DN_CREATE);
++	fsnotify_mkdir(dir, dentry);
+ 	return 0;
+ out_err:
+ 	printk(KERN_WARNING "%s: %s failed to allocate inode for dentry %s\n",
+@@ -748,7 +749,7 @@ rpc_mkpipe(struct dentry *parent, const 
+ 	rpci->flags = flags;
+ 	rpci->ops = ops;
+ 	rpci->nkern_readwriters = 1;
+-	inode_dir_notify(dir, DN_CREATE);
++	fsnotify_create(dir, dentry);
+ 	dget(dentry);
+ out:
+ 	mutex_unlock(&dir->i_mutex);
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
 
-origin.patch
-git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+git-nfs.patch
+nfs-convert-to-new-aops.patch
