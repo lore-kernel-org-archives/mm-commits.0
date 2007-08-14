@@ -1,122 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - expand-proc-interrupts-to-include-missing-vectors-v3.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:44 -0700
-Message-ID: <200708141914.l7EJEiSf016645@imap1.linux-foundation.org>
+Subject: - fix-several-memory-leaks-in-cr_backlight_probe-take2.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:21 -0700
+Message-ID: <200708141913.l7EJDL1h016496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932108AbXHNTUq (ORCPT
+	by vger.kernel.org with ESMTP id S1763985AbXHNTUu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:46 -0400
+	Tue, 14 Aug 2007 15:20:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe.korty@ccur.com, ak@suse.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: expand /proc/interrupts to include missing vectors
+     Fix several memory leaks in cr_backlight_probe()
 has been removed from the -mm tree.  Its filename was
-     expand-proc-interrupts-to-include-missing-vectors-v3.patch
+     fix-several-memory-leaks-in-cr_backlight_probe-take2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: expand /proc/interrupts to include missing vectors
-From: Joe Korty <joe.korty@ccur.com>
+Subject: Fix several memory leaks in cr_backlight_probe()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-added documentation
-merged some #ifdef CONFIG_SMP's
+After fixing the too small memory allocation in cr_backlight_probe()
+from drivers/video/backlight/cr_bllcd.c
+(commit e3bbb3f05339de438faf54124f25c92e6fe4ac2e) I noticed that the
+Coverity checker also thought there were a few memory leaks in there.
+I took a closer look and confirmed that there were indeed several
+leaks.
 
-Signed-off-by: Joe Korty <joe.korty@ccur.com>
-Cc: Andi Kleen <ak@suse.de>
+At the start of the function we allocate storage for a
+'struct cr_panel' and store the pointer in a variable named 'crp'.
+
+Then we call pci_get_device() and pci_read_config_byte() and if
+either of them fail we return without freeing the memory allocated
+for the 'struct cr_panel'. These two leaks are easy to fix since we
+don't even use 'crp' for anything up to this point, so I simply
+moved the allocation further down in the function so it only happens
+just before we actually need it.
+
+A bit further down we call backlight_device_register() and store the
+result in 'crp->cr_backlight_device'. In case of error we return
+'crp->cr_backlight_device' from the function, thus leaking 'crp'
+itself. The same thing happens with the call to lcd_device_register().
+To fix these two leaks I declare two new pointers to hold the return
+values, so that in case of error we can return the pointer (as before)
+but without leaking 'crp'.
+
+This version of the patch also adds missing
+backlight_device_unregister() / lcd_device_unregister() / pci_dev_put()
+calls to error paths.
+  Thanks to Richard Purdie <rpurdie@rpsys.net> for noticing.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   32 ++++++++++++++++++++++++++-
- arch/i386/kernel/irq.c             |    4 ---
- arch/x86_64/kernel/irq.c           |    4 ---
- 3 files changed, 31 insertions(+), 9 deletions(-)
+ drivers/video/backlight/cr_bllcd.c |   35 +++++++++++++++------------
+ 1 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~expand-proc-interrupts-to-include-missing-vectors-v3 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~expand-proc-interrupts-to-include-missing-vectors-v3
-+++ a/Documentation/filesystems/proc.txt
-@@ -347,7 +347,37 @@ connects the CPUs in a SMP system. This 
- the IO-APIC automatically retry the transmission, so it should not be a big
- problem, but you should read the SMP-FAQ.
+diff -puN drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2 drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~fix-several-memory-leaks-in-cr_backlight_probe-take2
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -171,13 +171,11 @@ static struct lcd_ops cr_lcd_ops = {
  
--In this context it could be interesting to note the new irq directory in 2.4.
-+In 2.6.2* /proc/interrupts was expanded again.  This time the goal was for
-+/proc/interrupts to display every IRQ vector in use by the system, not
-+just those considered 'most important'.  The new vectors are:
+ static int cr_backlight_probe(struct platform_device *pdev)
+ {
++	struct backlight_device *bdp;
++	struct lcd_device *ldp;
+ 	struct cr_panel *crp;
+ 	u8 dev_en;
+ 
+-	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
+-	if (crp == NULL)
+-		return -ENOMEM;
+-
+ 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					CRVML_DEVICE_LPC, NULL);
+ 	if (!lpc_dev) {
+@@ -193,27 +191,34 @@ static int cr_backlight_probe(struct pla
+ 		return -ENODEV;
+ 	}
+ 
+-	crp->cr_backlight_device = backlight_device_register("cr-backlight",
+-							     &pdev->dev, NULL,
+-							     &cr_backlight_ops);
+-	if (IS_ERR(crp->cr_backlight_device)) {
++	bdp = backlight_device_register("cr-backlight",
++					&pdev->dev, NULL, &cr_backlight_ops);
++	if (IS_ERR(bdp)) {
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
+ 
+-	crp->cr_lcd_device = lcd_device_register("cr-lcd",
+-							&pdev->dev, NULL,
+-							&cr_lcd_ops);
+-
+-	if (IS_ERR(crp->cr_lcd_device)) {
++	ldp = lcd_device_register("cr-lcd", &pdev->dev, NULL, &cr_lcd_ops);
++	if (IS_ERR(ldp)) {
++		backlight_device_unregister(bdp);
+ 		pci_dev_put(lpc_dev);
+-		return PTR_ERR(crp->cr_backlight_device);
++		return PTR_ERR(bdp);
+ 	}
+ 
+ 	pci_read_config_dword(lpc_dev, CRVML_REG_GPIOBAR,
+ 			      &gpio_bar);
+ 	gpio_bar &= ~0x3F;
+ 
++	crp = kzalloc(sizeof(*crp), GFP_KERNEL);
++	if (!crp) {
++		lcd_device_unregister(ldp);
++		backlight_device_unregister(bdp);
++		pci_dev_put(lpc_dev);
++		return -ENOMEM;
++	}
 +
-+  THR -- a threshold interrupt occurs when ECC memory correction is
-+  occuring at too high a frequency.  Threshold interrupt machinery is
-+  often put into the ECC logic, as occasional ECC memory failures are
-+  part of normal memory operation, but sequences of ECC failures over
-+  some short interval usually indicate a memory chip that is about to fail.
-+
-+  TRM -- a thermal event interrupt occurs when a temperature threshold
-+  has been exceeded for some CPU chip.  This interrupt may also be generated
-+  when the temperature drops back to normal.
-+
-+  SPU -- a spurious interrupt is some interrupt that was raised then lowered
-+  by some IO device before it could be fully processed by the APIC.  Hence
-+  the APIC sees the interrupt but does not know what device it came from.
-+  For this case the APIC will generate the interrupt with a IRQ vector
-+  of 0xff.
-+
-+  RES, CAL, TLB -- rescheduling, call and tlb flush interrupts are
-+  sent from one CPU to another per the needs of the OS.  Typically,
-+  their statistics are used by kernel developers and interested users to
-+  determine the occurance of interrupt floods of the given type.
-+
-+The above IRQ vectors are displayed only when relevent.  For example,
-+the threshold vector does not exist on x86_64 platforms.  Others are
-+suppressed when the system is a uniprocessor.  As of this writing, only
-+i386 and x86_64 platforms support the new IRQ vector displays.
-+
-+Of some interest is the introduction of the /proc/irq directory to 2.4.
- It could be used to set IRQ to CPU affinity, this means that you can "hook" an
- IRQ to only one CPU, or to exclude a CPU of handling IRQs. The contents of the
- irq subdir is one subdir for each IRQ, and one file; prof_cpu_mask
-diff -puN arch/i386/kernel/irq.c~expand-proc-interrupts-to-include-missing-vectors-v3 arch/i386/kernel/irq.c
---- a/arch/i386/kernel/irq.c~expand-proc-interrupts-to-include-missing-vectors-v3
-+++ a/arch/i386/kernel/irq.c
-@@ -298,15 +298,11 @@ skip:
- 			seq_printf(p, "%10u ",
- 				per_cpu(irq_stat,j).irq_resched_counts);
- 		seq_printf(p, "  Rescheduling interrupts\n");
--#endif
--#ifdef CONFIG_SMP
- 		seq_printf(p, "CAL: ");
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ",
- 				per_cpu(irq_stat,j).irq_call_counts);
- 		seq_printf(p, "  function call interrupts\n");
--#endif
--#ifdef CONFIG_SMP
- 		seq_printf(p, "TLB: ");
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ",
-diff -puN arch/x86_64/kernel/irq.c~expand-proc-interrupts-to-include-missing-vectors-v3 arch/x86_64/kernel/irq.c
---- a/arch/x86_64/kernel/irq.c~expand-proc-interrupts-to-include-missing-vectors-v3
-+++ a/arch/x86_64/kernel/irq.c
-@@ -98,14 +98,10 @@ skip:
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", cpu_pda(j)->irq_resched_counts);
- 		seq_printf(p, "  Rescheduling interrupts\n");
--#endif
--#ifdef CONFIG_SMP
- 		seq_printf(p, "CAL: ");
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", cpu_pda(j)->irq_call_counts);
- 		seq_printf(p, "  function call interrupts\n");
--#endif
--#ifdef CONFIG_SMP
- 		seq_printf(p, "TLB: ");
- 		for_each_online_cpu(j)
- 			seq_printf(p, "%10u ", cpu_pda(j)->irq_tlb_counts);
++	crp->cr_backlight_device = bdp;
++	crp->cr_lcd_device = ldp;
+ 	crp->cr_backlight_device->props.power = FB_BLANK_UNBLANK;
+ 	crp->cr_backlight_device->props.brightness = 0;
+ 	crp->cr_backlight_device->props.max_brightness = 0;
 _
 
-Patches currently in -mm which might be from joe.korty@ccur.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
+
+origin.patch
+git-alsa.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
