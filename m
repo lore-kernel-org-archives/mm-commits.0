@@ -1,85 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:03:03 -0700
-Message-ID: <200708140503.l7E533Ug032027@imap1.linux-foundation.org>
+Subject: - readahead-docbook-fix.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:53 -0700
+Message-ID: <200708140503.l7E53r2Y032102@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56605 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764686AbXHNFDx (ORCPT
+	by vger.kernel.org with ESMTP id S1759650AbXHNFKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:03:53 -0400
+	Tue, 14 Aug 2007 01:10:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7E5AIht021278
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 13 Aug 2007 22:10:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, laforge@gnumonks.org, mcconnau@biochem.wustl.edu, protasnb@gmail.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/pcmcia/cm40x0_cs.c: fix release function call
+     readahead: docbook fix
 has been removed from the -mm tree.  Its filename was
-     drivers-char-pcmcia-cm40x0_csc-fix-release-function-call.patch
+     readahead-docbook-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/pcmcia/cm40x0_cs.c: fix release function call
-From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Subject: readahead: docbook fix
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-cm4000_cs.c and cm4040_cs.c call the internal release function with
-an argument of wrong type. this fixes bug #8485
+Minor docbook error since argument name in comment doesn't match function
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
-Cc: Bill McConnaughey <mcconnau@biochem.wustl.edu>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Harald Welte <laforge@gnumonks.org>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    5 ++---
- drivers/char/pcmcia/cm4040_cs.c |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -1629,7 +1629,7 @@ static int cmm_open(struct inode *inode,
- {
- 	struct cm4000_dev *dev;
- 	struct pcmcia_device *link;
--	int rc, minor = iminor(inode);
-+	int minor = iminor(inode);
- 
- 	if (minor >= CM4000_MAX_DEV)
- 		return -ENODEV;
-@@ -1668,7 +1668,6 @@ static int cmm_open(struct inode *inode,
- 	start_monitor(dev);
- 
- 	link->open = 1;		/* only one open per device */
--	rc = 0;
- 
- 	DEBUGP(2, dev, "<- cmm_open\n");
- 	return nonseekable_open(inode, filp);
-@@ -1824,7 +1823,7 @@ static int cm4000_resume(struct pcmcia_d
- 
- static void cm4000_release(struct pcmcia_device *link)
- {
--	cmm_cm4000_release(link->priv);	/* delay release until device closed */
-+	cmm_cm4000_release(link);	/* delay release until device closed */
- 	pcmcia_disable_device(link);
- }
- 
-diff -puN drivers/char/pcmcia/cm4040_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call drivers/char/pcmcia/cm4040_cs.c
---- a/drivers/char/pcmcia/cm4040_cs.c~drivers-char-pcmcia-cm40x0_csc-fix-release-function-call
-+++ a/drivers/char/pcmcia/cm4040_cs.c
-@@ -599,7 +599,7 @@ cs_release:
- 
- static void reader_release(struct pcmcia_device *link)
- {
--	cm4040_reader_release(link->priv);
-+	cm4040_reader_release(link);
- 	pcmcia_disable_device(link);
- }
- 
+diff -puN mm/filemap.c~readahead-docbook-fix mm/filemap.c
+--- a/mm/filemap.c~readahead-docbook-fix
++++ a/mm/filemap.c
+@@ -843,7 +843,7 @@ static void shrink_readahead_size_eio(st
+ /**
+  * do_generic_mapping_read - generic file read routine
+  * @mapping:	address_space to be read
+- * @ra:		file's readahead state
++ * @_ra:	file's readahead state
+  * @filp:	the file to read
+  * @ppos:	current file position
+  * @desc:	read_descriptor
 _
 
-Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
+
+git-avr32.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+git-net.patch
+fib_trie-cleanup.patch
+fib_trie-macro-cleanup.patch
