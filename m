@@ -1,108 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - fib_trie-macro-cleanup.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:47 -0700
-Message-ID: <200708141912.l7EJClkv016435@imap1.linux-foundation.org>
+Subject: - arch-i386-mach-generic-probec-make-struct-apic_probe.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:31 -0700
+Message-ID: <200708141914.l7EJEVdV016624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34380 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753029AbXHNTU2 (ORCPT
+	by vger.kernel.org with ESMTP id S1761876AbXHNTUb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:28 -0400
+	Tue, 14 Aug 2007 15:20:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fib_trie: macro cleanup
+     arch/i386/mach-generic/probe.c: make struct apic_probe static
 has been removed from the -mm tree.  Its filename was
-     fib_trie-macro-cleanup.patch
+     arch-i386-mach-generic-probec-make-struct-apic_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fib_trie: macro cleanup
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: arch/i386/mach-generic/probe.c: make struct apic_probe static
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch converts the messy macro for MASK_PFX to inline function
-and expands TKEY_GET_MASK in the one place it is used.
+This patch makes the needlessly global struct apic_probe static.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/fib_trie.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+ arch/i386/mach-generic/probe.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ipv4/fib_trie.c~fib_trie-macro-cleanup net/ipv4/fib_trie.c
---- a/net/ipv4/fib_trie.c~fib_trie-macro-cleanup
-+++ a/net/ipv4/fib_trie.c
-@@ -85,8 +85,6 @@
- #define MAX_STAT_DEPTH 32
+diff -puN arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe arch/i386/mach-generic/probe.c
+--- a/arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe
++++ a/arch/i386/mach-generic/probe.c
+@@ -22,7 +22,7 @@ extern struct genapic apic_default;
  
- #define KEYLENGTH (8*sizeof(t_key))
--#define MASK_PFX(k, l) (((l)==0)?0:(k >> (KEYLENGTH-l)) << (KEYLENGTH-l))
--#define TKEY_GET_MASK(offset, bits) (((bits)==0)?0:((t_key)(-1) << (KEYLENGTH - bits) >> offset))
+ struct genapic *genapic = &apic_default;
  
- typedef unsigned int t_key;
- 
-@@ -195,6 +193,11 @@ static inline int tnode_child_length(con
- 	return 1 << tn->bits;
- }
- 
-+static inline t_key mask_pfx(t_key k, unsigned short l)
-+{
-+	return (l == 0) ? 0 : k >> (KEYLENGTH-l) << (KEYLENGTH-l);
-+}
-+
- static inline t_key tkey_extract_bits(t_key a, int offset, int bits)
- {
- 	if (offset < KEYLENGTH)
-@@ -679,7 +682,7 @@ static struct tnode *inflate(struct trie
- 		    inode->pos == oldtnode->pos + oldtnode->bits &&
- 		    inode->bits > 1) {
- 			struct tnode *left, *right;
--			t_key m = TKEY_GET_MASK(inode->pos, 1);
-+			t_key m = ~0U << (KEYLENGTH - 1) >> inode->pos;
- 
- 			left = tnode_new(inode->key&(~m), inode->pos + 1,
- 					 inode->bits - 1);
-@@ -1367,7 +1370,8 @@ fn_trie_lookup(struct fib_table *tb, con
- 		bits = pn->bits;
- 
- 		if (!chopped_off)
--			cindex = tkey_extract_bits(MASK_PFX(key, current_prefix_length), pos, bits);
-+			cindex = tkey_extract_bits(mask_pfx(key, current_prefix_length),
-+						   pos, bits);
- 
- 		n = tnode_get_child(pn, cindex);
- 
-@@ -1453,8 +1457,8 @@ fn_trie_lookup(struct fib_table *tb, con
- 		 * to find a matching prefix.
- 		 */
- 
--		node_prefix = MASK_PFX(cn->key, cn->pos);
--		key_prefix = MASK_PFX(key, cn->pos);
-+		node_prefix = mask_pfx(cn->key, cn->pos);
-+		key_prefix = mask_pfx(key, cn->pos);
- 		pref_mismatch = key_prefix^node_prefix;
- 		mp = 0;
- 
-@@ -2330,7 +2334,7 @@ static int fib_trie_seq_show(struct seq_
- 
- 	if (IS_TNODE(n)) {
- 		struct tnode *tn = (struct tnode *) n;
--		__be32 prf = htonl(MASK_PFX(tn->key, tn->pos));
-+		__be32 prf = htonl(mask_pfx(tn->key, tn->pos));
- 
- 		seq_indent(seq, iter->depth-1);
- 		seq_printf(seq, "  +-- %d.%d.%d.%d/%d %d %d %d\n",
+-struct genapic *apic_probe[] __initdata = { 
++static struct genapic *apic_probe[] __initdata = {
+ 	&apic_summit,
+ 	&apic_bigsmp, 
+ 	&apic_es7000,
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-git-net.patch
+origin.patch
+kernel-auditscc-fix-an-off-by-one.patch
+slow-down-printk-during-boot-fix-3.patch
+git-acpi.patch
+git-alsa.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
+git-dvb.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+remove-fs-jffs2-ioctlc.patch
+git-netdev-all.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
+git-backlight.patch
+parisc-extern-inline-static-inline.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
+git-unionfs.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+git-cryptodev.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
