@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-remove-obsolete-fragments.patch added to -mm tree
-Date: Tue, 14 Aug 2007 12:40:19 -0700
-Message-ID: <200708141940.l7EJeJaU017708@imap1.linux-foundation.org>
+Subject: + documentation-fix-getdelaysc-example-l-option-and-segv.patch added to -mm tree
+Date: Tue, 14 Aug 2007 12:42:20 -0700
+Message-ID: <200708141942.l7EJgKcO017752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759688AbXHNTlH (ORCPT
+	by vger.kernel.org with ESMTP id S934584AbXHNTmz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:41:07 -0400
+	Tue, 14 Aug 2007 15:42:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: coyli@suse.de, adilger@clusterfs.com
+Cc: mikey@neuling.org, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     ext4: remove obsolete `fragments'
+     Documentation: fix getdelays.c example -l option and segv
 has been added to the -mm tree.  Its filename is
-     ext4-remove-obsolete-fragments.patch
+     documentation-fix-getdelaysc-example-l-option-and-segv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,237 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4: remove obsolete `fragments'
-From: Coly Li <coyli@suse.de>
+Subject: Documentation: fix getdelays.c example -l option and segv
+From: Michael Neuling <mikey@neuling.org>
 
-Once ext4 will not implement fragment, it is believed it will never be
-implement in future.  Therefore fragment related source code in ext4 should
-be obsoleted -- no one will use it.
+Fix a couple of minor issues with the getdelays.c example code.  -l option
+(loop) doesn't work and it seg faults in print_delayacct.
 
-This patch obsolete fragment from ext4.  Another patch posted on linux-ext4
-removing fragment supporting from e2fsprogs.
-
-Signed-off-by: Coly Li <coyli@suse.de>
-Acked-by: Andreas Dilger <adilger@clusterfs.com>
+Signed-off-by: Michael Neuling <mikey@neuling.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ialloc.c           |    5 -----
- fs/ext4/inode.c            |   10 ----------
- fs/ext4/super.c            |   15 ---------------
- include/linux/ext4_fs.h    |   35 ++++++-----------------------------
- include/linux/ext4_fs_i.h  |    5 -----
- include/linux/ext4_fs_sb.h |    3 ---
- 6 files changed, 6 insertions(+), 67 deletions(-)
+ Documentation/accounting/getdelays.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/ext4/ialloc.c~ext4-remove-obsolete-fragments fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-remove-obsolete-fragments
-+++ a/fs/ext4/ialloc.c
-@@ -573,11 +573,6 @@ got:
- 	/* dirsync only applies to directories */
- 	if (!S_ISDIR(mode))
- 		ei->i_flags &= ~EXT4_DIRSYNC_FL;
--#ifdef EXT4_FRAGMENTS
--	ei->i_faddr = 0;
--	ei->i_frag_no = 0;
--	ei->i_frag_size = 0;
--#endif
- 	ei->i_file_acl = 0;
- 	ei->i_dir_acl = 0;
- 	ei->i_dtime = 0;
-diff -puN fs/ext4/inode.c~ext4-remove-obsolete-fragments fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-remove-obsolete-fragments
-+++ a/fs/ext4/inode.c
-@@ -2744,11 +2744,6 @@ void ext4_read_inode(struct inode * inod
+diff -puN Documentation/accounting/getdelays.c~documentation-fix-getdelaysc-example-l-option-and-segv Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~documentation-fix-getdelaysc-example-l-option-and-segv
++++ a/Documentation/accounting/getdelays.c
+@@ -196,7 +196,7 @@ void print_delayacct(struct taskstats *t
+ 	       "IO    %15s%15s\n"
+ 	       "      %15llu%15llu\n"
+ 	       "MEM   %15s%15s\n"
+-	       "      %15llu%15llu\n"
++	       "      %15llu%15llu\n",
+ 	       "count", "real total", "virtual total", "delay total",
+ 	       t->cpu_count, t->cpu_run_real_total, t->cpu_run_virtual_total,
+ 	       t->cpu_delay_total,
+@@ -335,17 +335,17 @@ int main(int argc, char *argv[])
+ 		}
  	}
- 	inode->i_blocks = le32_to_cpu(raw_inode->i_blocks);
- 	ei->i_flags = le32_to_cpu(raw_inode->i_flags);
--#ifdef EXT4_FRAGMENTS
--	ei->i_faddr = le32_to_cpu(raw_inode->i_faddr);
--	ei->i_frag_no = raw_inode->i_frag;
--	ei->i_frag_size = raw_inode->i_fsize;
--#endif
- 	ei->i_file_acl = le32_to_cpu(raw_inode->i_file_acl);
- 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
- 	    cpu_to_le32(EXT4_OS_HURD))
-@@ -2900,11 +2895,6 @@ static int ext4_do_update_inode(handle_t
- 	raw_inode->i_blocks = cpu_to_le32(inode->i_blocks);
- 	raw_inode->i_dtime = cpu_to_le32(ei->i_dtime);
- 	raw_inode->i_flags = cpu_to_le32(ei->i_flags);
--#ifdef EXT4_FRAGMENTS
--	raw_inode->i_faddr = cpu_to_le32(ei->i_faddr);
--	raw_inode->i_frag = ei->i_frag_no;
--	raw_inode->i_fsize = ei->i_frag_size;
--#endif
- 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
- 	    cpu_to_le32(EXT4_OS_HURD))
- 		raw_inode->i_file_acl_high =
-diff -puN fs/ext4/super.c~ext4-remove-obsolete-fragments fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-remove-obsolete-fragments
-+++ a/fs/ext4/super.c
-@@ -1753,14 +1753,6 @@ static int ext4_fill_super (struct super
- 		if (sbi->s_inode_size > EXT4_GOOD_OLD_INODE_SIZE)
- 			sb->s_time_gran = 1 << (EXT4_EPOCH_BITS - 2);
- 	}
--	sbi->s_frag_size = EXT4_MIN_FRAG_SIZE <<
--				   le32_to_cpu(es->s_log_frag_size);
--	if (blocksize != sbi->s_frag_size) {
--		printk(KERN_ERR
--		       "EXT4-fs: fragsize %lu != blocksize %u (unsupported)\n",
--		       sbi->s_frag_size, blocksize);
--		goto failed_mount;
+ 
+-	if (tid) {
+-		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
+-			      cmd_type, &tid, sizeof(__u32));
+-		PRINTF("Sent pid/tgid, retval %d\n", rc);
+-		if (rc < 0) {
+-			fprintf(stderr, "error sending tid/tgid cmd\n");
+-			goto done;
++	do {
++		if (tid) {
++			rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
++				      cmd_type, &tid, sizeof(__u32));
++			PRINTF("Sent pid/tgid, retval %d\n", rc);
++			if (rc < 0) {
++				fprintf(stderr, "error sending tid/tgid cmd\n");
++				goto done;
++			}
+ 		}
 -	}
- 	sbi->s_desc_size = le16_to_cpu(es->s_desc_size);
- 	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_64BIT)) {
- 		if (sbi->s_desc_size < EXT4_MIN_DESC_SIZE_64BIT ||
-@@ -1774,7 +1766,6 @@ static int ext4_fill_super (struct super
- 	} else
- 		sbi->s_desc_size = EXT4_MIN_DESC_SIZE;
- 	sbi->s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
--	sbi->s_frags_per_group = le32_to_cpu(es->s_frags_per_group);
- 	sbi->s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
- 	if (EXT4_INODE_SIZE(sb) == 0)
- 		goto cantfind_ext4;
-@@ -1798,12 +1789,6 @@ static int ext4_fill_super (struct super
- 			sbi->s_blocks_per_group);
- 		goto failed_mount;
- 	}
--	if (sbi->s_frags_per_group > blocksize * 8) {
--		printk (KERN_ERR
--			"EXT4-fs: #fragments per group too big: %lu\n",
--			sbi->s_frags_per_group);
--		goto failed_mount;
--	}
- 	if (sbi->s_inodes_per_group > blocksize * 8) {
- 		printk (KERN_ERR
- 			"EXT4-fs: #inodes per group too big: %lu\n",
-diff -puN include/linux/ext4_fs.h~ext4-remove-obsolete-fragments include/linux/ext4_fs.h
---- a/include/linux/ext4_fs.h~ext4-remove-obsolete-fragments
-+++ a/include/linux/ext4_fs.h
-@@ -105,20 +105,6 @@
- #define EXT4_BLOCK_ALIGN(size, blkbits)		ALIGN((size), (1 << (blkbits)))
  
- /*
-- * Macro-instructions used to manage fragments
-- */
--#define EXT4_MIN_FRAG_SIZE		1024
--#define	EXT4_MAX_FRAG_SIZE		4096
--#define EXT4_MIN_FRAG_LOG_SIZE		  10
--#ifdef __KERNEL__
--# define EXT4_FRAG_SIZE(s)		(EXT4_SB(s)->s_frag_size)
--# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_SB(s)->s_frags_per_block)
--#else
--# define EXT4_FRAG_SIZE(s)		(EXT4_MIN_FRAG_SIZE << (s)->s_log_frag_size)
--# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_BLOCK_SIZE(s) / EXT4_FRAG_SIZE(s))
--#endif
--
--/*
-  * Structure of a blocks group descriptor
-  */
- struct ext4_group_desc
-@@ -312,27 +298,24 @@ struct ext4_inode {
- 	__le32	i_generation;	/* File version (for NFS) */
- 	__le32	i_file_acl;	/* File ACL */
- 	__le32	i_dir_acl;	/* Directory ACL */
--	__le32	i_faddr;	/* Fragment address */
-+	__le32	i_obso_faddr;	/* Obsoleted fragment address */
- 	union {
- 		struct {
--			__u8	l_i_frag;	/* Fragment number */
--			__u8	l_i_fsize;	/* Fragment size */
-+			__le16	l_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
- 			__le16	l_i_file_acl_high;
- 			__le16	l_i_uid_high;	/* these 2 fields */
- 			__le16	l_i_gid_high;	/* were reserved2[0] */
- 			__u32	l_i_reserved2;
- 		} linux2;
- 		struct {
--			__u8	h_i_frag;	/* Fragment number */
--			__u8	h_i_fsize;	/* Fragment size */
-+			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
- 			__u16	h_i_mode_high;
- 			__u16	h_i_uid_high;
- 			__u16	h_i_gid_high;
- 			__u32	h_i_author;
- 		} hurd2;
- 		struct {
--			__u8	m_i_frag;	/* Fragment number */
--			__u8	m_i_fsize;	/* Fragment size */
-+			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
- 			__le16	m_i_file_acl_high;
- 			__u32	m_i_reserved2[2];
- 		} masix2;
-@@ -423,8 +406,6 @@ do {									       \
+-	do {
+ 		int i;
  
- #if defined(__KERNEL__) || defined(__linux__)
- #define i_reserved1	osd1.linux1.l_i_reserved1
--#define i_frag		osd2.linux2.l_i_frag
--#define i_fsize		osd2.linux2.l_i_fsize
- #define i_file_acl_high	osd2.linux2.l_i_file_acl_high
- #define i_uid_low	i_uid
- #define i_gid_low	i_gid
-@@ -435,8 +416,6 @@ do {									       \
- #elif defined(__GNU__)
- 
- #define i_translator	osd1.hurd1.h_i_translator
--#define i_frag		osd2.hurd2.h_i_frag;
--#define i_fsize		osd2.hurd2.h_i_fsize;
- #define i_uid_high	osd2.hurd2.h_i_uid_high
- #define i_gid_high	osd2.hurd2.h_i_gid_high
- #define i_author	osd2.hurd2.h_i_author
-@@ -444,8 +423,6 @@ do {									       \
- #elif defined(__masix__)
- 
- #define i_reserved1	osd1.masix1.m_i_reserved1
--#define i_frag		osd2.masix2.m_i_frag
--#define i_fsize		osd2.masix2.m_i_fsize
- #define i_file_acl_high	osd2.masix2.m_i_file_acl_high
- #define i_reserved2	osd2.masix2.m_i_reserved2
- 
-@@ -535,9 +512,9 @@ struct ext4_super_block {
- /*10*/	__le32	s_free_inodes_count;	/* Free inodes count */
- 	__le32	s_first_data_block;	/* First Data Block */
- 	__le32	s_log_block_size;	/* Block size */
--	__le32	s_log_frag_size;	/* Fragment size */
-+	__le32	s_obso_log_frag_size;	/* Obsoleted fragment size */
- /*20*/	__le32	s_blocks_per_group;	/* # Blocks per group */
--	__le32	s_frags_per_group;	/* # Fragments per group */
-+	__le32	s_obso_frags_per_group;	/* Obsoleted fragments per group */
- 	__le32	s_inodes_per_group;	/* # Inodes per group */
- 	__le32	s_mtime;		/* Mount time */
- /*30*/	__le32	s_wtime;		/* Write time */
-diff -puN include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_i.h
---- a/include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments
-+++ a/include/linux/ext4_fs_i.h
-@@ -78,11 +78,6 @@ struct ext4_ext_cache {
- struct ext4_inode_info {
- 	__le32	i_data[15];	/* unconverted */
- 	__u32	i_flags;
--#ifdef EXT4_FRAGMENTS
--	__u32	i_faddr;
--	__u8	i_frag_no;
--	__u8	i_frag_size;
--#endif
- 	ext4_fsblk_t	i_file_acl;
- 	__u32	i_dir_acl;
- 	__u32	i_dtime;
-diff -puN include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_sb.h
---- a/include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments
-+++ a/include/linux/ext4_fs_sb.h
-@@ -30,11 +30,8 @@ struct ext4_reservation_slot;
-  * third extended-fs super-block data in memory
-  */
- struct ext4_sb_info {
--	unsigned long s_frag_size;	/* Size of a fragment in bytes */
- 	unsigned long s_desc_size;	/* Size of a group descriptor in bytes */
--	unsigned long s_frags_per_block;/* Number of fragments per block */
- 	unsigned long s_inodes_per_block;/* Number of inodes per block */
--	unsigned long s_frags_per_group;/* Number of fragments in a group */
- 	unsigned long s_blocks_per_group;/* Number of blocks in a group */
- 	unsigned long s_inodes_per_group;/* Number of inodes in a group */
- 	unsigned long s_itb_per_group;	/* Number of inode table blocks per group */
+ 		rep_len = recv(nl_sd, &msg, sizeof(msg), 0);
+@@ -430,6 +430,7 @@ int main(int argc, char *argv[])
+ 			}
+ 			na = (struct nlattr *) (GENLMSG_DATA(&msg) + len);
+ 		}
++		sleep(2);
+ 	} while (loop);
+ done:
+ 	if (maskset) {
 _
 
-Patches currently in -mm which might be from coyli@suse.de are
+Patches currently in -mm which might be from mikey@neuling.org are
 
-ext4-remove-obsolete-fragments.patch
+documentation-fix-getdelaysc-example-l-option-and-segv.patch
