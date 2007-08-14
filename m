@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-introduce-struct-upid.patch added to -mm tree
-Date: Tue, 14 Aug 2007 13:04:52 -0700
-Message-ID: <200708142004.l7EK4qUW018595@imap1.linux-foundation.org>
+Subject: + pid-namespaces-move-alloc_pid-lower-in-copy_process.patch added to -mm tree
+Date: Tue, 14 Aug 2007 13:05:02 -0700
+Message-ID: <200708142005.l7EK55f6018684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34908 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763833AbXHNUFS (ORCPT
+	by vger.kernel.org with ESMTP id S1765571AbXHNUFo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 16:05:18 -0400
+	Tue, 14 Aug 2007 16:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, xemul@openvz.org
+Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com
 
 
 The patch titled
-     pid namespaces: introduce struct upid
+     pid namespaces: move alloc_pid() lower in copy_process()
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-introduce-struct-upid.patch
+     pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: introduce struct upid
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: pid namespaces: move alloc_pid() lower in copy_process()
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Since task will be visible from different pid namespaces each of them have to
-be addressed by multiple pids.  struct upid is to store the information about
-which id refers to which namespace.
+When we create new namespace we will need to allocate the struct pid, that
+will have one extra struct upid in array, comparing to the parent.
 
-The constuciton looks like this.  Each struct pid carried the reference
-counter and the list of tasks attached to this pid.  At its end it has a
-variable length array of struct upid-s.  Each struct upid has a numerical id
-(pid itself), pointer to the namespace, this ID is valid in and is hashed into
-a pid_hash for searching the pids.
+Thus we need to know the new namespace (if any) in alloc_pid() to init this
+struct upid properly, so move the alloc_pid() call lower in copy_process().
 
-The nr and pid_chain fields are kept in struct pid for a while to make kernel
-still work (no patch initialize the upids yet), but it will be removed at the
-end of this series when we switch to upids completely.
-
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    6 ++++++
- include/linux/pid.h       |   16 ++++++++++++++++
- 2 files changed, 22 insertions(+)
+ kernel/fork.c |   31 ++++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/init_task.h~pid-namespaces-introduce-struct-upid include/linux/init_task.h
---- a/include/linux/init_task.h~pid-namespaces-introduce-struct-upid
-+++ a/include/linux/init_task.h
-@@ -102,6 +102,12 @@ extern struct group_info init_groups;
- 		{ .first = &init_task.pids[PIDTYPE_SID].node },		\
- 	},								\
- 	.rcu		= RCU_HEAD_INIT,				\
-+	.level		= 0,						\
-+	.numbers	= { {						\
-+		.nr		= 0,					\
-+		.ns		= &init_pid_ns,				\
-+		.pid_chain	= { .next = NULL, .pprev = NULL },	\
-+	}, }								\
- }
+diff -puN kernel/fork.c~pid-namespaces-move-alloc_pid-lower-in-copy_process kernel/fork.c
+--- a/kernel/fork.c~pid-namespaces-move-alloc_pid-lower-in-copy_process
++++ a/kernel/fork.c
+@@ -1028,16 +1028,9 @@ static struct task_struct *copy_process(
+ 	if (p->binfmt && !try_module_get(p->binfmt->module))
+ 		goto bad_fork_cleanup_put_domain;
  
- #define INIT_PID_LINK(type) 					\
-diff -puN include/linux/pid.h~pid-namespaces-introduce-struct-upid include/linux/pid.h
---- a/include/linux/pid.h~pid-namespaces-introduce-struct-upid
-+++ a/include/linux/pid.h
-@@ -40,6 +40,20 @@ enum pid_type
-  * processes.
-  */
+-	if (pid != &init_struct_pid) {
+-		pid = alloc_pid(task_active_pid_ns(p));
+-		if (!pid)
+-			goto bad_fork_put_binfmt_module;
+-	}
+-
+ 	p->did_exec = 0;
+ 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
+ 	copy_flags(clone_flags, p);
+-	p->pid = pid_nr(pid);
+ 	INIT_LIST_HEAD(&p->children);
+ 	INIT_LIST_HEAD(&p->sibling);
+ 	p->vfork_done = NULL;
+@@ -1114,10 +1107,6 @@ static struct task_struct *copy_process(
+ 	p->blocked_on = NULL; /* not blocked yet */
+ #endif
  
-+
-+/*
-+ * struct upid is used to get the id of the struct pid, as it is
-+ * seen in particular namespace. Later the struct pid is found with
-+ * find_pid_ns() using the int nr and struct pid_namespace *ns.
-+ */
-+
-+struct upid {
-+	/* Try to keep pid_chain in the same cacheline as nr for find_pid */
-+	int nr;
-+	struct pid_namespace *ns;
-+	struct hlist_node pid_chain;
-+};
-+
- struct pid
- {
- 	atomic_t count;
-@@ -49,6 +63,8 @@ struct pid
- 	/* lists of tasks that use this pid */
- 	struct hlist_head tasks[PIDTYPE_MAX];
- 	struct rcu_head rcu;
-+	int level;
-+	struct upid numbers[1];
- };
+-	p->tgid = p->pid;
+-	if (clone_flags & CLONE_THREAD)
+-		p->tgid = current->tgid;
+-
+ 	if ((retval = security_task_alloc(p)))
+ 		goto bad_fork_cleanup_policy;
+ 	if ((retval = audit_alloc(p)))
+@@ -1143,6 +1132,18 @@ static struct task_struct *copy_process(
+ 	if (retval)
+ 		goto bad_fork_cleanup_namespaces;
  
- extern struct pid init_struct_pid;
++	if (pid != &init_struct_pid) {
++		retval = -ENOMEM;
++		pid = alloc_pid(task_active_pid_ns(p));
++		if (!pid)
++			goto bad_fork_cleanup_namespaces;
++	}
++
++	p->pid = pid_nr(pid);
++	p->tgid = p->pid;
++	if (clone_flags & CLONE_THREAD)
++		p->tgid = current->tgid;
++
+ 	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
+ 	/*
+ 	 * Clear TID on mm_release()?
+@@ -1239,7 +1240,7 @@ static struct task_struct *copy_process(
+ 		spin_unlock(&current->sighand->siglock);
+ 		write_unlock_irq(&tasklist_lock);
+ 		retval = -ERESTARTNOINTR;
+-		goto bad_fork_cleanup_namespaces;
++		goto bad_fork_free_pid;
+ 	}
+ 
+ 	if (clone_flags & CLONE_THREAD) {
+@@ -1296,6 +1297,9 @@ static struct task_struct *copy_process(
+ 	container_post_fork(p);
+ 	return p;
+ 
++bad_fork_free_pid:
++	if (pid != &init_struct_pid)
++		free_pid(pid);
+ bad_fork_cleanup_namespaces:
+ 	exit_task_namespaces(p);
+ bad_fork_cleanup_keys:
+@@ -1324,9 +1328,6 @@ bad_fork_cleanup_container:
+ #endif
+ 	container_exit(p, container_callbacks_done);
+ 	delayacct_tsk_free(p);
+-	if (pid != &init_struct_pid)
+-		free_pid(pid);
+-bad_fork_put_binfmt_module:
+ 	if (p->binfmt)
+ 		module_put(p->binfmt->module);
+ bad_fork_cleanup_put_domain:
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-handle-the-multi-threaded-inits-exit-properly.patch
+git-net.patch
 pid-namespaces-round-up-the-api.patch
 pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
 pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
@@ -117,10 +138,8 @@ pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
 pid-namespaces-rename-child_reaper-function.patch
 pid-namespaces-use-task_pid-to-find-leaders-pid.patch
 pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
 pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
 pid-namespaces-rework-forget_original_parent.patch
 pid-namespaces-move-exit_task_namespaces.patch
 pid-namespaces-introduce-ms_kernmount-flag.patch
@@ -136,7 +155,6 @@ pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
 pid-namespaces-allow-cloning-of-new-namespace.patch
 pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
 pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
 pid-namespaces-allow-signalling-container-init.patch
 pid-namespaces-destroy-pid-namespace-on-inits-death.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user.patch
