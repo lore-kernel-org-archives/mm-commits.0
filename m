@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch added to -mm tree
-Date: Tue, 14 Aug 2007 13:05:11 -0700
-Message-ID: <200708142005.l7EK5Bo8018690@imap1.linux-foundation.org>
+Subject: + pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch added to -mm tree
+Date: Tue, 14 Aug 2007 13:04:50 -0700
+Message-ID: <200708142004.l7EK4plT018592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38475 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765385AbXHNUFe (ORCPT
+	by vger.kernel.org with ESMTP id S1763706AbXHNUFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 16:05:34 -0400
+	Tue, 14 Aug 2007 16:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru,
 
 
 The patch titled
-     pid namespaces: miscelaneous preparations for pid namespaces
+     pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+     pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: miscelaneous preparations for pid namespaces
+Subject: pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
 From: Pavel Emelyanov <xemul@openvz.org>
 
-* remove pid.h from pid_namespaces.h;
-* rework is_(container|global)_init;
-* optimize (get|put)_pid_ns for init_pid_ns;
-* declare task_child_reaper to return actual reaper.
+The first part is trivial - we just make the proc_flush_task() to operate on
+arbitrary vfsmount with arbitrary ids and pass the pid and global proc_mnt to
+it.
+
+The other change is more tricky: I moved the proc_flush_task() call in
+release_task() higher to address the following problem.
+
+When flushing task from many proc trees we need to know the set of ids (not
+just one pid) to find the dentries' names to flush.  Thus we need to pass the
+task's pid to proc_flush_task() as struct pid is the only object that can
+provide all the pid numbers.  But after __exit_signal() task has detached all
+his pids and this information is lost.
+
+This creates a tiny gap for proc_pid_lookup() to bring some dentries back to
+tree and keep them in hash (since pids are still alive before __exit_signal())
+till the next shrink, but since proc_flush_task() does not provide a 100%
+guarantee that the dentries will be flushed, this is OK to do so.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -42,127 +55,117 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |   10 ++++++----
- include/linux/sched.h         |   12 +++++-------
- kernel/pid.c                  |   21 ++++++++++++++-------
- 3 files changed, 25 insertions(+), 18 deletions(-)
+ fs/proc/base.c          |   27 ++++++++++++++++++++-------
+ include/linux/proc_fs.h |    4 +++-
+ kernel/exit.c           |    2 +-
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/pid_namespace.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
-+++ a/include/linux/pid_namespace.h
-@@ -4,7 +4,6 @@
- #include <linux/sched.h>
- #include <linux/mm.h>
- #include <linux/threads.h>
--#include <linux/pid.h>
+diff -puN fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees fs/proc/base.c
+--- a/fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
++++ a/fs/proc/base.c
+@@ -74,6 +74,7 @@
  #include <linux/nsproxy.h>
- #include <linux/kref.h>
+ #include <linux/oom.h>
+ #include <linux/elf.h>
++#include <linux/pid_namespace.h>
+ #include "internal.h"
  
-@@ -32,7 +31,8 @@ extern struct pid_namespace init_pid_ns;
- 
- static inline struct pid_namespace *get_pid_ns(struct pid_namespace *ns)
- {
--	kref_get(&ns->kref);
-+	if (ns != &init_pid_ns)
-+		kref_get(&ns->kref);
- 	return ns;
- }
- 
-@@ -41,7 +41,8 @@ extern void free_pid_ns(struct kref *kre
- 
- static inline void put_pid_ns(struct pid_namespace *ns)
- {
--	kref_put(&ns->kref, free_pid_ns);
-+	if (ns != &init_pid_ns)
-+		kref_put(&ns->kref, free_pid_ns);
- }
- 
- static inline struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
-@@ -51,7 +52,8 @@ static inline struct pid_namespace *task
- 
- static inline struct task_struct *task_child_reaper(struct task_struct *tsk)
- {
--	return init_pid_ns.child_reaper;
-+	BUG_ON(tsk != current);
-+	return tsk->nsproxy->pid_ns->child_reaper;
- }
- 
- #endif /* _LINUX_PID_NS_H */
-diff -puN include/linux/sched.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces include/linux/sched.h
---- a/include/linux/sched.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
-+++ a/include/linux/sched.h
-@@ -1299,19 +1299,17 @@ static inline int pid_alive(struct task_
-  * @tsk: Task structure to be checked.
-  *
-  * Check if a task structure is the first user space task the kernel created.
-- *
-- * TODO: We should inline this function after some cleanups in pid_namespace.h
+ /* NOTE:
+@@ -2122,27 +2123,27 @@ static const struct inode_operations pro
+  *       that no dcache entries will exist at process exit time it
+  *       just makes it very unlikely that any will persist.
   */
--extern int is_global_init(struct task_struct *tsk);
-+static inline int is_global_init(struct task_struct *tsk)
+-void proc_flush_task(struct task_struct *task)
++static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
+ {
+ 	struct dentry *dentry, *leader, *dir;
+ 	char buf[PROC_NUMBUF];
+ 	struct qstr name;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
+-	dentry = d_hash_and_lookup(proc_mnt->mnt_root, &name);
++	name.len = snprintf(buf, sizeof(buf), "%d", pid);
++	dentry = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (dentry) {
+ 		shrink_dcache_parent(dentry);
+ 		d_drop(dentry);
+ 		dput(dentry);
+ 	}
+ 
+-	if (thread_group_leader(task))
++	if (tgid == 0)
+ 		goto out;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->tgid);
+-	leader = d_hash_and_lookup(proc_mnt->mnt_root, &name);
++	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
++	leader = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (!leader)
+ 		goto out;
+ 
+@@ -2153,7 +2154,7 @@ void proc_flush_task(struct task_struct 
+ 		goto out_put_leader;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
++	name.len = snprintf(buf, sizeof(buf), "%d", pid);
+ 	dentry = d_hash_and_lookup(dir, &name);
+ 	if (dentry) {
+ 		shrink_dcache_parent(dentry);
+@@ -2168,6 +2169,18 @@ out:
+ 	return;
+ }
+ 
++/*
++ * when flushing dentries from proc one need to flush them from global
++ * proc (proc_mnt) and from all the namespaces' procs this task was seen
++ * in. this call is supposed to make all this job.
++ */
++
++void proc_flush_task(struct task_struct *task)
 +{
-+	return tsk->pid == 1;
++	proc_flush_task_mnt(proc_mnt, task->pid,
++			thread_group_leader(task) ? 0 : task->tgid);
++}
++
+ static struct dentry *proc_pid_instantiate(struct inode *dir,
+ 					   struct dentry * dentry,
+ 					   struct task_struct *task, const void *ptr)
+diff -puN include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
++++ a/include/linux/proc_fs.h
+@@ -222,7 +222,9 @@ static inline void proc_net_remove(const
+ #define proc_net_create(name, mode, info)	({ (void)(mode), NULL; })
+ static inline void proc_net_remove(const char *name) {}
+ 
+-static inline void proc_flush_task(struct task_struct *task) { }
++static inline void proc_flush_task(struct task_struct *task)
++{
 +}
  
- /*
-  * is_container_init:
-  * check whether in the task is init in its own pid namespace.
-  */
--static inline int is_container_init(struct task_struct *tsk)
--{
--	return tsk->pid == 1;
--}
-+extern int is_container_init(struct task_struct *tsk);
- 
- extern struct pid *cad_pid;
- 
-diff -puN kernel/pid.c~pid-namespaces-miscelaneous-preparations-for-pid-namespaces kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
-+++ a/kernel/pid.c
-@@ -72,10 +72,20 @@ struct pid_namespace init_pid_ns = {
- 	.child_reaper = &init_task,
- };
- 
--int is_global_init(struct task_struct *tsk)
-+int is_container_init(struct task_struct *tsk)
- {
--	return tsk == init_pid_ns.child_reaper;
-+	int ret = 0;
-+	struct pid *pid;
-+
-+	rcu_read_lock();
-+	pid = task_pid(tsk);
-+	if (pid != NULL && pid->numbers[pid->level].nr == 1)
-+		ret = 1;
-+	rcu_read_unlock();
-+
-+	return ret;
- }
-+EXPORT_SYMBOL(is_container_init);
- 
- /*
-  * Note: disable interrupts while the pidmap_lock is held as an
-@@ -191,8 +201,7 @@ fastcall void put_pid(struct pid *pid)
- 	if ((atomic_read(&pid->count) == 1) ||
- 	     atomic_dec_and_test(&pid->count)) {
- 		kmem_cache_free(ns->pid_cachep, pid);
--		if (ns != &init_pid_ns)
--			put_pid_ns(ns);
-+		put_pid_ns(ns);
- 	}
- }
- EXPORT_SYMBOL_GPL(put_pid);
-@@ -243,9 +252,7 @@ struct pid *alloc_pid(struct pid_namespa
- 		tmp = tmp->parent;
+ static inline struct proc_dir_entry *create_proc_entry(const char *name,
+ 	mode_t mode, struct proc_dir_entry *parent) { return NULL; }
+diff -puN kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees kernel/exit.c
+--- a/kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
++++ a/kernel/exit.c
+@@ -157,6 +157,7 @@ void release_task(struct task_struct * p
+ 	int zap_leader;
+ repeat:
+ 	atomic_dec(&p->user->processes);
++	proc_flush_task(p);
+ 	write_lock_irq(&tasklist_lock);
+ 	ptrace_unlink(p);
+ 	BUG_ON(!list_empty(&p->ptrace_list) || !list_empty(&p->ptrace_children));
+@@ -184,7 +185,6 @@ repeat:
  	}
  
--	if (ns != &init_pid_ns)
--		get_pid_ns(ns);
--
-+	get_pid_ns(ns);
- 	pid->level = ns->level;
- 	pid->nr = pid->numbers[0].nr;
- 	atomic_set(&pid->count, 1);
+ 	write_unlock_irq(&tasklist_lock);
+-	proc_flush_task(p);
+ 	release_thread(p);
+ 	call_rcu(&p->rcu, delayed_put_task_struct);
+ 
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
