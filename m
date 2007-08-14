@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-net-sched.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:35 -0700
-Message-ID: <200708141912.l7EJCZOE016416@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-net-ipv6.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:33 -0700
+Message-ID: <200708141912.l7EJCXRb016413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49974 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755537AbXHNTUa (ORCPT
+	by vger.kernel.org with ESMTP id S1764484AbXHNTUd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:30 -0400
+	Tue, 14 Aug 2007 15:20:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in net/sched/
+     Clean up duplicate includes in net/ipv6/
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-net-sched.patch
+     clean-up-duplicate-includes-in-net-ipv6.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/sched/
+Subject: Clean up duplicate includes in net/ipv6/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	net/sched/
+	net/ipv6/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/act_police.c |    1 -
+ net/ipv6/tcp_ipv6.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN net/sched/act_police.c~clean-up-duplicate-includes-in-net-sched net/sched/act_police.c
---- a/net/sched/act_police.c~clean-up-duplicate-includes-in-net-sched
-+++ a/net/sched/act_police.c
-@@ -16,7 +16,6 @@
- #include <linux/string.h>
- #include <linux/errno.h>
- #include <linux/skbuff.h>
--#include <linux/module.h>
- #include <linux/rtnetlink.h>
- #include <linux/init.h>
- #include <net/act_api.h>
+diff -puN net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6 net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6
++++ a/net/ipv6/tcp_ipv6.c
+@@ -56,7 +56,6 @@
+ #include <net/inet_ecn.h>
+ #include <net/protocol.h>
+ #include <net/xfrm.h>
+-#include <net/addrconf.h>
+ #include <net/snmp.h>
+ #include <net/dsfield.h>
+ #include <net/timewait_sock.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
