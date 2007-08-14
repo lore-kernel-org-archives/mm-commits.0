@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - stifb-detect-cards-in-double-buffer-mode-more-reliably.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:32 -0700
-Message-ID: <200708140502.l7E52Wdf031982@imap1.linux-foundation.org>
+Subject: - direct-io-fix-error-path-crashes.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:02:29 -0700
+Message-ID: <200708140502.l7E52Taf031979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33440 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760212AbXHNFDW (ORCPT
+	by vger.kernel.org with ESMTP id S1761736AbXHNFDa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:03:22 -0400
+	Tue, 14 Aug 2007 01:03:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deller@gmx.de, adaplas@gmail.com, kyle@mcmartin.ca, stable@kernel.org, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, gurudas.pai@oracle.com, joe.jin@oracle.com, stable@kernel.org, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stifb: detect cards in double buffer mode more reliably
+     direct-io: fix error-path crashes
 has been removed from the -mm tree.  Its filename was
-     stifb-detect-cards-in-double-buffer-mode-more-reliably.patch
+     direct-io-fix-error-path-crashes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: stifb: detect cards in double buffer mode more reliably
-From: Helge Deller <deller@gmx.de>
+Subject: direct-io: fix error-path crashes
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Visualize-EG, Graffiti and A4450A graphics cards on PARISC can
-be configured in double-buffer and standard mode, but the stifb
-driver supports standard mode only.
-This patch detects double-buffered cards more reliable.
+Need to initialize map_bh.b_state to zero.  Otherwise, in case of a faulty
+user-buffer its possible to go into dio_zero_block() and submit a page by
+mistake - since it checks for buffer_new().
 
-It is a real bugfix for a very nasty problem for all parisc users which have
-wrongly configured their graphic card.  The problem: The stifb graphics driver
-will not detect that the card is wrongly configured and then nevertheless just
-enables the graphics mode, which it shouldn't.  In the end, the user will see
-no further updates / boot messages on the screen.
+http://marc.info/?l=linux-kernel&m=118551339032528&w=2
 
-We had documented this problem already on our FAQ
-(http://parisc-linux.org/faq/index.html#viseg "Why do I get corrupted graphics
-with my Vis-EG/Graffiti/A4450A card?") but people still run into this problem.
- So having this fix in as early as possible can help us.
+akpm: Linus had a (better) patch to just do a kzalloc() in there, but it got
+lost.  Probably this version is better for -stable anwyay.
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Acked-by: Joe Jin <joe.jin@oracle.com>
+Acked-by: Zach Brown <zach.brown@oracle.com>
+Cc: gurudas pai <gurudas.pai@oracle.com>
 Cc: <stable@kernel.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/stifb.c |   19 ++++++++++++-------
- 1 files changed, 12 insertions(+), 7 deletions(-)
+ fs/direct-io.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/video/stifb.c~stifb-detect-cards-in-double-buffer-mode-more-reliably drivers/video/stifb.c
---- a/drivers/video/stifb.c~stifb-detect-cards-in-double-buffer-mode-more-reliably
-+++ a/drivers/video/stifb.c
-@@ -1100,13 +1100,18 @@ stifb_init_fb(struct sti_struct *sti, in
- 	/* only supported cards are allowed */
- 	switch (fb->id) {
- 	case CRT_ID_VISUALIZE_EG:
--		/* look for a double buffering device like e.g. the 
--		   "INTERNAL_EG_DX1024" in the RDI precisionbook laptop
--		   which won't work. The same device in non-double 
--		   buffering mode returns "INTERNAL_EG_X1024". */
--		if (strstr(sti->outptr.dev_name, "EG_DX")) {
--		   printk(KERN_WARNING 
--			"stifb: ignoring '%s'. Disable double buffering in IPL menu.\n",
-+		/* Visualize cards can run either in "double buffer" or
-+ 		  "standard" mode. Depending on the mode, the card reports
-+		  a different device name, e.g. "INTERNAL_EG_DX1024" in double
-+		  buffer mode and "INTERNAL_EG_X1024" in standard mode.
-+		  Since this driver only supports standard mode, we check
-+		  if the device name contains the string "DX" and tell the
-+		  user how to reconfigure the card. */
-+		if (strstr(sti->outptr.dev_name, "DX")) {
-+		   printk(KERN_WARNING "WARNING: stifb framebuffer driver does not "
-+			"support '%s' in double-buffer mode.\n"
-+			KERN_WARNING "WARNING: Please disable the double-buffer mode "
-+			"in IPL menu (the PARISC-BIOS).\n",
- 			sti->outptr.dev_name);
- 		   goto out_err0;
- 		}
+diff -puN fs/direct-io.c~direct-io-fix-error-path-crashes fs/direct-io.c
+--- a/fs/direct-io.c~direct-io-fix-error-path-crashes
++++ a/fs/direct-io.c
+@@ -974,6 +974,7 @@ direct_io_worker(int rw, struct kiocb *i
+ 	dio->get_block = get_block;
+ 	dio->end_io = end_io;
+ 	dio->map_bh.b_private = NULL;
++	dio->map_bh.b_state = 0;
+ 	dio->final_block_in_bio = -1;
+ 	dio->next_block_for_io = -1;
+ 
 _
 
-Patches currently in -mm which might be from deller@gmx.de are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
+
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+hugetlbfs-read-support.patch
+hugetlbfs-read-support-fix.patch
+ext2-statfs-improvement-for-block-and-inode-free-count.patch
+fix-for-ext2-reservation.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
