@@ -1,90 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-net-ipv6.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:33 -0700
-Message-ID: <200708141912.l7EJCXRb016413@imap1.linux-foundation.org>
+Subject: - arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:48 -0700
+Message-ID: <200708141914.l7EJEmFp016651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46519 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764484AbXHNTUd (ORCPT
+	by vger.kernel.org with ESMTP id S1764919AbXHNTUe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:33 -0400
+	Tue, 14 Aug 2007 15:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in net/ipv6/
+     arch/x86_64/kernel/io_apic.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-net-ipv6.patch
+     arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in net/ipv6/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: arch/x86_64/kernel/io_apic.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-This patch cleans up duplicate includes in
-	net/ipv6/
+ arch/x86_64/kernel/io_apic.c | 56080 -> 56038 (-42 bytes)
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/tcp_ipv6.c |    1 -
- 1 files changed, 1 deletion(-)
+ arch/x86_64/kernel/io_apic.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6 net/ipv6/tcp_ipv6.c
---- a/net/ipv6/tcp_ipv6.c~clean-up-duplicate-includes-in-net-ipv6
-+++ a/net/ipv6/tcp_ipv6.c
-@@ -56,7 +56,6 @@
- #include <net/inet_ecn.h>
- #include <net/protocol.h>
- #include <net/xfrm.h>
--#include <net/addrconf.h>
- #include <net/snmp.h>
- #include <net/dsfield.h>
- #include <net/timewait_sock.h>
+diff -puN arch/x86_64/kernel/io_apic.c~arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~arch-x86_64-kernel-io_apicc-kmalloc-memset-conversion-to-kzalloc
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -1844,7 +1844,7 @@ static struct sysdev_class ioapic_sysdev
+ static int __init ioapic_init_sysfs(void)
+ {
+ 	struct sys_device * dev;
+-	int i, size, error = 0;
++	int i, size, error;
+ 
+ 	error = sysdev_class_register(&ioapic_sysdev_class);
+ 	if (error)
+@@ -1853,12 +1853,11 @@ static int __init ioapic_init_sysfs(void
+ 	for (i = 0; i < nr_ioapics; i++ ) {
+ 		size = sizeof(struct sys_device) + nr_ioapic_registers[i]
+ 			* sizeof(struct IO_APIC_route_entry);
+-		mp_ioapic_data[i] = kmalloc(size, GFP_KERNEL);
++		mp_ioapic_data[i] = kzalloc(size, GFP_KERNEL);
+ 		if (!mp_ioapic_data[i]) {
+ 			printk(KERN_ERR "Can't suspend/resume IOAPIC %d\n", i);
+ 			continue;
+ 		}
+-		memset(mp_ioapic_data[i], 0, size);
+ 		dev = &mp_ioapic_data[i]->dev;
+ 		dev->id = i;
+ 		dev->cls = &ioapic_sysdev_class;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-path-selectorc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-git-ubi.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+drivers-scsi-a4000tc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
+drivers-scsi-lpfc-lpfc_scsic-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-megaraidc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+drivers-usb-misc-ftdi-elanc-kmalloc-memset-conversion-to-kzalloc.patch
+usb-remove-redundant-memset-from-amd5536udc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
