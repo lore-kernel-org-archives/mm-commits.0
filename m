@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - natsemi-fix-netdev-error-acounting.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:12 -0700
-Message-ID: <200708141912.l7EJCC3E016383@imap1.linux-foundation.org>
+Subject: - ax88796-printk-fixes.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:10 -0700
+Message-ID: <200708141912.l7EJCAtX016380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58854 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35387 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934727AbXHNTM3 (ORCPT
+	by vger.kernel.org with ESMTP id S934589AbXHNTMW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:12:29 -0400
+	Tue, 14 Aug 2007 15:12:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, loveminix@yahoo.com.cn, protasnb@gmail.com, thockin@hockin.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     natsemi: fix netdev error acounting
+     ax88796 printk fixes
 has been removed from the -mm tree.  Its filename was
-     natsemi-fix-netdev-error-acounting.patch
+     ax88796-printk-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: natsemi: fix netdev error acounting
+Subject: ax88796 printk fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-When a detailed netdev error is counted, we also must account for it in the
-aggregated error count.
+drivers/net/ax88796.c: In function `ax_probe':
+drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 4)
+drivers/net/ax88796.c:825: warning: size_t format, different type arg (arg 5)
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8106
+resource_size_t isn't size_t.
 
-Cc: Tim Hockin <thockin@hockin.org>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Chongfeng Hu <loveminix@yahoo.com.cn>
-Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/natsemi.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/net/ax88796.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting drivers/net/natsemi.c
---- a/drivers/net/natsemi.c~natsemi-fix-netdev-error-acounting
-+++ a/drivers/net/natsemi.c
-@@ -2438,13 +2438,16 @@ static void netdev_error(struct net_devi
- 				dev->name);
- 		}
- 		np->stats.rx_fifo_errors++;
-+		np->stats.rx_errors++;
- 	}
- 	/* Hmmmmm, it's not clear how to recover from PCI faults. */
- 	if (intr_status & IntrPCIErr) {
- 		printk(KERN_NOTICE "%s: PCI error %#08x\n", dev->name,
- 			intr_status & IntrPCIErr);
- 		np->stats.tx_fifo_errors++;
-+		np->stats.tx_errors++;
- 		np->stats.rx_fifo_errors++;
-+		np->stats.rx_errors++;
- 	}
- 	spin_unlock(&np->lock);
- }
+diff -puN drivers/net/ax88796.c~ax88796-printk-fixes drivers/net/ax88796.c
+--- a/drivers/net/ax88796.c~ax88796-printk-fixes
++++ a/drivers/net/ax88796.c
+@@ -821,8 +821,9 @@ static int ax_probe(struct platform_devi
+ 	dev->base_addr = (unsigned long)ei_status.mem;
+ 
+ 	if (ei_status.mem == NULL) {
+-		dev_err(&pdev->dev, "Cannot ioremap area (%08zx,%08zx)\n",
+-			res->start, res->end);
++		dev_err(&pdev->dev, "Cannot ioremap area (%08llx,%08llx)\n",
++			(unsigned long long)res->start,
++			(unsigned long long)res->end);
+ 
+  		ret = -ENXIO;
+ 		goto exit_req;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
