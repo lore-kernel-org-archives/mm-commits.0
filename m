@@ -1,172 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-pci-mmconfig-eax.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 11:59:58 -0700
-Message-ID: <200708141859.l7EIxwDf015872@imap1.linux-foundation.org>
+Subject: - disable-b44-and-bcm43xx.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 11:59:00 -0700
+Message-ID: <200708141859.l7EIx0Ks015847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932355AbXHNTAJ (ORCPT
+	by vger.kernel.org with ESMTP id S933477AbXHNTAU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:00:09 -0400
+	Tue, 14 Aug 2007 15:00:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-pci-mmconfig-eax
+     disable b44 and bcm43xx
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-pci-mmconfig-eax.patch
+     disable-b44-and-bcm43xx.patch
 
-This patch was dropped because it doesn't apply and I need to see if we fixed it
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-pci-mmconfig-eax
+Subject: disable b44 and bcm43xx
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Kills the Vaio: no netconsole, fails at "mountL could not find filesystem
-/dev/root" in initrd.
-
-Cc: Andi Kleen <ak@suse.de>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/mmconfig.c   |   14 ++++++-----
- arch/i386/pci/pci.h        |   43 -----------------------------------
- arch/x86_64/pci/mmconfig.c |   12 ++++-----
- 3 files changed, 14 insertions(+), 55 deletions(-)
+ drivers/net/Kconfig                           |    1 +
+ drivers/net/wireless/bcm43xx-mac80211/Kconfig |    1 +
+ drivers/net/wireless/bcm43xx/Kconfig          |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN arch/i386/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax arch/i386/pci/mmconfig.c
---- a/arch/i386/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax
-+++ a/arch/i386/pci/mmconfig.c
-@@ -82,15 +82,16 @@ static int pci_mmcfg_read(unsigned int s
- 
- 	switch (len) {
- 	case 1:
--		*value = mmio_config_readb(mmcfg_virt_addr + reg);
-+		*value = readb(mmcfg_virt_addr + reg);
- 		break;
- 	case 2:
--		*value = mmio_config_readw(mmcfg_virt_addr + reg);
-+		*value = readw(mmcfg_virt_addr + reg);
- 		break;
- 	case 4:
--		*value = mmio_config_readl(mmcfg_virt_addr + reg);
-+		*value = readl(mmcfg_virt_addr + reg);
- 		break;
- 	}
-+
- 	spin_unlock_irqrestore(&pci_config_lock, flags);
- 
- 	return 0;
-@@ -115,15 +116,16 @@ static int pci_mmcfg_write(unsigned int 
- 
- 	switch (len) {
- 	case 1:
--		mmio_config_writeb(mmcfg_virt_addr, value);
-+		writeb(value, mmcfg_virt_addr + reg);
- 		break;
- 	case 2:
--		mmio_config_writew(mmcfg_virt_addr, value);
-+		writew(value, mmcfg_virt_addr + reg);
- 		break;
- 	case 4:
--		mmio_config_writel(mmcfg_virt_addr, value);
-+		writel(value, mmcfg_virt_addr + reg);
- 		break;
- 	}
-+
- 	spin_unlock_irqrestore(&pci_config_lock, flags);
- 
- 	return 0;
-diff -puN arch/i386/pci/pci.h~revert-x86_64-mm-pci-mmconfig-eax arch/i386/pci/pci.h
---- a/arch/i386/pci/pci.h~revert-x86_64-mm-pci-mmconfig-eax
-+++ a/arch/i386/pci/pci.h
-@@ -104,46 +104,3 @@ extern DECLARE_BITMAP(pci_mmcfg_fallback
- extern int __init pci_mmcfg_arch_reachable(unsigned int seg, unsigned int bus,
- 					   unsigned int devfn);
- extern int __init pci_mmcfg_arch_init(void);
--
--/*
-- * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
-- * on their northbrige except through the * %eax register. As such, you MUST
-- * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
-- * accessor functions.
-- * In fact just use pci_config_*, nothing else please.
-- */
--static inline unsigned char mmio_config_readb(void __iomem *pos)
--{
--	u8 val;
--	asm volatile("movb (%1),%%al" : "=a" (val) : "r" (pos));
--	return val;
--}
--
--static inline unsigned short mmio_config_readw(void __iomem *pos)
--{
--	u16 val;
--	asm volatile("movw (%1),%%ax" : "=a" (val) : "r" (pos));
--	return val;
--}
--
--static inline unsigned int mmio_config_readl(void __iomem *pos)
--{
--	u32 val;
--	asm volatile("movl (%1),%%eax" : "=a" (val) : "r" (pos));
--	return val;
--}
--
--static inline void mmio_config_writeb(void __iomem *pos, u8 val)
--{
--	asm volatile("movb %%al,(%1)" :: "a" (val), "r" (pos) : "memory");
--}
--
--static inline void mmio_config_writew(void __iomem *pos, u16 val)
--{
--	asm volatile("movw %%ax,(%1)" :: "a" (val), "r" (pos) : "memory");
--}
--
--static inline void mmio_config_writel(void __iomem *pos, u32 val)
--{
--	asm volatile("movl %%eax,(%1)" :: "a" (val), "r" (pos) : "memory");
--}
-diff -puN arch/x86_64/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax arch/x86_64/pci/mmconfig.c
---- a/arch/x86_64/pci/mmconfig.c~revert-x86_64-mm-pci-mmconfig-eax
-+++ a/arch/x86_64/pci/mmconfig.c
-@@ -66,13 +66,13 @@ static int pci_mmcfg_read(unsigned int s
- 
- 	switch (len) {
- 	case 1:
--		*value = mmio_config_readb(addr + reg);
-+		*value = readb(addr + reg);
- 		break;
- 	case 2:
--		*value = mmio_config_readw(addr + reg);
-+		*value = readw(addr + reg);
- 		break;
- 	case 4:
--		*value = mmio_config_readl(addr + reg);
-+		*value = readl(addr + reg);
- 		break;
- 	}
- 
-@@ -94,13 +94,13 @@ static int pci_mmcfg_write(unsigned int 
- 
- 	switch (len) {
- 	case 1:
--		mmio_config_writeb(addr + reg, value);
-+		writeb(value, addr + reg);
- 		break;
- 	case 2:
--		mmio_config_writew(addr + reg, value);
-+		writew(value, addr + reg);
- 		break;
- 	case 4:
--		mmio_config_writel(addr + reg, value);
-+		writel(value, addr + reg);
- 		break;
- 	}
- 
+diff -puN drivers/net/Kconfig~disable-b44-and-bcm43xx drivers/net/Kconfig
+--- a/drivers/net/Kconfig~disable-b44-and-bcm43xx
++++ a/drivers/net/Kconfig
+@@ -1435,6 +1435,7 @@ config APRICOT
+ config B44
+ 	tristate "Broadcom 440x/47xx ethernet support"
+ 	depends on HAS_IOMEM
++	depends on BROKEN
+ 	select SSB
+ 	select MII
+ 	help
+diff -puN drivers/net/wireless/bcm43xx-mac80211/Kconfig~disable-b44-and-bcm43xx drivers/net/wireless/bcm43xx-mac80211/Kconfig
+--- a/drivers/net/wireless/bcm43xx-mac80211/Kconfig~disable-b44-and-bcm43xx
++++ a/drivers/net/wireless/bcm43xx-mac80211/Kconfig
+@@ -1,6 +1,7 @@
+ config BCM43XX_MAC80211
+ 	tristate "Broadcom BCM43xx wireless support (mac80211 stack)"
+ 	depends on MAC80211 && WLAN_80211 && EXPERIMENTAL
++	depends on BROKEN
+ 	select FW_LOADER
+ 	select SSB
+ 	select HW_RANDOM
+diff -puN drivers/net/wireless/bcm43xx/Kconfig~disable-b44-and-bcm43xx drivers/net/wireless/bcm43xx/Kconfig
+--- a/drivers/net/wireless/bcm43xx/Kconfig~disable-b44-and-bcm43xx
++++ a/drivers/net/wireless/bcm43xx/Kconfig
+@@ -2,6 +2,7 @@ config BCM43XX
+ 	tristate "Broadcom BCM43xx wireless support"
+ 	depends on PCI && IEEE80211 && IEEE80211_SOFTMAC && WLAN_80211 && EXPERIMENTAL
+ 	depends on BCM43XX_MAC80211 != 'y'
++	depends on BROKEN
+ 	select WIRELESS_EXT
+ 	select FW_LOADER
+ 	select HW_RANDOM
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,6 +119,7 @@ git-unionfs-fix-2.patch
 mct_u232-convert-to-proper-speed-handling-api-fix.patch
 git-wireless.patch
 git-wireless-fixup.patch
+disable-b44-and-bcm43xx.patch
 revert-x86_64-mm-pci-mmconfig-eax.patch
 fix-x86_64-mm-early-quirks-unification.patch
 x86_64-clean-up-apicid_to_node-declaration.patch
