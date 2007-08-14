@@ -1,85 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - netconsole-add-some-useful-tips-to-documentation.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:08 -0700
-Message-ID: <200708141913.l7EJD8Is016476@imap1.linux-foundation.org>
+Subject: - netconsole-simplify-boot-module-option-setup-logic.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:04 -0700
+Message-ID: <200708141913.l7EJD4NK016469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59661 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933504AbXHNTVH (ORCPT
+	by vger.kernel.org with ESMTP id S933448AbXHNTVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:07 -0400
+	Tue, 14 Aug 2007 15:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netconsole: Add some useful tips to documentation
+     netconsole: Simplify boot/module option setup logic
 has been removed from the -mm tree.  Its filename was
-     netconsole-add-some-useful-tips-to-documentation.patch
+     netconsole-simplify-boot-module-option-setup-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: netconsole: Add some useful tips to documentation
+Subject: netconsole: Simplify boot/module option setup logic
 From: Satyam Sharma <satyam@infradead.org>
 
 Based upon initial work by Keiichi Kii <k-keiichi@bx.jp.nec.com>.
 
-Add some useful general-purpose tips.  Also suggest solution for the frequent
-problem of console loglevel set too low numerically (i.e.  for high priority
-messages only) on the sender.
+Presently, boot/module parameters are set up quite differently for the case of
+built-in netconsole (__setup() -> obsolete_checksetup() ->
+netpoll_parse_options() -> strlen(config) == 0 in init_netconsole()) vs
+modular netconsole (module_param_string() -> string copied to the config
+variable -> strlen(config) != 0 init_netconsole() -> netpoll_parse_options()).
+
+This patch makes both of them similar by doing exactly the equivalent of a
+module_param_string() in option_setup() also -- just copying the param string
+passed from the kernel command line into "config" variable.  So,
+strlen(config) != 0 in both cases, and netpoll_parse_options() is always
+called from init_netconsole(), thus making the setup logic for both cases
+similar.
+
+Now, option_setup() is only ever called / used for the built-in case, so we
+put it inside a #ifndef MODULE, otherwise gcc will complain about
+option_setup() being "defined but not used".  Also, the "configured" variable
+is redundant with this patch and hence removed.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
 Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/networking/netconsole.txt |   25 ++++++++++++++++++++++
- 1 files changed, 25 insertions(+)
+ drivers/net/netconsole.c |   27 ++++++++++++++-------------
+ 1 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/networking/netconsole.txt~netconsole-add-some-useful-tips-to-documentation Documentation/networking/netconsole.txt
---- a/Documentation/networking/netconsole.txt~netconsole-add-some-useful-tips-to-documentation
-+++ a/Documentation/networking/netconsole.txt
-@@ -44,11 +44,36 @@ WARNING: the default target ethernet set
- ethernet address to send packets, which can cause increased load on
- other systems on the same ethernet segment.
+diff -puN drivers/net/netconsole.c~netconsole-simplify-boot-module-option-setup-logic drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-simplify-boot-module-option-setup-logic
++++ a/drivers/net/netconsole.c
+@@ -53,6 +53,15 @@ static char config[MAX_PARAM_LENGTH];
+ module_param_string(netconsole, config, MAX_PARAM_LENGTH, 0);
+ MODULE_PARM_DESC(netconsole, " netconsole=[src-port]@[src-ip]/[dev],[tgt-port]@<tgt-ip>/[tgt-macaddr]\n");
  
-+TIP: some LAN switches may be configured to suppress ethernet broadcasts
-+so it is advised to explicitly specify the remote agents' MAC addresses
-+from the config parameters passed to netconsole.
++#ifndef	MODULE
++static int __init option_setup(char *opt)
++{
++	strlcpy(config, opt, MAX_PARAM_LENGTH);
++	return 1;
++}
++__setup("netconsole=", option_setup);
++#endif	/* MODULE */
 +
-+TIP: to find out the MAC address of, say, 10.0.0.2, you may try using:
-+
-+ ping -c 1 10.0.0.2 ; /sbin/arp -n | grep 10.0.0.2
-+
-+TIP: in case the remote logging agent is on a separate LAN subnet than
-+the sender, it is suggested to try specifying the MAC address of the
-+default gateway (you may use /sbin/route -n to find it out) as the
-+remote MAC address instead.
-+
- NOTE: the network device (eth1 in the above case) can run any kind
- of other network traffic, netconsole is not intrusive. Netconsole
- might cause slight delays in other traffic if the volume of kernel
- messages is high, but should have no other impact.
+ static struct netpoll np = {
+ 	.name		= "netconsole",
+ 	.dev_name	= "eth0",
+@@ -60,7 +69,6 @@ static struct netpoll np = {
+ 	.remote_port	= 6666,
+ 	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+ };
+-static int configured;
  
-+NOTE: if you find that the remote logging agent is not receiving or
-+printing all messages from the sender, it is likely that you have set
-+the "console_loglevel" parameter (on the sender) to only send high
-+priority messages to the console. You can change this at runtime using:
+ static void write_msg(struct console *con, const char *msg, unsigned int len)
+ {
+@@ -85,26 +93,19 @@ static struct console netconsole = {
+ 	.write	= write_msg,
+ };
+ 
+-static int __init option_setup(char *opt)
+-{
+-	configured = !netpoll_parse_options(&np, opt);
+-	return 1;
+-}
+-
+-__setup("netconsole=", option_setup);
+-
+ static int __init init_netconsole(void)
+ {
+ 	int err = 0;
+ 
+-	if (strnlen(config, MAX_PARAM_LENGTH))
+-		option_setup(config);
+-
+-	if (!configured) {
++	if (!strnlen(config, MAX_PARAM_LENGTH)) {
+ 		printk(KERN_INFO "netconsole: not configured, aborting\n");
+ 		goto out;
+ 	}
+ 
++	err = netpoll_parse_options(&np, config);
++	if (err)
++		goto out;
 +
-+ dmesg -n 8
-+
-+or by specifying "debug" on the kernel command line at boot, to send
-+all kernel messages to the console. A specific value for this parameter
-+can also be set using the "loglevel" kernel boot option. See the
-+dmesg(8) man page and Documentation/kernel-parameters.txt for details.
-+
- Netconsole was designed to be as instantaneous as possible, to
- enable the logging of even the most critical kernel bugs. It works
- from IRQ contexts as well, and does not enable interrupts while
+ 	err = netpoll_setup(&np);
+ 	if (err)
+ 		goto out;
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
