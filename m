@@ -1,66 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - fix-missing-numa_zonelist_order-sysctl.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:49 -0700
-Message-ID: <200708140502.l7E52n0B032004@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-error-handling-in-ecryptfs_init.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:02:58 -0700
+Message-ID: <200708140502.l7E52wJA032015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40394 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762423AbXHNFDh (ORCPT
+	by vger.kernel.org with ESMTP id S1764686AbXHNFDm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:03:37 -0400
+	Tue, 14 Aug 2007 01:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix missing numa_zonelist_order sysctl
+     eCryptfs: fix error handling in ecryptfs_init
 has been removed from the -mm tree.  Its filename was
-     fix-missing-numa_zonelist_order-sysctl.patch
+     ecryptfs-fix-error-handling-in-ecryptfs_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix missing numa_zonelist_order sysctl
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: eCryptfs: fix error handling in ecryptfs_init
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-Misplaced #endif is hiding the numa_zonelist_order sysctl when !SECURITY.
+ecryptfs_init() exits without doing any cleanup jobs if
+ecryptfs_init_messaging() fails.  In that case, eCryptfs leaves
+sysfs entries, leaks memory, and causes an invalid page fault.
+This patch fixes the problem.
 
-[But, maybe reordering the zonelists is not such a good idea
-when ZONE_MOVABLE is populated?]
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/main.c |   18 +++++++++++++-----
+ 1 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sysctl.c~fix-missing-numa_zonelist_order-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~fix-missing-numa_zonelist_order-sysctl
-+++ a/kernel/sysctl.c
-@@ -1023,6 +1023,7 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
-+#endif
- #ifdef CONFIG_NUMA
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
-@@ -1034,7 +1035,6 @@ static ctl_table vm_table[] = {
- 		.strategy	= &sysctl_string,
- 	},
- #endif
--#endif
- #if defined(CONFIG_X86_32) || \
-    (defined(CONFIG_SUPERH) && defined(CONFIG_VSYSCALL))
- 	{
+diff -puN fs/ecryptfs/main.c~ecryptfs-fix-error-handling-in-ecryptfs_init fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-fix-error-handling-in-ecryptfs_init
++++ a/fs/ecryptfs/main.c
+@@ -813,6 +813,15 @@ out:
+ 	return rc;
+ }
+ 
++static void do_sysfs_unregistration(void)
++{
++	sysfs_remove_file(&ecryptfs_subsys.kobj,
++			  &sysfs_attr_version.attr);
++	sysfs_remove_file(&ecryptfs_subsys.kobj,
++			  &sysfs_attr_version_str.attr);
++	subsystem_unregister(&ecryptfs_subsys);
++}
++
+ static int __init ecryptfs_init(void)
+ {
+ 	int rc;
+@@ -851,6 +860,9 @@ static int __init ecryptfs_init(void)
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
+ 				"initialize the eCryptfs netlink socket\n");
++		do_sysfs_unregistration();
++		unregister_filesystem(&ecryptfs_fs_type);
++		ecryptfs_free_kmem_caches();
+ 	}
+ out:
+ 	return rc;
+@@ -858,11 +870,7 @@ out:
+ 
+ static void __exit ecryptfs_exit(void)
+ {
+-	sysfs_remove_file(&ecryptfs_subsys.kobj,
+-			  &sysfs_attr_version.attr);
+-	sysfs_remove_file(&ecryptfs_subsys.kobj,
+-			  &sysfs_attr_version_str.attr);
+-	subsystem_unregister(&ecryptfs_subsys);
++	do_sysfs_unregistration();
+ 	ecryptfs_release_messaging(ecryptfs_transport);
+ 	unregister_filesystem(&ecryptfs_fs_type);
+ 	ecryptfs_free_kmem_caches();
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-document-linux-memory-policy-v3.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+ecryptfs-fix-lookup-error-for-special-files.patch
