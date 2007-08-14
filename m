@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-move-exit_task_namespaces.patch added to -mm tree
-Date: Tue, 14 Aug 2007 13:04:46 -0700
-Message-ID: <200708142004.l7EK4kvA018586@imap1.linux-foundation.org>
+Subject: + pid-namespaces-introduce-ms_kernmount-flag.patch added to -mm tree
+Date: Tue, 14 Aug 2007 13:04:48 -0700
+Message-ID: <200708142004.l7EK4mi0018589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53934 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764782AbXHNUFV (ORCPT
+	by vger.kernel.org with ESMTP id S1751720AbXHNUFE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 16:05:21 -0400
+	Tue, 14 Aug 2007 16:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru,
 
 
 The patch titled
-     pid namespaces: move exit_task_namespaces()
+     pid namespaces: introduce MS_KERNMOUNT flag
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-move-exit_task_namespaces.patch
+     pid-namespaces-introduce-ms_kernmount-flag.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,24 +26,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: move exit_task_namespaces()
+Subject: pid namespaces: introduce MS_KERNMOUNT flag
 From: Pavel Emelyanov <xemul@openvz.org>
 
-Make task release its namespaces after it has reparented all his children to
-child_reaper, but before it notifies its parent about its death.
+This flag tells the .get_sb callback that this is a kern_mount() call so that
+it can trust *data pointer to be valid in-kernel one.  If this flag is passed
+from the user process, it is cleared since the *data pointer is not a valid
+kernel object.
 
-The reason to release namespaces after reparenting is that when task exits it
-may send a signal to its parent (SIGCHLD), but if the parent has already
-exited its namespaces there will be no way to decide what pid to dever to him
-- parent can be from different namespace.
-
-The reason to release namespace before notifying the parent it that when task
-sends a SIGCHLD to parent it can call wait() on this taks and release it.  But
-releasing the mnt namespace implies dropping of all the mounts in the mnt
-namespace and NFS expects the task to have valid sighand pointer.
-
-Thanks to Oleg for pointing out some races that can apear and helping with
-patches and fixes.
+Running a few steps forward - this will be needed for proc to create the
+superblock and store a valid pid namespace on it during the namespace
+creation.  The reason, why the namespace cannot live without proc mount is
+described in the appropriate patch.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -53,28 +47,61 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/namespace.c     |    3 ++-
+ fs/super.c         |    6 +++---
+ include/linux/fs.h |    4 +++-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN kernel/exit.c~pid-namespaces-move-exit_task_namespaces kernel/exit.c
---- a/kernel/exit.c~pid-namespaces-move-exit_task_namespaces
-+++ a/kernel/exit.c
-@@ -780,6 +780,7 @@ static void exit_notify(struct task_stru
- 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
- 	 */
- 	forget_original_parent(tsk);
-+	exit_task_namespaces(tsk);
+diff -puN fs/namespace.c~pid-namespaces-introduce-ms_kernmount-flag fs/namespace.c
+--- a/fs/namespace.c~pid-namespaces-introduce-ms_kernmount-flag
++++ a/fs/namespace.c
+@@ -1605,7 +1605,8 @@ long do_mount(char *dev_name, char *dir_
+ 		mnt_flags |= MNT_NOMNT;
  
- 	write_lock_irq(&tasklist_lock);
- 	/*
-@@ -983,7 +984,6 @@ fastcall NORET_TYPE void do_exit(long co
+ 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
+-		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME | MS_NOMNT);
++		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME |
++		   MS_NOMNT | MS_KERNMOUNT);
  
- 	tsk->exit_code = code;
- 	proc_exit_connector(tsk);
--	exit_task_namespaces(tsk);
- 	exit_notify(tsk);
- #ifdef CONFIG_NUMA
- 	mpol_free(tsk->mempolicy);
+ 	/* ... and get the mountpoint */
+ 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
+diff -puN fs/super.c~pid-namespaces-introduce-ms_kernmount-flag fs/super.c
+--- a/fs/super.c~pid-namespaces-introduce-ms_kernmount-flag
++++ a/fs/super.c
+@@ -918,9 +918,9 @@ do_kern_mount(const char *fstype, int fl
+ 	return mnt;
+ }
+ 
+-struct vfsmount *kern_mount(struct file_system_type *type)
++struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
+ {
+-	return vfs_kern_mount(type, 0, type->name, NULL);
++	return vfs_kern_mount(type, MS_KERNMOUNT, type->name, data);
+ }
+ 
+-EXPORT_SYMBOL(kern_mount);
++EXPORT_SYMBOL_GPL(kern_mount_data);
+diff -puN include/linux/fs.h~pid-namespaces-introduce-ms_kernmount-flag include/linux/fs.h
+--- a/include/linux/fs.h~pid-namespaces-introduce-ms_kernmount-flag
++++ a/include/linux/fs.h
+@@ -129,6 +129,7 @@ extern int dir_notify_enable;
+ #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
+ #define MS_SETUSER	(1<<23) /* set mnt_uid to current user */
+ #define MS_NOMNT	(1<<24) /* don't allow unprivileged submounts */
++#define MS_KERNMOUNT	(1<<25) /* this is a kern_mount call */
+ #define MS_ACTIVE	(1<<30)
+ #define MS_NOUSER	(1<<31)
+ 
+@@ -1458,7 +1459,8 @@ void unnamed_dev_init(void);
+ 
+ extern int register_filesystem(struct file_system_type *);
+ extern int unregister_filesystem(struct file_system_type *);
+-extern struct vfsmount *kern_mount(struct file_system_type *);
++extern struct vfsmount *kern_mount_data(struct file_system_type *, void *data);
++#define kern_mount(type) kern_mount_data(type, NULL)
+ extern int may_umount_tree(struct vfsmount *);
+ extern int may_umount(struct vfsmount *);
+ extern void umount_tree(struct vfsmount *, int, struct list_head *);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
