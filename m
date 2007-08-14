@@ -1,72 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:11:55 -0700
-Message-ID: <200708141911.l7EJBtIV016336@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-drivers-atm.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:26 -0700
+Message-ID: <200708141912.l7EJCQqS016404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42642 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42832 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934769AbXHNTMw (ORCPT
+	by vger.kernel.org with ESMTP id S934782AbXHNTM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:12:52 -0400
+	Tue, 14 Aug 2007 15:12:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: us15@os.inf.tu-dresden.de, lenb@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, chas@cmf.nrl.navy.mil, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: move timer broadcast and pmtimer access before C3 arbiter shutdown
+     Clean up duplicate includes in drivers/atm/
 has been removed from the -mm tree.  Its filename was
-     acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown.patch
+     clean-up-duplicate-includes-in-drivers-atm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: move timer broadcast and pmtimer access before C3 arbiter shutdown
-From: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Subject: Clean up duplicate includes in drivers/atm/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-The chipset doc for IHC4 tells us:
+This patch cleans up duplicate includes in
+	drivers/atm/
 
-1.In general, software should not attempt any non-posted accesses during
-arbiter disable except to the ICH4's power management registers.  This implies
-that interrupt handlers for any unmasked hardware interrupts and SMI/NMI
-should check ARB_DIS status before reading from ICH devices.
-
-So it's not a good idea to access ICH devices after arbiter shut down.
-
-Signed-off-by: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/atm/lanai.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-move-timer-broadcast-and-pmtimer-access-before-c3-arbiter-shutdown
-+++ a/drivers/acpi/processor_idle.c
-@@ -1009,6 +1009,12 @@ static int acpi_idle_enter_c3(struct cpu
- 		return 0;
- 	}
+diff -puN drivers/atm/lanai.c~clean-up-duplicate-includes-in-drivers-atm drivers/atm/lanai.c
+--- a/drivers/atm/lanai.c~clean-up-duplicate-includes-in-drivers-atm
++++ a/drivers/atm/lanai.c
+@@ -65,7 +65,6 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+-#include <linux/dma-mapping.h>
  
-+	/*
-+	 * Must be done before busmaster disable as we might need to
-+	 * access HPET!
-+	 */
-+	acpi_state_timer_broadcast(pr, cx, 1);
-+
- 	/* disable bus master */
- 	if (pr->flags.bm_check) {
- 		spin_lock(&c3_lock);
-@@ -1028,7 +1034,6 @@ static int acpi_idle_enter_c3(struct cpu
- 
- 	/* Get start time (ticks) */
- 	t1 = inl(acpi_gbl_FADT.xpm_timer_block.address);
--	acpi_state_timer_broadcast(pr, cx, 1);
- 	acpi_idle_do_entry(cx);
- 	t2 = inl(acpi_gbl_FADT.xpm_timer_block.address);
+ /* -------------------- TUNABLE PARAMATERS: */
  
 _
 
-Patches currently in -mm which might be from us15@os.inf.tu-dresden.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
+
+origin.patch
+git-alsa.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
