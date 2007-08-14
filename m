@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-drivers-block.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:27 -0700
-Message-ID: <200708141913.l7EJDRaR016506@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-net-sunrpc.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:37 -0700
+Message-ID: <200708141912.l7EJCbdv016419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54820 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933833AbXHNTVU (ORCPT
+	by vger.kernel.org with ESMTP id S933942AbXHNTVf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:20 -0400
+	Tue, 14 Aug 2007 15:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, jens.axboe@oracle.com, satyam.sharma@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/block/
+     Clean up duplicate includes in net/sunrpc/
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-drivers-block.patch
+     clean-up-duplicate-includes-in-net-sunrpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/block/
+Subject: Clean up duplicate includes in net/sunrpc/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
 This patch cleans up duplicate includes in
-	drivers/block/
+	net/sunrpc/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Jens Axboe <jens.axboe@oracle.com>
-Cc: Satyam Sharma <satyam.sharma@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/viodasd.c |    1 -
+ net/sunrpc/auth_gss/svcauth_gss.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block drivers/block/viodasd.c
---- a/drivers/block/viodasd.c~clean-up-duplicate-includes-in-drivers-block
-+++ a/drivers/block/viodasd.c
-@@ -41,7 +41,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/completion.h>
- #include <linux/device.h>
--#include <linux/kernel.h>
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~clean-up-duplicate-includes-in-net-sunrpc
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -42,7 +42,6 @@
+ #include <linux/pagemap.h>
  
- #include <asm/uaccess.h>
- #include <asm/vio.h>
+ #include <linux/sunrpc/auth_gss.h>
+-#include <linux/sunrpc/svcauth.h>
+ #include <linux/sunrpc/gss_err.h>
+ #include <linux/sunrpc/svcauth.h>
+ #include <linux/sunrpc/svcauth_gss.h>
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
