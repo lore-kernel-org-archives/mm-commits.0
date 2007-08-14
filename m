@@ -1,111 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:12:49 -0700
-Message-ID: <200708141912.l7EJCnZl016438@imap1.linux-foundation.org>
+Subject: - i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:37 -0700
+Message-ID: <200708141914.l7EJEboM016633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42588 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765764AbXHNTUn (ORCPT
+	by vger.kernel.org with ESMTP id S932154AbXHNTUq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:43 -0400
+	Tue, 14 Aug 2007 15:20:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, ian.mcdonald@jandi.co.nz, mm-commits@vger.kernel.org
+To: bunk@stusta.de, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dccp: fix memory leak and clean up style - dccp_feat_empty_confirm()
+     i386: no need to make enable_cpu_hotplug a variable
 has been removed from the -mm tree.  Its filename was
-     dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm.patch
+     i386-no-need-to-make-enable_cpu_hotplug-a-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dccp: fix memory leak and clean up style - dccp_feat_empty_confirm()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: i386: no need to make enable_cpu_hotplug a variable
+From: Adrian Bunk <bunk@stusta.de>
 
-There's a memory leak in net/dccp/feat.c::dccp_feat_empty_confirm().  If we
-hit the 'default:' case of the 'switch' statement, then we return without
-freeing 'opt', thus leaking 'struct dccp_opt_pend' bytes.
+As long as there's no write access to this variable there's no reason to let
+gcc check it at runtime.
 
-The leak is fixed easily enough by adding a kfree(opt); before the return
-statement.
-
-The patch also changes the layout of the 'switch' to be more in line with
-CodingStyle.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Ian McDonald <ian.mcdonald@jandi.co.nz>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dccp/feat.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ arch/i386/kernel/topology.c |    2 --
+ include/asm-i386/cpu.h      |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN net/dccp/feat.c~dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm net/dccp/feat.c
---- a/net/dccp/feat.c~dccp-fix-memory-leak-and-clean-up-style-dccp_feat_empty_confirm
-+++ a/net/dccp/feat.c
-@@ -327,10 +327,16 @@ static void dccp_feat_empty_confirm(stru
- 	}
+diff -puN arch/i386/kernel/topology.c~i386-no-need-to-make-enable_cpu_hotplug-a-variable arch/i386/kernel/topology.c
+--- a/arch/i386/kernel/topology.c~i386-no-need-to-make-enable_cpu_hotplug-a-variable
++++ a/arch/i386/kernel/topology.c
+@@ -51,8 +51,6 @@ int arch_register_cpu(int num)
+ }
  
- 	switch (type) {
--	case DCCPO_CHANGE_L: opt->dccpop_type = DCCPO_CONFIRM_R; break;
--	case DCCPO_CHANGE_R: opt->dccpop_type = DCCPO_CONFIRM_L; break;
--	default:	     DCCP_WARN("invalid type %d\n", type); return;
+ #ifdef CONFIG_HOTPLUG_CPU
+-int enable_cpu_hotplug = 1;
 -
-+	case DCCPO_CHANGE_L:
-+		opt->dccpop_type = DCCPO_CONFIRM_R;
-+		break;
-+	case DCCPO_CHANGE_R:
-+		opt->dccpop_type = DCCPO_CONFIRM_L;
-+		break;
-+	default:
-+		DCCP_WARN("invalid type %d\n", type);
-+		kfree(opt);
-+		return;
- 	}
- 	opt->dccpop_feat = feature;
- 	opt->dccpop_val	 = NULL;
+ void arch_unregister_cpu(int num) {
+ 	return unregister_cpu(&cpu_devices[num].cpu);
+ }
+diff -puN include/asm-i386/cpu.h~i386-no-need-to-make-enable_cpu_hotplug-a-variable include/asm-i386/cpu.h
+--- a/include/asm-i386/cpu.h~i386-no-need-to-make-enable_cpu_hotplug-a-variable
++++ a/include/asm-i386/cpu.h
+@@ -13,7 +13,7 @@ struct i386_cpu {
+ extern int arch_register_cpu(int num);
+ #ifdef CONFIG_HOTPLUG_CPU
+ extern void arch_unregister_cpu(int);
+-extern int enable_cpu_hotplug;
++#define enable_cpu_hotplug	1
+ #else
+ #define enable_cpu_hotplug	0
+ #endif
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+kernel-auditscc-fix-an-off-by-one.patch
+slow-down-printk-during-boot-fix-3.patch
+git-acpi.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+drivers-base-power-make-2-functions-static.patch
+git-drm.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
 git-mtd.patch
-git-ubi.patch
+remove-fs-jffs2-ioctlc.patch
 git-netdev-all.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
 git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+parisc-extern-inline-static-inline.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+drivers-scsi-scsi_errorc-should-include.patch
+drivers-scsi-constantsc-make-2-functions-static.patch
+git-unionfs.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+git-cryptodev.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
