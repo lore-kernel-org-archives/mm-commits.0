@@ -1,106 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - belkin_sa-avoid-divide-by-zero-error.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:15:11 -0700
-Message-ID: <200708141915.l7EJFBVm016768@imap1.linux-foundation.org>
+Subject: - i386-add-amd64-barcelona-pmu-msr-definitions.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:14:27 -0700
+Message-ID: <200708141914.l7EJERgs016618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59795 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933673AbXHNTVJ (ORCPT
+	by vger.kernel.org with ESMTP id S933645AbXHNTVJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Aug 2007 15:21:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy@warmcat.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, wgreathouse@smva.com, mm-commits@vger.kernel.org
+To: eranian@hpl.hp.com, ak@suse.de, robert.richter@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     belkin_sa: avoid divide by zero error
+     i386: add AMD64 Barcelona PMU MSR definitions
 has been removed from the -mm tree.  Its filename was
-     belkin_sa-avoid-divide-by-zero-error.patch
+     i386-add-amd64-barcelona-pmu-msr-definitions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: belkin_sa: avoid divide by zero error
-From: Andy Green <andy@warmcat.com>
+Subject: i386: add AMD64 Barcelona PMU MSR definitions
+From: Stephane Eranian <eranian@hpl.hp.com>
 
-The belkin_sa module has a problem coping with a 0 return from
-tty_get_baud_rate() -- the subsequent BELKIN_SA_BAUD macro
-
-drivers/usb/serial/belkin_sa.h:#define BELKIN_SA_BAUD(b) (230400/b)
-
-performs a divide with it leading to the following divide error:
-
-usb 3-1: Belkin / Peracom / GoHubs USB Serial Adapter converter now attached to ttyUSB0
-PM: Adding info for No Bus:usbdev3.3_ep81
-PM: Adding info for No Bus:usbdev3.3_ep01
-PM: Adding info for No Bus:usbdev3.3_ep82
-divide error: 0000 [#1]
-SMP
-Modules linked in: vfat fat iwl3945 mac80211 cfg80211 belkin_sa usbserial usb_storage autofs4 vmnet(P) vmmon(P) aes nf_conntrack_netbios_ns ipt_REJECT nf_conntrack_ipv4 xt_state nf_conntrack nfnetlink xt_tcpudp iptable_filter ip_tables x_tables cpufreq_ondemand acpi_cpufreq video output sbs button dock battery ac arc4 snd_hda_intel ecb blkcipher snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device snd_pcm_oss sr_mod snd_mixer_oss rtc_cmos cdrom iTCO_wdt iTCO_vendor_support snd_pcm rtc_core snd_timer serio_raw b44 ssb rtc_lib parport ata_piix snd soundcore snd_page_alloc mii ata_generic sg ahci libata sd_mod scsi_mod ext3 jbd mbcache ehci_hcd ohci_hcd uhci_hcd
-CPU:    1
-EIP:    0060:[<f8dd1747>]    Tainted: P        VLI
-EFLAGS: 00010246   (2.6.23-rc1 #1)
-EIP is at belkin_sa_set_termios+0x18e/0x5b9 [belkin_sa]
-eax: 00038400   ebx: 00000000   ecx: 00000000   edx: 00000000
-esi: 00038400   edi: 00001cb2   ebp: de49adb0   esp: de49ad6c
-ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
-Process minicom (pid: 7306, ti=de49a000 task=eed6c3b0 task.ti=de49a000)
-Stack: d85c74f0 00000046 00000002 00000001 d85c74f0 d85c74f0 00000246 c887c658
-       00000001 00000cb0 00000001 00000084 00000000 d01b58c0 f6ba10e0 de49ade8
-       de49ae40 de49add0 f8e2526b d85c74b8 ca6e6dbc de49ae40 d85c746c eded72e8
-Call Trace:
- [<c0405f35>] show_trace_log_lvl+0x1a/0x2f
- [<c0405fe5>] show_stack_log_lvl+0x9b/0xa3
- [<c04061a5>] show_registers+0x1b8/0x289
- [<c0406389>] die+0x113/0x246
- [<c0622f98>] do_trap+0x8a/0xa3
- [<c04068dc>] do_divide_error+0x85/0x8f
- [<c0622d6a>] error_code+0x72/0x78
- [<f8e2526b>] serial_set_termios+0x86/0x8d [usbserial]
- [<c0542d33>] set_termios+0x309/0x34c
- [<c0542ece>] n_tty_ioctl+0x158/0x4ba
- [<c054030b>] tty_ioctl+0xc78/0xcd6
- [<c048aea0>] do_ioctl+0x50/0x67
- [<c048b100>] vfs_ioctl+0x249/0x25c
- [<c048b15c>] sys_ioctl+0x49/0x61
- [<c0404ed2>] sysenter_past_esp+0x5f/0x99
- =======================
-Code: 85 c0 79 14 c7 44 24 04 67 1c dd f8 c7 04 24 d4 1e dd f8 e8 96 99 65 c7 8b 46 04 be 00 84 03 00 e8 47 11 77 c7 31 d2 89 c1 89 f0 <f7> f1 66 85 c0 89 c1 b8 01 00 00 00 0f 44 c8 8b 45 d8 85 db 8b
-EIP: [<f8dd1747>] belkin_sa_set_termios+0x18e/0x5b9 [belkin_sa] SS:ESP 0068:de49ad6c
-
-The small patch below should take care of this situation.  Note that my
-kernel was tainted (vmware) but the problem will occur if
-tty_get_baud_rate() ever returns zero and should be taken care of.
-
-Signed-off-by: Andy Green <andy@warmcat.com>
-Cc: William Greathouse <wgreathouse@smva.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Stephane Eranian <eranian@hpl.hp.com>
+Signed-off-by: Robert Richter <robert.richter@amd.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/belkin_sa.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ include/asm-i386/msr-index.h |   36 ++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
-diff -puN drivers/usb/serial/belkin_sa.c~belkin_sa-avoid-divide-by-zero-error drivers/usb/serial/belkin_sa.c
---- a/drivers/usb/serial/belkin_sa.c~belkin_sa-avoid-divide-by-zero-error
-+++ a/drivers/usb/serial/belkin_sa.c
-@@ -383,6 +383,10 @@ static void belkin_sa_set_termios (struc
- 	}
+diff -puN include/asm-i386/msr-index.h~i386-add-amd64-barcelona-pmu-msr-definitions include/asm-i386/msr-index.h
+--- a/include/asm-i386/msr-index.h~i386-add-amd64-barcelona-pmu-msr-definitions
++++ a/include/asm-i386/msr-index.h
+@@ -73,8 +73,32 @@
+ #define MSR_P6_EVNTSEL0			0x00000186
+ #define MSR_P6_EVNTSEL1			0x00000187
  
- 	baud = tty_get_baud_rate(port->tty);
-+	if (baud == 0) {
-+		dbg("%s - tty_get_baud_rate says 0 baud", __FUNCTION__);
-+		return;
-+	}
- 	urb_value = BELKIN_SA_BAUD(baud);
- 	/* Clip to maximum speed */
- 	if (urb_value == 0)
+-/* K7/K8 MSRs. Not complete. See the architecture manual for a more
++/* AMD64 MSRs. Not complete. See the architecture manual for a more
+    complete list. */
++
++#define MSR_AMD64_IBSFETCHCTL		0xc0011030
++#define MSR_AMD64_IBSFETCHLINAD		0xc0011031
++#define MSR_AMD64_IBSFETCHPHYSAD	0xc0011032
++#define MSR_AMD64_IBSOPCTL		0xc0011033
++#define MSR_AMD64_IBSOPRIP		0xc0011034
++#define MSR_AMD64_IBSOPDATA		0xc0011035
++#define MSR_AMD64_IBSOPDATA2		0xc0011036
++#define MSR_AMD64_IBSOPDATA3		0xc0011037
++#define MSR_AMD64_IBSDCLINAD		0xc0011038
++#define MSR_AMD64_IBSDCPHYSAD		0xc0011039
++#define MSR_AMD64_IBSCTL		0xc001103a
++
++/* K8 MSRs */
++#define MSR_K8_TOP_MEM1			0xc001001a
++#define MSR_K8_TOP_MEM2			0xc001001d
++#define MSR_K8_SYSCFG			0xc0010010
++#define MSR_K8_HWCR			0xc0010015
++#define MSR_K8_ENABLE_C1E		0xc0010055
++#define K8_MTRRFIXRANGE_DRAM_ENABLE	0x00040000 /* MtrrFixDramEn bit    */
++#define K8_MTRRFIXRANGE_DRAM_MODIFY	0x00080000 /* MtrrFixDramModEn bit */
++#define K8_MTRR_RDMEM_WRMEM_MASK	0x18181818 /* Mask: RdMem|WrMem    */
++
++/* K7 MSRs */
+ #define MSR_K7_EVNTSEL0			0xc0010000
+ #define MSR_K7_PERFCTR0			0xc0010004
+ #define MSR_K7_EVNTSEL1			0xc0010001
+@@ -83,20 +107,10 @@
+ #define MSR_K7_PERFCTR2			0xc0010006
+ #define MSR_K7_EVNTSEL3			0xc0010003
+ #define MSR_K7_PERFCTR3			0xc0010007
+-#define MSR_K8_TOP_MEM1			0xc001001a
+ #define MSR_K7_CLK_CTL			0xc001001b
+-#define MSR_K8_TOP_MEM2			0xc001001d
+-#define MSR_K8_SYSCFG			0xc0010010
+-
+-#define K8_MTRRFIXRANGE_DRAM_ENABLE	0x00040000 /* MtrrFixDramEn bit    */
+-#define K8_MTRRFIXRANGE_DRAM_MODIFY	0x00080000 /* MtrrFixDramModEn bit */
+-#define K8_MTRR_RDMEM_WRMEM_MASK	0x18181818 /* Mask: RdMem|WrMem    */
+-
+ #define MSR_K7_HWCR			0xc0010015
+-#define MSR_K8_HWCR			0xc0010015
+ #define MSR_K7_FID_VID_CTL		0xc0010041
+ #define MSR_K7_FID_VID_STATUS		0xc0010042
+-#define MSR_K8_ENABLE_C1E		0xc0010055
+ 
+ /* K6 MSRs */
+ #define MSR_K6_EFER			0xc0000080
 _
 
-Patches currently in -mm which might be from andy@warmcat.com are
+Patches currently in -mm which might be from eranian@hpl.hp.com are
 
-git-net.patch
-git-wireless.patch
+make-oprofile-call-shutdown-only-once-per-session.patch
