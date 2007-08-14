@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-move-alloc_pid-lower-in-copy_process.patch added to -mm tree
-Date: Tue, 14 Aug 2007 13:05:02 -0700
-Message-ID: <200708142005.l7EK55f6018684@imap1.linux-foundation.org>
+Subject: + pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch added to -mm tree
+Date: Tue, 14 Aug 2007 13:05:11 -0700
+Message-ID: <200708142005.l7EK5Bo8018690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765571AbXHNUFo (ORCPT
+	by vger.kernel.org with ESMTP id S1765385AbXHNUFe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 16:05:44 -0400
+	Tue, 14 Aug 2007 16:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru,
 
 
 The patch titled
-     pid namespaces: move alloc_pid() lower in copy_process()
+     pid namespaces: miscelaneous preparations for pid namespaces
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+     pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid namespaces: move alloc_pid() lower in copy_process()
+Subject: pid namespaces: miscelaneous preparations for pid namespaces
 From: Pavel Emelyanov <xemul@openvz.org>
 
-When we create new namespace we will need to allocate the struct pid, that
-will have one extra struct upid in array, comparing to the parent.
-
-Thus we need to know the new namespace (if any) in alloc_pid() to init this
-struct upid properly, so move the alloc_pid() call lower in copy_process().
+* remove pid.h from pid_namespaces.h;
+* rework is_(container|global)_init;
+* optimize (get|put)_pid_ns for init_pid_ns;
+* declare task_child_reaper to return actual reaper.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -43,88 +42,127 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   31 ++++++++++++++++---------------
- 1 files changed, 16 insertions(+), 15 deletions(-)
+ include/linux/pid_namespace.h |   10 ++++++----
+ include/linux/sched.h         |   12 +++++-------
+ kernel/pid.c                  |   21 ++++++++++++++-------
+ 3 files changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN kernel/fork.c~pid-namespaces-move-alloc_pid-lower-in-copy_process kernel/fork.c
---- a/kernel/fork.c~pid-namespaces-move-alloc_pid-lower-in-copy_process
-+++ a/kernel/fork.c
-@@ -1028,16 +1028,9 @@ static struct task_struct *copy_process(
- 	if (p->binfmt && !try_module_get(p->binfmt->module))
- 		goto bad_fork_cleanup_put_domain;
+diff -puN include/linux/pid_namespace.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
++++ a/include/linux/pid_namespace.h
+@@ -4,7 +4,6 @@
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+ #include <linux/threads.h>
+-#include <linux/pid.h>
+ #include <linux/nsproxy.h>
+ #include <linux/kref.h>
  
--	if (pid != &init_struct_pid) {
--		pid = alloc_pid(task_active_pid_ns(p));
--		if (!pid)
--			goto bad_fork_put_binfmt_module;
--	}
--
- 	p->did_exec = 0;
- 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
- 	copy_flags(clone_flags, p);
--	p->pid = pid_nr(pid);
- 	INIT_LIST_HEAD(&p->children);
- 	INIT_LIST_HEAD(&p->sibling);
- 	p->vfork_done = NULL;
-@@ -1114,10 +1107,6 @@ static struct task_struct *copy_process(
- 	p->blocked_on = NULL; /* not blocked yet */
- #endif
+@@ -32,7 +31,8 @@ extern struct pid_namespace init_pid_ns;
  
--	p->tgid = p->pid;
--	if (clone_flags & CLONE_THREAD)
--		p->tgid = current->tgid;
--
- 	if ((retval = security_task_alloc(p)))
- 		goto bad_fork_cleanup_policy;
- 	if ((retval = audit_alloc(p)))
-@@ -1143,6 +1132,18 @@ static struct task_struct *copy_process(
- 	if (retval)
- 		goto bad_fork_cleanup_namespaces;
+ static inline struct pid_namespace *get_pid_ns(struct pid_namespace *ns)
+ {
+-	kref_get(&ns->kref);
++	if (ns != &init_pid_ns)
++		kref_get(&ns->kref);
+ 	return ns;
+ }
  
-+	if (pid != &init_struct_pid) {
-+		retval = -ENOMEM;
-+		pid = alloc_pid(task_active_pid_ns(p));
-+		if (!pid)
-+			goto bad_fork_cleanup_namespaces;
-+	}
+@@ -41,7 +41,8 @@ extern void free_pid_ns(struct kref *kre
+ 
+ static inline void put_pid_ns(struct pid_namespace *ns)
+ {
+-	kref_put(&ns->kref, free_pid_ns);
++	if (ns != &init_pid_ns)
++		kref_put(&ns->kref, free_pid_ns);
+ }
+ 
+ static inline struct pid_namespace *task_active_pid_ns(struct task_struct *tsk)
+@@ -51,7 +52,8 @@ static inline struct pid_namespace *task
+ 
+ static inline struct task_struct *task_child_reaper(struct task_struct *tsk)
+ {
+-	return init_pid_ns.child_reaper;
++	BUG_ON(tsk != current);
++	return tsk->nsproxy->pid_ns->child_reaper;
+ }
+ 
+ #endif /* _LINUX_PID_NS_H */
+diff -puN include/linux/sched.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces include/linux/sched.h
+--- a/include/linux/sched.h~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
++++ a/include/linux/sched.h
+@@ -1299,19 +1299,17 @@ static inline int pid_alive(struct task_
+  * @tsk: Task structure to be checked.
+  *
+  * Check if a task structure is the first user space task the kernel created.
+- *
+- * TODO: We should inline this function after some cleanups in pid_namespace.h
+  */
+-extern int is_global_init(struct task_struct *tsk);
++static inline int is_global_init(struct task_struct *tsk)
++{
++	return tsk->pid == 1;
++}
+ 
+ /*
+  * is_container_init:
+  * check whether in the task is init in its own pid namespace.
+  */
+-static inline int is_container_init(struct task_struct *tsk)
+-{
+-	return tsk->pid == 1;
+-}
++extern int is_container_init(struct task_struct *tsk);
+ 
+ extern struct pid *cad_pid;
+ 
+diff -puN kernel/pid.c~pid-namespaces-miscelaneous-preparations-for-pid-namespaces kernel/pid.c
+--- a/kernel/pid.c~pid-namespaces-miscelaneous-preparations-for-pid-namespaces
++++ a/kernel/pid.c
+@@ -72,10 +72,20 @@ struct pid_namespace init_pid_ns = {
+ 	.child_reaper = &init_task,
+ };
+ 
+-int is_global_init(struct task_struct *tsk)
++int is_container_init(struct task_struct *tsk)
+ {
+-	return tsk == init_pid_ns.child_reaper;
++	int ret = 0;
++	struct pid *pid;
 +
-+	p->pid = pid_nr(pid);
-+	p->tgid = p->pid;
-+	if (clone_flags & CLONE_THREAD)
-+		p->tgid = current->tgid;
++	rcu_read_lock();
++	pid = task_pid(tsk);
++	if (pid != NULL && pid->numbers[pid->level].nr == 1)
++		ret = 1;
++	rcu_read_unlock();
 +
- 	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
- 	/*
- 	 * Clear TID on mm_release()?
-@@ -1239,7 +1240,7 @@ static struct task_struct *copy_process(
- 		spin_unlock(&current->sighand->siglock);
- 		write_unlock_irq(&tasklist_lock);
- 		retval = -ERESTARTNOINTR;
--		goto bad_fork_cleanup_namespaces;
-+		goto bad_fork_free_pid;
++	return ret;
+ }
++EXPORT_SYMBOL(is_container_init);
+ 
+ /*
+  * Note: disable interrupts while the pidmap_lock is held as an
+@@ -191,8 +201,7 @@ fastcall void put_pid(struct pid *pid)
+ 	if ((atomic_read(&pid->count) == 1) ||
+ 	     atomic_dec_and_test(&pid->count)) {
+ 		kmem_cache_free(ns->pid_cachep, pid);
+-		if (ns != &init_pid_ns)
+-			put_pid_ns(ns);
++		put_pid_ns(ns);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(put_pid);
+@@ -243,9 +252,7 @@ struct pid *alloc_pid(struct pid_namespa
+ 		tmp = tmp->parent;
  	}
  
- 	if (clone_flags & CLONE_THREAD) {
-@@ -1296,6 +1297,9 @@ static struct task_struct *copy_process(
- 	container_post_fork(p);
- 	return p;
- 
-+bad_fork_free_pid:
-+	if (pid != &init_struct_pid)
-+		free_pid(pid);
- bad_fork_cleanup_namespaces:
- 	exit_task_namespaces(p);
- bad_fork_cleanup_keys:
-@@ -1324,9 +1328,6 @@ bad_fork_cleanup_container:
- #endif
- 	container_exit(p, container_callbacks_done);
- 	delayacct_tsk_free(p);
--	if (pid != &init_struct_pid)
--		free_pid(pid);
--bad_fork_put_binfmt_module:
- 	if (p->binfmt)
- 		module_put(p->binfmt->module);
- bad_fork_cleanup_put_domain:
+-	if (ns != &init_pid_ns)
+-		get_pid_ns(ns);
+-
++	get_pid_ns(ns);
+ 	pid->level = ns->level;
+ 	pid->nr = pid->numbers[0].nr;
+ 	atomic_set(&pid->count, 1);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
