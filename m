@@ -1,98 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - spi_mpc83xx-in-qe-mode-use-sysclk-2.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:03:12 -0700
-Message-ID: <200708140503.l7E53CMO032037@imap1.linux-foundation.org>
+Subject: - fix-serial-buffer-memory-leak-fix.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:30 -0700
+Message-ID: <200708140503.l7E53UOB032060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51473 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48186 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934119AbXHNFLL (ORCPT
+	by vger.kernel.org with ESMTP id S932528AbXHNFLM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:11 -0400
+	Tue, 14 Aug 2007 01:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, laurentp@cse-semaphore.com, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx:  in "QE mode", use sysclk/2
+     fix "serial buffer memory leak fix"
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xx-in-qe-mode-use-sysclk-2.patch
+     fix-serial-buffer-memory-leak-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_mpc83xx:  in "QE mode", use sysclk/2
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fix "serial buffer memory leak fix"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-For MPC8349E input to the SPI Baud Rate Generator is SYSCLK, but it's
-SYSCLK/2 for MPC8323E (SPI in QE).  Fix this, and remove confusion by
-renaming the mpc83xx_spi->sysclk member as mpc83xx_spi->spibrg.
+Alan said:
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+This requires a wakeup().  It works and it passes testing simply because the
+wake up occurs next character typed, but if no further input occurs we will
+get stuck.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Laurent Pinchart <laurentp@cse-semaphore.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/char/tty_io.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-in-qe-mode-use-sysclk-2 drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-in-qe-mode-use-sysclk-2
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -86,7 +86,7 @@ struct mpc83xx_spi {
- 
- 	unsigned nsecs;		/* (clock cycle time)/2 */
- 
--	u32 sysclk;
-+	u32 spibrg;		/* SPIBRG input clock */
- 	u32 rx_shift;		/* RX data reg shift when in qe mode */
- 	u32 tx_shift;		/* TX data reg shift when in qe mode */
- 
-@@ -169,17 +169,18 @@ static void mpc83xx_spi_chipselect(struc
- 
- 		regval |= SPMODE_LEN(len);
- 
--		if ((mpc83xx_spi->sysclk / spi->max_speed_hz) >= 64) {
--			u8 pm = mpc83xx_spi->sysclk / (spi->max_speed_hz * 64);
-+		if ((mpc83xx_spi->spibrg / spi->max_speed_hz) >= 64) {
-+			u8 pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 64);
- 			if (pm > 0x0f) {
--				printk(KERN_WARNING "MPC83xx SPI: SPICLK can't be less then a SYSCLK/1024!\n"
--						"Requested SPICLK is %d Hz. Will use %d Hz instead.\n",
--						spi->max_speed_hz, mpc83xx_spi->sysclk / 1024);
-+				dev_err(&spi->dev, "Requested speed is too "
-+					"low: %d Hz. Will use %d Hz instead.\n",
-+					spi->max_speed_hz,
-+					mpc83xx_spi->spibrg / 1024);
- 				pm = 0x0f;
- 			}
- 			regval |= SPMODE_PM(pm) | SPMODE_DIV16;
- 		} else {
--			u8 pm = mpc83xx_spi->sysclk / (spi->max_speed_hz * 4);
-+			u8 pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 4);
- 			regval |= SPMODE_PM(pm);
- 		}
- 
-@@ -429,13 +430,17 @@ static int __init mpc83xx_spi_probe(stru
- 	mpc83xx_spi->bitbang.chipselect = mpc83xx_spi_chipselect;
- 	mpc83xx_spi->bitbang.setup_transfer = mpc83xx_spi_setup_transfer;
- 	mpc83xx_spi->bitbang.txrx_bufs = mpc83xx_spi_bufs;
--	mpc83xx_spi->sysclk = pdata->sysclk;
- 	mpc83xx_spi->activate_cs = pdata->activate_cs;
- 	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
- 	mpc83xx_spi->qe_mode = pdata->qe_mode;
- 	mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
- 	mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
- 
-+	if (mpc83xx_spi->qe_mode)
-+		mpc83xx_spi->spibrg = pdata->sysclk / 2;
-+	else
-+		mpc83xx_spi->spibrg = pdata->sysclk;
-+
- 	mpc83xx_spi->rx_shift = 0;
- 	mpc83xx_spi->tx_shift = 0;
- 	if (mpc83xx_spi->qe_mode) {
+diff -puN drivers/char/tty_io.c~fix-serial-buffer-memory-leak-fix drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~fix-serial-buffer-memory-leak-fix
++++ a/drivers/char/tty_io.c
+@@ -3663,6 +3663,7 @@ static void flush_to_ldisc(struct work_s
+ 	if (test_bit(TTY_FLUSHPENDING, &tty->flags)) {
+ 		__tty_buffer_flush(tty);
+ 		clear_bit(TTY_FLUSHPENDING, &tty->flags);
++		wake_up(&tty->read_wait);
+ 	}
+ 	clear_bit(TTY_FLUSHING, &tty->flags);
+ 	spin_unlock_irqrestore(&tty->buf.lock, flags);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-avr32.patch
+revert-gregkh-driver-block-device.patch
+dma-arch-fix.patch
+git-dma-up-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+ax88796-printk-fixes.patch
+natsemi-fix-netdev-error-acounting.patch
+git-ixgbe-build-fix.patch
+git-net.patch
+git-net-fixup.patch
+ip_auto_config-fix.patch
+fib_trie-cleanup.patch
+introduce-strtol_check_range.patch
+git-backlight.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+git-sh64.patch
+bsg-declare-request_queue.patch
+aacraid-rename-check_reset.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+disable-b44-and-bcm43xx.patch
+revert-x86_64-mm-pci-mmconfig-eax.patch
+fix-x86_64-mm-early-quirks-unification.patch
+x86_64-clean-up-apicid_to_node-declaration.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+fix-some-x86-x86-64-acpi-cpufreq-driver-issues.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
