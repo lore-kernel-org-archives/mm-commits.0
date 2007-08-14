@@ -1,70 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - block-hide-the-contents-of-linux-bioh-if-config_block=n.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:36 -0700
-Message-ID: <200708141913.l7EJDaMJ016523@imap1.linux-foundation.org>
+Subject: - netconsole-introduce-netconsole_target.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:10 -0700
+Message-ID: <200708141913.l7EJDAe8016479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59148 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933236AbXHNTVD (ORCPT
+	by vger.kernel.org with ESMTP id S1765502AbXHNTVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:21:03 -0400
+	Tue, 14 Aug 2007 15:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, James.Bottomley@steeleye.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BLOCK: Hide the contents of linux/bio.h if CONFIG_BLOCK=n
+     netconsole: Introduce netconsole_target
 has been removed from the -mm tree.  Its filename was
-     block-hide-the-contents-of-linux-bioh-if-config_block=n.patch
+     netconsole-introduce-netconsole_target.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: BLOCK: Hide the contents of linux/bio.h if CONFIG_BLOCK=n
-From: David Howells <dhowells@redhat.com>
+Subject: netconsole: Introduce netconsole_target
+From: Satyam Sharma <satyam@infradead.org>
 
-Hide the contents of linux/bio.h if CONFIG_BLOCK=n as there shouldn't be
-compiled code that uses it.
+Based upon initial work by Keiichi Kii <k-keiichi@bx.jp.nec.com>.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Introduce a wrapper structure over netpoll to represent logging targets
+configured in netconsole.  This will get extended with other members in
+further patches.
+
+This is done independent of the (to-be-introduced) NETCONSOLE_DYNAMIC config
+option so that we're able to drastically cut down on the #ifdef complexity of
+final netconsole.c.  Also, struct netconsole_target would be required for
+multiple targets support also, and not just dynamic reconfigurability.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bio.h |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/net/netconsole.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/bio.h~block-hide-the-contents-of-linux-bioh-if-config_block=n include/linux/bio.h
---- a/include/linux/bio.h~block-hide-the-contents-of-linux-bioh-if-config_block=n
-+++ a/include/linux/bio.h
-@@ -24,6 +24,8 @@
- #include <linux/mempool.h>
- #include <linux/ioprio.h>
+diff -puN drivers/net/netconsole.c~netconsole-introduce-netconsole_target drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-introduce-netconsole_target
++++ a/drivers/net/netconsole.c
+@@ -62,24 +62,35 @@ static int __init option_setup(char *opt
+ __setup("netconsole=", option_setup);
+ #endif	/* MODULE */
  
-+#ifdef CONFIG_BLOCK
+-static struct netpoll np = {
+-	.name		= "netconsole",
+-	.dev_name	= "eth0",
+-	.local_port	= 6665,
+-	.remote_port	= 6666,
+-	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
++/**
++ * struct netconsole_target - Represents a configured netconsole target.
++ * @np:		The netpoll structure for this target.
++ */
++struct netconsole_target {
++	struct netpoll		np;
++};
 +
- /* Platforms may set this to teach the BIO layer about IOMMU hardware. */
- #include <asm/io.h>
++static struct netconsole_target default_target = {
++	.np		= {
++		.name		= "netconsole",
++		.dev_name	= "eth0",
++		.local_port	= 6665,
++		.remote_port	= 6666,
++		.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
++	},
+ };
  
-@@ -361,4 +363,5 @@ static inline char *__bio_kmap_irq(struc
- 	__bio_kmap_irq((bio), (bio)->bi_idx, (flags))
- #define bio_kunmap_irq(buf,flags)	__bio_kunmap_irq(buf, flags)
+ static void write_msg(struct console *con, const char *msg, unsigned int len)
+ {
+ 	int frag, left;
+ 	unsigned long flags;
++	struct netconsole_target *nt = &default_target;
  
-+#endif /* CONFIG_BLOCK */
- #endif /* __LINUX_BIO_H */
+-	if (netif_running(np.dev)) {
++	if (netif_running(nt->np.dev)) {
+ 		local_irq_save(flags);
+ 		for (left = len; left;) {
+ 			frag = min(left, MAX_PRINT_CHUNK);
+-			netpoll_send_udp(&np, msg, frag);
++			netpoll_send_udp(&nt->np, msg, frag);
+ 			msg += frag;
+ 			left -= frag;
+ 		}
+@@ -96,17 +107,18 @@ static struct console netconsole = {
+ static int __init init_netconsole(void)
+ {
+ 	int err = 0;
++	struct netconsole_target *nt = &default_target;
+ 
+ 	if (!strnlen(config, MAX_PARAM_LENGTH)) {
+ 		printk(KERN_INFO "netconsole: not configured, aborting\n");
+ 		goto out;
+ 	}
+ 
+-	err = netpoll_parse_options(&np, config);
++	err = netpoll_parse_options(&nt->np, config);
+ 	if (err)
+ 		goto out;
+ 
+-	err = netpoll_setup(&np);
++	err = netpoll_setup(&nt->np);
+ 	if (err)
+ 		goto out;
+ 
+@@ -119,8 +131,10 @@ out:
+ 
+ static void __exit cleanup_netconsole(void)
+ {
++	struct netconsole_target *nt = &default_target;
++
+ 	unregister_console(&netconsole);
+-	netpoll_cleanup(&np);
++	netpoll_cleanup(&nt->np);
+ }
+ 
+ module_init(init_netconsole);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-nommu-present-backing-device-capabilities-for-mtd.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-fs-afs-possible-cleanups.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-64-bit-i_version-afs-fixes.patch
-mutex-subsystem-synchro-test-module.patch
+git-netdev-all.patch
+git-net.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
