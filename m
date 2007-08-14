@@ -1,191 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-schedc-make-code-static.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:25 -0700
-Message-ID: <200708141913.l7EJDPD6016503@imap1.linux-foundation.org>
+Subject: + cramfs-error-message-about-endianess.patch added to -mm tree
+Date: Tue, 14 Aug 2007 12:31:58 -0700
+Message-ID: <200708141931.l7EJVw75017351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54691 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762277AbXHNTbu (ORCPT
+	by vger.kernel.org with ESMTP id S1763233AbXHNTcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:31:50 -0400
+	Tue, 14 Aug 2007 15:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lists-receive@programmierforen.de
 
 
 The patch titled
-     kernel/sched.c: make code static
-has been removed from the -mm tree.  Its filename was
-     kernel-schedc-make-code-static.patch
+     cramfs: error message about endianess
+has been added to the -mm tree.  Its filename is
+     cramfs-error-message-about-endianess.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/sched.c: make code static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: cramfs: error message about endianess
+From: Andi Drebes <lists-receive@programmierforen.de>
 
-This patch makes the following needlessly global code static:
+The README file in the cramfs subdirectory says: "All data is currently in
+host-endian format; neither mkcramfs nor the kernel ever do swabbing."
 
-- arch_reinit_sched_domains()
-- struct attr_sched_mc_power_savings
-- struct attr_sched_smt_power_savings
+If somebody tries to mount a cramfs with the wrong endianess, cramfs only
+complains about a wrong magic but doesn't inform the user that only the
+endianess isn't right.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+The following patch adds an error message to the cramfs sources.  If a user
+tries to mount a cramfs with the wrong endianess using the patched sources,
+cramfs will display the message "cramfs: wrong endianess".
+
+Signed-off-by: Andi Drebes <lists-receive@programmierforen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    2 -
- kernel/sched.c      |   46 +++++++++++++++++++++---------------------
- 2 files changed, 23 insertions(+), 25 deletions(-)
+ fs/cramfs/inode.c         |   11 ++++++++++-
+ include/linux/cramfs_fs.h |    1 +
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cpu.h~kernel-schedc-make-code-static include/linux/cpu.h
---- a/include/linux/cpu.h~kernel-schedc-make-code-static
-+++ a/include/linux/cpu.h
-@@ -41,8 +41,6 @@ extern void cpu_remove_sysdev_attr(struc
- extern int cpu_add_sysdev_attr_group(struct attribute_group *attrs);
- extern void cpu_remove_sysdev_attr_group(struct attribute_group *attrs);
+diff -puN fs/cramfs/inode.c~cramfs-error-message-about-endianess fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-error-message-about-endianess
++++ a/fs/cramfs/inode.c
+@@ -258,12 +258,21 @@ static int cramfs_fill_super(struct supe
  
--extern struct sysdev_attribute attr_sched_mc_power_savings;
--extern struct sysdev_attribute attr_sched_smt_power_savings;
- extern int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls);
- 
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN kernel/sched.c~kernel-schedc-make-code-static kernel/sched.c
---- a/kernel/sched.c~kernel-schedc-make-code-static
-+++ a/kernel/sched.c
-@@ -6317,7 +6317,7 @@ int partition_sched_domains(cpumask_t *p
- }
- 
- #if defined(CONFIG_SCHED_MC) || defined(CONFIG_SCHED_SMT)
--int arch_reinit_sched_domains(void)
-+static int arch_reinit_sched_domains(void)
- {
- 	int err;
- 
-@@ -6346,24 +6346,6 @@ static ssize_t sched_power_savings_store
- 	return ret ? ret : count;
- }
- 
--int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls)
--{
--	int err = 0;
--
--#ifdef CONFIG_SCHED_SMT
--	if (smt_capable())
--		err = sysfs_create_file(&cls->kset.kobj,
--					&attr_sched_smt_power_savings.attr);
--#endif
--#ifdef CONFIG_SCHED_MC
--	if (!err && mc_capable())
--		err = sysfs_create_file(&cls->kset.kobj,
--					&attr_sched_mc_power_savings.attr);
--#endif
--	return err;
--}
--#endif
--
- #ifdef CONFIG_SCHED_MC
- static ssize_t sched_mc_power_savings_show(struct sys_device *dev, char *page)
- {
-@@ -6374,8 +6356,8 @@ static ssize_t sched_mc_power_savings_st
- {
- 	return sched_power_savings_store(buf, count, 0);
- }
--SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
--	    sched_mc_power_savings_store);
-+static SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
-+		   sched_mc_power_savings_store);
- #endif
- 
- #ifdef CONFIG_SCHED_SMT
-@@ -6388,8 +6370,26 @@ static ssize_t sched_smt_power_savings_s
- {
- 	return sched_power_savings_store(buf, count, 1);
- }
--SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
--	    sched_smt_power_savings_store);
-+static SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
-+		   sched_smt_power_savings_store);
-+#endif
+ 	/* Do sanity checks on the superblock */
+ 	if (super.magic != CRAMFS_MAGIC) {
++		/* check for wrong endianess */
++		if (super.magic == CRAMFS_MAGIC_WEND) {
++			if (!silent)
++				printk(KERN_ERR "cramfs: wrong endianess\n");
++			goto out;
++		}
 +
-+int sched_create_sysfs_power_savings_entries(struct sysdev_class *cls)
-+{
-+	int err = 0;
-+
-+#ifdef CONFIG_SCHED_SMT
-+	if (smt_capable())
-+		err = sysfs_create_file(&cls->kset.kobj,
-+					&attr_sched_smt_power_savings.attr);
-+#endif
-+#ifdef CONFIG_SCHED_MC
-+	if (!err && mc_capable())
-+		err = sysfs_create_file(&cls->kset.kobj,
-+					&attr_sched_mc_power_savings.attr);
-+#endif
-+	return err;
-+}
- #endif
+ 		/* check at 512 byte offset */
+ 		mutex_lock(&read_mutex);
+ 		memcpy(&super, cramfs_read(sb, 512, sizeof(super)), sizeof(super));
+ 		mutex_unlock(&read_mutex);
+ 		if (super.magic != CRAMFS_MAGIC) {
+-			if (!silent)
++			if (super.magic == CRAMFS_MAGIC_WEND && !silent)
++				printk(KERN_ERR "cramfs: wrong endianess\n");
++			else if (!silent)
+ 				printk(KERN_ERR "cramfs: wrong magic\n");
+ 			goto out;
+ 		}
+diff -puN include/linux/cramfs_fs.h~cramfs-error-message-about-endianess include/linux/cramfs_fs.h
+--- a/include/linux/cramfs_fs.h~cramfs-error-message-about-endianess
++++ a/include/linux/cramfs_fs.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
+ 
+ #define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
++#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
+ #define CRAMFS_SIGNATURE	"Compressed ROMFS"
  
  /*
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from lists-receive@programmierforen.de are
 
-origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
 git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+cramfs-error-message-about-endianess.patch
