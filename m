@@ -1,72 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - change-order-in-kconfigcpu-i386.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:25 -0700
-Message-ID: <200708141914.l7EJEPuH016614@imap1.linux-foundation.org>
+Subject: - block-hide-the-contents-of-linux-bioh-if-config_block=n.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:13:36 -0700
+Message-ID: <200708141913.l7EJDaMJ016523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58874 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932772AbXHNTU4 (ORCPT
+	by vger.kernel.org with ESMTP id S933236AbXHNTVD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:56 -0400
+	Tue, 14 Aug 2007 15:21:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oliver.pntr@gmail.com, ak@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, James.Bottomley@steeleye.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: change order in Kconfig.cpu
+     BLOCK: Hide the contents of linux/bio.h if CONFIG_BLOCK=n
 has been removed from the -mm tree.  Its filename was
-     change-order-in-kconfigcpu-i386.patch
+     block-hide-the-contents-of-linux-bioh-if-config_block=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: change order in Kconfig.cpu
-From: "Oliver Pinter" <oliver.pntr@gmail.com>
+Subject: BLOCK: Hide the contents of linux/bio.h if CONFIG_BLOCK=n
+From: David Howells <dhowells@redhat.com>
 
-Change the sort in arch/i386/Kconfig.cpu file, while it is logicaller (by
-productions time-line).
+Hide the contents of linux/bio.h if CONFIG_BLOCK=n as there shouldn't be
+compiled code that uses it.
 
-Signed-off-by: Oliver Pinter <oliver.pntr@gmail.com>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig.cpu |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ include/linux/bio.h |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN arch/i386/Kconfig.cpu~change-order-in-kconfigcpu-i386 arch/i386/Kconfig.cpu
---- a/arch/i386/Kconfig.cpu~change-order-in-kconfigcpu-i386
-+++ a/arch/i386/Kconfig.cpu
-@@ -104,13 +104,6 @@ config MPENTIUMM
- 	  Select this for Intel Pentium M (not Pentium-4 M)
- 	  notebook chips.
+diff -puN include/linux/bio.h~block-hide-the-contents-of-linux-bioh-if-config_block=n include/linux/bio.h
+--- a/include/linux/bio.h~block-hide-the-contents-of-linux-bioh-if-config_block=n
++++ a/include/linux/bio.h
+@@ -24,6 +24,8 @@
+ #include <linux/mempool.h>
+ #include <linux/ioprio.h>
  
--config MCORE2
--	bool "Core 2/newer Xeon"
--	help
--	  Select this for Intel Core 2 and newer Core 2 Xeons (Xeon 51xx and 53xx)
--	  CPUs. You can distinguish newer from older Xeons by the CPU family
--	  in /proc/cpuinfo. Newer ones have 6.
--
- config MPENTIUM4
- 	bool "Pentium-4/Celeron(P4-based)/Pentium-4 M/older Xeon"
- 	help
-@@ -147,6 +140,12 @@ config MPENTIUM4
++#ifdef CONFIG_BLOCK
++
+ /* Platforms may set this to teach the BIO layer about IOMMU hardware. */
+ #include <asm/io.h>
  
- 	  more info: http://balusc.xs4all.nl/srv/har-cpu.html
+@@ -361,4 +363,5 @@ static inline char *__bio_kmap_irq(struc
+ 	__bio_kmap_irq((bio), (bio)->bi_idx, (flags))
+ #define bio_kunmap_irq(buf,flags)	__bio_kunmap_irq(buf, flags)
  
-+config MCORE2
-+	bool "Core 2/newer Xeon"
-+	help
-+	  Select this for Intel Core 2 and newer Core 2 Xeons (Xeon 51xx and 53xx)
-+	  CPUs. You can distinguish newer from older Xeons by the CPU family
-+	  in /proc/cpuinfo. Newer ones have 6.
- 
- config MK6
- 	bool "K6/K6-II/K6-III"
++#endif /* CONFIG_BLOCK */
+ #endif /* __LINUX_BIO_H */
 _
 
-Patches currently in -mm which might be from oliver.pntr@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
+
+nommu-present-backing-device-capabilities-for-mtd.patch
+nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+remove-frv-usage-of-flush_tlb_pgtables.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+fs-afs-possible-cleanups.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+64-bit-i_version-afs-fixes.patch
+mutex-subsystem-synchro-test-module.patch
