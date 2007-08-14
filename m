@@ -1,123 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - i386-vdso-install-unstripped-copies-on-disk.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:13:49 -0700
-Message-ID: <200708141913.l7EJDnr4016541@imap1.linux-foundation.org>
+Subject: - netconsole-cleanups-codingstyle-prettyfication.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:59 -0700
+Message-ID: <200708141912.l7EJCxnp016457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47903 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760466AbXHNTVO (ORCPT
+	by vger.kernel.org with ESMTP id S933780AbXHNTVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Aug 2007 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, ak@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: satyam@infradead.org, k-keiichi@bx.jp.nec.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 vDSO: install unstripped copies on disk
+     netconsole: Cleanups, codingstyle, prettyfication
 has been removed from the -mm tree.  Its filename was
-     i386-vdso-install-unstripped-copies-on-disk.patch
+     netconsole-cleanups-codingstyle-prettyfication.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 vDSO: install unstripped copies on disk
-From: Roland McGrath <roland@redhat.com>
+Subject: netconsole: Cleanups, codingstyle, prettyfication
+From: Satyam Sharma <satyam@infradead.org>
 
-This keeps an unstripped copy of the vDSO images built before they are
-stripped and embedded in the kernel.  The unstripped copies get installed in
-$(MODLIB)/vdso/ by "make install".  These files can be useful when they
-contain source-level debugging information.
+Based upon initial work by Keiichi Kii <k-keiichi@bx.jp.nec.com>.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andi Kleen <ak@suse.de>
+(1) Remove unwanted headers.
+(2) Mark __init and __exit as appropriate.
+(3) Various trivial codingstyle and prettification stuff.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Keiichi Kii <k-keiichi@bx.jp.nec.com>
+Acked-by: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Makefile        |    1 +
- arch/i386/kernel/Makefile |   31 ++++++++++++++++++++++++-------
- 2 files changed, 25 insertions(+), 7 deletions(-)
+ drivers/net/netconsole.c |   55 ++++++++++++++++++-------------------
+ 1 files changed, 27 insertions(+), 28 deletions(-)
 
-diff -puN arch/i386/Makefile~i386-vdso-install-unstripped-copies-on-disk arch/i386/Makefile
---- a/arch/i386/Makefile~i386-vdso-install-unstripped-copies-on-disk
-+++ a/arch/i386/Makefile
-@@ -143,6 +143,7 @@ fdimage fdimage144 fdimage288 isoimage: 
+diff -puN drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-cleanups-codingstyle-prettyfication
++++ a/drivers/net/netconsole.c
+@@ -35,35 +35,32 @@
+  ****************************************************************/
  
- install:
- 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(KBUILD_IMAGE) install
-+	$(Q)$(MAKE) $(build)=arch/i386/kernel $@
+ #include <linux/mm.h>
+-#include <linux/tty.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/console.h>
+-#include <linux/tty_driver.h>
+ #include <linux/moduleparam.h>
+ #include <linux/string.h>
+-#include <linux/sysrq.h>
+-#include <linux/smp.h>
+ #include <linux/netpoll.h>
  
- archclean:
- 	$(Q)$(MAKE) $(clean)=arch/i386/boot
-diff -puN arch/i386/kernel/Makefile~i386-vdso-install-unstripped-copies-on-disk arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~i386-vdso-install-unstripped-copies-on-disk
-+++ a/arch/i386/kernel/Makefile
-@@ -52,7 +52,8 @@ obj-$(CONFIG_SCx200)		+= scx200.o
- # We must build both images before we can assemble it.
- # Note: kbuild does not track this dependency due to usage of .incbin
- $(obj)/vsyscall.o: $(obj)/vsyscall-int80.so $(obj)/vsyscall-sysenter.so
--targets += $(foreach F,int80 sysenter,vsyscall-$F.o vsyscall-$F.so)
-+targets += $(foreach F,$(addprefix vsyscall-,int80 sysenter),\
-+		     $F.o $F.so $F.so.dbg)
- targets += vsyscall-note.o vsyscall.lds
+ MODULE_AUTHOR("Maintainer: Matt Mackall <mpm@selenic.com>");
+ MODULE_DESCRIPTION("Console driver for network interfaces");
+ MODULE_LICENSE("GPL");
  
- # The DSO images are built using a special linker script.
-@@ -62,16 +63,32 @@ quiet_cmd_syscall = SYSCALL $@
- 
- export CPPFLAGS_vsyscall.lds += -P -C -U$(ARCH)
- 
--vsyscall-flags = -shared -s -Wl,-soname=linux-gate.so.1 \
-+vsyscall-flags = -shared -Wl,-soname=linux-gate.so.1 \
- 		 $(call ld-option, -Wl$(comma)--hash-style=sysv)
--SYSCFLAGS_vsyscall-sysenter.so	= $(vsyscall-flags)
--SYSCFLAGS_vsyscall-int80.so	= $(vsyscall-flags)
-+SYSCFLAGS_vsyscall-sysenter.so.dbg	= $(vsyscall-flags)
-+SYSCFLAGS_vsyscall-int80.so.dbg		= $(vsyscall-flags)
- 
--$(obj)/vsyscall-int80.so $(obj)/vsyscall-sysenter.so: \
--$(obj)/vsyscall-%.so: $(src)/vsyscall.lds \
--		      $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
-+$(obj)/vsyscall-int80.so.dbg $(obj)/vsyscall-sysenter.so.dbg: \
-+$(obj)/vsyscall-%.so.dbg: $(src)/vsyscall.lds \
-+				  $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
- 	$(call if_changed,syscall)
- 
-+$(obj)/%.so: OBJCOPYFLAGS := -S
-+$(obj)/%.so: $(obj)/%.so.dbg FORCE
-+	$(call if_changed,objcopy)
+-static char config[256];
+-module_param_string(netconsole, config, 256, 0);
++#define MAX_PARAM_LENGTH	256
++#define MAX_PRINT_CHUNK		1000
 +
-+vdsos := vdso-int80.so vdso-sysenter.so
++static char config[MAX_PARAM_LENGTH];
++module_param_string(netconsole, config, MAX_PARAM_LENGTH, 0);
+ MODULE_PARM_DESC(netconsole, " netconsole=[src-port]@[src-ip]/[dev],[tgt-port]@<tgt-ip>/[tgt-macaddr]\n");
+ 
+ static struct netpoll np = {
+-	.name = "netconsole",
+-	.dev_name = "eth0",
+-	.local_port = 6665,
+-	.remote_port = 6666,
+-	.remote_mac = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
++	.name		= "netconsole",
++	.dev_name	= "eth0",
++	.local_port	= 6665,
++	.remote_port	= 6666,
++	.remote_mac	= {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+ };
+-static int configured = 0;
+-
+-#define MAX_PRINT_CHUNK 1000
++static int configured;
+ 
+ static void write_msg(struct console *con, const char *msg, unsigned int len)
+ {
+@@ -75,7 +72,7 @@ static void write_msg(struct console *co
+ 
+ 	local_irq_save(flags);
+ 
+-	for(left = len; left; ) {
++	for (left = len; left;) {
+ 		frag = min(left, MAX_PRINT_CHUNK);
+ 		netpoll_send_udp(&np, msg, frag);
+ 		msg += frag;
+@@ -86,12 +83,12 @@ static void write_msg(struct console *co
+ }
+ 
+ static struct console netconsole = {
+-	.name = "netcon",
+-	.flags = CON_ENABLED | CON_PRINTBUFFER,
+-	.write = write_msg
++	.name	= "netcon",
++	.flags	= CON_ENABLED | CON_PRINTBUFFER,
++	.write	= write_msg,
+ };
+ 
+-static int option_setup(char *opt)
++static int __init option_setup(char *opt)
+ {
+ 	configured = !netpoll_parse_options(&np, opt);
+ 	return 1;
+@@ -99,28 +96,30 @@ static int option_setup(char *opt)
+ 
+ __setup("netconsole=", option_setup);
+ 
+-static int init_netconsole(void)
++static int __init init_netconsole(void)
+ {
+-	int err;
++	int err = 0;
+ 
+-	if(strlen(config))
++	if (strnlen(config, MAX_PARAM_LENGTH))
+ 		option_setup(config);
+ 
+-	if(!configured) {
+-		printk("netconsole: not configured, aborting\n");
+-		return 0;
++	if (!configured) {
++		printk(KERN_INFO "netconsole: not configured, aborting\n");
++		goto out;
+ 	}
+ 
+ 	err = netpoll_setup(&np);
+ 	if (err)
+-		return err;
++		goto out;
+ 
+ 	register_console(&netconsole);
+ 	printk(KERN_INFO "netconsole: network logging started\n");
+-	return 0;
 +
-+quiet_cmd_vdso_install = INSTALL $@
-+      cmd_vdso_install = cp $(@:vdso-%.so=$(obj)/vsyscall-%.so.dbg) \
-+				    $(MODLIB)/vdso/$@
-+
-+$(vdsos):
-+	@mkdir -p $(MODLIB)/vdso
-+	$(call cmd,vdso_install)
-+
-+install: $(vdsos)
-+
- # We also create a special relocatable object that should mirror the symbol
- # table and layout of the linked DSO.  With ld -R we can then refer to
- # these symbols in the kernel code rather than hand-coded addresses.
++out:
++	return err;
+ }
+ 
+-static void cleanup_netconsole(void)
++static void __exit cleanup_netconsole(void)
+ {
+ 	unregister_console(&netconsole);
+ 	netpoll_cleanup(&np);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-add-mmf_dump_elf_headers.patch
+git-netdev-all.patch
+git-net.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
