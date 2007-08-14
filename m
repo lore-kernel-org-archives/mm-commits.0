@@ -1,71 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - hex_dump-add-missing-const-qualifiers.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:03:33 -0700
-Message-ID: <200708140503.l7E53XPF032067@imap1.linux-foundation.org>
+Subject: - matroxfb-rectify-jitter-g450-g550.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:02:44 -0700
+Message-ID: <200708140502.l7E52iUu031998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35361 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53582 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765773AbXHNFLH (ORCPT
+	by vger.kernel.org with ESMTP id S1765142AbXHNFLJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:07 -0400
+	Tue, 14 Aug 2007 01:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, Artem.Bityutskiy@nokia.com, mm-commits@vger.kernel.org
+To: pc@us.ibm.com, adaplas@gmail.com, petr@vandrovec.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hex_dump: add missing "const" qualifiers
+     matroxfb: rectify jitter (G450/G550)
 has been removed from the -mm tree.  Its filename was
-     hex_dump-add-missing-const-qualifiers.patch
+     matroxfb-rectify-jitter-g450-g550.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hex_dump: add missing "const" qualifiers
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: matroxfb: rectify jitter (G450/G550)
+From: Paul A. Clarke <pc@us.ibm.com>
 
-Add missing "const" qualifiers to the print_hex_dump_bytes() library routines.
+This builds upon my previous attempts to resolve some jitter problems seen
+with the Matrox G450 and G550 -based cards, including odd disparities observed
+between x86 and Power -based machines in a somewhat less hackish way (removing
+the hacked ifdefs).
 
-(akpm: rumoured to fix some compile warning somewhere)
+Apparently, preference should be given to use the DVI PLL when frequencies
+permit, the Standard PLL otherwise.  The max pixel clock for the panellink
+interface is extracted from the PInS information on the card and used as a
+limit to determine which PLL to use.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Signed-off-by: Paul A. Clarke <pc@us.ibm.com>
+Acked-by: Petr Vandrovec <petr@vandrovec.name>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- lib/hexdump.c          |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/matrox/g450_pll.c         |   23 ++++++++++++----------
+ drivers/video/matrox/matroxfb_DAC1064.h |   15 ++++++++++++++
+ drivers/video/matrox/matroxfb_base.h    |    1 
+ drivers/video/matrox/matroxfb_misc.c    |    1 
+ 4 files changed, 30 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/kernel.h~hex_dump-add-missing-const-qualifiers include/linux/kernel.h
---- a/include/linux/kernel.h~hex_dump-add-missing-const-qualifiers
-+++ a/include/linux/kernel.h
-@@ -226,7 +226,7 @@ extern void print_hex_dump(const char *l
- 				int prefix_type, int rowsize, int groupsize,
- 				const void *buf, size_t len, bool ascii);
- extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
--			void *buf, size_t len);
-+			const void *buf, size_t len);
- #define hex_asc(x)	"0123456789abcdef"[x]
+diff -puN drivers/video/matrox/g450_pll.c~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/g450_pll.c
+--- a/drivers/video/matrox/g450_pll.c~matroxfb-rectify-jitter-g450-g550
++++ a/drivers/video/matrox/g450_pll.c
+@@ -331,16 +331,19 @@ static int __g450_setclk(WPMINFO unsigne
+ 					tmp |= M1064_XPIXCLKCTRL_PLL_UP;
+ 				}
+ 				matroxfb_DAC_out(PMINFO M1064_XPIXCLKCTRL, tmp);
+-#ifdef __powerpc__
+-				/* This is necessary to avoid jitter on PowerPC
+-				 * (OpenFirmware) systems, but apparently
+-				 * introduces jitter, at least on a x86-64
+-				 * using DVI.
+-				 * A simple workaround is disable for non-PPC.
+-				 */
+-				matroxfb_DAC_out(PMINFO M1064_XDVICLKCTRL, 0);
+-#endif /* __powerpc__ */
+-				matroxfb_DAC_out(PMINFO M1064_XPWRCTRL, xpwrctrl);
++				/* DVI PLL preferred for frequencies up to
++				   panel link max, standard PLL otherwise */
++				if (fout >= MINFO->max_pixel_clock_panellink)
++					tmp = 0;
++				else tmp =
++					M1064_XDVICLKCTRL_DVIDATAPATHSEL |
++					M1064_XDVICLKCTRL_C1DVICLKSEL |
++					M1064_XDVICLKCTRL_C1DVICLKEN |
++					M1064_XDVICLKCTRL_DVILOOPCTL |
++					M1064_XDVICLKCTRL_P1LOOPBWDTCTL;
++				matroxfb_DAC_out(PMINFO M1064_XDVICLKCTRL,tmp);
++				matroxfb_DAC_out(PMINFO M1064_XPWRCTRL,
++						 xpwrctrl);
  
- #ifdef DEBUG
-diff -puN lib/hexdump.c~hex_dump-add-missing-const-qualifiers lib/hexdump.c
---- a/lib/hexdump.c~hex_dump-add-missing-const-qualifiers
-+++ a/lib/hexdump.c
-@@ -189,7 +189,7 @@ EXPORT_SYMBOL(print_hex_dump);
-  * rowsize of 16, groupsize of 1, and ASCII output included.
-  */
- void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
--			void *buf, size_t len)
-+			const void *buf, size_t len)
- {
- 	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, 16, 1,
- 			buf, len, 1);
+ 				matroxfb_DAC_unlock_irqrestore(flags);
+ 			}
+diff -puN drivers/video/matrox/matroxfb_DAC1064.h~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_DAC1064.h
+--- a/drivers/video/matrox/matroxfb_DAC1064.h~matroxfb-rectify-jitter-g450-g550
++++ a/drivers/video/matrox/matroxfb_DAC1064.h
+@@ -33,6 +33,21 @@ void DAC1064_global_restore(WPMINFO2);
+ #define     M1064_XCURCTRL_3COLOR	0x01	/* transparent, 0, 1, 2 */
+ #define     M1064_XCURCTRL_XGA		0x02	/* 0, 1, transparent, complement */
+ #define     M1064_XCURCTRL_XWIN		0x03	/* transparent, transparent, 0, 1 */
++	/* drive DVI by standard(0)/DVI(1) PLL */
++	/* if set(1), C?DVICLKEN and C?DVICLKSEL must be set(1) */
++#define      M1064_XDVICLKCTRL_DVIDATAPATHSEL   0x01
++	/* drive CRTC1 by standard(0)/DVI(1) PLL */
++#define      M1064_XDVICLKCTRL_C1DVICLKSEL      0x02
++	/* drive CRTC2 by standard(0)/DVI(1) PLL */
++#define      M1064_XDVICLKCTRL_C2DVICLKSEL      0x04
++	/* pixel clock allowed to(0)/blocked from(1) driving CRTC1 */
++#define      M1064_XDVICLKCTRL_C1DVICLKEN       0x08
++	/* DVI PLL loop filter bandwidth selection bits */
++#define      M1064_XDVICLKCTRL_DVILOOPCTL       0x30
++	/* CRTC2 pixel clock allowed to(0)/blocked from(1) driving CRTC2 */
++#define      M1064_XDVICLKCTRL_C2DVICLKEN       0x40
++	/* P1PLL loop filter bandwith selection */
++#define      M1064_XDVICLKCTRL_P1LOOPBWDTCTL    0x80
+ #define M1064_XCURCOL0RED	0x08
+ #define M1064_XCURCOL0GREEN	0x09
+ #define M1064_XCURCOL0BLUE	0x0A
+diff -puN drivers/video/matrox/matroxfb_base.h~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~matroxfb-rectify-jitter-g450-g550
++++ a/drivers/video/matrox/matroxfb_base.h
+@@ -424,6 +424,7 @@ struct matrox_fb_info {
+ 		      } mmio;
+ 
+ 	unsigned int	max_pixel_clock;
++	unsigned int	max_pixel_clock_panellink;
+ 
+ 	struct matrox_switch*	hw_switch;
+ 
+diff -puN drivers/video/matrox/matroxfb_misc.c~matroxfb-rectify-jitter-g450-g550 drivers/video/matrox/matroxfb_misc.c
+--- a/drivers/video/matrox/matroxfb_misc.c~matroxfb-rectify-jitter-g450-g550
++++ a/drivers/video/matrox/matroxfb_misc.c
+@@ -658,6 +658,7 @@ static int parse_pins5(WPMINFO const str
+ 		MINFO->values.reg.mctlwtst_core = (MINFO->values.reg.mctlwtst & ~7) |
+ 		                                  wtst_xlat[MINFO->values.reg.mctlwtst & 7];
+ 	}
++	MINFO->max_pixel_clock_panellink = bd->pins[47] * 4000;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
-
-git-avr32.patch
-usb-enable-hcd-support-on-sh-unconditionally.patch
-usb-r8a66597-hcd-clean-up-error-path.patch
+Patches currently in -mm which might be from pc@us.ibm.com are
