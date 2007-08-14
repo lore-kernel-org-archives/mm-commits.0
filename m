@@ -1,95 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - pvr2fb-update-documentation-fb-pvr2fbtxt.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:02:42 -0700
-Message-ID: <200708140502.l7E52gmV031994@imap1.linux-foundation.org>
+Subject: - lguest-files-should-explicitly-include-asm-paravirth.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:03:47 -0700
+Message-ID: <200708140503.l7E53ljk032090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763257AbXHNFLD (ORCPT
+	by vger.kernel.org with ESMTP id S1765142AbXHNFLD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 14 Aug 2007 01:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian@mcmen.demon.co.uk, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jes@sgi.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pvr2fb: update Documentation/fb/pvr2fb.txt
+     lguest files should explicitly include asm/paravirt.h
 has been removed from the -mm tree.  Its filename was
-     pvr2fb-update-documentation-fb-pvr2fbtxt.patch
+     lguest-files-should-explicitly-include-asm-paravirth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pvr2fb: update Documentation/fb/pvr2fb.txt
-From: Adrian McMenamin <adrian@mcmen.demon.co.uk>
+Subject: lguest files should explicitly include asm/paravirt.h
+From: Jes Sorensen <jes@sgi.com>
 
-The current version is very old and does not correctly specify how to
-set the video mode.
+Files using bits from paravirt.h should explicitly include it rather than
+relying on it being pulled in by something else.
 
-Signed-off by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jes Sorensen <jes@sgi.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/pvr2fb.txt |   22 +++++++++++++---------
- 1 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/char/hvc_lguest.c   |    1 +
+ drivers/lguest/lguest_bus.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN Documentation/fb/pvr2fb.txt~pvr2fb-update-documentation-fb-pvr2fbtxt Documentation/fb/pvr2fb.txt
---- a/Documentation/fb/pvr2fb.txt~pvr2fb-update-documentation-fb-pvr2fbtxt
-+++ a/Documentation/fb/pvr2fb.txt
-@@ -9,14 +9,13 @@ one found in the Dreamcast.
- Advantages:
+diff -puN drivers/char/hvc_lguest.c~lguest-files-should-explicitly-include-asm-paravirth drivers/char/hvc_lguest.c
+--- a/drivers/char/hvc_lguest.c~lguest-files-should-explicitly-include-asm-paravirth
++++ a/drivers/char/hvc_lguest.c
+@@ -35,6 +35,7 @@
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/lguest_bus.h>
++#include <asm/paravirt.h>
+ #include "hvc_console.h"
  
-  * It provides a nice large console (128 cols + 48 lines with 1024x768)
--   without using tiny, unreadable fonts.
-+   without using tiny, unreadable fonts (NOT on the Dreamcast)
-  * You can run XF86_FBDev on top of /dev/fb0
-  * Most important: boot logo :-)
+ /*D:340 This is our single console input buffer, with associated "struct
+diff -puN drivers/lguest/lguest_bus.c~lguest-files-should-explicitly-include-asm-paravirth drivers/lguest/lguest_bus.c
+--- a/drivers/lguest/lguest_bus.c~lguest-files-should-explicitly-include-asm-paravirth
++++ a/drivers/lguest/lguest_bus.c
+@@ -5,6 +5,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/lguest_bus.h>
+ #include <asm/io.h>
++#include <asm/paravirt.h>
  
- Disadvantages:
- 
-- * Driver is currently limited to the Dreamcast PowerVR 2 implementation
--   at the time of this writing.
-+ * Driver is largely untested on non-Dreamcast systems.
- 
- Configuration
- =============
-@@ -29,11 +28,16 @@ Accepted options:
- font:X    - default font to use. All fonts are supported, including the
-             SUN12x22 font which is very nice at high resolutions.
- 
--mode:X    - default video mode. The following video modes are supported:
--            640x240-60, 640x480-60.
- 	    
-+mode:X    - default video mode with format [xres]x[yres]-<bpp>@<refresh rate>
-+            The following video modes are supported:
-+            640x640-16@60, 640x480-24@60, 640x480-32@60. The Dreamcast
-+            defaults to 640x480-16@60. At the time of writing the
-+            24bpp and 32bpp modes function poorly. Work to fix that is
-+            ongoing
-+
-             Note: the 640x240 mode is currently broken, and should not be
--            used for any reason. It is only mentioned as a reference.
-+            used for any reason. It is only mentioned here as a reference.
- 
- inverse   - invert colors on screen (for LCD displays)
- 
-@@ -52,10 +56,10 @@ output:X  - output type. This can be any
- X11
- ===
- 
--XF86_FBDev should work, in theory. At the time of this writing it is
--totally untested and may or may not even portray the beginnings of
--working. If you end up testing this, please let me know!
-+XF86_FBDev has been shown to work on the Dreamcast in the past - though not yet
-+on any 2.6 series kernel.
- 
- --
- Paul Mundt <lethal@linuxdc.org>
-+Updated by Adrian McMenamin <adrian@mcmen.demon.co.uk>
- 
+ static ssize_t type_show(struct device *_dev,
+                          struct device_attribute *attr, char *buf)
 _
 
-Patches currently in -mm which might be from adrian@mcmen.demon.co.uk are
+Patches currently in -mm which might be from jes@sgi.com are
+
+memoryless-nodes-uncached-allocator-updates.patch
