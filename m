@@ -1,111 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-compilation-with-gcc-42.patch removed from -mm tree
-Date: Mon, 13 Aug 2007 22:03:44 -0700
-Message-ID: <200708140503.l7E53iJU032085@imap1.linux-foundation.org>
+Subject: - 3c59x-check-return-of-pci_enable_device.patch removed from -mm tree
+Date: Mon, 13 Aug 2007 22:52:05 -0700
+Message-ID: <200708140552.l7E5q5TL001536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752245AbXHNFLz (ORCPT
+	by vger.kernel.org with ESMTP id S941817AbXHNFxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 01:11:55 -0400
+	Tue, 14 Aug 2007 01:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterc@gelato.unsw.edu.au, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, lenb@kernel.org, prasanna@in.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mark@hindley.org.uk, klassert@mathematik.tu-chemnitz.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix compilation with gcc 4.2
+     3c59x: check return of pci_enable_device()
 has been removed from the -mm tree.  Its filename was
-     fix-compilation-with-gcc-42.patch
+     3c59x-check-return-of-pci_enable_device.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fix compilation with gcc 4.2
-From: Peter Chubb <peterc@gelato.unsw.edu.au>
+Subject: 3c59x: check return of pci_enable_device()
+From: Mark Hindley <mark@hindley.org.uk>
 
-gcc-4.2 is a lot more picky about its symbol handling.  EXPORT_SYMBOL no
-longer works on symbols that are undefined or defined with static scope.
+Check return of pci_enable_device in vortex_up().
 
-For example, with CONFIG_PROFILE off, I see:
-
-  kernel/profile.c:206: error: __ksymtab_profile_event_unregister causes a section type conflict
-  kernel/profile.c:205: error: __ksymtab_profile_event_register causes a section type conflict
-
-This patch moves the EXPORTs inside the #ifdef CONFIG_PROFILE, so we
-only try to export symbols that are defined.
-
-Also, in kernel/kprobes.c there's an EXPORT_SYMBOL_GPL() for
-jprobes_return, which if CONFIG_JPROBES is undefined is a static
-inline and gives the same error.
-
-And in drivers/acpi/resources/rsxface.c, there's an
-ACPI_EXPORT_SYMBOPL() for a static symbol. If it's static, it's not
-accessible from outside the compilation unit, so should bot be exported.
-
-These three changes allow building a zx1_defconfig kernel with gcc 4.2
-on IA64.
-
-[akpm@linux-foundation.org: export jpobe_return properly]
-Signed-off-by: Peter Chubb <peterc@gelato.unsw.edu.au>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Mark Hindley <mark@hindley.org.uk>
+Acked-by: Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/resources/rsxface.c |    2 --
- kernel/kprobes.c                 |    5 +++++
- kernel/profile.c                 |    4 ++--
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/net/3c59x.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/resources/rsxface.c~fix-compilation-with-gcc-42 drivers/acpi/resources/rsxface.c
---- a/drivers/acpi/resources/rsxface.c~fix-compilation-with-gcc-42
-+++ a/drivers/acpi/resources/rsxface.c
-@@ -474,8 +474,6 @@ acpi_rs_match_vendor_resource(struct acp
- 	return (AE_CTRL_TERMINATE);
- }
+diff -puN drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device
++++ a/drivers/net/3c59x.c
+@@ -1490,13 +1490,17 @@ vortex_up(struct net_device *dev)
+ 	struct vortex_private *vp = netdev_priv(dev);
+ 	void __iomem *ioaddr = vp->ioaddr;
+ 	unsigned int config;
+-	int i, mii_reg1, mii_reg5;
++	int i, mii_reg1, mii_reg5, err;
  
--ACPI_EXPORT_SYMBOL(acpi_rs_match_vendor_resource)
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_walk_resources
-diff -puN kernel/kprobes.c~fix-compilation-with-gcc-42 kernel/kprobes.c
---- a/kernel/kprobes.c~fix-compilation-with-gcc-42
-+++ a/kernel/kprobes.c
-@@ -1063,6 +1063,11 @@ EXPORT_SYMBOL_GPL(register_kprobe);
- EXPORT_SYMBOL_GPL(unregister_kprobe);
- EXPORT_SYMBOL_GPL(register_jprobe);
- EXPORT_SYMBOL_GPL(unregister_jprobe);
-+#ifdef CONFIG_KPROBES
- EXPORT_SYMBOL_GPL(jprobe_return);
-+#endif
-+
-+#ifdef CONFIG_KPROBES
- EXPORT_SYMBOL_GPL(register_kretprobe);
- EXPORT_SYMBOL_GPL(unregister_kretprobe);
-+#endif
-diff -puN kernel/profile.c~fix-compilation-with-gcc-42 kernel/profile.c
---- a/kernel/profile.c~fix-compilation-with-gcc-42
-+++ a/kernel/profile.c
-@@ -199,11 +199,11 @@ EXPORT_SYMBOL_GPL(register_timer_hook);
- EXPORT_SYMBOL_GPL(unregister_timer_hook);
- EXPORT_SYMBOL_GPL(task_handoff_register);
- EXPORT_SYMBOL_GPL(task_handoff_unregister);
-+EXPORT_SYMBOL_GPL(profile_event_register);
-+EXPORT_SYMBOL_GPL(profile_event_unregister);
+ 	if (VORTEX_PCI(vp)) {
+ 		pci_set_power_state(VORTEX_PCI(vp), PCI_D0);	/* Go active */
+ 		if (vp->pm_state_valid)
+ 			pci_restore_state(VORTEX_PCI(vp));
+-		pci_enable_device(VORTEX_PCI(vp));
++		err = pci_enable_device(VORTEX_PCI(vp));
++		if (err) {
++			printk(KERN_WARNING "%s: Could not enable device \n",
++				dev->name);
++		}
+ 	}
  
- #endif /* CONFIG_PROFILING */
- 
--EXPORT_SYMBOL_GPL(profile_event_register);
--EXPORT_SYMBOL_GPL(profile_event_unregister);
- 
- #ifdef CONFIG_SMP
- /*
+ 	/* Before initializing select the active media port. */
 _
 
-Patches currently in -mm which might be from peterc@gelato.unsw.edu.au are
+Patches currently in -mm which might be from mark@hindley.org.uk are
+
+3c59x-check-return-of-pci_enable_device.patch
