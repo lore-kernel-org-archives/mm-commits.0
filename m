@@ -1,108 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - arch-i386-mach-generic-probec-make-struct-apic_probe.patch removed from -mm tree
-Date: Tue, 14 Aug 2007 12:14:31 -0700
-Message-ID: <200708141914.l7EJEVdV016624@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-net-sched.patch removed from -mm tree
+Date: Tue, 14 Aug 2007 12:12:35 -0700
+Message-ID: <200708141912.l7EJCZOE016416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761876AbXHNTUb (ORCPT
+	by vger.kernel.org with ESMTP id S1755537AbXHNTUa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Aug 2007 15:20:31 -0400
+	Tue, 14 Aug 2007 15:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/i386/mach-generic/probe.c: make struct apic_probe static
+     Clean up duplicate includes in net/sched/
 has been removed from the -mm tree.  Its filename was
-     arch-i386-mach-generic-probec-make-struct-apic_probe.patch
+     clean-up-duplicate-includes-in-net-sched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/i386/mach-generic/probe.c: make struct apic_probe static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Clean up duplicate includes in net/sched/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This patch makes the needlessly global struct apic_probe static.
+This patch cleans up duplicate includes in
+	net/sched/
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-generic/probe.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ net/sched/act_police.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe arch/i386/mach-generic/probe.c
---- a/arch/i386/mach-generic/probe.c~arch-i386-mach-generic-probec-make-struct-apic_probe
-+++ a/arch/i386/mach-generic/probe.c
-@@ -22,7 +22,7 @@ extern struct genapic apic_default;
- 
- struct genapic *genapic = &apic_default;
- 
--struct genapic *apic_probe[] __initdata = { 
-+static struct genapic *apic_probe[] __initdata = {
- 	&apic_summit,
- 	&apic_bigsmp, 
- 	&apic_es7000,
+diff -puN net/sched/act_police.c~clean-up-duplicate-includes-in-net-sched net/sched/act_police.c
+--- a/net/sched/act_police.c~clean-up-duplicate-includes-in-net-sched
++++ a/net/sched/act_police.c
+@@ -16,7 +16,6 @@
+ #include <linux/string.h>
+ #include <linux/errno.h>
+ #include <linux/skbuff.h>
+-#include <linux/module.h>
+ #include <linux/rtnetlink.h>
+ #include <linux/init.h>
+ #include <net/act_api.h>
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
 git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-drivers-base-power-make-2-functions-static.patch
-git-drm.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
 git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
+git-ubi.patch
 git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
 git-backlight.patch
-parisc-extern-inline-static-inline.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-drivers-scsi-scsi_errorc-should-include.patch
-drivers-scsi-constantsc-make-2-functions-static.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
