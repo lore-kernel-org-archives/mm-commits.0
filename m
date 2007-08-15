@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-permedia-2v-hardware-cursor-support.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:20:56 -0700
-Message-ID: <200708152320.l7FNKuUf020305@imap1.linux-foundation.org>
+Subject: + s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch added to -mm tree
+Date: Wed, 15 Aug 2007 16:21:16 -0700
+Message-ID: <200708152321.l7FNLGdH020343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42636 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934451AbXHOXVn (ORCPT
+	by vger.kernel.org with ESMTP id S934614AbXHOXVo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:21:43 -0400
+	Wed, 15 Aug 2007 19:21:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     pm2fb: Permedia 2V hardware cursor support
+     s3c2410fb: add pulse length fields to s3c2410fb_display
 has been added to the -mm tree.  Its filename is
-     pm2fb-permedia-2v-hardware-cursor-support.patch
+     s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,209 +26,297 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: Permedia 2V hardware cursor support
+Subject: s3c2410fb: add pulse length fields to s3c2410fb_display
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds hardware cursor support for Permedia 2V chips.
-The hardware cursor is disabled by default. It does not blink - the
-same issue is mentioned in the x11 driver.
+This patch adds synchronization pulse lenght fields to
+the s3c2410fb_display structure and makes use of them
+in the driver.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c     |  137 ++++++++++++++++++++++++++++++++++++
- include/video/permedia2.h |    2 
- 2 files changed, 139 insertions(+)
+ arch/arm/mach-s3c2410/mach-amlm5900.c |    1 
+ arch/arm/mach-s3c2410/mach-bast.c     |   18 ++++++++++++
+ arch/arm/mach-s3c2410/mach-h1940.c    |    2 +
+ arch/arm/mach-s3c2410/mach-qt2410.c   |    6 ++++
+ arch/arm/mach-s3c2440/mach-rx3715.c   |    2 +
+ arch/arm/mach-s3c2440/mach-smdk2440.c |    2 +
+ drivers/video/s3c2410fb.c             |   34 +++++++++++-------------
+ 7 files changed, 47 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-permedia-2v-hardware-cursor-support drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-permedia-2v-hardware-cursor-support
-+++ a/drivers/video/pm2fb.c
-@@ -66,6 +66,7 @@
- /*
-  * Driver data
-  */
-+static int hwcursor;
- static char *mode __devinitdata;
+diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
+--- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
+@@ -179,6 +179,7 @@ static struct s3c2410fb_display __initda
+ 	.bpp		= 4,
+ 	.left_margin	= 1 << (4 + 3),
+ 	.right_margin	= 8 << 3,
++	.hsync_len	= 48,
+ 	.upper_margin	= 0,
+ 	.lower_margin	= 0,
  
- /*
-@@ -1245,6 +1246,136 @@ static void pm2fb_imageblit(struct fb_in
- 	pm2_WR(par, PM2R_SCISSOR_MODE, 0);
- }
+diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
+--- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-bast.c
+@@ -477,8 +477,10 @@ static struct s3c2410fb_display __initda
+ 		.yres		= 240,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
  
-+/*
-+ *	Hardware cursor support.
-+ */
-+static const u8 cursor_bits_lookup[16] = {
-+	0x00, 0x40, 0x10, 0x50, 0x04, 0x44, 0x14, 0x54,
-+	0x01, 0x41, 0x11, 0x51, 0x05, 0x45, 0x15, 0x55
-+};
-+
-+static int pm2vfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
-+{
-+	struct pm2fb_par *par = info->par;
-+	u8 mode;
-+
-+	if (!hwcursor)
-+		return -EINVAL;	/* just to force soft_cursor() call */
-+
-+	/* Too large of a cursor or wrong bpp :-( */
-+	if (cursor->image.width > 64 ||
-+	    cursor->image.height > 64 ||
-+	    cursor->image.depth > 1)
-+		return -EINVAL;
-+
-+	mode = PM2F_CURSORMODE_TYPE_X;
-+	if (cursor->enable)
-+		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
-+
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_MODE, mode);
-+
-+	/*
-+	 * If the cursor is not be changed this means either we want the
-+	 * current cursor state (if enable is set) or we want to query what
-+	 * we can do with the cursor (if enable is not set)
-+	 */
-+	if (!cursor->set)
-+		return 0;
-+
-+	if (cursor->set & FB_CUR_SETPOS) {
-+		int x = cursor->image.dx - info->var.xoffset;
-+		int y = cursor->image.dy - info->var.yoffset;
-+
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
-+	}
-+
-+	if (cursor->set & FB_CUR_SETHOT) {
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HOT,
-+			     cursor->hot.x & 0x3f);
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HOT,
-+			     cursor->hot.y & 0x3f);
-+	}
-+
-+	if (cursor->set & FB_CUR_SETCMAP) {
-+		u32 fg_idx = cursor->image.fg_color;
-+		u32 bg_idx = cursor->image.bg_color;
-+		struct fb_cmap cmap = info->cmap;
-+
-+		/* the X11 driver says one should use these color registers */
-+		pm2_WR(par, PM2VR_RD_INDEX_HIGH, PM2VI_RD_CURSOR_PALETTE >> 8);
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 0,
-+			     cmap.red[bg_idx] >> 8 );
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 1,
-+			     cmap.green[bg_idx] >> 8 );
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 2,
-+			     cmap.blue[bg_idx] >> 8 );
-+
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 3,
-+			     cmap.red[fg_idx] >> 8 );
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 4,
-+			     cmap.green[fg_idx] >> 8 );
-+		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_PALETTE + 5,
-+			     cmap.blue[fg_idx] >> 8 );
-+		pm2_WR(par, PM2VR_RD_INDEX_HIGH, 0);
-+	}
-+
-+	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
-+		u8 *bitmap = (u8 *)cursor->image.data;
-+		u8 *mask = (u8 *)cursor->mask;
-+		int i;
-+		int pos = PM2VI_RD_CURSOR_PATTERN;
-+
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int j = (cursor->image.width + 7) >> 3;
-+			int k = 8 - j;
-+
-+			pm2_WR(par, PM2VR_RD_INDEX_HIGH, pos >> 8);
-+
-+			for (; j > 0; j--) {
-+				u8 data = *bitmap ^ *mask;
-+
-+				if (cursor->rop == ROP_COPY)
-+					data = *mask & *bitmap;
-+				/* Upper 4 bits of bitmap data */
-+				pm2v_RDAC_WR(par, pos++,
-+					cursor_bits_lookup[data >> 4] |
-+					(cursor_bits_lookup[*mask >> 4] << 1));
-+				/* Lower 4 bits of bitmap */
-+				pm2v_RDAC_WR(par, pos++,
-+					cursor_bits_lookup[data & 0xf] |
-+					(cursor_bits_lookup[*mask & 0xf] << 1));
-+				bitmap++;
-+				mask++;
-+			}
-+			for (; k > 0; k--) {
-+				pm2v_RDAC_WR(par, pos++, 0);
-+				pm2v_RDAC_WR(par, pos++, 0);
-+			}
-+		}
-+
-+		while (pos < (1024 + PM2VI_RD_CURSOR_PATTERN)) {
-+			pm2_WR(par, PM2VR_RD_INDEX_HIGH, pos >> 8);
-+			pm2v_RDAC_WR(par, pos++, 0);
-+		}
-+
-+		pm2_WR(par, PM2VR_RD_INDEX_HIGH, 0);
-+	}
-+	return 0;
-+}
-+
-+static int pm2fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
-+{
-+	struct pm2fb_par *par = info->par;
-+
-+	if (par->type == PM2_TYPE_PERMEDIA2V)
-+		return pm2vfb_cursor(info, cursor);
-+
-+	return -ENXIO;
-+}
-+
- /* ------------ Hardware Independent Functions ------------ */
+ 		.bpp		= 4,
  
- /*
-@@ -1262,6 +1393,7 @@ static struct fb_ops pm2fb_ops = {
- 	.fb_copyarea	= pm2fb_copyarea,
- 	.fb_imageblit	= pm2fb_imageblit,
- 	.fb_sync	= pm2fb_sync,
-+	.fb_cursor	= pm2fb_cursor,
+@@ -497,8 +499,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 4,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -515,8 +519,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 4,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -533,8 +539,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -551,8 +559,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -569,8 +579,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -587,8 +599,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -605,8 +619,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -623,8 +639,10 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.hsync_len	= 88,
+ 		.upper_margin	= 30,
+ 		.lower_margin	= 32,
++		.vsync_len	= 3,
+ 
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
+--- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-h1940.c
+@@ -158,8 +158,10 @@ static struct s3c2410fb_display h1940_lc
+ 	.bpp =		16,
+ 	.left_margin =	20,
+ 	.right_margin =	8,
++	.hsync_len =	4,
+ 	.upper_margin =	8,
+ 	.lower_margin = 7,
++	.vsync_len =	1,
  };
  
- /*
-@@ -1550,6 +1682,8 @@ static int __init pm2fb_setup(char *opti
- 			lowhsync = 1;
- 		else if (!strcmp(this_opt, "lowvsync"))
- 			lowvsync = 1;
-+		else if (!strncmp(this_opt, "hwcursor=", 9))
-+			hwcursor = simple_strtoul(this_opt + 9, NULL, 0);
- #ifdef CONFIG_MTRR
- 		else if (!strncmp(this_opt, "nomtrr", 6))
- 			nomtrr = 1;
-@@ -1601,6 +1735,9 @@ module_param(lowvsync, bool, 0);
- MODULE_PARM_DESC(lowvsync, "Force vertical sync low regardless of mode");
- module_param(noaccel, bool, 0);
- MODULE_PARM_DESC(noaccel, "Disable acceleration");
-+module_param(hwcursor, int, 0644);
-+MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
-+			"(1=enable, 0=disable, default=0)");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
-diff -puN include/video/permedia2.h~pm2fb-permedia-2v-hardware-cursor-support include/video/permedia2.h
---- a/include/video/permedia2.h~pm2fb-permedia-2v-hardware-cursor-support
-+++ a/include/video/permedia2.h
-@@ -232,6 +232,8 @@
- #define PM2F_APERTURE_STANDARD				0
- #define PM2F_APERTURE_BYTESWAP				1
- #define PM2F_APERTURE_HALFWORDSWAP			2
-+#define PM2F_CURSORMODE_CURSOR_ENABLE			(1 << 0)
-+#define PM2F_CURSORMODE_TYPE_X				(1 << 4)
+ static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
+--- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-qt2410.c
+@@ -125,8 +125,10 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 44,
+ 		.right_margin	= 116,
++		.hsync_len	= 96,
+ 		.upper_margin	= 19,
+ 		.lower_margin	= 11,
++		.vsync_len	= 15,
+ 	},
+ 	{
+ 		/* Configuration for 480x640 toppoly TD028TTEC1 */
+@@ -156,8 +158,10 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 8,
+ 		.right_margin	= 24,
++		.hsync_len	= 8,
+ 		.upper_margin	= 2,
+ 		.lower_margin	= 4,
++		.vsync_len	= 2,
+ 	},
+ 	{
+ 		/* Config for 240x320 LCD */
+@@ -187,8 +191,10 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 13,
+ 		.right_margin	= 8,
++		.hsync_len	= 4,
+ 		.upper_margin	= 2,
+ 		.lower_margin	= 7,
++		.vsync_len	= 4,
+ 	},
+ };
  
- typedef enum {
- 	PM2_TYPE_PERMEDIA2,
+diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
+--- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-rx3715.c
+@@ -136,8 +136,10 @@ static struct s3c2410fb_display rx3715_l
+ 	.bpp		= 16,
+ 	.left_margin	= 36,
+ 	.right_margin	= 36,
++	.hsync_len	= 8,
+ 	.upper_margin	= 6,
+ 	.lower_margin	= 7,
++	.vsync_len	= 3,
+ };
+ 
+ static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
+--- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
+@@ -133,8 +133,10 @@ static struct s3c2410fb_display smdk2440
+ 	.bpp		= 16,
+ 	.left_margin	= 20,
+ 	.right_margin	= 8,
++	.hsync_len	= 4,
+ 	.upper_margin	= 8,
+ 	.lower_margin	= 7,
++	.vsync_len	= 4,
+ };
+ 
+ static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display
++++ a/drivers/video/s3c2410fb.c
+@@ -290,6 +290,7 @@ static void s3c2410fb_calculate_stn_lcd_
+ 	int type = regs->lcdcon1 & ~S3C2410_LCDCON1_TFT;
+ 	int hs = var->xres >> 2;
+ 	unsigned wdly = (var->left_margin >> 4) - 1;
++	unsigned wlh = (var->hsync_len >> 4) - 1;
+ 
+ 	dprintk("%s: var->xres  = %d\n", __FUNCTION__, var->xres);
+ 	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
+@@ -333,9 +334,15 @@ static void s3c2410fb_calculate_stn_lcd_
+ 	if (wdly > 3)
+ 		wdly = 3;
+ 
++	if (wlh > 3)
++		wlh = 3;
++
+ 	regs->lcdcon3 =	S3C2410_LCDCON3_WDLY(wdly) |
+ 			S3C2410_LCDCON3_LINEBLANK(var->right_margin / 8) |
+ 			S3C2410_LCDCON3_HOZVAL(hs - 1);
++
++	regs->lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
++	regs->lcdcon4 |=  S3C2410_LCDCON4_HSPW(wlh);
+ }
+ 
+ /* s3c2410fb_calculate_tft_lcd_regs
+@@ -383,14 +390,17 @@ static void s3c2410fb_calculate_tft_lcd_
+ 	dprintk("setting horz: lft=%d, rt=%d, sync=%d\n",
+ 		var->left_margin, var->right_margin, var->hsync_len);
+ 
+-	regs->lcdcon2 &= S3C2410_LCDCON2_VSPW(0x3f);
+-	regs->lcdcon2 |= S3C2410_LCDCON2_LINEVAL(var->yres - 1);
+-	regs->lcdcon2 |= S3C2410_LCDCON2_VBPD(var->upper_margin - 1);
+-	regs->lcdcon2 |= S3C2410_LCDCON2_VFPD(var->lower_margin - 1);
++	regs->lcdcon2 = S3C2410_LCDCON2_LINEVAL(var->yres - 1) |
++			S3C2410_LCDCON2_VBPD(var->upper_margin - 1) |
++			S3C2410_LCDCON2_VFPD(var->lower_margin - 1) |
++			S3C2410_LCDCON2_VSPW(var->vsync_len - 1);
+ 
+ 	regs->lcdcon3 = S3C2410_LCDCON3_HBPD(var->right_margin - 1) |
+ 			S3C2410_LCDCON3_HFPD(var->left_margin - 1) |
+ 			S3C2410_LCDCON3_HOZVAL(var->xres - 1);
++
++	regs->lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
++	regs->lcdcon4 |=  S3C2410_LCDCON4_HSPW(var->hsync_len - 1);
+ }
+ 
+ /* s3c2410fb_activate_var
+@@ -410,16 +420,6 @@ static void s3c2410fb_activate_var(struc
+ 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
+ 	fbi->regs.lcdcon1 |= display->type;
+ 
+-	/* check to see if we need to update sync/borders */
+-
+-	if (!mach_info->fixed_syncs) {
+-		fbi->regs.lcdcon2 =
+-			S3C2410_LCDCON2_VSPW(var->vsync_len - 1);
+-
+-		fbi->regs.lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
+-		fbi->regs.lcdcon4 |=  S3C2410_LCDCON4_HSPW(var->hsync_len - 1);
+-	}
+-
+ 	if (var->pixclock > 0) {
+ 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
+ 
+@@ -890,10 +890,8 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	fbinfo->var.upper_margin    = display->upper_margin;
+ 	fbinfo->var.lower_margin    = display->lower_margin;
+-	fbinfo->var.vsync_len	    =
+-				S3C2410_LCDCON2_GET_VSPW(display->lcdcon2) + 1;
+-	fbinfo->var.hsync_len	    =
+-				S3C2410_LCDCON4_GET_HSPW(display->lcdcon4) + 1;
++	fbinfo->var.vsync_len	    = display->vsync_len;
++	fbinfo->var.hsync_len	    = display->hsync_len;
+ 
+ 	fbinfo->var.red.offset      = 11;
+ 	fbinfo->var.green.offset    = 5;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
