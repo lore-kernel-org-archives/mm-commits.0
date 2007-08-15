@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch added to -mm tree
-Date: Wed, 15 Aug 2007 15:04:05 -0700
-Message-ID: <200708152204.l7FM46qi017298@imap1.linux-foundation.org>
+Subject: + avoid-possible-null-pointer-deref-in-3c359-driver.patch added to -mm tree
+Date: Wed, 15 Aug 2007 15:04:07 -0700
+Message-ID: <200708152204.l7FM47BN017301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758365AbXHOWFA (ORCPT
+	by vger.kernel.org with ESMTP id S1758386AbXHOWFB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 18:05:00 -0400
+	Wed, 15 Aug 2007 18:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     eepro100: Avoid potential NULL pointer deref in speedo_init_rx_ring()
+     Avoid possible NULL pointer deref in 3c359 driver
 has been added to the -mm tree.  Its filename is
-     eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+     avoid-possible-null-pointer-deref-in-3c359-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eepro100: Avoid potential NULL pointer deref in speedo_init_rx_ring()
+Subject: Avoid possible NULL pointer deref in 3c359 driver
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-In a low memory situation, if you are very unlucky, the speedo_init_rx_ring()
-function may cause a NULL pointer deref.
+In xl_freemem(), if dev_if is NULL, the line
 
-The problem is in the case where we can't allocate even a single skb for
-the RX ring.  In this case 'last_rxf' will be NULL when we break out of
-the loop and the line
-    last_rxf->status = cpu_to_le32(0xC0000002);	/* '2' is flag value only. */
-will cause a NULL pointer dereference.
+  struct xl_private *xl_priv =(struct xl_private *)dev->priv;
 
-To fix this properly we need to be return an error from speedo_init_rx_ring()
-and have the caller (speedo_open()) catch and propagate the error, as well as
-undo anything done to setup the device so far.
-
-This patch adds a check to catch the unlucky case of not even a single skb
-being available and adds code in the caller to catch the error and release the
-device properly.
-
-For a user who hits this problem, this makes the difference between her device
-not being opened and a kernel crash.  Clearly a non functional NIC if
-preferable to a kernel crash - especially since setting up the device can
-easily be retried later after freeing up some memory; a kernel crash is not as
-easy to recover from.
-
-The problem was initially spotted by the Coverity checker.
+will cause a NULL pointer dereference.  However, if we move that assignment
+below the 'if' statement that tests for a NULL 'dev', then that NULL deref can
+never happen.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/eepro100.c |   26 +++++++++++++++++++-------
- 1 files changed, 19 insertions(+), 7 deletions(-)
+ drivers/net/tokenring/3c359.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/eepro100.c~eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring drivers/net/eepro100.c
---- a/drivers/net/eepro100.c~eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring
-+++ a/drivers/net/eepro100.c
-@@ -482,7 +482,7 @@ static void mdio_write(struct net_device
- static int speedo_open(struct net_device *dev);
- static void speedo_resume(struct net_device *dev);
- static void speedo_timer(unsigned long data);
--static void speedo_init_rx_ring(struct net_device *dev);
-+static int speedo_init_rx_ring(struct net_device *dev);
- static void speedo_tx_timeout(struct net_device *dev);
- static int speedo_start_xmit(struct sk_buff *skb, struct net_device *dev);
- static void speedo_refill_rx_buffers(struct net_device *dev, int force);
-@@ -978,9 +978,8 @@ speedo_open(struct net_device *dev)
- 
- 	/* .. we can safely take handler calls during init. */
- 	retval = request_irq(dev->irq, &speedo_interrupt, IRQF_SHARED, dev->name, dev);
--	if (retval) {
--		return retval;
--	}
-+	if (retval)
-+		goto out;
- 
- 	dev->if_port = sp->default_port;
- 
-@@ -1002,7 +1001,9 @@ speedo_open(struct net_device *dev)
- 	}
- #endif
- 
--	speedo_init_rx_ring(dev);
-+	retval = speedo_init_rx_ring(dev);
-+	if (retval)
-+		goto out_rx_init_err;
- 
- 	/* Fire up the hardware. */
- 	iowrite16(SCBMaskAll, ioaddr + SCBCmd);
-@@ -1041,7 +1042,12 @@ speedo_open(struct net_device *dev)
- 	if ((sp->phy[0] & 0x8000) == 0)
- 		mdio_read(dev, sp->phy[0] & 0x1f, MII_BMCR);
- 
--	return 0;
-+ out:
-+	return retval;
-+ out_rx_init_err:
-+	free_irq(dev->irq, dev);
-+	pci_set_power_state(sp->pdev, PCI_D2);
-+	goto out;
- }
- 
- /* Start the chip hardware after a full reset. */
-@@ -1244,7 +1250,7 @@ static void speedo_show_state(struct net
- }
- 
- /* Initialize the Rx and Tx rings, along with various 'dev' bits. */
--static void
-+static int
- speedo_init_rx_ring(struct net_device *dev)
+diff -puN drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver drivers/net/tokenring/3c359.c
+--- a/drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver
++++ a/drivers/net/tokenring/3c359.c
+@@ -1042,15 +1042,17 @@ static void xl_freemem(struct net_device
+ static irqreturn_t xl_interrupt(int irq, void *dev_id) 
  {
- 	struct speedo_private *sp = netdev_priv(dev);
-@@ -1284,6 +1290,10 @@ speedo_init_rx_ring(struct net_device *d
- 		pci_dma_sync_single_for_device(sp->pdev, sp->rx_ring_dma[i],
- 									   sizeof(struct RxFD), PCI_DMA_TODEVICE);
- 	}
-+	/* If we failed to allocate even a single skb we need to bail out. */
-+	if (!last_rxf)
-+		return -ENOMEM;
-+
- 	sp->dirty_rx = (unsigned int)(i - RX_RING_SIZE);
- 	/* Mark the last entry as end-of-list. */
- 	last_rxf->status = cpu_to_le32(0xC0000002);	/* '2' is flag value only. */
-@@ -1291,6 +1301,8 @@ speedo_init_rx_ring(struct net_device *d
- 								   sizeof(struct RxFD), PCI_DMA_TODEVICE);
- 	sp->last_rxf = last_rxf;
- 	sp->last_rxf_dma = last_rxf_dma;
-+
-+	return 0;
- }
+ 	struct net_device *dev = (struct net_device *)dev_id;
+- 	struct xl_private *xl_priv =netdev_priv(dev);
+-	u8 __iomem * xl_mmio = xl_priv->xl_mmio ; 
+-	u16 intstatus, macstatus  ;
++ 	struct xl_private *xl_priv;
++	u8 __iomem * xl_mmio;
++	u16 intstatus, macstatus;
  
- static void speedo_purge_tx(struct net_device *dev)
+ 	if (!dev) { 
+-		printk(KERN_WARNING "Device structure dead, aaahhhh !\n") ;
++		printk(KERN_WARNING "3c359: Device structure dead, aaahhhh!\n");
+ 		return IRQ_NONE; 
+ 	}
+ 
++	xl_priv = netdev_priv(dev);
++	xl_mmio = xl_priv->xl_mmio;
+ 	intstatus = readw(xl_mmio + MMIO_INTSTATUS) ;  
+ 
+ 	if (!(intstatus & 1)) /* We didn't generate the interrupt */
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
