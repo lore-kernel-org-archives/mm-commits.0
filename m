@@ -1,59 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - incorrect-scsi-transfer-length-computation-from-odd.patch removed from -mm tree
-Date: Wed, 15 Aug 2007 16:34:44 -0700
-Message-ID: <200708152334.l7FNYje4020830@imap1.linux-foundation.org>
+Subject: + scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch added to -mm tree
+Date: Wed, 15 Aug 2007 16:35:29 -0700
+Message-ID: <200708152335.l7FNZT2J020908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33777 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760701AbXHOXfM (ORCPT
+	by vger.kernel.org with ESMTP id S964797AbXHOXgH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:35:12 -0400
+	Wed, 15 Aug 2007 19:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jli@greshamstorage.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: michaelc@cs.wisc.edu, James.Bottomley@steeleye.com, jli@greshamstorage.com
 
 
 The patch titled
-     Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
-has been removed from the -mm tree.  Its filename was
-     incorrect-scsi-transfer-length-computation-from-odd.patch
+     scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
+has been added to the -mm tree.  Its filename is
+     scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
-From: Jeremy Linton <jli@greshamstorage.com>
+Subject: scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
+From: Mike Christie <michaelc@cs.wisc.edu>
 
-Any function which use scsi_execute_async() and transfers "odd" sized data
-that doesn't align correctly with the segment sizes may have its transfer
-length padded out to the closest segment size.
+sg's may have setup a the buffer with a different length than the transfer
+length so we should be using the bufflen passed in as the request's data
+len.
 
-For writes, this results in unnecessary data being transfered to the SCSI
-target.  For reads, it affects the residual data length being returned to
-the application since the residual length will be based on the padded
-transfer size rather than the actual request size.
-
-The easiest way to see this is by trying to read using the SG_IO ioctl a
-large (>32k) buffer size from a tape device that only has a few bytes of
-data stored for the current block.  The resulting resid will generally be
-incorrect.
-
-I've fixed this simply by changing scsi_req_map_sg() so that it places the
-requested transfer length in rq->data_len rather than the sum of all the sg
-segments.
-
-Signed-off-by: Jeremy Linton <jli@greshamstorage.com>
+Signed-off-by: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Jeremy Linton <jli@greshamstorage.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/scsi_lib.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd
+diff -puN drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers
 +++ a/drivers/scsi/scsi_lib.c
-@@ -355,7 +355,7 @@ static int scsi_req_map_sg(struct reques
+@@ -306,7 +306,7 @@ static int scsi_req_map_sg(struct reques
+ {
+ 	struct request_queue *q = rq->q;
+ 	int nr_pages = (bufflen + sgl[0].offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	unsigned int data_len = 0, len, bytes, off;
++	unsigned int data_len = bufflen, len, bytes, off;
+ 	struct page *page;
+ 	struct bio *bio = NULL;
+ 	int i, err, nr_vecs = 0;
+@@ -315,10 +315,15 @@ static int scsi_req_map_sg(struct reques
+ 		page = sgl[i].page;
+ 		off = sgl[i].offset;
+ 		len = sgl[i].length;
+-		data_len += len;
+ 
+-		while (len > 0) {
++		while (len > 0 && data_len > 0) {
++			/*
++			 * sg sends a scatterlist that is larger than
++			 * the data_len it wants transferred for certain
++			 * IO sizes
++			 */
+ 			bytes = min_t(unsigned int, len, PAGE_SIZE - off);
++			bytes = min(bytes, data_len);
+ 
+ 			if (!bio) {
+ 				nr_vecs = min_t(int, BIO_MAX_PAGES, nr_pages);
+@@ -350,12 +355,13 @@ static int scsi_req_map_sg(struct reques
+ 
+ 			page++;
+ 			len -= bytes;
++			data_len -=bytes;
+ 			off = 0;
+ 		}
  	}
  
  	rq->buffer = rq->data = NULL;
@@ -64,6 +89,8 @@ diff -puN drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-fro
  free_bios:
 _
 
-Patches currently in -mm which might be from jli@greshamstorage.com are
+Patches currently in -mm which might be from michaelc@cs.wisc.edu are
 
-incorrect-scsi-transfer-length-computation-from-odd.patch
+git-scsi-misc.patch
+add-includes-to-scsi_transport_iscsih.patch
+scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch
