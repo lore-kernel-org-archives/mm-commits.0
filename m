@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpm-increase-number-of-allowable-device-flags-fix.patch added to -mm tree
-Date: Wed, 15 Aug 2007 14:11:15 -0700
-Message-ID: <200708152111.l7FLBFfs015229@imap1.linux-foundation.org>
+Subject: + add-support-for-1533-bridge-to-alim1535_wdt.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:13:51 -0700
+Message-ID: <200708152113.l7FLDpjt015274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40291 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765699AbXHOVLu (ORCPT
+	by vger.kernel.org with ESMTP id S1758321AbXHOVOX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 17:11:50 -0400
+	Wed, 15 Aug 2007 17:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, kristen.c.accardi@intel.com
+Cc: arvidjaar@mail.ru, wim@iguana.be
 
 
 The patch titled
-     2.6.23-rc2-mm2: sata disk going slow
+     Add support for 1533 bridge to alim1535_wdt
 has been added to the -mm tree.  Its filename is
-     alpm-increase-number-of-allowable-device-flags-fix.patch
+     add-support-for-1533-bridge-to-alim1535_wdt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 2.6.23-rc2-mm2: sata disk going slow
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Add support for 1533 bridge to alim1535_wdt
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Why is the G5 so slow with 2.6.23-rc2-mm2?  hdparm -t shows 1.8MB/sec
-instead of 58MB/sec.  alpm-increase-number-of-allowable-device-flags.patch
-(raising ATA_DFLAG_CFG_MASK) turns out to be the guilty party: though the
-problem doesn't appear until the next patch, which adds ATA_DFLAG_IPM as
-the same bit as ATA_DFLAG_PIO.  Here's a hotfix against top of -rc2-mm2.
+They are apparently pretty close (even lspci combines them). The patch
+adds support for 0x1533 bridge in addition to 0x1535.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Tested on Toshiba Portege 4000 with
+
+00:07.0 ISA bridge [0601]: ALi Corporation M1533/M1535 PCI to ISA Bridge
+[Aladdin IV/V/V+] [10b9:1533]
+00:08.0 Bridge [0680]: ALi Corporation M7101 Power Management Controller
+[PMU] [10b9:7101]
+
+with result
+
+[ 2090.906736] PCI: Enabling device 0000:00:08.0 (0000 -> 0001)
+[ 2090.914034] ALi_M1535: initialized. timeout=3D60 sec (nowayout=3D0)
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/libata.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/watchdog/alim1535_wdt.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/libata.h~alpm-increase-number-of-allowable-device-flags-fix include/linux/libata.h
---- a/include/linux/libata.h~alpm-increase-number-of-allowable-device-flags-fix
-+++ a/include/linux/libata.h
-@@ -141,9 +141,9 @@ enum {
- 	ATA_DFLAG_ACPI_FAILED	= (1 << 6), /* ACPI on devcfg has failed */
- 	ATA_DFLAG_CFG_MASK	= (1 << 12) - 1,
+diff -puN drivers/char/watchdog/alim1535_wdt.c~add-support-for-1533-bridge-to-alim1535_wdt drivers/char/watchdog/alim1535_wdt.c
+--- a/drivers/char/watchdog/alim1535_wdt.c~add-support-for-1533-bridge-to-alim1535_wdt
++++ a/drivers/char/watchdog/alim1535_wdt.c
+@@ -312,6 +312,7 @@ static int ali_notify_sys(struct notifie
+  */
  
--	ATA_DFLAG_PIO		= (1 << 8), /* device limited to PIO mode */
--	ATA_DFLAG_NCQ_OFF	= (1 << 9), /* device limited to non-NCQ mode */
--	ATA_DFLAG_SPUNDOWN	= (1 << 10), /* XXX: for spindown_compat */
-+	ATA_DFLAG_PIO		= (1 << 12), /* device limited to PIO mode */
-+	ATA_DFLAG_NCQ_OFF	= (1 << 13), /* device limited to non-NCQ mode */
-+	ATA_DFLAG_SPUNDOWN	= (1 << 14), /* XXX: for spindown_compat */
- 	ATA_DFLAG_INIT_MASK	= (1 << 16) - 1,
+ static struct pci_device_id ali_pci_tbl[] = {
++	{ PCI_VENDOR_ID_AL, 0x1533, PCI_ANY_ID, PCI_ANY_ID,},
+ 	{ PCI_VENDOR_ID_AL, 0x1535, PCI_ANY_ID, PCI_ANY_ID,},
+ 	{ 0, },
+ };
+@@ -329,9 +330,11 @@ static int __init ali_find_watchdog(void
+ 	struct pci_dev *pdev;
+ 	u32 wdog;
  
- 	ATA_DFLAG_DETACH	= (1 << 16),
+-	/* Check for a 1535 series bridge */
++	/* Check for a 1533/1535 series bridge */
+ 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1535, NULL);
+-	if(pdev == NULL)
++	if (pdev == NULL)
++		pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1533, NULL);
++	if (pdev == NULL)
+ 		return -ENODEV;
+ 	pci_dev_put(pdev);
+ 
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-alpm-increase-number-of-allowable-device-flags-fix.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-mm-clarify-__add_to_swap_cache-locking-fix.patch
-radix-tree-use-indirect-bit.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-mm-shmemc-make-3-functions-static.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio_tree-debugging-patch.patch
+add-support-for-1533-bridge-to-alim1535_wdt.patch
