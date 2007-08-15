@@ -1,122 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch added to -mm tree
-Date: Wed, 15 Aug 2007 15:42:30 -0700
-Message-ID: <200708152242.l7FMgUXL018807@imap1.linux-foundation.org>
+Subject: - introduce-strtol_check_range.patch removed from -mm tree
+Date: Wed, 15 Aug 2007 15:46:15 -0700
+Message-ID: <200708152246.l7FMkFLR019008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50588 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937133AbXHOWmo (ORCPT
+	by vger.kernel.org with ESMTP id S937319AbXHOWrX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 18:42:44 -0400
+	Wed, 15 Aug 2007 18:47:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, adurbin@google.com, ak@suse.de, mouli@linux.intel.com
+To: satyam@infradead.org, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 EFI runtime service support: document for EFI runtime services
-has been added to the -mm tree.  Its filename is
-     x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
+     Introduce strtol_check_range()
+has been removed from the -mm tree.  Its filename was
+     introduce-strtol_check_range.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86_64 EFI runtime service support: document for EFI runtime services
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: Introduce strtol_check_range()
+From: Satyam Sharma <satyam@infradead.org>
 
-Add documentation for EFI x86_64 runtime services support.  The boot
-parameters added are documented in
+Callers (especially "store" functions for sysfs or configfs attributes)
+that want to convert an input string to a number may often also want to
+check for simple input sanity or allowable range.  strtol10_check_range()
+of netconsole does this, so extract it out into lib/vsprintf.c, make it
+generic w.r.t.  base, and export it to the rest of the kernel and modules.
 
-Documentation/i386/zero-page.txt. The boot options added are
-documented in Documentation/x86_64/boot-options.txt.
-
-Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Aaron Durbin <adurbin@google.com>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/i386/zero-page.txt      |   21 ++++++++++++++++-----
- Documentation/x86_64/boot-options.txt |   10 +++++++++-
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ drivers/net/netconsole.c |   46 +++++++++----------------------------
+ include/linux/kernel.h   |    2 +
+ lib/vsprintf.c           |   29 +++++++++++++++++++++++
+ 3 files changed, 43 insertions(+), 34 deletions(-)
 
-diff -puN Documentation/i386/zero-page.txt~x86_64-efi-runtime-service-support-document-for-efi-runtime-services Documentation/i386/zero-page.txt
---- a/Documentation/i386/zero-page.txt~x86_64-efi-runtime-service-support-document-for-efi-runtime-services
-+++ a/Documentation/i386/zero-page.txt
-@@ -41,11 +41,11 @@ Offset	Type		Description
-  0xb0 - 0x13f		Free. Add more parameters here if you really need them.
-  0x140- 0x1be		EDID_INFO Video mode setup
+diff -puN drivers/net/netconsole.c~introduce-strtol_check_range drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~introduce-strtol_check_range
++++ a/drivers/net/netconsole.c
+@@ -242,34 +242,6 @@ static struct netconsole_target *to_targ
+ }
  
--0x1c4	unsigned long	EFI system table pointer
--0x1c8	unsigned long	EFI memory descriptor size
--0x1cc	unsigned long	EFI memory descriptor version
--0x1d0	unsigned long	EFI memory descriptor map pointer
--0x1d4	unsigned long	EFI memory descriptor map size
-+0x1c4	unsigned long	EFI system table pointer*
-+0x1c8	unsigned long	EFI memory descriptor size*
-+0x1cc	unsigned long	EFI memory descriptor version*
-+0x1d0	unsigned long	EFI memory descriptor map pointer*
-+0x1d4	unsigned long	EFI memory descriptor map size*
- 0x1e0	unsigned long	ALT_MEM_K, alternative mem check, in Kb
- 0x1e4	unsigned long	Scratch field for the kernel setup code
- 0x1e8	char		number of entries in E820MAP (below)
-@@ -97,3 +97,14 @@ Offset	Type		Description
- 0x2d0 - 0xd00		E820MAP
- 0xd00 - 0xeff		EDDBUF (edd.S) for disk signature read sector
- 0xd00 - 0xeeb		EDDBUF (edd.S) for edd data
-+
-+Changes for x86_64 implementation:
-+---------------------------------
-+For alignment purposes, the following parameters are rearranged.
-+
-+0x1c0	4 bytes		EFI Loader signature, ="EFIL"
-+0x1c4	unsigned long	EFI memory descriptor size
-+0x1c8	unsigned long	EFI memory descriptor version
-+0x1cc	unsigned long	EFI memory descriptor map size
-+0x1d0	8 bytes		EFI memory descriptor map pointer
-+0x1d8	8 bytes		EFI system table pointer
-diff -puN Documentation/x86_64/boot-options.txt~x86_64-efi-runtime-service-support-document-for-efi-runtime-services Documentation/x86_64/boot-options.txt
---- a/Documentation/x86_64/boot-options.txt~x86_64-efi-runtime-service-support-document-for-efi-runtime-services
-+++ a/Documentation/x86_64/boot-options.txt
-@@ -110,12 +110,13 @@ Idle loop
+ /*
+- * Wrapper over simple_strtol (base 10) with sanity and range checking.
+- * We return (signed) long only because we may want to return errors.
+- * Do not use this to convert numbers that are allowed to be negative.
+- */
+-static long strtol10_check_range(const char *cp, long min, long max)
+-{
+-	long ret;
+-	char *p = (char *) cp;
+-
+-	WARN_ON(min < 0);
+-	WARN_ON(max < min);
+-
+-	ret = simple_strtol(p, &p, 10);
+-
+-	if (*p && (*p != '\n')) {
+-		printk(KERN_ERR "netconsole: invalid input\n");
+-		return -EINVAL;
+-	}
+-	if ((ret < min) || (ret > max)) {
+-		printk(KERN_ERR "netconsole: input %ld must be between "
+-				"%ld and %ld\n", ret, min, max);
+-		return -EINVAL;
+-	}
+-
+-	return ret;
+-}
+-
+-/*
+  * Attribute operations for netconsole_target.
+  */
  
- Rebooting
+@@ -335,9 +307,11 @@ static ssize_t store_enabled(struct netc
+ 	int err;
+ 	long enabled;
  
--   reboot=b[ios] | t[riple] | k[bd] | a[cpi] [, [w]arm | [c]old]
-+   reboot=b[ios] | t[riple] | k[bd] | e[fi] | a[cpi] [, [w]arm | [c]old]
-    bios	  Use the CPU reboot vector for warm reset
-    warm   Don't set the cold reboot flag
-    cold   Set the cold reboot flag
-    triple Force a triple fault (init)
-    kbd    Use the keyboard controller. cold reset (default)
-+   efi	  Use efi reset_system runtime service. cold reset (default)
-    acpi   Use the ACPI RESET_REG in the FADT. If ACPI is not configured or the
-           ACPI reset does not work, the reboot path attempts the reset using
-           the keyboard controller.
-@@ -303,4 +304,11 @@ Debugging
- 		newfallback: use new unwinder but fall back to old if it gets
- 			stuck (default)
+-	enabled = strtol10_check_range(buf, 0, 1);
+-	if (enabled < 0)
++	enabled = strtol_check_range(buf, 0, 1, 10);
++	if (enabled < 0) {
++		printk(KERN_ERR "netconsole: invalid input\n");
+ 		return enabled;
++	}
  
-+EFI
+ 	if (enabled) {	/* 1 */
+ 
+@@ -398,9 +372,11 @@ static ssize_t store_local_port(struct n
+ 		return -EINVAL;
+ 	}
+ 
+-	local_port = strtol10_check_range(buf, 0, U16_MAX);
+-	if (local_port < 0)
++	local_port = strtol_check_range(buf, 0, U16_MAX, 10);
++	if (local_port < 0) {
++		printk(KERN_ERR "netconsole: invalid input\n");
+ 		return local_port;
++	}
+ 
+ 	nt->np.local_port = local_port;
+ 
+@@ -420,9 +396,11 @@ static ssize_t store_remote_port(struct 
+ 		return -EINVAL;
+ 	}
+ 
+-	remote_port = strtol10_check_range(buf, 0, U16_MAX);
+-	if (remote_port < 0)
++	remote_port = strtol_check_range(buf, 0, U16_MAX, 10);
++	if (remote_port < 0) {
++		printk(KERN_ERR "netconsole: invalid input\n");
+ 		return remote_port;
++	}
+ 
+ 	nt->np.remote_port = remote_port;
+ 
+diff -puN include/linux/kernel.h~introduce-strtol_check_range include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-strtol_check_range
++++ a/include/linux/kernel.h
+@@ -121,6 +121,8 @@ extern unsigned long simple_strtoul(cons
+ extern long simple_strtol(const char *,char **,unsigned int);
+ extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+ extern long long simple_strtoll(const char *,char **,unsigned int);
++extern long strtol_check_range(const char *cp, long min, long max,
++				unsigned int base);
+ extern int sprintf(char * buf, const char * fmt, ...)
+ 	__attribute__ ((format (printf, 2, 3)));
+ extern int vsprintf(char *buf, const char *, va_list)
+diff -puN lib/vsprintf.c~introduce-strtol_check_range lib/vsprintf.c
+--- a/lib/vsprintf.c~introduce-strtol_check_range
++++ a/lib/vsprintf.c
+@@ -126,6 +126,35 @@ long long simple_strtoll(const char *cp,
+ 	return simple_strtoull(cp,endp,base);
+ }
+ 
++/**
++ * strtol_check_range - wrapper over simple_strtol with input and range checking
++ * @cp: The start of the string
++ * @min: Minimum value allowed
++ * @max: Maximum value allowed
++ * @base: The number base to use
++ *
++ * We return (signed) long only because we may want to return errors.
++ * Do not use this to convert numbers that are allowed to be negative.
++ */
++long strtol_check_range(const char *cp, long min, long max, unsigned int base)
++{
++	long ret;
++	char *p = (char *) cp;
 +
-+  noefi		Disable EFI support
++	WARN_ON(min < 0);
++	WARN_ON(max < min);
 +
-+  noefi_time	Disable EFI time runtime service, programming CMOS
-+  		hardware directly
++	ret = simple_strtol(p, &p, base);
 +
- Miscellaneous
++	if (*p && (*p != '\n'))
++		return -EINVAL;
++	if ((ret < min) || (ret > max))
++		return -EINVAL;
++
++	return ret;
++}
++EXPORT_SYMBOL(strtol_check_range);
++
+ static int skip_atoi(const char **s)
+ {
+ 	int i=0;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-x86_64-efi-runtime-service-support-efi-basic-runtime-service-support.patch
-x86_64-efi-runtime-service-support-efi-runtime-services.patch
-x86_64-efi-runtime-service-support-document-for-efi-runtime-services.patch
-x86_64-efi-boot-support-efi-frame-buffer-driver.patch
-x86_64-efi-boot-support-efi-boot-document.patch
+git-netdev-all.patch
+git-net.patch
+introduce-u16_max-and-u32_max.patch
+introduce-strtol_check_range.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
