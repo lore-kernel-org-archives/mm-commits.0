@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-parport-remove-binary-paths.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:59:47 -0700
-Message-ID: <200708151959.l7FJxlX9012466@imap1.linux-foundation.org>
+Subject: + sysctl-simplify-the-pty-sysctl-logic.patch added to -mm tree
+Date: Wed, 15 Aug 2007 12:59:49 -0700
+Message-ID: <200708151959.l7FJxnO3012473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40977 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49460 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936157AbXHOUAX (ORCPT
+	by vger.kernel.org with ESMTP id S936224AbXHOUAY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:00:23 -0400
+	Wed, 15 Aug 2007 16:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: parport remove binary paths
+     sysctl: simplify the pty sysctl logic
 has been added to the -mm tree.  Its filename is
-     sysctl-parport-remove-binary-paths.patch
+     sysctl-simplify-the-pty-sysctl-logic.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,196 +26,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: parport remove binary paths
+Subject: sysctl: simplify the pty sysctl logic
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The sysctl binary paths don't look as if they even code work, .data is not
-filled in, and all of the proc_handlers look at extra1 and there is not
-strategy routine.
+Instead of having a bunch of ifdefs in sysctl.c move all of the pty sysctl
+logic into drivers/char/pty.c
 
-So just kill the binary paths.
-
-In addition this patch removes the setting of extra1 on directories.  It
-doesn't look like the parport code ever examines it, and it's bad sysctl form.
+As well as cleaning up the logic this prevents sysctl_check_table from
+complaining that the root table has a NULL data pointer on something with
+generic methods.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/procfs.c |   38 ++++---------------------------------
- 1 files changed, 5 insertions(+), 33 deletions(-)
+ drivers/char/pty.c |   24 +++++++++++++++++++++++-
+ kernel/sysctl.c    |   11 -----------
+ 2 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN drivers/parport/procfs.c~sysctl-parport-remove-binary-paths drivers/parport/procfs.c
---- a/drivers/parport/procfs.c~sysctl-parport-remove-binary-paths
-+++ a/drivers/parport/procfs.c
-@@ -237,7 +237,7 @@ static int do_hardware_modes (ctl_table 
- #define PARPORT_PARPORT_DIR(CHILD) { .ctl_name = DEV_PARPORT, .procname = "parport", \
-                                      .mode = 0555, .child = CHILD }
- #define PARPORT_DEV_DIR(CHILD) { .ctl_name = CTL_DEV, .procname = "dev", .mode = 0555, .child = CHILD }
--#define PARPORT_DEVICES_ROOT_DIR  { .ctl_name = DEV_PARPORT_DEVICES, .procname = "devices", \
-+#define PARPORT_DEVICES_ROOT_DIR  {  .procname = "devices", \
-                                     .mode = 0555, .child = NULL }
+diff -puN drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic drivers/char/pty.c
+--- a/drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic
++++ a/drivers/char/pty.c
+@@ -313,7 +313,7 @@ int pty_limit = NR_UNIX98_PTY_DEFAULT;
+ static int pty_limit_min = 0;
+ static int pty_limit_max = NR_UNIX98_PTY_MAX;
  
- static const unsigned long parport_min_timeslice_value =
-@@ -266,7 +266,6 @@ static const struct parport_sysctl_table
- 	.sysctl_header = NULL,
-         {
- 		{
--			.ctl_name	= DEV_PARPORT_SPINTIME,
- 			.procname	= "spintime",
- 			.data		= NULL,
- 			.maxlen		= sizeof(int),
-@@ -276,7 +275,6 @@ static const struct parport_sysctl_table
- 			.extra2		= (void*) &parport_max_spintime_value
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_BASE_ADDR,
- 			.procname	= "base-addr",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -284,7 +282,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_hardware_base_addr
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_IRQ,
- 			.procname	= "irq",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -292,7 +289,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_hardware_irq
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_DMA,
- 			.procname	= "dma",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -300,7 +296,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_hardware_dma
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_MODES,
- 			.procname	= "modes",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -310,7 +305,6 @@ static const struct parport_sysctl_table
- 		PARPORT_DEVICES_ROOT_DIR,
- #ifdef CONFIG_PARPORT_1284
- 		{
--			.ctl_name	= DEV_PARPORT_AUTOPROBE,
- 			.procname	= "autoprobe",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -318,7 +312,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_autoprobe
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_AUTOPROBE + 1,
- 			.procname	= "autoprobe0",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -326,7 +319,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	=  &do_autoprobe
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_AUTOPROBE + 2,
- 			.procname	= "autoprobe1",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -334,7 +326,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_autoprobe
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_AUTOPROBE + 3,
- 			.procname	= "autoprobe2",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -342,7 +333,6 @@ static const struct parport_sysctl_table
- 			.proc_handler	= &do_autoprobe
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_AUTOPROBE + 4,
- 			.procname	= "autoprobe3",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -354,7 +344,6 @@ static const struct parport_sysctl_table
+-ctl_table pty_table[] = {
++static struct ctl_table pty_table[] = {
+ 	{
+ 		.ctl_name	= PTY_MAX,
+ 		.procname	= "max",
+@@ -335,6 +335,27 @@ ctl_table pty_table[] = {
+ 	}
+ };
+ 
++static struct ctl_table pty_kern_table[] = {
++	{
++		.ctl_name	= KERN_PTY,
++		.procname	= "pty",
++		.mode		= 0555,
++		.child		= pty_table,
++	},
++	{}
++};
++
++static struct ctl_table pty_root_table[] = {
++	{
++		.ctl_name	= CTL_KERN,
++		.procname	= "kernel",
++		.mode		= 0555,
++		.child		= pty_kern_table,
++	},
++	{}
++};
++
++
+ static int pty_unix98_ioctl(struct tty_struct *tty, struct file *file,
+ 			    unsigned int cmd, unsigned long arg)
+ {
+@@ -399,6 +420,7 @@ static void __init unix98_pty_init(void)
+ 		panic("Couldn't register Unix98 pts driver");
+ 
+ 	pty_table[1].data = &ptm_driver->refcount;
++	register_sysctl_table(pty_root_table);
+ }
+ #else
+ static inline void unix98_pty_init(void) { }
+diff -puN kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic
++++ a/kernel/sysctl.c
+@@ -163,9 +163,6 @@ static struct ctl_table fs_table[];
+ static struct ctl_table debug_table[];
+ static struct ctl_table dev_table[];
+ extern struct ctl_table random_table[];
+-#ifdef CONFIG_UNIX98_PTYS
+-extern struct ctl_table pty_table[];
+-#endif
+ #ifdef CONFIG_INOTIFY_USER
+ extern struct ctl_table inotify_table[];
+ #endif
+@@ -532,14 +529,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0555,
+ 		.child		= random_table,
  	},
+-#ifdef CONFIG_UNIX98_PTYS
+-	{
+-		.ctl_name	= KERN_PTY,
+-		.procname	= "pty",
+-		.mode		= 0555,
+-		.child		= pty_table,
+-	},
+-#endif
  	{
- 		{
--			.ctl_name	= DEV_PARPORT_DEVICES_ACTIVE,
- 			.procname	= "active",
- 			.data		= NULL,
- 			.maxlen		= 0,
-@@ -393,7 +382,6 @@ parport_device_sysctl_template = {
- 	.sysctl_header = NULL,
- 	{
- 		{
--			.ctl_name 	= DEV_PARPORT_DEVICE_TIMESLICE,
- 			.procname 	= "timeslice",
- 			.data		= NULL,
- 			.maxlen		= sizeof(int),
-@@ -449,7 +437,6 @@ parport_default_sysctl_table = {
- 	.sysctl_header	= NULL,
- 	{
- 		{
--			.ctl_name	= DEV_PARPORT_DEFAULT_TIMESLICE,
- 			.procname	= "timeslice",
- 			.data		= &parport_default_timeslice,
- 			.maxlen		= sizeof(parport_default_timeslice),
-@@ -459,7 +446,6 @@ parport_default_sysctl_table = {
- 			.extra2		= (void*) &parport_max_timeslice_value
- 		},
- 		{
--			.ctl_name	= DEV_PARPORT_DEFAULT_SPINTIME,
- 			.procname	= "spintime",
- 			.data		= &parport_default_spintime,
- 			.maxlen		= sizeof(parport_default_spintime),
-@@ -502,7 +488,7 @@ int parport_proc_register(struct parport
- 
- 	t->device_dir[0].extra1 = port;
- 
--	for (i = 0; i < 8; i++)
-+	for (i = 0; i < 5; i++)
- 		t->vars[i].extra1 = port;
- 
- 	t->vars[0].data = &port->spintime;
-@@ -512,7 +498,7 @@ int parport_proc_register(struct parport
- 		t->vars[6 + i].extra2 = &port->probe_info[i];
- 
- 	t->port_dir[0].procname = port->name;
--	t->port_dir[0].ctl_name = port->number + 1; /* nb 0 isn't legal here */
-+	t->port_dir[0].ctl_name = 0;
- 
- 	t->port_dir[0].child = t->vars;
- 	t->parport_dir[0].child = t->port_dir;
-@@ -551,26 +537,12 @@ int parport_device_proc_register(struct 
- 	t->dev_dir[0].child = t->parport_dir;
- 	t->parport_dir[0].child = t->port_dir;
- 	t->port_dir[0].procname = port->name;
--	t->port_dir[0].ctl_name = port->number + 1; /* nb 0 isn't legal here */
-+	t->port_dir[0].ctl_name = 0;
- 	t->port_dir[0].child = t->devices_root_dir;
- 	t->devices_root_dir[0].child = t->device_dir;
- 
--#ifdef CONFIG_PARPORT_1284
--
--	t->device_dir[0].ctl_name =
--		parport_device_num(port->number, port->muxport,
--				   device->daisy)
--		+ 1;  /* nb 0 isn't legal here */ 
--
--#else /* No IEEE 1284 support */
--
--	/* parport_device_num isn't available. */
--	t->device_dir[0].ctl_name = 1;
--	
--#endif /* IEEE 1284 support or not */
--
-+	t->device_dir[0].ctl_name = 0;
- 	t->device_dir[0].procname = device->name;
--	t->device_dir[0].extra1 = device;
- 	t->device_dir[0].child = t->vars;
- 	t->vars[0].data = &device->timeslice;
- 
+ 		.ctl_name	= KERN_OVERFLOWUID,
+ 		.procname	= "overflowuid",
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
