@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser_new-remove-useless-comments-in-mxser_cards.patch added to -mm tree
-Date: Wed, 15 Aug 2007 14:31:48 -0700
-Message-ID: <200708152131.l7FLVmm7016025@imap1.linux-foundation.org>
+Subject: + char-mxser_new-move-to-pci_vdevice.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:31:46 -0700
+Message-ID: <200708152131.l7FLVkV3016022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60195 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752854AbXHOVcN (ORCPT
+	by vger.kernel.org with ESMTP id S933880AbXHOVcM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 17:32:13 -0400
+	Wed, 15 Aug 2007 17:32:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: mxser_new, remove useless comments in mxser_cards
+     Char: mxser_new, move to PCI_VDEVICE
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+     char-mxser_new-move-to-pci_vdevice.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, remove useless comments in mxser_cards
+Subject: Char: mxser_new, move to PCI_VDEVICE
 From: Jiri Slaby <jirislaby@gmail.com>
 
-mxser_new, remove useless comments in mxser_cards
-
-It was rest from times, where info about the card was separated (name,
-ports number and flags).
+mxser_new, move to PCI_VDEVICE
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |   42 ++++++++++++++++++-------------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
+ drivers/char/mxser_new.c |   54 ++++++++++++-------------------------
+ 1 files changed, 18 insertions(+), 36 deletions(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-useless-comments-in-mxser_cards drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-remove-useless-comments-in-mxser_cards
+diff -puN drivers/char/mxser_new.c~char-mxser_new-move-to-pci_vdevice drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-move-to-pci_vdevice
 +++ a/drivers/char/mxser_new.c
-@@ -113,29 +113,29 @@ struct mxser_cardinfo {
- };
- 
- static const struct mxser_cardinfo mxser_cards[] = {
--/* 0*/	{ 8, "C168 series", },			/* C168-ISA */
--	{ 4, "C104 series", },			/* C104-ISA */
--	{ 4, "CI-104J series", },		/* CI104J */
--	{ 8, "C168H/PCI series", },		/* C168-PCI */
--	{ 4, "C104H/PCI series", },		/* C104-PCI */
-+/* 0*/	{ 8, "C168 series", },
-+	{ 4, "C104 series", },
-+	{ 4, "CI-104J series", },
-+	{ 8, "C168H/PCI series", },
-+	{ 4, "C104H/PCI series", },
- /* 5*/	{ 4, "C102 series", MXSER_HAS2 },	/* C102-ISA */
--	{ 4, "CI-132 series", MXSER_HAS2 },	/* CI132 */
--	{ 4, "CI-134 series", },		/* CI134 */
--	{ 2, "CP-132 series", },		/* CP132 */
--	{ 4, "CP-114 series", },		/* CP114 */
--/*10*/	{ 4, "CT-114 series", },		/* CT114 */
--	{ 2, "CP-102 series", MXSER_HIGHBAUD },	/* CP102 */
--	{ 4, "CP-104U series", },		/* CP104U */
--	{ 8, "CP-168U series", },		/* CP168U */
--	{ 2, "CP-132U series", },		/* CP132U */
--/*15*/	{ 4, "CP-134U series", },		/* CP134U */
--	{ 4, "CP-104JU series", },		/* CP104JU */
-+	{ 4, "CI-132 series", MXSER_HAS2 },
-+	{ 4, "CI-134 series", },
-+	{ 2, "CP-132 series", },
-+	{ 4, "CP-114 series", },
-+/*10*/	{ 4, "CT-114 series", },
-+	{ 2, "CP-102 series", MXSER_HIGHBAUD },
-+	{ 4, "CP-104U series", },
-+	{ 8, "CP-168U series", },
-+	{ 2, "CP-132U series", },
-+/*15*/	{ 4, "CP-134U series", },
-+	{ 4, "CP-104JU series", },
- 	{ 8, "Moxa UC7000 Serial", },		/* RC7000 */
--	{ 8, "CP-118U series", },		/* CP118U */
--	{ 2, "CP-102UL series", },		/* CP102UL */
--/*20*/	{ 2, "CP-102U series", },		/* CP102U */
--	{ 8, "CP-118EL series", },		/* CP118EL */
--	{ 8, "CP-168EL series", },		/* CP168EL */
-+	{ 8, "CP-118U series", },
-+	{ 2, "CP-102UL series", },
-+/*20*/	{ 2, "CP-102U series", },
-+	{ 8, "CP-118EL series", },
-+	{ 8, "CP-168EL series", },
- 	{ 4, "CP-104EL series", },
- 	{ 8, "CB-108 series", },
- /*25*/	{ 4, "CB-114 series", },
+@@ -147,42 +147,24 @@ static const struct mxser_cardinfo mxser
+ /* driver_data correspond to the lines in the structure above
+    see also ISA probe function before you change something */
+ static struct pci_device_id mxser_pcibrds[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C168),
+-		.driver_data = 3 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_C104),
+-		.driver_data = 4 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP132),
+-		.driver_data = 8 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP114),
+-		.driver_data = 9 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CT114),
+-		.driver_data = 10 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP102),
+-		.driver_data = 11 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP104U),
+-		.driver_data = 12 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP168U),
+-		.driver_data = 13 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP132U),
+-		.driver_data = 14 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP134U),
+-		.driver_data = 15 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP104JU),
+-		.driver_data = 16 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_RC7000),
+-		.driver_data = 17 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP118U),
+-		.driver_data = 18 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP102UL),
+-		.driver_data = 19 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP102U),
+-		.driver_data = 20 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP118EL),
+-		.driver_data = 21 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP168EL),
+-		.driver_data = 22 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP104EL),
+-		.driver_data = 23 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_C168),	.driver_data = 3 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_C104),	.driver_data = 4 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP132),	.driver_data = 8 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP114),	.driver_data = 9 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CT114),	.driver_data = 10 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP102),	.driver_data = 11 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP104U),	.driver_data = 12 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP168U),	.driver_data = 13 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP132U),	.driver_data = 14 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP134U),	.driver_data = 15 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP104JU),.driver_data = 16 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_RC7000),	.driver_data = 17 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP118U),	.driver_data = 18 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP102UL),.driver_data = 19 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP102U),	.driver_data = 20 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP118EL),.driver_data = 21 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP168EL),.driver_data = 22 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_MOXA_CP104EL),.driver_data = 23 },
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB108),	.driver_data = 24 },
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB114),	.driver_data = 25 },
+ 	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB134I),	.driver_data = 26 },
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
