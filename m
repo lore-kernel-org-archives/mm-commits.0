@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch added to -mm tree
-Date: Wed, 15 Aug 2007 13:58:26 -0700
-Message-ID: <200708152058.l7FKwQvT014664@imap1.linux-foundation.org>
+Subject: + uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch added to -mm tree
+Date: Wed, 15 Aug 2007 13:58:20 -0700
+Message-ID: <200708152058.l7FKwKfI014655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51148 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752437AbXHOU6n (ORCPT
+	by vger.kernel.org with ESMTP id S1753269AbXHOU6r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:58:43 -0400
+	Wed, 15 Aug 2007 16:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: spock@gentoo.org, adaplas@pol.net
 
 
 The patch titled
-     uvesafb: use VISUAL_TRUECOLOR as the default visual
+     uvesafb: set the refresh rate to 60Hz if nocrtc is used
 has been added to the -mm tree.  Its filename is
-     uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch
+     uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uvesafb: use VISUAL_TRUECOLOR as the default visual
+Subject: uvesafb: set the refresh rate to 60Hz if nocrtc is used
 From: Michal Januszewski <spock@gentoo.org>
 
-Set uvesafb's default visual to truecolor.  This prevents fbcon from being
-detected as 'mono' when using uvesafb.
+If the nocrtc flag is set, make sure the timings in fb_var are set to 60Hz and
+thus reflect the default BIOS refresh rate that is being used.
 
 Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/video/uvesafb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual
+diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used
 +++ a/drivers/video/uvesafb.c
-@@ -37,6 +37,7 @@ static struct fb_fix_screeninfo uvesafb_
- 	.id	= "VESA VGA",
- 	.type	= FB_TYPE_PACKED_PIXELS,
- 	.accel	= FB_ACCEL_NONE,
-+	.visual = FB_VISUAL_TRUECOLOR,
- };
+@@ -903,7 +903,7 @@ gotmode:
+ 	 * If we are not VBE3.0+ compliant, we're done -- the BIOS will
+ 	 * ignore our timings anyway.
+ 	 */
+-	if (par->vbe_ib.vbe_version < 0x0300)
++	if (par->vbe_ib.vbe_version < 0x0300 || par->nocrtc)
+ 		fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
+ 					&info->var, info);
  
- static int mtrr		__devinitdata = 3; /* enable mtrr by default */
 _
 
 Patches currently in -mm which might be from spock@gentoo.org are
