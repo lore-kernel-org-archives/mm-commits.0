@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch added to -mm tree
-Date: Wed, 15 Aug 2007 13:58:20 -0700
-Message-ID: <200708152058.l7FKwKfI014655@imap1.linux-foundation.org>
+Subject: + uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch added to -mm tree
+Date: Wed, 15 Aug 2007 13:58:24 -0700
+Message-ID: <200708152058.l7FKwOph014661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56857 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47635 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753269AbXHOU6r (ORCPT
+	by vger.kernel.org with ESMTP id S1751848AbXHOU6m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:58:47 -0400
+	Wed, 15 Aug 2007 16:58:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: spock@gentoo.org, adaplas@pol.net
 
 
 The patch titled
-     uvesafb: set the refresh rate to 60Hz if nocrtc is used
+     uvesafb: fix a typo in a warning
 has been added to the -mm tree.  Its filename is
-     uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
+     uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uvesafb: set the refresh rate to 60Hz if nocrtc is used
+Subject: uvesafb: fix a typo in a warning
 From: Michal Januszewski <spock@gentoo.org>
 
-If the nocrtc flag is set, make sure the timings in fb_var are set to 60Hz and
-thus reflect the default BIOS refresh rate that is being used.
+Replace "vesafb" with "uvesafb" in a kernel warning message.
 
 Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
@@ -40,17 +39,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/video/uvesafb.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used
+diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning
 +++ a/drivers/video/uvesafb.c
-@@ -903,7 +903,7 @@ gotmode:
- 	 * If we are not VBE3.0+ compliant, we're done -- the BIOS will
- 	 * ignore our timings anyway.
- 	 */
--	if (par->vbe_ib.vbe_version < 0x0300)
-+	if (par->vbe_ib.vbe_version < 0x0300 || par->nocrtc)
- 		fb_get_mode(FB_VSYNCTIMINGS | FB_IGNOREMON, 60,
- 					&info->var, info);
+@@ -412,7 +412,7 @@ static void uvesafb_vbe_state_restore(st
+ 
+ 	err = uvesafb_exec(task);
+ 	if (err || (task->t.regs.eax & 0xffff) != 0x004f)
+-		printk(KERN_WARNING "vesafb: VBE state restore call "
++		printk(KERN_WARNING "uvesafb: VBE state restore call "
+ 				"failed (eax=0x%x, err=%d)\n",
+ 				task->t.regs.eax, err);
  
 _
 
