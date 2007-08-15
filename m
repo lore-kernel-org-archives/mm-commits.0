@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmconfig-validate-against-acpi-motherboard-resources.patch added to -mm tree
-Date: Tue, 14 Aug 2007 22:31:03 -0700
-Message-ID: <200708150531.l7F5V5UO006202@imap1.linux-foundation.org>
+Subject: - mmconfig-validate-against-acpi-motherboard-resources.patch removed from -mm tree
+Date: Wed, 15 Aug 2007 12:19:40 -0700
+Message-ID: <200708151919.l7FJJfUE010966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51966 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58183 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154AbXHOFbU (ORCPT
+	by vger.kernel.org with ESMTP id S1756606AbXHOTUE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 01:31:20 -0400
+	Wed, 15 Aug 2007 15:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, torvalds@linux-foundation.org
+To: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      MMCONFIG: validate against ACPI motherboard resources
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mmconfig-validate-against-acpi-motherboard-resources.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 Subject: MMCONFIG: validate against ACPI motherboard resources
