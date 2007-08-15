@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch added to -mm tree
-Date: Wed, 15 Aug 2007 13:03:44 -0700
-Message-ID: <200708152003.l7FK3iEY012591@imap1.linux-foundation.org>
+Subject: + x86-make-io-apic-not-connected-pin-print-complete.patch added to -mm tree
+Date: Wed, 15 Aug 2007 13:26:18 -0700
+Message-ID: <200708152026.l7FKQI7u013432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53083 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757271AbXHOUEu (ORCPT
+	by vger.kernel.org with ESMTP id S1752531AbXHOU1O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:04:50 -0400
+	Wed, 15 Aug 2007 16:27:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, sam@ravnborg.org
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, yinghai.lu@Sun.COM
 
 
 The patch titled
-     powerfc fix for assembler -g
+     x86: make io-apic not connected pin print complete
 has been added to the -mm tree.  Its filename is
-     pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch
+     x86-make-io-apic-not-connected-pin-print-complete.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerfc fix for assembler -g
-From: Roland McGrath <roland@redhat.com>
+Subject: x86: make io-apic not connected pin print complete
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-ppc64 does the unusual thing of using #include on a compiler-generated
-assembly file (lparmap.s) from an assembly source file (head_64.S).  This
-runs afoul of my recent patch to pass -gdwarf2 to the assembler under
-CONFIG_DEBUG_INFO.  This patch avoids the problem by disabling DWARF
-generation (-g0) when producing lparmap.s.
+Normally we will have two segment not connected pin pin0, and pin after
+15...
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+So we need to print out "not connected\n" for previous segment, before
+printing out connected pins info...
+
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/Makefile |    1 +
- 1 files changed, 1 insertion(+)
+ arch/i386/kernel/io_apic.c   |    5 +++++
+ arch/x86_64/kernel/io_apic.c |    6 +++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/Makefile~pass-g-to-assembler-under-config_debug_info-powerpc-fix arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~pass-g-to-assembler-under-config_debug_info-powerpc-fix
-+++ a/arch/powerpc/kernel/Makefile
-@@ -81,6 +81,7 @@ obj-y				+= iomap.o
- endif
+diff -puN arch/i386/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete
++++ a/arch/i386/kernel/io_apic.c
+@@ -1304,6 +1304,11 @@ static void __init setup_IO_APIC_irqs(vo
+ 			continue;
+ 		}
  
- ifeq ($(CONFIG_PPC_ISERIES),y)
-+CFLAGS_lparmap.s		+= -g0
- extra-y += lparmap.s
- $(obj)/head_64.o:	$(obj)/lparmap.s
- AFLAGS_head_64.o += -I$(obj)
++		if (!first_notcon) {
++			apic_printk(APIC_VERBOSE, " not connected.\n");
++			first_notcon = 1;
++		}
++
+ 		entry.trigger = irq_trigger(idx);
+ 		entry.polarity = irq_polarity(idx);
+ 
+diff -puN arch/x86_64/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete arch/x86_64/kernel/io_apic.c
+--- a/arch/x86_64/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete
++++ a/arch/x86_64/kernel/io_apic.c
+@@ -877,6 +877,10 @@ static void __init setup_IO_APIC_irqs(vo
+ 				apic_printk(APIC_VERBOSE, ", %d-%d", mp_ioapics[apic].mpc_apicid, pin);
+ 			continue;
+ 		}
++		if (!first_notcon) {
++			apic_printk(APIC_VERBOSE, " not connected.\n");
++			first_notcon = 1;
++		}
+ 
+ 		irq = pin_2_irq(idx, apic, pin);
+ 		add_pin_to_irq(irq, apic, pin);
+@@ -887,7 +891,7 @@ static void __init setup_IO_APIC_irqs(vo
+ 	}
+ 
+ 	if (!first_notcon)
+-		apic_printk(APIC_VERBOSE," not connected.\n");
++		apic_printk(APIC_VERBOSE, " not connected.\n");
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-pass-g-to-assembler-under-config_debug_info.patch
-pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-add-mmf_dump_elf_headers.patch
-pie-executable-randomization.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-make-io-apic-not-connected-pin-print-complete.patch
