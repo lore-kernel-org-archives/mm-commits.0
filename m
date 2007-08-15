@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-kill-superfluous-extern.patch added to -mm tree
-Date: Wed, 15 Aug 2007 14:18:09 -0700
-Message-ID: <200708152118.l7FLI9T9015466@imap1.linux-foundation.org>
+Subject: + m68k-use-_ac-instead-of-ifdef-__assembly__.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:18:18 -0700
+Message-ID: <200708152118.l7FLIISM015475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48885 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761373AbXHOVSp (ORCPT
+	by vger.kernel.org with ESMTP id S1761072AbXHOVTJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 17:18:45 -0400
+	Wed, 15 Aug 2007 17:19:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: geert@linux-m68k.org
 
 
 The patch titled
-     m68k: Kill superfluous extern
+     m68k: Use _AC() instead of #ifdef __ASSEMBLY__
 has been added to the -mm tree.  Its filename is
-     m68k-kill-superfluous-extern.patch
+     m68k-use-_ac-instead-of-ifdef-__assembly__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: Kill superfluous extern
+Subject: m68k: Use _AC() instead of #ifdef __ASSEMBLY__
 From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Kill a superfluous extern declaration
+m68k: Use _AC() instead of #ifdef __ASSEMBLY__ hackery when needed, remove
+hackery when unused.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/mm/motorola.c |    6 +-----
- 1 files changed, 1 insertion(+), 5 deletions(-)
+ include/asm-m68k/page.h      |    8 +++-----
+ include/asm-m68k/processor.h |    4 ----
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN arch/m68k/mm/motorola.c~m68k-kill-superfluous-extern arch/m68k/mm/motorola.c
---- a/arch/m68k/mm/motorola.c~m68k-kill-superfluous-extern
-+++ a/arch/m68k/mm/motorola.c
-@@ -210,11 +210,7 @@ void __init paging_init(void)
- 	int i;
+diff -puN include/asm-m68k/page.h~m68k-use-_ac-instead-of-ifdef-__assembly__ include/asm-m68k/page.h
+--- a/include/asm-m68k/page.h~m68k-use-_ac-instead-of-ifdef-__assembly__
++++ a/include/asm-m68k/page.h
+@@ -4,17 +4,15 @@
  
- #ifdef DEBUG
--	{
--		extern unsigned long availmem;
--		printk ("start of paging_init (%p, %lx)\n",
--			kernel_pg_dir, availmem);
--	}
-+	printk ("start of paging_init (%p, %lx)\n", kernel_pg_dir, availmem);
+ #ifdef __KERNEL__
+ 
++#include <linux/const.h>
++
+ /* PAGE_SHIFT determines the page size */
+ #ifndef CONFIG_SUN3
+ #define PAGE_SHIFT	(12)
+ #else
+ #define PAGE_SHIFT	(13)
  #endif
+-#ifdef __ASSEMBLY__
+-#define PAGE_SIZE	(1 << PAGE_SHIFT)
+-#else
+-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
+-#endif
++#define PAGE_SIZE	(_AC(1, UL) << PAGE_SHIFT)
+ #define PAGE_MASK	(~(PAGE_SIZE-1))
  
- 	/* Fix the cache mode in the page descriptors for the 680[46]0.  */
+ #include <asm/setup.h>
+diff -puN include/asm-m68k/processor.h~m68k-use-_ac-instead-of-ifdef-__assembly__ include/asm-m68k/processor.h
+--- a/include/asm-m68k/processor.h~m68k-use-_ac-instead-of-ifdef-__assembly__
++++ a/include/asm-m68k/processor.h
+@@ -38,12 +38,8 @@ static inline void wrusp(unsigned long u
+ #ifndef CONFIG_SUN3
+ #define TASK_SIZE	(0xF0000000UL)
+ #else
+-#ifdef __ASSEMBLY__
+-#define TASK_SIZE	(0x0E000000)
+-#else
+ #define TASK_SIZE	(0x0E000000UL)
+ #endif
+-#endif
+ 
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
