@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:21:06 -0700
-Message-ID: <200708152321.l7FNL6US020328@imap1.linux-foundation.org>
+Subject: + pm3fb-hardware-cursor-support.patch added to -mm tree
+Date: Wed, 15 Aug 2007 16:20:58 -0700
+Message-ID: <200708152320.l7FNKwCg020310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56038 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237AbXHOXVm (ORCPT
+	by vger.kernel.org with ESMTP id S1753237AbXHOXVg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:21:42 -0400
+	Wed, 15 Aug 2007 19:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     s3c2410fb: add margin fields to s3c2410fb_display
+     pm3fb: hardware cursor support
 has been added to the -mm tree.  Its filename is
-     s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+     pm3fb-hardware-cursor-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,314 +26,175 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3c2410fb: add margin fields to s3c2410fb_display
+Subject: pm3fb: hardware cursor support
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds margins fields to the s3c2410fb_display
-structure. It also sets display type and horizontal
-margins in all platform files that use the s3c2410fb
-driver.
+This patch adds hardware cursor support to the pm3fb driver.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/mach-amlm5900.c |    7 +++---
- arch/arm/mach-s3c2410/mach-bast.c     |   27 ++++++++++++++++++++++++
- arch/arm/mach-s3c2410/mach-h1940.c    |    3 ++
- arch/arm/mach-s3c2410/mach-qt2410.c   |    9 ++++++++
- arch/arm/mach-s3c2440/mach-rx3715.c   |   15 ++++++++-----
- arch/arm/mach-s3c2440/mach-smdk2440.c |    2 +
- include/asm-arm/arch-s3c2410/fb.h     |    7 ++++++
- 7 files changed, 61 insertions(+), 9 deletions(-)
+ drivers/video/pm3fb.c |  118 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 118 insertions(+)
 
-diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
---- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
-@@ -172,12 +172,13 @@ static struct s3c2410fb_display __initda
- 	.width		= 160,
- 	.height		= 160,
+diff -puN drivers/video/pm3fb.c~pm3fb-hardware-cursor-support drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-hardware-cursor-support
++++ a/drivers/video/pm3fb.c
+@@ -55,6 +55,7 @@
+ /*
+  * Driver data
+  */
++static int hwcursor = 1;
+ static char *mode_option __devinitdata;
+ static int noaccel __devinitdata;
  
--/* commented out until stn patch is submitted
--*	.type		= S3C2410_LCDCON1_STN4,
--*/
-+	.type		= S3C2410_LCDCON1_STN4,
+@@ -604,6 +605,117 @@ static void pm3fb_imageblit(struct fb_in
+ }
+ /* end of acceleration functions */
+ 
++/*
++ *	Hardware Cursor support.
++ */
++static const u8 cursor_bits_lookup[16] = {
++	0x00, 0x40, 0x10, 0x50, 0x04, 0x44, 0x14, 0x54,
++	0x01, 0x41, 0x11, 0x51, 0x05, 0x45, 0x15, 0x55
++};
 +
- 	.xres		= 160,
- 	.yres		= 160,
- 	.bpp		= 4,
-+	.left_margin	= 1 << (4 + 3),
-+	.right_margin	= 8 << 3,
- 
- 	.regs		= {
- 		.lcdcon1	= 0x00008225,
-diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
---- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-bast.c
-@@ -469,10 +469,13 @@ static struct platform_device bast_devic
- 
- static struct s3c2410fb_display __initdata bast_lcd_info[] = {
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 		.xres		= 320,
- 		.yres		= 240,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.bpp		= 4,
- 
-@@ -485,12 +488,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 640,
- 		.yres		= 480,
- 		.bpp		= 4,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -501,12 +507,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 800,
- 		.yres		= 600,
- 		.bpp		= 4,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -517,12 +526,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 320,
- 		.yres		= 240,
- 		.bpp		= 8,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -533,12 +545,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 640,
- 		.yres		= 480,
- 		.bpp		= 8,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -549,12 +564,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 800,
- 		.yres		= 600,
- 		.bpp		= 8,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -565,12 +583,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 320,
- 		.yres		= 240,
- 		.bpp		= 16,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -581,12 +602,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 640,
- 		.yres		= 480,
- 		.bpp		= 16,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-@@ -597,12 +621,15 @@ static struct s3c2410fb_display __initda
- 		}
- 	},
- 	{
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 800,
- 		.yres		= 600,
- 		.bpp		= 16,
-+		.left_margin	= 40,
-+		.right_margin	= 20,
- 
- 		.regs		= {
- 			.lcdcon1	= 0x00000176,
-diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
---- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-h1940.c
-@@ -156,11 +156,14 @@ static struct s3c2410fb_display h1940_lc
- 				S3C2410_LCDCON5_HWSWP,
- 	},
- 
-+	.type =		S3C2410_LCDCON1_TFT,
- 	.width =	240,
- 	.height =	320,
- 	.xres =		240,
- 	.yres =		320,
- 	.bpp =		16,
-+	.left_margin =	20,
-+	.right_margin =	8,
- };
- 
- static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
-diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
---- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-qt2410.c
-@@ -123,12 +123,15 @@ static struct s3c2410fb_display qt2410_l
- 				   S3C2410_LCDCON5_HWSWP,
- 		},
- 
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
- 		.height		= 480,
- 
- 		.xres		= 640,
- 		.yres		= 480,
- 		.bpp		= 16,
-+		.left_margin	= 44,
-+		.right_margin	= 116,
- 	},
- 	{
- 		/* Configuration for 480x640 toppoly TD028TTEC1 */
-@@ -157,11 +160,14 @@ static struct s3c2410fb_display qt2410_l
- 				   S3C2410_LCDCON5_HWSWP,
- 		},
- 
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 480,
- 		.height		= 640,
- 		.xres		= 480,
- 		.yres		= 640,
- 		.bpp		= 16,
-+		.left_margin	= 8,
-+		.right_margin	= 24,
- 	},
- 	{
- 		/* Config for 240x320 LCD */
-@@ -190,11 +196,14 @@ static struct s3c2410fb_display qt2410_l
- 				   S3C2410_LCDCON5_HWSWP,
- 		},
- 
-+		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 240,
- 		.height		= 320,
- 		.xres		= 240,
- 		.yres		= 320,
- 		.bpp		= 16,
-+		.left_margin	= 13,
-+		.right_margin	= 8,
- 	},
- };
- 
-diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
---- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2440/mach-rx3715.c
-@@ -133,12 +133,15 @@ static struct s3c2410fb_display rx3715_l
- 				S3C2410_LCDCON5_HWSWP,
- 	},
- 
--	.width  =	240,
--	.height =	320,
--
--	.xres	= 240,
--	.yres	= 320,
--	.bpp	= 16,
-+	.type		= S3C2410_LCDCON1_TFT,
-+	.width		= 240,
-+	.height		= 320,
++static int pm3fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
++{
++	struct pm3_par *par = info->par;
++	u8 mode;
 +
-+	.xres		= 240,
-+	.yres		= 320,
-+	.bpp		= 16,
-+	.left_margin	= 36,
-+	.right_margin	= 36,
- };
- 
- static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
-diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
---- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
-@@ -137,6 +137,8 @@ static struct s3c2410fb_display smdk2440
- 	.xres		= 240,
- 	.yres		= 320,
- 	.bpp		= 16,
-+	.left_margin	= 20,
-+	.right_margin	= 8,
- };
- 
- static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
-diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-add-margin-fields-to-s3c2410fb_display include/asm-arm/arch-s3c2410/fb.h
---- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-add-margin-fields-to-s3c2410fb_display
-+++ a/include/asm-arm/arch-s3c2410/fb.h
-@@ -36,6 +36,13 @@ struct s3c2410fb_display {
- 	unsigned short yres;
- 	unsigned short bpp;
- 
-+	unsigned short left_margin;  /* value in pixels (TFT) or HCLKs (STN) */
-+	unsigned short right_margin; /* value in pixels (TFT) or HCLKs (STN) */
-+	unsigned short hsync_len;    /* value in pixels (TFT) or HCLKs (STN) */
-+	unsigned short upper_margin;	/* value in lines (TFT) or 0 (STN) */
-+	unsigned short lower_margin;	/* value in lines (TFT) or 0 (STN) */
-+	unsigned short vsync_len;	/* value in lines (TFT) or 0 (STN) */
++	if (!hwcursor)
++		return -EINVAL;	/* just to force soft_cursor() call */
 +
- 	/* lcd configuration registers */
- 	struct s3c2410fb_hw  regs;
++	/* Too large of a cursor or wrong bpp :-( */
++	if (cursor->image.width > 64 ||
++	    cursor->image.height > 64 ||
++	    cursor->image.depth > 1)
++		return -EINVAL;
++
++	mode = PM3RD_CursorMode_TYPE_X;
++	if (cursor->enable)
++		 mode |= PM3RD_CursorMode_CURSOR_ENABLE;
++
++	PM3_WRITE_DAC_REG(par, PM3RD_CursorMode, mode);
++
++	/*
++	 * If the cursor is not be changed this means either we want the
++	 * current cursor state (if enable is set) or we want to query what
++	 * we can do with the cursor (if enable is not set)
++	 */
++	if (!cursor->set)
++		return 0;
++
++	if (cursor->set & FB_CUR_SETPOS) {
++		int x = cursor->image.dx - info->var.xoffset;
++		int y = cursor->image.dy - info->var.yoffset;
++
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorXLow, x & 0xff);
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorXHigh, (x >> 8) & 0xf);
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorYLow, y & 0xff);
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorYHigh, (y >> 8) & 0xf);
++	}
++
++	if (cursor->set & FB_CUR_SETHOT) {
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorHotSpotX,
++				  cursor->hot.x & 0x3f);
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorHotSpotY,
++				  cursor->hot.y & 0x3f);
++	}
++
++	if (cursor->set & FB_CUR_SETCMAP) {
++		u32 fg_idx = cursor->image.fg_color;
++		u32 bg_idx = cursor->image.bg_color;
++		struct fb_cmap cmap = info->cmap;
++
++		/* the X11 driver says one should use these color registers */
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(39),
++				  cmap.red[fg_idx] >> 8 );
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(40),
++				  cmap.green[fg_idx] >> 8 );
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(41),
++				  cmap.blue[fg_idx] >> 8 );
++
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(42),
++				  cmap.red[bg_idx] >> 8 );
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(43),
++				  cmap.green[bg_idx] >> 8 );
++		PM3_WRITE_DAC_REG(par, PM3RD_CursorPalette(44),
++				  cmap.blue[bg_idx] >> 8 );
++	}
++
++	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
++		u8 *bitmap = (u8 *)cursor->image.data;
++		u8 *mask = (u8 *)cursor->mask;
++		int i;
++		int pos = PM3RD_CursorPattern(0);
++
++		for (i = 0; i < cursor->image.height; i++) {
++			int j = (cursor->image.width + 7) >> 3;
++			int k = 8 - j;
++
++			for (; j > 0; j--) {
++				u8 data = *bitmap ^ *mask;
++
++				if (cursor->rop == ROP_COPY)
++					data = *mask & *bitmap;
++				/* Upper 4 bits of bitmap data */
++				PM3_WRITE_DAC_REG(par, pos++,
++					cursor_bits_lookup[data >> 4] |
++					(cursor_bits_lookup[*mask >> 4] << 1));
++				/* Lower 4 bits of bitmap */
++				PM3_WRITE_DAC_REG(par, pos++,
++					cursor_bits_lookup[data & 0xf] |
++					(cursor_bits_lookup[*mask & 0xf] << 1));
++				bitmap++;
++				mask++;
++			}
++			for (; k > 0; k--) {
++				PM3_WRITE_DAC_REG(par, pos++, 0);
++				PM3_WRITE_DAC_REG(par, pos++, 0);
++			}
++		}
++		while (pos < PM3RD_CursorPattern(1024))
++			PM3_WRITE_DAC_REG(par, pos++, 0);
++	}
++	return 0;
++}
++
+ /* write the mode to registers */
+ static void pm3fb_write_mode(struct fb_info *info)
+ {
+@@ -1105,6 +1217,7 @@ static struct fb_ops pm3fb_ops = {
+ 	.fb_imageblit	= pm3fb_imageblit,
+ 	.fb_blank	= pm3fb_blank,
+ 	.fb_sync	= pm3fb_sync,
++	.fb_cursor	= pm3fb_cursor,
  };
+ 
+ /* ------------------------------------------------------------------------- */
+@@ -1420,6 +1533,8 @@ static int __init pm3fb_setup(char *opti
+ 			continue;
+ 		else if (!strncmp(this_opt, "noaccel", 7))
+ 			noaccel = 1;
++		else if (!strncmp(this_opt, "hwcursor=", 9))
++			hwcursor = simple_strtoul(this_opt + 9, NULL, 0);
+ #ifdef CONFIG_MTRR
+ 		else if (!strncmp(this_opt, "nomtrr", 6))
+ 			nomtrr = 1;
+@@ -1459,6 +1574,9 @@ module_init(pm3fb_init);
+ 
+ module_param(noaccel, bool, 0);
+ MODULE_PARM_DESC(noaccel, "Disable acceleration");
++module_param(hwcursor, int, 0644);
++MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
++			"(1=enable, 0=disable, default=1)");
+ #ifdef CONFIG_MTRR
+ module_param(nomtrr, bool, 0);
+ MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
