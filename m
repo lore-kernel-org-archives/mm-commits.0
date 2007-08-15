@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-update-sysctl_checks-list-of-binary-paths.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:59:55 -0700
-Message-ID: <200708151959.l7FJxt4a012487@imap1.linux-foundation.org>
+Subject: + remove-strict-ansi-check-from-__u64-in-asm-typesh.patch added to -mm tree
+Date: Wed, 15 Aug 2007 13:00:38 -0700
+Message-ID: <200708152000.l7FK0cvN012536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41307 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935995AbXHOUA6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756807AbXHOUBi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:00:58 -0400
+	Wed, 15 Aug 2007 16:01:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, davem@davemloft.net, kaber@trash.net
+Cc: olh@suse.de, linux-arch@vger.kernel.org
 
 
 The patch titled
-     sysctl: update sysctl_checks list of binary paths
+     remove strict ansi check from __u64 in asm/types.h
 has been added to the -mm tree.  Its filename is
-     sysctl-update-sysctl_checks-list-of-binary-paths.patch
+     remove-strict-ansi-check-from-__u64-in-asm-typesh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,107 +26,324 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: update sysctl_checks list of binary paths
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: remove strict ansi check from __u64 in asm/types.h
+From: Olaf Hering <olh@suse.de>
 
-In the netfilter code and the ipv6 ipqueue code I have found two more binary
-paths that don't conflict with anything.  So this patch adds them to the list
-of valid sysctl binary paths.
+Remove the __STRICT_ANSI__ check from the __u64/__s64 declaration on
+32bit targets.
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+GCC can be made to warn about usage of long long types with ISO C90
+(-ansi), but only with -pedantic.  You can write this in a way that even
+then it doesn't cause warnings, namely by:
+
+#ifdef __GNUC__
+__extension__ typedef __signed__ long long __s64;
+__extension__ typedef unsigned long long __u64;
+#endif
+
+The __extension__ keyword in front of this switches off any pedantic
+warnings for this expression.
+
+Signed-off-by: Olaf Hering <olh@suse.de>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    2 ++
- 1 files changed, 2 insertions(+)
+ include/asm-arm/types.h      |    6 +++---
+ include/asm-avr32/types.h    |    6 +++---
+ include/asm-blackfin/types.h |    6 +++---
+ include/asm-cris/types.h     |    6 +++---
+ include/asm-frv/types.h      |    6 +++---
+ include/asm-h8300/types.h    |    6 +++---
+ include/asm-i386/types.h     |    6 +++---
+ include/asm-m32r/types.h     |    6 +++---
+ include/asm-m68k/types.h     |    6 +++---
+ include/asm-mips/types.h     |    6 +++---
+ include/asm-parisc/types.h   |    6 +++---
+ include/asm-powerpc/types.h  |    6 +++---
+ include/asm-s390/types.h     |    6 +++---
+ include/asm-sh/types.h       |    6 +++---
+ include/asm-sh64/types.h     |    6 +++---
+ include/asm-v850/types.h     |    6 +++---
+ include/asm-xtensa/types.h   |    6 +++---
+ 17 files changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths
-+++ a/kernel/sysctl_check.c
-@@ -565,6 +565,7 @@ static struct trans_ctl_table trans_net_
- 	{ NET_IPV6_IP6FRAG_TIME,	"ip6frag_time" },
- 	{ NET_IPV6_IP6FRAG_SECRET_INTERVAL,	"ip6frag_secret_interval" },
- 	{ NET_IPV6_MLD_MAX_MSF,		"mld_max_msf" },
-+	{ 2088 /* IPQ_QMAX */,		"ip6_queue_maxlen" },
- 	{}
- };
+diff -puN include/asm-arm/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-arm/types.h
+--- a/include/asm-arm/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-arm/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
-@@ -723,6 +724,7 @@ static struct trans_ctl_table trans_net_
- 	{ NET_LLC,		"llc",		trans_net_llc_table },
- 	{ NET_NETFILTER,	"netfilter",	trans_net_netfilter_table },
- 	{ NET_DCCP,		"dccp",		trans_net_dccp_table },
-+	{ 2089,			"nf_conntrack_max" },
- 	{}
- };
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
  
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-avr32/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-avr32/types.h
+--- a/include/asm-avr32/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-avr32/types.h
+@@ -25,9 +25,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-blackfin/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-blackfin/types.h
+--- a/include/asm-blackfin/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-blackfin/types.h
+@@ -27,9 +27,9 @@ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+ /* HK0617   -- Changes to unsigned long temporarily */
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif				/* __ASSEMBLY__ */
+diff -puN include/asm-cris/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-cris/types.h
+--- a/include/asm-cris/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-cris/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-frv/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-frv/types.h
+--- a/include/asm-frv/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-frv/types.h
+@@ -30,9 +30,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-h8300/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-h8300/types.h
+--- a/include/asm-h8300/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-h8300/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ /*
+diff -puN include/asm-i386/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-i386/types.h
+--- a/include/asm-i386/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-i386/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-m32r/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-m32r/types.h
+--- a/include/asm-m32r/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-m32r/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN include/asm-m68k/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-m68k/types.h
+--- a/include/asm-m68k/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-m68k/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-mips/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-mips/types.h
+--- a/include/asm-mips/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-mips/types.h
+@@ -34,9 +34,9 @@ typedef unsigned long __u64;
+ 
+ #else
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif
+diff -puN include/asm-parisc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-parisc/types.h
+--- a/include/asm-parisc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-parisc/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-powerpc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-powerpc/types.h
+--- a/include/asm-powerpc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-powerpc/types.h
+@@ -40,9 +40,9 @@ typedef unsigned int __u32;
+ typedef __signed__ long __s64;
+ typedef unsigned long __u64;
+ #else
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #endif /* __powerpc64__ */
+ 
+diff -puN include/asm-s390/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-s390/types.h
+--- a/include/asm-s390/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-s390/types.h
+@@ -28,9 +28,9 @@ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+ #ifndef __s390x__
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #else /* __s390x__ */
+ typedef __signed__ long __s64;
+diff -puN include/asm-sh/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-sh/types.h
+--- a/include/asm-sh/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-sh/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-sh64/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-sh64/types.h
+--- a/include/asm-sh64/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-sh64/types.h
+@@ -30,9 +30,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-v850/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-v850/types.h
+--- a/include/asm-v850/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-v850/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* !__ASSEMBLY__ */
+diff -puN include/asm-xtensa/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-xtensa/types.h
+--- a/include/asm-xtensa/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-xtensa/types.h
+@@ -29,9 +29,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from olh@suse.de are
 
-dvb_en_50221-convert-to-kthread-api.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-sysctl-update-sysctl_check_table.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-remove-broken-cdrom-binary-sysctls-update.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-parport-remove-binary-paths.patch
-sysctl-simplify-the-pty-sysctl-logic.patch
-sysctl-remove-broken-netfilter-binary-sysctls.patch
-sysctl-clean-up-the-sched-debug-sysctl-usage.patch
-sysctl-update-sysctl_checks-list-of-binary-paths.patch
-sysctl-remove-the-cad_pid-binary-sysctl-path.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+git-ieee1394.patch
+do-not-export-usr-include-scsi-in-make-headers_install.patch
+remove-strict-ansi-check-from-__u64-in-asm-typesh.patch
