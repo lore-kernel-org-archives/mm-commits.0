@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch added to -mm tree
-Date: Wed, 15 Aug 2007 13:58:22 -0700
-Message-ID: <200708152058.l7FKwMA4014658@imap1.linux-foundation.org>
+Subject: + reiser4-fix-readpage_unix_file.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:08:14 -0700
+Message-ID: <200708152108.l7FL8EQp015079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38832 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753654AbXHOU6r (ORCPT
+	by vger.kernel.org with ESMTP id S936787AbXHOVJi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:58:47 -0400
+	Wed, 15 Aug 2007 17:09:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, adaplas@pol.net
+Cc: edward@namesys.com, vs@namesys.com, zlynx@acm.org
 
 
 The patch titled
-     uvesafb: always use mutexes when accessing uvfb_tasks
+     reiser4: fix readpage_unix_file
 has been added to the -mm tree.  Its filename is
-     uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch
+     reiser4-fix-readpage_unix_file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uvesafb: always use mutexes when accessing uvfb_tasks
-From: Michal Januszewski <spock@gentoo.org>
+Subject: reiser4: fix readpage_unix_file
+From: Edward Shishkin <edward@namesys.com>
 
-Accesses to the uvfb_tasks array should be always be protected by a mutex to
-avoid race conditions.
+. If nominated (by VFS) page is out of file size, then fill it
+  by zeros instead of returning -EINVAL (this prevents returning
+  an unexpected error (-EINVAL) by some apps that don't check
+  file size).
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+. Check if the page became uptodate while it was being unlocked.
+
+Signed-off-by: Edward Shishkin <edward@namesys.com>
+Cc: Zan Lynx <zlynx@acm.org>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ fs/reiser4/plugin/file/file.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks
-+++ a/drivers/video/uvesafb.c
-@@ -208,6 +208,10 @@ static int uvesafb_exec(struct uvesafb_k
- 		err = !wait_for_completion_timeout(task->done,
- 				msecs_to_jiffies(UVESAFB_TIMEOUT));
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-readpage_unix_file fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-fix-readpage_unix_file
++++ a/fs/reiser4/plugin/file/file.c
+@@ -1435,9 +1435,11 @@ int readpage_unix_file(struct file *file
+ 	assert("vs-1061", page->mapping && page->mapping->host);
  
-+	mutex_lock(&uvfb_lock);
-+	uvfb_tasks[seq] = NULL;
-+	mutex_unlock(&uvfb_lock);
-+
- 	seq++;
- 	if (seq >= UVESAFB_TASKS_MAX)
- 		seq = 0;
+ 	if (page->mapping->host->i_size <= page_offset(page)) {
+-		/* page is out of file already */
++		/* page is out of file */
++		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
++		SetPageUptodate(page);
+ 		unlock_page(page);
+-		return -EINVAL;
++		return 0;
+ 	}
+ 
+ 	inode = page->mapping->host;
+@@ -1624,6 +1626,8 @@ static int uf_readpages_filler(void * da
+ 		if (unlikely(ret))
+ 			goto exit;
+ 		lock_page(page);
++		if (PageUptodate(page))
++			goto unlock;
+ 		cbk_done = 1;
+ 	}
+ 	ret = zload(rc->coord.node);
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from edward@namesys.com are
 
-fbdev-export-fb_destroy_modelist.patch
-connector-change-connectors-max-message-size.patch
-uvesafb-add-connector-entries.patch
-uvesafb-the-driver-core.patch
-uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
-uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch
-uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch
-uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch
-uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch
-uvesafb-the-driver-core-uvesafb-try-to-set-mode-with-default-timings-if-setting-it-with-our-own-timings-failed.patch
-uvesafb-documentation.patch
-uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch
+reiser4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+reiser4-fix-extent2tail.patch
+reiser4-fix-read_tail.patch
+reiser4-fix-unix-file-readpages-filler.patch
+reiser4-fix-readpage_unix_file.patch
+reiser4-fix-for-new-aops-patches.patch
+git-block-vs-reiser4.patch
+reiser4-cryptcompress-misc-fixups.patch
+reiser4-change-error-code-base.patch
+reiser4-use-lzo-library-functions.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
