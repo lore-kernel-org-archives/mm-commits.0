@@ -1,166 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + net-add-ath5k-wireless-driver-fix.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:32:24 -0700
-Message-ID: <200708152332.l7FNWOgh020749@imap1.linux-foundation.org>
+Subject: - incorrect-scsi-transfer-length-computation-from-odd.patch removed from -mm tree
+Date: Wed, 15 Aug 2007 16:34:44 -0700
+Message-ID: <200708152334.l7FNYje4020830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758579AbXHOXdd (ORCPT
+	by vger.kernel.org with ESMTP id S1760701AbXHOXfM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:33:33 -0400
+	Wed, 15 Aug 2007 19:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org, jirislaby@gmail.com, linville@tuxdriver.com
+To: jli@greshamstorage.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net-add-ath5k-wireless-driver-fix
-has been added to the -mm tree.  Its filename is
-     net-add-ath5k-wireless-driver-fix.patch
+     Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
+has been removed from the -mm tree.  Its filename was
+     incorrect-scsi-transfer-length-computation-from-odd.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: net-add-ath5k-wireless-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers.
+From: Jeremy Linton <jli@greshamstorage.com>
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Any function which use scsi_execute_async() and transfers "odd" sized data
+that doesn't align correctly with the segment sizes may have its transfer
+length padded out to the closest segment size.
+
+For writes, this results in unnecessary data being transfered to the SCSI
+target.  For reads, it affects the residual data length being returned to
+the application since the residual length will be based on the padded
+transfer size rather than the actual request size.
+
+The easiest way to see this is by trying to read using the SG_IO ioctl a
+large (>32k) buffer size from a tape device that only has a few bytes of
+data stored for the current block.  The resulting resid will generally be
+incorrect.
+
+I've fixed this simply by changing scsi_req_map_sg() so that it places the
+requested transfer length in rq->data_len rather than the sum of all the sg
+segments.
+
+Signed-off-by: Jeremy Linton <jli@greshamstorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_hw.h |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/scsi/scsi_lib.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix drivers/net/wireless/ath5k_hw.h
---- a/drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix
-+++ a/drivers/net/wireless/ath5k_hw.h
-@@ -13,8 +13,6 @@
-  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-- *
-- * $Id$
-  */
+diff -puN drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~incorrect-scsi-transfer-length-computation-from-odd
++++ a/drivers/scsi/scsi_lib.c
+@@ -355,7 +355,7 @@ static int scsi_req_map_sg(struct reques
+ 	}
  
- /*
+ 	rq->buffer = rq->data = NULL;
+-	rq->data_len = data_len;
++	rq->data_len = bufflen;
+ 	return 0;
+ 
+ free_bios:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jli@greshamstorage.com are
 
-origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-dma-arch-fix.patch
-git-dma-up-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-ixgbe-build-fix.patch
-git-net.patch
-git-net-fixup.patch
-git-backlight.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-bsg-declare-request_queue.patch
-aacraid-rename-check_reset.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-net-add-ath5k-wireless-driver-fix.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+incorrect-scsi-transfer-length-computation-from-odd.patch
