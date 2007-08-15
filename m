@@ -1,101 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - m68k-mac-make-mac_hid_mouse_emulate_buttons.patch removed from -mm tree
-Date: Wed, 15 Aug 2007 14:21:09 -0700
-Message-ID: <200708152121.l7FLL9Tl015670@imap1.linux-foundation.org>
+Subject: + char-mxser_new-remove-useless-comments-in-mxser_cards.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:31:48 -0700
+Message-ID: <200708152131.l7FLVmm7016025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42347 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60195 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936679AbXHOVVb (ORCPT
+	by vger.kernel.org with ESMTP id S1752854AbXHOVcN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 17:21:31 -0400
+	Wed, 15 Aug 2007 17:32:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     m68k/mac: Make mac_hid_mouse_emulate_buttons() declaration visible
-has been removed from the -mm tree.  Its filename was
-     m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
+     Char: mxser_new, remove useless comments in mxser_cards
+has been added to the -mm tree.  Its filename is
+     char-mxser_new-remove-useless-comments-in-mxser_cards.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: m68k/mac: Make mac_hid_mouse_emulate_buttons() declaration visible
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Char: mxser_new, remove useless comments in mxser_cards
+From: Jiri Slaby <jirislaby@gmail.com>
 
-drivers/char/keyboard.c: In function 'kbd_keycode':
-drivers/char/keyboard.c:1142: error: implicit declaration of function 'mac_hid_mouse_emulate_buttons'
+mxser_new, remove useless comments in mxser_cards
 
-The forward declaration of mac_hid_mouse_emulate_buttons() is not visible on
-m68k because it's hidden in the middle of a big #ifdef block.
+It was rest from times, where info about the card was separated (name,
+ports number and flags).
 
-Move it to <linux/kbd_kern.h>, correct the type of the second parameter, and
-include <linux/kbd_kern.h> where needed.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c     |    4 ----
- drivers/macintosh/mac_hid.c |    1 +
- include/linux/kbd_kern.h    |    3 +++
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/mxser_new.c |   42 ++++++++++++++++++-------------------
+ 1 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/char/keyboard.c~m68k-mac-make-mac_hid_mouse_emulate_buttons drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~m68k-mac-make-mac_hid_mouse_emulate_buttons
-+++ a/drivers/char/keyboard.c
-@@ -1022,10 +1022,6 @@ static const unsigned short x86_keycodes
- 	308,310,313,314,315,317,318,319,320,357,322,323,324,325,276,330,
- 	332,340,365,342,343,344,345,346,356,270,341,368,369,370,371,372 };
+diff -puN drivers/char/mxser_new.c~char-mxser_new-remove-useless-comments-in-mxser_cards drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-remove-useless-comments-in-mxser_cards
++++ a/drivers/char/mxser_new.c
+@@ -113,29 +113,29 @@ struct mxser_cardinfo {
+ };
  
--#ifdef CONFIG_MAC_EMUMOUSEBTN
--extern int mac_hid_mouse_emulate_buttons(int, int, int);
--#endif /* CONFIG_MAC_EMUMOUSEBTN */
--
- #ifdef CONFIG_SPARC
- static int sparc_l1_a_state = 0;
- extern void sun_do_break(void);
-diff -puN drivers/macintosh/mac_hid.c~m68k-mac-make-mac_hid_mouse_emulate_buttons drivers/macintosh/mac_hid.c
---- a/drivers/macintosh/mac_hid.c~m68k-mac-make-mac_hid_mouse_emulate_buttons
-+++ a/drivers/macintosh/mac_hid.c
-@@ -13,6 +13,7 @@
- #include <linux/sysctl.h>
- #include <linux/input.h>
- #include <linux/module.h>
-+#include <linux/kbd_kern.h>
- 
- 
- static struct input_dev *emumousebtn;
-diff -puN include/linux/kbd_kern.h~m68k-mac-make-mac_hid_mouse_emulate_buttons include/linux/kbd_kern.h
---- a/include/linux/kbd_kern.h~m68k-mac-make-mac_hid_mouse_emulate_buttons
-+++ a/include/linux/kbd_kern.h
-@@ -161,4 +161,7 @@ static inline void con_schedule_flip(str
- 	schedule_delayed_work(&t->buf.work, 0);
- }
- 
-+/* mac_hid.c */
-+extern int mac_hid_mouse_emulate_buttons(int, unsigned int, int);
-+
- #endif
+ static const struct mxser_cardinfo mxser_cards[] = {
+-/* 0*/	{ 8, "C168 series", },			/* C168-ISA */
+-	{ 4, "C104 series", },			/* C104-ISA */
+-	{ 4, "CI-104J series", },		/* CI104J */
+-	{ 8, "C168H/PCI series", },		/* C168-PCI */
+-	{ 4, "C104H/PCI series", },		/* C104-PCI */
++/* 0*/	{ 8, "C168 series", },
++	{ 4, "C104 series", },
++	{ 4, "CI-104J series", },
++	{ 8, "C168H/PCI series", },
++	{ 4, "C104H/PCI series", },
+ /* 5*/	{ 4, "C102 series", MXSER_HAS2 },	/* C102-ISA */
+-	{ 4, "CI-132 series", MXSER_HAS2 },	/* CI132 */
+-	{ 4, "CI-134 series", },		/* CI134 */
+-	{ 2, "CP-132 series", },		/* CP132 */
+-	{ 4, "CP-114 series", },		/* CP114 */
+-/*10*/	{ 4, "CT-114 series", },		/* CT114 */
+-	{ 2, "CP-102 series", MXSER_HIGHBAUD },	/* CP102 */
+-	{ 4, "CP-104U series", },		/* CP104U */
+-	{ 8, "CP-168U series", },		/* CP168U */
+-	{ 2, "CP-132U series", },		/* CP132U */
+-/*15*/	{ 4, "CP-134U series", },		/* CP134U */
+-	{ 4, "CP-104JU series", },		/* CP104JU */
++	{ 4, "CI-132 series", MXSER_HAS2 },
++	{ 4, "CI-134 series", },
++	{ 2, "CP-132 series", },
++	{ 4, "CP-114 series", },
++/*10*/	{ 4, "CT-114 series", },
++	{ 2, "CP-102 series", MXSER_HIGHBAUD },
++	{ 4, "CP-104U series", },
++	{ 8, "CP-168U series", },
++	{ 2, "CP-132U series", },
++/*15*/	{ 4, "CP-134U series", },
++	{ 4, "CP-104JU series", },
+ 	{ 8, "Moxa UC7000 Serial", },		/* RC7000 */
+-	{ 8, "CP-118U series", },		/* CP118U */
+-	{ 2, "CP-102UL series", },		/* CP102UL */
+-/*20*/	{ 2, "CP-102U series", },		/* CP102U */
+-	{ 8, "CP-118EL series", },		/* CP118EL */
+-	{ 8, "CP-168EL series", },		/* CP168EL */
++	{ 8, "CP-118U series", },
++	{ 2, "CP-102UL series", },
++/*20*/	{ 2, "CP-102U series", },
++	{ 8, "CP-118EL series", },
++	{ 8, "CP-168EL series", },
+ 	{ 4, "CP-104EL series", },
+ 	{ 8, "CB-108 series", },
+ /*25*/	{ 4, "CB-114 series", },
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-m68k-asm-pageh-needs-linux-compilerh.patch
-m68k-kill-superfluous-extern.patch
-m68k-remove-unnecessary-m68k_memoffset-export-and-init.patch
-remove-dead-code-in-via-pmu68k.patch
-m68k-use-_ac-instead-of-ifdef-__assembly__.patch
-m68k-enable-arbitary-speed-tty-support.patch
-m68k-dont-include-rodata-into-text-segment.patch
-m68k-fix-a-few-hickups-in-drivers-scsi-kconfig.patch
-zorro-make-sysfs-config-attribute-read-only.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons-declaration-visible.patch
-introduce-config_check_signature-was-re-uninline.patch
-m68k-mac-make-mac_hid_mouse_emulate_buttons.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+char-mxser_new-upgrade-to-110.patch
+char-mxser_new-move-to-pci_vdevice.patch
+char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+char-cyclades-remove-bottom-half-processing.patch
+char-cyclades-make-the-isr-code-readable.patch
+char-cyclades-move-spin_lock-to-one-place.patch
+char-cyclades-fix-some-w-warnings.patch
+shrink_slab-handle-bad-shrinkers.patch
