@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + avoid-possible-null-pointer-deref-in-3c359-driver.patch added to -mm tree
-Date: Wed, 15 Aug 2007 15:04:07 -0700
-Message-ID: <200708152204.l7FM47BN017301@imap1.linux-foundation.org>
+Subject: + powerpc-vdso-install-unstripped-copies-on-disk-update.patch added to -mm tree
+Date: Wed, 15 Aug 2007 15:23:38 -0700
+Message-ID: <200708152223.l7FMNcbS018052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59113 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758386AbXHOWFB (ORCPT
+	by vger.kernel.org with ESMTP id S936208AbXHOWYT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 18:05:01 -0400
+	Wed, 15 Aug 2007 18:24:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, sam@ravnborg.org
 
 
 The patch titled
-     Avoid possible NULL pointer deref in 3c359 driver
+     powerpc-vdso-install-unstripped-copies-on-disk update
 has been added to the -mm tree.  Its filename is
-     avoid-possible-null-pointer-deref-in-3c359-driver.patch
+     powerpc-vdso-install-unstripped-copies-on-disk-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Avoid possible NULL pointer deref in 3c359 driver
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: powerpc-vdso-install-unstripped-copies-on-disk update
+From: Roland McGrath <roland@redhat.com>
 
-In xl_freemem(), if dev_if is NULL, the line
+While integrating these with the Fedora kernel build, I worked out a few kinks.
+This patch replaces powerpc-vdso-install-unstripped-copies-on-disk.patch
 
-  struct xl_private *xl_priv =(struct xl_private *)dev->priv;
+This keeps an unstripped copy of the vDSO images built before they are
+stripped and embedded in the kernel.  The unstripped copies get installed
+in $(MODLIB)/vdso/ by "make install" (or you can explicitly use the
+subtarget "make vdso_install").  These files can be useful when they
+contain source-level debugging information.
 
-will cause a NULL pointer dereference.  However, if we move that assignment
-below the 'if' statement that tests for a NULL 'dev', then that NULL deref can
-never happen.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ arch/powerpc/Makefile               |    9 ++++++---
+ arch/powerpc/kernel/vdso32/Makefile |    4 ++--
+ arch/powerpc/kernel/vdso64/Makefile |    4 ++--
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver drivers/net/tokenring/3c359.c
---- a/drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver
-+++ a/drivers/net/tokenring/3c359.c
-@@ -1042,15 +1042,17 @@ static void xl_freemem(struct net_device
- static irqreturn_t xl_interrupt(int irq, void *dev_id) 
- {
- 	struct net_device *dev = (struct net_device *)dev_id;
-- 	struct xl_private *xl_priv =netdev_priv(dev);
--	u8 __iomem * xl_mmio = xl_priv->xl_mmio ; 
--	u16 intstatus, macstatus  ;
-+ 	struct xl_private *xl_priv;
-+	u8 __iomem * xl_mmio;
-+	u16 intstatus, macstatus;
+diff -puN arch/powerpc/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update
++++ a/arch/powerpc/Makefile
+@@ -166,12 +166,14 @@ define archhelp
+   @echo '  *_defconfig     - Select default config from arch/$(ARCH)/configs'
+ endef
  
- 	if (!dev) { 
--		printk(KERN_WARNING "Device structure dead, aaahhhh !\n") ;
-+		printk(KERN_WARNING "3c359: Device structure dead, aaahhhh!\n");
- 		return IRQ_NONE; 
- 	}
+-install:
++install: vdso_install
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(KBUILD_IMAGE) install
++
++vdso_install:
+ ifeq ($(CONFIG_PPC64),y)
+-	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso64 install
++	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso64 $@
+ endif
+-	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso32 install
++	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso32 $@
  
-+	xl_priv = netdev_priv(dev);
-+	xl_mmio = xl_priv->xl_mmio;
- 	intstatus = readw(xl_mmio + MMIO_INTSTATUS) ;  
+ archclean:
+ 	$(Q)$(MAKE) $(clean)=$(boot)
+@@ -221,3 +223,4 @@ checkbin:
+ 	fi
  
- 	if (!(intstatus & 1)) /* We didn't generate the interrupt */
+ CLEAN_FILES += $(TOUT)
++
+diff -puN arch/powerpc/kernel/vdso32/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update arch/powerpc/kernel/vdso32/Makefile
+--- a/arch/powerpc/kernel/vdso32/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update
++++ a/arch/powerpc/kernel/vdso32/Makefile
+@@ -46,10 +46,10 @@ quiet_cmd_vdso32as = VDSO32A $@
+ 
+ # install commands for the unstripped file
+ quiet_cmd_vdso_install = INSTALL $@
+-      cmd_vdso_install = cp $@.dbg $(MODLIB)/vdso/$@
++      cmd_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/vdso/$@
+ 
+ vdso32.so: $(obj)/vdso32.so.dbg
+ 	@mkdir -p $(MODLIB)/vdso
+ 	$(call cmd,vdso_install)
+ 
+-install: vdso32.so
++vdso_install: vdso32.so
+diff -puN arch/powerpc/kernel/vdso64/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update arch/powerpc/kernel/vdso64/Makefile
+--- a/arch/powerpc/kernel/vdso64/Makefile~powerpc-vdso-install-unstripped-copies-on-disk-update
++++ a/arch/powerpc/kernel/vdso64/Makefile
+@@ -40,10 +40,10 @@ quiet_cmd_vdso64as = VDSO64A $@
+ 
+ # install commands for the unstripped file
+ quiet_cmd_vdso_install = INSTALL $@
+-      cmd_vdso_install = cp $@.dbg $(MODLIB)/vdso/$@
++      cmd_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/vdso/$@
+ 
+ vdso64.so: $(obj)/vdso64.so.dbg
+ 	@mkdir -p $(MODLIB)/vdso
+ 	$(call cmd,vdso_install)
+ 
+-install: vdso64.so
++vdso_install: vdso64.so
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-origin.patch
-git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-powerpc-clean-out-a-bunch-of-duplicate-includes.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-fix-a-memory-leak-in-em28xx_usb_probe.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
-clean-up-duplicate-includes-in-drivers-scsi.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array.patch
-git-xfs.patch
-fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
+signalfd-fix-interaction-with-posix-timers.patch
+signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+pass-g-to-assembler-under-config_debug_info.patch
+pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+add-mmf_dump_elf_headers.patch
+pie-executable-randomization.patch
