@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:21:10 -0700
-Message-ID: <200708152321.l7FNLAPg020334@imap1.linux-foundation.org>
+Subject: + net-add-ath5k-wireless-driver-fix.patch added to -mm tree
+Date: Wed, 15 Aug 2007 16:32:24 -0700
+Message-ID: <200708152332.l7FNWOgh020749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60404 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49705 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762033AbXHOXa0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758579AbXHOXdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:30:26 -0400
+	Wed, 15 Aug 2007 19:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     s3c2410fb: remove lcdcon3 register from s3c2410fb_display
+     net-add-ath5k-wireless-driver-fix
 has been added to the -mm tree.  Its filename is
-     s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+     net-add-ath5k-wireless-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,618 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3c2410fb: remove lcdcon3 register from s3c2410fb_display
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: net-add-ath5k-wireless-driver-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch removes unused lcdcon3 register from the
-s3c2410fb_display structure.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/mach-amlm5900.c |   11 --
- arch/arm/mach-s3c2410/mach-bast.c     |   99 +++++++------------
- arch/arm/mach-s3c2410/mach-h1940.c    |   36 ++-----
- arch/arm/mach-s3c2410/mach-qt2410.c   |  123 +++++++++---------------
- arch/arm/mach-s3c2440/mach-rx3715.c   |   36 ++-----
- arch/arm/mach-s3c2440/mach-smdk2440.c |   40 +++----
- drivers/video/s3c2410fb.c             |   17 +--
- include/asm-arm/arch-s3c2410/fb.h     |    5 
- 8 files changed, 151 insertions(+), 216 deletions(-)
+ drivers/net/wireless/ath5k_hw.h |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
---- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
-@@ -180,13 +180,10 @@ static struct s3c2410fb_display __initda
- 	.left_margin	= 1 << (4 + 3),
- 	.right_margin	= 8 << 3,
+diff -puN drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix drivers/net/wireless/ath5k_hw.h
+--- a/drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix
++++ a/drivers/net/wireless/ath5k_hw.h
+@@ -13,8 +13,6 @@
+  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+- *
+- * $Id$
+  */
  
--	.regs		= {
--		.lcdcon1	= 0x00008225,
--		.lcdcon2	= 0x0027c000,
--		.lcdcon3	= 0x00182708,
--		.lcdcon4	= 0x00000002,
--		.lcdcon5	= 0x00000001,
--	}
-+	.lcdcon1	= 0x00008225,
-+	.lcdcon2	= 0x0027c000,
-+	.lcdcon4	= 0x00000002,
-+	.lcdcon5	= 0x00000001,
- };
- 
- static struct s3c2410fb_mach_info __initdata amlm5900_fb_info = {
-diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
---- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-bast.c
-@@ -479,13 +479,10 @@ static struct s3c2410fb_display __initda
- 
- 		.bpp		= 4,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -498,13 +495,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -517,13 +511,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -536,13 +527,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -555,13 +543,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -574,13 +559,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -593,13 +575,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -612,13 +591,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- 	{
- 		.type		= S3C2410_LCDCON1_TFT,
-@@ -631,13 +607,10 @@ static struct s3c2410fb_display __initda
- 		.left_margin	= 40,
- 		.right_margin	= 20,
- 
--		.regs		= {
--			.lcdcon1	= 0x00000176,
--			.lcdcon2	= 0x1d77c7c2,
--			.lcdcon3	= 0x013a7f13,
--			.lcdcon4	= 0x00000057,
--			.lcdcon5	= 0x00014b02,
--		}
-+		.lcdcon1	= 0x00000176,
-+		.lcdcon2	= 0x1d77c7c2,
-+		.lcdcon4	= 0x00000057,
-+		.lcdcon5	= 0x00014b02,
- 	},
- };
- 
-diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
---- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-h1940.c
-@@ -134,27 +134,21 @@ static struct s3c2410_udc_mach_info h194
-  * Set lcd on or off
-  **/
- static struct s3c2410fb_display h1940_lcd __initdata = {
--	.regs={
--		.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
--				S3C2410_LCDCON1_TFT | \
--				S3C2410_LCDCON1_CLKVAL(0x0C),
--
--		.lcdcon2=	S3C2410_LCDCON2_VBPD(7) | \
--				S3C2410_LCDCON2_LINEVAL(319) | \
--				S3C2410_LCDCON2_VFPD(6) | \
--				S3C2410_LCDCON2_VSPW(0),
--
--		.lcdcon3=	S3C2410_LCDCON3_HBPD(19) | \
--				S3C2410_LCDCON3_HOZVAL(239) | \
--				S3C2410_LCDCON3_HFPD(7),
--
--		.lcdcon4=	S3C2410_LCDCON4_MVAL(0) | \
--				S3C2410_LCDCON4_HSPW(3),
--
--		.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
--				S3C2410_LCDCON5_INVVLINE | \
--				S3C2410_LCDCON5_HWSWP,
--	},
-+	.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
-+			S3C2410_LCDCON1_TFT | \
-+			S3C2410_LCDCON1_CLKVAL(0x0C),
-+
-+	.lcdcon2=	S3C2410_LCDCON2_VBPD(7) | \
-+			S3C2410_LCDCON2_LINEVAL(319) | \
-+			S3C2410_LCDCON2_VFPD(6) | \
-+			S3C2410_LCDCON2_VSPW(0),
-+
-+	.lcdcon4=	S3C2410_LCDCON4_MVAL(0) | \
-+			S3C2410_LCDCON4_HSPW(3),
-+
-+	.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
-+			S3C2410_LCDCON5_INVVLINE | \
-+			S3C2410_LCDCON5_HWSWP,
- 
- 	.type =		S3C2410_LCDCON1_TFT,
- 	.width =	240,
-diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
---- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2410/mach-qt2410.c
-@@ -98,30 +98,23 @@ static struct s3c2410_uartcfg smdk2410_u
- static struct s3c2410fb_display qt2410_lcd_cfg[] __initdata = {
- 	{
- 		/* Configuration for 640x480 SHARP LQ080V3DG01 */
--		.regs	= {
--
--			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
--				   S3C2410_LCDCON1_TFT |
--				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
--
--			.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
--				   S3C2410_LCDCON2_LINEVAL(479) |
--				   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
--				   S3C2410_LCDCON2_VSPW(14),	/* 15 */
--
--			.lcdcon3 = S3C2410_LCDCON3_HBPD(43) |	/* 44 */
--				   S3C2410_LCDCON3_HOZVAL(639) | /* 640 */
--				   S3C2410_LCDCON3_HFPD(115),	/* 116 */
--
--			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--				   S3C2410_LCDCON4_HSPW(95),	/* 96 */
--
--			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
--				   S3C2410_LCDCON5_INVVLINE |
--				   S3C2410_LCDCON5_INVVFRAME |
--				   S3C2410_LCDCON5_PWREN |
--				   S3C2410_LCDCON5_HWSWP,
--		},
-+		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+			   S3C2410_LCDCON1_TFT |
-+			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
-+
-+		.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
-+			   S3C2410_LCDCON2_LINEVAL(479) |
-+			   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
-+			   S3C2410_LCDCON2_VSPW(14),	/* 15 */
-+
-+		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+			   S3C2410_LCDCON4_HSPW(95),	/* 96 */
-+
-+		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+			   S3C2410_LCDCON5_INVVLINE |
-+			   S3C2410_LCDCON5_INVVFRAME |
-+			   S3C2410_LCDCON5_PWREN |
-+			   S3C2410_LCDCON5_HWSWP,
- 
- 		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 640,
-@@ -135,30 +128,23 @@ static struct s3c2410fb_display qt2410_l
- 	},
- 	{
- 		/* Configuration for 480x640 toppoly TD028TTEC1 */
--		.regs	= {
--
--			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
--				   S3C2410_LCDCON1_TFT |
--				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
--
--			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
--				   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
--				   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
--				   S3C2410_LCDCON2_VSPW(1),	/* 2 */
--
--			.lcdcon3 = S3C2410_LCDCON3_HBPD(7) |	/* 8 */
--				   S3C2410_LCDCON3_HOZVAL(479) | /* 479 */
--				   S3C2410_LCDCON3_HFPD(23),	/* 24 */
--
--			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--				   S3C2410_LCDCON4_HSPW(7),	/* 8 */
--
--			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
--				   S3C2410_LCDCON5_INVVLINE |
--				   S3C2410_LCDCON5_INVVFRAME |
--				   S3C2410_LCDCON5_PWREN |
--				   S3C2410_LCDCON5_HWSWP,
--		},
-+		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+			   S3C2410_LCDCON1_TFT |
-+			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
-+
-+		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
-+			   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
-+			   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
-+			   S3C2410_LCDCON2_VSPW(1),	/* 2 */
-+
-+		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+			   S3C2410_LCDCON4_HSPW(7),	/* 8 */
-+
-+		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+			   S3C2410_LCDCON5_INVVLINE |
-+			   S3C2410_LCDCON5_INVVFRAME |
-+			   S3C2410_LCDCON5_PWREN |
-+			   S3C2410_LCDCON5_HWSWP,
- 
- 		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 480,
-@@ -171,30 +157,23 @@ static struct s3c2410fb_display qt2410_l
- 	},
- 	{
- 		/* Config for 240x320 LCD */
--		.regs	= {
--
--			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
--				   S3C2410_LCDCON1_TFT |
--				   S3C2410_LCDCON1_CLKVAL(0x04),
--
--			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
--				   S3C2410_LCDCON2_LINEVAL(319) |
--				   S3C2410_LCDCON2_VFPD(6) |
--				   S3C2410_LCDCON2_VSPW(3),
--
--			.lcdcon3 = S3C2410_LCDCON3_HBPD(12) |
--				   S3C2410_LCDCON3_HOZVAL(239) |
--				   S3C2410_LCDCON3_HFPD(7),
--
--			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--				   S3C2410_LCDCON4_HSPW(3),
--
--			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
--				   S3C2410_LCDCON5_INVVLINE |
--				   S3C2410_LCDCON5_INVVFRAME |
--				   S3C2410_LCDCON5_PWREN |
--				   S3C2410_LCDCON5_HWSWP,
--		},
-+		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+			   S3C2410_LCDCON1_TFT |
-+			   S3C2410_LCDCON1_CLKVAL(0x04),
-+
-+		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
-+			   S3C2410_LCDCON2_LINEVAL(319) |
-+			   S3C2410_LCDCON2_VFPD(6) |
-+			   S3C2410_LCDCON2_VSPW(3),
-+
-+		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+			   S3C2410_LCDCON4_HSPW(3),
-+
-+		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+			   S3C2410_LCDCON5_INVVLINE |
-+			   S3C2410_LCDCON5_INVVFRAME |
-+			   S3C2410_LCDCON5_PWREN |
-+			   S3C2410_LCDCON5_HWSWP,
- 
- 		.type		= S3C2410_LCDCON1_TFT,
- 		.width		= 240,
-diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
---- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2440/mach-rx3715.c
-@@ -111,27 +111,21 @@ static struct s3c2410_uartcfg rx3715_uar
- /* framebuffer lcd controller information */
- 
- static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
--	.regs	= {
--		.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
--				S3C2410_LCDCON1_TFT | \
--				S3C2410_LCDCON1_CLKVAL(0x0C),
--
--		.lcdcon2 =	S3C2410_LCDCON2_VBPD(5) | \
--				S3C2410_LCDCON2_LINEVAL(319) | \
--				S3C2410_LCDCON2_VFPD(6) | \
--				S3C2410_LCDCON2_VSPW(2),
--
--		.lcdcon3 =	S3C2410_LCDCON3_HBPD(35) | \
--				S3C2410_LCDCON3_HOZVAL(239) | \
--				S3C2410_LCDCON3_HFPD(35),
--
--		.lcdcon4 =	S3C2410_LCDCON4_MVAL(0) | \
--				S3C2410_LCDCON4_HSPW(7),
--
--		.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
--				S3C2410_LCDCON5_FRM565 |
--				S3C2410_LCDCON5_HWSWP,
--	},
-+	.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
-+			S3C2410_LCDCON1_TFT | \
-+			S3C2410_LCDCON1_CLKVAL(0x0C),
-+
-+	.lcdcon2 =	S3C2410_LCDCON2_VBPD(5) | \
-+			S3C2410_LCDCON2_LINEVAL(319) | \
-+			S3C2410_LCDCON2_VFPD(6) | \
-+			S3C2410_LCDCON2_VSPW(2),
-+
-+	.lcdcon4 =	S3C2410_LCDCON4_MVAL(0) | \
-+			S3C2410_LCDCON4_HSPW(7),
-+
-+	.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
-+			S3C2410_LCDCON5_FRM565 |
-+			S3C2410_LCDCON5_HWSWP,
- 
- 	.type		= S3C2410_LCDCON1_TFT,
- 	.width		= 240,
-diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
---- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
-@@ -104,30 +104,24 @@ static struct s3c2410_uartcfg smdk2440_u
- /* LCD driver info */
- 
- static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
--	.regs	= {
- 
--		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
--				  S3C2410_LCDCON1_TFT |
--				  S3C2410_LCDCON1_CLKVAL(0x04),
--
--		.lcdcon2	= S3C2410_LCDCON2_VBPD(7) |
--				  S3C2410_LCDCON2_LINEVAL(319) |
--				  S3C2410_LCDCON2_VFPD(6) |
--				  S3C2410_LCDCON2_VSPW(3),
--
--		.lcdcon3	= S3C2410_LCDCON3_HBPD(19) |
--				  S3C2410_LCDCON3_HOZVAL(239) |
--				  S3C2410_LCDCON3_HFPD(7),
--
--		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
--				  S3C2410_LCDCON4_HSPW(3),
--
--		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
--				  S3C2410_LCDCON5_INVVLINE |
--				  S3C2410_LCDCON5_INVVFRAME |
--				  S3C2410_LCDCON5_PWREN |
--				  S3C2410_LCDCON5_HWSWP,
--	},
-+	.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
-+			  S3C2410_LCDCON1_TFT |
-+			  S3C2410_LCDCON1_CLKVAL(0x04),
-+
-+	.lcdcon2	= S3C2410_LCDCON2_VBPD(7) |
-+			  S3C2410_LCDCON2_LINEVAL(319) |
-+			  S3C2410_LCDCON2_VFPD(6) |
-+			  S3C2410_LCDCON2_VSPW(3),
-+
-+	.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
-+			  S3C2410_LCDCON4_HSPW(3),
-+
-+	.lcdcon5	= S3C2410_LCDCON5_FRM565 |
-+			  S3C2410_LCDCON5_INVVLINE |
-+			  S3C2410_LCDCON5_INVVFRAME |
-+			  S3C2410_LCDCON5_PWREN |
-+			  S3C2410_LCDCON5_HWSWP,
- 
- 	.type		= S3C2410_LCDCON1_TFT16BPP,
- 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/drivers/video/s3c2410fb.c
-@@ -245,7 +245,7 @@ static int s3c2410fb_check_var(struct fb
- 
- 	default:
- 	case 16:
--		if (display->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
-+		if (display->lcdcon5 & S3C2410_LCDCON5_FRM565) {
- 			/* 16 bpp, 565 format */
- 			var->red.offset		= 11;
- 			var->green.offset	= 5;
-@@ -796,7 +796,6 @@ static int __init s3c2410fb_probe(struct
- 	struct s3c2410fb_info *info;
- 	struct s3c2410fb_display *display;
- 	struct fb_info *fbinfo;
--	struct s3c2410fb_hw *mregs;
- 	struct resource *res;
- 	int ret;
- 	int irq;
-@@ -812,7 +811,6 @@ static int __init s3c2410fb_probe(struct
- 	}
- 
- 	display = mach_info->displays + mach_info->default_display;
--	mregs = &display->regs;
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
-@@ -855,7 +853,10 @@ static int __init s3c2410fb_probe(struct
- 
- 	strcpy(fbinfo->fix.id, driver_name);
- 
--	memcpy(&info->regs, &display->regs, sizeof(info->regs));
-+	info->regs.lcdcon1 = display->lcdcon1;
-+	info->regs.lcdcon2 = display->lcdcon2;
-+	info->regs.lcdcon4 = display->lcdcon4;
-+	info->regs.lcdcon5 = display->lcdcon5;
- 
- 	/* Stop the video and unset ENVID if set */
- 	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
-@@ -892,14 +893,14 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->var.right_margin    = display->right_margin;
- 
- 	fbinfo->var.upper_margin    =
--				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
-+				S3C2410_LCDCON2_GET_VBPD(display->lcdcon2) + 1;
- 	fbinfo->var.lower_margin    =
--				S3C2410_LCDCON2_GET_VFPD(mregs->lcdcon2) + 1;
-+				S3C2410_LCDCON2_GET_VFPD(display->lcdcon2) + 1;
- 	fbinfo->var.vsync_len	    =
--				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
-+				S3C2410_LCDCON2_GET_VSPW(display->lcdcon2) + 1;
- 
- 	fbinfo->var.hsync_len	    =
--				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
-+				S3C2410_LCDCON4_GET_HSPW(display->lcdcon4) + 1;
- 
- 	fbinfo->var.red.offset      = 11;
- 	fbinfo->var.green.offset    = 5;
-diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display include/asm-arm/arch-s3c2410/fb.h
---- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
-+++ a/include/asm-arm/arch-s3c2410/fb.h
-@@ -44,7 +44,10 @@ struct s3c2410fb_display {
- 	unsigned short vsync_len;	/* value in lines (TFT) or 0 (STN) */
- 
- 	/* lcd configuration registers */
--	struct s3c2410fb_hw  regs;
-+	unsigned long	lcdcon1;
-+	unsigned long	lcdcon2;
-+	unsigned long	lcdcon4;
-+	unsigned long	lcdcon5;
- };
- 
- struct s3c2410fb_mach_info {
+ /*
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
 git-alsa.patch
-git-arm-master.patch
-git-hwmon.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
-tdfxfb-mtrr-support.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+dma-arch-fix.patch
+git-dma-up-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-ixgbe-build-fix.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+bsg-declare-request_queue.patch
+aacraid-rename-check_reset.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
 tdfxfb-mtrr-support-fix.patch
-tdfxfb-mtrr-support-fix-2.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
