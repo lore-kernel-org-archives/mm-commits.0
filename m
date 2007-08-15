@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:34:03 -0700
-Message-ID: <200708151934.l7FJY6Qu011488@imap1.linux-foundation.org>
+Subject: + ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch added to -mm tree
+Date: Wed, 15 Aug 2007 12:35:12 -0700
+Message-ID: <200708151935.l7FJZCfx011521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34237 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754668AbXHOTf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756353AbXHOTgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 15:35:56 -0400
+	Wed, 15 Aug 2007 15:36:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: apw@shadowen.org, benh@kernel.crashing.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, paulus@samba.org
 
 
 The patch titled
-     vmemmap x86_64: convert to new helper based initialisation
+     vmemmap ppc64: convert to new config options
 has been added to the -mm tree.  Its filename is
-     x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+     ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,93 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmemmap x86_64: convert to new helper based initialisation
+Subject: vmemmap ppc64: convert to new config options
 From: Andy Whitcroft <apw@shadowen.org>
 
-Convert over to the new helper initialialisation and Kconfig options.
+Convert over to the new Kconfig options.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig   |    9 +--------
- arch/x86_64/mm/init.c |   26 ++++++++++++++++++++------
- 2 files changed, 21 insertions(+), 14 deletions(-)
+ arch/powerpc/Kconfig      |    9 +--------
+ arch/powerpc/mm/init_64.c |    3 +--
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation
-+++ a/arch/x86_64/Kconfig
-@@ -405,14 +405,7 @@ config ARCH_DISCONTIGMEM_DEFAULT
+diff -puN arch/powerpc/Kconfig~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options
++++ a/arch/powerpc/Kconfig
+@@ -265,6 +265,7 @@ config ARCH_FLATMEM_ENABLE
  config ARCH_SPARSEMEM_ENABLE
  	def_bool y
- 	depends on (NUMA || EXPERIMENTAL)
--
+ 	depends on PPC64
++	select SPARSEMEM_VMEMMAP_ENABLE
+ 
+ config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y
+@@ -275,14 +276,6 @@ config ARCH_POPULATES_NODE_MAP
+ 
+ source "mm/Kconfig"
+ 
 -config SPARSEMEM_VMEMMAP
 -	def_bool y
 -	depends on SPARSEMEM
 -
--config ARCH_POPULATES_SPARSEMEM_VMEMMAP_PMD
+-config ARCH_POPULATES_SPARSEMEM_VMEMMAP
 -	def_bool y
 -	depends on SPARSEMEM_VMEMMAP
-+	select SPARSEMEM_VMEMMAP_ENABLE
- 
+-
  config ARCH_MEMORY_PROBE
  	def_bool y
-diff -puN arch/x86_64/mm/init.c~x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation arch/x86_64/mm/init.c
---- a/arch/x86_64/mm/init.c~x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation
-+++ a/arch/x86_64/mm/init.c
-@@ -749,18 +749,31 @@ const char *arch_vma_name(struct vm_area
- 	return NULL;
+ 	depends on MEMORY_HOTPLUG
+diff -puN arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options
++++ a/arch/powerpc/mm/init_64.c
+@@ -182,8 +182,7 @@ void pgtable_cache_init(void)
+ 	}
  }
  
--#ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP_PMD
+-#ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP
+-
 +#ifdef CONFIG_SPARSEMEM_VMEMMAP
  /*
-  * Initialise the sparsemem vmemmap using huge-pages at the PMD level.
-  */
--int __meminit vmemmap_populate_pmd(pud_t *pud, unsigned long addr,
--						unsigned long end, int node)
-+int __meminit vmemmap_populate(struct page *start_page,
-+						unsigned long size, int node)
- {
--	pmd_t *pmd;
-+	unsigned long addr = (unsigned long)start_page;
-+	unsigned long end = (unsigned long)(start_page + size);
- 	unsigned long next;
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
- 
--	for (pmd = pmd_offset(pud, addr); addr < end; pmd++, addr = next) {
-+	for (; addr < end; addr = next) {
- 		next = pmd_addr_end(addr, end);
-+
-+		pgd = vmemmap_pgd_populate(addr, node);
-+		if (!pgd)
-+			return -ENOMEM;
-+		pud = vmemmap_pud_populate(pgd, addr, node);
-+		if (!pud)
-+			return -ENOMEM;
-+
-+		pmd = pmd_offset(pud, addr);
- 		if (pmd_none(*pmd)) {
- 			pte_t entry;
- 			void *p = vmemmap_alloc_block(PMD_SIZE, node);
-@@ -774,8 +787,9 @@ int __meminit vmemmap_populate_pmd(pud_t
- 			printk(KERN_DEBUG " [%lx-%lx] PMD ->%p on node %d\n",
- 				addr, addr + PMD_SIZE - 1, p, node);
- 		} else
--			vmemmap_verify((pte_t *)pmd, node, next, end);
-+			vmemmap_verify((pte_t *)pmd, node, addr, next);
- 	}
-+
- 	return 0;
- }
- #endif
+  * Given an address within the vmemmap, determine the pfn of the page that
+  * represents the start of the section it is within.  Note that we have to
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -142,7 +112,7 @@ ia64-sparsemem_vmemmap-16k-page-size-support.patch
 sparc64-sparsemem_vmemmap-support.patch
 ppc64-sparsemem_vmemmap-support.patch
 ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-vmemmap-ppc64-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
 vmemmap-sparc64-convert-to-new-config-options.patch
 vmemmap-ia64-convert-to-new-helper-based-initialisation.patch
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
