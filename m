@@ -1,164 +1,824 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:20:54 -0700
-Message-ID: <200708152320.l7FNKsgD020302@imap1.linux-foundation.org>
+Subject: + s3c2410fb-code-cleanup.patch added to -mm tree
+Date: Wed, 15 Aug 2007 16:21:00 -0700
+Message-ID: <200708152321.l7FNL01N020313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934493AbXHOXVs (ORCPT
+	by vger.kernel.org with ESMTP id S934624AbXHOXVr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:21:48 -0400
+	Wed, 15 Aug 2007 19:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     fbdev-fb_create_modedb-non-static-int-first-=-1-fix
+     s3c2410fb: code cleanup
 has been added to the -mm tree.  Its filename is
-     fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+     s3c2410fb-code-cleanup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev-fb_create_modedb-non-static-int-first-=-1-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: s3c2410fb: code cleanup
+=46rom: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+This patch cleans up the driver a bit. It contains
+coding style fixes (pointed by Lindent and checkpatch),
+white space clean ups and few minor code improvements.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmon.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/video/s3c2410fb.c |  359 +++++++++++++++++-------------------
+ 1 files changed, 173 insertions(+), 186 deletions(-)
 
-diff -puN drivers/video/fbmon.c~fbdev-fb_create_modedb-non-static-int-first-=-1-fix drivers/video/fbmon.c
---- a/drivers/video/fbmon.c~fbdev-fb_create_modedb-non-static-int-first-=-1-fix
-+++ a/drivers/video/fbmon.c
-@@ -593,8 +593,6 @@ static struct fb_videomode *fb_create_mo
- 	unsigned char *block;
- 	int num = 0, i, first = 1;
- 
--;
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup drivers/vide=
+o/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup
++++ a/drivers/video/s3c2410fb.c
+@@ -31,8 +31,8 @@
+  *	- add pixel clock divisor control
+  *
+  * 2004-11-11: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- Removed the use of currcon as it no more exist
+- * 	- Added LCD power sysfs interface
++ *	- Removed the use of currcon as it no more exist
++ *	- Added LCD power sysfs interface
+  *
+  * 2004-11-03: Ben Dooks <ben-linux@fluff.org>
+  *	- minor cleanups
+@@ -49,12 +49,12 @@
+  *      - Suppress command line options
+  *
+  * 2004-09-15: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- code cleanup
++ *	- code cleanup
+  *
+  * 2004-09-07: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- Renamed from h1940fb.c to s3c2410fb.c
+- * 	- Add support for different devices
+- * 	- Backlight support
++ *	- Renamed from h1940fb.c to s3c2410fb.c
++ *	- Add support for different devices
++ *	- Backlight support
+  *
+  * 2004-09-05: Herbert P=F6tzl <herbert@13thfloor.at>
+  *	- added clock (de-)allocation code
+@@ -102,14 +102,13 @@
+=20
+ #include "s3c2410fb.h"
+=20
 -
- 	mode = kzalloc(50 * sizeof(struct fb_videomode), GFP_KERNEL);
- 	if (mode == NULL)
- 		return NULL;
+ static struct s3c2410fb_mach_info *mach_info;
+=20
+ /* Debugging stuff */
+ #ifdef CONFIG_FB_S3C2410_DEBUG
+-static int debug	   =3D 1;
++static int debug	=3D 1;
+ #else
+-static int debug	   =3D 0;
++static int debug	=3D 0;
+ #endif
+=20
+ #define dprintk(msg...)	if (debug) { printk(KERN_DEBUG "s3c2410fb: " m=
+sg); }
+@@ -119,19 +118,20 @@ static int debug	   =3D 0;
+ /* s3c2410fb_set_lcdaddr
+  *
+  * initialise lcd controller address pointers
+-*/
+-
++ */
+ static void s3c2410fb_set_lcdaddr(struct s3c2410fb_info *fbi)
+ {
+ 	struct fb_var_screeninfo *var =3D &fbi->fb->var;
+ 	unsigned long saddr1, saddr2, saddr3;
++	int line_length =3D var->xres * var->bits_per_pixel;
+=20
+ 	saddr1  =3D fbi->fb->fix.smem_start >> 1;
+ 	saddr2  =3D fbi->fb->fix.smem_start;
+-	saddr2 +=3D (var->xres * var->yres * var->bits_per_pixel)/8;
+-	saddr2>>=3D 1;
++	saddr2 +=3D (line_length * var->yres) / 8;
++	saddr2 >>=3D 1;
+=20
+-	saddr3 =3D  S3C2410_OFFSIZE(0) | S3C2410_PAGEWIDTH((var->xres * var->=
+bits_per_pixel / 16) & 0x3ff);
++	saddr3 =3D S3C2410_OFFSIZE(0) |
++		 S3C2410_PAGEWIDTH((line_length / 16) & 0x3ff);
+=20
+ 	dprintk("LCDSADDR1 =3D 0x%08lx\n", saddr1);
+ 	dprintk("LCDSADDR2 =3D 0x%08lx\n", saddr2);
+@@ -145,8 +145,7 @@ static void s3c2410fb_set_lcdaddr(struct
+ /* s3c2410fb_calc_pixclk()
+  *
+  * calculate divisor for clk->pixclk
+-*/
+-
++ */
+ static unsigned int s3c2410fb_calc_pixclk(struct s3c2410fb_info *fbi,
+ 					  unsigned long pixclk)
+ {
+@@ -159,8 +158,8 @@ static unsigned int s3c2410fb_calc_pixcl
+ 	 */
+=20
+ 	div =3D (unsigned long long)clk * pixclk;
+-	do_div(div,1000000UL);
+-	do_div(div,1000000UL);
++	do_div(div, 1000000UL);
++	do_div(div, 1000000UL);
+=20
+ 	dprintk("pixclk %ld, divisor is %ld\n", pixclk, (long)div);
+ 	return div;
+@@ -198,93 +197,84 @@ static int s3c2410fb_check_var(struct fb
+ 	else if (var->bits_per_pixel < fbi->mach_info->bpp.min)
+ 		var->bits_per_pixel =3D fbi->mach_info->bpp.min;
+=20
++	var->transp.offset =3D 0;
++	var->transp.length =3D 0;
+ 	/* set r/g/b positions */
+ 	switch (var->bits_per_pixel) {
+-		case 1:
+-		case 2:
+-		case 4:
+-			var->red.offset    	=3D 0;
+-			var->red.length    	=3D var->bits_per_pixel;
+-			var->green         	=3D var->red;
+-			var->blue          	=3D var->red;
+-			var->transp.offset 	=3D 0;
+-			var->transp.length 	=3D 0;
+-			break;
+-		case 8:
+-			if ( fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT ) {
+-				/* 8 bpp 332 */
+-				var->red.length		=3D 3;
+-				var->red.offset		=3D 5;
+-				var->green.length	=3D 3;
+-				var->green.offset	=3D 2;
+-				var->blue.length	=3D 2;
+-				var->blue.offset	=3D 0;
+-				var->transp.length	=3D 0;
+-			} else {
+-				var->red.offset    	=3D 0;
+-				var->red.length    	=3D var->bits_per_pixel;
+-				var->green         	=3D var->red;
+-				var->blue          	=3D var->red;
+-				var->transp.offset 	=3D 0;
+-				var->transp.length 	=3D 0;
+-			}
+-			break;
+-		case 12:
+-			/* 12 bpp 444 */
+-			var->red.length		=3D 4;
+-			var->red.offset		=3D 8;
+-			var->green.length	=3D 4;
+-			var->green.offset	=3D 4;
+-			var->blue.length	=3D 4;
++	case 1:
++	case 2:
++	case 4:
++		var->red.offset	=3D 0;
++		var->red.length	=3D var->bits_per_pixel;
++		var->green	=3D var->red;
++		var->blue	=3D var->red;
++		break;
++	case 8:
++		if (fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT) {
++			/* 8 bpp 332 */
++			var->red.length		=3D 3;
++			var->red.offset		=3D 5;
++			var->green.length	=3D 3;
++			var->green.offset	=3D 2;
++			var->blue.length	=3D 2;
+ 			var->blue.offset	=3D 0;
+-			var->transp.length	=3D 0;
+-			break;
+-
+-		default:
+-		case 16:
+-			if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565 ) {
+-				/* 16 bpp, 565 format */
+-				var->red.offset		=3D 11;
+-				var->green.offset	=3D 5;
+-				var->blue.offset	=3D 0;
+-				var->red.length		=3D 5;
+-				var->green.length	=3D 6;
+-				var->blue.length	=3D 5;
+-				var->transp.length	=3D 0;
+-			} else {
+-				/* 16 bpp, 5551 format */
+-				var->red.offset		=3D 11;
+-				var->green.offset	=3D 6;
+-				var->blue.offset	=3D 1;
+-				var->red.length		=3D 5;
+-				var->green.length	=3D 5;
+-				var->blue.length	=3D 5;
+-				var->transp.length	=3D 0;
+-			}
+-			break;
+-		case 24:
+-			/* 24 bpp 888 */
++		} else {
++			var->red.offset		=3D 0;
+ 			var->red.length		=3D 8;
+-			var->red.offset		=3D 16;
+-			var->green.length	=3D 8;
+-			var->green.offset	=3D 8;
+-			var->blue.length	=3D 8;
++			var->green		=3D var->red;
++			var->blue		=3D var->red;
++		}
++		break;
++	case 12:
++		/* 12 bpp 444 */
++		var->red.length		=3D 4;
++		var->red.offset		=3D 8;
++		var->green.length	=3D 4;
++		var->green.offset	=3D 4;
++		var->blue.length	=3D 4;
++		var->blue.offset	=3D 0;
++		break;
++
++	default:
++	case 16:
++		if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
++			/* 16 bpp, 565 format */
++			var->red.offset		=3D 11;
++			var->green.offset	=3D 5;
+ 			var->blue.offset	=3D 0;
+-			var->transp.length	=3D 0;
+-			break;
++			var->red.length		=3D 5;
++			var->green.length	=3D 6;
++			var->blue.length	=3D 5;
++		} else {
++			/* 16 bpp, 5551 format */
++			var->red.offset		=3D 11;
++			var->green.offset	=3D 6;
++			var->blue.offset	=3D 1;
++			var->red.length		=3D 5;
++			var->green.length	=3D 5;
++			var->blue.length	=3D 5;
++		}
++		break;
++	case 24:
++		/* 24 bpp 888 */
++		var->red.length		=3D 8;
++		var->red.offset		=3D 16;
++		var->green.length	=3D 8;
++		var->green.offset	=3D 8;
++		var->blue.length	=3D 8;
++		var->blue.offset	=3D 0;
++		break;
+=20
+=20
+ 	}
+ 	return 0;
+ }
+=20
+-
+ /* s3c2410fb_activate_var
+  *
+  * activate (set) the controller from the given framebuffer
+  * information
+-*/
+-
++ */
+ static void s3c2410fb_activate_var(struct s3c2410fb_info *fbi,
+ 				   struct fb_var_screeninfo *var)
+ {
+@@ -319,7 +309,8 @@ static void s3c2410fb_activate_var(struc
+=20
+ 		default:
+ 			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
++			dev_err(fbi->dev, "invalid bpp %d\n",
++				var->bits_per_pixel);
+ 		}
+ 	else
+ 		switch (var->bits_per_pixel) {
+@@ -341,19 +332,18 @@ static void s3c2410fb_activate_var(struc
+=20
+ 		default:
+ 			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
++			dev_err(fbi->dev, "invalid bpp %d\n",
++				var->bits_per_pixel);
+ 		}
+=20
+ 	/* check to see if we need to update sync/borders */
+=20
+ 	if (!fbi->mach_info->fixed_syncs) {
+ 		dprintk("setting vert: up=3D%d, low=3D%d, sync=3D%d\n",
+-			var->upper_margin, var->lower_margin,
+-			var->vsync_len);
++			var->upper_margin, var->lower_margin, var->vsync_len);
+=20
+ 		dprintk("setting horz: lft=3D%d, rt=3D%d, sync=3D%d\n",
+-			var->left_margin, var->right_margin,
+-			var->hsync_len);
++			var->left_margin, var->right_margin, var->hsync_len);
+=20
+ 		fbi->regs.lcdcon2 =3D
+ 			S3C2410_LCDCON2_VBPD(var->upper_margin - 1) |
+@@ -373,27 +363,24 @@ static void s3c2410fb_activate_var(struc
+ 	fbi->regs.lcdcon2 &=3D ~S3C2410_LCDCON2_LINEVAL(0x3ff);
+ 	fbi->regs.lcdcon2 |=3D  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
+=20
+-	switch(fbi->mach_info->type) {
+-		case S3C2410_LCDCON1_DSCAN4:
+-		case S3C2410_LCDCON1_STN8:
+-			hs =3D var->xres / 8;
+-			break;
+-		case S3C2410_LCDCON1_STN4:
+-			hs =3D var->xres / 4;
+-			break;
+-		default:
+-		case S3C2410_LCDCON1_TFT:
+-			hs =3D var->xres;
+-			break;
+-
++	switch (fbi->mach_info->type) {
++	case S3C2410_LCDCON1_DSCAN4:
++	case S3C2410_LCDCON1_STN8:
++		hs =3D var->xres / 8;
++		break;
++	case S3C2410_LCDCON1_STN4:
++		hs =3D var->xres / 4;
++		break;
++	default:
++	case S3C2410_LCDCON1_TFT:
++		hs =3D var->xres;
++		break;
+ 	}
+=20
+ 	/* Special cases : STN color displays */
+-	if ( ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
+CDCON1_STN8BPP) \
+-	  || ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
+CDCON1_STN12BPP) ) {
++	if (((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
+DCON1_STN8BPP) ||
++	    ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
+DCON1_STN12BPP))
+ 		hs =3D hs * 3;
+-	}
+-
+=20
+ 	fbi->regs.lcdcon3 &=3D ~S3C2410_LCDCON3_HOZVAL(0x7ff);
+ 	fbi->regs.lcdcon3 |=3D  S3C2410_LCDCON3_HOZVAL(hs - 1);
+@@ -402,11 +389,10 @@ static void s3c2410fb_activate_var(struc
+ 		int clkdiv =3D s3c2410fb_calc_pixclk(fbi, var->pixclock);
+=20
+ 		if (fbi->mach_info->type =3D=3D S3C2410_LCDCON1_TFT) {
+-			clkdiv =3D (clkdiv / 2) -1;
++			clkdiv =3D (clkdiv / 2) - 1;
+ 			if (clkdiv < 0)
+ 				clkdiv =3D 0;
+-		}
+-		else {
++		} else {
+ 			clkdiv =3D (clkdiv / 2);
+ 			if (clkdiv < 2)
+ 				clkdiv =3D 2;
+@@ -437,9 +423,8 @@ static void s3c2410fb_activate_var(struc
+ 	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
+ }
+=20
+-
+ /*
+- *      s3c2410fb_set_par - Optional function. Alters the hardware sta=
+te.
++ *      s3c2410fb_set_par - Alters the hardware state.
+  *      @info: frame buffer structure that represents a single frame b=
+uffer
+  *
+  */
+@@ -448,20 +433,19 @@ static int s3c2410fb_set_par(struct fb_i
+ 	struct s3c2410fb_info *fbi =3D info->par;
+ 	struct fb_var_screeninfo *var =3D &info->var;
+=20
+-	switch (var->bits_per_pixel)
+-	{
+-		case 16:
+-			fbi->fb->fix.visual =3D FB_VISUAL_TRUECOLOR;
+-			break;
+-		case 1:
+-			 fbi->fb->fix.visual =3D FB_VISUAL_MONO01;
+-			 break;
+-		default:
+-			 fbi->fb->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
+-			 break;
++	switch (var->bits_per_pixel) {
++	case 16:
++		info->fix.visual =3D FB_VISUAL_TRUECOLOR;
++		break;
++	case 1:
++		info->fix.visual =3D FB_VISUAL_MONO01;
++		break;
++	default:
++		info->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
++		break;
+ 	}
+=20
+-	fbi->fb->fix.line_length     =3D (var->width*var->bits_per_pixel)/8;
++	info->fix.line_length =3D (var->width * var->bits_per_pixel) / 8;
+=20
+ 	/* activate this new configuration */
+=20
+@@ -493,7 +477,8 @@ static void schedule_palette_update(stru
+ }
+=20
+ /* from pxafb.c */
+-static inline unsigned int chan_to_field(unsigned int chan, struct fb_=
+bitfield *bf)
++static inline unsigned int chan_to_field(unsigned int chan,
++					 struct fb_bitfield *bf)
+ {
+ 	chan &=3D 0xffff;
+ 	chan >>=3D 16 - bf->length;
+@@ -507,18 +492,19 @@ static int s3c2410fb_setcolreg(unsigned=20
+ 	struct s3c2410fb_info *fbi =3D info->par;
+ 	unsigned int val;
+=20
+-	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n", regno, red, green,=
+ blue); */
++	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n",
++		   regno, red, green, blue); */
+=20
+-	switch (fbi->fb->fix.visual) {
++	switch (info->fix.visual) {
+ 	case FB_VISUAL_TRUECOLOR:
+-		/* true-colour, use pseuo-palette */
++		/* true-colour, use pseudo-palette */
+=20
+ 		if (regno < 16) {
+-			u32 *pal =3D fbi->fb->pseudo_palette;
++			u32 *pal =3D info->pseudo_palette;
+=20
+-			val  =3D chan_to_field(red,   &fbi->fb->var.red);
+-			val |=3D chan_to_field(green, &fbi->fb->var.green);
+-			val |=3D chan_to_field(blue,  &fbi->fb->var.blue);
++			val  =3D chan_to_field(red,   &info->var.red);
++			val |=3D chan_to_field(green, &info->var.green);
++			val |=3D chan_to_field(blue,  &info->var.blue);
+=20
+ 			pal[regno] =3D val;
+ 		}
+@@ -539,14 +525,13 @@ static int s3c2410fb_setcolreg(unsigned=20
+ 		break;
+=20
+ 	default:
+-		return 1;   /* unknown type */
++		return 1;	/* unknown type */
+ 	}
+=20
+ 	return 0;
+ }
+=20
+-
+-/**
++/*
+  *      s3c2410fb_blank
+  *	@blank_mode: the blank mode we want.
+  *	@info: frame buffer structure that represents a single frame buffer
+@@ -579,12 +564,14 @@ static int s3c2410fb_blank(int blank_mod
+ 	return 0;
+ }
+=20
+-static int s3c2410fb_debug_show(struct device *dev, struct device_attr=
+ibute *attr, char *buf)
++static int s3c2410fb_debug_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
+ {
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", debug ? "on" : "off");
+ }
+-static int s3c2410fb_debug_store(struct device *dev, struct device_att=
+ribute *attr,
+-					   const char *buf, size_t len)
++static int s3c2410fb_debug_store(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t len)
+ {
+ 	if (mach_info =3D=3D NULL)
+ 		return -EINVAL;
+@@ -607,10 +594,7 @@ static int s3c2410fb_debug_store(struct=20
+ 	return len;
+ }
+=20
+-
+-static DEVICE_ATTR(debug, 0666,
+-		   s3c2410fb_debug_show,
+-		   s3c2410fb_debug_store);
++static DEVICE_ATTR(debug, 0666, s3c2410fb_debug_show, s3c2410fb_debug_=
+store);
+=20
+ static struct fb_ops s3c2410fb_ops =3D {
+ 	.owner		=3D THIS_MODULE,
+@@ -623,7 +607,6 @@ static struct fb_ops s3c2410fb_ops =3D {
+ 	.fb_imageblit	=3D cfb_imageblit,
+ };
+=20
+-
+ /*
+  * s3c2410fb_map_video_memory():
+  *	Allocates the DRAM memory for the frame buffer.  This buffer is
+@@ -661,7 +644,8 @@ static int __init s3c2410fb_map_video_me
+=20
+ static inline void s3c2410fb_unmap_video_memory(struct s3c2410fb_info =
+*fbi)
+ {
+-	dma_free_writecombine(fbi->dev,fbi->map_size,fbi->map_cpu, fbi->map_d=
+ma);
++	dma_free_writecombine(fbi->dev, fbi->map_size, fbi->map_cpu,
++			      fbi->map_dma);
+ }
+=20
+ static inline void modify_gpio(void __iomem *reg,
+@@ -673,11 +657,9 @@ static inline void modify_gpio(void __io
+ 	writel(tmp | set, reg);
+ }
+=20
+-
+ /*
+  * s3c2410fb_init_registers - Initialise all LCD-related registers
+  */
+-
+ static int s3c2410fb_init_registers(struct s3c2410fb_info *fbi)
+ {
+ 	unsigned long flags;
+@@ -702,7 +684,7 @@ static int s3c2410fb_init_registers(stru
+ 	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
+ 	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
+=20
+- 	s3c2410fb_set_lcdaddr(fbi);
++	s3c2410fb_set_lcdaddr(fbi);
+=20
+ 	dprintk("LPCSEL    =3D 0x%08lx\n", mach_info->lpcsel);
+ 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
+@@ -721,13 +703,13 @@ static int s3c2410fb_init_registers(stru
+ static void s3c2410fb_write_palette(struct s3c2410fb_info *fbi)
+ {
+ 	unsigned int i;
+-	unsigned long ent;
+ 	void __iomem *regs =3D fbi->io;
+=20
+ 	fbi->palette_ready =3D 0;
+=20
+ 	for (i =3D 0; i < 256; i++) {
+-		if ((ent =3D fbi->palette_buffer[i]) =3D=3D PALETTE_BUFF_CLEAR)
++		unsigned long ent =3D fbi->palette_buffer[i];
++		if (ent =3D=3D PALETTE_BUFF_CLEAR)
+ 			continue;
+=20
+ 		writel(ent, regs + S3C2410_TFTPAL(i));
+@@ -761,12 +743,12 @@ static irqreturn_t s3c2410fb_irq(int irq
+ 	return IRQ_HANDLED;
+ }
+=20
+-static char driver_name[]=3D"s3c2410fb";
++static char driver_name[] =3D "s3c2410fb";
+=20
+ static int __init s3c2410fb_probe(struct platform_device *pdev)
+ {
+ 	struct s3c2410fb_info *info;
+-	struct fb_info	   *fbinfo;
++	struct fb_info *fbinfo;
+ 	struct s3c2410fb_hw *mregs;
+ 	struct resource *res;
+ 	int ret;
+@@ -777,7 +759,8 @@ static int __init s3c2410fb_probe(struct
+=20
+ 	mach_info =3D pdev->dev.platform_data;
+ 	if (mach_info =3D=3D NULL) {
+-		dev_err(&pdev->dev,"no platform data for lcd, cannot attach\n");
++		dev_err(&pdev->dev,
++			"no platform data for lcd, cannot attach\n");
+ 		return -EINVAL;
+ 	}
+=20
+@@ -790,9 +773,8 @@ static int __init s3c2410fb_probe(struct
+ 	}
+=20
+ 	fbinfo =3D framebuffer_alloc(sizeof(struct s3c2410fb_info), &pdev->de=
+v);
+-	if (!fbinfo) {
++	if (!fbinfo)
+ 		return -ENOMEM;
+-	}
+=20
+ 	info =3D fbinfo->par;
+ 	info->fb =3D fbinfo;
+@@ -800,12 +782,12 @@ static int __init s3c2410fb_probe(struct
+=20
+ 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res =3D=3D NULL) {
+-		dev_err(&pdev->dev, "failed to get memory registersn");
++		dev_err(&pdev->dev, "failed to get memory registers\n");
+ 		ret =3D -ENXIO;
+ 		goto dealloc_fb;
+ 	}
+=20
+-	size =3D (res->end - res->start)+1;
++	size =3D (res->end - res->start) + 1;
+ 	info->mem =3D request_mem_region(res->start, size, pdev->name);
+ 	if (info->mem =3D=3D NULL) {
+ 		dev_err(&pdev->dev, "failed to get memory region\n");
+@@ -859,13 +841,19 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.yres_virtual    =3D mach_info->yres.defval;
+ 	fbinfo->var.bits_per_pixel  =3D mach_info->bpp.defval;
+=20
+-	fbinfo->var.upper_margin    =3D S3C2410_LCDCON2_GET_VBPD(mregs->lcdco=
+n2) + 1;
+-	fbinfo->var.lower_margin    =3D S3C2410_LCDCON2_GET_VFPD(mregs->lcdco=
+n2) + 1;
+-	fbinfo->var.vsync_len	    =3D S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2=
+) + 1;
+-
+-	fbinfo->var.left_margin	    =3D S3C2410_LCDCON3_GET_HFPD(mregs->lcdco=
+n3) + 1;
+-	fbinfo->var.right_margin    =3D S3C2410_LCDCON3_GET_HBPD(mregs->lcdco=
+n3) + 1;
+-	fbinfo->var.hsync_len	    =3D S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4=
+) + 1;
++	fbinfo->var.upper_margin    =3D
++				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
++	fbinfo->var.lower_margin    =3D
++				S3C2410_LCDCON2_GET_VFPD(mregs->lcdcon2) + 1;
++	fbinfo->var.vsync_len	    =3D
++				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
++
++	fbinfo->var.left_margin	    =3D
++				S3C2410_LCDCON3_GET_HFPD(mregs->lcdcon3) + 1;
++	fbinfo->var.right_margin    =3D
++				S3C2410_LCDCON3_GET_HBPD(mregs->lcdcon3) + 1;
++	fbinfo->var.hsync_len	    =3D
++				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
+=20
+ 	fbinfo->var.red.offset      =3D 11;
+ 	fbinfo->var.green.offset    =3D 5;
+@@ -875,7 +863,7 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.green.length    =3D 6;
+ 	fbinfo->var.blue.length     =3D 5;
+ 	fbinfo->var.transp.length   =3D 0;
+-	fbinfo->fix.smem_len        =3D	mach_info->xres.max *
++	fbinfo->fix.smem_len	    =3D	mach_info->xres.max *
+ 					mach_info->yres.max *
+ 					mach_info->bpp.max / 8;
+=20
+@@ -904,20 +892,21 @@ static int __init s3c2410fb_probe(struct
+ 	/* Initialize video memory */
+ 	ret =3D s3c2410fb_map_video_memory(info);
+ 	if (ret) {
+-		printk( KERN_ERR "Failed to allocate video RAM: %d\n", ret);
++		printk(KERN_ERR "Failed to allocate video RAM: %d\n", ret);
+ 		ret =3D -ENOMEM;
+ 		goto release_clock;
+ 	}
+=20
+ 	dprintk("got video memory\n");
+=20
+-	ret =3D s3c2410fb_init_registers(info);
++	s3c2410fb_init_registers(info);
+=20
+-	ret =3D s3c2410fb_check_var(&fbinfo->var, fbinfo);
++	s3c2410fb_check_var(&fbinfo->var, fbinfo);
+=20
+ 	ret =3D register_framebuffer(fbinfo);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "Failed to register framebuffer device: %d\n", ret);
++		printk(KERN_ERR "Failed to register framebuffer device: %d\n",
++			ret);
+ 		goto free_video_memory;
+ 	}
+=20
+@@ -935,7 +924,7 @@ release_clock:
+ 	clk_disable(info->clk);
+ 	clk_put(info->clk);
+ release_irq:
+-	free_irq(irq,info);
++	free_irq(irq, info);
+ release_regs:
+ 	iounmap(info->io);
+ release_mem:
+@@ -949,8 +938,7 @@ dealloc_fb:
+ /* s3c2410fb_stop_lcd
+  *
+  * shutdown the lcd controller
+-*/
+-
++ */
+ static void s3c2410fb_stop_lcd(struct s3c2410fb_info *fbi)
+ {
+ 	unsigned long flags;
+@@ -968,7 +956,7 @@ static void s3c2410fb_stop_lcd(struct s3
+  */
+ static int s3c2410fb_remove(struct platform_device *pdev)
+ {
+-	struct fb_info	   *fbinfo =3D platform_get_drvdata(pdev);
++	struct fb_info *fbinfo =3D platform_get_drvdata(pdev);
+ 	struct s3c2410fb_info *info =3D fbinfo->par;
+ 	int irq;
+=20
+@@ -977,14 +965,14 @@ static int s3c2410fb_remove(struct platf
+=20
+ 	s3c2410fb_unmap_video_memory(info);
+=20
+- 	if (info->clk) {
+- 		clk_disable(info->clk);
+- 		clk_put(info->clk);
+- 		info->clk =3D NULL;
++	if (info->clk) {
++		clk_disable(info->clk);
++		clk_put(info->clk);
++		info->clk =3D NULL;
+ 	}
+=20
+ 	irq =3D platform_get_irq(pdev, 0);
+-	free_irq(irq,info);
++	free_irq(irq, info);
+=20
+ 	release_resource(info->mem);
+ 	kfree(info->mem);
+@@ -997,7 +985,6 @@ static int s3c2410fb_remove(struct platf
+ #ifdef CONFIG_PM
+=20
+ /* suspend and resume support for the lcd controller */
+-
+ static int s3c2410fb_suspend(struct platform_device *dev, pm_message_t=
+ state)
+ {
+ 	struct fb_info	   *fbinfo =3D platform_get_drvdata(dev);
+@@ -1054,10 +1041,10 @@ static void __exit s3c2410fb_cleanup(voi
+ 	platform_driver_unregister(&s3c2410fb_driver);
+ }
+=20
+-
+ module_init(s3c2410fb_init);
+ module_exit(s3c2410fb_cleanup);
+=20
+-MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, Ben Dooks <b=
+en-linux@fluff.org>");
++MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, "
++	      "Ben Dooks <ben-linux@fluff.org>");
+ MODULE_DESCRIPTION("Framebuffer driver for the s3c2410");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
 git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-dma-arch-fix.patch
-git-dma-up-fix.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-git-kvm.patch
-libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-arm-hack.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-ixgbe-build-fix.patch
-git-net.patch
-git-net-fixup.patch
-git-backlight.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-bsg-declare-request_queue.patch
-aacraid-rename-check_reset.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-wireless.patch
-git-wireless-fixup.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
+git-arm-master.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-f=
+ix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
 tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
