@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-struct-task_structio_wait.patch added to -mm tree
-Date: Wed, 15 Aug 2007 14:57:37 -0700
-Message-ID: <200708152157.l7FLvb7T017025@imap1.linux-foundation.org>
+Subject: + eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch added to -mm tree
+Date: Wed, 15 Aug 2007 15:04:05 -0700
+Message-ID: <200708152204.l7FM46qi017298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36689 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755723AbXHOWAv (ORCPT
+	by vger.kernel.org with ESMTP id S1758365AbXHOWFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 18:00:51 -0400
+	Wed, 15 Aug 2007 18:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     Remove struct task_struct::io_wait
+     eepro100: Avoid potential NULL pointer deref in speedo_init_rx_ring()
 has been added to the -mm tree.  Its filename is
-     remove-struct-task_structio_wait.patch
+     eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove struct task_struct::io_wait
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: eepro100: Avoid potential NULL pointer deref in speedo_init_rx_ring()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Hell knows what happened in commit 63b05203af57e7de4f3bb63b8b81d43bc196d32b
-during 2.6.9 development.  Commit introduced io_wait field which remained
-write-only than and still remains write-only.
+In a low memory situation, if you are very unlucky, the speedo_init_rx_ring()
+function may cause a NULL pointer deref.
 
-Also garbage collect macros which "use" io_wait.
+The problem is in the case where we can't allocate even a single skb for
+the RX ring.  In this case 'last_rxf' will be NULL when we break out of
+the loop and the line
+    last_rxf->status = cpu_to_le32(0xC0000002);	/* '2' is flag value only. */
+will cause a NULL pointer dereference.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+To fix this properly we need to be return an error from speedo_init_rx_ring()
+and have the caller (speedo_open()) catch and propagate the error, as well as
+undo anything done to setup the device so far.
+
+This patch adds a check to catch the unlucky case of not even a single skb
+being available and adds code in the caller to catch the error and release the
+device properly.
+
+For a user who hits this problem, this makes the difference between her device
+not being opened and a kernel crash.  Clearly a non functional NIC if
+preferable to a kernel crash - especially since setting up the device can
+easily be retried later after freeing up some memory; a kernel crash is not as
+easy to recover from.
+
+The problem was initially spotted by the Coverity checker.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c              |   16 ++--------------
- include/linux/aio.h   |   12 ------------
- include/linux/sched.h |    7 -------
- kernel/fork.c         |    1 -
- 4 files changed, 2 insertions(+), 34 deletions(-)
+ drivers/net/eepro100.c |   26 +++++++++++++++++++-------
+ 1 files changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN fs/aio.c~remove-struct-task_structio_wait fs/aio.c
---- a/fs/aio.c~remove-struct-task_structio_wait
-+++ a/fs/aio.c
-@@ -710,18 +710,9 @@ static ssize_t aio_run_iocb(struct kiocb
+diff -puN drivers/net/eepro100.c~eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring drivers/net/eepro100.c
+--- a/drivers/net/eepro100.c~eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring
++++ a/drivers/net/eepro100.c
+@@ -482,7 +482,7 @@ static void mdio_write(struct net_device
+ static int speedo_open(struct net_device *dev);
+ static void speedo_resume(struct net_device *dev);
+ static void speedo_timer(unsigned long data);
+-static void speedo_init_rx_ring(struct net_device *dev);
++static int speedo_init_rx_ring(struct net_device *dev);
+ static void speedo_tx_timeout(struct net_device *dev);
+ static int speedo_start_xmit(struct sk_buff *skb, struct net_device *dev);
+ static void speedo_refill_rx_buffers(struct net_device *dev, int force);
+@@ -978,9 +978,8 @@ speedo_open(struct net_device *dev)
  
- 	/*
- 	 * Now we are all set to call the retry method in async
--	 * context. By setting this thread's io_wait context
--	 * to point to the wait queue entry inside the currently
--	 * running iocb for the duration of the retry, we ensure
--	 * that async notification wakeups are queued by the
--	 * operation instead of blocking waits, and when notified,
--	 * cause the iocb to be kicked for continuation (through
--	 * the aio_wake_function callback).
-+	 * context.
- 	 */
--	BUG_ON(current->io_wait != NULL);
--	current->io_wait = &iocb->ki_wait;
- 	ret = retry(iocb);
--	current->io_wait = NULL;
+ 	/* .. we can safely take handler calls during init. */
+ 	retval = request_irq(dev->irq, &speedo_interrupt, IRQF_SHARED, dev->name, dev);
+-	if (retval) {
+-		return retval;
+-	}
++	if (retval)
++		goto out;
  
- 	if (ret != -EIOCBRETRY && ret != -EIOCBQUEUED) {
- 		BUG_ON(!list_empty(&iocb->ki_wait.task_list));
-@@ -1508,10 +1499,7 @@ static ssize_t aio_setup_iocb(struct kio
-  * 	Simply triggers a retry of the operation via kick_iocb.
-  *
-  * 	This callback is specified in the wait queue entry in
-- *	a kiocb	(current->io_wait points to this wait queue
-- *	entry when an aio operation executes; it is used
-- * 	instead of a synchronous wait when an i/o blocking
-- *	condition is encountered during aio).
-+ *	a kiocb.
-  *
-  * Note:
-  * This routine is executed with the wait queue lock held.
-diff -puN include/linux/aio.h~remove-struct-task_structio_wait include/linux/aio.h
---- a/include/linux/aio.h~remove-struct-task_structio_wait
-+++ a/include/linux/aio.h
-@@ -232,18 +232,6 @@ int FASTCALL(io_submit_one(struct kioctx
- 		__put_ioctx(kioctx);					\
- } while (0)
+ 	dev->if_port = sp->default_port;
  
--#define in_aio() (unlikely(!is_sync_wait(current->io_wait)))
--
--/* may be used for debugging */
--#define warn_if_async()							\
--do {									\
--	if (in_aio()) {							\
--		printk(KERN_ERR "%s(%s:%d) called in async context!\n",	\
--			__FUNCTION__, __FILE__, __LINE__);		\
--		dump_stack();						\
--	}								\
--} while (0)
--
- #define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
+@@ -1002,7 +1001,9 @@ speedo_open(struct net_device *dev)
+ 	}
+ #endif
  
- #include <linux/aio_abi.h>
-diff -puN include/linux/sched.h~remove-struct-task_structio_wait include/linux/sched.h
---- a/include/linux/sched.h~remove-struct-task_structio_wait
-+++ a/include/linux/sched.h
-@@ -1147,13 +1147,6 @@ struct task_struct {
+-	speedo_init_rx_ring(dev);
++	retval = speedo_init_rx_ring(dev);
++	if (retval)
++		goto out_rx_init_err;
  
- 	unsigned long ptrace_message;
- 	siginfo_t *last_siginfo; /* For ptrace use.  */
--/*
-- * current io wait handle: wait queue entry to use for io waits
-- * If this thread is processing aio, this points at the waitqueue
-- * inside the currently handled kiocb. It may be NULL (i.e. default
-- * to a stack based synchronous wait) if its doing sync IO.
-- */
--	wait_queue_t *io_wait;
- #ifdef CONFIG_TASK_XACCT
- /* i/o counters(bytes read/written, #syscalls */
- 	u64 rchar, wchar, syscr, syscw;
-diff -puN kernel/fork.c~remove-struct-task_structio_wait kernel/fork.c
---- a/kernel/fork.c~remove-struct-task_structio_wait
-+++ a/kernel/fork.c
-@@ -1068,7 +1068,6 @@ static struct task_struct *copy_process(
- 	monotonic_to_bootbased(&p->real_start_time);
- 	p->security = NULL;
- 	p->io_context = NULL;
--	p->io_wait = NULL;
- 	p->audit_context = NULL;
- 	cpuset_fork(p);
- #ifdef CONFIG_NUMA
+ 	/* Fire up the hardware. */
+ 	iowrite16(SCBMaskAll, ioaddr + SCBCmd);
+@@ -1041,7 +1042,12 @@ speedo_open(struct net_device *dev)
+ 	if ((sp->phy[0] & 0x8000) == 0)
+ 		mdio_read(dev, sp->phy[0] & 0x1f, MII_BMCR);
+ 
+-	return 0;
++ out:
++	return retval;
++ out_rx_init_err:
++	free_irq(dev->irq, dev);
++	pci_set_power_state(sp->pdev, PCI_D2);
++	goto out;
+ }
+ 
+ /* Start the chip hardware after a full reset. */
+@@ -1244,7 +1250,7 @@ static void speedo_show_state(struct net
+ }
+ 
+ /* Initialize the Rx and Tx rings, along with various 'dev' bits. */
+-static void
++static int
+ speedo_init_rx_ring(struct net_device *dev)
+ {
+ 	struct speedo_private *sp = netdev_priv(dev);
+@@ -1284,6 +1290,10 @@ speedo_init_rx_ring(struct net_device *d
+ 		pci_dma_sync_single_for_device(sp->pdev, sp->rx_ring_dma[i],
+ 									   sizeof(struct RxFD), PCI_DMA_TODEVICE);
+ 	}
++	/* If we failed to allocate even a single skb we need to bail out. */
++	if (!last_rxf)
++		return -ENOMEM;
++
+ 	sp->dirty_rx = (unsigned int)(i - RX_RING_SIZE);
+ 	/* Mark the last entry as end-of-list. */
+ 	last_rxf->status = cpu_to_le32(0xC0000002);	/* '2' is flag value only. */
+@@ -1291,6 +1301,8 @@ speedo_init_rx_ring(struct net_device *d
+ 								   sizeof(struct RxFD), PCI_DMA_TODEVICE);
+ 	sp->last_rxf = last_rxf;
+ 	sp->last_rxf_dma = last_rxf_dma;
++
++	return 0;
+ }
+ 
+ static void speedo_purge_tx(struct net_device *dev)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-ifdef-struct-task_structsecurity.patch
-faster-ext2_clear_inode.patch
-fs-proc-mmuc-headers-butchery.patch
-remove-sysctlh-from-fsh.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-shrink-struct-task_structoomkilladj.patch
-remove-struct-task_structio_wait.patch
-revert-faster-ext2_clear_inode.patch
+origin.patch
+git-alsa.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+powerpc-clean-out-a-bunch-of-duplicate-includes.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+fix-a-memory-leak-in-em28xx_usb_probe.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+clean-up-duplicate-includes-in-drivers-scsi.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+emulex-fc-hba-driver-fix-overflow-of-statically-allocated-array.patch
+git-xfs.patch
+fix-a-potential-null-pointer-deref-in-xfs-on-failed-mount.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
