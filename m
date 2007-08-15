@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:41:43 -0700
-Message-ID: <200708151941.l7FJfhfk011741@imap1.linux-foundation.org>
+Subject: + ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch added to -mm tree
+Date: Wed, 15 Aug 2007 12:42:34 -0700
+Message-ID: <200708151942.l7FJgYlZ011759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52634 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932AbXHOTmc (ORCPT
+	by vger.kernel.org with ESMTP id S935851AbXHOTnV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 15:42:32 -0400
+	Wed, 15 Aug 2007 15:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: apw@shadowen.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, tony.luck@intel.com
 
 
 The patch titled
-     vmemmap sparc64: convert to new config options
+     vmemmap ia64: convert to new helper based initialisation
 has been added to the -mm tree.  Its filename is
-     sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+     ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmemmap sparc64: convert to new config options
+Subject: vmemmap ia64: convert to new helper based initialisation
 From: Andy Whitcroft <apw@shadowen.org>
 
-Convert over to the new Kconfig options.
+Convert over to the new helper initialialisation and Kconfig options.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/Kconfig   |    9 +--------
- arch/sparc64/mm/init.c |    4 ++--
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ arch/ia64/Kconfig        |    5 +----
+ arch/ia64/mm/discontig.c |    8 ++++++++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc64/Kconfig~sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options
-+++ a/arch/sparc64/Kconfig
-@@ -240,20 +240,13 @@ config ARCH_SELECT_MEMORY_MODEL
- 
+diff -puN arch/ia64/Kconfig~ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation
++++ a/arch/ia64/Kconfig
+@@ -358,10 +358,7 @@ config ARCH_FLATMEM_ENABLE
  config ARCH_SPARSEMEM_ENABLE
  	def_bool y
-+	select SPARSEMEM_VMEMMAP_ENABLE
- 
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
- 
- source "mm/Kconfig"
- 
+ 	depends on ARCH_DISCONTIGMEM_ENABLE
+-
 -config SPARSEMEM_VMEMMAP
 -	def_bool y
 -	depends on SPARSEMEM
--
--config ARCH_POPULATES_SPARSEMEM_VMEMMAP
--	def_bool y
--	depends on SPARSEMEM_VMEMMAP
--
- config ISA
- 	bool
- 	help
-diff -puN arch/sparc64/mm/init.c~sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options arch/sparc64/mm/init.c
---- a/arch/sparc64/mm/init.c~sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options
-+++ a/arch/sparc64/mm/init.c
-@@ -1655,7 +1655,7 @@ EXPORT_SYMBOL(_PAGE_E);
- unsigned long _PAGE_CACHE __read_mostly;
- EXPORT_SYMBOL(_PAGE_CACHE);
++	select SPARSEMEM_VMEMMAP_ENABLE
  
--#ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
- 
- #define VMEMMAP_CHUNK_SHIFT	22
- #define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
-@@ -1705,7 +1705,7 @@ int __meminit vmemmap_populate(struct pa
- 	}
- 	return 0;
+ config ARCH_DISCONTIGMEM_DEFAULT
+ 	def_bool y if (IA64_SGI_SN2 || IA64_GENERIC || IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB)
+diff -puN arch/ia64/mm/discontig.c~ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation arch/ia64/mm/discontig.c
+--- a/arch/ia64/mm/discontig.c~ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation
++++ a/arch/ia64/mm/discontig.c
+@@ -712,3 +712,11 @@ void arch_refresh_nodedata(int update_no
+ 	scatter_node_data();
  }
--#endif /* CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP */
-+#endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- static void prot_init_common(unsigned long page_none,
- 			     unsigned long page_shared,
+ #endif
++
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++int __meminit vmemmap_populate(struct page *start_page,
++						unsigned long size, int node)
++{
++	return vmemmap_populate_basepages(start_page, size, node);
++}
++#endif
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -114,12 +99,12 @@ x86_64-sparsemem_vmemmap-2m-page-size-support.patch
 x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
 x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
 ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
 sparc64-sparsemem_vmemmap-support.patch
 sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
 ppc64-sparsemem_vmemmap-support.patch
 ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
 ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-vmemmap-ia64-convert-to-new-helper-based-initialisation.patch
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
 add-a-configure-option-to-group-pages-by-mobility.patch
 move-free-pages-between-lists-on-steal.patch
