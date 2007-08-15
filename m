@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signalfd-fix-interaction-with-posix-timers.patch added to -mm tree
-Date: Wed, 15 Aug 2007 14:40:37 -0700
-Message-ID: <200708152140.l7FLebQa016410@imap1.linux-foundation.org>
+Subject: + posix-timers-fix-creation-race.patch added to -mm tree
+Date: Wed, 15 Aug 2007 14:40:35 -0700
+Message-ID: <200708152140.l7FLeZjP016407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42628 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752640AbXHOVlo (ORCPT
+	by vger.kernel.org with ESMTP id S1752366AbXHOVlo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 15 Aug 2007 17:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, benh@kernel.crashing.org, davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, roland@redhat.com, stable@kernel.org, tglx@linutronix.de
+Cc: oleg@tv-sign.ru, tglx@linutronix.de
 
 
 The patch titled
-     signalfd: fix interaction with posix-timers
+     posix-timers: fix creation race
 has been added to the -mm tree.  Its filename is
-     signalfd-fix-interaction-with-posix-timers.patch
+     posix-timers-fix-creation-race.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: signalfd: fix interaction with posix-timers
+Subject: posix-timers: fix creation race
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-dequeue_signal:
+sys_timer_create() sets ->it_process and unlocks ->siglock, then checks
+tmr->it_sigev_notify to define if get_task_struct() is needed.
 
-	if (__SI_TIMER) {
-		spin_unlock(&tsk->sighand->siglock);
-		do_schedule_next_timer(info);
-		spin_lock(&tsk->sighand->siglock);
-	}
+We already passed ->it_id to the caller, another thread can delete this timer
+and free its memory in between.
 
-Unless tsk == curent, this is absolutely unsafe: nothing prevents tsk from
-exiting. If signalfd was passed to another process, do_schedule_next_timer()
-is just wrong.
-
-Add yet another "tsk == current" check into dequeue_signal().
-
-This patch fixes an oopsable bug, but breaks the scheduling of posix timers
-if the shared __SI_TIMER signal was fetched via signalfd attached to another
-sub-thread. Mostly fixed by the next patch.
+As a minimal fix, move this code under ->siglock, sys_timer_delete() takes it
+too before calling release_posix_timer().  A proper serialization would be to
+take ->it_lock, we add a partly initialized timer on posix_timers_id, not
+good.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Roland McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/posix-timers.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~signalfd-fix-interaction-with-posix-timers kernel/signal.c
---- a/kernel/signal.c~signalfd-fix-interaction-with-posix-timers
-+++ a/kernel/signal.c
-@@ -378,7 +378,7 @@ int dequeue_signal(struct task_struct *t
- 	/* We only dequeue private signals from ourselves, we don't let
- 	 * signalfd steal them
- 	 */
--	if (tsk == current)
-+	if (likely(tsk == current))
- 		signr = __dequeue_signal(&tsk->pending, mask, info);
- 	if (!signr) {
- 		signr = __dequeue_signal(&tsk->signal->shared_pending,
-@@ -425,7 +425,7 @@ int dequeue_signal(struct task_struct *t
- 		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
- 			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
- 	}
--	if ( signr &&
-+	if (signr && likely(tsk == current) &&
- 	     ((info->si_code & __SI_MASK) == __SI_TIMER) &&
- 	     info->si_sys_private){
- 		/*
+diff -puN kernel/posix-timers.c~posix-timers-fix-creation-race kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-fix-creation-race
++++ a/kernel/posix-timers.c
+@@ -547,9 +547,9 @@ sys_timer_create(const clockid_t which_c
+ 				new_timer->it_process = process;
+ 				list_add(&new_timer->list,
+ 					 &process->signal->posix_timers);
+-				spin_unlock_irqrestore(&process->sighand->siglock, flags);
+ 				if (new_timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
+ 					get_task_struct(process);
++				spin_unlock_irqrestore(&process->sighand->siglock, flags);
+ 			} else {
+ 				spin_unlock_irqrestore(&process->sighand->siglock, flags);
+ 				process = NULL;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
