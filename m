@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-remove-broken-cdrom-binary-sysctls-update.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:58:21 -0700
-Message-ID: <200708151958.l7FJwLXB012324@imap1.linux-foundation.org>
+Subject: + sysctl-parport-remove-binary-paths.patch added to -mm tree
+Date: Wed, 15 Aug 2007 12:59:47 -0700
+Message-ID: <200708151959.l7FJxlX9012466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933325AbXHOT7L (ORCPT
+	by vger.kernel.org with ESMTP id S936157AbXHOUAX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 15:59:11 -0400
+	Wed, 15 Aug 2007 16:00:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, alan@redhat.com
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     sysctl: remove broken cdrom binary sysctls (update)
+     sysctl: parport remove binary paths
 has been added to the -mm tree.  Its filename is
-     sysctl-remove-broken-cdrom-binary-sysctls-update.patch
+     sysctl-parport-remove-binary-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,196 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: remove broken cdrom binary sysctls (update)
-From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: sysctl: parport remove binary paths
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-The binary interface for the cdrom sysctls can't possilby work.  So remove
-the binary sysctls and reduce cdrom_sysctl_handler to it's essentials (to
-kill the uses of ctl_name).
+The sysctl binary paths don't look as if they even code work, .data is not
+filled in, and all of the proc_handlers look at extra1 and there is not
+strategy routine.
 
-Since the last time this patch was posted I radically
-simplified cdrom_sysctl_helper to meet address Alan's objections.
+So just kill the binary paths.
+
+In addition this patch removes the setting of extra1 on directories.  It
+doesn't look like the parport code ever examines it, and it's bad sysctl form.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |   35 +++++++----------------------------
- 1 files changed, 7 insertions(+), 28 deletions(-)
+ drivers/parport/procfs.c |   38 ++++---------------------------------
+ 1 files changed, 5 insertions(+), 33 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls-update drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls-update
-+++ a/drivers/cdrom/cdrom.c
-@@ -3454,40 +3454,19 @@ static void cdrom_update_settings(void)
- static int cdrom_sysctl_handler(ctl_table *ctl, int write, struct file * filp,
- 				void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--	int *valp = ctl->data;
--	int val = *valp;
- 	int ret;
- 	
- 	ret = proc_dointvec(ctl, write, filp, buffer, lenp, ppos);
+diff -puN drivers/parport/procfs.c~sysctl-parport-remove-binary-paths drivers/parport/procfs.c
+--- a/drivers/parport/procfs.c~sysctl-parport-remove-binary-paths
++++ a/drivers/parport/procfs.c
+@@ -237,7 +237,7 @@ static int do_hardware_modes (ctl_table 
+ #define PARPORT_PARPORT_DIR(CHILD) { .ctl_name = DEV_PARPORT, .procname = "parport", \
+                                      .mode = 0555, .child = CHILD }
+ #define PARPORT_DEV_DIR(CHILD) { .ctl_name = CTL_DEV, .procname = "dev", .mode = 0555, .child = CHILD }
+-#define PARPORT_DEVICES_ROOT_DIR  { .ctl_name = DEV_PARPORT_DEVICES, .procname = "devices", \
++#define PARPORT_DEVICES_ROOT_DIR  {  .procname = "devices", \
+                                     .mode = 0555, .child = NULL }
  
--	if (write && *valp != val) {
-+	if (write) {
- 	
- 		/* we only care for 1 or 0. */
--		if (*valp)
--			*valp = 1;
--		else
--			*valp = 0;
+ static const unsigned long parport_min_timeslice_value =
+@@ -266,7 +266,6 @@ static const struct parport_sysctl_table
+ 	.sysctl_header = NULL,
+         {
+ 		{
+-			.ctl_name	= DEV_PARPORT_SPINTIME,
+ 			.procname	= "spintime",
+ 			.data		= NULL,
+ 			.maxlen		= sizeof(int),
+@@ -276,7 +275,6 @@ static const struct parport_sysctl_table
+ 			.extra2		= (void*) &parport_max_spintime_value
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_BASE_ADDR,
+ 			.procname	= "base-addr",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -284,7 +282,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_hardware_base_addr
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_IRQ,
+ 			.procname	= "irq",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -292,7 +289,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_hardware_irq
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_DMA,
+ 			.procname	= "dma",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -300,7 +296,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_hardware_dma
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_MODES,
+ 			.procname	= "modes",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -310,7 +305,6 @@ static const struct parport_sysctl_table
+ 		PARPORT_DEVICES_ROOT_DIR,
+ #ifdef CONFIG_PARPORT_1284
+ 		{
+-			.ctl_name	= DEV_PARPORT_AUTOPROBE,
+ 			.procname	= "autoprobe",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -318,7 +312,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_autoprobe
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_AUTOPROBE + 1,
+ 			.procname	= "autoprobe0",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -326,7 +319,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	=  &do_autoprobe
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_AUTOPROBE + 2,
+ 			.procname	= "autoprobe1",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -334,7 +326,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_autoprobe
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_AUTOPROBE + 3,
+ 			.procname	= "autoprobe2",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -342,7 +333,6 @@ static const struct parport_sysctl_table
+ 			.proc_handler	= &do_autoprobe
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_AUTOPROBE + 4,
+ 			.procname	= "autoprobe3",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -354,7 +344,6 @@ static const struct parport_sysctl_table
+ 	},
+ 	{
+ 		{
+-			.ctl_name	= DEV_PARPORT_DEVICES_ACTIVE,
+ 			.procname	= "active",
+ 			.data		= NULL,
+ 			.maxlen		= 0,
+@@ -393,7 +382,6 @@ parport_device_sysctl_template = {
+ 	.sysctl_header = NULL,
+ 	{
+ 		{
+-			.ctl_name 	= DEV_PARPORT_DEVICE_TIMESLICE,
+ 			.procname 	= "timeslice",
+ 			.data		= NULL,
+ 			.maxlen		= sizeof(int),
+@@ -449,7 +437,6 @@ parport_default_sysctl_table = {
+ 	.sysctl_header	= NULL,
+ 	{
+ 		{
+-			.ctl_name	= DEV_PARPORT_DEFAULT_TIMESLICE,
+ 			.procname	= "timeslice",
+ 			.data		= &parport_default_timeslice,
+ 			.maxlen		= sizeof(parport_default_timeslice),
+@@ -459,7 +446,6 @@ parport_default_sysctl_table = {
+ 			.extra2		= (void*) &parport_max_timeslice_value
+ 		},
+ 		{
+-			.ctl_name	= DEV_PARPORT_DEFAULT_SPINTIME,
+ 			.procname	= "spintime",
+ 			.data		= &parport_default_spintime,
+ 			.maxlen		= sizeof(parport_default_spintime),
+@@ -502,7 +488,7 @@ int parport_proc_register(struct parport
+ 
+ 	t->device_dir[0].extra1 = port;
+ 
+-	for (i = 0; i < 8; i++)
++	for (i = 0; i < 5; i++)
+ 		t->vars[i].extra1 = port;
+ 
+ 	t->vars[0].data = &port->spintime;
+@@ -512,7 +498,7 @@ int parport_proc_register(struct parport
+ 		t->vars[6 + i].extra2 = &port->probe_info[i];
+ 
+ 	t->port_dir[0].procname = port->name;
+-	t->port_dir[0].ctl_name = port->number + 1; /* nb 0 isn't legal here */
++	t->port_dir[0].ctl_name = 0;
+ 
+ 	t->port_dir[0].child = t->vars;
+ 	t->parport_dir[0].child = t->port_dir;
+@@ -551,26 +537,12 @@ int parport_device_proc_register(struct 
+ 	t->dev_dir[0].child = t->parport_dir;
+ 	t->parport_dir[0].child = t->port_dir;
+ 	t->port_dir[0].procname = port->name;
+-	t->port_dir[0].ctl_name = port->number + 1; /* nb 0 isn't legal here */
++	t->port_dir[0].ctl_name = 0;
+ 	t->port_dir[0].child = t->devices_root_dir;
+ 	t->devices_root_dir[0].child = t->device_dir;
+ 
+-#ifdef CONFIG_PARPORT_1284
 -
--		if (strcmp(ctl->procname, "autoclose") == 0) {
--			if (valp == &cdrom_sysctl_settings.autoclose)
--				autoclose = cdrom_sysctl_settings.autoclose;
--		}
--		else if (strcmp(ctl->procname, "autoeject") == 0) {
--			if (valp == &cdrom_sysctl_settings.autoeject)
--				autoeject = cdrom_sysctl_settings.autoeject;
--		}
--		else if (strcmp(ctl->procname, "debug") == 0) {
--			if (valp == &cdrom_sysctl_settings.debug)
--				debug = cdrom_sysctl_settings.debug;
--		}
--		else if (strcmp(ctl->procname, "lock") == 0) {
--			if (valp == &cdrom_sysctl_settings.lock)
--				lockdoor = cdrom_sysctl_settings.lock;
--		}
--		else if (strcmp(ctl->procname, "check_media") == 0) {
--			if (valp == &cdrom_sysctl_settings.check)
--				check_media_type = cdrom_sysctl_settings.check;
--		}
-+		autoclose        = !!cdrom_sysctl_settings.autoclose;
-+		autoeject        = !!cdrom_sysctl_settings.autoeject;
-+		debug	         = !!cdrom_sysctl_settings.debug;
-+		lockdoor         = !!cdrom_sysctl_settings.lock;
-+		check_media_type = !!cdrom_sysctl_settings.check;
-+
- 		/* update the option flags according to the changes. we
- 		   don't have per device options through sysctl yet,
- 		   but we will have and then this will disappear. */
+-	t->device_dir[0].ctl_name =
+-		parport_device_num(port->number, port->muxport,
+-				   device->daisy)
+-		+ 1;  /* nb 0 isn't legal here */ 
+-
+-#else /* No IEEE 1284 support */
+-
+-	/* parport_device_num isn't available. */
+-	t->device_dir[0].ctl_name = 1;
+-	
+-#endif /* IEEE 1284 support or not */
+-
++	t->device_dir[0].ctl_name = 0;
+ 	t->device_dir[0].procname = device->name;
+-	t->device_dir[0].extra1 = device;
+ 	t->device_dir[0].child = t->vars;
+ 	t->vars[0].data = &device->timeslice;
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
