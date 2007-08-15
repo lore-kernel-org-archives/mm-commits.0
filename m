@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch added to -mm tree
-Date: Wed, 15 Aug 2007 13:58:28 -0700
-Message-ID: <200708152058.l7FKwSOs014667@imap1.linux-foundation.org>
+Subject: + uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch added to -mm tree
+Date: Wed, 15 Aug 2007 13:58:32 -0700
+Message-ID: <200708152058.l7FKwWJa014673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47311 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753448AbXHOU6r (ORCPT
+	by vger.kernel.org with ESMTP id S1751743AbXHOU6l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:58:47 -0400
+	Wed, 15 Aug 2007 16:58:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: spock@gentoo.org, adaplas@pol.net
 
 
 The patch titled
-     uvesafb: use the default refresh rate if the monitor limits are not set
+     uvesafb: add info about pmipal, yrap and ypan being available only on x86
 has been added to the -mm tree.  Its filename is
-     uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch
+     uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uvesafb: use the default refresh rate if the monitor limits are not set
+Subject: uvesafb: add info about pmipal, yrap and ypan being available only on x86
 From: Michal Januszewski <spock@gentoo.org>
 
-Use the default refresh rate if the monitor limits aren't set (either using
-data from the EDID block, or explicitly by the user).
+Features that use the Protected Mode Interface are available on x86 only. 
+Document this in the uvesafb description.
 
 Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ Documentation/fb/uvesafb.txt |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set
-+++ a/drivers/video/uvesafb.c
-@@ -689,10 +689,13 @@ static void __devinit uvesafb_vbe_getmon
+diff -puN Documentation/fb/uvesafb.txt~uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86 Documentation/fb/uvesafb.txt
+--- a/Documentation/fb/uvesafb.txt~uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86
++++ a/Documentation/fb/uvesafb.txt
+@@ -59,11 +59,12 @@ Accepted options:
+ ypan    Enable display panning using the VESA protected mode
+         interface.  The visible screen is just a window of the
+         video memory, console scrolling is done by changing the
+-        start of the window.
++        start of the window.  Available on x86 only.
  
- 	/*
- 	 * If we don't get all necessary data from the EDID block,
--	 * mark it as incompatible with the GTF.
-+	 * mark it as incompatible with the GTF and set nocrtc so
-+	 * that we always use the default BIOS refresh rate.
- 	 */
--	if (uvesafb_vbe_getedid(task, info))
-+	if (uvesafb_vbe_getedid(task, info)) {
- 		info->monspecs.gtf = 0;
-+		par->nocrtc = 1;
-+	}
+ ywrap   Same as ypan, but assumes your gfx board can wrap-around
+         the video memory (i.e. starts reading from top if it
+         reaches the end of video memory).  Faster than ypan.
++        Available on x86 only.
  
- 	/* Kernel command line overrides. */
- 	if (maxclk)
-@@ -711,6 +714,7 @@ static void __devinit uvesafb_vbe_getmon
- 		info->monspecs.vfmin = 60;
- 		info->monspecs.hfmin = 29000;
- 		info->monspecs.gtf = 1;
-+		par->nocrtc = 0;
- 	}
+ redraw  Scroll by redrawing the affected part of the screen, this
+         is the safe (and slow) default.
+@@ -75,7 +76,7 @@ vgapal  Use the standard VGA registers f
  
- 	if (info->monspecs.gtf)
-@@ -720,7 +724,8 @@ static void __devinit uvesafb_vbe_getmon
- 			(int)(info->monspecs.hfmax / 1000),
- 			(int)(info->monspecs.dclkmax / 1000000));
- 	else
--		printk(KERN_INFO "uvesafb: no monitor limits have been set\n");
-+		printk(KERN_INFO "uvesafb: no monitor limits have been set, "
-+				 "default refresh rate will be used\n");
+ pmipal  Use the protected mode interface for palette changes.
+         This is the default if the protected mode interface is
+-        available.
++        available.  Available on x86 only.
  
- 	/* Add VBE modes to the modelist. */
- 	for (i = 0; i < par->vbe_modes_cnt; i++) {
+ mtrr:n  Setup memory type range registers for the framebuffer
+         where n:
 _
 
 Patches currently in -mm which might be from spock@gentoo.org are
