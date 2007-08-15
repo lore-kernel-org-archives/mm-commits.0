@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-clean-up-the-sched-debug-sysctl-usage.patch added to -mm tree
-Date: Wed, 15 Aug 2007 12:59:53 -0700
-Message-ID: <200708151959.l7FJxrph012484@imap1.linux-foundation.org>
+Subject: + sysctl-update-sysctl_checks-list-of-binary-paths.patch added to -mm tree
+Date: Wed, 15 Aug 2007 12:59:55 -0700
+Message-ID: <200708151959.l7FJxt4a012487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59998 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41307 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936387AbXHOUAy (ORCPT
+	by vger.kernel.org with ESMTP id S935995AbXHOUA6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 16:00:54 -0400
+	Wed, 15 Aug 2007 16:00:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, mingo@elte.hu
+Cc: ebiederm@xmission.com, davem@davemloft.net, kaber@trash.net
 
 
 The patch titled
-     sysctl: clean up the sched debug sysctl usage
+     sysctl: update sysctl_checks list of binary paths
 has been added to the -mm tree.  Its filename is
-     sysctl-clean-up-the-sched-debug-sysctl-usage.patch
+     sysctl-update-sysctl_checks-list-of-binary-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: clean up the sched debug sysctl usage
+Subject: sysctl: update sysctl_checks list of binary paths
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-The ctl_name for the kernel directory is CTL_KERN - It is impoosible to write
-to sysctl directories so do not give users write permissions.
-
-This is enough to stop sysctl_check_table from complaining about the sched
-debug sysctls.
+In the netfilter code and the ipv6 ipqueue code I have found two more binary
+paths that don't conflict with anything.  So this patch adds them to the list
+of valid sysctl binary paths.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ kernel/sysctl_check.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/sched.c~sysctl-clean-up-the-sched-debug-sysctl-usage kernel/sched.c
---- a/kernel/sched.c~sysctl-clean-up-the-sched-debug-sysctl-usage
-+++ a/kernel/sched.c
-@@ -5235,15 +5235,16 @@ static void migrate_dead_tasks(unsigned 
- static struct ctl_table sd_ctl_dir[] = {
- 	{
- 		.procname	= "sched_domain",
--		.mode		= 0755,
-+		.mode		= 0555,
- 	},
- 	{0,},
+diff -puN kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths
++++ a/kernel/sysctl_check.c
+@@ -565,6 +565,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_IPV6_IP6FRAG_TIME,	"ip6frag_time" },
+ 	{ NET_IPV6_IP6FRAG_SECRET_INTERVAL,	"ip6frag_secret_interval" },
+ 	{ NET_IPV6_MLD_MAX_MSF,		"mld_max_msf" },
++	{ 2088 /* IPQ_QMAX */,		"ip6_queue_maxlen" },
+ 	{}
  };
  
- static struct ctl_table sd_ctl_root[] = {
- 	{
-+		.ctl_name	= CTL_KERN,
- 		.procname	= "kernel",
--		.mode		= 0755,
-+		.mode		= 0555,
- 		.child		= sd_ctl_dir,
- 	},
- 	{0,},
-@@ -5319,7 +5320,7 @@ static ctl_table *sd_alloc_ctl_cpu_table
- 	for_each_domain(cpu, sd) {
- 		snprintf(buf, 32, "domain%d", i);
- 		entry->procname = kstrdup(buf, GFP_KERNEL);
--		entry->mode = 0755;
-+		entry->mode = 0555;
- 		entry->child = sd_alloc_ctl_domain_table(sd);
- 		entry++;
- 		i++;
-@@ -5339,7 +5340,7 @@ static void init_sched_domain_sysctl(voi
- 	for (i = 0; i < cpu_num; i++, entry++) {
- 		snprintf(buf, 32, "cpu%d", i);
- 		entry->procname = kstrdup(buf, GFP_KERNEL);
--		entry->mode = 0755;
-+		entry->mode = 0555;
- 		entry->child = sd_alloc_ctl_cpu_table(i);
- 	}
- 	sd_sysctl_header = register_sysctl_table(sd_ctl_root);
+@@ -723,6 +724,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_LLC,		"llc",		trans_net_llc_table },
+ 	{ NET_NETFILTER,	"netfilter",	trans_net_netfilter_table },
+ 	{ NET_DCCP,		"dccp",		trans_net_dccp_table },
++	{ 2089,			"nf_conntrack_max" },
+ 	{}
+ };
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
