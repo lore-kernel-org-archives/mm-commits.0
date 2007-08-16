@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch added to -mm tree
-Date: Thu, 16 Aug 2007 12:28:10 -0700
-Message-ID: <200708161928.l7GJSAUj003111@imap1.linux-foundation.org>
+Subject: + ia64-include-kconfigpreempt.patch added to -mm tree
+Date: Thu, 16 Aug 2007 12:29:23 -0700
+Message-ID: <200708161929.l7GJTN26003163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34517 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932426AbXHPT2u (ORCPT
+	by vger.kernel.org with ESMTP id S1752677AbXHPTaR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 15:28:50 -0400
+	Thu, 16 Aug 2007 15:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, clameter@sgi.com
+Cc: satyam@infradead.org, avi@qumranet.com, mingo@elte.hu, tony.luck@intel.com
 
 
 The patch titled
-     slab: skip calling cache_free_alien() when the platform is not numa capable
+     ia64: include Kconfig.preempt
 has been added to the -mm tree.  Its filename is
-     slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch
+     ia64-include-kconfigpreempt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,77 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab: skip calling cache_free_alien() when the platform is not numa capable
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: ia64: include Kconfig.preempt
+From: Satyam Sharma <satyam@infradead.org>
 
-Skip calling cache_free_alien() when the platform is not numa capable. 
-This will avoid cache misses that happen while accessing slabp (which is
-per page memory reference) to get nodeid.  Instead use a global variable to
-skip the call, which is mostly likely to be present in the cache.
+arch/ia64/Kconfig failed to include kernel/Kconfig.preempt that meant it
+did not support PREEMPT_VOLUNTARY and PREEMPT_BKL (inadvertently).  This
+was recently noticed when the newly-added PREEMPT_NOTIFIERS in
+Kconfig.preempt that was "select"ed from drivers/kvm/Kconfig (therefore)
+started giving bogus warnings ('select' used by config symbol 'KVM' refers
+to undefined symbol 'PREEMPT_NOTIFIERS') on ia64 builds.
 
-This gives a 0.8% performance boost with the database oltp workload on a
-quad-core SMP platform and by any means the number is not small :)
+So let's remove the open-coded definition of CONFIG_PREEMPT in
+arch/ia64/Kconfig and replace it with just including Kconfig.preempt
+instead, like the other archs do.
 
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+ arch/ia64/Kconfig |   12 +-----------
+ 1 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN mm/slab.c~slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable mm/slab.c
---- a/mm/slab.c~slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable
-+++ a/mm/slab.c
-@@ -883,6 +883,7 @@ static void __slab_error(const char *fun
-   */
+diff -puN arch/ia64/Kconfig~ia64-include-kconfigpreempt arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~ia64-include-kconfigpreempt
++++ a/arch/ia64/Kconfig
+@@ -327,17 +327,7 @@ config FORCE_CPEI_RETARGET
+ 	This option it useful to enable this feature on older BIOS's as well.
+ 	You can also enable this by using boot command line option force_cpei=1.
  
- static int use_alien_caches __read_mostly = 1;
-+static int numa_platform __read_mostly = 1;
- static int __init noaliencache_setup(char *s)
- {
- 	use_alien_caches = 0;
-@@ -1399,8 +1400,10 @@ void __init kmem_cache_init(void)
- 	int order;
- 	int node;
+-config PREEMPT
+-	bool "Preemptible Kernel"
+-        help
+-          This option reduces the latency of the kernel when reacting to
+-          real-time or interactive events by allowing a low priority process to
+-          be preempted even if it is in kernel mode executing a system call.
+-          This allows applications to run more reliably even when the system is
+-          under load.
+-
+-          Say Y here if you are building a kernel for a desktop, embedded
+-          or real-time system.  Say N if you are unsure.
++source "kernel/Kconfig.preempt"
  
--	if (num_possible_nodes() == 1)
-+	if (num_possible_nodes() == 1) {
- 		use_alien_caches = 0;
-+		numa_platform = 0;
-+	}
+ source "mm/Kconfig"
  
- 	for (i = 0; i < NUM_INIT_LISTS; i++) {
- 		kmem_list3_init(&initkmem_list3[i]);
-@@ -3558,7 +3561,14 @@ static inline void __cache_free(struct k
- 	check_irq_off();
- 	objp = cache_free_debugcheck(cachep, objp, __builtin_return_address(0));
- 
--	if (cache_free_alien(cachep, objp))
-+	/*
-+	 * Skip calling cache_free_alien() when the platform is not numa.
-+	 * This will avoid cache misses that happen while accessing slabp (which
-+	 * is per page memory  reference) to get nodeid. Instead use a global
-+	 * variable to skip the call, which is mostly likely to be present in
-+	 * the cache.
-+	 */
-+	if (numa_platform && cache_free_alien(cachep, objp))
- 		return;
- 
- 	if (likely(ac->avail < ac->limit)) {
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+ia64-include-kconfigpreempt.patch
+git-netdev-all.patch
+git-net.patch
+introduce-u16_max-and-u32_max.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
