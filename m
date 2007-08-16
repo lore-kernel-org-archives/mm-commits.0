@@ -1,58 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - sata_nv-allow-changing-queue-depth.patch removed from -mm tree
-Date: Wed, 15 Aug 2007 23:57:30 -0700
-Message-ID: <200708160657.l7G6vUo1004019@imap1.linux-foundation.org>
+Subject: + ipmi-fix-warning-in-ipmi_si_intfc.patch added to -mm tree
+Date: Thu, 16 Aug 2007 12:20:49 -0700
+Message-ID: <200708161920.l7GJKnEr002819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57466 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751954AbXHPG5k (ORCPT
+	by vger.kernel.org with ESMTP id S1752578AbXHPTVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 02:57:40 -0400
+	Thu, 16 Aug 2007 15:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: safradin@de.ibm.com, cminyard@mvista.com, krafft@de.ibm.com
 
 
 The patch titled
-     sata_nv: allow changing queue depth
-has been removed from the -mm tree.  Its filename was
-     sata_nv-allow-changing-queue-depth.patch
+     IPMI: fix warning in ipmi_si_intf.c
+has been added to the -mm tree.  Its filename is
+     ipmi-fix-warning-in-ipmi_si_intfc.patch
 
-This patch was dropped because it was folded into ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sata_nv: allow changing queue depth
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: IPMI: fix warning in ipmi_si_intf.c
+From: Mijo Safradin <safradin@de.ibm.com>
 
-The sata_nv driver was missing the change_queue_depth hook in the SCSI host
-template which the other NCQ-capable libata drivers had.  This made it
-impossible to change the queue depth by user request.  Add this in.
+trivial change: fix warning
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Signed-off-by: Mijo Safradin <safradin@de.ibm.com>
+Acked-by: Christian Krafft <krafft@de.ibm.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/char/ipmi/ipmi_si_intf.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth
-+++ a/drivers/ata/sata_nv.c
-@@ -420,6 +420,7 @@ static struct scsi_host_template nv_swnc
- 	.name			= DRV_NAME,
- 	.ioctl			= ata_scsi_ioctl,
- 	.queuecommand		= ata_scsi_queuecmd,
-+	.change_queue_depth	= ata_scsi_change_queue_depth,
- 	.can_queue		= ATA_MAX_QUEUE,
- 	.this_id		= ATA_SHT_THIS_ID,
- 	.sg_tablesize		= LIBATA_MAX_PRD,
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2292,7 +2292,7 @@ static int __devinit ipmi_of_probe(struc
+ 	info->irq		= irq_of_parse_and_map(dev->node, 0);
+ 	info->dev		= &dev->dev;
+ 
+-	dev_dbg(&dev->dev, "addr 0x%lx regsize %ld spacing %ld irq %x\n",
++	dev_dbg(&dev->dev, "addr 0x%lx regsize %d spacing %d irq %x\n",
+ 		info->io.addr_data, info->io.regsize, info->io.regspacing,
+ 		info->irq);
+ 
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from safradin@de.ibm.com are
 
-mmconfig-validate-against-acpi-motherboard-resources.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-sata_nv-allow-changing-queue-depth.patch
-libata-add-human-readable-error-value-decoding-v3.patch
-pci-disable-decode-of-io-memory-during-bar-sizing.patch
+ipmi-fix-warning-in-ipmi_si_intfc.patch
