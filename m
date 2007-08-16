@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-fix-warning-in-ipmi_si_intfc.patch added to -mm tree
-Date: Thu, 16 Aug 2007 12:20:49 -0700
-Message-ID: <200708161920.l7GJKnEr002819@imap1.linux-foundation.org>
+Subject: + enable-link-power-management-for-ata-drivers-fix.patch added to -mm tree
+Date: Thu, 16 Aug 2007 12:22:20 -0700
+Message-ID: <200708161922.l7GJMKCY002921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33446 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752578AbXHPTVK (ORCPT
+	by vger.kernel.org with ESMTP id S1754243AbXHPTW2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 15:21:10 -0400
+	Thu, 16 Aug 2007 15:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: safradin@de.ibm.com, cminyard@mvista.com, krafft@de.ibm.com
+Cc: kristen.c.accardi@intel.com
 
 
 The patch titled
-     IPMI: fix warning in ipmi_si_intf.c
+     Enable link power management for ata drivers (fix)
 has been added to the -mm tree.  Its filename is
-     ipmi-fix-warning-in-ipmi_si_intfc.patch
+     enable-link-power-management-for-ata-drivers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPMI: fix warning in ipmi_si_intf.c
-From: Mijo Safradin <safradin@de.ibm.com>
+Subject: Enable link power management for ata drivers (fix)
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-trivial change: fix warning
+change to KERN_INFO for failure to set pm policy
 
-Signed-off-by: Mijo Safradin <safradin@de.ibm.com>
-Acked-by: Christian Krafft <krafft@de.ibm.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    2 +-
+ drivers/ata/libata-scsi.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2292,7 +2292,7 @@ static int __devinit ipmi_of_probe(struc
- 	info->irq		= irq_of_parse_and_map(dev->node, 0);
- 	info->dev		= &dev->dev;
- 
--	dev_dbg(&dev->dev, "addr 0x%lx regsize %ld spacing %ld irq %x\n",
-+	dev_dbg(&dev->dev, "addr 0x%lx regsize %d spacing %d irq %x\n",
- 		info->io.addr_data, info->io.regsize, info->io.regspacing,
- 		info->irq);
- 
+diff -puN drivers/ata/libata-scsi.c~enable-link-power-management-for-ata-drivers-fix drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~enable-link-power-management-for-ata-drivers-fix
++++ a/drivers/ata/libata-scsi.c
+@@ -3006,7 +3006,7 @@ int ata_scsi_set_link_pm_policy(struct a
+  		 */
+ 		if ((dev->horkage & ATA_HORKAGE_IPM) ||
+ 			!(dev->flags & ATA_DFLAG_IPM)) {
+-			ata_dev_printk(dev, KERN_ERR,
++			ata_dev_printk(dev, KERN_INFO,
+ 				"Unable to set Link PM policy\n");
+ 			ap->pm_policy = MAX_PERFORMANCE;
+ 		}
 _
 
-Patches currently in -mm which might be from safradin@de.ibm.com are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-ipmi-fix-warning-in-ipmi_si_intfc.patch
+git-libata-all.patch
+alpm-store-interrupt-value.patch
+alpm-increase-number-of-allowable-device-flags.patch
+alpm-increase-number-of-allowable-device-flags-fix.patch
+alpm-enable-link-power-management-for-ata-drivers.patch
+enable-link-power-management-for-ata-drivers-fix.patch
+alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
+libata-check-for-an-support.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+libata-send-event-when-an-received.patch
+acpiphp_ibm-add-missing-n.patch
