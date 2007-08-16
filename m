@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-kernel-power-maincsuspend_enter-static.patch added to -mm tree
-Date: Thu, 16 Aug 2007 14:09:36 -0700
-Message-ID: <200708162109.l7GL9aU7006871@imap1.linux-foundation.org>
+Subject: + allow-disabling-dnotify-without-embedded.patch added to -mm tree
+Date: Thu, 16 Aug 2007 14:10:28 -0700
+Message-ID: <200708162110.l7GLASNX006894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43316 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751183AbXHPVJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752731AbXHPVKu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 17:09:58 -0400
+	Thu, 16 Aug 2007 17:10:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: bunk@kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     make kernel/power/main.c:suspend_enter() static
+     allow disabling DNOTIFY without EMBEDDED
 has been added to the -mm tree.  Its filename is
-     make-kernel-power-maincsuspend_enter-static.patch
+     allow-disabling-dnotify-without-embedded.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make kernel/power/main.c:suspend_enter() static
+Subject: allow disabling DNOTIFY without EMBEDDED
 From: Adrian Bunk <bunk@kernel.org>
 
-suspend_enter() can now become static.
+Allow disabling DNOTIFY with CONFIG_EMBEDDED=n.
+
+I'm currently running a kernel with dnotify disabled and I haven't run into
+any problem.  Is there any popular application left that breaks without
+dnotify support in the kernel?
+
+Note that this patch does not remove dnotify support, it still defaults to
+"y", and the help text recommends enabling it.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/main.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/main.c~make-kernel-power-maincsuspend_enter-static kernel/power/main.c
---- a/kernel/power/main.c~make-kernel-power-maincsuspend_enter-static
-+++ a/kernel/power/main.c
-@@ -128,7 +128,7 @@ void __attribute__ ((weak)) arch_suspend
-  *
-  *	This function should be called after devices have been suspended.
-  */
--int suspend_enter(suspend_state_t state)
-+static int suspend_enter(suspend_state_t state)
- {
- 	int error = 0;
+diff -puN fs/Kconfig~allow-disabling-dnotify-without-embedded fs/Kconfig
+--- a/fs/Kconfig~allow-disabling-dnotify-without-embedded
++++ a/fs/Kconfig
+@@ -558,7 +558,7 @@ config QUOTACTL
+ 	default y
  
+ config DNOTIFY
+-	bool "Dnotify support" if EMBEDDED
++	bool "Dnotify support"
+ 	default y
+ 	help
+ 	  Dnotify is a directory-based per-fd file change notification system
+@@ -566,7 +566,7 @@ config DNOTIFY
+ 	  superior alternatives, but some applications may still rely on
+ 	  dnotify.
+ 
+-	  Because of this, if unsure, say Y.
++	  If unsure, say Y.
+ 
+ config AUTOFS_FS
+ 	tristate "Kernel automounter support"
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -68,6 +83,7 @@ make-kernel-power-maincsuspend_enter-static.patch
 kconfig-syntax-cleanups.patch
 kernel-time-timekeepingc-cleanups.patch
 make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
 remove-fs-ext2-balloccreserve_blocks.patch
 pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
 sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
