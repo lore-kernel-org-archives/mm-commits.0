@@ -1,96 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch added to -mm tree
-Date: Wed, 15 Aug 2007 16:35:29 -0700
-Message-ID: <200708152335.l7FNZT2J020908@imap1.linux-foundation.org>
+Subject: - sata_nv-allow-changing-queue-depth.patch removed from -mm tree
+Date: Wed, 15 Aug 2007 23:57:30 -0700
+Message-ID: <200708160657.l7G6vUo1004019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32988 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964797AbXHOXgH (ORCPT
+	by vger.kernel.org with ESMTP id S1751954AbXHPG5k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2007 19:36:07 -0400
+	Thu, 16 Aug 2007 02:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: michaelc@cs.wisc.edu, James.Bottomley@steeleye.com, jli@greshamstorage.com
+To: hancockr@shaw.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
-has been added to the -mm tree.  Its filename is
-     scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch
+     sata_nv: allow changing queue depth
+has been removed from the -mm tree.  Its filename was
+     sata_nv-allow-changing-queue-depth.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
 
 ------------------------------------------------------
-Subject: scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
-From: Mike Christie <michaelc@cs.wisc.edu>
+Subject: sata_nv: allow changing queue depth
+From: Robert Hancock <hancockr@shaw.ca>
 
-sg's may have setup a the buffer with a different length than the transfer
-length so we should be using the bufflen passed in as the request's data
-len.
+The sata_nv driver was missing the change_queue_depth hook in the SCSI host
+template which the other NCQ-capable libata drivers had.  This made it
+impossible to change the queue depth by user request.  Add this in.
 
-Signed-off-by: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Jeremy Linton <jli@greshamstorage.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/ata/sata_nv.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers
-+++ a/drivers/scsi/scsi_lib.c
-@@ -306,7 +306,7 @@ static int scsi_req_map_sg(struct reques
- {
- 	struct request_queue *q = rq->q;
- 	int nr_pages = (bufflen + sgl[0].offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	unsigned int data_len = 0, len, bytes, off;
-+	unsigned int data_len = bufflen, len, bytes, off;
- 	struct page *page;
- 	struct bio *bio = NULL;
- 	int i, err, nr_vecs = 0;
-@@ -315,10 +315,15 @@ static int scsi_req_map_sg(struct reques
- 		page = sgl[i].page;
- 		off = sgl[i].offset;
- 		len = sgl[i].length;
--		data_len += len;
- 
--		while (len > 0) {
-+		while (len > 0 && data_len > 0) {
-+			/*
-+			 * sg sends a scatterlist that is larger than
-+			 * the data_len it wants transferred for certain
-+			 * IO sizes
-+			 */
- 			bytes = min_t(unsigned int, len, PAGE_SIZE - off);
-+			bytes = min(bytes, data_len);
- 
- 			if (!bio) {
- 				nr_vecs = min_t(int, BIO_MAX_PAGES, nr_pages);
-@@ -350,12 +355,13 @@ static int scsi_req_map_sg(struct reques
- 
- 			page++;
- 			len -= bytes;
-+			data_len -=bytes;
- 			off = 0;
- 		}
- 	}
- 
- 	rq->buffer = rq->data = NULL;
--	rq->data_len = data_len;
-+	rq->data_len = bufflen;
- 	return 0;
- 
- free_bios:
+diff -puN drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~sata_nv-allow-changing-queue-depth
++++ a/drivers/ata/sata_nv.c
+@@ -420,6 +420,7 @@ static struct scsi_host_template nv_swnc
+ 	.name			= DRV_NAME,
+ 	.ioctl			= ata_scsi_ioctl,
+ 	.queuecommand		= ata_scsi_queuecmd,
++	.change_queue_depth	= ata_scsi_change_queue_depth,
+ 	.can_queue		= ATA_MAX_QUEUE,
+ 	.this_id		= ATA_SHT_THIS_ID,
+ 	.sg_tablesize		= LIBATA_MAX_PRD,
 _
 
-Patches currently in -mm which might be from michaelc@cs.wisc.edu are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-git-scsi-misc.patch
-add-includes-to-scsi_transport_iscsih.patch
-scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch
+mmconfig-validate-against-acpi-motherboard-resources.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+sata_nv-allow-changing-queue-depth.patch
+libata-add-human-readable-error-value-decoding-v3.patch
+pci-disable-decode-of-io-memory-during-bar-sizing.patch
