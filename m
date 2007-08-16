@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static.patch added to -mm tree
-Date: Thu, 16 Aug 2007 13:39:27 -0700
-Message-ID: <200708162039.l7GKdRpE005677@imap1.linux-foundation.org>
+Subject: + fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch added to -mm tree
+Date: Thu, 16 Aug 2007 13:51:56 -0700
+Message-ID: <200708162051.l7GKpuPs006097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47132 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751408AbXHPUjn (ORCPT
+	by vger.kernel.org with ESMTP id S1756061AbXHPUwO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 16:39:43 -0400
+	Thu, 16 Aug 2007 16:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, kristen.c.accardi@intel.com
+Cc: bunk@kernel.org, bzolnier@gmail.com, lenb@kernel.org, shaohua.li@intel.com
 
 
 The patch titled
-     make drivers/ata/libata-scsi.c:ata_scsi_link_pm_policy() static
+     fix ide-ide-hook-acpi-psx-method-to-ide-power-on-off
 has been added to the -mm tree.  Its filename is
-     alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static.patch
+     fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make drivers/ata/libata-scsi.c:ata_scsi_link_pm_policy() static
+Subject: fix ide-ide-hook-acpi-psx-method-to-ide-power-on-off
 From: Adrian Bunk <bunk@kernel.org>
 
-ata_scsi_link_pm_policy() can become static.
+This patch removes the unused EXPORT_SYMBOL_GPL(ide_acpi_set_state)
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-acpi.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/ata/libata-scsi.c~alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static
-+++ a/drivers/ata/libata-scsi.c
-@@ -121,7 +121,7 @@ static const struct {
- 	{ MEDIUM_POWER, "medium_power" },
- };
+diff -puN drivers/ide/ide-acpi.c~fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off drivers/ide/ide-acpi.c
+--- a/drivers/ide/ide-acpi.c~fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off
++++ a/drivers/ide/ide-acpi.c
+@@ -649,7 +649,6 @@ void ide_acpi_set_state(ide_hwif_t *hwif
+ 	if (!on)
+ 		acpi_bus_set_power(hwif->acpidata->obj_handle, ACPI_STATE_D3);
+ }
+-EXPORT_SYMBOL_GPL(ide_acpi_set_state);
  
--const char *ata_scsi_link_pm_policy(enum link_pm policy)
-+static const char *ata_scsi_link_pm_policy(enum link_pm policy)
- {
- 	int i;
- 	char *name = NULL;
+ /**
+  * ide_acpi_init - initialize the ACPI link for an IDE interface
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
 
 alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
 kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
 pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
 sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
 reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
