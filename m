@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + enable-link-power-management-for-ata-drivers-fix.patch added to -mm tree
-Date: Thu, 16 Aug 2007 12:22:20 -0700
-Message-ID: <200708161922.l7GJMKCY002921@imap1.linux-foundation.org>
+Subject: + x86_64-get-mp_bus_to_node-as-early-v3-update.patch added to -mm tree
+Date: Thu, 16 Aug 2007 12:24:40 -0700
+Message-ID: <200708161924.l7GJOedF002979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45678 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754243AbXHPTW2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755713AbXHPT0E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 15:22:28 -0400
+	Thu, 16 Aug 2007 15:26:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kristen.c.accardi@intel.com
+Cc: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM
 
 
 The patch titled
-     Enable link power management for ata drivers (fix)
+     x86_64-get-mp_bus_to_node-as-early-v3 update
 has been added to the -mm tree.  Its filename is
-     enable-link-power-management-for-ata-drivers-fix.patch
+     x86_64-get-mp_bus_to_node-as-early-v3-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Enable link power management for ata drivers (fix)
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: x86_64-get-mp_bus_to_node-as-early-v3 update
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-change to KERN_INFO for failure to set pm policy
+It seem the one in -mm missed changes to irq.c
 
-Signed-off-by:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/pci/irq.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-scsi.c~enable-link-power-management-for-ata-drivers-fix drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~enable-link-power-management-for-ata-drivers-fix
-+++ a/drivers/ata/libata-scsi.c
-@@ -3006,7 +3006,7 @@ int ata_scsi_set_link_pm_policy(struct a
-  		 */
- 		if ((dev->horkage & ATA_HORKAGE_IPM) ||
- 			!(dev->flags & ATA_DFLAG_IPM)) {
--			ata_dev_printk(dev, KERN_ERR,
-+			ata_dev_printk(dev, KERN_INFO,
- 				"Unable to set Link PM policy\n");
- 			ap->pm_policy = MAX_PERFORMANCE;
- 		}
+diff -puN arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update arch/i386/pci/irq.c
+--- a/arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update
++++ a/arch/i386/pci/irq.c
+@@ -136,9 +136,11 @@ static void __init pirq_peer_trick(void)
+ 		busmap[e->bus] = 1;
+ 	}
+ 	for(i = 1; i < 256; i++) {
++		int node;
+ 		if (!busmap[i] || pci_find_bus(0, i))
+ 			continue;
+-		if (pci_scan_bus_with_sysdata(i))
++		node = get_mp_bus_to_node(i);
++		if (pci_scan_bus_on_node(i, &pci_root_ops, node))
+ 			printk(KERN_INFO "PCI: Discovered primary peer "
+ 			       "bus %02x [IRQ]\n", i);
+ 	}
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-git-libata-all.patch
-alpm-store-interrupt-value.patch
-alpm-increase-number-of-allowable-device-flags.patch
-alpm-increase-number-of-allowable-device-flags-fix.patch
-alpm-enable-link-power-management-for-ata-drivers.patch
-enable-link-power-management-for-ata-drivers-fix.patch
-alpm-enable-aggressive-link-power-management-for-ahci-controllers.patch
-libata-check-for-an-support.patch
-scsi-expose-an-support-to-user-space.patch
-libata-expose-an-to-user-space.patch
-libata-send-event-when-an-received.patch
-acpiphp_ibm-add-missing-n.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-make-io-apic-not-connected-pin-print-complete.patch
