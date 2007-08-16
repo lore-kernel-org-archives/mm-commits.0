@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-disabling-dnotify-without-embedded.patch added to -mm tree
-Date: Thu, 16 Aug 2007 14:10:28 -0700
-Message-ID: <200708162110.l7GLASNX006894@imap1.linux-foundation.org>
+Subject: + uml-remove-sysdep-threadh.patch added to -mm tree
+Date: Thu, 16 Aug 2007 14:14:14 -0700
+Message-ID: <200708162114.l7GLEEvU007077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752731AbXHPVKu (ORCPT
+	by vger.kernel.org with ESMTP id S1751937AbXHPVOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 17:10:50 -0400
+	Thu, 16 Aug 2007 17:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, sfr@canb.auug.org.au
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     allow disabling DNOTIFY without EMBEDDED
+     uml: remove sysdep/thread.h
 has been added to the -mm tree.  Its filename is
-     allow-disabling-dnotify-without-embedded.patch
+     uml-remove-sysdep-threadh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,110 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: allow disabling DNOTIFY without EMBEDDED
-From: Adrian Bunk <bunk@kernel.org>
+Subject: uml: remove sysdep/thread.h
+From: Jeff Dike <jdike@addtoit.com>
 
-Allow disabling DNOTIFY with CONFIG_EMBEDDED=n.
+This patch removes thread.h, which turns out not to be needed any more.
 
-I'm currently running a kernel with dnotify disabled and I haven't run into
-any problem.  Is there any popular application left that breaks without
-dnotify support in the kernel?
-
-Note that this patch does not remove dnotify support, it still defaults to
-"y", and the help text recommends enabling it.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/um/include/sysdep-i386/kernel-offsets.h |    1 -
+ arch/um/include/sysdep-i386/sigcontext.h     |    3 ++-
+ arch/um/include/sysdep-i386/thread.h         |    8 --------
+ arch/um/include/sysdep-x86_64/thread.h       |    6 ------
+ arch/um/sys-i386/ptrace_user.c               |    1 -
+ 5 files changed, 2 insertions(+), 17 deletions(-)
 
-diff -puN fs/Kconfig~allow-disabling-dnotify-without-embedded fs/Kconfig
---- a/fs/Kconfig~allow-disabling-dnotify-without-embedded
-+++ a/fs/Kconfig
-@@ -558,7 +558,7 @@ config QUOTACTL
- 	default y
+diff -puN arch/um/include/sysdep-i386/kernel-offsets.h~uml-remove-sysdep-threadh arch/um/include/sysdep-i386/kernel-offsets.h
+--- a/arch/um/include/sysdep-i386/kernel-offsets.h~uml-remove-sysdep-threadh
++++ a/arch/um/include/sysdep-i386/kernel-offsets.h
+@@ -17,6 +17,5 @@
  
- config DNOTIFY
--	bool "Dnotify support" if EMBEDDED
-+	bool "Dnotify support"
- 	default y
- 	help
- 	  Dnotify is a directory-based per-fd file change notification system
-@@ -566,7 +566,7 @@ config DNOTIFY
- 	  superior alternatives, but some applications may still rely on
- 	  dnotify.
+ void foo(void)
+ {
+-	OFFSET(HOST_TASK_DEBUGREGS, task_struct, thread.arch.debugregs);
+ #include <common-offsets.h>
+ }
+diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-remove-sysdep-threadh arch/um/include/sysdep-i386/sigcontext.h
+--- a/arch/um/include/sysdep-i386/sigcontext.h~uml-remove-sysdep-threadh
++++ a/arch/um/include/sysdep-i386/sigcontext.h
+@@ -7,7 +7,8 @@
+ #define __SYS_SIGCONTEXT_I386_H
  
--	  Because of this, if unsure, say Y.
-+	  If unsure, say Y.
+ #include "uml-config.h"
+-#include <sysdep/sc.h>
++#include "skas.h"
++#include "sysdep/sc.h"
  
- config AUTOFS_FS
- 	tristate "Kernel automounter support"
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+diff -puN arch/um/include/sysdep-i386/thread.h~uml-remove-sysdep-threadh /dev/null
+--- a/arch/um/include/sysdep-i386/thread.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef __UM_THREAD_H
+-#define __UM_THREAD_H
+-
+-#include <kern_constants.h>
+-
+-#define TASK_DEBUGREGS(task) ((unsigned long *) &(((char *) (task))[HOST_TASK_DEBUGREGS]))
+-
+-#endif
+diff -puN arch/um/include/sysdep-x86_64/thread.h~uml-remove-sysdep-threadh /dev/null
+--- a/arch/um/include/sysdep-x86_64/thread.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __UM_THREAD_H
+-#define __UM_THREAD_H
+-
+-#include <kern_constants.h>
+-
+-#endif
+diff -puN arch/um/sys-i386/ptrace_user.c~uml-remove-sysdep-threadh arch/um/sys-i386/ptrace_user.c
+--- a/arch/um/sys-i386/ptrace_user.c~uml-remove-sysdep-threadh
++++ a/arch/um/sys-i386/ptrace_user.c
+@@ -11,7 +11,6 @@
+ /* Grr, asm/user.h includes asm/ptrace.h, so has to follow ptrace_user.h */
+ #include <asm/user.h>
+ #include "kern_util.h"
+-#include "sysdep/thread.h"
+ #include "user.h"
+ #include "os.h"
+ #include "uml-config.h"
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-pass-g-to-assembler-under-config_debug_info-fix.patch
-alpm-enable-link-power-management-for-ata-drivers-make-drivers-ata-libata-scsicata_scsi_link_pm_policy-static.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
-if-0-v9fs_fid_lookup_remove.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+introduce-config_check_signature-was-re-uninline.patch
+git-kvm.patch
+hostfs-convert-to-new-aops.patch
+uml-move-userspace-code-to-userspace-file.patch
+uml-tidy-recently-moved-code.patch
+uml-fix-error-cleanup-ordering.patch
+uml-console-subsystem-tidying.patch
+uml-fix-console-writing-bugs.patch
+uml-console-tidying.patch
+uml-stop-using-libc-asm-pageh.patch
+uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
+uml-fix-nonremovability-of-watchdog.patch
+uml-stop-specially-protecting-kernel-stacks.patch
+uml-stop-saving-process-fp-state.patch
+uml-physmem-code-tidying.patch
+uml-add-vde-networking-support.patch
+uml-remove-unnecessary-hostfs_getattr.patch
+uml-throw-out-config_mode_tt.patch
+uml-remove-sysdep-threadh.patch
+uml-style-fixes-pass-1.patch
+uml-throw-out-choose_mode.patch
+uml-style-fixes-pass-2.patch
+uml-remove-code-made-redundant-by-choose_mode-removal.patch
+uml-style-fixes-pass-3.patch
+uml-remove-__u64-usage-from-physical-memory-subsystem.patch
+uml-get-rid-of-do_longjmp.patch
+uml-fold-mmu_context_skas-into-mm_context.patch
+uml-rename-pt_regs-general-purpose-register-file.patch
+uml-free-ldt-state-on-process-exit.patch
+uml-remove-os_-usage-from-userspace-files.patch
+uml-replace-clone-with-fork.patch
