@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + keyboard-capsshift-lock.patch added to -mm tree
-Date: Thu, 16 Aug 2007 12:37:26 -0700
-Message-ID: <200708161937.l7GJbQpv003413@imap1.linux-foundation.org>
+Subject: + 3c59x-check-return-of-pci_enable_device.patch added to -mm tree
+Date: Thu, 16 Aug 2007 12:38:35 -0700
+Message-ID: <200708161938.l7GJcZDU003432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47336 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757117AbXHPTiK (ORCPT
+	by vger.kernel.org with ESMTP id S1758985AbXHPTje (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Aug 2007 15:38:10 -0400
+	Thu, 16 Aug 2007 15:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@ens-lyon.org, dtor@mail.ru, jkosina@suse.cz
+Cc: mark@hindley.org.uk, klassert@mathematik.tu-chemnitz.de
 
 
 The patch titled
-     Keyboard CapsShift Lock
+     3c59x: check return of pci_enable_device()
 has been added to the -mm tree.  Its filename is
-     keyboard-capsshift-lock.patch
+     3c59x-check-return-of-pci_enable_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Keyboard CapsShift Lock
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: 3c59x: check return of pci_enable_device()
+From: Mark Hindley <mark@hindley.org.uk>
 
-There exists a CapsShift lock called KG_CAPSSHIFT, but no associated
-lock/slock, here is a patch which adds CapsShift lock and slock.
+Check return of pci_enable_device in vortex_up().
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Also modify vortex_up to return error to callers.  Handle failure of
+vortex_up in vortex_open and vortex_resume.
+
+Signed-off-by: Mark Hindley <mark@hindley.org.uk>
+Cc: Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/keyboard.h |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/3c59x.c |   36 ++++++++++++++++++++++++------------
+ 1 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/keyboard.h~keyboard-capsshift-lock include/linux/keyboard.h
---- a/include/linux/keyboard.h~keyboard-capsshift-lock
-+++ a/include/linux/keyboard.h
-@@ -416,6 +416,7 @@ extern unsigned short plain_map[NR_KEYS]
- #define K_SHIFTRLOCK	K(KT_LOCK,KG_SHIFTR)
- #define K_CTRLLLOCK	K(KT_LOCK,KG_CTRLL)
- #define K_CTRLRLOCK	K(KT_LOCK,KG_CTRLR)
-+#define K_CAPSSHIFTLOCK	K(KT_LOCK,KG_CAPSSHIFT)
+diff -puN drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device drivers/net/3c59x.c
+--- a/drivers/net/3c59x.c~3c59x-check-return-of-pci_enable_device
++++ a/drivers/net/3c59x.c
+@@ -705,7 +705,7 @@ static struct {
  
- #define K_SHIFT_SLOCK	K(KT_SLOCK,KG_SHIFT)
- #define K_CTRL_SLOCK	K(KT_SLOCK,KG_CTRL)
-@@ -425,8 +426,9 @@ extern unsigned short plain_map[NR_KEYS]
- #define K_SHIFTR_SLOCK	K(KT_SLOCK,KG_SHIFTR)
- #define K_CTRLL_SLOCK	K(KT_SLOCK,KG_CTRLL)
- #define K_CTRLR_SLOCK	K(KT_SLOCK,KG_CTRLR)
-+#define K_CAPSSHIFT_SLOCK	K(KT_SLOCK,KG_CAPSSHIFT)
+ static int vortex_probe1(struct device *gendev, void __iomem *ioaddr, int irq,
+ 				   int chip_idx, int card_idx);
+-static void vortex_up(struct net_device *dev);
++static int vortex_up(struct net_device *dev);
+ static void vortex_down(struct net_device *dev, int final);
+ static int vortex_open(struct net_device *dev);
+ static void mdio_sync(void __iomem *ioaddr, int bits);
+@@ -841,8 +841,11 @@ static int vortex_resume(struct pci_dev 
+ 			return -EBUSY;
+ 		}
+ 		if (netif_running(dev)) {
+-			vortex_up(dev);
+-			netif_device_attach(dev);
++			err = vortex_up(dev);
++			if (err)
++				return err;
++			else
++				netif_device_attach(dev);
+ 		}
+ 	}
+ 	return 0;
+@@ -1484,19 +1487,24 @@ static void vortex_check_media(struct ne
+ 	}
+ }
  
--#define NR_LOCK		8
-+#define NR_LOCK		9
+-static void
++static int
+ vortex_up(struct net_device *dev)
+ {
+ 	struct vortex_private *vp = netdev_priv(dev);
+ 	void __iomem *ioaddr = vp->ioaddr;
+ 	unsigned int config;
+-	int i, mii_reg1, mii_reg5;
++	int i, mii_reg1, mii_reg5, err;
  
- #define K_BRL_BLANK     K(KT_BRL, 0)
- #define K_BRL_DOT1      K(KT_BRL, 1)
+ 	if (VORTEX_PCI(vp)) {
+ 		pci_set_power_state(VORTEX_PCI(vp), PCI_D0);	/* Go active */
+ 		if (vp->pm_state_valid)
+ 			pci_restore_state(VORTEX_PCI(vp));
+-		pci_enable_device(VORTEX_PCI(vp));
++		err = pci_enable_device(VORTEX_PCI(vp));
++		if (err) {
++			printk(KERN_WARNING "%s: Could not enable device \n",
++				dev->name);
++			goto err_out;
++		}
+ 	}
+ 
+ 	/* Before initializing select the active media port. */
+@@ -1661,6 +1669,8 @@ vortex_up(struct net_device *dev)
+ 	if (vp->cb_fn_base)			/* The PCMCIA people are idiots.  */
+ 		iowrite32(0x8000, vp->cb_fn_base + 4);
+ 	netif_start_queue (dev);
++err_out:
++	return err;
+ }
+ 
+ static int
+@@ -1674,7 +1684,7 @@ vortex_open(struct net_device *dev)
+ 	if ((retval = request_irq(dev->irq, vp->full_bus_master_rx ?
+ 				&boomerang_interrupt : &vortex_interrupt, IRQF_SHARED, dev->name, dev))) {
+ 		printk(KERN_ERR "%s: Could not reserve IRQ %d\n", dev->name, dev->irq);
+-		goto out;
++		goto err;
+ 	}
+ 
+ 	if (vp->full_bus_master_rx) { /* Boomerang bus master. */
+@@ -1703,20 +1713,22 @@ vortex_open(struct net_device *dev)
+ 				}
+ 			}
+ 			retval = -ENOMEM;
+-			goto out_free_irq;
++			goto err_free_irq;
+ 		}
+ 		/* Wrap the ring. */
+ 		vp->rx_ring[i-1].next = cpu_to_le32(vp->rx_ring_dma);
+ 	}
+ 
+-	vortex_up(dev);
+-	return 0;
++	retval = vortex_up(dev);
++	if (!retval)
++		goto out;
+ 
+-out_free_irq:
++err_free_irq:
+ 	free_irq(dev->irq, dev);
+-out:
++err:
+ 	if (vortex_debug > 1)
+ 		printk(KERN_ERR "%s: vortex_open() fails: returning %d\n", dev->name, retval);
++out:
+ 	return retval;
+ }
+ 
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from mark@hindley.org.uk are
 
-keyboard-capsshift-lock.patch
-unicode-diacritics-support.patch
-unicode-diacritics-support-s390-fix.patch
+3c59x-check-return-of-pci_enable_device.patch
