@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-account-i-o-wait-time-properly.patch added to -mm tree
-Date: Fri, 17 Aug 2007 14:46:56 -0700
-Message-ID: <200708172146.l7HLku0a030938@imap1.linux-foundation.org>
+Subject: + cifs-check-for-granted-memory.patch added to -mm tree
+Date: Fri, 17 Aug 2007 14:50:33 -0700
+Message-ID: <200708172150.l7HLoXqT031088@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49714 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32892 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756355AbXHQVsE (ORCPT
+	by vger.kernel.org with ESMTP id S1752038AbXHQVvM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 17:48:04 -0400
+	Fri, 17 Aug 2007 17:51:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, bcrl@kvack.org, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com
+Cc: gorcunov@gmail.com, sfrench@us.ibm.com
 
 
 The patch titled
-     aio: account I/O wait time properly
+     CIFS: check for granted memory
 has been added to the -mm tree.  Its filename is
-     aio-account-i-o-wait-time-properly.patch
+     cifs-check-for-granted-memory.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: account I/O wait time properly
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: CIFS: check for granted memory
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Some months back I proposed changing the schedule() call in
-read_events to an io_schedule():
-	http://osdir.com/ml/linux.kernel.aio.general/2006-10/msg00024.html
-This was rejected as there are AIO operations that do not initiate
-disk I/O.  I've had another look at the problem, and the only AIO
-operation that will not initiate disk I/O is IOCB_CMD_NOOP.  However,
-this command isn't even wired up!
+Add a check for granted memory to prevent possible NULL pointer usage.
 
-Given that it doesn't work, and hasn't for *years*, I'm going to
-suggest again that we do proper I/O accounting when using AIO.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Zach Brown <zach.brown@oracle.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: Suparna Bhattacharya <suparna@in.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/cifs/sess.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN fs/aio.c~aio-account-i-o-wait-time-properly fs/aio.c
---- a/fs/aio.c~aio-account-i-o-wait-time-properly
-+++ a/fs/aio.c
-@@ -303,7 +303,7 @@ static void wait_for_all_aios(struct kio
- 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
- 	while (ctx->reqs_active) {
- 		spin_unlock_irq(&ctx->ctx_lock);
--		schedule();
-+		io_schedule();
- 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
- 		spin_lock_irq(&ctx->ctx_lock);
- 	}
-@@ -323,7 +323,7 @@ ssize_t fastcall wait_on_sync_kiocb(stru
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		if (!iocb->ki_users)
- 			break;
--		schedule();
-+		io_schedule();
- 	}
- 	__set_current_state(TASK_RUNNING);
- 	return iocb->ki_user_data;
-@@ -1161,7 +1161,7 @@ retry:
- 			ret = 0;
- 			if (to.timed_out)	/* Only check after read evt */
- 				break;
--			schedule();
-+			io_schedule();
- 			if (signal_pending(tsk)) {
- 				ret = -EINTR;
- 				break;
+diff -puN fs/cifs/sess.c~cifs-check-for-granted-memory fs/cifs/sess.c
+--- a/fs/cifs/sess.c~cifs-check-for-granted-memory
++++ a/fs/cifs/sess.c
+@@ -372,6 +372,10 @@ CIFS_SessSetup(unsigned int xid, struct 
+ 
+ 	/* 2000 big enough to fit max user, domain, NOS name etc. */
+ 	str_area = kmalloc(2000, GFP_KERNEL);
++	if (str_area == NULL) {
++		cifs_small_buf_release(smb_buf);
++		return -ENOMEM;
++	}
+ 	bcc_ptr = str_area;
+ 
+ 	ses->flags &= ~CIFS_SES_LANMAN;
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-aio-account-i-o-wait-time-properly.patch
+cifs-check-for-granted-memory.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+sky-cpu-and-nexus-get-rid-of-useless-null-init.patch
+sky-cpu-and-nexus-use-seq_file-single_open-on-proc-interface.patch
