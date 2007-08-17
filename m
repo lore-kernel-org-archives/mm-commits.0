@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-hot-add-with-sparsemem-vmemmap.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:59:28 -0700
-Message-ID: <200708172059.l7HKxSWS029133@imap1.linux-foundation.org>
+Subject: + pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch added to -mm tree
+Date: Fri, 17 Aug 2007 14:04:00 -0700
+Message-ID: <200708172104.l7HL407N029307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48773 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40003 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755618AbXHQVAV (ORCPT
+	by vger.kernel.org with ESMTP id S1765825AbXHQVEy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 17:00:21 -0400
+	Fri, 17 Aug 2007 17:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie
+Cc: xemul@openvz.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us.ibm.com
 
 
 The patch titled
-     memory hotplug: Hot-add with sparsemem-vmemmap
+     Fix check for return value of create_pid_namespace
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+     pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotplug: Hot-add with sparsemem-vmemmap
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Fix check for return value of create_pid_namespace
+From: Pavel Emelyanov <xemul@openvz.org>
 
-This patch is to avoid panic when memory hot-add is executed with
-sparsemem-vmemmap.  Current vmemmap-sparsemem code doesn't support memory
-hot-add.  Vmemmap must be populated when hot-add.  This is for
-2.6.23-rc2-mm2.
+The function in question returns ERR_PTR-s to indicate the
+error, while the caller checks for return value to be NULL.
 
-Todo: # Even if this patch is applied, the message "[xxxx-xxxx] potential
-        offnode page_structs" is displayed. To allocate memmap on its node,
-        memmap (and pgdat) must be initialized itself like chicken and
-        egg relationship.
+Found during testing the OpenVZ kernel with pid namespaces.
 
-      # vmemmap_unpopulate will be necessary for followings.
-         - For cancel hot-add due to error.
-         - For unplug.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    2 +-
- mm/sparse-vmemmap.c |    2 +-
- mm/sparse.c         |   24 +++++++++++++++++++++---
- 3 files changed, 23 insertions(+), 5 deletions(-)
+ kernel/pid.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~memory-hotplug-hot-add-with-sparsemem-vmemmap include/linux/mm.h
---- a/include/linux/mm.h~memory-hotplug-hot-add-with-sparsemem-vmemmap
-+++ a/include/linux/mm.h
-@@ -1159,7 +1159,7 @@ extern int randomize_va_space;
+diff -puN kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace kernel/pid.c
+--- a/kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace
++++ a/kernel/pid.c
+@@ -543,7 +543,7 @@ struct pid_namespace *copy_pid_ns(unsign
+ 		goto out_put;
  
- const char * arch_vma_name(struct vm_area_struct *vma);
+ 	new_ns = create_pid_namespace(old_ns->level + 1);
+-	if (new_ns != NULL)
++	if (!IS_ERR(new_ns))
+ 		new_ns->parent = get_pid_ns(old_ns);
  
--struct page *sparse_early_mem_map_populate(unsigned long pnum, int nid);
-+struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node);
- pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
-diff -puN mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap
-+++ a/mm/sparse-vmemmap.c
-@@ -137,7 +137,7 @@ int __meminit vmemmap_populate_basepages
- 	return 0;
- }
- 
--struct page __init *sparse_early_mem_map_populate(unsigned long pnum, int nid)
-+struct page *sparse_mem_map_populate(unsigned long pnum, int nid)
- {
- 	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
- 	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
-diff -puN mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap
-+++ a/mm/sparse.c
-@@ -259,7 +259,7 @@ static unsigned long *sparse_early_usema
- }
- 
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
--struct page __init *sparse_early_mem_map_populate(unsigned long pnum, int nid)
-+struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
- {
- 	struct page *map;
- 
-@@ -284,7 +284,7 @@ struct page __init *sparse_early_mem_map
- 	struct mem_section *ms = __nr_to_section(pnum);
- 	int nid = sparse_early_nid(ms);
- 
--	map = sparse_early_mem_map_populate(pnum, nid);
-+	map = sparse_mem_map_populate(pnum, nid);
- 	if (map)
- 		return map;
- 
-@@ -322,6 +322,17 @@ void __init sparse_init(void)
- }
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
-+						 unsigned long nr_pages)
-+{
-+	return sparse_mem_map_populate(pnum, nid);
-+}
-+static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
-+{
-+	return; /* XXX: Not implemented yet */
-+}
-+#else
- static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
- {
- 	struct page *page, *ret;
-@@ -344,6 +355,12 @@ got_map_ptr:
- 	return ret;
- }
- 
-+static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
-+						  unsigned long nr_pages)
-+{
-+	return __kmalloc_section_memmap(nr_pages);
-+}
-+
- static int vaddr_in_vmalloc_area(void *addr)
- {
- 	if (addr >= (void *)VMALLOC_START &&
-@@ -360,6 +377,7 @@ static void __kfree_section_memmap(struc
- 		free_pages((unsigned long)memmap,
- 			   get_order(sizeof(struct page) * nr_pages));
- }
-+#endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- /*
-  * returns the number of sections whose mem_maps were properly
-@@ -382,7 +400,7 @@ int sparse_add_one_section(struct zone *
- 	 * plus, it does a kmalloc
- 	 */
- 	sparse_index_init(section_nr, pgdat->node_id);
--	memmap = __kmalloc_section_memmap(nr_pages);
-+	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
- 	usemap = __kmalloc_section_usemap();
- 
- 	pgdat_resize_lock(pgdat, &flags);
+ out_put:
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-move-free-pages-between-lists-on-steal.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+git-net.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
