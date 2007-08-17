@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irda_nl_get_mode-always-results-in-failure.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:26:36 -0700
-Message-ID: <200708172026.l7HKQaWA027983@imap1.linux-foundation.org>
+Subject: + move-a-few-definitions-to-au1000_xxs1500c.patch added to -mm tree
+Date: Fri, 17 Aug 2007 13:27:42 -0700
+Message-ID: <200708172027.l7HKRg8T028011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755369AbXHQU1f (ORCPT
+	by vger.kernel.org with ESMTP id S1754988AbXHQU2e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 16:27:35 -0400
+	Fri, 17 Aug 2007 16:28:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, samuel@sortiz.org
+Cc: yoichi_yuasa@tripeaks.co.jp, linux@dominikbrodowski.net, ralf@linux-mips.org
 
 
 The patch titled
-     irda_nl_get_mode: always results in failure
+     move a few definitions to au1000_xxs1500.c
 has been added to the -mm tree.  Its filename is
-     irda_nl_get_mode-always-results-in-failure.patch
+     move-a-few-definitions-to-au1000_xxs1500c.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: irda_nl_get_mode: always results in failure
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: move a few definitions to au1000_xxs1500.c
+From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 
-It seems an extraneous trailing ';' has slipped in to the error handling for a
-name registration failure causing the error path to trigger unconditionally.
+Only a few definitions is in xxs1500.h .
+They can be move to au1000_xxs1500.c .
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/irda/irnetlink.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/au1000_xxs1500.c |    5 +++-
+ include/asm-mips/xxs1500.h      |   35 ------------------------------
+ 2 files changed, 4 insertions(+), 36 deletions(-)
 
-diff -puN net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure net/irda/irnetlink.c
---- a/net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure
-+++ a/net/irda/irnetlink.c
-@@ -106,7 +106,7 @@ static int irda_nl_get_mode(struct sk_bu
- 	}
+diff -puN drivers/pcmcia/au1000_xxs1500.c~move-a-few-definitions-to-au1000_xxs1500c drivers/pcmcia/au1000_xxs1500.c
+--- a/drivers/pcmcia/au1000_xxs1500.c~move-a-few-definitions-to-au1000_xxs1500c
++++ a/drivers/pcmcia/au1000_xxs1500.c
+@@ -50,7 +50,10 @@
  
- 	if(nla_put_string(msg, IRDA_NL_ATTR_IFNAME,
--			  dev->name));
-+			  dev->name))
- 		goto err_out;
+ #include <asm/au1000.h>
+ #include <asm/au1000_pcmcia.h>
+-#include <asm/xxs1500.h>
++
++#define PCMCIA_MAX_SOCK		0
++#define PCMCIA_NUM_SOCKS	PCMCIA_MAX_SOCK + 1)
++#define PCMCIA_IRQ		AU1000_GPIO_4
  
- 	if(nla_put_u32(msg, IRDA_NL_ATTR_MODE, irlap->mode))
+ #if 0
+ #define DEBUG(x,args...)	printk(__FUNCTION__ ": " x,##args)
+diff -puN include/asm-mips/xxs1500.h~move-a-few-definitions-to-au1000_xxs1500c /dev/null
+--- a/include/asm-mips/xxs1500.h
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/*
+- * MyCable XXS1500 Referrence Board
+- *
+- * Copyright 2003 MontaVista Software Inc.
+- * Author: Pete Popov, MontaVista Software, Inc.
+- *         	ppopov@mvista.com or source@mvista.com
+- *
+- * ########################################################################
+- *
+- *  This program is free software; you can distribute it and/or modify it
+- *  under the terms of the GNU General Public License (Version 2) as
+- *  published by the Free Software Foundation.
+- *
+- *  This program is distributed in the hope it will be useful, but WITHOUT
+- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- *  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+- *  for more details.
+- *
+- *  You should have received a copy of the GNU General Public License along
+- *  with this program; if not, write to the Free Software Foundation, Inc.,
+- *  59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
+- *
+- * ########################################################################
+- *
+- *
+- */
+-#ifndef __ASM_XXS1500_H
+-#define __ASM_XXS1500_H
+-
+-/* PCMCIA XXS1500 specific defines */
+-#define PCMCIA_MAX_SOCK 0
+-#define PCMCIA_NUM_SOCKS (PCMCIA_MAX_SOCK+1)
+-#define PCMCIA_IRQ AU1000_GPIO_4
+-
+-#endif /* __ASM_XXS1500_ */
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
 
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
-powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
-mips-irix_getcontext-will-always-fail-efault.patch
-irda_nl_get_mode-always-results-in-failure.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-get-mp_bus_to_node-as-early-v3-update.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
+git-mips.patch
+git-mtd.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
