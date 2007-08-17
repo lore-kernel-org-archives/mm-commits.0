@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-fix-w1_remove_master_device-searching.patch added to -mm tree
-Date: Fri, 17 Aug 2007 11:25:51 -0700
-Message-ID: <200708171825.l7HIPpXg023405@imap1.linux-foundation.org>
+Subject: + hptiop-use-pci-vendor-symbol.patch added to -mm tree
+Date: Fri, 17 Aug 2007 11:26:57 -0700
+Message-ID: <200708171826.l7HIQv5U023438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46573 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753767AbXHQS0t (ORCPT
+	by vger.kernel.org with ESMTP id S1754448AbXHQS1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 14:26:49 -0400
+	Fri, 17 Aug 2007 14:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnpol@2ka.mipt.ru, bunk@stusta.de
+Cc: khali@linux-fr.org, James.Bottomley@SteelEye.com, linux@highpoint-tech.com
 
 
 The patch titled
-     w1: fix w1_remove_master_device() searching
+     hptiop: Use PCI vendor symbol
 has been added to the -mm tree.  Its filename is
-     w1-fix-w1_remove_master_device-searching.patch
+     hptiop-use-pci-vendor-symbol.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: w1: fix w1_remove_master_device() searching
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: hptiop: Use PCI vendor symbol
+From: Jean Delvare <khali@linux-fr.org>
 
-In case bus master driver provided bogus value as its private data, search
-can be incorrect.  Problem found by Adrian Bunk.
+Use the PCI vendor symbol instead of a numeric value in the
+scsi/hptiop driver.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: HighPoint Linux Team <linux@highpoint-tech.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_int.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/scsi/hptiop.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/w1_int.c~w1-fix-w1_remove_master_device-searching drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-fix-w1_remove_master_device-searching
-+++ a/drivers/w1/w1_int.c
-@@ -170,22 +170,24 @@ void __w1_remove_master_device(struct w1
- 
- void w1_remove_master_device(struct w1_bus_master *bm)
- {
--	struct w1_master *dev = NULL;
-+	struct w1_master *dev, *found = NULL;
- 
- 	list_for_each_entry(dev, &w1_masters, w1_master_entry) {
- 		if (!dev->initialized)
- 			continue;
- 
--		if (dev->bus_master->data == bm->data)
-+		if (dev->bus_master->data == bm->data) {
-+			found = dev;
- 			break;
-+		}
- 	}
- 
--	if (!dev) {
-+	if (!found) {
- 		printk(KERN_ERR "Device doesn't exist.\n");
- 		return;
- 	}
- 
--	__w1_remove_master_device(dev);
-+	__w1_remove_master_device(found);
+diff -puN drivers/scsi/hptiop.c~hptiop-use-pci-vendor-symbol drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~hptiop-use-pci-vendor-symbol
++++ a/drivers/scsi/hptiop.c
+@@ -879,8 +879,8 @@ static void hptiop_remove(struct pci_dev
  }
  
- EXPORT_SYMBOL(w1_add_master_device);
+ static struct pci_device_id hptiop_id_table[] = {
+-	{ PCI_DEVICE(0x1103, 0x3220) },
+-	{ PCI_DEVICE(0x1103, 0x3320) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_TTI, 0x3220) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_TTI, 0x3320) },
+ 	{},
+ };
+ 
 _
 
-Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-w1-fix-w1_remove_master_device-searching.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-connector-change-connectors-max-message-size.patch
-uvesafb-add-connector-entries.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+origin.patch
+git-dvb.patch
+git-hwmon.patch
+hdaps-switch-to-using-input-polldev.patch
+applesmc-switch-to-using-input-polldev.patch
+ams-switch-to-using-input-polldev.patch
+hptiop-use-pci-vendor-symbol.patch
