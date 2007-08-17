@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-irix_getcontext-will-always-fail-efault.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:23:26 -0700
-Message-ID: <200708172023.l7HKNQmk027850@imap1.linux-foundation.org>
+Subject: + powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch added to -mm tree
+Date: Fri, 17 Aug 2007 13:23:56 -0700
+Message-ID: <200708172023.l7HKNuTA027858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35047 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60880 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750880AbXHQUYU (ORCPT
+	by vger.kernel.org with ESMTP id S1756117AbXHQUYy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 16:24:20 -0400
+	Fri, 17 Aug 2007 16:24:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, ralf@linux-mips.org
+Cc: apw@shadowen.org, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     mips: irix_getcontext will always fail EFAULT
+     powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
 has been added to the -mm tree.  Its filename is
-     mips-irix_getcontext-will-always-fail-efault.patch
+     powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: irix_getcontext will always fail EFAULT
+Subject: powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
 From: Andy Whitcroft <apw@shadowen.org>
 
-Seems that a trailing ';' has slipped onto the end of the access_ok check
-here, such that we will always return -EFAULT.
+Seems that a trailing ';' has slipped onto the end of the get_slice_psize
+checks under CONFIG_PPC_MM_SLICES causing us to return unconditionally and
+never preload.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/irixsig.c |    2 +-
+ arch/powerpc/mm/hash_utils_64.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/kernel/irixsig.c~mips-irix_getcontext-will-always-fail-efault arch/mips/kernel/irixsig.c
---- a/arch/mips/kernel/irixsig.c~mips-irix_getcontext-will-always-fail-efault
-+++ a/arch/mips/kernel/irixsig.c
-@@ -725,7 +725,7 @@ asmlinkage int irix_getcontext(struct pt
- 	       current->comm, current->pid, ctx);
+diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices arch/powerpc/mm/hash_utils_64.c
+--- a/arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices
++++ a/arch/powerpc/mm/hash_utils_64.c
+@@ -794,7 +794,7 @@ void hash_preload(struct mm_struct *mm, 
+ 
+ #ifdef CONFIG_PPC_MM_SLICES
+ 	/* We only prefault standard pages for now */
+-	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize));
++	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize))
+ 		return;
  #endif
  
--	if (!access_ok(VERIFY_WRITE, ctx, sizeof(*ctx)));
-+	if (!access_ok(VERIFY_WRITE, ctx, sizeof(*ctx)))
- 		return -EFAULT;
- 
- 	error = __put_user(current->thread.irix_oldctx, &ctx->link);
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -60,6 +62,7 @@ sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
 wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
 wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
+powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
 mips-irix_getcontext-will-always-fail-efault.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 x86_64-get-mp_bus_to_node-as-early-v3-update.patch
@@ -104,5 +107,4 @@ have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
 only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
 rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
 page-owner-tracking-leak-detector.patch
-powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
 irda_nl_get_mode-always-results-in-failure.patch
