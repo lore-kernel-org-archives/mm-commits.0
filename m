@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch added to -mm tree
-Date: Fri, 17 Aug 2007 14:04:00 -0700
-Message-ID: <200708172104.l7HL407N029307@imap1.linux-foundation.org>
+Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch added to -mm tree
+Date: Fri, 17 Aug 2007 14:05:44 -0700
+Message-ID: <200708172105.l7HL5iNm029444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40003 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765825AbXHQVEy (ORCPT
+	by vger.kernel.org with ESMTP id S1754426AbXHQVGd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 17:04:54 -0400
+	Fri, 17 Aug 2007 17:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us.ibm.com
 
 
 The patch titled
-     Fix check for return value of create_pid_namespace
+     Fix the return value of sys_set_tid_address()
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+     pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix check for return value of create_pid_namespace
+Subject: Fix the return value of sys_set_tid_address()
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The function in question returns ERR_PTR-s to indicate the
-error, while the caller checks for return value to be NULL.
-
-Found during testing the OpenVZ kernel with pid namespaces.
+This call should return the virtual pid to the caller, just like
+the sys_getpid()/sys_gettid() do, no the global one.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
@@ -41,21 +39,21 @@ Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    2 +-
+ kernel/fork.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace
-+++ a/kernel/pid.c
-@@ -543,7 +543,7 @@ struct pid_namespace *copy_pid_ns(unsign
- 		goto out_put;
+diff -puN kernel/fork.c~pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address kernel/fork.c
+--- a/kernel/fork.c~pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address
++++ a/kernel/fork.c
+@@ -938,7 +938,7 @@ asmlinkage long sys_set_tid_address(int 
+ {
+ 	current->clear_child_tid = tidptr;
  
- 	new_ns = create_pid_namespace(old_ns->level + 1);
--	if (new_ns != NULL)
-+	if (!IS_ERR(new_ns))
- 		new_ns->parent = get_pid_ns(old_ns);
+-	return current->pid;
++	return task_pid_vnr(current);
+ }
  
- out_put:
+ static inline void rt_mutex_init_task(struct task_struct *p)
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -90,4 +88,5 @@ pid-namespaces-initialize-the-namespaces-proc_mnt.patch
 pid-namespaces-allow-signalling-container-init.patch
 pid-namespaces-destroy-pid-namespace-on-inits-death.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
 pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
