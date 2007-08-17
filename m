@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + enable-gpes-before-calling-_wak-on-resume.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:36:38 -0700
-Message-ID: <200708172036.l7HKacS7028326@imap1.linux-foundation.org>
+Subject: + x86_64-remove-str-macros.patch added to -mm tree
+Date: Fri, 17 Aug 2007 13:42:07 -0700
+Message-ID: <200708172042.l7HKg7cG028536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46564 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760696AbXHQUh2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755643AbXHQUm6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 16:37:28 -0400
+	Fri, 17 Aug 2007 16:42:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trenn@suse.de, akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl
+Cc: gcosta@redhat.com, ak@suse.de
 
 
 The patch titled
-     acpi: enable GPEs before calling _WAK on resume
+     x86_64: remove STR() macros
 has been added to the -mm tree.  Its filename is
-     enable-gpes-before-calling-_wak-on-resume.patch
+     x86_64-remove-str-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi: enable GPEs before calling _WAK on resume
-From: Thomas Renninger <trenn@suse.de>
+Subject: x86_64: remove STR() macros
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-It seems it's required to enable GPEs before _WAK.  E.g.  X60 triggers a
-LID related GPE instead of doing a Notify in WAK.  Now the GPE reaches the
-kernel and the Notify for LID status change gets thrown from there.
+Remove the __STR() and STR() macros from x86_64 header files.  They seem to
+be legacy, and has no more users.  Even if there were users, they should
+use __stringify() instead.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+In fact, there were one third place in which this macro was defined
+(ia32_binfmt.c), and used just below.  In this file, usage was properly
+converted to __stringify()
+
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/hardware/hwsleep.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+ arch/x86_64/ia32/ia32_binfmt.c |    5 +----
+ include/asm-x86_64/hw_irq.h    |    3 ---
+ include/asm-x86_64/system.h    |    3 ---
+ 3 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwsleep.c~enable-gpes-before-calling-_wak-on-resume drivers/acpi/hardware/hwsleep.c
---- a/drivers/acpi/hardware/hwsleep.c~enable-gpes-before-calling-_wak-on-resume
-+++ a/drivers/acpi/hardware/hwsleep.c
-@@ -576,13 +576,10 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
- 	}
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~x86_64-remove-str-macros arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~x86_64-remove-str-macros
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -112,11 +112,8 @@ struct elf_prpsinfo
+ 	char	pr_psargs[ELF_PRARGSZ];	/* initial part of arg list */
+ };
  
--	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
--	}
--	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
 -
- 	/*
-+	 * GPEs must be enabled before _WAK is called as GPEs
-+	 * might get fired there
-+	 *
- 	 * Restore the GPEs:
- 	 * 1) Disable/Clear all GPEs
- 	 * 2) Enable all runtime GPEs
-@@ -591,13 +588,19 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
--	acpi_gbl_system_awake_and_running = TRUE;
+ #define _GET_SEG(x) \
+-	({ __u32 seg; asm("movl %%" STR(x) ",%0" : "=r"(seg)); seg; })
++	({ __u32 seg; asm("movl %%" __stringify(x) ",%0" : "=r"(seg)); seg; })
+ 
+ /* Assumes current==process to be dumped */
+ #define ELF_CORE_COPY_REGS(pr_reg, regs)       		\
+diff -puN include/asm-x86_64/hw_irq.h~x86_64-remove-str-macros include/asm-x86_64/hw_irq.h
+--- a/include/asm-x86_64/hw_irq.h~x86_64-remove-str-macros
++++ a/include/asm-x86_64/hw_irq.h
+@@ -149,9 +149,6 @@ extern atomic_t irq_mis_count;
+ 
+ #define IO_APIC_IRQ(x) (((x) >= 16) || ((1<<(x)) & io_apic_irqs))
+ 
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
 -
- 	status = acpi_hw_enable_all_runtime_gpes();
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
+ #include <asm/ptrace.h>
  
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
-+	}
-+	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
-+
-+	acpi_gbl_system_awake_and_running = TRUE;
-+
- 	/* Enable power button */
+ #define IRQ_NAME2(nr) nr##_interrupt(void)
+diff -puN include/asm-x86_64/system.h~x86_64-remove-str-macros include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~x86_64-remove-str-macros
++++ a/include/asm-x86_64/system.h
+@@ -7,9 +7,6 @@
  
- 	(void)
+ #ifdef __KERNEL__
+ 
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
+-
+ #define __SAVE(reg,offset) "movq %%" #reg ",(14-" #offset ")*8(%%rsp)\n\t"
+ #define __RESTORE(reg,offset) "movq (14-" #offset ")*8(%%rsp),%%" #reg "\n\t"
+ 
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
-enable-gpes-before-calling-_wak-on-resume.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+x86_64-remove-str-macros.patch
