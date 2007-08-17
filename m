@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch added to -mm tree
-Date: Fri, 17 Aug 2007 11:40:13 -0700
-Message-ID: <200708171840.l7HIeDZe024041@imap1.linux-foundation.org>
+Subject: + pnpacpi-remove-unnecessary-casts-of-void.patch added to -mm tree
+Date: Fri, 17 Aug 2007 11:39:14 -0700
+Message-ID: <200708171839.l7HIdEtf023930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752901AbXHQSkm (ORCPT
+	by vger.kernel.org with ESMTP id S1752460AbXHQSkh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 14:40:42 -0400
+	Fri, 17 Aug 2007 14:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dcn@sgi.com, npiggin@suse.de
+Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz
 
 
 The patch titled
-     calculation of pgoff in do_linear_fault() uses mixed  units
+     PNPACPI: remove unnecessary casts of "void *"
 has been added to the -mm tree.  Its filename is
-     calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+     pnpacpi-remove-unnecessary-casts-of-void.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: calculation of pgoff in do_linear_fault() uses mixed  units
-From: dcn@sgi.com (Dean Nelson)
+Subject: PNPACPI: remove unnecessary casts of "void *"
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The calculation of pgoff in do_linear_fault() should use PAGE_SHIFT and not
-PAGE_CACHE_SHIFT since vma->vm_pgoff is in units of PAGE_SIZE and not
-PAGE_CACHE_SIZE.  At the moment linux/pagemap.h has PAGE_CACHE_SHIFT
-defined as PAGE_SHIFT, but should that ever change this calculation would
-break.
+Remove unnecessary casts of void pointers.
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/rsparser.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~calculation-of-pgoff-in-do_linear_fault-uses-mixed mm/memory.c
---- a/mm/memory.c~calculation-of-pgoff-in-do_linear_fault-uses-mixed
-+++ a/mm/memory.c
-@@ -2356,7 +2356,7 @@ static int do_linear_fault(struct mm_str
- 		int write_access, pte_t orig_pte)
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-unnecessary-casts-of-void drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-unnecessary-casts-of-void
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -240,8 +240,7 @@ static void pnpacpi_parse_allocated_addr
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 					      void *data)
  {
- 	pgoff_t pgoff = (((address & PAGE_MASK)
--			- vma->vm_start) >> PAGE_CACHE_SHIFT) + vma->vm_pgoff;
-+			- vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 	unsigned int flags = (write_access ? FAULT_FLAG_WRITE : 0);
+-	struct pnp_resource_table *res_table =
+-	    (struct pnp_resource_table *)data;
++	struct pnp_resource_table *res_table = data;
+ 	int i;
  
- 	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
+ 	switch (res->type) {
+@@ -564,8 +563,7 @@ static acpi_status pnpacpi_option_resour
+ 					   void *data)
+ {
+ 	int priority = 0;
+-	struct acpipnp_parse_option_s *parse_data =
+-	    (struct acpipnp_parse_option_s *)data;
++	struct acpipnp_parse_option_s *parse_data = data;
+ 	struct pnp_dev *dev = parse_data->dev;
+ 	struct pnp_option *option = parse_data->option;
+ 
+@@ -703,7 +701,7 @@ static int pnpacpi_supported_resource(st
+ static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
+ 					   void *data)
+ {
+-	int *res_cnt = (int *)data;
++	int *res_cnt = data;
+ 
+ 	if (pnpacpi_supported_resource(res))
+ 		(*res_cnt)++;
+@@ -712,7 +710,7 @@ static acpi_status pnpacpi_count_resourc
+ 
+ static acpi_status pnpacpi_type_resources(struct acpi_resource *res, void *data)
+ {
+-	struct acpi_resource **resource = (struct acpi_resource **)data;
++	struct acpi_resource **resource = data;
+ 
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+@@ -884,8 +882,7 @@ int pnpacpi_encode_resources(struct pnp_
+ 	int i = 0;
+ 	/* pnpacpi_build_resource_template allocates extra mem */
+ 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
+-	struct acpi_resource *resource =
+-	    (struct acpi_resource *)buffer->pointer;
++	struct acpi_resource *resource = buffer->pointer;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+ 	pnp_dbg("res cnt %d", res_cnt);
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+move-free-pages-between-lists-on-steal.patch
+convert-ill-defined-log2-to-ilog2.patch
+tpm_tis-fix-interrupt-probing.patch
+pnp-fix-up-after-lindent.patch
+pnpacpi-simplify-irq_flags.patch
+pnpacpi-remove-unnecessary-casts-of-void.patch
+isapnp-removed-unused-isapnp_detected-and-isapnp_debug.patch
+pnp-remove-module-infrastructure.patch
+pnp-remove-null-pointer-checks.patch
