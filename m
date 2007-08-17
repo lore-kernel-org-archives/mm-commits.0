@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-fix-bugs-in-the-disconnect-pathway.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:40:55 -0700
-Message-ID: <200708172040.l7HKetPv028519@imap1.linux-foundation.org>
+Subject: + autofs4-deadlock-during-create.patch added to -mm tree
+Date: Fri, 17 Aug 2007 13:49:30 -0700
+Message-ID: <200708172049.l7HKnU9x028769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54064 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752692AbXHQUqq (ORCPT
+	by vger.kernel.org with ESMTP id S1755830AbXHQUuK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 16:46:46 -0400
+	Fri, 17 Aug 2007 16:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com, mdharm-usb@one-eyed-alien.net
+Cc: raven@themaw.net
 
 
 The patch titled
-     usb-storage: fix bugs in the disconnect pathway
+     autofs4: deadlock during create
 has been added to the -mm tree.  Its filename is
-     usb-storage-fix-bugs-in-the-disconnect-pathway.patch
+     autofs4-deadlock-during-create.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,119 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb-storage: fix bugs in the disconnect pathway
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: autofs4: deadlock during create
+From: Ian Kent <raven@themaw.net>
 
-This patch (as961) fixes a couple of bugs in the disconnect pathway of
-usb-storage.
+Due to inconsistent locking in the VFS between calls to lookup and
+revalidate deadlock can occur in the automounter.
 
-The first problem, which apparently has been around for a while
-although nobody noticed it, shows up when an aborted command is still
-pending when a disconnect occurs.  The SCSI error-handler will
-continue to wait in command_abort() until the us->notify completion is
-signalled.  Thus quiesce_and_remove_host() needs to signal it.
+The inconsistency is that the directory inode mutex is held for both lookup
+and revalidate calls when called via lookup_hash whereas it is held only
+for lookup during a path walk.  Consequently, if the mutex is held during a
+call to revalidate autofs4 can't release the mutex to callback the daemon
+as it can't know whether it owns the mutex.
 
-The second problem was introduced recently along with autosuspend
-support.  Since usb_stor_scan_thread() now calls
-usb_autopm_put_interface() before exiting, we can't simply leave the
-scanning thread running after a disconnect; we must wait until the
-thread exits.  This is solved by adding a new struct completion to the
-private data structure.  Fortuitously, it allows the removal of the
-rather clunky mechanism used in the past to insure that all threads
-have finished before the module is unloaded.
+This situation happens when a process tries to create a directory within an
+automount and a second process also tries to create the same directory
+between the lookup and the mkdir.  Since the first process has dropped the
+mutex for the daemon callback, the second process takes it during
+revalidate leading to deadlock between the autofs daemon and the second
+process when the daemon tries to create the mount point directory.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-Cc: Greg KH <greg@kroah.com>
+After spending quite a bit of time trying to resolve this on more than one
+occassion, using rather complex and ulgy approaches, it turns out that just
+delaying the hashing of the dentry until the create operation works fine.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/usb.c |   33 ++++++---------------------------
- drivers/usb/storage/usb.h |    1 +
- 2 files changed, 7 insertions(+), 27 deletions(-)
+ fs/autofs4/root.c |   31 +++++++++++++++++--------------
+ 1 files changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN drivers/usb/storage/usb.c~usb-storage-fix-bugs-in-the-disconnect-pathway drivers/usb/storage/usb.c
---- a/drivers/usb/storage/usb.c~usb-storage-fix-bugs-in-the-disconnect-pathway
-+++ a/drivers/usb/storage/usb.c
-@@ -112,13 +112,6 @@ module_param(delay_use, uint, S_IRUGO | 
- MODULE_PARM_DESC(delay_use, "seconds to delay before using a new device");
+diff -puN fs/autofs4/root.c~autofs4-deadlock-during-create fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-deadlock-during-create
++++ a/fs/autofs4/root.c
+@@ -587,19 +587,20 @@ static struct dentry *autofs4_lookup(str
+ 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (!unhashed) {
+ 		/*
+-		 * Mark the dentry incomplete, but add it. This is needed so
+-		 * that the VFS layer knows about the dentry, and we can count
+-		 * on catching any lookups through the revalidate.
+-		 *
+-		 * Let all the hard work be done by the revalidate function that
+-		 * needs to be able to do this anyway..
+-		 *
+-		 * We need to do this before we release the directory semaphore.
++		 * Mark the dentry incomplete but don't hash it. We do this
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
+ 		 */
+ 		dentry->d_op = &autofs4_root_dentry_operations;
  
- 
--/* These are used to make sure the module doesn't unload before all the
-- * threads have exited.
-- */
--static atomic_t total_threads = ATOMIC_INIT(0);
--static DECLARE_COMPLETION(threads_gone);
--
--
- /*
-  * The entries in this table correspond, line for line,
-  * with the entries of us_unusual_dev_list[].
-@@ -879,9 +872,6 @@ static void quiesce_and_remove_host(stru
- 	usb_stor_stop_transport(us);
- 	wake_up(&us->delay_wait);
- 
--	/* It doesn't matter if the SCSI-scanning thread is still running.
--	 * The thread will exit when it sees the DISCONNECTING flag. */
--
- 	/* queuecommand won't accept any new commands and the control
- 	 * thread won't execute a previously-queued command.  If there
- 	 * is such a command pending, complete it with an error. */
-@@ -891,12 +881,16 @@ static void quiesce_and_remove_host(stru
- 		scsi_lock(host);
- 		us->srb->scsi_done(us->srb);
- 		us->srb = NULL;
-+		complete(&us->notify);		/* in case of an abort */
- 		scsi_unlock(host);
- 	}
- 	mutex_unlock(&us->dev_mutex);
- 
- 	/* Now we own no commands so it's safe to remove the SCSI host */
- 	scsi_remove_host(host);
-+
-+	/* Wait for the SCSI-scanning thread to stop */
-+	wait_for_completion(&us->scanning_done);
- }
- 
- /* Second stage of disconnect processing: deallocate all resources */
-@@ -947,9 +941,8 @@ retry:
- 		/* Should we unbind if no devices were detected? */
- 	}
- 
--	scsi_host_put(us_to_host(us));
- 	usb_autopm_put_interface(us->pusb_intf);
--	complete_and_exit(&threads_gone, 0);
-+	complete_and_exit(&us->scanning_done, 0);
- }
- 
- 
-@@ -984,6 +977,7 @@ static int storage_probe(struct usb_inte
- 	init_MUTEX_LOCKED(&(us->sema));
- 	init_completion(&(us->notify));
- 	init_waitqueue_head(&us->delay_wait);
-+	init_completion(&us->scanning_done);
- 
- 	/* Associate the us_data structure with the USB device */
- 	result = associate_dev(us, intf);
-@@ -1033,11 +1027,6 @@ static int storage_probe(struct usb_inte
- 		goto BadDevice;
+ 		dentry->d_fsdata = NULL;
+-		d_add(dentry, NULL);
++		d_instantiate(dentry, NULL);
+ 	} else {
+ 		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+ 		DPRINTK("rehash %p with %p", dentry, unhashed);
+@@ -607,15 +608,17 @@ static struct dentry *autofs4_lookup(str
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
++		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
++		 * before continuing as revalidate may fail when calling
++		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+-		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				unhashed, unhashed->d_name.len,
+ 				unhashed->d_name.name);
+ 			autofs4_wait(sbi, unhashed, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		d_rehash(unhashed);
+ 		dentry = unhashed;
  	}
  
--	/* Take a reference to the host for the scanning thread and
--	 * count it among all the threads we have launched.  Then
--	 * start it up. */
--	scsi_host_get(us_to_host(us));
--	atomic_inc(&total_threads);
- 	usb_autopm_get_interface(intf); /* dropped in the scanning thread */
- 	wake_up_process(th);
+@@ -658,7 +661,7 @@ static struct dentry *autofs4_lookup(str
+ 	 * for all system calls, but it should be OK for the operations
+ 	 * we permit from an autofs.
+ 	 */
+-	if (dentry->d_inode && d_unhashed(dentry)) {
++	if (!oz_mode && d_unhashed(dentry)) {
+ 		/*
+ 		 * A user space application can (and has done in the past)
+ 		 * remove and re-create this directory during the callback.
+@@ -716,7 +719,7 @@ static int autofs4_dir_symlink(struct in
+ 	strcpy(cp, symname);
  
-@@ -1104,16 +1093,6 @@ static void __exit usb_stor_exit(void)
- 	US_DEBUGP("-- calling usb_deregister()\n");
- 	usb_deregister(&usb_storage_driver) ;
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
  
--	/* Don't return until all of our control and scanning threads
--	 * have exited.  Since each thread signals threads_gone as its
--	 * last act, we have to call wait_for_completion the right number
--	 * of times.
--	 */
--	while (atomic_read(&total_threads) > 0) {
--		wait_for_completion(&threads_gone);
--		atomic_dec(&total_threads);
--	}
--
- 	usb_usual_clear_present(USB_US_TYPE_STOR);
- }
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+@@ -844,7 +847,7 @@ static int autofs4_dir_mkdir(struct inod
+ 		return -ENOSPC;
  
-diff -puN drivers/usb/storage/usb.h~usb-storage-fix-bugs-in-the-disconnect-pathway drivers/usb/storage/usb.h
---- a/drivers/usb/storage/usb.h~usb-storage-fix-bugs-in-the-disconnect-pathway
-+++ a/drivers/usb/storage/usb.h
-@@ -150,6 +150,7 @@ struct us_data {
- 	struct semaphore	sema;		 /* to sleep thread on	    */
- 	struct completion	notify;		 /* thread begin/end	    */
- 	wait_queue_head_t	delay_wait;	 /* wait during scan, reset */
-+	struct completion	scanning_done;	 /* wait for scan thread    */
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
  
- 	/* subdriver information */
- 	void			*extra;		 /* Any extra data          */
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from raven@themaw.net are
 
-sysfs-dont-warn-on-removal-of-a-nonexistent-binary-file.patch
-usb-storage-fix-bugs-in-the-disconnect-pathway.patch
+autofs4-deadlock-during-create.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
