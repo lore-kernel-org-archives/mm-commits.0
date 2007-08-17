@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch added to -mm tree
-Date: Fri, 17 Aug 2007 14:45:02 -0700
-Message-ID: <200708172145.l7HLj3vC030926@imap1.linux-foundation.org>
+Subject: + aio-account-i-o-wait-time-properly.patch added to -mm tree
+Date: Fri, 17 Aug 2007 14:46:56 -0700
+Message-ID: <200708172146.l7HLku0a030938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39211 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49714 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756355AbXHQVpu (ORCPT
+	by vger.kernel.org with ESMTP id S1756355AbXHQVsE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 17:45:50 -0400
+	Fri, 17 Aug 2007 17:48:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: jmoyer@redhat.com, bcrl@kvack.org, pbadari@us.ibm.com, suparna@in.ibm.com, zach.brown@oracle.com
 
 
 The patch titled
-     __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
+     aio: account I/O wait time properly
 has been added to the -mm tree.  Its filename is
-     __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+     aio-account-i-o-wait-time-properly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,112 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: aio: account I/O wait time properly
+From: Jeff Moyer <jmoyer@redhat.com>
 
-Cleanup.  __group_complete_signal() wakes up ->group_exit_task twice.  The
-second wakeup's state includes TASK_UNINTERRUPTIBLE, which is not very
-appropriate.
+Some months back I proposed changing the schedule() call in
+read_events to an io_schedule():
+	http://osdir.com/ml/linux.kernel.aio.general/2006-10/msg00024.html
+This was rejected as there are AIO operations that do not initiate
+disk I/O.  I've had another look at the problem, and the only AIO
+operation that will not initiate disk I/O is IOCB_CMD_NOOP.  However,
+this command isn't even wired up!
 
-Change the code to pass the "correct" argument to signal_wake_up() and kill
-now unneeded wake_up_process().
+Given that it doesn't work, and hasn't for *years*, I'm going to
+suggest again that we do proper I/O accounting when using AIO.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Zach Brown <zach.brown@oracle.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Suparna Bhattacharya <suparna@in.ibm.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ fs/aio.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task kernel/signal.c
---- a/kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task
-+++ a/kernel/signal.c
-@@ -910,8 +910,7 @@ __group_complete_signal(int sig, struct 
- 			do {
- 				sigaddset(&t->pending.signal, SIGKILL);
- 				signal_wake_up(t, 1);
--				t = next_thread(t);
--			} while (t != p);
-+			} while_each_thread(p, t);
- 			return;
- 		}
- 
-@@ -929,13 +928,11 @@ __group_complete_signal(int sig, struct 
- 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
- 		p->signal->group_stop_count = 0;
- 		p->signal->group_exit_task = t;
--		t = p;
-+		p = t;
- 		do {
- 			p->signal->group_stop_count++;
--			signal_wake_up(t, 0);
--			t = next_thread(t);
--		} while (t != p);
--		wake_up_process(p->signal->group_exit_task);
-+			signal_wake_up(t, t == p);
-+		} while_each_thread(p, t);
- 		return;
+diff -puN fs/aio.c~aio-account-i-o-wait-time-properly fs/aio.c
+--- a/fs/aio.c~aio-account-i-o-wait-time-properly
++++ a/fs/aio.c
+@@ -303,7 +303,7 @@ static void wait_for_all_aios(struct kio
+ 	set_task_state(tsk, TASK_UNINTERRUPTIBLE);
+ 	while (ctx->reqs_active) {
+ 		spin_unlock_irq(&ctx->ctx_lock);
+-		schedule();
++		io_schedule();
+ 		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
+ 		spin_lock_irq(&ctx->ctx_lock);
  	}
- 
+@@ -323,7 +323,7 @@ ssize_t fastcall wait_on_sync_kiocb(stru
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+ 		if (!iocb->ki_users)
+ 			break;
+-		schedule();
++		io_schedule();
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+ 	return iocb->ki_user_data;
+@@ -1161,7 +1161,7 @@ retry:
+ 			ret = 0;
+ 			if (to.timed_out)	/* Only check after read evt */
+ 				break;
+-			schedule();
++			io_schedule();
+ 			if (signal_pending(tsk)) {
+ 				ret = -EINTR;
+ 				break;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
-origin.patch
-posix-timers-fix-creation-race.patch
-signalfd-fix-interaction-with-posix-timers.patch
-signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
-git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
+aio-account-i-o-wait-time-properly.patch
