@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch added to -mm tree
-Date: Fri, 17 Aug 2007 11:23:11 -0700
-Message-ID: <200708171823.l7HINBPn023253@imap1.linux-foundation.org>
+Subject: + seqfile-merge-duplite-code-to-seq_open_private.patch added to -mm tree
+Date: Fri, 17 Aug 2007 11:25:15 -0700
+Message-ID: <200708171825.l7HIPFAN023390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41122 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59401 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752779AbXHQSXs (ORCPT
+	by vger.kernel.org with ESMTP id S1750805AbXHQSZo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 14:23:48 -0400
+	Fri, 17 Aug 2007 14:25:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: wfg@mail.ustc.edu.cn, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     {slub, slob}: use unlikely() for kfree(ZERO_OR_NULL_PTR) check
+     seqfile: merge duplicate code to seq_open_private()
 has been added to the -mm tree.  Its filename is
-     slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+     seqfile-merge-duplite-code-to-seq_open_private.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: {slub, slob}: use unlikely() for kfree(ZERO_OR_NULL_PTR) check
-From: Satyam Sharma <satyam@infradead.org>
+Subject: seqfile: merge duplicate code to seq_open_private()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Considering kfree(NULL) would normally occur only in error paths and
-kfree(ZERO_SIZE_PTR) is uncommon as well, so let's use unlikely() for the
-condition check in SLUB's and SLOB's kfree() to optimize for the common
-case.  SLAB has this already.
+There are dozens of calls to seq_open() that need to set m->private.
+Introduce seq_open_private() to remove code duplications.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |    6 +++---
- mm/slub.c |    8 ++++----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/nfs/client.c          |   24 ++----------------------
+ fs/seq_file.c            |   10 ++++++++++
+ include/linux/seq_file.h |    1 +
+ 3 files changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN mm/slob.c~slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check mm/slob.c
---- a/mm/slob.c~slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check
-+++ a/mm/slob.c
-@@ -360,7 +360,7 @@ static void slob_free(void *block, int s
- 	slobidx_t units;
- 	unsigned long flags;
- 
--	if (ZERO_OR_NULL_PTR(block))
-+	if (unlikely(ZERO_OR_NULL_PTR(block)))
- 		return;
- 	BUG_ON(!size);
- 
-@@ -466,7 +466,7 @@ void kfree(const void *block)
+diff -puN fs/nfs/client.c~seqfile-merge-duplite-code-to-seq_open_private fs/nfs/client.c
+--- a/fs/nfs/client.c~seqfile-merge-duplite-code-to-seq_open_private
++++ a/fs/nfs/client.c
+@@ -1188,17 +1188,7 @@ static const struct file_operations nfs_
+  */
+ static int nfs_server_list_open(struct inode *inode, struct file *file)
  {
- 	struct slob_page *sp;
+-	struct seq_file *m;
+-	int ret;
+-
+-	ret = seq_open(file, &nfs_server_list_ops);
+-	if (ret < 0)
+-		return ret;
+-
+-	m = file->private_data;
+-	m->private = PDE(inode)->data;
+-
+-	return 0;
++	return seq_open_private(file, &nfs_server_list_ops, PDE(inode)->data);
+ }
  
--	if (ZERO_OR_NULL_PTR(block))
-+	if (unlikely(ZERO_OR_NULL_PTR(block)))
- 		return;
- 
- 	sp = (struct slob_page *)virt_to_page(block);
-@@ -484,7 +484,7 @@ size_t ksize(const void *block)
+ /*
+@@ -1258,17 +1248,7 @@ static int nfs_server_list_show(struct s
+  */
+ static int nfs_volume_list_open(struct inode *inode, struct file *file)
  {
- 	struct slob_page *sp;
+-	struct seq_file *m;
+-	int ret;
+-
+-	ret = seq_open(file, &nfs_volume_list_ops);
+-	if (ret < 0)
+-		return ret;
+-
+-	m = file->private_data;
+-	m->private = PDE(inode)->data;
+-
+-	return 0;
++	return seq_open_private(file, &nfs_volume_list_ops, PDE(inode)->data);
+ }
  
--	if (ZERO_OR_NULL_PTR(block))
-+	if (unlikely(ZERO_OR_NULL_PTR(block)))
- 		return 0;
+ /*
+diff -puN fs/seq_file.c~seqfile-merge-duplite-code-to-seq_open_private fs/seq_file.c
+--- a/fs/seq_file.c~seqfile-merge-duplite-code-to-seq_open_private
++++ a/fs/seq_file.c
+@@ -53,6 +53,16 @@ int seq_open(struct file *file, const st
+ }
+ EXPORT_SYMBOL(seq_open);
  
- 	sp = (struct slob_page *)virt_to_page(block);
-diff -puN mm/slub.c~slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check mm/slub.c
---- a/mm/slub.c~slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check
-+++ a/mm/slub.c
-@@ -2434,7 +2434,7 @@ size_t ksize(const void *object)
- 	struct page *page;
- 	struct kmem_cache *s;
++int seq_open_private(struct file *file, struct seq_operations *op, void *data)
++{
++	int ret = seq_open(file, op);
++
++	if (!ret)
++		((struct seq_file *)file->private_data)->private = data;
++
++	return ret;
++}
++EXPORT_SYMBOL(seq_open_private);
+ /**
+  *	seq_read -	->read() method for sequential files.
+  *	@file: the file to read from
+diff -puN include/linux/seq_file.h~seqfile-merge-duplite-code-to-seq_open_private include/linux/seq_file.h
+--- a/include/linux/seq_file.h~seqfile-merge-duplite-code-to-seq_open_private
++++ a/include/linux/seq_file.h
+@@ -32,6 +32,7 @@ struct seq_operations {
+ };
  
--	if (ZERO_OR_NULL_PTR(object))
-+	if (unlikely(ZERO_OR_NULL_PTR(object)))
- 		return 0;
- 
- 	page = get_object_page(object);
-@@ -2468,7 +2468,7 @@ void kfree(const void *x)
- {
- 	struct page *page;
- 
--	if (ZERO_OR_NULL_PTR(x))
-+	if (unlikely(ZERO_OR_NULL_PTR(x)))
- 		return;
- 
- 	page = virt_to_head_page(x);
-@@ -2785,7 +2785,7 @@ void *__kmalloc_track_caller(size_t size
- 							get_order(size));
- 	s = get_slab(size, gfpflags);
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, gfpflags, -1, caller);
-@@ -2801,7 +2801,7 @@ void *__kmalloc_node_track_caller(size_t
- 							get_order(size));
- 	s = get_slab(size, gfpflags);
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, gfpflags, node, caller);
+ int seq_open(struct file *, const struct seq_operations *);
++int seq_open_private(struct file *, struct seq_operations *, void *);
+ ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
+ loff_t seq_lseek(struct file *, loff_t, int);
+ int seq_release(struct inode *, struct file *);
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-ia64-include-kconfigpreempt.patch
-git-netdev-all.patch
-git-net.patch
-introduce-u16_max-and-u32_max.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+fix-null-pointer-dereference-in-__vm_enough_memory.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+make-swappiness-safer-to-use.patch
+convert-ill-defined-log2-to-ilog2.patch
+seqfile-merge-duplite-code-to-seq_open_private.patch
