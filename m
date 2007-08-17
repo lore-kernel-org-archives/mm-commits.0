@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hptiop-use-pci-vendor-symbol.patch added to -mm tree
-Date: Fri, 17 Aug 2007 11:26:57 -0700
-Message-ID: <200708171826.l7HIQv5U023438@imap1.linux-foundation.org>
+Subject: + dont-use-gfp_dma-for-zone-allocation.patch added to -mm tree
+Date: Fri, 17 Aug 2007 11:33:57 -0700
+Message-ID: <200708171833.l7HIXvgo023685@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754448AbXHQS1k (ORCPT
+	by vger.kernel.org with ESMTP id S1763513AbXHQSet (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 14:27:40 -0400
+	Fri, 17 Aug 2007 14:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, James.Bottomley@SteelEye.com, linux@highpoint-tech.com
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     hptiop: Use PCI vendor symbol
+     METH: don't use GFP_DMA for zone allocation.
 has been added to the -mm tree.  Its filename is
-     hptiop-use-pci-vendor-symbol.patch
+     dont-use-gfp_dma-for-zone-allocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hptiop: Use PCI vendor symbol
-From: Jean Delvare <khali@linux-fr.org>
+Subject: METH: don't use GFP_DMA for zone allocation.
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Use the PCI vendor symbol instead of a numeric value in the
-scsi/hptiop driver.
+IP32 doesn't even have a ZONE_DMA so no point in using GFP_DMA in any
+IP32-specific device driver.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: HighPoint Linux Team <linux@highpoint-tech.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@SteelEye.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/meth.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/hptiop.c~hptiop-use-pci-vendor-symbol drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~hptiop-use-pci-vendor-symbol
-+++ a/drivers/scsi/hptiop.c
-@@ -879,8 +879,8 @@ static void hptiop_remove(struct pci_dev
- }
- 
- static struct pci_device_id hptiop_id_table[] = {
--	{ PCI_DEVICE(0x1103, 0x3220) },
--	{ PCI_DEVICE(0x1103, 0x3320) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_TTI, 0x3220) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_TTI, 0x3320) },
- 	{},
- };
- 
+diff -puN drivers/net/meth.c~dont-use-gfp_dma-for-zone-allocation drivers/net/meth.c
+--- a/drivers/net/meth.c~dont-use-gfp_dma-for-zone-allocation
++++ a/drivers/net/meth.c
+@@ -405,7 +405,7 @@ static void meth_rx(struct net_device* d
+ 				priv->stats.rx_length_errors++;
+ 				skb = priv->rx_skbs[priv->rx_write];
+ 			} else {
+-				skb = alloc_skb(METH_RX_BUFF_SIZE, GFP_ATOMIC | GFP_DMA);
++				skb = alloc_skb(METH_RX_BUFF_SIZE, GFP_ATOMIC);
+ 				if (!skb) {
+ 					/* Ouch! No memory! Drop packet on the floor */
+ 					DPRINTK("No mem: dropping packet\n");
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-origin.patch
-git-dvb.patch
-git-hwmon.patch
-hdaps-switch-to-using-input-polldev.patch
-applesmc-switch-to-using-input-polldev.patch
-ams-switch-to-using-input-polldev.patch
-hptiop-use-pci-vendor-symbol.patch
+serial_txx9-fix-modem-control-line-handling.patch
+git-mips.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+mips-qemu-network-work-again.patch
+mips-detect-bcm947xx-cpus.patch
+mips-bcm947xx-support.patch
+rfc-add-bcm947xx-to-kconfig.patch
+mips-add-bcm947xx-to-makefile.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-mtd.patch
+git-netdev-all.patch
+dont-use-gfp_dma-for-zone-allocation.patch
+serial_txx9-cleanup-includes.patch
+serio-fix-modpost-warning.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
