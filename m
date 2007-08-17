@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + add-scaled-time-to-taskstats-based-process-accounting.patch added to -mm tree
-Date: Fri, 17 Aug 2007 12:00:25 -0700
-Message-ID: <200708171900.l7HJ0PAh024865@imap1.linux-foundation.org>
+Subject: + powerpc-add-scaled-time-accounting.patch added to -mm tree
+Date: Fri, 17 Aug 2007 12:00:28 -0700
+Message-ID: <200708171900.l7HJ0SRV024868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756016AbXHQTBS (ORCPT
+	by vger.kernel.org with ESMTP id S1755280AbXHQTBT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 15:01:18 -0400
+	Fri, 17 Aug 2007 15:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mikey@neuling.org, balbir@in.ibm.com, benh@kernel.crashing.org, jlan@engr.sg
 
 
 The patch titled
-     Add scaled time to taskstats based process accounting
+     powerpc: add scaled time accounting
 has been added to the -mm tree.  Its filename is
-     add-scaled-time-to-taskstats-based-process-accounting.patch
+     powerpc-add-scaled-time-accounting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add scaled time to taskstats based process accounting
+Subject: powerpc: add scaled time accounting
 From: Michael Neuling <mikey@neuling.org>
 
-This adds items to the taststats struct to account for user and system
-time based on scaling the CPU frequency and instruction issue rates.
+This adds POWERPC specific hooks for scaled time accounting.
 
-Adds account_(user|system)_time_scaled callbacks which architectures
-can use to account for time using this mechanism.
+POWER6 includes a SPURR register.  The SPURR is based off the PURR register
+but is scaled based on CPU frequency and issue rates.  This gives a more
+accurate account of the instructions used per task.  The PURR and timebase
+will be constant relative to the wall clock, irrespective of the CPU
+frequency.
+
+This implementation reads the SPURR register in account_system_vtime which
+is only call called on context witch and hard and soft irq entry and exit. 
+The percentage of user and system time is then estimated using the ratio of
+these accounted by the PURR.  If the SPURR is not present, the PURR read.
+
+An earlier implementation of this patch read the SPURR whenever the PURR
+was read, which included the system call entry and exit path. 
+Unfortunately this showed a performance regression on lmbench runs, so was
+re-implemented.
+
+I've included the lmbench results here when run bare metal on POWER6.  1st
+column is the unpatch results.  2nd column is the results using the below
+patch and the 3rd is the % diff of these results from the base.  4th and
+5th columns are the results and % differnce from the base using the older
+patch (SPURR read in syscall entry/exit path).
+
+                              Base        Scaled-Acct     SPURR-in-syscall
+                             Result      Result  % diff    Result % diff
+Simple syscall:              0.3086      0.3086  0.0000    0.3452 11.8600
+Simple read:                 0.4591      0.4671  1.7425    0.5044 9.86713
+Simple write:                0.4364      0.4366  0.0458    0.4731 8.40971
+Simple stat:                 2.0055      2.0295  1.1967    2.0669 3.06158
+Simple fstat:                0.5962      0.5876  -1.442    0.6368 6.80979
+Simple open/close:           3.1283      3.1009  -0.875    3.2088 2.57328
+Select on 10 fd's:           0.8554      0.8457  -1.133    0.8667 1.32101
+Select on 100 fd's:          3.5292      3.6329  2.9383    3.6664 3.88756
+Select on 250 fd's:          7.9097      8.1881  3.5197    8.2242 3.97613
+Select on 500 fd's:          15.2659     15.836  3.7357    15.873 3.97814
+Select on 10 tcp fd's:       0.9576      0.9416  -1.670    0.9752 1.83792
+Select on 100 tcp fd's:      7.248       7.2254  -0.311    7.2685 0.28283
+Select on 250 tcp fd's:      17.7742     17.707  -0.375    17.749 -0.1406
+Select on 500 tcp fd's:      35.4258     35.25   -0.496    35.286 -0.3929
+Signal handler installation: 0.6131      0.6075  -0.913    0.647  5.52927
+Signal handler overhead:     2.0919      2.1078  0.7600    2.1831 4.35967
+Protection fault:            0.7345      0.7478  1.8107    0.8031 9.33968
+Pipe latency:                33.006      16.398  -50.31    33.475 1.42368
+AF_UNIX sock stream latency: 14.5093     30.910  113.03    30.715 111.692
+Process fork+exit:           219.8       222.8   1.3648    229.37 4.35623
+Process fork+execve:         876.14      873.28  -0.32     868.66 -0.8533
+Process fork+/bin/sh -c:     2830        2876.5  1.6431    2958   4.52296
+File /var/tmp/XXX write bw:  1193497     1195536 0.1708    118657 -0.5799
+Pagefaults on /var/tmp/XXX:  3.1272      3.2117  2.7020    3.2521 3.99398
+
+Also, kernel compile times show no difference with this patch applied.
 
 Signed-off-by: Michael Neuling <mikey@neuling.org>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -43,177 +90,111 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel_stat.h |    2 ++
- include/linux/sched.h       |    2 +-
- include/linux/taskstats.h   |   11 +++++++++--
- kernel/delayacct.c          |    6 ++++++
- kernel/fork.c               |    2 ++
- kernel/sched.c              |   21 +++++++++++++++++++++
- kernel/timer.c              |    7 +++++--
- kernel/tsacct.c             |    4 ++++
- 8 files changed, 50 insertions(+), 5 deletions(-)
+ arch/powerpc/kernel/asm-offsets.c |    1 
+ arch/powerpc/kernel/time.c        |   32 ++++++++++++++++++++++++++--
+ include/asm-powerpc/paca.h        |    3 ++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel_stat.h~add-scaled-time-to-taskstats-based-process-accounting include/linux/kernel_stat.h
---- a/include/linux/kernel_stat.h~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/include/linux/kernel_stat.h
-@@ -52,7 +52,9 @@ static inline int kstat_irqs(int irq)
+diff -puN arch/powerpc/kernel/asm-offsets.c~powerpc-add-scaled-time-accounting arch/powerpc/kernel/asm-offsets.c
+--- a/arch/powerpc/kernel/asm-offsets.c~powerpc-add-scaled-time-accounting
++++ a/arch/powerpc/kernel/asm-offsets.c
+@@ -141,6 +141,7 @@ int main(void)
+ 	DEFINE(PACALPPACAPTR, offsetof(struct paca_struct, lppaca_ptr));
+ 	DEFINE(PACAHWCPUID, offsetof(struct paca_struct, hw_cpu_id));
+ 	DEFINE(PACA_STARTPURR, offsetof(struct paca_struct, startpurr));
++	DEFINE(PACA_STARTSPURR, offsetof(struct paca_struct, startspurr));
+ 	DEFINE(PACA_USER_TIME, offsetof(struct paca_struct, user_time));
+ 	DEFINE(PACA_SYSTEM_TIME, offsetof(struct paca_struct, system_time));
+ 	DEFINE(PACA_SLBSHADOWPTR, offsetof(struct paca_struct, slb_shadow_ptr));
+diff -puN arch/powerpc/kernel/time.c~powerpc-add-scaled-time-accounting arch/powerpc/kernel/time.c
+--- a/arch/powerpc/kernel/time.c~powerpc-add-scaled-time-accounting
++++ a/arch/powerpc/kernel/time.c
+@@ -167,23 +167,44 @@ static u64 read_purr(void)
  }
  
- extern void account_user_time(struct task_struct *, cputime_t);
-+extern void account_user_time_scaled(struct task_struct *, cputime_t);
- extern void account_system_time(struct task_struct *, int, cputime_t);
-+extern void account_system_time_scaled(struct task_struct *, cputime_t);
- extern void account_steal_time(struct task_struct *, cputime_t);
- 
- #endif /* _LINUX_KERNEL_STAT_H */
-diff -puN include/linux/sched.h~add-scaled-time-to-taskstats-based-process-accounting include/linux/sched.h
---- a/include/linux/sched.h~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/include/linux/sched.h
-@@ -946,7 +946,7 @@ struct task_struct {
- 	int __user *clear_child_tid;		/* CLONE_CHILD_CLEARTID */
- 
- 	unsigned int rt_priority;
--	cputime_t utime, stime;
-+	cputime_t utime, stime, utimescaled, stimescaled;
- 	unsigned long nvcsw, nivcsw; /* context switch counts */
- 	struct timespec start_time; 		/* monotonic time */
- 	struct timespec real_start_time;	/* boot based time */
-diff -puN include/linux/taskstats.h~add-scaled-time-to-taskstats-based-process-accounting include/linux/taskstats.h
---- a/include/linux/taskstats.h~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/include/linux/taskstats.h
-@@ -31,7 +31,7 @@
+ /*
++ * Read the SPURR on systems that have it, otherwise the purr
++ */
++static u64 read_spurr(void)
++{
++	if (cpu_has_feature(CPU_FTR_SPURR))
++		return mfspr(SPRN_SPURR);
++	return read_purr();
++}
++
++/*
+  * Account time for a transition between system, hard irq
+  * or soft irq state.
   */
+ void account_system_vtime(struct task_struct *tsk)
+ {
+-	u64 now, delta;
++	u64 now, nowscaled, delta, deltascaled;
+ 	unsigned long flags;
  
- 
--#define TASKSTATS_VERSION	5
-+#define TASKSTATS_VERSION	6
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -85,9 +85,12 @@ struct taskstats {
- 	 * On some architectures, value will adjust for cpu time stolen
- 	 * from the kernel in involuntary waits due to virtualization.
- 	 * Value is cumulative, in nanoseconds, without a corresponding count
--	 * and wraps around to zero silently on overflow
-+	 * and wraps around to zero silently on overflow.  The
-+	 * _scaled_ version accounts for cpus which can scale the
-+	 * number of instructions executed each cycle.
- 	 */
- 	__u64	cpu_run_real_total;
-+	__u64	cpu_scaled_run_real_total;
- 
- 	/* cpu "virtual" running time
- 	 * Uses time intervals seen by the kernel i.e. no adjustment
-@@ -142,6 +145,10 @@ struct taskstats {
- 	__u64	write_char;		/* bytes written */
- 	__u64	read_syscalls;		/* read syscalls */
- 	__u64	write_syscalls;		/* write syscalls */
-+
-+	/* time accounting for SMT machines */
-+	__u64	ac_utimescaled;		/* utime scaled on frequency etc */
-+	__u64	ac_stimescaled;		/* stime scaled on frequency etc */
- 	/* Extended accounting fields end */
- 
- #define TASKSTATS_HAS_IO_ACCOUNTING
-diff -puN kernel/delayacct.c~add-scaled-time-to-taskstats-based-process-accounting kernel/delayacct.c
---- a/kernel/delayacct.c~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/kernel/delayacct.c
-@@ -115,6 +115,12 @@ int __delayacct_add_tsk(struct taskstats
- 	tmp += timespec_to_ns(&ts);
- 	d->cpu_run_real_total = (tmp < (s64)d->cpu_run_real_total) ? 0 : tmp;
- 
-+	tmp = (s64)d->cpu_scaled_run_real_total;
-+	cputime_to_timespec(tsk->utimescaled + tsk->stimescaled, &ts);
-+	tmp += timespec_to_ns(&ts);
-+	d->cpu_scaled_run_real_total =
-+		(tmp < (s64)d->cpu_scaled_run_real_total) ? 0 : tmp;
-+
- 	/*
- 	 * No locking available for sched_info (and too expensive to add one)
- 	 * Mitigate by taking snapshot of values
-diff -puN kernel/fork.c~add-scaled-time-to-taskstats-based-process-accounting kernel/fork.c
---- a/kernel/fork.c~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/kernel/fork.c
-@@ -1041,6 +1041,8 @@ static struct task_struct *copy_process(
- 
- 	p->utime = cputime_zero;
- 	p->stime = cputime_zero;
-+	p->utimescaled = cputime_zero;
-+	p->stimescaled = cputime_zero;
- 
- #ifdef CONFIG_TASK_XACCT
- 	p->rchar = 0;		/* I/O counter: bytes read */
-diff -puN kernel/sched.c~add-scaled-time-to-taskstats-based-process-accounting kernel/sched.c
---- a/kernel/sched.c~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/kernel/sched.c
-@@ -3268,6 +3268,16 @@ void account_user_time(struct task_struc
+ 	local_irq_save(flags);
+ 	now = read_purr();
+ 	delta = now - get_paca()->startpurr;
+ 	get_paca()->startpurr = now;
++	nowscaled = read_spurr();
++	deltascaled = nowscaled - get_paca()->startspurr;
++	get_paca()->startspurr = nowscaled;
+ 	if (!in_interrupt()) {
++		/* deltascaled includes both user and system time.
++		 * Hence scale it based on the purr ratio to estimate
++		 * the system time */
++		deltascaled = deltascaled * get_paca()->system_time /
++			(get_paca()->system_time + get_paca()->user_time);
+ 		delta += get_paca()->system_time;
+ 		get_paca()->system_time = 0;
+ 	}
+ 	account_system_time(tsk, 0, delta);
++	get_paca()->purrdelta = delta;
++	account_system_time_scaled(tsk, deltascaled);
++	get_paca()->spurrdelta = deltascaled;
+ 	local_irq_restore(flags);
  }
  
- /*
-+ * Account scaled user cpu time to a process.
-+ * @p: the process that the cpu time gets accounted to
-+ * @cputime: the cpu time spent in user space since the last update
-+ */
-+void account_user_time_scaled(struct task_struct *p, cputime_t cputime)
-+{
-+	p->utimescaled = cputime_add(p->utimescaled, cputime);
-+}
+@@ -195,11 +216,17 @@ void account_system_vtime(struct task_st
+  */
+ void account_process_vtime(struct task_struct *tsk)
+ {
+-	cputime_t utime;
++	cputime_t utime, utimescaled;
+ 
+ 	utime = get_paca()->user_time;
+ 	get_paca()->user_time = 0;
+ 	account_user_time(tsk, utime);
 +
-+/*
-  * Account system cpu time to a process.
-  * @p: the process that the cpu time gets accounted to
-  * @hardirq_offset: the offset to subtract from hardirq_count()
-@@ -3300,6 +3310,17 @@ void account_system_time(struct task_str
++	/* Estimate the scaled utime by scaling the real utime based
++	 * on the last spurr to purr ratio */
++	utimescaled = utime * get_paca()->spurrdelta / get_paca()->purrdelta;
++	get_paca()->spurrdelta = get_paca()->purrdelta = 0;
++	account_user_time_scaled(tsk, utimescaled);
  }
  
+ static void account_process_time(struct pt_regs *regs)
+@@ -221,6 +248,7 @@ struct cpu_purr_data {
+ 	int	initialized;			/* thread is running */
+ 	u64	tb;			/* last TB value read */
+ 	u64	purr;			/* last PURR value read */
++	u64	spurr;			/* last SPURR value read */
+ };
+ 
  /*
-+ * Account scaled system cpu time to a process.
-+ * @p: the process that the cpu time gets accounted to
-+ * @hardirq_offset: the offset to subtract from hardirq_count()
-+ * @cputime: the cpu time spent in kernel space since the last update
-+ */
-+void account_system_time_scaled(struct task_struct *p, cputime_t cputime)
-+{
-+	p->stimescaled = cputime_add(p->stimescaled, cputime);
-+}
-+
-+/*
-  * Account for involuntary wait time.
-  * @p: the process from which the cpu time has been stolen
-  * @steal: the cpu time spent in involuntary wait
-diff -puN kernel/timer.c~add-scaled-time-to-taskstats-based-process-accounting kernel/timer.c
---- a/kernel/timer.c~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/kernel/timer.c
-@@ -828,10 +828,13 @@ void update_process_times(int user_tick)
- 	int cpu = smp_processor_id();
+diff -puN include/asm-powerpc/paca.h~powerpc-add-scaled-time-accounting include/asm-powerpc/paca.h
+--- a/include/asm-powerpc/paca.h~powerpc-add-scaled-time-accounting
++++ a/include/asm-powerpc/paca.h
+@@ -103,6 +103,9 @@ struct paca_struct {
+ 	u64 user_time;			/* accumulated usermode TB ticks */
+ 	u64 system_time;		/* accumulated system TB ticks */
+ 	u64 startpurr;			/* PURR/TB value snapshot */
++	u64 startspurr;			/* SPURR value snapshot */
++	u64 purrdelta;			/* FIXME: document */
++	u64 spurrdelta;			/* FIXME: document */
+ };
  
- 	/* Note: this timer irq context must be accounted for as well. */
--	if (user_tick)
-+	if (user_tick) {
- 		account_user_time(p, jiffies_to_cputime(1));
--	else
-+		account_user_time_scaled(p, jiffies_to_cputime(1));
-+	} else {
- 		account_system_time(p, HARDIRQ_OFFSET, jiffies_to_cputime(1));
-+		account_system_time_scaled(p, jiffies_to_cputime(1));
-+	}
- 	run_local_timers();
- 	if (rcu_pending(cpu))
- 		rcu_check_callbacks(cpu, user_tick);
-diff -puN kernel/tsacct.c~add-scaled-time-to-taskstats-based-process-accounting kernel/tsacct.c
---- a/kernel/tsacct.c~add-scaled-time-to-taskstats-based-process-accounting
-+++ a/kernel/tsacct.c
-@@ -62,6 +62,10 @@ void bacct_add_tsk(struct taskstats *sta
- 	rcu_read_unlock();
- 	stats->ac_utime	 = cputime_to_msecs(tsk->utime) * USEC_PER_MSEC;
- 	stats->ac_stime	 = cputime_to_msecs(tsk->stime) * USEC_PER_MSEC;
-+	stats->ac_utimescaled =
-+		cputime_to_msecs(tsk->utimescaled) * USEC_PER_MSEC;
-+	stats->ac_stimescaled =
-+		cputime_to_msecs(tsk->stimescaled) * USEC_PER_MSEC;
- 	stats->ac_minflt = tsk->min_flt;
- 	stats->ac_majflt = tsk->maj_flt;
- 
+ extern struct paca_struct paca[];
 _
 
 Patches currently in -mm which might be from mikey@neuling.org are
