@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-use-atomic_long_read-for-atomic_long-variables.patch added to -mm tree
-Date: Fri, 17 Aug 2007 15:08:26 -0700
-Message-ID: <200708172208.l7HM8Qmb031666@imap1.linux-foundation.org>
+Subject: + slub-do-not-fail-on-broken-memory-configurations.patch added to -mm tree
+Date: Fri, 17 Aug 2007 15:09:42 -0700
+Message-ID: <200708172209.l7HM9gSa031713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752734AbXHQWJY (ORCPT
+	by vger.kernel.org with ESMTP id S1752374AbXHQWKh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 18:09:24 -0400
+	Fri, 17 Aug 2007 18:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: use atomic_long_read for atomic_long variables
+     SLUB: do not fail on broken memory configurations
 has been added to the -mm tree.  Its filename is
-     slub-use-atomic_long_read-for-atomic_long-variables.patch
+     slub-do-not-fail-on-broken-memory-configurations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: use atomic_long_read for atomic_long variables
+Subject: SLUB: do not fail on broken memory configurations
 From: Christoph Lameter <clameter@sgi.com>
 
-SLUB is using atomic_read() for variables declared atomic_long_t.
-Switch to atomic_long_read().
+Print a big fat warning and do what is necessary to continue if a node is
+marked as up (meaning either node is online (upstream) or node has memory
+(Andrew's tree)) but allocations from the node do not succeed.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-use-atomic_long_read-for-atomic_long-variables mm/slub.c
---- a/mm/slub.c~slub-use-atomic_long_read-for-atomic_long-variables
+diff -puN mm/slub.c~slub-do-not-fail-on-broken-memory-configurations mm/slub.c
+--- a/mm/slub.c~slub-do-not-fail-on-broken-memory-configurations
 +++ a/mm/slub.c
-@@ -3112,7 +3112,7 @@ static int list_locations(struct kmem_ca
- 		unsigned long flags;
- 		struct page *page;
+@@ -1877,9 +1877,16 @@ static struct kmem_cache_node * __init e
  
--		if (!atomic_read(&n->nr_slabs))
-+		if (!atomic_long_read(&n->nr_slabs))
- 			continue;
+ 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
  
- 		spin_lock_irqsave(&n->list_lock, flags);
-@@ -3247,7 +3247,7 @@ static unsigned long slab_objects(struct
- 		}
+-	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
++	page = new_slab(kmalloc_caches, gfpflags, node);
  
- 		if (flags & SO_FULL) {
--			int full_slabs = atomic_read(&n->nr_slabs)
-+			int full_slabs = atomic_long_read(&n->nr_slabs)
- 					- per_cpu[node]
- 					- n->nr_partial;
- 
-@@ -3283,7 +3283,7 @@ static int any_slab_objects(struct kmem_
- 	for_each_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
- 
--		if (n->nr_partial || atomic_read(&n->nr_slabs))
-+		if (n->nr_partial || atomic_long_read(&n->nr_slabs))
- 			return 1;
- 	}
- 	return 0;
+ 	BUG_ON(!page);
++	if (page_to_nid(page) != node) {
++		printk(KERN_ERR "SLUB: Unable to allocate memory from "
++				"node %d\n", node);
++		printk(KERN_ERR "SLUB: Allocating a useless per node structure "
++				"in order to be able to continue\n");
++	}
++
+ 	n = page->freelist;
+ 	BUG_ON(!n);
+ 	page->freelist = get_freepointer(kmalloc_caches, n);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -77,6 +69,7 @@ sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 document-linux-memory-policy-v3.patch
 slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch
 slub-use-atomic_long_read-for-atomic_long-variables.patch
+slub-do-not-fail-on-broken-memory-configurations.patch
 apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
 check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
 pa-risc-use-page-allocator-instead-of-slab-allocator.patch
