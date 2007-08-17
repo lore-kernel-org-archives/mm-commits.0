@@ -1,155 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + slub-do-not-fail-on-broken-memory-configurations.patch added to -mm tree
-Date: Fri, 17 Aug 2007 15:09:42 -0700
-Message-ID: <200708172209.l7HM9gSa031713@imap1.linux-foundation.org>
+Subject: - proc-export-a-processes-resource-limits-via-proc-pid-fix.patch removed from -mm tree
+Date: Fri, 17 Aug 2007 15:29:00 -0700
+Message-ID: <200708172229.l7HMT0Om032383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752374AbXHQWKh (ORCPT
+	by vger.kernel.org with ESMTP id S1752734AbXHQWa0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 18:10:37 -0400
+	Fri, 17 Aug 2007 18:30:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: do not fail on broken memory configurations
-has been added to the -mm tree.  Its filename is
-     slub-do-not-fail-on-broken-memory-configurations.patch
+     proc-export-a-processes-resource-limits-via-proc-pid-fix
+has been removed from the -mm tree.  Its filename was
+     proc-export-a-processes-resource-limits-via-proc-pid-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: SLUB: do not fail on broken memory configurations
-From: Christoph Lameter <clameter@sgi.com>
+Subject: proc-export-a-processes-resource-limits-via-proc-pid-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Print a big fat warning and do what is necessary to continue if a node is
-marked as up (meaning either node is online (upstream) or node has memory
-(Andrew's tree)) but allocations from the node do not succeed.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ include/asm-generic/resource.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN mm/slub.c~slub-do-not-fail-on-broken-memory-configurations mm/slub.c
---- a/mm/slub.c~slub-do-not-fail-on-broken-memory-configurations
-+++ a/mm/slub.c
-@@ -1877,9 +1877,16 @@ static struct kmem_cache_node * __init e
+diff -puN include/asm-generic/resource.h~proc-export-a-processes-resource-limits-via-proc-pid-fix include/asm-generic/resource.h
+--- a/include/asm-generic/resource.h~proc-export-a-processes-resource-limits-via-proc-pid-fix
++++ a/include/asm-generic/resource.h
+@@ -45,6 +45,7 @@
+ 					   0-39 for nice level 19 .. -20 */
+ #define RLIMIT_RTPRIO		14	/* maximum realtime priority */
  
- 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
++/* Remember to update fs/proc/base.c:lnames[] when adding new rlimits! */
+ #define RLIM_NLIMITS		15
  
--	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
-+	page = new_slab(kmalloc_caches, gfpflags, node);
- 
- 	BUG_ON(!page);
-+	if (page_to_nid(page) != node) {
-+		printk(KERN_ERR "SLUB: Unable to allocate memory from "
-+				"node %d\n", node);
-+		printk(KERN_ERR "SLUB: Allocating a useless per node structure "
-+				"in order to be able to continue\n");
-+	}
-+
- 	n = page->freelist;
- 	BUG_ON(!n);
- 	page->freelist = get_freepointer(kmalloc_caches, n);
+ /*
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-document-linux-memory-policy-v3.patch
-slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch
-slub-use-atomic_long_read-for-atomic_long-variables.patch
-slub-do-not-fail-on-broken-memory-configurations.patch
-apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
-x86_64-family-10h-and-11h-to-k8topology.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+dma-arch-fix.patch
+git-dma-up-fix.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+git-kvm.patch
+libata-add-irq_flags-to-struct-pata_platform_info-fix.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-ixgbe-build-fix.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+bsg-declare-request_queue.patch
+aacraid-rename-check_reset.patch
+scsi-ipsc-warning-fix.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+mct_u232-convert-to-proper-speed-handling-api-fix.patch
+git-wireless.patch
+git-wireless-fixup.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-get-mp_bus_to_node-as-early-v3-update.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-categorize-gfp-flags.patch
 categorize-gfp-flags-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-exploit-page-mobility-to-increase-allocation-order.patch
-slub-reduce-antifrag-max-order.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+proc-export-a-processes-resource-limits-via-proc-pid-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-prefetch.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
