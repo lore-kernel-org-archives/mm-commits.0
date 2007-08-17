@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch added to -mm tree
-Date: Fri, 17 Aug 2007 13:23:56 -0700
-Message-ID: <200708172023.l7HKNuTA027858@imap1.linux-foundation.org>
+Subject: + irda_nl_get_mode-always-results-in-failure.patch added to -mm tree
+Date: Fri, 17 Aug 2007 13:26:36 -0700
+Message-ID: <200708172026.l7HKQaWA027983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41122 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756117AbXHQUYy (ORCPT
+	by vger.kernel.org with ESMTP id S1755369AbXHQU1f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 17 Aug 2007 16:24:54 -0400
+	Fri, 17 Aug 2007 16:27:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, benh@kernel.crashing.org, paulus@samba.org
+Cc: apw@shadowen.org, samuel@sortiz.org
 
 
 The patch titled
-     powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
+     irda_nl_get_mode: always results in failure
 has been added to the -mm tree.  Its filename is
-     powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
+     irda_nl_get_mode-always-results-in-failure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
+Subject: irda_nl_get_mode: always results in failure
 From: Andy Whitcroft <apw@shadowen.org>
 
-Seems that a trailing ';' has slipped onto the end of the get_slice_psize
-checks under CONFIG_PPC_MM_SLICES causing us to return unconditionally and
-never preload.
+It seems an extraneous trailing ';' has slipped in to the error handling for a
+name registration failure causing the error path to trigger unconditionally.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hash_utils_64.c |    2 +-
+ net/irda/irnetlink.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -794,7 +794,7 @@ void hash_preload(struct mm_struct *mm, 
+diff -puN net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure net/irda/irnetlink.c
+--- a/net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure
++++ a/net/irda/irnetlink.c
+@@ -106,7 +106,7 @@ static int irda_nl_get_mode(struct sk_bu
+ 	}
  
- #ifdef CONFIG_PPC_MM_SLICES
- 	/* We only prefault standard pages for now */
--	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize));
-+	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize))
- 		return;
- #endif
+ 	if(nla_put_string(msg, IRDA_NL_ATTR_IFNAME,
+-			  dev->name));
++			  dev->name))
+ 		goto err_out;
  
+ 	if(nla_put_u32(msg, IRDA_NL_ATTR_MODE, irlap->mode))
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -64,6 +62,7 @@ wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
 wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
 powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
 mips-irix_getcontext-will-always-fail-efault.patch
+irda_nl_get_mode-always-results-in-failure.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 x86_64-get-mp_bus_to_node-as-early-v3-update.patch
 x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
@@ -107,4 +106,3 @@ have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
 only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
 rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
 page-owner-tracking-leak-detector.patch
-irda_nl_get_mode-always-results-in-failure.patch
