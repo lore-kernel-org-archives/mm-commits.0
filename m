@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-vs-git-unionfs.patch added to -mm tree
-Date: Mon, 20 Aug 2007 16:25:48 -0700
-Message-ID: <200708202330.l7KNUsW9029327@imap1.linux-foundation.org>
+Subject: + git-net-vs-e1000e.patch added to -mm tree
+Date: Mon, 20 Aug 2007 16:56:35 -0700
+Message-ID: <200708210001.l7L01gog030387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753491AbXHTXcT (ORCPT
+	by vger.kernel.org with ESMTP id S1750841AbXHUAB5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 19:32:19 -0400
+	Mon, 20 Aug 2007 20:01:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jsipek@cs.sunysb.edu, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     git-nfs-vs-git-unionfs
+     git-net-vs-e1000e
 has been added to the -mm tree.  Its filename is
-     git-nfs-vs-git-unionfs.patch
+     git-net-vs-e1000e.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-vs-git-unionfs
+Subject: git-net-vs-e1000e
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Put this back - unionfs uses it.
+the net-2.6 tree destroyed this driver and I can't be assed fixing it.
 
-Please don't commit unreviewed VFS patches to fs-specific trees.
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/writeback.h |    1 +
+ drivers/net/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/linux/writeback.h~git-nfs-vs-git-unionfs include/linux/writeback.h
---- a/include/linux/writeback.h~git-nfs-vs-git-unionfs
-+++ a/include/linux/writeback.h
-@@ -61,6 +61,7 @@ struct writeback_control {
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned for_writepages:1;	/* This is a writepages() call */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
-+	void *fs_private;               /* For use by ->writepages() */
- };
- 
- /*
+diff -puN drivers/net/Kconfig~git-net-vs-e1000e drivers/net/Kconfig
+--- a/drivers/net/Kconfig~git-net-vs-e1000e
++++ a/drivers/net/Kconfig
+@@ -2058,6 +2058,7 @@ config E1000_DISABLE_PACKET_SPLIT
+ config E1000E
+ 	tristate "Intel(R) PRO/1000 PCI-Express Gigabit Ethernet support"
+ 	depends on PCI
++	depends on BROKEN
+ 	---help---
+ 	  This driver supports the PCI-Express Intel(R) PRO/1000 gigabit
+ 	  ethernet family of adapters. For PCI or PCI-X e1000 adapters,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,9 +82,9 @@ mtdoops-printk-warning-fixes.patch
 git-netdev-all.patch
 e1000e-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
-git-ixgbe-build-fix.patch
 git-net.patch
 git-net-fixup.patch
+git-net-vs-e1000e.patch
 git-backlight.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
