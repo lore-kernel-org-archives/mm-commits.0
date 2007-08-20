@@ -1,92 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:38 -0700
-Message-ID: <200708201913.l7KJDcnM018458@imap1.linux-foundation.org>
+Subject: - libata-send-event-when-an-received.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:45 -0700
+Message-ID: <200708201912.l7KJCjYw018382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53557 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759944AbXHTTVX (ORCPT
+	by vger.kernel.org with ESMTP id S1760348AbXHTTV1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:23 -0400
+	Mon, 20 Aug 2007 15:21:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michaelc@cs.wisc.edu, James.Bottomley@steeleye.com, jli@greshamstorage.com, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
+     libata: send event when AN received
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers.patch
+     libata-send-event-when-an-received.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: fix incorrect SCSI transfer length computation from odd sized scsi_execute_async() transfers
-From: Mike Christie <michaelc@cs.wisc.edu>
+Subject: libata: send event when AN received
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-sg's may have setup a the buffer with a different length than the transfer
-length so we should be using the bufflen passed in as the request's data
-len.
+When we get an SDB FIS with the 'N' bit set, we should send an event to user
+space to indicate that there has been a media change.  This will be done via
+the scsi device.
 
-Signed-off-by: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Jeremy Linton <jli@greshamstorage.com>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/ata/ahci.c        |   22 ++++++++++++++++++++++
+ drivers/ata/libata-scsi.c |   16 ++++++++++++++++
+ include/linux/libata.h    |    1 +
+ 3 files changed, 39 insertions(+)
 
-diff -puN drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-fix-incorrect-scsi-transfer-length-computation-from-odd-sized-scsi_execute_async-transfers
-+++ a/drivers/scsi/scsi_lib.c
-@@ -306,7 +306,7 @@ static int scsi_req_map_sg(struct reques
- {
- 	struct request_queue *q = rq->q;
- 	int nr_pages = (bufflen + sgl[0].offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	unsigned int data_len = 0, len, bytes, off;
-+	unsigned int data_len = bufflen, len, bytes, off;
- 	struct page *page;
- 	struct bio *bio = NULL;
- 	int i, err, nr_vecs = 0;
-@@ -315,10 +315,15 @@ static int scsi_req_map_sg(struct reques
- 		page = sgl[i].page;
- 		off = sgl[i].offset;
- 		len = sgl[i].length;
--		data_len += len;
- 
--		while (len > 0) {
-+		while (len > 0 && data_len > 0) {
-+			/*
-+			 * sg sends a scatterlist that is larger than
-+			 * the data_len it wants transferred for certain
-+			 * IO sizes
-+			 */
- 			bytes = min_t(unsigned int, len, PAGE_SIZE - off);
-+			bytes = min(bytes, data_len);
- 
- 			if (!bio) {
- 				nr_vecs = min_t(int, BIO_MAX_PAGES, nr_pages);
-@@ -350,12 +355,13 @@ static int scsi_req_map_sg(struct reques
- 
- 			page++;
- 			len -= bytes;
-+			data_len -=bytes;
- 			off = 0;
- 		}
+diff -puN drivers/ata/ahci.c~libata-send-event-when-an-received drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~libata-send-event-when-an-received
++++ a/drivers/ata/ahci.c
+@@ -1529,6 +1529,28 @@ static void ahci_port_intr(struct ata_po
+ 		return;
  	}
  
- 	rq->buffer = rq->data = NULL;
--	rq->data_len = data_len;
-+	rq->data_len = bufflen;
- 	return 0;
++	if (status & PORT_IRQ_SDB_FIS) {
++		/*
++		 * if this is an ATAPI device with AN turned on,
++		 * then we should interrogate the device to
++		 * determine the cause of the interrupt
++		 *
++		 * for AN - this we should check the SDB FIS
++		 * and find the I and N bits set
++		 */
++		const u32 *f = pp->rx_fis + RX_FIS_SDB;
++
++		/* check the 'N' bit in word 0 of the FIS */
++		if (f[0] & (1 << 15)) {
++			int port_addr =  ((f[0] & 0x00000f00) >> 8);
++			struct ata_device *adev;
++			if (port_addr < ATA_MAX_DEVICES) {
++				adev = &ap->device[port_addr];
++				if (adev->flags & ATA_DFLAG_AN)
++					ata_scsi_media_change_notify(adev);
++			}
++		}
++	}
+ 	if (ap->sactive)
+ 		qc_active = readl(port_mmio + PORT_SCR_ACT);
+ 	else
+diff -puN drivers/ata/libata-scsi.c~libata-send-event-when-an-received drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata-send-event-when-an-received
++++ a/drivers/ata/libata-scsi.c
+@@ -3218,6 +3218,22 @@ static void ata_scsi_remove_dev(struct a
+ }
  
- free_bios:
+ /**
++ *	ata_scsi_media_change_notify - send media change event
++ *	@atadev: Pointer to the disk device with media change event
++ *
++ *	Tell the block layer to send a media change notification
++ *	event.
++ *
++ * 	LOCKING:
++ * 	interrupt context, may not sleep.
++ */
++void ata_scsi_media_change_notify(struct ata_device *atadev)
++{
++	scsi_device_event_notify(atadev->sdev, SDEV_MEDIA_CHANGE);
++}
++EXPORT_SYMBOL_GPL(ata_scsi_media_change_notify);
++
++/**
+  *	ata_scsi_hotplug - SCSI part of hotplug
+  *	@work: Pointer to ATA port to perform SCSI hotplug on
+  *
+diff -puN include/linux/libata.h~libata-send-event-when-an-received include/linux/libata.h
+--- a/include/linux/libata.h~libata-send-event-when-an-received
++++ a/include/linux/libata.h
+@@ -761,6 +761,7 @@ extern void ata_host_init(struct ata_hos
+ extern int ata_scsi_detect(struct scsi_host_template *sht);
+ extern int ata_scsi_ioctl(struct scsi_device *dev, int cmd, void __user *arg);
+ extern int ata_scsi_queuecmd(struct scsi_cmnd *cmd, void (*done)(struct scsi_cmnd *));
++extern void ata_scsi_media_change_notify(struct ata_device *atadev);
+ extern void ata_sas_port_destroy(struct ata_port *);
+ extern struct ata_port *ata_sas_port_alloc(struct ata_host *,
+ 					   struct ata_port_info *, struct Scsi_Host *);
 _
 
-Patches currently in -mm which might be from michaelc@cs.wisc.edu are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
-git-scsi-misc.patch
-git-scsi-rc-fixes.patch
-add-includes-to-scsi_transport_iscsih.patch
+origin.patch
+git-libata-all.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+acpiphp_ibm-add-missing-n.patch
+scsi-send-media-state-change-modification-events.patch
