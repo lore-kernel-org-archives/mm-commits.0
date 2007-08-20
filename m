@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-consolidate-2-fast-paths.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:58:50 -0700
-Message-ID: <200708202058.l7KKwotN022978@imap1.linux-foundation.org>
+Subject: + v3-file-capabilities-alter-behavior-of-cap_setpcap.patch added to -mm tree
+Date: Mon, 20 Aug 2007 14:14:52 -0700
+Message-ID: <200708202114.l7KLEq95023574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755792AbXHTU7u (ORCPT
+	by vger.kernel.org with ESMTP id S1752682AbXHTVPe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:59:50 -0400
+	Mon, 20 Aug 2007 17:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: morgan@kernel.org, serue@us.ibm.com
 
 
 The patch titled
-     exec: consolidate 2 fast-paths
+     V3 file capabilities: alter behavior of cap_setpcap
 has been added to the -mm tree.  Its filename is
-     exec-consolidate-2-fast-paths.patch
+     v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,327 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: exec: consolidate 2 fast-paths
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: V3 file capabilities: alter behavior of cap_setpcap
+From: Andrew Morgan <morgan@kernel.org>
 
-Now that we don't pre-allocate the new ->sighand, we can kill the first fast
-path, it doesn't make sense any longer. At best, it can save one "list_empty()"
-check but leads to the code duplication.
+The non-filesystem capability meaning of CAP_SETPCAP is that a process, p1,
+can change the capabilities of another process, p2.  This is not the
+meaning that was intended for this capability at all, and this
+implementation came about purely because, without filesystem capabilities,
+there was no way to use capabilities without one process bestowing them on
+another.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Since we now have a filesystem support for capabilities we can fix the
+implementation of CAP_SETPCAP.
+
+The most significant thing about this change is that, with it in effect, no
+process can set the capabilities of another process.
+
+The capabilities of a program are set via the capability convolution
+rules:
+
+   pI(post-exec) = pI(pre-exec)
+   pP(post-exec) = (X(aka cap_bset) & fP) | (pI(post-exec) & fI)
+   pE(post-exec) = fE ? pP(post-exec) : 0
+
+at exec() time.  As such, the only influence the pre-exec() program can
+have on the post-exec() program's capabilities are through the pI
+capability set.
+
+The correct implementation for CAP_SETPCAP (and that enabled by this patch)
+is that it can be used to add extra pI capabilities to the current process
+- to be picked up by subsequent exec()s when the above convolution rules
+are applied.
+
+Here is how it works:
+
+Let's say we have a process, p. It has capability sets, pE, pP and pI.
+Generally, p, can change the value of its own pI to pI' where
+
+   (pI' & ~pI) & ~pP = 0.
+
+That is, the only new things in pI' that were not present in pI need to
+be present in pP.
+
+The role of CAP_SETPCAP is basically to permit changes to pI beyond
+the above:
+
+   if (pE & CAP_SETPCAP) {
+      pI' = anything; /* ie., even (pI' & ~pI) & ~pP != 0  */
+   }
+
+This capability is useful for things like login, which (say, via
+pam_cap) might want to raise certain inheritable capabilities for use
+by the children of the logged-in user's shell, but those capabilities
+are not useful to or needed by the login program itself.
+
+One such use might be to limit who can run ping. You set the
+capabilities of the 'ping' program to be "= cap_net_raw+i", and then
+only shells that have (pI & CAP_NET_RAW) will be able to run
+it. Without CAP_SETPCAP implemented as described above, login(pam_cap)
+would have to also have (pP & CAP_NET_RAW) in order to raise this
+capability and pass it on through the inheritable set.
+
+Signed-off-by: Andrew Morgan <morgan@kernel.org>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   10 ----------
- 1 files changed, 10 deletions(-)
+ include/linux/capability.h |    4 --
+ include/linux/security.h   |    7 ++++
+ kernel/capability.c        |    5 --
+ kernel/sysctl.c            |    8 +++-
+ kernel/sysctl_check.c      |    5 ++
+ security/commoncap.c       |   59 ++++++++++++++++++++++++++++++++---
+ security/dummy.c           |   16 ++++-----
+ 7 files changed, 80 insertions(+), 24 deletions(-)
 
-diff -puN fs/exec.c~exec-consolidate-2-fast-paths fs/exec.c
---- a/fs/exec.c~exec-consolidate-2-fast-paths
-+++ a/fs/exec.c
-@@ -752,16 +752,6 @@ static int de_thread(struct task_struct 
- 	struct task_struct *leader = NULL;
- 	int count;
+diff -puN include/linux/capability.h~v3-file-capabilities-alter-behavior-of-cap_setpcap include/linux/capability.h
+--- a/include/linux/capability.h~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/include/linux/capability.h
+@@ -310,10 +310,6 @@ typedef __u32 kernel_cap_t;
+ #define CAP_SETFCAP	     31
  
--	/*
--	 * If we don't share sighandlers, then we aren't sharing anything
--	 * and we can just re-use it all.
--	 */
--	if (atomic_read(&oldsighand->count) <= 1) {
--		signalfd_detach(tsk);
--		exit_itimers(sig);
--		return 0;
--	}
+ #ifdef __KERNEL__
+-/*
+- * Bounding set
+- */
+-extern kernel_cap_t cap_bset;
+ 
+ /*
+  * Internal kernel functions only
+diff -puN include/linux/security.h~v3-file-capabilities-alter-behavior-of-cap_setpcap include/linux/security.h
+--- a/include/linux/security.h~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/include/linux/security.h
+@@ -34,6 +34,13 @@
+ #include <linux/xfrm.h>
+ #include <net/flow.h>
+ 
++/*
++ * Bounding set
++ */
++extern kernel_cap_t cap_bset;
++
++extern unsigned securebits;
++
+ struct ctl_table;
+ 
+ /*
+diff -puN kernel/capability.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/capability.c
+--- a/kernel/capability.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/kernel/capability.c
+@@ -3,7 +3,7 @@
+  *
+  * Copyright (C) 1997  Andrew Main <zefram@fysh.org>
+  *
+- * Integrated into 2.1.97+,  Andrew G. Morgan <morgan@transmeta.com>
++ * Integrated into 2.1.97+,  Andrew G. Morgan <morgan@kernel.org>
+  * 30 May 2002:	Cleanup, Robert M. Love <rml@tech9.net>
+  */ 
+ 
+@@ -14,9 +14,6 @@
+ #include <linux/syscalls.h>
+ #include <asm/uaccess.h>
+ 
+-unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
+-kernel_cap_t cap_bset = CAP_INIT_EFF_SET;
 -
- 	if (thread_group_empty(tsk))
- 		goto no_thread_group;
+ /*
+  * This lock protects task->cap_* for all tasks including current.
+  * Locking rule: acquire this prior to tasklist_lock.
+diff -puN kernel/sysctl.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/sysctl.c
+--- a/kernel/sysctl.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/kernel/sysctl.c
+@@ -25,7 +25,7 @@
+ #include <linux/swap-prefetch.h>
+ #include <linux/sysctl.h>
+ #include <linux/proc_fs.h>
+-#include <linux/capability.h>
++#include <linux/security.h>
+ #include <linux/ctype.h>
+ #include <linux/utsname.h>
+ #include <linux/smp_lock.h>
+@@ -367,6 +367,7 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= &proc_dointvec_taint,
+ 	},
+ #endif
++#ifdef CONFIG_SECURITY_CAPABILITIES
+ 	{
+ 		.procname	= "cap-bound",
+ 		.data		= &cap_bset,
+@@ -374,6 +375,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0600,
+ 		.proc_handler	= &proc_dointvec_bset,
+ 	},
++#endif /* def CONFIG_SECURITY_CAPABILITIES */
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	{
+ 		.ctl_name	= KERN_REALROOTDEV,
+@@ -1889,10 +1891,11 @@ static int do_proc_dointvec_bset_conv(in
+ 	return 0;
+ }
  
++#ifdef CONFIG_SECURITY_CAPABILITIES
+ /*
+  *	init may raise the set.
+  */
+- 
++
+ int proc_dointvec_bset(struct ctl_table *table, int write, struct file *filp,
+ 			void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -1906,6 +1909,7 @@ int proc_dointvec_bset(struct ctl_table 
+ 	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
+ 				do_proc_dointvec_bset_conv,&op);
+ }
++#endif /* def CONFIG_SECURITY_CAPABILITIES */
+ 
+ /*
+  *	Taint values can only be increased
+diff -puN kernel/sysctl_check.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/kernel/sysctl_check.c
+@@ -38,7 +38,10 @@ static struct trans_ctl_table trans_kern
+ 	{ KERN_NODENAME,		"hostname" },
+ 	{ KERN_DOMAINNAME,		"domainname" },
+ 
++#ifdef CONFIG_SECURITY_CAPABILITIES
+ 	{ KERN_CAP_BSET,		"cap-bound" },
++#endif /* def CONFIG_SECURITY_CAPABILITIES */
++
+ 	{ KERN_PANIC,			"panic" },
+ 	{ KERN_REALROOTDEV,		"real-root-dev" },
+ 
+@@ -1513,7 +1516,9 @@ int sysctl_check_table(struct ctl_table 
+ 			    (table->strategy == sysctl_ms_jiffies) ||
+ 			    (table->proc_handler == proc_dostring) ||
+ 			    (table->proc_handler == proc_dointvec) ||
++#ifdef CONFIG_SECURITY_CAPABILITIES
+ 			    (table->proc_handler == proc_dointvec_bset) ||
++#endif /* def CONFIG_SECURITY_CAPABILITIES */
+ 			    (table->proc_handler == proc_dointvec_minmax) ||
+ 			    (table->proc_handler == proc_dointvec_jiffies) ||
+ 			    (table->proc_handler == proc_dointvec_userhz_jiffies) ||
+diff -puN security/commoncap.c~v3-file-capabilities-alter-behavior-of-cap_setpcap security/commoncap.c
+--- a/security/commoncap.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/security/commoncap.c
+@@ -24,6 +24,25 @@
+ #include <linux/hugetlb.h>
+ #include <linux/mount.h>
+ 
++#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
++/*
++ * Because of the reduced scope of CAP_SETPCAP when filesystem
++ * capabilities are in effect, it is safe to allow this capability to
++ * be available in the default configuration.
++ */
++# define CAP_INIT_BSET  CAP_FULL_SET
++#else /* ie. ndef CONFIG_SECURITY_FILE_CAPABILITIES */
++# define CAP_INIT_BSET  CAP_INIT_EFF_SET
++#endif /* def CONFIG_SECURITY_FILE_CAPABILITIES */
++
++kernel_cap_t cap_bset = CAP_INIT_BSET;    /* systemwide capability bound */
++EXPORT_SYMBOL(cap_bset);
++
++/* Global security state */
++
++unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
++EXPORT_SYMBOL(securebits);
++
+ int cap_netlink_send(struct sock *sk, struct sk_buff *skb)
+ {
+ 	NETLINK_CB(skb).eff_cap = current->cap_effective;
+@@ -73,14 +92,44 @@ int cap_capget (struct task_struct *targ
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
++
++static inline int cap_block_setpcap(struct task_struct *target)
++{
++	/*
++	 * No support for remote process capability manipulation with
++	 * filesystem capability support.
++	 */
++	return (target != current);
++}
++
++static inline int cap_inh_is_capped(void)
++{
++	/*
++	 * return 1 if changes to the inheritable set are limited
++	 * to the old permitted set.
++	 */
++	return !cap_capable(current, CAP_SETPCAP);
++}
++
++#else /* ie., ndef CONFIG_SECURITY_FILE_CAPABILITIES */
++
++static inline int cap_block_setpcap(struct task_struct *t) { return 0; }
++static inline int cap_inh_is_capped(void) { return 1; }
++
++#endif /* def CONFIG_SECURITY_FILE_CAPABILITIES */
++
+ int cap_capset_check (struct task_struct *target, kernel_cap_t *effective,
+ 		      kernel_cap_t *inheritable, kernel_cap_t *permitted)
+ {
+-	/* Derived from kernel/capability.c:sys_capset. */
+-	/* verify restrictions on target's new Inheritable set */
+-	if (!cap_issubset (*inheritable,
+-			   cap_combine (target->cap_inheritable,
+-					current->cap_permitted))) {
++	if (cap_block_setpcap(target)) {
++		return -EPERM;
++	}
++	if (cap_inh_is_capped()
++	    && !cap_issubset(*inheritable,
++			     cap_combine(target->cap_inheritable,
++					 current->cap_permitted))) {
++		/* incapable of using this inheritable set */
+ 		return -EPERM;
+ 	}
+ 
+diff -puN security/dummy.c~v3-file-capabilities-alter-behavior-of-cap_setpcap security/dummy.c
+--- a/security/dummy.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
++++ a/security/dummy.c
+@@ -37,15 +37,13 @@ static int dummy_capget (struct task_str
+ 			 kernel_cap_t * inheritable, kernel_cap_t * permitted)
+ {
+ 	*effective = *inheritable = *permitted = 0;
+-	if (!issecure(SECURE_NOROOT)) {
+-		if (target->euid == 0) {
+-			*permitted |= (~0 & ~CAP_FS_MASK);
+-			*effective |= (~0 & ~CAP_TO_MASK(CAP_SETPCAP) & ~CAP_FS_MASK);
+-		}
+-		if (target->fsuid == 0) {
+-			*permitted |= CAP_FS_MASK;
+-			*effective |= CAP_FS_MASK;
+-		}
++	if (target->euid == 0) {
++		*permitted |= (~0 & ~CAP_FS_MASK);
++		*effective |= (~0 & ~CAP_TO_MASK(CAP_SETPCAP) & ~CAP_FS_MASK);
++	}
++	if (target->fsuid == 0) {
++		*permitted |= CAP_FS_MASK;
++		*effective |= CAP_FS_MASK;
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from morgan@kernel.org are
 
-origin.patch
-posix-timers-fix-creation-race.patch
-signalfd-fix-interaction-with-posix-timers.patch
-signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
-exec-kill-unsafe-bug_onsig-count-checks.patch
-git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
+file-capabilities-clear-fcaps-on-inode-change.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
