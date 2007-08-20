@@ -1,115 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - ata_piix-disallow-udma-133-on-ich5-ich7.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:58 -0700
-Message-ID: <200708201912.l7KJCwxl018388@imap1.linux-foundation.org>
+Subject: - drivers-scsi-scsi_errorc-should-include.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:13 -0700
+Message-ID: <200708201913.l7KJDDnf018419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58306 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760714AbXHTTVc (ORCPT
+	by vger.kernel.org with ESMTP id S1760595AbXHTTVj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:32 -0400
+	Mon, 20 Aug 2007 15:21:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chunkeey@web.de, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ata_piix: disallow UDMA 133 on ICH5 & ICH7
+     drivers/scsi/scsi_error.c should #include "scsi_transport_api.h"
 has been removed from the -mm tree.  Its filename was
-     ata_piix-disallow-udma-133-on-ich5-ich7.patch
+     drivers-scsi-scsi_errorc-should-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ata_piix: disallow UDMA 133 on ICH5 & ICH7
-From: Christian Lamparter <chunkeey@web.de>
+Subject: drivers/scsi/scsi_error.c should #include "scsi_transport_api.h"
+From: Adrian Bunk <bunk@stusta.de>
 
-There is another outstanding issue with ata_piix.c.  Intel has never
-officially supported anything faster than PATA 100MB/s.
+Every file should #include the headers containing the prototypes for its
+global functions (in this case for scsi_schedule_eh()).
 
-But, the ata_piix.c driver "define" the ICH5 & ICH7 as UDMA6 (aka 133MB/s)
-capable.  [ Well, no one has probably noticed it before, because there is bug
-in do_pata_set_dmamode...  Just look at
-libata_atapiix_enable_real_udma133.patch and you'll see what wrong with it.  ]
-
-
-Here are Intel's datasheets for the affected chipsets: ICH5 Datasheet:
-http://www.intel.com/design/chipsets/datashts/252516.htm (See note on page
-183: "...  the ICH5 supports reads at the maximum rate of 100MB/s.")
-
-ICH7 Datasheet: http://www.intel.com/design/chipsets/datashts/307013.htm (See
-first note on page 190: "...  the ICH7 supports reads at the maximum rate of
-100MB/s.")
-
-They are two different ways to deal with it:
-
-- Either -
-
-1. replace all ich_pata_133 with ich_pata_100. 
-   (libata_atapiix_disable_udma6.diff - diff from 2.6.22 )
-
-- Or -
-
-2. keep all ich_pata_133 and fix the bug in "do_pata_set_dmamode". 
-   (libata_atapiix_enable_real_udma133.patch - diff from 2.6.22) If there are
-   any concerns about the safety of the patch patch:
-   http://lkml.org/lkml/2007/7/6/292 (It was already tested by an Intel
-   employee, but I guess a bit more user input is necessary here...  )
-
-This patch implements 1.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Signed-off-by: Christian Lamparter <chunkeey@web.de>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/scsi_error.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/ata_piix.c~ata_piix-disallow-udma-133-on-ich5-ich7 drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ata_piix-disallow-udma-133-on-ich5-ich7
-+++ a/drivers/ata/ata_piix.c
-@@ -123,7 +123,7 @@ enum {
- 	ich_pata_33		= 1,	/* ICH up to UDMA 33 only */
- 	ich_pata_66		= 2,	/* ICH up to 66 Mhz */
- 	ich_pata_100		= 3,	/* ICH up to UDMA 100 */
--	ich_pata_133		= 4,	/* ICH up to UDMA 133 */
-+	/* ICH up to UDMA 133 is not supported */
- 	ich5_sata		= 5,
- 	ich6_sata		= 6,
- 	ich6_sata_ahci		= 7,
-@@ -198,7 +198,7 @@ static const struct pci_device_id piix_p
- 	{ 0x8086, 0x24CA, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	{ 0x8086, 0x24CB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	/* Intel ICH5 */
--	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
-+	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	/* C-ICH (i810E2) */
- 	{ 0x8086, 0x245B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	/* ESB (855GME/875P + 6300ESB) UDMA 100  */
-@@ -206,7 +206,7 @@ static const struct pci_device_id piix_p
- 	/* ICH6 (and 6) (i915) UDMA 100 */
- 	{ 0x8086, 0x266F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	/* ICH7/7-R (i945, i975) UDMA 100*/
--	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
-+	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	{ 0x8086, 0x269E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
- 	/* ICH8 Mobile PATA Controller */
- 	{ 0x8086, 0x2850, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
-@@ -489,7 +489,7 @@ static struct ata_port_info piix_port_in
- 		.port_ops	= &ich_pata_ops,
- 	},
+diff -puN drivers/scsi/scsi_error.c~drivers-scsi-scsi_errorc-should-include drivers/scsi/scsi_error.c
+--- a/drivers/scsi/scsi_error.c~drivers-scsi-scsi_errorc-should-include
++++ a/drivers/scsi/scsi_error.c
+@@ -37,6 +37,7 @@
  
--	/* ich_pata_133: 4 	ICH with full UDMA6 */
-+	/* ich_pata_133: 4 - Not supported - */
- 	{
- 		.sht		= &piix_sht,
- 		.flags		= PIIX_PATA_FLAGS | PIIX_FLAG_CHECKINTR,
+ #include "scsi_priv.h"
+ #include "scsi_logging.h"
++#include "scsi_transport_api.h"
+ 
+ #define SENSE_TIMEOUT		(10*HZ)
+ 
 _
 
-Patches currently in -mm which might be from chunkeey@web.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-git-libata-all.patch
+origin.patch
+kernel-auditscc-fix-an-off-by-one.patch
+w1-fix-w1_remove_master_device-searching.patch
+slow-down-printk-during-boot-fix-3.patch
+git-acpi.patch
+git-alsa.patch
+allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+git-dma.patch
+git-drm.patch
+git-dvb.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
+git-mtd.patch
+remove-fs-jffs2-ioctlc.patch
+git-netdev-all.patch
+drivers-net-cxgb3-xgmacc-remove-dead-code.patch
+e1000-if-0-two-functions.patch
+git-backlight.patch
+parisc-extern-inline-static-inline.patch
+git-scsi-misc.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+git-unionfs.patch
+git-v9fs.patch
+git-ipwireless_cs.patch
+git-cryptodev.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
