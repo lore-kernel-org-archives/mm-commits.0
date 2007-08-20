@@ -1,99 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-memory-leak-in-em28xx_usb_probe.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:15 -0700
-Message-ID: <200708201912.l7KJCFA6018337@imap1.linux-foundation.org>
+Subject: - usb-remove-redundant-memset-from-amd5536udc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:48 -0700
+Message-ID: <200708201913.l7KJDmdg018478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758462AbXHTTVQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757699AbXHTTVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:16 -0400
+	Mon, 20 Aug 2007 15:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a memory leak in em28xx_usb_probe()
+     usb: remove redundant memset from amd5536udc
 has been removed from the -mm tree.  Its filename was
-     fix-a-memory-leak-in-em28xx_usb_probe.patch
+     usb-remove-redundant-memset-from-amd5536udc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix a memory leak in em28xx_usb_probe()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: usb: remove redundant memset from amd5536udc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-If, in em28xx_usb_probe() the memory allocation
-	dev->alt_max_pkt_size = kmalloc(32*
-						dev->num_alt,GFP_KERNEL);
-fails, then we'll bail out and return -ENOMEM.
-The problem is that in that case we don't free the storage allocated
-to 'dev', thus causing a memory leak.
+Remove redundant memset() call from udc_pci_probe().  No functional change.
 
-This patch fixes the leak by freeing 'dev' before we return -ENOMEM.
-This fixes Coverity bug #647.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/em28xx-video.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/usb/gadget/amd5536udc.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN drivers/media/video/em28xx/em28xx-video.c~fix-a-memory-leak-in-em28xx_usb_probe drivers/media/video/em28xx/em28xx-video.c
---- a/drivers/media/video/em28xx/em28xx-video.c~fix-a-memory-leak-in-em28xx_usb_probe
-+++ a/drivers/media/video/em28xx/em28xx-video.c
-@@ -1770,6 +1770,7 @@ static int em28xx_usb_probe(struct usb_i
- 	if (dev->alt_max_pkt_size == NULL) {
- 		em28xx_errdev("out of memory!\n");
- 		em28xx_devused&=~(1<<nr);
-+		kfree(dev);
- 		return -ENOMEM;
+diff -puN drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc drivers/usb/gadget/amd5536udc.c
+--- a/drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc
++++ a/drivers/usb/gadget/amd5536udc.c
+@@ -3244,7 +3244,6 @@ static int udc_pci_probe(
+ 		retval = -ENOMEM;
+ 		goto finished;
  	}
+-	memset(dev, 0, sizeof(struct udc));
  
+ 	/* pci setup */
+ 	if (pci_enable_device(pdev) < 0) {
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
 git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-git-ubi.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
 git-scsi-misc.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-watchdog.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
