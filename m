@@ -1,118 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:30 -0700
-Message-ID: <200708201912.l7KJCUM8018354@imap1.linux-foundation.org>
+Subject: - pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:19 -0700
+Message-ID: <200708201912.l7KJCJnC018343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49801 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760723AbXHTTVc (ORCPT
+	by vger.kernel.org with ESMTP id S1760867AbXHTTVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:32 -0400
+	Mon, 20 Aug 2007 15:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bzolnier@gmail.com, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_artop: fix UDMA5 for AEC6280[R] and UDMA6 for AEC6880[R]
+     powerfc fix for assembler -g
 has been removed from the -mm tree.  Its filename was
-     pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880.patch
+     pass-g-to-assembler-under-config_debug_info-powerpc-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_artop: fix UDMA5 for AEC6280[R] and UDMA6 for AEC6880[R]
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: powerfc fix for assembler -g
+From: Roland McGrath <roland@redhat.com>
 
-Maximum supported UDMA mode for AEC6280[R] is UDMA5 (not UDMA4)
-and for AEC6880[R] it is UDMA6 (not UDMA5):
+ppc64 does the unusual thing of using #include on a compiler-generated
+assembly file (lparmap.s) from an assembly source file (head_64.S).  This
+runs afoul of my recent patch to pass -gdwarf2 to the assembler under
+CONFIG_DEBUG_INFO.  This patch avoids the problem by disabling DWARF
+generation (-g0) when producing lparmap.s.
 
-* Fix the problem by adding missing struct ata_port_info to artop_init_one().
-
-* Use the right naming (s/626/628/).
-
-* Bump driver version.
-
-Fixes IDE->libata regression, problem was never present in IDE aec62xx
-driver.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_artop.c |   19 ++++++++++++++-----
- 1 files changed, 14 insertions(+), 5 deletions(-)
+ arch/powerpc/kernel/Makefile |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_artop.c~pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880 drivers/ata/pata_artop.c
---- a/drivers/ata/pata_artop.c~pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880
-+++ a/drivers/ata/pata_artop.c
-@@ -2,6 +2,7 @@
-  *    pata_artop.c - ARTOP ATA controller driver
-  *
-  *	(C) 2006 Red Hat <alan@redhat.com>
-+ *	(C) 2007 Bartlomiej Zolnierkiewicz
-  *
-  *    Based in part on drivers/ide/pci/aec62xx.c
-  *	Copyright (C) 1999-2002	Andre Hedrick <andre@linux-ide.org>
-@@ -28,7 +29,7 @@
- #include <linux/ata.h>
+diff -puN arch/powerpc/kernel/Makefile~pass-g-to-assembler-under-config_debug_info-powerpc-fix arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~pass-g-to-assembler-under-config_debug_info-powerpc-fix
++++ a/arch/powerpc/kernel/Makefile
+@@ -81,6 +81,7 @@ obj-y				+= iomap.o
+ endif
  
- #define DRV_NAME	"pata_artop"
--#define DRV_VERSION	"0.4.3"
-+#define DRV_VERSION	"0.4.4"
- 
- /*
-  *	The ARTOP has 33 Mhz and "over clocked" timing tables. Until we
-@@ -430,7 +431,7 @@ static int artop_init_one (struct pci_de
- 		.udma_mask 	= ATA_UDMA4,
- 		.port_ops	= &artop6260_ops,
- 	};
--	static const struct ata_port_info info_626x_fast = {
-+	static const struct ata_port_info info_628x = {
- 		.sht		= &artop_sht,
- 		.flags		= ATA_FLAG_SLAVE_POSS,
- 		.pio_mask	= 0x1f,	/* pio0-4 */
-@@ -438,6 +439,14 @@ static int artop_init_one (struct pci_de
- 		.udma_mask 	= ATA_UDMA5,
- 		.port_ops	= &artop6260_ops,
- 	};
-+	static const struct ata_port_info info_628x_fast = {
-+		.sht		= &artop_sht,
-+		.flags		= ATA_FLAG_SLAVE_POSS,
-+		.pio_mask	= 0x1f,	/* pio0-4 */
-+		.mwdma_mask	= 0x07, /* mwdma0-2 */
-+		.udma_mask 	= ATA_UDMA6,
-+		.port_ops	= &artop6260_ops,
-+	};
- 	const struct ata_port_info *ppi[] = { NULL, NULL };
- 
- 	if (!printed_version++)
-@@ -455,13 +464,13 @@ static int artop_init_one (struct pci_de
- 	}
- 	else if (id->driver_data == 1)	/* 6260 */
- 		ppi[0] = &info_626x;
--	else if (id->driver_data == 2)	{ /* 6260 or 6260 + fast */
-+	else if (id->driver_data == 2)	{ /* 6280 or 6280 + fast */
- 		unsigned long io = pci_resource_start(pdev, 4);
- 		u8 reg;
- 
--		ppi[0] = &info_626x;
-+		ppi[0] = &info_628x;
- 		if (inb(io) & 0x10)
--			ppi[0] = &info_626x_fast;
-+			ppi[0] = &info_628x_fast;
- 		/* Mac systems come up with some registers not set as we
- 		   will need them */
- 
+ ifeq ($(CONFIG_PPC_ISERIES),y)
++CFLAGS_lparmap.s		+= -g0
+ extra-y += lparmap.s
+ $(obj)/head_64.o:	$(obj)/lparmap.s
+ AFLAGS_head_64.o += -I$(obj)
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-ide-arm-hack.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
+signalfd-fix-interaction-with-posix-timers.patch
+signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+pass-g-to-assembler-under-config_debug_info.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+add-mmf_dump_elf_headers.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
