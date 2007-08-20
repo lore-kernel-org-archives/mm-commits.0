@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-pxa-rename-bit-macro-to-pxa_bit.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:42:26 -0700
-Message-ID: <200708202042.l7KKgQYl022232@imap1.linux-foundation.org>
+Subject: + flashpoint-use-bit-instead-of-bitw.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:42:43 -0700
+Message-ID: <200708202042.l7KKghta022253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761953AbXHTUng (ORCPT
+	by vger.kernel.org with ESMTP id S1761626AbXHTUn1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:43:36 -0400
+	Mon, 20 Aug 2007 16:43:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, khali@linux-fr.org, nico@cam.org
+Cc: jirislaby@gmail.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     i2c-pxa, rename BIT macro to PXA_BIT
+     FlashPoint, use BIT instead of BITW
 has been added to the -mm tree.  Its filename is
-     i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+     flashpoint-use-bit-instead-of-bitw.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,100 +26,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i2c-pxa, rename BIT macro to PXA_BIT
+Subject: FlashPoint, use BIT instead of BITW
 From: Jiri Slaby <jirislaby@gmail.com>
 
-i2c-pxa, rename BIT macro to PXA_BIT
+FlashPoint, use BIT instead of BITW
 
-BIT macro will be global definiton of (1 << x)
+BITW was an ushort variant of BIT, use BIT instead
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nicolas Pitre <nico@cam.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pxa.c |   54 ++++++++++++++++-----------------
- 1 files changed, 27 insertions(+), 27 deletions(-)
+ drivers/scsi/FlashPoint.c |   82 +++++++++++++++++-------------------
+ 1 files changed, 40 insertions(+), 42 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit drivers/i2c/busses/i2c-pxa.c
---- a/drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit
-+++ a/drivers/i2c/busses/i2c-pxa.c
-@@ -82,7 +82,7 @@ struct bits {
- 	const char *set;
- 	const char *unset;
- };
--#define BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
-+#define PXA_BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
+diff -puN drivers/scsi/FlashPoint.c~flashpoint-use-bit-instead-of-bitw drivers/scsi/FlashPoint.c
+--- a/drivers/scsi/FlashPoint.c~flashpoint-use-bit-instead-of-bitw
++++ a/drivers/scsi/FlashPoint.c
+@@ -25,8 +25,6 @@
  
- static inline void
- decode_bits(const char *prefix, const struct bits *bits, int num, u32 val)
-@@ -97,17 +97,17 @@ decode_bits(const char *prefix, const st
- }
+ #define FAILURE         0xFFFFFFFFL
  
- static const struct bits isr_bits[] = {
--	BIT(ISR_RWM,	"RX",		"TX"),
--	BIT(ISR_ACKNAK,	"NAK",		"ACK"),
--	BIT(ISR_UB,	"Bsy",		"Rdy"),
--	BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
--	BIT(ISR_SSD,	"SlaveStop",	NULL),
--	BIT(ISR_ALD,	"ALD",		NULL),
--	BIT(ISR_ITE,	"TxEmpty",	NULL),
--	BIT(ISR_IRF,	"RxFull",	NULL),
--	BIT(ISR_GCAD,	"GenCall",	NULL),
--	BIT(ISR_SAD,	"SlaveAddr",	NULL),
--	BIT(ISR_BED,	"BusErr",	NULL),
-+	PXA_BIT(ISR_RWM,	"RX",		"TX"),
-+	PXA_BIT(ISR_ACKNAK,	"NAK",		"ACK"),
-+	PXA_BIT(ISR_UB,		"Bsy",		"Rdy"),
-+	PXA_BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
-+	PXA_BIT(ISR_SSD,	"SlaveStop",	NULL),
-+	PXA_BIT(ISR_ALD,	"ALD",		NULL),
-+	PXA_BIT(ISR_ITE,	"TxEmpty",	NULL),
-+	PXA_BIT(ISR_IRF,	"RxFull",	NULL),
-+	PXA_BIT(ISR_GCAD,	"GenCall",	NULL),
-+	PXA_BIT(ISR_SAD,	"SlaveAddr",	NULL),
-+	PXA_BIT(ISR_BED,	"BusErr",	NULL),
- };
+-#define BITW(x)          ((unsigned short)(1<<(x)))	/* single-bit mask in bit position x */
+-
+ struct sccb;
+ typedef void (*CALL_BK_FN) (struct sccb *);
  
- static void decode_ISR(unsigned int val)
-@@ -117,21 +117,21 @@ static void decode_ISR(unsigned int val)
- }
+@@ -373,9 +371,9 @@ typedef struct SCCBscam_info {
+ #define  SCAM_ENABLED   BIT(2)
+ #define  SCAM_LEVEL2    BIT(3)
  
- static const struct bits icr_bits[] = {
--	BIT(ICR_START,  "START",	NULL),
--	BIT(ICR_STOP,   "STOP",		NULL),
--	BIT(ICR_ACKNAK, "ACKNAK",	NULL),
--	BIT(ICR_TB,     "TB",		NULL),
--	BIT(ICR_MA,     "MA",		NULL),
--	BIT(ICR_SCLE,   "SCLE",		"scle"),
--	BIT(ICR_IUE,    "IUE",		"iue"),
--	BIT(ICR_GCD,    "GCD",		NULL),
--	BIT(ICR_ITEIE,  "ITEIE",	NULL),
--	BIT(ICR_IRFIE,  "IRFIE",	NULL),
--	BIT(ICR_BEIE,   "BEIE",		NULL),
--	BIT(ICR_SSDIE,  "SSDIE",	NULL),
--	BIT(ICR_ALDIE,  "ALDIE",	NULL),
--	BIT(ICR_SADIE,  "SADIE",	NULL),
--	BIT(ICR_UR,     "UR",		"ur"),
-+	PXA_BIT(ICR_START,  "START",	NULL),
-+	PXA_BIT(ICR_STOP,   "STOP",	NULL),
-+	PXA_BIT(ICR_ACKNAK, "ACKNAK",	NULL),
-+	PXA_BIT(ICR_TB,     "TB",	NULL),
-+	PXA_BIT(ICR_MA,     "MA",	NULL),
-+	PXA_BIT(ICR_SCLE,   "SCLE",	"scle"),
-+	PXA_BIT(ICR_IUE,    "IUE",	"iue"),
-+	PXA_BIT(ICR_GCD,    "GCD",	NULL),
-+	PXA_BIT(ICR_ITEIE,  "ITEIE",	NULL),
-+	PXA_BIT(ICR_IRFIE,  "IRFIE",	NULL),
-+	PXA_BIT(ICR_BEIE,   "BEIE",	NULL),
-+	PXA_BIT(ICR_SSDIE,  "SSDIE",	NULL),
-+	PXA_BIT(ICR_ALDIE,  "ALDIE",	NULL),
-+	PXA_BIT(ICR_SADIE,  "SADIE",	NULL),
-+	PXA_BIT(ICR_UR,     "UR",		"ur"),
- };
+-#define	RENEGO_ENA		BITW(10)
+-#define	CONNIO_ENA		BITW(11)
+-#define  GREEN_PC_ENA   BITW(12)
++#define	RENEGO_ENA		BIT(10)
++#define	CONNIO_ENA		BIT(11)
++#define  GREEN_PC_ENA   BIT(12)
  
- static void decode_ICR(unsigned int val)
+ #define  AUTO_RATE_00   00
+ #define  AUTO_RATE_05   01
+@@ -510,23 +508,23 @@ typedef struct SCCBscam_info {
+ 
+ #define  hp_intena		 0x40
+ 
+-#define  RESET		 BITW(7)
+-#define  PROG_HLT		 BITW(6)
+-#define  PARITY		 BITW(5)
+-#define  FIFO		 BITW(4)
+-#define  SEL		 BITW(3)
+-#define  SCAM_SEL		 BITW(2)
+-#define  RSEL		 BITW(1)
+-#define  TIMEOUT		 BITW(0)
+-#define  BUS_FREE		 BITW(15)
+-#define  XFER_CNT_0	 BITW(14)
+-#define  PHASE		 BITW(13)
+-#define  IUNKWN		 BITW(12)
+-#define  ICMD_COMP	 BITW(11)
+-#define  ITICKLE		 BITW(10)
+-#define  IDO_STRT		 BITW(9)
+-#define  ITAR_DISC	 BITW(8)
+-#define  AUTO_INT		 (BITW(12)+BITW(11)+BITW(10)+BITW(9)+BITW(8))
++#define  RESET		 BIT(7)
++#define  PROG_HLT		 BIT(6)
++#define  PARITY		 BIT(5)
++#define  FIFO		 BIT(4)
++#define  SEL		 BIT(3)
++#define  SCAM_SEL		 BIT(2)
++#define  RSEL		 BIT(1)
++#define  TIMEOUT		 BIT(0)
++#define  BUS_FREE		 BIT(15)
++#define  XFER_CNT_0	 BIT(14)
++#define  PHASE		 BIT(13)
++#define  IUNKWN		 BIT(12)
++#define  ICMD_COMP	 BIT(11)
++#define  ITICKLE		 BIT(10)
++#define  IDO_STRT		 BIT(9)
++#define  ITAR_DISC	 BIT(8)
++#define  AUTO_INT		 (BIT(12)+BIT(11)+BIT(10)+BIT(9)+BIT(8))
+ #define  CLR_ALL_INT	 0xFFFF
+ #define  CLR_ALL_INT_1	 0xFF00
+ 
+@@ -673,37 +671,37 @@ typedef struct SCCBscam_info {
+ #define  BIOS_DATA_OFFSET     0x60
+ #define  BIOS_RELATIVE_CARD   0x64
+ 
+-#define  AR3      (BITW(9) + BITW(8))
+-#define  SDATA    BITW(10)
++#define  AR3      (BIT(9) + BIT(8))
++#define  SDATA    BIT(10)
+ 
+-#define  CRD_OP   BITW(11)	/* Cmp Reg. w/ Data */
++#define  CRD_OP   BIT(11)	/* Cmp Reg. w/ Data */
+ 
+-#define  CRR_OP   BITW(12)	/* Cmp Reg. w. Reg. */
++#define  CRR_OP   BIT(12)	/* Cmp Reg. w. Reg. */
+ 
+-#define  CPE_OP   (BITW(14)+BITW(11))	/* Cmp SCSI phs & Branch EQ */
++#define  CPE_OP   (BIT(14)+BIT(11))	/* Cmp SCSI phs & Branch EQ */
+ 
+-#define  CPN_OP   (BITW(14)+BITW(12))	/* Cmp SCSI phs & Branch NOT EQ */
++#define  CPN_OP   (BIT(14)+BIT(12))	/* Cmp SCSI phs & Branch NOT EQ */
+ 
+ #define  ADATA_OUT   0x00
+-#define  ADATA_IN    BITW(8)
+-#define  ACOMMAND    BITW(10)
+-#define  ASTATUS     (BITW(10)+BITW(8))
+-#define  AMSG_OUT    (BITW(10)+BITW(9))
+-#define  AMSG_IN     (BITW(10)+BITW(9)+BITW(8))
++#define  ADATA_IN    BIT(8)
++#define  ACOMMAND    BIT(10)
++#define  ASTATUS     (BIT(10)+BIT(8))
++#define  AMSG_OUT    (BIT(10)+BIT(9))
++#define  AMSG_IN     (BIT(10)+BIT(9)+BIT(8))
+ 
+-#define  BRH_OP   BITW(13)	/* Branch */
++#define  BRH_OP   BIT(13)	/* Branch */
+ 
+ #define  ALWAYS   0x00
+-#define  EQUAL    BITW(8)
+-#define  NOT_EQ   BITW(9)
++#define  EQUAL    BIT(8)
++#define  NOT_EQ   BIT(9)
+ 
+-#define  TCB_OP   (BITW(13)+BITW(11))	/* Test condition & branch */
++#define  TCB_OP   (BIT(13)+BIT(11))	/* Test condition & branch */
+ 
+-#define  FIFO_0      BITW(10)
++#define  FIFO_0      BIT(10)
+ 
+-#define  MPM_OP   BITW(15)	/* Match phase and move data */
++#define  MPM_OP   BIT(15)	/* Match phase and move data */
+ 
+-#define  MRR_OP   BITW(14)	/* Move DReg. to Reg. */
++#define  MRR_OP   BIT(14)	/* Move DReg. to Reg. */
+ 
+ #define  S_IDREG  (BIT(2)+BIT(1)+BIT(0))
+ 
+@@ -711,9 +709,9 @@ typedef struct SCCBscam_info {
+ #define  D_AR1    BIT(0)
+ #define  D_BUCKET (BIT(2) + BIT(1) + BIT(0))
+ 
+-#define  RAT_OP      (BITW(14)+BITW(13)+BITW(11))
++#define  RAT_OP      (BIT(14)+BIT(13)+BIT(11))
+ 
+-#define  SSI_OP      (BITW(15)+BITW(11))
++#define  SSI_OP      (BIT(15)+BIT(11))
+ 
+ #define  SSI_ITAR_DISC	(ITAR_DISC >> 8)
+ #define  SSI_IDO_STRT	(IDO_STRT >> 8)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
