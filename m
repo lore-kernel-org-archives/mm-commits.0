@@ -1,56 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-ipsc-warning-fix.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:34 -0700
-Message-ID: <200708201913.l7KJDY0L018451@imap1.linux-foundation.org>
+Subject: - bsg-declare-request_queue.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:03 -0700
+Message-ID: <200708201913.l7KJD3Oh018401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47330 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752872AbXHTTT1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753515AbXHTTT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:19:27 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7KJHnWx027022
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2007 12:18:53 -0700
+	Mon, 20 Aug 2007 15:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: ipsc warning fix
+     bsg: declare request_queue
 has been removed from the -mm tree.  Its filename was
-     scsi-ipsc-warning-fix.patch
+     bsg-declare-request_queue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: ipsc warning fix
+Subject: bsg: declare request_queue
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/ips.c: In function 'ips_insert_device':
-drivers/scsi/ips.c:6957: warning: 'index' may be used uninitialized in this function
+include/linux/bsg.h:67: warning: 'struct request_queue' declared inside parameter list
+include/linux/bsg.h:67: warning: its scope is only this definition or declaration, which is probably not what you want
+include/linux/bsg.h:71: warning: 'struct request_queue' declared inside parameter list
 
-
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bsg.h |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/scsi/ips.c~scsi-ipsc-warning-fix drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~scsi-ipsc-warning-fix
-+++ a/drivers/scsi/ips.c
-@@ -6946,7 +6946,7 @@ module_exit(ips_module_exit);
- static int __devinit
- ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent)
- {
--	int index;
-+	int uninitialized_var(index);
- 	int rc;
+diff -puN include/linux/bsg.h~bsg-declare-request_queue include/linux/bsg.h
+--- a/include/linux/bsg.h~bsg-declare-request_queue
++++ a/include/linux/bsg.h
+@@ -53,6 +53,9 @@ struct sg_io_v4 {
  
- 	METHOD_TRACE("ips_insert_device", 1);
+ #ifdef __KERNEL__
+ 
++struct request_queue;
++struct device;
++
+ #if defined(CONFIG_BLK_DEV_BSG)
+ struct bsg_class_device {
+ 	struct class_device *class_dev;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
