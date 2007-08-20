@@ -1,92 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:01 -0700
-Message-ID: <200708201913.l7KJD1oT018391@imap1.linux-foundation.org>
+Subject: - drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:25 -0700
+Message-ID: <200708201913.l7KJDPLc018439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57714 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58900 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757187AbXHTTVJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757892AbXHTTVL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:09 -0400
+	Mon, 20 Aug 2007 15:21:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh64: arch/sh64/kernel/signal.h: duplicate include removal
+     drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
 has been removed from the -mm tree.  Its filename was
-     sh64-arch-sh64-kernel-signalh-duplicate-include-removal.patch
+     drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sh64: arch/sh64/kernel/signal.h: duplicate include removal
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: drivers/scsi/lpfc/lpfc_init.c: kmalloc + memset conversion to kcalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Remove the duplicate inclusion of linux/personality.h from
-arch/sh64/kernel/signal.c
+ drivers/scsi/lpfc/lpfc_init.c | 65932 -> 65881 (-51 bytes)
+ drivers/scsi/lpfc/lpfc_init.o | 219760 -> 219616 (-144 bytes)
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Acked-by: James Smart <James.Smart@Emulex.Com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh64/kernel/signal.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/scsi/lpfc/lpfc_init.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/sh64/kernel/signal.c~sh64-arch-sh64-kernel-signalh-duplicate-include-removal arch/sh64/kernel/signal.c
---- a/arch/sh64/kernel/signal.c~sh64-arch-sh64-kernel-signalh-duplicate-include-removal
-+++ a/arch/sh64/kernel/signal.c
-@@ -25,7 +25,6 @@
- #include <linux/ptrace.h>
- #include <linux/unistd.h>
- #include <linux/stddef.h>
--#include <linux/personality.h>
- #include <asm/ucontext.h>
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
+diff -puN drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc drivers/scsi/lpfc/lpfc_init.c
+--- a/drivers/scsi/lpfc/lpfc_init.c~drivers-scsi-lpfc-lpfc_initc-kmalloc-memset-conversion-to-kcalloc
++++ a/drivers/scsi/lpfc/lpfc_init.c
+@@ -1265,11 +1265,10 @@ lpfc_hba_init(struct lpfc_hba *phba, uin
+ 	uint32_t *HashWorking;
+ 	uint32_t *pwwnn = (uint32_t *) phba->wwnn;
+ 
+-	HashWorking = kmalloc(80 * sizeof(uint32_t), GFP_KERNEL);
++	HashWorking = kcalloc(80, sizeof(uint32_t), GFP_KERNEL);
+ 	if (!HashWorking)
+ 		return;
+ 
+-	memset(HashWorking, 0, (80 * sizeof(uint32_t)));
+ 	HashWorking[0] = HashWorking[78] = *pwwnn++;
+ 	HashWorking[1] = HashWorking[79] = *pwwnn;
+ 
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
 git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
 git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
-git-ubi.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
 git-scsi-misc.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-watchdog.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
