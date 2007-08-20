@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:58:52 -0700
-Message-ID: <200708202058.l7KKwqWt022981@imap1.linux-foundation.org>
+Subject: + exec-consolidate-2-fast-paths.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:58:50 -0700
+Message-ID: <200708202058.l7KKwotN022978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52445 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbXHTU7t (ORCPT
+	by vger.kernel.org with ESMTP id S1755792AbXHTU7u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:59:49 -0400
+	Mon, 20 Aug 2007 16:59:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     exec: RT sub-thread can livelock and monopolize CPU on exec
+     exec: consolidate 2 fast-paths
 has been added to the -mm tree.  Its filename is
-     exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+     exec-consolidate-2-fast-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: exec: RT sub-thread can livelock and monopolize CPU on exec
+Subject: exec: consolidate 2 fast-paths
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-de_thread() yields waiting for ->group_leader to be a zombie. This deadlocks
-if an rt-prio execer shares the same cpu with ->group_leader. Change the code
-to use ->group_exit_task/notify_count mechanics.
-
-This patch certainly uglifies the code, perhaps someone can suggest something
-better.
+Now that we don't pre-allocate the new ->sighand, we can kill the first fast
+path, it doesn't make sense any longer. At best, it can save one "list_empty()"
+check but leads to the code duplication.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |   28 +++++++++++++++-------------
- kernel/exit.c |   10 +++++++---
- 2 files changed, 22 insertions(+), 16 deletions(-)
+ fs/exec.c |   10 ----------
+ 1 files changed, 10 deletions(-)
 
-diff -puN fs/exec.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec fs/exec.c
---- a/fs/exec.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec
+diff -puN fs/exec.c~exec-consolidate-2-fast-paths fs/exec.c
+--- a/fs/exec.c~exec-consolidate-2-fast-paths
 +++ a/fs/exec.c
-@@ -801,16 +801,15 @@ static int de_thread(struct task_struct 
- 			hrtimer_restart(&sig->real_timer);
- 		spin_lock_irq(lock);
- 	}
-+
-+	sig->notify_count = count;
-+	sig->group_exit_task = tsk;
- 	while (atomic_read(&sig->count) > count) {
--		sig->group_exit_task = tsk;
--		sig->notify_count = count;
- 		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		spin_unlock_irq(lock);
- 		schedule();
- 		spin_lock_irq(lock);
- 	}
--	sig->group_exit_task = NULL;
--	sig->notify_count = 0;
- 	spin_unlock_irq(lock);
+@@ -752,16 +752,6 @@ static int de_thread(struct task_struct 
+ 	struct task_struct *leader = NULL;
+ 	int count;
  
- 	/*
-@@ -819,14 +818,17 @@ static int de_thread(struct task_struct 
- 	 * and to assume its PID:
- 	 */
- 	if (!thread_group_leader(tsk)) {
--		/*
--		 * Wait for the thread group leader to be a zombie.
--		 * It should already be zombie at this point, most
--		 * of the time.
--		 */
- 		leader = tsk->group_leader;
--		while (leader->exit_state != EXIT_ZOMBIE)
--			yield();
-+
-+		sig->notify_count = -1;
-+		for (;;) {
-+			write_lock_irq(&tasklist_lock);
-+			if (likely(leader->exit_state))
-+				break;
-+			__set_current_state(TASK_UNINTERRUPTIBLE);
-+			write_unlock_irq(&tasklist_lock);
-+			schedule();
-+		}
- 
- 		/*
- 		 * The only record we have of the real-time age of a
-@@ -840,8 +842,6 @@ static int de_thread(struct task_struct 
- 		 */
- 		tsk->start_time = leader->start_time;
- 
--		write_lock_irq(&tasklist_lock);
+-	/*
+-	 * If we don't share sighandlers, then we aren't sharing anything
+-	 * and we can just re-use it all.
+-	 */
+-	if (atomic_read(&oldsighand->count) <= 1) {
+-		signalfd_detach(tsk);
+-		exit_itimers(sig);
+-		return 0;
+-	}
 -
- 		BUG_ON(leader->tgid != tsk->tgid);
- 		BUG_ON(tsk->pid == tsk->tgid);
- 		/*
-@@ -874,6 +874,8 @@ static int de_thread(struct task_struct 
- 		write_unlock_irq(&tasklist_lock);
-         }
+ 	if (thread_group_empty(tsk))
+ 		goto no_thread_group;
  
-+	sig->group_exit_task = NULL;
-+	sig->notify_count = 0;
- 	/*
- 	 * There may be one thread left which is just exiting,
- 	 * but it's safe to stop telling the group to kill themselves.
-diff -puN kernel/exit.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec kernel/exit.c
---- a/kernel/exit.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec
-+++ a/kernel/exit.c
-@@ -101,10 +101,9 @@ static void __exit_signal(struct task_st
- 		 * If there is any task waiting for the group exit
- 		 * then notify it:
- 		 */
--		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count) {
-+		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count)
- 			wake_up_process(sig->group_exit_task);
--			sig->group_exit_task = NULL;
--		}
-+
- 		if (tsk == sig->curr_target)
- 			sig->curr_target = next_thread(tsk);
- 		/*
-@@ -835,6 +834,11 @@ static void exit_notify(struct task_stru
- 		state = EXIT_DEAD;
- 	tsk->exit_state = state;
- 
-+	if (thread_group_leader(tsk) &&
-+	    tsk->signal->notify_count < 0 &&
-+	    tsk->signal->group_exit_task)
-+		wake_up_process(tsk->signal->group_exit_task);
-+
- 	write_unlock_irq(&tasklist_lock);
- 
- 	list_for_each_safe(_p, _n, &ptrace_dead) {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
