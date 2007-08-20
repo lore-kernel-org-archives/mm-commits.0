@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch added to -mm tree
-Date: Mon, 20 Aug 2007 15:23:46 -0700
-Message-ID: <200708202228.l7KMSsD6026316@imap1.linux-foundation.org>
+Subject: + bridge-sysfs-fix.patch added to -mm tree
+Date: Mon, 20 Aug 2007 15:37:38 -0700
+Message-ID: <200708202242.l7KMgivC026829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37587 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58138 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751105AbXHTWao (ORCPT
+	by vger.kernel.org with ESMTP id S1751575AbXHTWmy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 18:30:44 -0400
+	Mon, 20 Aug 2007 18:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, serue@us.ibm.com, sukadev@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org
 
 
 The patch titled
-     pid-namespaces-define-is_global_init-and-is_container_init versus x86_64-mm-i386-show-unhandled-signals-v3
+     bridge: sysfs fix
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+     bridge-sysfs-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid-namespaces-define-is_global_init-and-is_container_init versus x86_64-mm-i386-show-unhandled-signals-v3
+Subject: bridge: sysfs fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Herbert Poetzel <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
+net/bridge/br_sysfs_br.c: In function 'store_stp_state':
+net/bridge/br_sysfs_br.c:170: warning: control reaches end of non-void function
+
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
+ net/bridge/br_sysfs_br.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3 kernel/signal.c
---- a/kernel/signal.c~pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3
-+++ a/kernel/signal.c
-@@ -256,7 +256,7 @@ flush_signal_handlers(struct task_struct
- 
- int unhandled_signal(struct task_struct *tsk, int sig)
- {
--	if (is_init(tsk))
-+	if (is_global_init(tsk))
- 		return 1;
- 	if (tsk->ptrace & PT_PTRACED)
- 		return 0;
+diff -puN net/bridge/br_sysfs_br.c~bridge-sysfs-fix net/bridge/br_sysfs_br.c
+--- a/net/bridge/br_sysfs_br.c~bridge-sysfs-fix
++++ a/net/bridge/br_sysfs_br.c
+@@ -166,7 +166,7 @@ static ssize_t store_stp_state(struct de
+ 	rtnl_lock();
+ 	br_stp_set_enabled(br, val);
+ 	rtnl_unlock();
+-
++	return len;
+ }
+ static DEVICE_ATTR(stp_state, S_IRUGO | S_IWUSR, show_stp_state,
+ 		   store_stp_state);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,3 +168,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+bridge-sysfs-fix.patch
