@@ -1,79 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:37 -0700
-Message-ID: <200708201912.l7KJCbJm018367@imap1.linux-foundation.org>
+Subject: - drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:23 -0700
+Message-ID: <200708201913.l7KJDN4e018436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33823 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759037AbXHTTVU (ORCPT
+	by vger.kernel.org with ESMTP id S1758022AbXHTTVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:20 -0400
+	Mon, 20 Aug 2007 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, James.Smart@Emulex.Com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: ACPI checks for 80wire cable: use in pata_amd
+     drivers/scsi/lpfc/lpfc_debugfs.c: kmalloc + memset conversion to kcalloc
 has been removed from the -mm tree.  Its filename was
-     libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
+     drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: ACPI checks for 80wire cable: use in pata_amd
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: drivers/scsi/lpfc/lpfc_debugfs.c: kmalloc + memset conversion to kcalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-We can make use of this on the pata_amd driver as many Nvidia devices don't
-have reliable cable detect.
+ drivers/scsi/lpfc/lpfc_debugfs.c | 13809 -> 13716 (-93 bytes)
+ drivers/scsi/lpfc/lpfc_debugfs.o | 146124 -> 146124 (0 bytes)
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Acked-by: James Smart <James.Smart@Emulex.Com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_amd.c |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/scsi/lpfc/lpfc_debugfs.c |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd drivers/ata/pata_amd.c
---- a/drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd
-+++ a/drivers/ata/pata_amd.c
-@@ -268,6 +268,9 @@ static int nv_cable_detect(struct ata_po
-  	pci_read_config_word(pdev, 0x62 - 2 * ap->port_no, &udma);
-  	if ((udma & 0xC4) == 0xC4 || (udma & 0xC400) == 0xC400)
- 		cbl = ATA_CBL_PATA80;
-+	/* And a triple check across suspend/resume with ACPI around */
-+	if (ata_acpi_cbl_80wire(ap))
-+		cbl = ATA_CBL_PATA80;
- 	return cbl;
- }
+diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc drivers/scsi/lpfc/lpfc_debugfs.c
+--- a/drivers/scsi/lpfc/lpfc_debugfs.c~drivers-scsi-lpfc-lpfc_debugfsc-kmalloc-memset-conversion-to-kcalloc
++++ a/drivers/scsi/lpfc/lpfc_debugfs.c
+@@ -901,7 +901,7 @@ lpfc_debugfs_initialize(struct lpfc_vpor
+ 		}
+ 	}
  
+-	vport->disc_trc = kmalloc(
++	vport->disc_trc = kzalloc(
+ 		(sizeof(struct lpfc_debugfs_trc) * lpfc_debugfs_max_disc_trc),
+ 		GFP_KERNEL);
+ 
+@@ -912,8 +912,6 @@ lpfc_debugfs_initialize(struct lpfc_vpor
+ 		goto debug_failed;
+ 	}
+ 	atomic_set(&vport->disc_trc_cnt, 0);
+-	memset(vport->disc_trc, 0,
+-		(sizeof(struct lpfc_debugfs_trc) * lpfc_debugfs_max_disc_trc));
+ 
+ 	snprintf(name, sizeof(name), "discovery_trace");
+ 	vport->debug_disc_trc =
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-serial-add-support-for-ite-887x-chips.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-m68k-enable-arbitary-speed-tty-support.patch
-introduce-config_check_signature-was-re-uninline.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-st340823a-hpa-and-libata.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-serial_txx9-cleanup-includes.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+git-alsa.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
+git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
 git-scsi-misc.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-char-cyclades-remove-bottom-half-processing.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
