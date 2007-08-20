@@ -1,139 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-base-power-make-2-functions-static.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:06 -0700
-Message-ID: <200708201912.l7KJC6L1018322@imap1.linux-foundation.org>
+Subject: - pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:30 -0700
+Message-ID: <200708201912.l7KJCUM8018354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49801 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760698AbXHTTVb (ORCPT
+	by vger.kernel.org with ESMTP id S1760723AbXHTTVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:31 -0400
+	Mon, 20 Aug 2007 15:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: bzolnier@gmail.com, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/base/power/: make 2 functions static
+     pata_artop: fix UDMA5 for AEC6280[R] and UDMA6 for AEC6880[R]
 has been removed from the -mm tree.  Its filename was
-     drivers-base-power-make-2-functions-static.patch
+     pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/base/power/: make 2 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: pata_artop: fix UDMA5 for AEC6280[R] and UDMA6 for AEC6880[R]
+From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 
-suspend_device() and resume_device() can now become static.
+Maximum supported UDMA mode for AEC6280[R] is UDMA5 (not UDMA4)
+and for AEC6880[R] it is UDMA6 (not UDMA5):
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+* Fix the problem by adding missing struct ata_port_info to artop_init_one().
+
+* Use the right naming (s/626/628/).
+
+* Bump driver version.
+
+Fixes IDE->libata regression, problem was never present in IDE aec62xx
+driver.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/power.h   |    6 ------
- drivers/base/power/resume.c  |    2 +-
- drivers/base/power/suspend.c |    2 +-
- 3 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/ata/pata_artop.c |   19 ++++++++++++++-----
+ 1 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/power/power.h~drivers-base-power-make-2-functions-static drivers/base/power/power.h
---- a/drivers/base/power/power.h~drivers-base-power-make-2-functions-static
-+++ a/drivers/base/power/power.h
-@@ -55,12 +55,6 @@ extern void dpm_sysfs_remove(struct devi
- 
- extern void dpm_resume(void);
- extern void dpm_power_up(void);
--extern int resume_device(struct device *);
--
--/*
-- * suspend.c
-- */
--extern int suspend_device(struct device *, pm_message_t);
- 
- #else /* CONFIG_PM_SLEEP */
- 
-diff -puN drivers/base/power/resume.c~drivers-base-power-make-2-functions-static drivers/base/power/resume.c
---- a/drivers/base/power/resume.c~drivers-base-power-make-2-functions-static
-+++ a/drivers/base/power/resume.c
-@@ -20,7 +20,7 @@
+diff -puN drivers/ata/pata_artop.c~pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880 drivers/ata/pata_artop.c
+--- a/drivers/ata/pata_artop.c~pata_artop-fix-udma5-for-aec6280-and-udma6-for-aec6880
++++ a/drivers/ata/pata_artop.c
+@@ -2,6 +2,7 @@
+  *    pata_artop.c - ARTOP ATA controller driver
   *
-  */
+  *	(C) 2006 Red Hat <alan@redhat.com>
++ *	(C) 2007 Bartlomiej Zolnierkiewicz
+  *
+  *    Based in part on drivers/ide/pci/aec62xx.c
+  *	Copyright (C) 1999-2002	Andre Hedrick <andre@linux-ide.org>
+@@ -28,7 +29,7 @@
+ #include <linux/ata.h>
  
--int resume_device(struct device * dev)
-+static int resume_device(struct device * dev)
- {
- 	int error = 0;
+ #define DRV_NAME	"pata_artop"
+-#define DRV_VERSION	"0.4.3"
++#define DRV_VERSION	"0.4.4"
  
-diff -puN drivers/base/power/suspend.c~drivers-base-power-make-2-functions-static drivers/base/power/suspend.c
---- a/drivers/base/power/suspend.c~drivers-base-power-make-2-functions-static
-+++ a/drivers/base/power/suspend.c
-@@ -54,7 +54,7 @@ suspend_device_dbg(struct device *dev, p
-  *	@state:	Power state device is entering.
-  */
+ /*
+  *	The ARTOP has 33 Mhz and "over clocked" timing tables. Until we
+@@ -430,7 +431,7 @@ static int artop_init_one (struct pci_de
+ 		.udma_mask 	= ATA_UDMA4,
+ 		.port_ops	= &artop6260_ops,
+ 	};
+-	static const struct ata_port_info info_626x_fast = {
++	static const struct ata_port_info info_628x = {
+ 		.sht		= &artop_sht,
+ 		.flags		= ATA_FLAG_SLAVE_POSS,
+ 		.pio_mask	= 0x1f,	/* pio0-4 */
+@@ -438,6 +439,14 @@ static int artop_init_one (struct pci_de
+ 		.udma_mask 	= ATA_UDMA5,
+ 		.port_ops	= &artop6260_ops,
+ 	};
++	static const struct ata_port_info info_628x_fast = {
++		.sht		= &artop_sht,
++		.flags		= ATA_FLAG_SLAVE_POSS,
++		.pio_mask	= 0x1f,	/* pio0-4 */
++		.mwdma_mask	= 0x07, /* mwdma0-2 */
++		.udma_mask 	= ATA_UDMA6,
++		.port_ops	= &artop6260_ops,
++	};
+ 	const struct ata_port_info *ppi[] = { NULL, NULL };
  
--int suspend_device(struct device * dev, pm_message_t state)
-+static int suspend_device(struct device * dev, pm_message_t state)
- {
- 	int error = 0;
+ 	if (!printed_version++)
+@@ -455,13 +464,13 @@ static int artop_init_one (struct pci_de
+ 	}
+ 	else if (id->driver_data == 1)	/* 6260 */
+ 		ppi[0] = &info_626x;
+-	else if (id->driver_data == 2)	{ /* 6260 or 6260 + fast */
++	else if (id->driver_data == 2)	{ /* 6280 or 6280 + fast */
+ 		unsigned long io = pci_resource_start(pdev, 4);
+ 		u8 reg;
+ 
+-		ppi[0] = &info_626x;
++		ppi[0] = &info_628x;
+ 		if (inb(io) & 0x10)
+-			ppi[0] = &info_626x_fast;
++			ppi[0] = &info_628x_fast;
+ 		/* Mac systems come up with some registers not set as we
+ 		   will need them */
  
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from bzolnier@gmail.com are
 
 origin.patch
-kernel-auditscc-fix-an-off-by-one.patch
-w1-fix-w1_remove_master_device-searching.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-git-dma.patch
-git-drm.patch
-git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-unicode-diacritics-support-s390-fix.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+ide-arm-hack.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
