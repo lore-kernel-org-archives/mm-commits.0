@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + amba-pl011-rename-bit-macro.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:42:32 -0700
-Message-ID: <200708202042.l7KKgW1s022238@imap1.linux-foundation.org>
+Subject: + fs-select-remove-unused-macros.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:42:22 -0700
+Message-ID: <200708202042.l7KKgMx7022224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59355 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37482 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761084AbXHTUmk (ORCPT
+	by vger.kernel.org with ESMTP id S1764564AbXHTUnL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:42:40 -0400
+	Mon, 20 Aug 2007 16:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     amba-pl011, rename BIT macro
+     fs/select, remove unused macros
 has been added to the -mm tree.  Its filename is
-     amba-pl011-rename-bit-macro.patch
+     fs-select-remove-unused-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: amba-pl011, rename BIT macro
+Subject: fs/select, remove unused macros
 From: Jiri Slaby <jirislaby@gmail.com>
 
-amba-pl011, rename BIT macro
+fs/select, remove unused macros
+
+this is due to preparation for global BIT macro
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/amba-pl011.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ fs/select.c |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN drivers/serial/amba-pl011.c~amba-pl011-rename-bit-macro drivers/serial/amba-pl011.c
---- a/drivers/serial/amba-pl011.c~amba-pl011-rename-bit-macro
-+++ a/drivers/serial/amba-pl011.c
-@@ -263,15 +263,15 @@ static unsigned int pl01x_get_mctrl(stru
- 	unsigned int result = 0;
- 	unsigned int status = readw(uap->port.membase + UART01x_FR);
- 
--#define BIT(uartbit, tiocmbit)		\
-+#define TIOCMBIT(uartbit, tiocmbit)	\
- 	if (status & uartbit)		\
- 		result |= tiocmbit
- 
--	BIT(UART01x_FR_DCD, TIOCM_CAR);
--	BIT(UART01x_FR_DSR, TIOCM_DSR);
--	BIT(UART01x_FR_CTS, TIOCM_CTS);
--	BIT(UART011_FR_RI, TIOCM_RNG);
--#undef BIT
-+	TIOCMBIT(UART01x_FR_DCD, TIOCM_CAR);
-+	TIOCMBIT(UART01x_FR_DSR, TIOCM_DSR);
-+	TIOCMBIT(UART01x_FR_CTS, TIOCM_CTS);
-+	TIOCMBIT(UART011_FR_RI, TIOCM_RNG);
-+#undef TIOCMBIT
- 	return result;
+diff -puN fs/select.c~fs-select-remove-unused-macros fs/select.c
+--- a/fs/select.c~fs-select-remove-unused-macros
++++ a/fs/select.c
+@@ -179,11 +179,6 @@ get_max:
+ 	return max;
  }
  
-@@ -282,18 +282,18 @@ static void pl011_set_mctrl(struct uart_
- 
- 	cr = readw(uap->port.membase + UART011_CR);
- 
--#define	BIT(tiocmbit, uartbit)		\
-+#define	TIOCMBIT(tiocmbit, uartbit)		\
- 	if (mctrl & tiocmbit)		\
- 		cr |= uartbit;		\
- 	else				\
- 		cr &= ~uartbit
- 
--	BIT(TIOCM_RTS, UART011_CR_RTS);
--	BIT(TIOCM_DTR, UART011_CR_DTR);
--	BIT(TIOCM_OUT1, UART011_CR_OUT1);
--	BIT(TIOCM_OUT2, UART011_CR_OUT2);
--	BIT(TIOCM_LOOP, UART011_CR_LBE);
--#undef BIT
-+	TIOCMBIT(TIOCM_RTS, UART011_CR_RTS);
-+	TIOCMBIT(TIOCM_DTR, UART011_CR_DTR);
-+	TIOCMBIT(TIOCM_OUT1, UART011_CR_OUT1);
-+	TIOCMBIT(TIOCM_OUT2, UART011_CR_OUT2);
-+	TIOCMBIT(TIOCM_LOOP, UART011_CR_LBE);
-+#undef TIOCMBIT
- 
- 	writew(cr, uap->port.membase + UART011_CR);
- }
+-#define BIT(i)		(1UL << ((i)&(__NFDBITS-1)))
+-#define MEM(i,m)	((m)+(unsigned)(i)/__NFDBITS)
+-#define ISSET(i,m)	(((i)&*(m)) != 0)
+-#define SET(i,m)	(*(m) |= (i))
+-
+ #define POLLIN_SET (POLLRDNORM | POLLRDBAND | POLLIN | POLLHUP | POLLERR)
+ #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
+ #define POLLEX_SET (POLLPRI)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
