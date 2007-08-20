@@ -1,82 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-md-dm-cryptc-potential-memleak-fix.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:11:54 -0700
-Message-ID: <200708201911.l7KJBsui018298@imap1.linux-foundation.org>
+Subject: - alpm-increase-number-of-allowable-device-flags.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:33 -0700
+Message-ID: <200708201912.l7KJCX39018360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760414AbXHTTVg (ORCPT
+	by vger.kernel.org with ESMTP id S1760696AbXHTTVb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:36 -0400
+	Mon, 20 Aug 2007 15:21:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, agk@redhat.com, christophe@saout.de, mm-commits@vger.kernel.org
+To: kristen.c.accardi@intel.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/md/dm-crypt.c: potential memleak fix
+     ALPM: increase number of allowable device flags
 has been removed from the -mm tree.  Its filename was
-     drivers-md-dm-cryptc-potential-memleak-fix.patch
+     alpm-increase-number-of-allowable-device-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/md/dm-crypt.c: potential memleak fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: ALPM: increase number of allowable device flags
+From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 
-Fix a potential memleak on error path in dm-crypt code.
-
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Alasdair G Kergon <agk@redhat.com>
-Cc: Christophe Saout <christophe@saout.de>
+Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |    1 +
- 1 files changed, 1 insertion(+)
+ include/linux/libata.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-crypt.c~drivers-md-dm-cryptc-potential-memleak-fix drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~drivers-md-dm-cryptc-potential-memleak-fix
-+++ a/drivers/md/dm-crypt.c
-@@ -175,6 +175,7 @@ static int crypt_iv_essiv_ctr(struct cry
+diff -puN include/linux/libata.h~alpm-increase-number-of-allowable-device-flags include/linux/libata.h
+--- a/include/linux/libata.h~alpm-increase-number-of-allowable-device-flags
++++ a/include/linux/libata.h
+@@ -139,7 +139,7 @@ enum {
+ 	ATA_DFLAG_FLUSH_EXT	= (1 << 4), /* do FLUSH_EXT instead of FLUSH */
+ 	ATA_DFLAG_ACPI_PENDING	= (1 << 5), /* ACPI resume action pending */
+ 	ATA_DFLAG_ACPI_FAILED	= (1 << 6), /* ACPI on devcfg has failed */
+-	ATA_DFLAG_CFG_MASK	= (1 << 8) - 1,
++	ATA_DFLAG_CFG_MASK	= (1 << 12) - 1,
  
- 	if (err) {
- 		ti->error = "Error calculating hash in ESSIV";
-+		kfree(salt);
- 		return err;
- 	}
- 
+ 	ATA_DFLAG_PIO		= (1 << 8), /* device limited to PIO mode */
+ 	ATA_DFLAG_NCQ_OFF	= (1 << 9), /* device limited to non-NCQ mode */
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from kristen.c.accardi@intel.com are
 
 origin.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-git-alsa.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
-git-dvb.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-git-mmc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-git-scsi-misc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-libata-all.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+acpiphp_ibm-add-missing-n.patch
+scsi-send-media-state-change-modification-events.patch
