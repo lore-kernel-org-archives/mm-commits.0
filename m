@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bridge-sysfs-fix.patch added to -mm tree
-Date: Mon, 20 Aug 2007 15:37:38 -0700
-Message-ID: <200708202242.l7KMgivC026829@imap1.linux-foundation.org>
+Subject: + git-nfs-vs-nfs-convert-to-new-aops.patch added to -mm tree
+Date: Mon, 20 Aug 2007 15:56:10 -0700
+Message-ID: <200708202301.l7KN1GAH028291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33394 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751575AbXHTWmy (ORCPT
+	by vger.kernel.org with ESMTP id S1751481AbXHTXDA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 18:42:54 -0400
+	Mon, 20 Aug 2007 19:03:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org
+Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     bridge: sysfs fix
+     git-nfs vs nfs-convert-to-new-aops
 has been added to the -mm tree.  Its filename is
-     bridge-sysfs-fix.patch
+     git-nfs-vs-nfs-convert-to-new-aops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bridge: sysfs fix
+Subject: git-nfs vs nfs-convert-to-new-aops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/bridge/br_sysfs_br.c: In function 'store_stp_state':
-net/bridge/br_sysfs_br.c:170: warning: control reaches end of non-void function
+nfi if this is correct.  How am I supposed to know how to work out what to put
+in `copied' in write_end?
 
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_sysfs_br.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/file.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN net/bridge/br_sysfs_br.c~bridge-sysfs-fix net/bridge/br_sysfs_br.c
---- a/net/bridge/br_sysfs_br.c~bridge-sysfs-fix
-+++ a/net/bridge/br_sysfs_br.c
-@@ -166,7 +166,7 @@ static ssize_t store_stp_state(struct de
- 	rtnl_lock();
- 	br_stp_set_enabled(br, val);
- 	rtnl_unlock();
--
-+	return len;
- }
- static DEVICE_ATTR(stp_state, S_IRUGO | S_IWUSR, show_stp_state,
- 		   store_stp_state);
+diff -puN fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops fs/nfs/file.c
+--- a/fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops
++++ a/fs/nfs/file.c
+@@ -392,6 +392,7 @@ static int nfs_vm_page_mkwrite(struct vm
+ 	struct file *filp = vma->vm_file;
+ 	unsigned pagelen;
+ 	int ret = -EINVAL;
++	void *fsdata;
+ 
+ 	lock_page(page);
+ 	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
+@@ -399,9 +400,13 @@ static int nfs_vm_page_mkwrite(struct vm
+ 	pagelen = nfs_page_length(page);
+ 	if (pagelen == 0)
+ 		goto out_unlock;
+-	ret = nfs_prepare_write(filp, page, 0, pagelen);
++	ret = nfs_write_begin(filp, page->mapping,
++				(loff_t)page->index << PAGE_CACHE_SHIFT,
++				pagelen, 0, &page, &fsdata);
+ 	if (!ret)
+-		ret = nfs_commit_write(filp, page, 0, pagelen);
++		ret = nfs_write_end(filp, page->mapping,
++				(loff_t)page->index << PAGE_CACHE_SHIFT,
++				pagelen, pagelen, page, fsdata);
+ out_unlock:
+ 	unlock_page(page);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,12 +120,14 @@ x86_64-get-mp_bus_to_node-as-early-v3.patch
 git-xfs.patch
 git-kgdb-fixup.patch
 pci-align-bar-settings-for-legacy-mode-ide.patch
+bridge-sysfs-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
 categorize-gfp-flags-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
@@ -168,4 +185,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-bridge-sysfs-fix.patch
