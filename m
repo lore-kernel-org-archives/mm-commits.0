@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ohci-fix-oddball-gcc-warning.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:31:40 -0700
-Message-ID: <200708202031.l7KKVeKl021680@imap1.linux-foundation.org>
+Subject: + fix-mux-setup-for-composite-sound-on-avertv-307.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:33:01 -0700
+Message-ID: <200708202033.l7KKX1bp021726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56196 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761599AbXHTUcG (ORCPT
+	by vger.kernel.org with ESMTP id S1764301AbXHTUeH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:32:06 -0400
+	Mon, 20 Aug 2007 16:34:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, stern@rowland.harvard.edu
+Cc: stsp@aknet.ru, mchehab@infradead.org, nshmyrev@yandex.ru, peter.missel@onlinehome.de, zolotarev_andrey@mail.ru
 
 
 The patch titled
-     ohci: fix oddball gcc warning
+     fix mux setup for composite sound on AverTV 307
 has been added to the -mm tree.  Its filename is
-     ohci-fix-oddball-gcc-warning.patch
+     fix-mux-setup-for-composite-sound-on-avertv-307.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ohci: fix oddball gcc warning
-From: David Brownell <david-b@pacbell.net>
+Subject: fix mux setup for composite sound on AverTV 307
+From: Stas Sergeev <stsp@aknet.ru>
 
-Some versions of GCC recently grew annoying warnings about constants.
-This gets rid of that warning from the OHCI driver.
+Right now the composite sound input doesn't work on AverTV 307 because of
+the wrong mux setup.  The composite sound is routed via an external
+4channel multiplexer controlled by GPIO, while the code assumes an internal
+multiplexer instead.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+Presumably this was a copy/paste error, and noone have ever tested the
+functionality.
+
+With the attached patch it works properly, which gives me an ability to
+finally watch the cable TV under linux.
+
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: Nickolay V. Shmyrev <nshmyrev@yandex.ru>
+Cc: Andrey Zolotarev <zolotarev_andrey@mail.ru>
+Cc: Peter Missel <peter.missel@onlinehome.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci-dbg.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/saa7134/saa7134-cards.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/host/ohci-dbg.c~ohci-fix-oddball-gcc-warning drivers/usb/host/ohci-dbg.c
---- a/drivers/usb/host/ohci-dbg.c~ohci-fix-oddball-gcc-warning
-+++ a/drivers/usb/host/ohci-dbg.c
-@@ -74,7 +74,7 @@ urb_print (struct urb * urb, char * str,
- 
- #define ohci_dbg_sw(ohci, next, size, format, arg...) \
- 	do { \
--	if (next) { \
-+	if (next != NULL) { \
- 		unsigned s_len; \
- 		s_len = scnprintf (*next, *size, format, ## arg ); \
- 		*size -= s_len; *next += s_len; \
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~fix-mux-setup-for-composite-sound-on-avertv-307 drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~fix-mux-setup-for-composite-sound-on-avertv-307
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -1537,18 +1537,18 @@ struct saa7134_board saa7134_boards[] = 
+ 		},{
+ 			.name = name_comp1,
+ 			.vmux = 0,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		},{
+ 			.name = name_comp2,
+ 			.vmux = 3,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		},{
+ 			.name = name_svideo,
+ 			.vmux = 8,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		}},
+ 		.radio = {
+ 			.name = name_radio,
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from stsp@aknet.ru are
 
-origin.patch
-correct-name-for-rtc-m41t80.patch
-rtc-max6902-minor-fixes.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-git-mmc.patch
-git-mtd.patch
-ohci-fix-oddball-gcc-warning.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-rtc-periodic-irq-fix.patch
-rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+fix-mux-setup-for-composite-sound-on-avertv-307.patch
