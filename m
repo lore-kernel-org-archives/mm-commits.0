@@ -1,196 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - libata-check-for-an-support.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:43 -0700
-Message-ID: <200708201912.l7KJChkq018379@imap1.linux-foundation.org>
+Subject: - powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:11:59 -0700
+Message-ID: <200708201911.l7KJBx4S018305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55926 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760777AbXHTTVd (ORCPT
+	by vger.kernel.org with ESMTP id S1761304AbXHTTVx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:33 -0400
+	Mon, 20 Aug 2007 15:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: check for AN support
+     powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
 has been removed from the -mm tree.  Its filename was
-     libata-check-for-an-support.patch
+     powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: check for AN support
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
+From: Andy Whitcroft <apw@shadowen.org>
 
-Check to see if an ATAPI device supports Asynchronous Notification.  If so,
-enable it.
+Seems that a trailing ';' has slipped onto the end of the get_slice_psize
+checks under CONFIG_PPC_MM_SLICES causing us to return unconditionally and
+never preload.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c        |    5 ++-
- drivers/ata/libata-core.c |   53 ++++++++++++++++++++++++++++++++++++
- include/linux/ata.h       |    9 ++++++
- include/linux/libata.h    |    2 +
- 4 files changed, 67 insertions(+), 2 deletions(-)
+ arch/powerpc/mm/hash_utils_64.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/ahci.c~libata-check-for-an-support drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~libata-check-for-an-support
-+++ a/drivers/ata/ahci.c
-@@ -348,14 +348,15 @@ static const struct ata_port_operations 
- static const struct ata_port_info ahci_port_info[] = {
- 	/* board_ahci */
- 	{
--		.flags		= AHCI_FLAG_COMMON,
-+		.flags		= AHCI_FLAG_COMMON | ATA_FLAG_AN,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.udma_mask	= ATA_UDMA6,
- 		.port_ops	= &ahci_ops,
- 	},
- 	/* board_ahci_pi */
- 	{
--		.flags		= AHCI_FLAG_COMMON | AHCI_FLAG_HONOR_PI,
-+		.flags		= AHCI_FLAG_COMMON | AHCI_FLAG_HONOR_PI |
-+				  ATA_FLAG_AN,
- 		.pio_mask	= 0x1f, /* pio0-4 */
- 		.udma_mask	= ATA_UDMA6,
- 		.port_ops	= &ahci_ops,
-diff -puN drivers/ata/libata-core.c~libata-check-for-an-support drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-check-for-an-support
-+++ a/drivers/ata/libata-core.c
-@@ -70,6 +70,7 @@ const unsigned long sata_deb_timing_long
- static unsigned int ata_dev_init_params(struct ata_device *dev,
- 					u16 heads, u16 sectors);
- static unsigned int ata_dev_set_xfermode(struct ata_device *dev);
-+static unsigned int ata_dev_set_AN(struct ata_device *dev, u8 enable);
- static void ata_dev_xfermask(struct ata_device *dev);
- static unsigned long ata_dev_blacklisted(const struct ata_device *dev);
+diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices arch/powerpc/mm/hash_utils_64.c
+--- a/arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices
++++ a/arch/powerpc/mm/hash_utils_64.c
+@@ -794,7 +794,7 @@ void hash_preload(struct mm_struct *mm, 
  
-@@ -1974,6 +1975,22 @@ int ata_dev_configure(struct ata_device 
- 		}
- 		dev->cdb_len = (unsigned int) rc;
+ #ifdef CONFIG_PPC_MM_SLICES
+ 	/* We only prefault standard pages for now */
+-	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize));
++	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize))
+ 		return;
+ #endif
  
-+		/*
-+		 * check to see if this ATAPI device supports
-+		 * Asynchronous Notification
-+		 */
-+		if ((ap->flags & ATA_FLAG_AN) && ata_id_has_AN(id)) {
-+			int err;
-+			/* issue SET feature command to turn this on */
-+			err = ata_dev_set_AN(dev, SETFEATURES_SATA_ENABLE);
-+			if (err)
-+				ata_dev_printk(dev, KERN_ERR,
-+						"unable to set AN, err %x\n",
-+						err);
-+			else
-+				dev->flags |= ATA_DFLAG_AN;
-+		}
-+
- 		if (ata_id_cdb_intr(dev->id)) {
- 			dev->flags |= ATA_DFLAG_CDB_INTR;
- 			cdb_intr_string = ", CDB intr";
-@@ -4002,6 +4019,42 @@ static unsigned int ata_dev_set_xfermode
- }
- 
- /**
-+ *	ata_dev_set_AN - Issue SET FEATURES - SATA FEATURES
-+ *	@dev: Device to which command will be sent
-+ *	@enable: Whether to enable or disable the feature
-+ *
-+ *	Issue SET FEATURES - SATA FEATURES command to device @dev
-+ *	on port @ap with sector count set to indicate Asynchronous
-+ *	Notification feature
-+ *
-+ *	LOCKING:
-+ *	PCI/etc. bus probe sem.
-+ *
-+ *	RETURNS:
-+ *	0 on success, AC_ERR_* mask otherwise.
-+ */
-+static unsigned int ata_dev_set_AN(struct ata_device *dev, u8 enable)
-+{
-+	struct ata_taskfile tf;
-+	unsigned int err_mask;
-+
-+	/* set up set-features taskfile */
-+	DPRINTK("set features - SATA features\n");
-+
-+	ata_tf_init(dev, &tf);
-+	tf.command = ATA_CMD_SET_FEATURES;
-+	tf.feature = enable;
-+	tf.flags |= ATA_TFLAG_ISADDR | ATA_TFLAG_DEVICE;
-+	tf.protocol = ATA_PROT_NODATA;
-+	tf.nsect = SATA_AN;
-+
-+	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
-+
-+	DPRINTK("EXIT, err_mask=%x\n", err_mask);
-+	return err_mask;
-+}
-+
-+/**
-  *	ata_dev_init_params - Issue INIT DEV PARAMS command
-  *	@dev: Device to which command will be sent
-  *	@heads: Number of heads (taskfile parameter)
-diff -puN include/linux/ata.h~libata-check-for-an-support include/linux/ata.h
---- a/include/linux/ata.h~libata-check-for-an-support
-+++ a/include/linux/ata.h
-@@ -217,6 +217,12 @@ enum {
- 
- 	SETFEATURES_SPINUP	= 0x07, /* Spin-up drive */
- 
-+	SETFEATURES_SATA_ENABLE = 0x10, /* Enable use of SATA feature */
-+	SETFEATURES_SATA_DISABLE = 0x90, /* Disable use of SATA feature */
-+
-+	/* SETFEATURE Sector counts for SATA features */
-+	SATA_AN			= 0x05,  /* Asynchronous Notification */
-+
- 	/* ATAPI stuff */
- 	ATAPI_PKT_DMA		= (1 << 0),
- 	ATAPI_DMADIR		= (1 << 2),	/* ATAPI data dir:
-@@ -353,6 +359,9 @@ struct ata_taskfile {
- #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
- #define ata_id_removeable(id)	((id)[0] & (1 << 7))
- #define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
-+#define ata_id_has_AN(id)	\
-+	( (((id)[76] != 0x0000) && ((id)[76] != 0xffff)) && \
-+	  ((id)[78] & (1 << 5)) )
- #define ata_id_iordy_disable(id) ((id)[49] & (1 << 10))
- #define ata_id_has_iordy(id) ((id)[49] & (1 << 11))
- #define ata_id_u32(id,n)	\
-diff -puN include/linux/libata.h~libata-check-for-an-support include/linux/libata.h
---- a/include/linux/libata.h~libata-check-for-an-support
-+++ a/include/linux/libata.h
-@@ -139,6 +139,7 @@ enum {
- 	ATA_DFLAG_FLUSH_EXT	= (1 << 4), /* do FLUSH_EXT instead of FLUSH */
- 	ATA_DFLAG_ACPI_PENDING	= (1 << 5), /* ACPI resume action pending */
- 	ATA_DFLAG_ACPI_FAILED	= (1 << 6), /* ACPI on devcfg has failed */
-+	ATA_DFLAG_AN		= (1 << 7), /* device supports AN */
- 	ATA_DFLAG_IPM		= (1 << 8), /* device supports IPM */
- 	ATA_DFLAG_CFG_MASK	= (1 << 12) - 1,
- 
-@@ -178,6 +179,7 @@ enum {
- 	ATA_FLAG_IGN_SIMPLEX	= (1 << 15), /* ignore SIMPLEX */
- 	ATA_FLAG_NO_IORDY	= (1 << 16), /* controller lacks iordy */
- 	ATA_FLAG_ACPI_SATA	= (1 << 17), /* need native SATA ACPI layout */
-+	ATA_FLAG_AN		= (1 << 18), /* controller supports AN */
- 
- 	/* The following flag belongs to ap->pflags but is kept in
- 	 * ap->flags because it's referenced in many LLDs and will be
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-git-libata-all.patch
-scsi-expose-an-support-to-user-space.patch
-libata-expose-an-to-user-space.patch
-acpiphp_ibm-add-missing-n.patch
-scsi-send-media-state-change-modification-events.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
+wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
+wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
+mips-irix_getcontext-will-always-fail-efault.patch
+irda_nl_get_mode-always-results-in-failure.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
