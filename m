@@ -1,143 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:32 -0700
-Message-ID: <200708201913.l7KJDWna018448@imap1.linux-foundation.org>
+Subject: - initialize-filp-private_data-only-once-in-em28xx_v4l2_open.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:13 -0700
+Message-ID: <200708201912.l7KJCDuP018334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60737 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57163 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757776AbXHTTVO (ORCPT
+	by vger.kernel.org with ESMTP id S1757892AbXHTTVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:14 -0400
+	Mon, 20 Aug 2007 15:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mark_salyzyn@adaptec.com, mm-commits@vger.kernel.org
+To: eike-kernel@sf-tec.de, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/dpt_i2o.c: kmalloc + memset conversion to kzalloc
+     Initialize filp->private_data only once in em28xx_v4l2_open
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc.patch
+     initialize-filp-private_data-only-once-in-em28xx_v4l2_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/dpt_i2o.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Initialize filp->private_data only once in em28xx_v4l2_open
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
 
- drivers/scsi/dpt_i2o.c | 87632 -> 87457 (-175 bytes)
- drivers/scsi/dpt_i2o.o | 213064 -> 212324 (-740 bytes)
+Some lines later filp->private_data is initialized to dev again.  Since there
+are some checks that might fail in the mean time keep the later version.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Acked-by: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
+Signed-off-by: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/dpt_i2o.c |   27 +++++++++++----------------
- 1 files changed, 11 insertions(+), 16 deletions(-)
+ drivers/media/video/em28xx/em28xx-video.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/scsi/dpt_i2o.c~drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/dpt_i2o.c
---- a/drivers/scsi/dpt_i2o.c~drivers-scsi-dpt_i2oc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/scsi/dpt_i2o.c
-@@ -949,16 +949,14 @@ static int adpt_install_hba(struct pci_d
- 	}
- 	
- 	// Allocate and zero the data structure
--	pHba = kmalloc(sizeof(adpt_hba), GFP_KERNEL);
--	if( pHba == NULL) {
--		if(msg_addr_virt != base_addr_virt){
-+	pHba = kzalloc(sizeof(adpt_hba), GFP_KERNEL);
-+	if (!pHba) {
-+		if (msg_addr_virt != base_addr_virt)
- 			iounmap(msg_addr_virt);
--		}
- 		iounmap(base_addr_virt);
- 		pci_release_regions(pDev);
- 		return -ENOMEM;
- 	}
--	memset(pHba, 0, sizeof(adpt_hba));
+diff -puN drivers/media/video/em28xx/em28xx-video.c~initialize-filp-private_data-only-once-in-em28xx_v4l2_open drivers/media/video/em28xx/em28xx-video.c
+--- a/drivers/media/video/em28xx/em28xx-video.c~initialize-filp-private_data-only-once-in-em28xx_v4l2_open
++++ a/drivers/media/video/em28xx/em28xx-video.c
+@@ -268,8 +268,6 @@ static int em28xx_v4l2_open(struct inode
+ 	if (NULL == dev)
+ 		return -ENODEV;
  
- 	mutex_lock(&adpt_configuration_lock);
+-	filp->private_data=dev;
+-
+ 	em28xx_videodbg("open minor=%d type=%s users=%d\n",
+ 				minor,v4l2_type_names[dev->type],dev->users);
  
-@@ -2622,14 +2620,13 @@ static s32 adpt_i2o_init_outbound_q(adpt
- 
- 	msg=(u32 __iomem *)(pHba->msg_addr_virt+m);
- 
--	status = kmalloc(4,GFP_KERNEL|ADDR32);
--	if (status==NULL) {
-+	status = kzalloc(4, GFP_KERNEL|ADDR32);
-+	if (!status) {
- 		adpt_send_nop(pHba, m);
- 		printk(KERN_WARNING"%s: IOP reset failed - no free memory.\n",
- 			pHba->name);
- 		return -ENOMEM;
- 	}
--	memset(status, 0, 4);
- 
- 	writel(EIGHT_WORD_MSG_SIZE| SGL_OFFSET_6, &msg[0]);
- 	writel(I2O_CMD_OUTBOUND_INIT<<24 | HOST_TID<<12 | ADAPTER_TID, &msg[1]);
-@@ -2668,12 +2665,11 @@ static s32 adpt_i2o_init_outbound_q(adpt
- 
- 	kfree(pHba->reply_pool);
- 
--	pHba->reply_pool = kmalloc(pHba->reply_fifo_size * REPLY_FRAME_SIZE * 4, GFP_KERNEL|ADDR32);
--	if(!pHba->reply_pool){
--		printk(KERN_ERR"%s: Could not allocate reply pool\n",pHba->name);
--		return -1;
-+	pHba->reply_pool = kzalloc(pHba->reply_fifo_size * REPLY_FRAME_SIZE * 4, GFP_KERNEL|ADDR32);
-+	if (!pHba->reply_pool) {
-+		printk(KERN_ERR "%s: Could not allocate reply pool\n", pHba->name);
-+		return -ENOMEM;
- 	}
--	memset(pHba->reply_pool, 0 , pHba->reply_fifo_size * REPLY_FRAME_SIZE * 4);
- 
- 	ptr = pHba->reply_pool;
- 	for(i = 0; i < pHba->reply_fifo_size; i++) {
-@@ -2884,12 +2880,11 @@ static int adpt_i2o_build_sys_table(void
- 
- 	kfree(sys_tbl);
- 
--	sys_tbl = kmalloc(sys_tbl_len, GFP_KERNEL|ADDR32);
--	if(!sys_tbl) {
-+	sys_tbl = kzalloc(sys_tbl_len, GFP_KERNEL|ADDR32);
-+	if (!sys_tbl) {
- 		printk(KERN_WARNING "SysTab Set failed. Out of memory.\n");	
- 		return -ENOMEM;
- 	}
--	memset(sys_tbl, 0, sys_tbl_len);
- 
- 	sys_tbl->num_entries = hba_count;
- 	sys_tbl->version = I2OVERSION;
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from eike-kernel@sf-tec.de are
 
-origin.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-git-alsa.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
 git-dvb.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-git-mmc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-git-scsi-misc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-r8169.patch
