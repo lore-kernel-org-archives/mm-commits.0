@@ -1,107 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:11:59 -0700
-Message-ID: <200708201911.l7KJBx4S018305@imap1.linux-foundation.org>
+Subject: - pata_cmd64x-set-up-mwdma-modes-properly.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:46 -0700
+Message-ID: <200708201912.l7KJCkpw018385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55926 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59022 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761304AbXHTTVx (ORCPT
+	by vger.kernel.org with ESMTP id S1760913AbXHTTWC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:53 -0400
+	Mon, 20 Aug 2007 15:22:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikpe@it.uu.se, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
+     pata_cmd64x: Set up MWDMA modes properly
 has been removed from the -mm tree.  Its filename was
-     powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices.patch
+     pata_cmd64x-set-up-mwdma-modes-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: hash_preload fails to preload under CONFIG_PPC_MM_SLICES
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: pata_cmd64x: Set up MWDMA modes properly
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Seems that a trailing ';' has slipped onto the end of the get_slice_psize
-checks under CONFIG_PPC_MM_SLICES causing us to return unconditionally and
-never preload.
+Set the MWDMA timing by updating the correct registers.  Split the PIO path as
+this is mostly shared code.  Wants testing.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Tested-by: Mikael Pettersson <mikpe@it.uu.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hash_utils_64.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_cmd64x.c |   37 +++++++++++++++++++++++++-----------
+ 1 files changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~powerpc-hash_preload-fails-to-preload-under-config_ppc_mm_slices
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -794,7 +794,7 @@ void hash_preload(struct mm_struct *mm, 
+diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-set-up-mwdma-modes-properly drivers/ata/pata_cmd64x.c
+--- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-set-up-mwdma-modes-properly
++++ a/drivers/ata/pata_cmd64x.c
+@@ -31,7 +31,7 @@
+ #include <linux/libata.h>
  
- #ifdef CONFIG_PPC_MM_SLICES
- 	/* We only prefault standard pages for now */
--	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize));
-+	if (unlikely(get_slice_psize(mm, ea) != mm->context.user_psize))
+ #define DRV_NAME "pata_cmd64x"
+-#define DRV_VERSION "0.2.4"
++#define DRV_VERSION "0.2.5"
+ 
+ /*
+  * CMD64x specific registers definition.
+@@ -88,14 +88,15 @@ static int cmd648_cable_detect(struct at
+ }
+ 
+ /**
+- *	cmd64x_set_piomode	-	set initial PIO mode data
++ *	cmd64x_set_piomode	-	set PIO and MWDMA timing
+  *	@ap: ATA interface
+  *	@adev: ATA device
++ *	@mode: mode
+  *
+- *	Called to do the PIO mode setup.
++ *	Called to do the PIO and MWDMA mode setup.
+  */
+ 
+-static void cmd64x_set_piomode(struct ata_port *ap, struct ata_device *adev)
++static void cmd64x_set_timing(struct ata_port *ap, struct ata_device *adev, u8 mode)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	struct ata_timing t;
+@@ -117,8 +118,9 @@ static void cmd64x_set_piomode(struct at
+ 	int arttim = arttim_port[ap->port_no][adev->devno];
+ 	int drwtim = drwtim_port[ap->port_no][adev->devno];
+ 
+-
+-	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 0) < 0) {
++	/* ata_timing_compute is smart and will produce timings for MWDMA
++	   that don't violate the drives PIO capabilities. */
++	if (ata_timing_compute(adev, mode, &t, T, 0) < 0) {
+ 		printk(KERN_ERR DRV_NAME ": mode computation failed.\n");
  		return;
- #endif
+ 	}
+@@ -168,6 +170,20 @@ static void cmd64x_set_piomode(struct at
+ }
+ 
+ /**
++ *	cmd64x_set_piomode	-	set initial PIO mode data
++ *	@ap: ATA interface
++ *	@adev: ATA device
++ *
++ *	Used when configuring the devices ot set the PIO timings. All the
++ *	actual work is done by the PIO/MWDMA setting helper
++ */
++
++static void cmd64x_set_piomode(struct ata_port *ap, struct ata_device *adev)
++{
++	cmd64x_set_timing(ap, adev, adev->pio_mode);
++}
++
++/**
+  *	cmd64x_set_dmamode	-	set initial DMA mode data
+  *	@ap: ATA interface
+  *	@adev: ATA device
+@@ -180,9 +196,6 @@ static void cmd64x_set_dmamode(struct at
+ 	static const u8 udma_data[] = {
+ 		0x30, 0x20, 0x10, 0x20, 0x10, 0x00
+ 	};
+-	static const u8 mwdma_data[] = {
+-		0x30, 0x20, 0x10
+-	};
+ 
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 	u8 regU, regD;
+@@ -208,8 +221,10 @@ static void cmd64x_set_dmamode(struct at
+ 		regU |= 1 << adev->devno; /* UDMA on */
+ 		if (adev->dma_mode > 2)	/* 15nS timing */
+ 			regU |= 4 << adev->devno;
+-	} else
+-		regD |= mwdma_data[adev->dma_mode - XFER_MW_DMA_0] << shift;
++	} else {
++		regU &= ~ (1 << adev->devno);	/* UDMA off */
++		cmd64x_set_timing(ap, adev, adev->dma_mode);
++	}
+ 
+ 	regD |= 0x20 << adev->devno;
  
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
-mips-irix_getcontext-will-always-fail-efault.patch
-irda_nl_get_mode-always-results-in-failure.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-get-mp_bus_to_node-as-early-v3-update.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
+serial-add-support-for-ite-887x-chips.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+fix-null-pointer-dereference-in-__vm_enough_memory.patch
+m68k-enable-arbitary-speed-tty-support.patch
+introduce-config_check_signature-was-re-uninline.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+serial_txx9-cleanup-includes.patch
+git-scsi-misc.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+char-cyclades-remove-bottom-half-processing.patch
