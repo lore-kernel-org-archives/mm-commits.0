@@ -1,204 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + git-mmc-fixup.patch added to -mm tree
-Date: Mon, 20 Aug 2007 12:03:03 -0700
-Message-ID: <200708201903.l7KJ33Uf017938@imap1.linux-foundation.org>
+Subject: - enable-partitions-for-lguest-block-device.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:11:39 -0700
+Message-ID: <200708201911.l7KJBdiK018275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56247 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53842 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753292AbXHTTEI (ORCPT
+	by vger.kernel.org with ESMTP id S1751634AbXHTTMT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:04:08 -0400
+	Mon, 20 Aug 2007 15:12:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx, greg@kroah.com
+To: rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc-fixup
-has been added to the -mm tree.  Its filename is
-     git-mmc-fixup.patch
+     Enable partitions for lguest block device
+has been removed from the -mm tree.  Its filename was
+     enable-partitions-for-lguest-block-device.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mmc-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Enable partitions for lguest block device
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Half-hearted attempt to fix wreckage due to
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+The lguest block device only requests one minor, which means
+partitions don't work (eg "root=/dev/lgba1").
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Let's follow the crowd and ask for 16.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/bus.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ drivers/block/lguest_blk.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mmc/core/bus.c~git-mmc-fixup drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~git-mmc-fixup
-+++ a/drivers/mmc/core/bus.c
-@@ -73,26 +73,29 @@ static int
- mmc_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
--	int retval = 0;
--
--#define add_env(fmt,val) do {					\
--	retval = add_uevent_var(env, fmt, val);			\
--	if (retval)						\
--		return retval;					\
--} while (0);
-+	const char *type;
- 
- 	switch (card->type) {
- 	case MMC_TYPE_MMC:
--		add_env("MMC_TYPE=%s", "MMC");
-+		type = "MMC";
- 		break;
- 	case MMC_TYPE_SD:
--		add_env("MMC_TYPE=%s", "SD");
-+		type = "SD";
- 		break;
-+	case MMC_TYPE_SDIO:
-+		type = "SDIO";
-+		break;
-+	default:
-+		type = NULL;
+diff -puN drivers/block/lguest_blk.c~enable-partitions-for-lguest-block-device drivers/block/lguest_blk.c
+--- a/drivers/block/lguest_blk.c~enable-partitions-for-lguest-block-device
++++ a/drivers/block/lguest_blk.c
+@@ -308,9 +308,13 @@ static int lguestblk_probe(struct lguest
  	}
  
--	add_env("MMC_NAME=%s", mmc_card_name(card));
-+	if (type) {
-+		if (add_uevent_var(env, "MMC_TYPE=%s", type))
-+			return -ENOMEM;
-+	}
- 
--#undef add_env
-+	if (add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card)))
-+		return -ENOMEM;
- 
- 	return 0;
- }
+ 	/* This allocates a "struct gendisk" where we pack all the information
+-	 * about the disk which the rest of Linux sees.  We ask for one minor
+-	 * number; I do wonder if we should be asking for more. */
+-	bd->disk = alloc_disk(1);
++	 * about the disk which the rest of Linux sees.  The argument is the
++	 * number of minor devices desired: we need one minor for the main
++	 * disk, and one for each partition.  Of course, we can't possibly know
++	 * how many partitions are on the disk (add_disk does that).
++	 *
++	 * Worst.  Interface.  Ever. */
++	bd->disk = alloc_disk(16);
+ 	if (!bd->disk) {
+ 		err = -ENOMEM;
+ 		goto out_unregister_blkdev;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-remove-bdput-from-do_open-in-fs-block_devc-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-dma-up-fix.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
 git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
-ide-arm-hack.patch
-git-mmc-fixup.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-ixgbe-build-fix.patch
-git-net.patch
-git-net-fixup.patch
-git-backlight.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-git-scsi-misc.patch
-bsg-declare-request_queue.patch
-aacraid-rename-check_reset.patch
-scsi-ipsc-warning-fix.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-mct_u232-convert-to-proper-speed-handling-api-fix.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-net-add-ath5k-wireless-driver-fix.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
 maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+remove-unsafe-from-module-struct.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
