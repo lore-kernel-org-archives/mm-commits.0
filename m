@@ -1,81 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - alpm-increase-number-of-allowable-device-flags-fix.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:35 -0700
-Message-ID: <200708201912.l7KJCZOe018363@imap1.linux-foundation.org>
+Subject: - ata_piix-disallow-udma-133-on-ich5-ich7.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:58 -0700
+Message-ID: <200708201912.l7KJCwxl018388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760795AbXHTTVg (ORCPT
+	by vger.kernel.org with ESMTP id S1760714AbXHTTVc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:36 -0400
+	Mon, 20 Aug 2007 15:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: chunkeey@web.de, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     2.6.23-rc2-mm2: sata disk going slow
+     ata_piix: disallow UDMA 133 on ICH5 & ICH7
 has been removed from the -mm tree.  Its filename was
-     alpm-increase-number-of-allowable-device-flags-fix.patch
+     ata_piix-disallow-udma-133-on-ich5-ich7.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 2.6.23-rc2-mm2: sata disk going slow
-From: Hugh Dickins <hugh@veritas.com>
+Subject: ata_piix: disallow UDMA 133 on ICH5 & ICH7
+From: Christian Lamparter <chunkeey@web.de>
 
-Why is the G5 so slow with 2.6.23-rc2-mm2?  hdparm -t shows 1.8MB/sec
-instead of 58MB/sec.  alpm-increase-number-of-allowable-device-flags.patch
-(raising ATA_DFLAG_CFG_MASK) turns out to be the guilty party: though the
-problem doesn't appear until the next patch, which adds ATA_DFLAG_IPM as
-the same bit as ATA_DFLAG_PIO.  Here's a hotfix against top of -rc2-mm2.
+There is another outstanding issue with ata_piix.c.  Intel has never
+officially supported anything faster than PATA 100MB/s.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+But, the ata_piix.c driver "define" the ICH5 & ICH7 as UDMA6 (aka 133MB/s)
+capable.  [ Well, no one has probably noticed it before, because there is bug
+in do_pata_set_dmamode...  Just look at
+libata_atapiix_enable_real_udma133.patch and you'll see what wrong with it.  ]
+
+
+Here are Intel's datasheets for the affected chipsets: ICH5 Datasheet:
+http://www.intel.com/design/chipsets/datashts/252516.htm (See note on page
+183: "...  the ICH5 supports reads at the maximum rate of 100MB/s.")
+
+ICH7 Datasheet: http://www.intel.com/design/chipsets/datashts/307013.htm (See
+first note on page 190: "...  the ICH7 supports reads at the maximum rate of
+100MB/s.")
+
+They are two different ways to deal with it:
+
+- Either -
+
+1. replace all ich_pata_133 with ich_pata_100. 
+   (libata_atapiix_disable_udma6.diff - diff from 2.6.22 )
+
+- Or -
+
+2. keep all ich_pata_133 and fix the bug in "do_pata_set_dmamode". 
+   (libata_atapiix_enable_real_udma133.patch - diff from 2.6.22) If there are
+   any concerns about the safety of the patch patch:
+   http://lkml.org/lkml/2007/7/6/292 (It was already tested by an Intel
+   employee, but I guess a bit more user input is necessary here...  )
+
+This patch implements 1.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Christian Lamparter <chunkeey@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/libata.h |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/ata_piix.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/libata.h~alpm-increase-number-of-allowable-device-flags-fix include/linux/libata.h
---- a/include/linux/libata.h~alpm-increase-number-of-allowable-device-flags-fix
-+++ a/include/linux/libata.h
-@@ -141,9 +141,9 @@ enum {
- 	ATA_DFLAG_ACPI_FAILED	= (1 << 6), /* ACPI on devcfg has failed */
- 	ATA_DFLAG_CFG_MASK	= (1 << 12) - 1,
+diff -puN drivers/ata/ata_piix.c~ata_piix-disallow-udma-133-on-ich5-ich7 drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata_piix-disallow-udma-133-on-ich5-ich7
++++ a/drivers/ata/ata_piix.c
+@@ -123,7 +123,7 @@ enum {
+ 	ich_pata_33		= 1,	/* ICH up to UDMA 33 only */
+ 	ich_pata_66		= 2,	/* ICH up to 66 Mhz */
+ 	ich_pata_100		= 3,	/* ICH up to UDMA 100 */
+-	ich_pata_133		= 4,	/* ICH up to UDMA 133 */
++	/* ICH up to UDMA 133 is not supported */
+ 	ich5_sata		= 5,
+ 	ich6_sata		= 6,
+ 	ich6_sata_ahci		= 7,
+@@ -198,7 +198,7 @@ static const struct pci_device_id piix_p
+ 	{ 0x8086, 0x24CA, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	{ 0x8086, 0x24CB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* Intel ICH5 */
+-	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
++	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* C-ICH (i810E2) */
+ 	{ 0x8086, 0x245B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ESB (855GME/875P + 6300ESB) UDMA 100  */
+@@ -206,7 +206,7 @@ static const struct pci_device_id piix_p
+ 	/* ICH6 (and 6) (i915) UDMA 100 */
+ 	{ 0x8086, 0x266F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ICH7/7-R (i945, i975) UDMA 100*/
+-	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
++	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	{ 0x8086, 0x269E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ICH8 Mobile PATA Controller */
+ 	{ 0x8086, 0x2850, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+@@ -489,7 +489,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &ich_pata_ops,
+ 	},
  
--	ATA_DFLAG_PIO		= (1 << 8), /* device limited to PIO mode */
--	ATA_DFLAG_NCQ_OFF	= (1 << 9), /* device limited to non-NCQ mode */
--	ATA_DFLAG_SPUNDOWN	= (1 << 10), /* XXX: for spindown_compat */
-+	ATA_DFLAG_PIO		= (1 << 12), /* device limited to PIO mode */
-+	ATA_DFLAG_NCQ_OFF	= (1 << 13), /* device limited to non-NCQ mode */
-+	ATA_DFLAG_SPUNDOWN	= (1 << 14), /* XXX: for spindown_compat */
- 	ATA_DFLAG_INIT_MASK	= (1 << 16) - 1,
- 
- 	ATA_DFLAG_DETACH	= (1 << 16),
+-	/* ich_pata_133: 4 	ICH with full UDMA6 */
++	/* ich_pata_133: 4 - Not supported - */
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS | PIIX_FLAG_CHECKINTR,
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from chunkeey@web.de are
 
-check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-mm-clarify-__add_to_swap_cache-locking-fix.patch
-radix-tree-use-indirect-bit.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-mm-shmemc-make-3-functions-static.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-add-__gfp_movable-for-callers-to-flag-allocations-from-high-memory-that-may-be-migrated-swap-prefetch.patch
-prio_tree-debugging-patch.patch
+git-libata-all.patch
