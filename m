@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch added to -mm tree
-Date: Mon, 20 Aug 2007 14:17:12 -0700
-Message-ID: <200708202117.l7KLHCh1023707@imap1.linux-foundation.org>
+Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch added to -mm tree
+Date: Mon, 20 Aug 2007 14:41:56 -0700
+Message-ID: <200708202141.l7KLfu4t024605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760141AbXHTVRf (ORCPT
+	by vger.kernel.org with ESMTP id S1750826AbXHTVmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 17:17:35 -0400
+	Mon, 20 Aug 2007 17:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, hskinnemoen@atmel.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     pcmcia: cistpl: use get_unaligned() in CIS parsing
+     pid-namespaces-changes-to-show-virtual-ids-to-user-fix
 has been added to the -mm tree.  Its filename is
-     pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch
+     pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,166 +26,173 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia: cistpl: use get_unaligned() in CIS parsing
-From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
+Subject: pid-namespaces-changes-to-show-virtual-ids-to-user-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Based on a patch by Haavard Skinnemoen posted to linux-pcmcia, but using
-static inlines for readability reasons.  this should fix PCMCIA an AVR32
+unneeded casts..
 
-Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cistpl.c |   48 ++++++++++++++++++++++----------------
- 1 files changed, 28 insertions(+), 20 deletions(-)
+ fs/proc/base.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pcmcia/cistpl.c~pcmcia-cistpl-use-get_unaligned-in-cis-parsing drivers/pcmcia/cistpl.c
---- a/drivers/pcmcia/cistpl.c~pcmcia-cistpl-use-get_unaligned-in-cis-parsing
-+++ a/drivers/pcmcia/cistpl.c
-@@ -25,6 +25,7 @@
- #include <linux/ioport.h>
- #include <asm/io.h>
- #include <asm/byteorder.h>
-+#include <asm/unaligned.h>
+diff -puN fs/proc/base.c~pid-namespaces-changes-to-show-virtual-ids-to-user-fix fs/proc/base.c
+--- a/fs/proc/base.c~pid-namespaces-changes-to-show-virtual-ids-to-user-fix
++++ a/fs/proc/base.c
+@@ -2244,7 +2244,7 @@ struct dentry *proc_pid_lookup(struct in
+ 	if (tgid == ~0U)
+ 		goto out;
  
- #include <pcmcia/cs_types.h>
- #include <pcmcia/ss.h>
-@@ -401,6 +402,15 @@ EXPORT_SYMBOL(pcmcia_replace_cis);
-     
- ======================================================================*/
+-	ns = (struct pid_namespace *)dentry->d_sb->s_fs_info;
++	ns = dentry->d_sb->s_fs_info;
+ 	rcu_read_lock();
+ 	task = find_task_by_pid_ns(tgid, ns);
+ 	if (task)
+@@ -2325,7 +2325,7 @@ int proc_pid_readdir(struct file * filp,
+ 			goto out;
+ 	}
  
-+static inline u16 cis_get_u16(void *ptr)
-+{
-+	return le16_to_cpu(get_unaligned((__le16 *) ptr));
-+}
-+static inline u32 cis_get_u32(void *ptr)
-+{
-+	return le32_to_cpu(get_unaligned((__le32 *) ptr));
-+}
-+
- typedef struct tuple_flags {
-     u_int		link_space:4;
-     u_int		has_link:1;
-@@ -461,7 +471,7 @@ static int follow_link(struct pcmcia_soc
- 	/* Get indirect link from the MFC tuple */
- 	read_cis_cache(s, LINK_SPACE(tuple->Flags),
- 		       tuple->LinkOffset, 5, link);
--	ofs = le32_to_cpu(*(__le32 *)(link+1));
-+	ofs = cis_get_u32(link + 1);
- 	SPACE(tuple->Flags) = (link[0] == CISTPL_MFC_ATTR);
- 	/* Move to the next indirect link */
- 	tuple->LinkOffset += 5;
-@@ -668,10 +678,10 @@ static int parse_checksum(tuple_t *tuple
-     u_char *p;
-     if (tuple->TupleDataLen < 5)
- 	return CS_BAD_TUPLE;
--    p = (u_char *)tuple->TupleData;
--    csum->addr = tuple->CISOffset+(short)le16_to_cpu(*(__le16 *)p)-2;
--    csum->len = le16_to_cpu(*(__le16 *)(p + 2));
--    csum->sum = *(p+4);
-+    p = (u_char *) tuple->TupleData;
-+    csum->addr = tuple->CISOffset + cis_get_u16(p) - 2;
-+    csum->len = cis_get_u16(p + 2);
-+    csum->sum = *(p + 4);
-     return CS_SUCCESS;
- }
+-	ns = (struct pid_namespace *)filp->f_dentry->d_sb->s_fs_info;
++	ns = filp->f_dentry->d_sb->s_fs_info;
+ 	tgid = filp->f_pos - TGID_OFFSET;
+ 	for (task = next_tgid(tgid, ns);
+ 	     task;
+@@ -2466,7 +2466,7 @@ static struct dentry *proc_task_lookup(s
+ 	if (tid == ~0U)
+ 		goto out;
  
-@@ -681,7 +691,7 @@ static int parse_longlink(tuple_t *tuple
- {
-     if (tuple->TupleDataLen < 4)
- 	return CS_BAD_TUPLE;
--    link->addr = le32_to_cpu(*(__le32 *)tuple->TupleData);
-+    link->addr = cis_get_u32(tuple->TupleData);
-     return CS_SUCCESS;
- }
- 
-@@ -700,7 +710,8 @@ static int parse_longlink_mfc(tuple_t *t
- 	return CS_BAD_TUPLE;
-     for (i = 0; i < link->nfn; i++) {
- 	link->fn[i].space = *p; p++;
--	link->fn[i].addr = le32_to_cpu(*(__le32 *)p); p += 4;
-+	link->fn[i].addr = cis_get_u32(p);
-+	p += 4;
-     }
-     return CS_SUCCESS;
- }
-@@ -787,12 +798,10 @@ static int parse_jedec(tuple_t *tuple, c
- 
- static int parse_manfid(tuple_t *tuple, cistpl_manfid_t *m)
- {
--    __le16 *p;
-     if (tuple->TupleDataLen < 4)
- 	return CS_BAD_TUPLE;
--    p = (__le16 *)tuple->TupleData;
--    m->manf = le16_to_cpu(p[0]);
--    m->card = le16_to_cpu(p[1]);
-+    m->manf = cis_get_u16(tuple->TupleData);
-+    m->card = cis_get_u16(tuple->TupleData + 2);
-     return CS_SUCCESS;
- }
- 
-@@ -1091,7 +1100,7 @@ static int parse_cftable_entry(tuple_t *
- 	break;
-     case 0x20:
- 	entry->mem.nwin = 1;
--	entry->mem.win[0].len = le16_to_cpu(*(__le16 *)p) << 8;
-+	entry->mem.win[0].len = cis_get_u16(p) << 8;
- 	entry->mem.win[0].card_addr = 0;
- 	entry->mem.win[0].host_addr = 0;
- 	p += 2;
-@@ -1099,9 +1108,8 @@ static int parse_cftable_entry(tuple_t *
- 	break;
-     case 0x40:
- 	entry->mem.nwin = 1;
--	entry->mem.win[0].len = le16_to_cpu(*(__le16 *)p) << 8;
--	entry->mem.win[0].card_addr =
--	    le16_to_cpu(*(__le16 *)(p+2)) << 8;
-+	entry->mem.win[0].len = cis_get_u16(p) << 8;
-+	entry->mem.win[0].card_addr = cis_get_u16(p + 2) << 8;
- 	entry->mem.win[0].host_addr = 0;
- 	p += 4;
- 	if (p > q) return CS_BAD_TUPLE;
-@@ -1138,7 +1146,7 @@ static int parse_bar(tuple_t *tuple, cis
-     p = (u_char *)tuple->TupleData;
-     bar->attr = *p;
-     p += 2;
--    bar->size = le32_to_cpu(*(__le32 *)p);
-+    bar->size = cis_get_u32(p);
-     return CS_SUCCESS;
- }
- 
-@@ -1151,7 +1159,7 @@ static int parse_config_cb(tuple_t *tupl
- 	return CS_BAD_TUPLE;
-     config->last_idx = *(++p);
-     p++;
--    config->base = le32_to_cpu(*(__le32 *)p);
-+    config->base = cis_get_u32(p);
-     config->subtuples = tuple->TupleDataLen - 6;
-     return CS_SUCCESS;
- }
-@@ -1267,7 +1275,7 @@ static int parse_vers_2(tuple_t *tuple, 
- 
-     v2->vers = p[0];
-     v2->comply = p[1];
--    v2->dindex = le16_to_cpu(*(__le16 *)(p+2));
-+    v2->dindex = cis_get_u16(p +2 );
-     v2->vspec8 = p[6];
-     v2->vspec9 = p[7];
-     v2->nhdr = p[8];
-@@ -1308,8 +1316,8 @@ static int parse_format(tuple_t *tuple, 
- 
-     fmt->type = p[0];
-     fmt->edc = p[1];
--    fmt->offset = le32_to_cpu(*(__le32 *)(p+2));
--    fmt->length = le32_to_cpu(*(__le32 *)(p+6));
-+    fmt->offset = cis_get_u32(p + 2);
-+    fmt->length = cis_get_u32(p + 6);
- 
-     return CS_SUCCESS;
- }
+-	ns = (struct pid_namespace *)dentry->d_sb->s_fs_info;
++	ns = dentry->d_sb->s_fs_info;
+ 	rcu_read_lock();
+ 	task = find_task_by_pid_ns(tid, ns);
+ 	if (task)
+@@ -2609,7 +2609,7 @@ static int proc_task_readdir(struct file
+ 	/* f_version caches the tgid value that the last readdir call couldn't
+ 	 * return. lseek aka telldir automagically resets f_version to 0.
+ 	 */
+-	ns = (struct pid_namespace *)filp->f_dentry->d_sb->s_fs_info;
++	ns = filp->f_dentry->d_sb->s_fs_info;
+ 	tid = (int)filp->f_version;
+ 	filp->f_version = 0;
+ 	for (task = first_tid(leader, tid, pos - 2, ns);
 _
 
-Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch
+origin.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-dma-up-fix.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61.patch
+ide-arm-hack.patch
+git-mmc-fixup.patch
+git-mtd.patch
+git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
+mtdoops-printk-warning-fixes.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-ixgbe-build-fix.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+i386-add-support-for-picopower-irq-router.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+git-watchdog.patch
+git-wireless.patch
+git-wireless-fixup.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
