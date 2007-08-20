@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-use-64-bits-for-block-size-on-x86_64.patch added to -mm tree
-Date: Mon, 20 Aug 2007 12:43:38 -0700
-Message-ID: <200708201943.l7KJhd2d019634@imap1.linux-foundation.org>
+Subject: + uml-fix-inlines.patch added to -mm tree
+Date: Mon, 20 Aug 2007 12:43:33 -0700
+Message-ID: <200708201943.l7KJhYS8019629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45928 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759967AbXHTTn7 (ORCPT
+	by vger.kernel.org with ESMTP id S1760493AbXHTToC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:43:59 -0400
+	Mon, 20 Aug 2007 15:44:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, nicolas.george@normalesup.org
+Cc: jdike@addtoit.com, bunk@kernel.org, jdike@linux.intel.com
 
 
 The patch titled
-     uml: use 64-bits for block size on x86_64
+     uml: fix inlines
 has been added to the -mm tree.  Its filename is
-     uml-use-64-bits-for-block-size-on-x86_64.patch
+     uml-fix-inlines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: use 64-bits for block size on x86_64
+Subject: uml: fix inlines
 From: Jeff Dike <jdike@addtoit.com>
 
-The BLKGETSIZE ioctl expects a pointer to a long, os_file_size was providing
-an int. Therefore, ubd access to host block devices caused a segmentation
-fault on 64 bits systems.
+"extern inline" will have different semantics with gcc 4.3.
 
-Signed-off-by: Nicolas George <nicolas.george@normalesup.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/file.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ include/asm-um/pgalloc.h          |    2 +-
+ include/asm-um/pgtable-3level.h   |    2 +-
+ include/asm-um/processor-x86_64.h |    2 +-
+ include/asm-um/smp.h              |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/os-Linux/file.c~uml-use-64-bits-for-block-size-on-x86_64 arch/um/os-Linux/file.c
---- a/arch/um/os-Linux/file.c~uml-use-64-bits-for-block-size-on-x86_64
-+++ a/arch/um/os-Linux/file.c
-@@ -296,7 +296,8 @@ int os_file_size(char *file, unsigned lo
- 	}
+diff -puN include/asm-um/pgalloc.h~uml-fix-inlines include/asm-um/pgalloc.h
+--- a/include/asm-um/pgalloc.h~uml-fix-inlines
++++ a/include/asm-um/pgalloc.h
+@@ -42,7 +42,7 @@ static inline void pte_free(struct page 
  
- 	if(S_ISBLK(buf.ust_mode)){
--		int fd, blocks;
-+		int fd;
-+		long blocks;
+ #ifdef CONFIG_3_LEVEL_PGTABLES
  
- 		fd = os_open_file(file, of_read(OPENFLAGS()), 0);
- 		if(fd < 0){
+-extern __inline__ void pmd_free(pmd_t *pmd)
++static inline void pmd_free(pmd_t *pmd)
+ {
+ 	free_page((unsigned long)pmd);
+ }
+diff -puN include/asm-um/pgtable-3level.h~uml-fix-inlines include/asm-um/pgtable-3level.h
+--- a/include/asm-um/pgtable-3level.h~uml-fix-inlines
++++ a/include/asm-um/pgtable-3level.h
+@@ -69,7 +69,7 @@ static inline pmd_t *pmd_alloc_one(struc
+         return pmd;
+ }
+ 
+-extern inline void pud_clear (pud_t *pud)
++static inline void pud_clear (pud_t *pud)
+ {
+         set_pud(pud, __pud(0));
+ }
+diff -puN include/asm-um/processor-x86_64.h~uml-fix-inlines include/asm-um/processor-x86_64.h
+--- a/include/asm-um/processor-x86_64.h~uml-fix-inlines
++++ a/include/asm-um/processor-x86_64.h
+@@ -18,7 +18,7 @@ struct arch_thread {
+ };
+ 
+ /* REP NOP (PAUSE) is a good thing to insert into busy-wait loops. */
+-extern inline void rep_nop(void)
++static inline void rep_nop(void)
+ {
+ 	__asm__ __volatile__("rep;nop": : :"memory");
+ }
+diff -puN include/asm-um/smp.h~uml-fix-inlines include/asm-um/smp.h
+--- a/include/asm-um/smp.h~uml-fix-inlines
++++ a/include/asm-um/smp.h
+@@ -18,7 +18,7 @@ extern int hard_smp_processor_id(void);
+ extern int ncpus;
+ 
+ 
+-extern inline void smp_cpus_done(unsigned int maxcpus)
++static inline void smp_cpus_done(unsigned int maxcpus)
+ {
+ }
+ 
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
