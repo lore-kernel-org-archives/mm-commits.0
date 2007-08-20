@@ -1,54 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - bsg-declare-request_queue.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:03 -0700
-Message-ID: <200708201913.l7KJD3Oh018401@imap1.linux-foundation.org>
+Subject: - aacraid-rename-check_reset.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:05 -0700
+Message-ID: <200708201913.l7KJD5lE018404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50579 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753515AbXHTTT7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754319AbXHTTUd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:19:59 -0400
+	Mon, 20 Aug 2007 15:20:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, aacraid@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsg: declare request_queue
+     aacraid: rename check_reset
 has been removed from the -mm tree.  Its filename was
-     bsg-declare-request_queue.patch
+     aacraid-rename-check_reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bsg: declare request_queue
+Subject: aacraid: rename check_reset
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include/linux/bsg.h:67: warning: 'struct request_queue' declared inside parameter list
-include/linux/bsg.h:67: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/bsg.h:71: warning: 'struct request_queue' declared inside parameter list
+Too generic, clashes with ISDN.
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Mark Salyzyn <aacraid@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bsg.h |    3 +++
- 1 files changed, 3 insertions(+)
+ drivers/scsi/aacraid/aachba.c  |    8 ++++----
+ drivers/scsi/aacraid/aacraid.h |    2 +-
+ drivers/scsi/aacraid/commsup.c |    5 +++--
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/bsg.h~bsg-declare-request_queue include/linux/bsg.h
---- a/include/linux/bsg.h~bsg-declare-request_queue
-+++ a/include/linux/bsg.h
-@@ -53,6 +53,9 @@ struct sg_io_v4 {
+diff -puN drivers/scsi/aacraid/aachba.c~aacraid-rename-check_reset drivers/scsi/aacraid/aachba.c
+--- a/drivers/scsi/aacraid/aachba.c~aacraid-rename-check_reset
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -177,9 +177,9 @@ int check_interval = 24 * 60 * 60;
+ module_param(check_interval, int, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(check_interval, "Interval in seconds between adapter health checks.");
  
- #ifdef __KERNEL__
+-int check_reset = 1;
+-module_param(check_reset, int, S_IRUGO|S_IWUSR);
+-MODULE_PARM_DESC(check_reset, "If adapter fails health check, reset the adapter.");
++int aac_check_reset = 1;
++module_param_named(check_reset, aac_check_reset, int, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(aac_check_reset, "If adapter fails health check, reset the adapter.");
  
-+struct request_queue;
-+struct device;
-+
- #if defined(CONFIG_BLK_DEV_BSG)
- struct bsg_class_device {
- 	struct class_device *class_dev;
+ int expose_physicals = -1;
+ module_param(expose_physicals, int, S_IRUGO|S_IWUSR);
+@@ -1305,7 +1305,7 @@ int aac_get_adapter_info(struct aac_dev*
+ 			  (int)sizeof(dev->supplement_adapter_info.VpdInfo.Tsid),
+ 			  dev->supplement_adapter_info.VpdInfo.Tsid);
+ 		}
+-		if (!check_reset ||
++		if (!aac_check_reset ||
+ 		  (dev->supplement_adapter_info.SupportedOptions2 &
+ 		  le32_to_cpu(AAC_OPTION_IGNORE_RESET))) {
+ 			printk(KERN_INFO "%s%d: Reset Adapter Ignored\n",
+diff -puN drivers/scsi/aacraid/aacraid.h~aacraid-rename-check_reset drivers/scsi/aacraid/aacraid.h
+--- a/drivers/scsi/aacraid/aacraid.h~aacraid-rename-check_reset
++++ a/drivers/scsi/aacraid/aacraid.h
+@@ -1871,4 +1871,4 @@ extern int aac_reset_devices;
+ extern int aac_commit;
+ extern int update_interval;
+ extern int check_interval;
+-extern int check_reset;
++extern int aac_check_reset;
+diff -puN drivers/scsi/aacraid/commsup.c~aacraid-rename-check_reset drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~aacraid-rename-check_reset
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -1372,8 +1372,9 @@ int aac_check_health(struct aac_dev * aa
+ 
+ 	printk(KERN_ERR "%s: Host adapter BLINK LED 0x%x\n", aac->name, BlinkLED);
+ 
+-	if (!check_reset || (aac->supplement_adapter_info.SupportedOptions2 &
+-	  le32_to_cpu(AAC_OPTION_IGNORE_RESET)))
++	if (!aac_check_reset ||
++		(aac->supplement_adapter_info.SupportedOptions2 &
++			le32_to_cpu(AAC_OPTION_IGNORE_RESET)))
+ 		goto out;
+ 	host = aac->scsi_host_ptr;
+ 	if (aac->thread->pid != current->pid)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
