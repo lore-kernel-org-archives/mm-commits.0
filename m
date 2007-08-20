@@ -1,116 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-drivers-scsi.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:07 -0700
-Message-ID: <200708201913.l7KJD74n018407@imap1.linux-foundation.org>
+Subject: - libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:12:37 -0700
+Message-ID: <200708201912.l7KJCbJm018367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51252 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758035AbXHTTVM (ORCPT
+	by vger.kernel.org with ESMTP id S1759037AbXHTTVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:12 -0400
+	Mon, 20 Aug 2007 15:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, james.smart@Emulex.Com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/scsi/
+     libata: ACPI checks for 80wire cable: use in pata_amd
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-drivers-scsi.patch
+     libata-acpi-checks-for-80wire-cable-use-in-pata_amd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/scsi/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: libata: ACPI checks for 80wire cable: use in pata_amd
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This patch cleans up duplicate includes in
-	drivers/scsi/
+We can make use of this on the pata_amd driver as many Nvidia devices don't
+have reliable cable detect.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: James Smart <james.smart@emulex.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/NCR_D700.c          |    1 -
- drivers/scsi/lpfc/lpfc_debugfs.c |    1 -
- drivers/scsi/lpfc/lpfc_init.c    |    1 -
- 3 files changed, 3 deletions(-)
+ drivers/ata/pata_amd.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/scsi/NCR_D700.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/NCR_D700.c
---- a/drivers/scsi/NCR_D700.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/NCR_D700.c
-@@ -97,7 +97,6 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/mca.h>
--#include <linux/interrupt.h>
- #include <asm/io.h>
- #include <scsi/scsi_host.h>
- #include <scsi/scsi_device.h>
-diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/lpfc/lpfc_debugfs.c
---- a/drivers/scsi/lpfc/lpfc_debugfs.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/lpfc/lpfc_debugfs.c
-@@ -43,7 +43,6 @@
- #include "lpfc_crtn.h"
- #include "lpfc_vport.h"
- #include "lpfc_version.h"
--#include "lpfc_vport.h"
- #include "lpfc_debugfs.h"
+diff -puN drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd drivers/ata/pata_amd.c
+--- a/drivers/ata/pata_amd.c~libata-acpi-checks-for-80wire-cable-use-in-pata_amd
++++ a/drivers/ata/pata_amd.c
+@@ -268,6 +268,9 @@ static int nv_cable_detect(struct ata_po
+  	pci_read_config_word(pdev, 0x62 - 2 * ap->port_no, &udma);
+  	if ((udma & 0xC4) == 0xC4 || (udma & 0xC400) == 0xC400)
+ 		cbl = ATA_CBL_PATA80;
++	/* And a triple check across suspend/resume with ACPI around */
++	if (ata_acpi_cbl_80wire(ap))
++		cbl = ATA_CBL_PATA80;
+ 	return cbl;
+ }
  
- #ifdef CONFIG_LPFC_DEBUG_FS
-diff -puN drivers/scsi/lpfc/lpfc_init.c~clean-up-duplicate-includes-in-drivers-scsi drivers/scsi/lpfc/lpfc_init.c
---- a/drivers/scsi/lpfc/lpfc_init.c~clean-up-duplicate-includes-in-drivers-scsi
-+++ a/drivers/scsi/lpfc/lpfc_init.c
-@@ -43,7 +43,6 @@
- #include "lpfc_crtn.h"
- #include "lpfc_vport.h"
- #include "lpfc_version.h"
--#include "lpfc_vport.h"
- 
- static int lpfc_parse_vpd(struct lpfc_hba *, uint8_t *, int);
- static void lpfc_get_hba_model_desc(struct lpfc_hba *, uint8_t *, uint8_t *);
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-alsa.patch
-git-agpgart.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-clean-up-duplicate-includes-in-drivers-input.patch
-scripts-ver_linux-correct-printing-of-binutils-version.patch
-improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
+serial-add-support-for-ite-887x-chips.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+fix-null-pointer-dereference-in-__vm_enough_memory.patch
+m68k-enable-arbitary-speed-tty-support.patch
+introduce-config_check_signature-was-re-uninline.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-acpi-checks-for-80wire-cable-implementation.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+serial_txx9-cleanup-includes.patch
 git-scsi-misc.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-watchdog.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+char-cyclades-remove-bottom-half-processing.patch
