@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-end_buffer_read-helper-function.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:51:29 -0700
-Message-ID: <200708202051.l7KKpTqB022655@imap1.linux-foundation.org>
+Subject: + exec-simplify-sighand-switching.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:58:46 -0700
+Message-ID: <200708202058.l7KKwkN4022972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45522 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760317AbXHTUwI (ORCPT
+	by vger.kernel.org with ESMTP id S1761136AbXHTU7z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:52:08 -0400
+	Mon, 20 Aug 2007 16:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, nickpiggin@yahoo.com.au
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     mm: add end_buffer_read helper function
+     exec: simplify ->sighand switching
 has been added to the -mm tree.  Its filename is
-     mm-add-end_buffer_read-helper-function.patch
+     exec-simplify-sighand-switching.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: add end_buffer_read helper function
-From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: exec: simplify ->sighand switching
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Move duplicated code from end_buffer_read_XXX methods to separate helper
-function.
+There is no any reason to do recalc_sigpending() after changing ->sighand.
+To begin with, recalc_sigpending() does not take ->sighand into account.
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+This means we don't need to take newsighand->siglock while changing sighands.
+rcu_assign_pointer() provides a necessary barrier, and if another process
+reads the new ->sighand it should either take tasklist_lock or it should use
+lock_task_sighand() which has a corresponding smp_read_barrier_depends().
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   32 +++++++++++++++++---------------
- 1 files changed, 17 insertions(+), 15 deletions(-)
+ fs/exec.c |    8 +-------
+ 1 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/buffer.c~mm-add-end_buffer_read-helper-function fs/buffer.c
---- a/fs/buffer.c~mm-add-end_buffer_read-helper-function
-+++ a/fs/buffer.c
-@@ -110,10 +110,14 @@ static void buffer_io_error(struct buffe
- }
+diff -puN fs/exec.c~exec-simplify-sighand-switching fs/exec.c
+--- a/fs/exec.c~exec-simplify-sighand-switching
++++ a/fs/exec.c
+@@ -918,12 +918,7 @@ no_thread_group:
  
- /*
-- * Default synchronous end-of-IO handler..  Just mark it up-to-date and
-- * unlock the buffer. This is what ll_rw_block uses too.
-+ * End-of-IO handler helper function which does not touch the bh after
-+ * unlocking it.
-+ * Note: unlock_buffer() sort-of does touch the bh after unlocking it, but
-+ * a race there is benign: unlock_buffer() only use the bh's address for
-+ * hashing after unlocking the buffer, so it doesn't actually touch the bh
-+ * itself.
-  */
--void end_buffer_read_sync(struct buffer_head *bh, int uptodate)
-+static void __end_buffer_read_notouch(struct buffer_head *bh, int uptodate)
- {
- 	if (uptodate) {
- 		set_buffer_uptodate(bh);
-@@ -122,6 +126,15 @@ void end_buffer_read_sync(struct buffer_
- 		clear_buffer_uptodate(bh);
- 	}
- 	unlock_buffer(bh);
-+}
+ 		write_lock_irq(&tasklist_lock);
+ 		spin_lock(&oldsighand->siglock);
+-		spin_lock_nested(&newsighand->siglock, SINGLE_DEPTH_NESTING);
+-
+ 		rcu_assign_pointer(tsk->sighand, newsighand);
+-		recalc_sigpending();
+-
+-		spin_unlock(&newsighand->siglock);
+ 		spin_unlock(&oldsighand->siglock);
+ 		write_unlock_irq(&tasklist_lock);
+ 
+@@ -933,12 +928,11 @@ no_thread_group:
+ 	BUG_ON(!thread_group_leader(tsk));
+ 	return 0;
+ }
+-	
 +
-+/*
-+ * Default synchronous end-of-IO handler..  Just mark it up-to-date and
-+ * unlock the buffer. This is what ll_rw_block uses too.
-+ */
-+void end_buffer_read_sync(struct buffer_head *bh, int uptodate)
-+{
-+	__end_buffer_read_notouch(bh, uptodate);
- 	put_bh(bh);
- }
- 
-@@ -2243,21 +2256,10 @@ out_unlock:
-  * nobh_prepare_write()'s prereads are special: the buffer_heads are freed
-  * immediately, while under the page lock.  So it needs a special end_io
-  * handler which does not touch the bh after unlocking it.
-- *
-- * Note: unlock_buffer() sort-of does touch the bh after unlocking it, but
-- * a race there is benign: unlock_buffer() only use the bh's address for
-- * hashing after unlocking the buffer, so it doesn't actually touch the bh
-- * itself.
-  */
- static void end_buffer_read_nobh(struct buffer_head *bh, int uptodate)
- {
--	if (uptodate) {
--		set_buffer_uptodate(bh);
--	} else {
--		/* This happens, due to failed READA attempts. */
--		clear_buffer_uptodate(bh);
--	}
--	unlock_buffer(bh);
-+	__end_buffer_read_notouch(bh, uptodate);
- }
- 
  /*
+  * These functions flushes out all traces of the currently running executable
+  * so that a new one can be started
+  */
+-
+ static void flush_old_files(struct files_struct * files)
+ {
+ 	long j = -1;
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-git-md-accel.patch
-mm-add-end_buffer_read-helper-function.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-deny-partial-write-for-loop-dev-fd.patch
+origin.patch
+posix-timers-fix-creation-race.patch
+signalfd-fix-interaction-with-posix-timers.patch
+signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
+exec-kill-unsafe-bug_onsig-count-checks.patch
+git-dvb.patch
+rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+make-access-to-tasks-nsproxy-lighter.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
