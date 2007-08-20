@@ -1,81 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - usb-remove-redundant-memset-from-amd5536udc.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:48 -0700
-Message-ID: <200708201913.l7KJDmdg018478@imap1.linux-foundation.org>
+Subject: - add-support-for-1533-bridge-to-alim1535_wdt.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:52 -0700
+Message-ID: <200708201913.l7KJDq6O018487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757699AbXHTTVI (ORCPT
+	by vger.kernel.org with ESMTP id S1757607AbXHTTVJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:08 -0400
+	Mon, 20 Aug 2007 15:21:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, greg@kroah.com, mm-commits@vger.kernel.org
+To: arvidjaar@mail.ru, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: remove redundant memset from amd5536udc
+     Add support for 1533 bridge to alim1535_wdt
 has been removed from the -mm tree.  Its filename was
-     usb-remove-redundant-memset-from-amd5536udc.patch
+     add-support-for-1533-bridge-to-alim1535_wdt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb: remove redundant memset from amd5536udc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Add support for 1533 bridge to alim1535_wdt
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-Remove redundant memset() call from udc_pci_probe().  No functional change.
+They are apparently pretty close (even lspci combines them). The patch
+adds support for 0x1533 bridge in addition to 0x1535.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Greg KH <greg@kroah.com>
+Tested on Toshiba Portege 4000 with
+
+00:07.0 ISA bridge [0601]: ALi Corporation M1533/M1535 PCI to ISA Bridge
+[Aladdin IV/V/V+] [10b9:1533]
+00:08.0 Bridge [0680]: ALi Corporation M7101 Power Management Controller
+[PMU] [10b9:7101]
+
+with result
+
+[ 2090.906736] PCI: Enabling device 0000:00:08.0 (0000 -> 0001)
+[ 2090.914034] ALi_M1535: initialized. timeout=3D60 sec (nowayout=3D0)
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/amd5536udc.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/watchdog/alim1535_wdt.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc drivers/usb/gadget/amd5536udc.c
---- a/drivers/usb/gadget/amd5536udc.c~usb-remove-redundant-memset-from-amd5536udc
-+++ a/drivers/usb/gadget/amd5536udc.c
-@@ -3244,7 +3244,6 @@ static int udc_pci_probe(
- 		retval = -ENOMEM;
- 		goto finished;
- 	}
--	memset(dev, 0, sizeof(struct udc));
+diff -puN drivers/watchdog/alim1535_wdt.c~add-support-for-1533-bridge-to-alim1535_wdt drivers/watchdog/alim1535_wdt.c
+--- a/drivers/watchdog/alim1535_wdt.c~add-support-for-1533-bridge-to-alim1535_wdt
++++ a/drivers/watchdog/alim1535_wdt.c
+@@ -312,6 +312,7 @@ static int ali_notify_sys(struct notifie
+  */
  
- 	/* pci setup */
- 	if (pci_enable_device(pdev) < 0) {
+ static struct pci_device_id ali_pci_tbl[] = {
++	{ PCI_VENDOR_ID_AL, 0x1533, PCI_ANY_ID, PCI_ANY_ID,},
+ 	{ PCI_VENDOR_ID_AL, 0x1535, PCI_ANY_ID, PCI_ANY_ID,},
+ 	{ 0, },
+ };
+@@ -329,9 +330,11 @@ static int __init ali_find_watchdog(void
+ 	struct pci_dev *pdev;
+ 	u32 wdog;
+ 
+-	/* Check for a 1535 series bridge */
++	/* Check for a 1533/1535 series bridge */
+ 	pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1535, NULL);
+-	if(pdev == NULL)
++	if (pdev == NULL)
++		pdev = pci_get_device(PCI_VENDOR_ID_AL, 0x1533, NULL);
++	if (pdev == NULL)
+ 		return -ENODEV;
+ 	pci_dev_put(pdev);
+ 
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
-origin.patch
-dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
-git-alsa.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
-git-dvb.patch
-drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
-git-mmc.patch
-drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-git-scsi-misc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-watchdog.patch
