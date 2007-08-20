@@ -1,56 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:13:21 -0700
-Message-ID: <200708201913.l7KJDLt0018433@imap1.linux-foundation.org>
+Subject: - drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:19 -0700
+Message-ID: <200708201913.l7KJDJl4018430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756297AbXHTTVB (ORCPT
+	by vger.kernel.org with ESMTP id S1756872AbXHTTVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:21:01 -0400
+	Mon, 20 Aug 2007 15:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
+     drivers/scsi/bvme6000_scsi.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/scsi/gdth.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/scsi/bvme6000_scsi.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/scsi/gdth.c | 189401 -> 189342 (-59 bytes)
- drivers/scsi/gdth.o | 331028 -> 330324 (-704 bytes)
+ drivers/scsi/bvme6000_scsi.c | 3330 -> 3253 (-77 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/bvme6000_scsi.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~drivers-scsi-gdthc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/scsi/gdth.c
-@@ -726,10 +726,10 @@ int __gdth_execute(struct scsi_device *s
-     DECLARE_COMPLETION_ONSTACK(wait);
-     int rval;
+diff -puN drivers/scsi/bvme6000_scsi.c~drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc drivers/scsi/bvme6000_scsi.c
+--- a/drivers/scsi/bvme6000_scsi.c~drivers-scsi-bvme6000_scsic-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/scsi/bvme6000_scsi.c
+@@ -36,19 +36,18 @@ static struct platform_device *bvme6000_
+ static __devinit int
+ bvme6000_probe(struct device *dev)
+ {
+-	struct Scsi_Host * host = NULL;
++	struct Scsi_Host *host;
+ 	struct NCR_700_Host_Parameters *hostdata;
  
--    scp = kmalloc(sizeof(*scp), GFP_KERNEL);
-+    scp = kzalloc(sizeof(*scp), GFP_KERNEL);
-     if (!scp)
-         return -ENOMEM;
--    memset(scp, 0, sizeof(*scp));
-+
-     scp->device = sdev;
-     /* use request field to save the ptr. to completion struct. */
-     scp->request = (struct request *)&wait;
+ 	if (!MACH_IS_BVME6000)
+ 		goto out;
+ 
+-	hostdata = kmalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
+-	if (hostdata == NULL) {
++	hostdata = kzalloc(sizeof(struct NCR_700_Host_Parameters), GFP_KERNEL);
++	if (!hostdata) {
+ 		printk(KERN_ERR "bvme6000-scsi: "
+ 				"Failed to allocate host data\n");
+ 		goto out;
+ 	}
+-	memset(hostdata, 0, sizeof(struct NCR_700_Host_Parameters));
+ 
+ 	/* Fill in the required pieces of hostdata */
+ 	hostdata->base = (void __iomem *)BVME_NCR53C710_BASE;
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
