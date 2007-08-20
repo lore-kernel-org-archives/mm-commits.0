@@ -1,67 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:11:50 -0700
-Message-ID: <200708201911.l7KJBoru018291@imap1.linux-foundation.org>
+Subject: - drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:11:52 -0700
+Message-ID: <200708201911.l7KJBqOt018294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50827 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44065 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754836AbXHTTMi (ORCPT
+	by vger.kernel.org with ESMTP id S1757187AbXHTTMm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:12:38 -0400
+	Mon, 20 Aug 2007 15:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
+     drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc.patch
+     drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/md/dm-table.c: kmalloc + memset conversion to kzalloc
+Subject: drivers/md/dm-target.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/md/dm-table.c | 21698 -> 21664 (-34 bytes)
- drivers/md/dm-table.o | 132153 -> 132093 (-60 bytes)
+ drivers/md/dm-target.c | 3300 -> 3271 (-29 bytes)
+ drivers/md/dm-target.o | 105641 -> 105449 (-192 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-table.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/dm-target.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-table.c
---- a/drivers/md/dm-table.c~drivers-md-dm-tablec-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/md/dm-table.c
-@@ -213,12 +213,12 @@ static int alloc_targets(struct dm_table
- int dm_table_create(struct dm_table **result, int mode,
- 		    unsigned num_targets, struct mapped_device *md)
+diff -puN drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-target.c
+--- a/drivers/md/dm-target.c~drivers-md-dm-targetc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/md/dm-target.c
+@@ -88,12 +88,11 @@ void dm_put_target_type(struct target_ty
+ 
+ static struct tt_internal *alloc_target(struct target_type *t)
  {
--	struct dm_table *t = kmalloc(sizeof(*t), GFP_KERNEL);
-+	struct dm_table *t;
+-	struct tt_internal *ti = kmalloc(sizeof(*ti), GFP_KERNEL);
++	struct tt_internal *ti;
  
-+	t = kzalloc(sizeof(*t), GFP_KERNEL);
- 	if (!t)
- 		return -ENOMEM;
+-	if (ti) {
+-		memset(ti, 0, sizeof(*ti));
++	ti = kzalloc(sizeof(*ti), GFP_KERNEL);
++	if (ti)
+ 		ti->tt = *t;
+-	}
  
--	memset(t, 0, sizeof(*t));
- 	INIT_LIST_HEAD(&t->devices);
- 	atomic_set(&t->holders, 1);
- 
-@@ -229,7 +229,6 @@ int dm_table_create(struct dm_table **re
- 
- 	if (alloc_targets(t, num_targets)) {
- 		kfree(t);
--		t = NULL;
- 		return -ENOMEM;
- 	}
- 
+ 	return ti;
+ }
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
