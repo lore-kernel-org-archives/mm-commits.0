@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-kill-unsafe-bug_onsig-count-checks.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:56:10 -0700
-Message-ID: <200708202056.l7KKuAe6022880@imap1.linux-foundation.org>
+Subject: + exec-simplify-the-new-sighand-allocation.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:58:48 -0700
+Message-ID: <200708202058.l7KKwm8v022975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51903 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932663AbXHTU5f (ORCPT
+	by vger.kernel.org with ESMTP id S1752104AbXHTU7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:57:35 -0400
+	Mon, 20 Aug 2007 16:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, roland@redhat.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     exec: kill unsafe BUG_ON(sig->count) checks
+     exec: simplify the new ->sighand allocation
 has been added to the -mm tree.  Its filename is
-     exec-kill-unsafe-bug_onsig-count-checks.patch
+     exec-simplify-the-new-sighand-allocation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: exec: kill unsafe BUG_ON(sig->count) checks
+Subject: exec: simplify the new ->sighand allocation
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-de_thread:
+de_thread() pre-allocates newsighand to make sure that exec() can't fail after
+killing all sub-threads. Imho, this buys nothing, but complicates the code:
 
-	if (atomic_read(&oldsighand->count) <= 1)
-		BUG_ON(atomic_read(&sig->count) != 1);
+	- this is (mostly) needed to handle CLONE_SIGHAND without CLONE_THREAD
+	  tasks, this is very unlikely (if ever used) case
 
-This is not safe without the rmb() in between.  The results of two
-correctly ordered __exit_signal()->atomic_dec_and_test()'s could be seen
-out of order on our CPU.
+	- unless we already have some serious problems, GFP_KERNEL allocation
+	  should not fail
 
-The same is true for the "thread_group_empty()" case, __unhash_process()'s
-changes could be seen before atomic_dec_and_test(&sig->count).
+	- ENOMEM still can happen after de_thread(), ->sighand is not the last
+	  object we have to allocate
 
-On some platforms (including i386) atomic_read() doesn't provide even the
-compiler barrier, in that case these checks are simply racy.
-
-Remove these BUG_ON()'s. Alternatively, we can do something like
-
-	BUG_ON( ({ smp_rmb(); atomic_read(&sig->count) != 1; }) );
+Change the code to allocate the new ->sighand on demand.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 ---
- 1 files changed, 3 deletions(-)
+ fs/exec.c |   24 +++++++++---------------
+ 1 files changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks fs/exec.c
---- a/fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks
+diff -puN fs/exec.c~exec-simplify-the-new-sighand-allocation fs/exec.c
+--- a/fs/exec.c~exec-simplify-the-new-sighand-allocation
 +++ a/fs/exec.c
-@@ -784,7 +784,6 @@ static int de_thread(struct task_struct 
- 	 * and we can just re-use it all.
- 	 */
- 	if (atomic_read(&oldsighand->count) <= 1) {
--		BUG_ON(atomic_read(&sig->count) != 1);
- 		signalfd_detach(tsk);
- 		exit_itimers(sig);
+@@ -747,7 +747,7 @@ static int exec_mmap(struct mm_struct *m
+ static int de_thread(struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig = tsk->signal;
+-	struct sighand_struct *newsighand, *oldsighand = tsk->sighand;
++	struct sighand_struct *oldsighand = tsk->sighand;
+ 	spinlock_t *lock = &oldsighand->siglock;
+ 	struct task_struct *leader = NULL;
+ 	int count;
+@@ -762,10 +762,6 @@ static int de_thread(struct task_struct 
  		return 0;
-@@ -929,8 +928,6 @@ no_thread_group:
+ 	}
+ 
+-	newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
+-	if (!newsighand)
+-		return -ENOMEM;
+-
+ 	if (thread_group_empty(tsk))
+ 		goto no_thread_group;
+ 
+@@ -782,7 +778,6 @@ static int de_thread(struct task_struct 
+ 		 */
+ 		spin_unlock_irq(lock);
+ 		read_unlock(&tasklist_lock);
+-		kmem_cache_free(sighand_cachep, newsighand);
+ 		return -EAGAIN;
+ 	}
+ 
+@@ -901,17 +896,16 @@ no_thread_group:
  	if (leader)
  		release_task(leader);
  
--	BUG_ON(atomic_read(&sig->count) != 1);
--
- 	if (atomic_read(&oldsighand->count) == 1) {
+-	if (atomic_read(&oldsighand->count) == 1) {
+-		/*
+-		 * Now that we nuked the rest of the thread group,
+-		 * it turns out we are not sharing sighand any more either.
+-		 * So we can just keep it.
+-		 */
+-		kmem_cache_free(sighand_cachep, newsighand);
+-	} else {
++	if (atomic_read(&oldsighand->count) != 1) {
++		struct sighand_struct *newsighand;
  		/*
- 		 * Now that we nuked the rest of the thread group,
+-		 * Move our state over to newsighand and switch it in.
++		 * This ->sighand is shared with the CLONE_SIGHAND
++		 * but not CLONE_THREAD task, switch to the new one.
+ 		 */
++		newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
++		if (!newsighand)
++			return -ENOMEM;
++
+ 		atomic_set(&newsighand->count, 1);
+ 		memcpy(newsighand->action, oldsighand->action,
+ 		       sizeof(newsighand->action));
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -102,6 +133,10 @@ zap_other_threads-dont-optimize-thread_group_empty-case.patch
 wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
 __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
 use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
 cpu-hotplug-slab-cleanup-cpuup_callback.patch
 cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
 cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
