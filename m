@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:11:54 -0700
-Message-ID: <200708202011.l7KKBs1M020745@imap1.linux-foundation.org>
+Subject: + rtc-max6902-minor-fixes.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:30:56 -0700
+Message-ID: <200708202030.l7KKUuAZ021576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33711 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751345AbXHTUNu (ORCPT
+	by vger.kernel.org with ESMTP id S1764416AbXHTUb2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:13:50 -0400
+	Mon, 20 Aug 2007 16:31:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sukadev@us.ibm.com, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
+Cc: david-b@pacbell.net, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     Fix capability.c to work with threaded init
+     rtc-max6902 minor fixes
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+     rtc-max6902-minor-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix capability.c to work with threaded init
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: rtc-max6902 minor fixes
+From: David Brownell <david-b@pacbell.net>
 
-When setting capabilities, cap_set_all() must skip all threads of the
-container_init process - not just the main thread.
+Minor tweaks to rtc-max6902: make it hotplug correctly, and fix a few
+space-before-tab whitespace botches.  This driver has no current in-tree
+users, so the hotplug fix changes the driver name.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Herbert Poetzel <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-max6902.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/capability.c~pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init kernel/capability.c
---- a/kernel/capability.c~pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init
-+++ a/kernel/capability.c
-@@ -133,7 +133,7 @@ static inline int cap_set_all(kernel_cap
-      int found = 0;
+diff -puN drivers/rtc/rtc-max6902.c~rtc-max6902-minor-fixes drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~rtc-max6902-minor-fixes
++++ a/drivers/rtc/rtc-max6902.c
+@@ -13,7 +13,7 @@
+  *
+  * 24-May-2006: Raphael Assenat <raph@8d.com>
+  *                - Major rework
+- *   				Converted to rtc_device and uses the SPI layer.
++ *				Converted to rtc_device and uses the SPI layer.
+  *
+  * ??-???-2005: Someone at Compulab
+  *                - Initial driver creation.
+@@ -259,11 +259,11 @@ static int __devexit max6902_remove(stru
  
-      do_each_thread(g, target) {
--             if (target == current || is_container_init(target))
-+             if (target == current || is_container_init(target->group_leader))
-                      continue;
-              found = 1;
- 	     if (security_capset_check(target, effective, inheritable,
+ static struct spi_driver max6902_driver = {
+ 	.driver = {
+-		.name 	= "max6902",
++		.name	= "rtc-max6902",
+ 		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+-	.probe 	= max6902_probe,
++	.probe	= max6902_probe,
+ 	.remove = __devexit_p(max6902_remove),
+ };
+ 
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-handle-the-multi-threaded-inits-exit-properly.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
+origin.patch
+correct-name-for-rtc-m41t80.patch
+rtc-max6902-minor-fixes.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-mmc.patch
+git-mtd.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+rtc-periodic-irq-fix.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
