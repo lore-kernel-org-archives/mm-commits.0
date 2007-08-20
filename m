@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v3-file-capabilities-alter-behavior-of-cap_setpcap.patch added to -mm tree
-Date: Mon, 20 Aug 2007 14:14:52 -0700
-Message-ID: <200708202114.l7KLEq95023574@imap1.linux-foundation.org>
+Subject: + pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch added to -mm tree
+Date: Mon, 20 Aug 2007 14:17:12 -0700
+Message-ID: <200708202117.l7KLHCh1023707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55838 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbXHTVPe (ORCPT
+	by vger.kernel.org with ESMTP id S1760141AbXHTVRf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 17:15:34 -0400
+	Mon, 20 Aug 2007 17:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morgan@kernel.org, serue@us.ibm.com
+Cc: daniel.ritz-ml@swissonline.ch, daniel.ritz@gmx.ch, hskinnemoen@atmel.com
 
 
 The patch titled
-     V3 file capabilities: alter behavior of cap_setpcap
+     pcmcia: cistpl: use get_unaligned() in CIS parsing
 has been added to the -mm tree.  Its filename is
-     v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
+     pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,327 +26,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: V3 file capabilities: alter behavior of cap_setpcap
-From: Andrew Morgan <morgan@kernel.org>
+Subject: pcmcia: cistpl: use get_unaligned() in CIS parsing
+From: Daniel Ritz <daniel.ritz-ml@swissonline.ch>
 
-The non-filesystem capability meaning of CAP_SETPCAP is that a process, p1,
-can change the capabilities of another process, p2.  This is not the
-meaning that was intended for this capability at all, and this
-implementation came about purely because, without filesystem capabilities,
-there was no way to use capabilities without one process bestowing them on
-another.
+Based on a patch by Haavard Skinnemoen posted to linux-pcmcia, but using
+static inlines for readability reasons.  this should fix PCMCIA an AVR32
 
-Since we now have a filesystem support for capabilities we can fix the
-implementation of CAP_SETPCAP.
-
-The most significant thing about this change is that, with it in effect, no
-process can set the capabilities of another process.
-
-The capabilities of a program are set via the capability convolution
-rules:
-
-   pI(post-exec) = pI(pre-exec)
-   pP(post-exec) = (X(aka cap_bset) & fP) | (pI(post-exec) & fI)
-   pE(post-exec) = fE ? pP(post-exec) : 0
-
-at exec() time.  As such, the only influence the pre-exec() program can
-have on the post-exec() program's capabilities are through the pI
-capability set.
-
-The correct implementation for CAP_SETPCAP (and that enabled by this patch)
-is that it can be used to add extra pI capabilities to the current process
-- to be picked up by subsequent exec()s when the above convolution rules
-are applied.
-
-Here is how it works:
-
-Let's say we have a process, p. It has capability sets, pE, pP and pI.
-Generally, p, can change the value of its own pI to pI' where
-
-   (pI' & ~pI) & ~pP = 0.
-
-That is, the only new things in pI' that were not present in pI need to
-be present in pP.
-
-The role of CAP_SETPCAP is basically to permit changes to pI beyond
-the above:
-
-   if (pE & CAP_SETPCAP) {
-      pI' = anything; /* ie., even (pI' & ~pI) & ~pP != 0  */
-   }
-
-This capability is useful for things like login, which (say, via
-pam_cap) might want to raise certain inheritable capabilities for use
-by the children of the logged-in user's shell, but those capabilities
-are not useful to or needed by the login program itself.
-
-One such use might be to limit who can run ping. You set the
-capabilities of the 'ping' program to be "= cap_net_raw+i", and then
-only shells that have (pI & CAP_NET_RAW) will be able to run
-it. Without CAP_SETPCAP implemented as described above, login(pam_cap)
-would have to also have (pP & CAP_NET_RAW) in order to raise this
-capability and pass it on through the inheritable set.
-
-Signed-off-by: Andrew Morgan <morgan@kernel.org>
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Daniel Ritz <daniel.ritz@gmx.ch>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    4 --
- include/linux/security.h   |    7 ++++
- kernel/capability.c        |    5 --
- kernel/sysctl.c            |    8 +++-
- kernel/sysctl_check.c      |    5 ++
- security/commoncap.c       |   59 ++++++++++++++++++++++++++++++++---
- security/dummy.c           |   16 ++++-----
- 7 files changed, 80 insertions(+), 24 deletions(-)
+ drivers/pcmcia/cistpl.c |   48 ++++++++++++++++++++++----------------
+ 1 files changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/capability.h~v3-file-capabilities-alter-behavior-of-cap_setpcap include/linux/capability.h
---- a/include/linux/capability.h~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/include/linux/capability.h
-@@ -310,10 +310,6 @@ typedef __u32 kernel_cap_t;
- #define CAP_SETFCAP	     31
+diff -puN drivers/pcmcia/cistpl.c~pcmcia-cistpl-use-get_unaligned-in-cis-parsing drivers/pcmcia/cistpl.c
+--- a/drivers/pcmcia/cistpl.c~pcmcia-cistpl-use-get_unaligned-in-cis-parsing
++++ a/drivers/pcmcia/cistpl.c
+@@ -25,6 +25,7 @@
+ #include <linux/ioport.h>
+ #include <asm/io.h>
+ #include <asm/byteorder.h>
++#include <asm/unaligned.h>
  
- #ifdef __KERNEL__
--/*
-- * Bounding set
-- */
--extern kernel_cap_t cap_bset;
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/ss.h>
+@@ -401,6 +402,15 @@ EXPORT_SYMBOL(pcmcia_replace_cis);
+     
+ ======================================================================*/
  
- /*
-  * Internal kernel functions only
-diff -puN include/linux/security.h~v3-file-capabilities-alter-behavior-of-cap_setpcap include/linux/security.h
---- a/include/linux/security.h~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/include/linux/security.h
-@@ -34,6 +34,13 @@
- #include <linux/xfrm.h>
- #include <net/flow.h>
- 
-+/*
-+ * Bounding set
-+ */
-+extern kernel_cap_t cap_bset;
-+
-+extern unsigned securebits;
-+
- struct ctl_table;
- 
- /*
-diff -puN kernel/capability.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/capability.c
---- a/kernel/capability.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/kernel/capability.c
-@@ -3,7 +3,7 @@
-  *
-  * Copyright (C) 1997  Andrew Main <zefram@fysh.org>
-  *
-- * Integrated into 2.1.97+,  Andrew G. Morgan <morgan@transmeta.com>
-+ * Integrated into 2.1.97+,  Andrew G. Morgan <morgan@kernel.org>
-  * 30 May 2002:	Cleanup, Robert M. Love <rml@tech9.net>
-  */ 
- 
-@@ -14,9 +14,6 @@
- #include <linux/syscalls.h>
- #include <asm/uaccess.h>
- 
--unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
--kernel_cap_t cap_bset = CAP_INIT_EFF_SET;
--
- /*
-  * This lock protects task->cap_* for all tasks including current.
-  * Locking rule: acquire this prior to tasklist_lock.
-diff -puN kernel/sysctl.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/sysctl.c
---- a/kernel/sysctl.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/kernel/sysctl.c
-@@ -25,7 +25,7 @@
- #include <linux/swap-prefetch.h>
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
--#include <linux/capability.h>
-+#include <linux/security.h>
- #include <linux/ctype.h>
- #include <linux/utsname.h>
- #include <linux/smp_lock.h>
-@@ -367,6 +367,7 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec_taint,
- 	},
- #endif
-+#ifdef CONFIG_SECURITY_CAPABILITIES
- 	{
- 		.procname	= "cap-bound",
- 		.data		= &cap_bset,
-@@ -374,6 +375,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0600,
- 		.proc_handler	= &proc_dointvec_bset,
- 	},
-+#endif /* def CONFIG_SECURITY_CAPABILITIES */
- #ifdef CONFIG_BLK_DEV_INITRD
- 	{
- 		.ctl_name	= KERN_REALROOTDEV,
-@@ -1889,10 +1891,11 @@ static int do_proc_dointvec_bset_conv(in
- 	return 0;
- }
- 
-+#ifdef CONFIG_SECURITY_CAPABILITIES
- /*
-  *	init may raise the set.
-  */
-- 
-+
- int proc_dointvec_bset(struct ctl_table *table, int write, struct file *filp,
- 			void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -1906,6 +1909,7 @@ int proc_dointvec_bset(struct ctl_table 
- 	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
- 				do_proc_dointvec_bset_conv,&op);
- }
-+#endif /* def CONFIG_SECURITY_CAPABILITIES */
- 
- /*
-  *	Taint values can only be increased
-diff -puN kernel/sysctl_check.c~v3-file-capabilities-alter-behavior-of-cap_setpcap kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/kernel/sysctl_check.c
-@@ -38,7 +38,10 @@ static struct trans_ctl_table trans_kern
- 	{ KERN_NODENAME,		"hostname" },
- 	{ KERN_DOMAINNAME,		"domainname" },
- 
-+#ifdef CONFIG_SECURITY_CAPABILITIES
- 	{ KERN_CAP_BSET,		"cap-bound" },
-+#endif /* def CONFIG_SECURITY_CAPABILITIES */
-+
- 	{ KERN_PANIC,			"panic" },
- 	{ KERN_REALROOTDEV,		"real-root-dev" },
- 
-@@ -1513,7 +1516,9 @@ int sysctl_check_table(struct ctl_table 
- 			    (table->strategy == sysctl_ms_jiffies) ||
- 			    (table->proc_handler == proc_dostring) ||
- 			    (table->proc_handler == proc_dointvec) ||
-+#ifdef CONFIG_SECURITY_CAPABILITIES
- 			    (table->proc_handler == proc_dointvec_bset) ||
-+#endif /* def CONFIG_SECURITY_CAPABILITIES */
- 			    (table->proc_handler == proc_dointvec_minmax) ||
- 			    (table->proc_handler == proc_dointvec_jiffies) ||
- 			    (table->proc_handler == proc_dointvec_userhz_jiffies) ||
-diff -puN security/commoncap.c~v3-file-capabilities-alter-behavior-of-cap_setpcap security/commoncap.c
---- a/security/commoncap.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/security/commoncap.c
-@@ -24,6 +24,25 @@
- #include <linux/hugetlb.h>
- #include <linux/mount.h>
- 
-+#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-+/*
-+ * Because of the reduced scope of CAP_SETPCAP when filesystem
-+ * capabilities are in effect, it is safe to allow this capability to
-+ * be available in the default configuration.
-+ */
-+# define CAP_INIT_BSET  CAP_FULL_SET
-+#else /* ie. ndef CONFIG_SECURITY_FILE_CAPABILITIES */
-+# define CAP_INIT_BSET  CAP_INIT_EFF_SET
-+#endif /* def CONFIG_SECURITY_FILE_CAPABILITIES */
-+
-+kernel_cap_t cap_bset = CAP_INIT_BSET;    /* systemwide capability bound */
-+EXPORT_SYMBOL(cap_bset);
-+
-+/* Global security state */
-+
-+unsigned securebits = SECUREBITS_DEFAULT; /* systemwide security settings */
-+EXPORT_SYMBOL(securebits);
-+
- int cap_netlink_send(struct sock *sk, struct sk_buff *skb)
- {
- 	NETLINK_CB(skb).eff_cap = current->cap_effective;
-@@ -73,14 +92,44 @@ int cap_capget (struct task_struct *targ
- 	return 0;
- }
- 
-+#ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-+
-+static inline int cap_block_setpcap(struct task_struct *target)
++static inline u16 cis_get_u16(void *ptr)
 +{
-+	/*
-+	 * No support for remote process capability manipulation with
-+	 * filesystem capability support.
-+	 */
-+	return (target != current);
++	return le16_to_cpu(get_unaligned((__le16 *) ptr));
++}
++static inline u32 cis_get_u32(void *ptr)
++{
++	return le32_to_cpu(get_unaligned((__le32 *) ptr));
 +}
 +
-+static inline int cap_inh_is_capped(void)
-+{
-+	/*
-+	 * return 1 if changes to the inheritable set are limited
-+	 * to the old permitted set.
-+	 */
-+	return !cap_capable(current, CAP_SETPCAP);
-+}
-+
-+#else /* ie., ndef CONFIG_SECURITY_FILE_CAPABILITIES */
-+
-+static inline int cap_block_setpcap(struct task_struct *t) { return 0; }
-+static inline int cap_inh_is_capped(void) { return 1; }
-+
-+#endif /* def CONFIG_SECURITY_FILE_CAPABILITIES */
-+
- int cap_capset_check (struct task_struct *target, kernel_cap_t *effective,
- 		      kernel_cap_t *inheritable, kernel_cap_t *permitted)
- {
--	/* Derived from kernel/capability.c:sys_capset. */
--	/* verify restrictions on target's new Inheritable set */
--	if (!cap_issubset (*inheritable,
--			   cap_combine (target->cap_inheritable,
--					current->cap_permitted))) {
-+	if (cap_block_setpcap(target)) {
-+		return -EPERM;
-+	}
-+	if (cap_inh_is_capped()
-+	    && !cap_issubset(*inheritable,
-+			     cap_combine(target->cap_inheritable,
-+					 current->cap_permitted))) {
-+		/* incapable of using this inheritable set */
- 		return -EPERM;
- 	}
+ typedef struct tuple_flags {
+     u_int		link_space:4;
+     u_int		has_link:1;
+@@ -461,7 +471,7 @@ static int follow_link(struct pcmcia_soc
+ 	/* Get indirect link from the MFC tuple */
+ 	read_cis_cache(s, LINK_SPACE(tuple->Flags),
+ 		       tuple->LinkOffset, 5, link);
+-	ofs = le32_to_cpu(*(__le32 *)(link+1));
++	ofs = cis_get_u32(link + 1);
+ 	SPACE(tuple->Flags) = (link[0] == CISTPL_MFC_ATTR);
+ 	/* Move to the next indirect link */
+ 	tuple->LinkOffset += 5;
+@@ -668,10 +678,10 @@ static int parse_checksum(tuple_t *tuple
+     u_char *p;
+     if (tuple->TupleDataLen < 5)
+ 	return CS_BAD_TUPLE;
+-    p = (u_char *)tuple->TupleData;
+-    csum->addr = tuple->CISOffset+(short)le16_to_cpu(*(__le16 *)p)-2;
+-    csum->len = le16_to_cpu(*(__le16 *)(p + 2));
+-    csum->sum = *(p+4);
++    p = (u_char *) tuple->TupleData;
++    csum->addr = tuple->CISOffset + cis_get_u16(p) - 2;
++    csum->len = cis_get_u16(p + 2);
++    csum->sum = *(p + 4);
+     return CS_SUCCESS;
+ }
  
-diff -puN security/dummy.c~v3-file-capabilities-alter-behavior-of-cap_setpcap security/dummy.c
---- a/security/dummy.c~v3-file-capabilities-alter-behavior-of-cap_setpcap
-+++ a/security/dummy.c
-@@ -37,15 +37,13 @@ static int dummy_capget (struct task_str
- 			 kernel_cap_t * inheritable, kernel_cap_t * permitted)
+@@ -681,7 +691,7 @@ static int parse_longlink(tuple_t *tuple
  {
- 	*effective = *inheritable = *permitted = 0;
--	if (!issecure(SECURE_NOROOT)) {
--		if (target->euid == 0) {
--			*permitted |= (~0 & ~CAP_FS_MASK);
--			*effective |= (~0 & ~CAP_TO_MASK(CAP_SETPCAP) & ~CAP_FS_MASK);
--		}
--		if (target->fsuid == 0) {
--			*permitted |= CAP_FS_MASK;
--			*effective |= CAP_FS_MASK;
--		}
-+	if (target->euid == 0) {
-+		*permitted |= (~0 & ~CAP_FS_MASK);
-+		*effective |= (~0 & ~CAP_TO_MASK(CAP_SETPCAP) & ~CAP_FS_MASK);
-+	}
-+	if (target->fsuid == 0) {
-+		*permitted |= CAP_FS_MASK;
-+		*effective |= CAP_FS_MASK;
- 	}
- 	return 0;
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    link->addr = le32_to_cpu(*(__le32 *)tuple->TupleData);
++    link->addr = cis_get_u32(tuple->TupleData);
+     return CS_SUCCESS;
+ }
+ 
+@@ -700,7 +710,8 @@ static int parse_longlink_mfc(tuple_t *t
+ 	return CS_BAD_TUPLE;
+     for (i = 0; i < link->nfn; i++) {
+ 	link->fn[i].space = *p; p++;
+-	link->fn[i].addr = le32_to_cpu(*(__le32 *)p); p += 4;
++	link->fn[i].addr = cis_get_u32(p);
++	p += 4;
+     }
+     return CS_SUCCESS;
+ }
+@@ -787,12 +798,10 @@ static int parse_jedec(tuple_t *tuple, c
+ 
+ static int parse_manfid(tuple_t *tuple, cistpl_manfid_t *m)
+ {
+-    __le16 *p;
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    p = (__le16 *)tuple->TupleData;
+-    m->manf = le16_to_cpu(p[0]);
+-    m->card = le16_to_cpu(p[1]);
++    m->manf = cis_get_u16(tuple->TupleData);
++    m->card = cis_get_u16(tuple->TupleData + 2);
+     return CS_SUCCESS;
+ }
+ 
+@@ -1091,7 +1100,7 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x20:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = le16_to_cpu(*(__le16 *)p) << 8;
++	entry->mem.win[0].len = cis_get_u16(p) << 8;
+ 	entry->mem.win[0].card_addr = 0;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 2;
+@@ -1099,9 +1108,8 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x40:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = le16_to_cpu(*(__le16 *)p) << 8;
+-	entry->mem.win[0].card_addr =
+-	    le16_to_cpu(*(__le16 *)(p+2)) << 8;
++	entry->mem.win[0].len = cis_get_u16(p) << 8;
++	entry->mem.win[0].card_addr = cis_get_u16(p + 2) << 8;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 4;
+ 	if (p > q) return CS_BAD_TUPLE;
+@@ -1138,7 +1146,7 @@ static int parse_bar(tuple_t *tuple, cis
+     p = (u_char *)tuple->TupleData;
+     bar->attr = *p;
+     p += 2;
+-    bar->size = le32_to_cpu(*(__le32 *)p);
++    bar->size = cis_get_u32(p);
+     return CS_SUCCESS;
+ }
+ 
+@@ -1151,7 +1159,7 @@ static int parse_config_cb(tuple_t *tupl
+ 	return CS_BAD_TUPLE;
+     config->last_idx = *(++p);
+     p++;
+-    config->base = le32_to_cpu(*(__le32 *)p);
++    config->base = cis_get_u32(p);
+     config->subtuples = tuple->TupleDataLen - 6;
+     return CS_SUCCESS;
+ }
+@@ -1267,7 +1275,7 @@ static int parse_vers_2(tuple_t *tuple, 
+ 
+     v2->vers = p[0];
+     v2->comply = p[1];
+-    v2->dindex = le16_to_cpu(*(__le16 *)(p+2));
++    v2->dindex = cis_get_u16(p +2 );
+     v2->vspec8 = p[6];
+     v2->vspec9 = p[7];
+     v2->nhdr = p[8];
+@@ -1308,8 +1316,8 @@ static int parse_format(tuple_t *tuple, 
+ 
+     fmt->type = p[0];
+     fmt->edc = p[1];
+-    fmt->offset = le32_to_cpu(*(__le32 *)(p+2));
+-    fmt->length = le32_to_cpu(*(__le32 *)(p+6));
++    fmt->offset = cis_get_u32(p + 2);
++    fmt->length = cis_get_u32(p + 6);
+ 
+     return CS_SUCCESS;
  }
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from daniel.ritz-ml@swissonline.ch are
 
-implement-file-posix-capabilities.patch
-implement-file-posix-capabilities-fix.patch
-file-capabilities-introduce-cap_setfcap.patch
-file-capabilities-get_file_caps-cleanups.patch
-file-caps-update-selinux-xattr-hooks.patch
-file-capabilities-clear-caps-cleanup.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-file-capabilities-change-xattr-format-v2.patch
-file-capabilities-change-fe-to-a-bool.patch
-file-caps-clean-up-for-linux-capabilityh.patch
-capabilityh-remove-include-of-currenth.patch
-file-capabilities-clear-fcaps-on-inode-change.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
+pcmcia-cistpl-use-get_unaligned-in-cis-parsing.patch
