@@ -1,154 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - pata_cmd64x-set-up-mwdma-modes-properly.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:12:46 -0700
-Message-ID: <200708201912.l7KJCkpw018385@imap1.linux-foundation.org>
+Subject: - dma_free_coherent-needs-irqs-enabled-sigh.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:13:55 -0700
+Message-ID: <200708201913.l7KJDtvK018494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59022 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760913AbXHTTWC (ORCPT
+	by vger.kernel.org with ESMTP id S1762076AbXHTT1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:22:02 -0400
+	Mon, 20 Aug 2007 15:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikpe@it.uu.se, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, ak@suse.de, davem@davemloft.net, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_cmd64x: Set up MWDMA modes properly
+     dma_free_coherent() needs irqs enabled (sigh)
 has been removed from the -mm tree.  Its filename was
-     pata_cmd64x-set-up-mwdma-modes-properly.patch
+     dma_free_coherent-needs-irqs-enabled-sigh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_cmd64x: Set up MWDMA modes properly
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: dma_free_coherent() needs irqs enabled (sigh)
+From: David Brownell <david-b@pacbell.net>
 
-Set the MWDMA timing by updating the correct registers.  Split the PIO path as
-this is mostly shared code.  Wants testing.
+On at least ARM (and I'm told MIPS too) dma_free_coherent() has a newish
+call context requirement: unlike its dma_alloc_coherent() sibling, it may
+not be called with IRQs disabled.  (This was new behavior on ARM as of late
+2005, caused by ARM SMP updates.) This little surprise can be annoyingly
+driver-visible.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Tested-by: Mikael Pettersson <mikpe@it.uu.se>
+Since it looks like that restriction won't be removed, this patch changes
+the definition of the API to include that requirement.  Also, to help catch
+nonportable drivers, it updates the x86 and swiotlb versions to include the
+relevant warnings.  (I already observed that it trips on the
+bus_reset_tasklet of the new firewire_ohci driver.)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Miller <davem@davemloft.net>
+Acked-by: Russell King <rmk@arm.linux.org.uk>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cmd64x.c |   37 +++++++++++++++++++++++++-----------
- 1 files changed, 26 insertions(+), 11 deletions(-)
+ Documentation/DMA-API.txt    |    3 +++
+ arch/i386/kernel/pci-dma.c   |    3 ++-
+ arch/x86_64/kernel/pci-dma.c |    1 +
+ lib/swiotlb.c                |    1 +
+ 4 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_cmd64x.c~pata_cmd64x-set-up-mwdma-modes-properly drivers/ata/pata_cmd64x.c
---- a/drivers/ata/pata_cmd64x.c~pata_cmd64x-set-up-mwdma-modes-properly
-+++ a/drivers/ata/pata_cmd64x.c
-@@ -31,7 +31,7 @@
- #include <linux/libata.h>
+diff -puN Documentation/DMA-API.txt~dma_free_coherent-needs-irqs-enabled-sigh Documentation/DMA-API.txt
+--- a/Documentation/DMA-API.txt~dma_free_coherent-needs-irqs-enabled-sigh
++++ a/Documentation/DMA-API.txt
+@@ -68,6 +68,9 @@ size and dma_handle must all be the same
+ consistent allocate.  cpu_addr must be the virtual address returned by
+ the consistent allocate.
  
- #define DRV_NAME "pata_cmd64x"
--#define DRV_VERSION "0.2.4"
-+#define DRV_VERSION "0.2.5"
++Note that unlike their sibling allocation calls, these routines
++may only be called with IRQs enabled.
++
  
- /*
-  * CMD64x specific registers definition.
-@@ -88,14 +88,15 @@ static int cmd648_cable_detect(struct at
- }
- 
- /**
-- *	cmd64x_set_piomode	-	set initial PIO mode data
-+ *	cmd64x_set_piomode	-	set PIO and MWDMA timing
-  *	@ap: ATA interface
-  *	@adev: ATA device
-+ *	@mode: mode
-  *
-- *	Called to do the PIO mode setup.
-+ *	Called to do the PIO and MWDMA mode setup.
-  */
- 
--static void cmd64x_set_piomode(struct ata_port *ap, struct ata_device *adev)
-+static void cmd64x_set_timing(struct ata_port *ap, struct ata_device *adev, u8 mode)
+ Part Ib - Using small dma-coherent buffers
+ ------------------------------------------
+diff -puN arch/i386/kernel/pci-dma.c~dma_free_coherent-needs-irqs-enabled-sigh arch/i386/kernel/pci-dma.c
+--- a/arch/i386/kernel/pci-dma.c~dma_free_coherent-needs-irqs-enabled-sigh
++++ a/arch/i386/kernel/pci-dma.c
+@@ -62,7 +62,8 @@ void dma_free_coherent(struct device *de
  {
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	struct ata_timing t;
-@@ -117,8 +118,9 @@ static void cmd64x_set_piomode(struct at
- 	int arttim = arttim_port[ap->port_no][adev->devno];
- 	int drwtim = drwtim_port[ap->port_no][adev->devno];
- 
--
--	if (ata_timing_compute(adev, adev->pio_mode, &t, T, 0) < 0) {
-+	/* ata_timing_compute is smart and will produce timings for MWDMA
-+	   that don't violate the drives PIO capabilities. */
-+	if (ata_timing_compute(adev, mode, &t, T, 0) < 0) {
- 		printk(KERN_ERR DRV_NAME ": mode computation failed.\n");
- 		return;
- 	}
-@@ -168,6 +170,20 @@ static void cmd64x_set_piomode(struct at
- }
- 
- /**
-+ *	cmd64x_set_piomode	-	set initial PIO mode data
-+ *	@ap: ATA interface
-+ *	@adev: ATA device
-+ *
-+ *	Used when configuring the devices ot set the PIO timings. All the
-+ *	actual work is done by the PIO/MWDMA setting helper
-+ */
+ 	struct dma_coherent_mem *mem = dev ? dev->dma_mem : NULL;
+ 	int order = get_order(size);
+-	
 +
-+static void cmd64x_set_piomode(struct ata_port *ap, struct ata_device *adev)
-+{
-+	cmd64x_set_timing(ap, adev, adev->pio_mode);
-+}
-+
-+/**
-  *	cmd64x_set_dmamode	-	set initial DMA mode data
-  *	@ap: ATA interface
-  *	@adev: ATA device
-@@ -180,9 +196,6 @@ static void cmd64x_set_dmamode(struct at
- 	static const u8 udma_data[] = {
- 		0x30, 0x20, 0x10, 0x20, 0x10, 0x00
- 	};
--	static const u8 mwdma_data[] = {
--		0x30, 0x20, 0x10
--	};
++	WARN_ON(irqs_disabled());	/* for portability */
+ 	if (mem && vaddr >= mem->virt_base && vaddr < (mem->virt_base + (mem->size << PAGE_SHIFT))) {
+ 		int page = (vaddr - mem->virt_base) >> PAGE_SHIFT;
  
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
- 	u8 regU, regD;
-@@ -208,8 +221,10 @@ static void cmd64x_set_dmamode(struct at
- 		regU |= 1 << adev->devno; /* UDMA on */
- 		if (adev->dma_mode > 2)	/* 15nS timing */
- 			regU |= 4 << adev->devno;
--	} else
--		regD |= mwdma_data[adev->dma_mode - XFER_MW_DMA_0] << shift;
-+	} else {
-+		regU &= ~ (1 << adev->devno);	/* UDMA off */
-+		cmd64x_set_timing(ap, adev, adev->dma_mode);
-+	}
- 
- 	regD |= 0x20 << adev->devno;
- 
+diff -puN arch/x86_64/kernel/pci-dma.c~dma_free_coherent-needs-irqs-enabled-sigh arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~dma_free_coherent-needs-irqs-enabled-sigh
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -161,6 +161,7 @@ EXPORT_SYMBOL(dma_alloc_coherent);
+ void dma_free_coherent(struct device *dev, size_t size,
+ 			 void *vaddr, dma_addr_t bus)
+ {
++	WARN_ON(irqs_disabled());	/* for portability */
+ 	if (dma_ops->unmap_single)
+ 		dma_ops->unmap_single(dev, bus, size, 0);
+ 	free_pages((unsigned long)vaddr, get_order(size));
+diff -puN lib/swiotlb.c~dma_free_coherent-needs-irqs-enabled-sigh lib/swiotlb.c
+--- a/lib/swiotlb.c~dma_free_coherent-needs-irqs-enabled-sigh
++++ a/lib/swiotlb.c
+@@ -497,6 +497,7 @@ void
+ swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
+ 		      dma_addr_t dma_handle)
+ {
++	WARN_ON(irqs_disabled());
+ 	if (!(vaddr >= (void *)io_tlb_start
+                     && vaddr < (void *)io_tlb_end))
+ 		free_pages((unsigned long) vaddr, get_order(size));
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-serial-add-support-for-ite-887x-chips.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-m68k-enable-arbitary-speed-tty-support.patch
-introduce-config_check_signature-was-re-uninline.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-acpi-checks-for-80wire-cable-implementation.patch
-st340823a-hpa-and-libata.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-serial_txx9-cleanup-includes.patch
-git-scsi-misc.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-char-cyclades-remove-bottom-half-processing.patch
+correct-name-for-rtc-m41t80.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-mmc.patch
+git-mtd.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+rtc-periodic-irq-fix.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
