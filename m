@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exec-simplify-sighand-switching.patch added to -mm tree
-Date: Mon, 20 Aug 2007 13:58:46 -0700
-Message-ID: <200708202058.l7KKwkN4022972@imap1.linux-foundation.org>
+Subject: + exec-kill-unsafe-bug_onsig-count-checks.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:56:10 -0700
+Message-ID: <200708202056.l7KKuAe6022880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761136AbXHTU7z (ORCPT
+	by vger.kernel.org with ESMTP id S932663AbXHTU5f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 16:59:55 -0400
+	Mon, 20 Aug 2007 16:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, roland@redhat.com
 
 
 The patch titled
-     exec: simplify ->sighand switching
+     exec: kill unsafe BUG_ON(sig->count) checks
 has been added to the -mm tree.  Its filename is
-     exec-simplify-sighand-switching.patch
+     exec-kill-unsafe-bug_onsig-count-checks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: exec: simplify ->sighand switching
+Subject: exec: kill unsafe BUG_ON(sig->count) checks
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-There is no any reason to do recalc_sigpending() after changing ->sighand.
-To begin with, recalc_sigpending() does not take ->sighand into account.
+de_thread:
 
-This means we don't need to take newsighand->siglock while changing sighands.
-rcu_assign_pointer() provides a necessary barrier, and if another process
-reads the new ->sighand it should either take tasklist_lock or it should use
-lock_task_sighand() which has a corresponding smp_read_barrier_depends().
+	if (atomic_read(&oldsighand->count) <= 1)
+		BUG_ON(atomic_read(&sig->count) != 1);
+
+This is not safe without the rmb() in between.  The results of two
+correctly ordered __exit_signal()->atomic_dec_and_test()'s could be seen
+out of order on our CPU.
+
+The same is true for the "thread_group_empty()" case, __unhash_process()'s
+changes could be seen before atomic_dec_and_test(&sig->count).
+
+On some platforms (including i386) atomic_read() doesn't provide even the
+compiler barrier, in that case these checks are simply racy.
+
+Remove these BUG_ON()'s. Alternatively, we can do something like
+
+	BUG_ON( ({ smp_rmb(); atomic_read(&sig->count) != 1; }) );
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    8 +-------
- 1 files changed, 1 insertion(+), 7 deletions(-)
+ fs/exec.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN fs/exec.c~exec-simplify-sighand-switching fs/exec.c
---- a/fs/exec.c~exec-simplify-sighand-switching
+diff -puN fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks fs/exec.c
+--- a/fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks
 +++ a/fs/exec.c
-@@ -918,12 +918,7 @@ no_thread_group:
+@@ -784,7 +784,6 @@ static int de_thread(struct task_struct 
+ 	 * and we can just re-use it all.
+ 	 */
+ 	if (atomic_read(&oldsighand->count) <= 1) {
+-		BUG_ON(atomic_read(&sig->count) != 1);
+ 		signalfd_detach(tsk);
+ 		exit_itimers(sig);
+ 		return 0;
+@@ -929,8 +928,6 @@ no_thread_group:
+ 	if (leader)
+ 		release_task(leader);
  
- 		write_lock_irq(&tasklist_lock);
- 		spin_lock(&oldsighand->siglock);
--		spin_lock_nested(&newsighand->siglock, SINGLE_DEPTH_NESTING);
+-	BUG_ON(atomic_read(&sig->count) != 1);
 -
- 		rcu_assign_pointer(tsk->sighand, newsighand);
--		recalc_sigpending();
--
--		spin_unlock(&newsighand->siglock);
- 		spin_unlock(&oldsighand->siglock);
- 		write_unlock_irq(&tasklist_lock);
- 
-@@ -933,12 +928,11 @@ no_thread_group:
- 	BUG_ON(!thread_group_leader(tsk));
- 	return 0;
- }
--	
-+
- /*
-  * These functions flushes out all traces of the currently running executable
-  * so that a new one can be started
-  */
--
- static void flush_old_files(struct files_struct * files)
- {
- 	long j = -1;
+ 	if (atomic_read(&oldsighand->count) == 1) {
+ 		/*
+ 		 * Now that we nuked the rest of the thread group,
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -100,10 +102,6 @@ zap_other_threads-dont-optimize-thread_group_empty-case.patch
 wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
 __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
 use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
 cpu-hotplug-slab-cleanup-cpuup_callback.patch
 cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
 cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
