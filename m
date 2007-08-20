@@ -1,95 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - kcopyd-use-mutex-instead-of-semaphore.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 12:11:43 -0700
-Message-ID: <200708201911.l7KJBhxP018281@imap1.linux-foundation.org>
+Subject: - drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 12:11:45 -0700
+Message-ID: <200708201911.l7KJBjF8018284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35436 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753697AbXHTTMd (ORCPT
+	by vger.kernel.org with ESMTP id S1754175AbXHTTMf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:12:33 -0400
+	Mon, 20 Aug 2007 15:12:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, agk@redhat.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kcopyd: use mutex instead of semaphore
+     drivers/md/dm-hw-handler.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     kcopyd-use-mutex-instead-of-semaphore.patch
+     drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kcopyd: use mutex instead of semaphore
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: drivers/md/dm-hw-handler.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Kcopyd uses a semaphore as mutex.  Use the mutex API instead of the (binary)
-semaphore,
+ drivers/md/dm-hw-handler.c | 4424 -> 4393 (-31 bytes)
+ drivers/md/dm-hw-handler.o | 101828 -> 101652 (-176 bytes)
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Acked-by: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/kcopyd.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/md/dm-hw-handler.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/kcopyd.c~kcopyd-use-mutex-instead-of-semaphore drivers/md/kcopyd.c
---- a/drivers/md/kcopyd.c~kcopyd-use-mutex-instead-of-semaphore
-+++ a/drivers/md/kcopyd.c
-@@ -198,7 +198,7 @@ struct kcopyd_job {
- 	 * These fields are only used if the job has been split
- 	 * into more manageable parts.
- 	 */
--	struct semaphore lock;
-+	struct mutex lock;
- 	atomic_t sub_jobs;
- 	sector_t progress;
- };
-@@ -456,7 +456,7 @@ static void segment_complete(int read_er
- 	sector_t count = 0;
- 	struct kcopyd_job *job = (struct kcopyd_job *) context;
+diff -puN drivers/md/dm-hw-handler.c~drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc drivers/md/dm-hw-handler.c
+--- a/drivers/md/dm-hw-handler.c~drivers-md-dm-hw-handlerc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/md/dm-hw-handler.c
+@@ -91,12 +91,11 @@ void dm_put_hw_handler(struct hw_handler
  
--	down(&job->lock);
-+	mutex_lock(&job->lock);
+ static struct hwh_internal *_alloc_hw_handler(struct hw_handler_type *hwht)
+ {
+-	struct hwh_internal *hwhi = kmalloc(sizeof(*hwhi), GFP_KERNEL);
++	struct hwh_internal *hwhi;
  
- 	/* update the error */
- 	if (read_err)
-@@ -480,7 +480,7 @@ static void segment_complete(int read_er
- 			job->progress += count;
- 		}
- 	}
--	up(&job->lock);
-+	mutex_unlock(&job->lock);
+-	if (hwhi) {
+-		memset(hwhi, 0, sizeof(*hwhi));
++	hwhi = kzalloc(sizeof(*hwhi), GFP_KERNEL);
++	if (hwhi)
+ 		hwhi->hwht = *hwht;
+-	}
  
- 	if (count) {
- 		int i;
-@@ -562,7 +562,7 @@ int kcopyd_copy(struct kcopyd_client *kc
- 		dispatch_job(job);
- 
- 	else {
--		init_MUTEX(&job->lock);
-+		mutex_init(&job->lock);
- 		job->progress = 0;
- 		split_job(job);
- 	}
+ 	return hwhi;
+ }
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
+origin.patch
+dont-optimise-away-baud-rate-changes-when-bother-is-used.patch
+git-alsa.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
 git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+drivers-mmc-core-busc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-hostc-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-mmc-core-mmc_opsc-kmalloc-memset-conversion-to-kzalloc.patch
 git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
 git-netdev-all.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
+git-scsi-misc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
