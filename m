@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-optimize-memset-of-6-and-8-bytes.patch added to -mm tree
-Date: Mon, 20 Aug 2007 12:51:31 -0700
-Message-ID: <200708201951.l7KJpVmM019969@imap1.linux-foundation.org>
+Subject: + pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch added to -mm tree
+Date: Mon, 20 Aug 2007 13:11:54 -0700
+Message-ID: <200708202011.l7KKBs1M020745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39637 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44836 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754401AbXHTT5M (ORCPT
+	by vger.kernel.org with ESMTP id S1751345AbXHTUNu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 15:57:12 -0400
+	Mon, 20 Aug 2007 16:13:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, ak@suse.de, davem@davemloft.net
+Cc: sukadev@us.ibm.com, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     i386: optimize memset of 6 and 8 bytes
+     Fix capability.c to work with threaded init
 has been added to the -mm tree.  Its filename is
-     i386-optimize-memset-of-6-and-8-bytes.patch
+     pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: optimize memset of 6 and 8 bytes
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Fix capability.c to work with threaded init
+From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 
-Tne network code does memset for 6 and 8 byte values, that can easily
-be optimized into simple assignments without string instructions.
+When setting capabilities, cap_set_all() must skip all threads of the
+container_init process - not just the main thread.
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Herbert Poetzel <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/string.h |    8 ++++++++
- 1 files changed, 8 insertions(+)
+ kernel/capability.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-i386/string.h~i386-optimize-memset-of-6-and-8-bytes include/asm-i386/string.h
---- a/include/asm-i386/string.h~i386-optimize-memset-of-6-and-8-bytes
-+++ a/include/asm-i386/string.h
-@@ -228,6 +228,14 @@ static __always_inline void * __constant
- 		case 4:
- 			*(unsigned long *)s = pattern;
- 			return s;
-+		case 6:
-+			*(unsigned long *)s = pattern;
-+			*(2+(unsigned short *)s) = pattern;
-+			return s;
-+		case 8:
-+			*(unsigned long *)s = pattern;
-+			*(1+(unsigned long *)s) = pattern;
-+			return s;
- 	}
- #define COMMON(x) \
- __asm__  __volatile__( \
+diff -puN kernel/capability.c~pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init kernel/capability.c
+--- a/kernel/capability.c~pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init
++++ a/kernel/capability.c
+@@ -133,7 +133,7 @@ static inline int cap_set_all(kernel_cap
+      int found = 0;
+ 
+      do_each_thread(g, target) {
+-             if (target == current || is_container_init(target))
++             if (target == current || is_container_init(target->group_leader))
+                      continue;
+              found = 1;
+ 	     if (security_capset_check(target, effective, inheritable,
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from sukadev@us.ibm.com are
 
-origin.patch
-pci-x-pci-express-read-control-interfaces-mthca.patch
-pci-x-pci-express-read-control-interfaces-myrinet.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-git-net.patch
-i386-optimize-memset-of-6-and-8-bytes.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
