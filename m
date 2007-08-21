@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dma-makefile-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2007 14:49:30 -0700
-Message-ID: <200708212154.l7LLsd5l013333@imap1.linux-foundation.org>
+Subject: + console-keyboard-events-and-accessibility-fix-2.patch added to -mm tree
+Date: Tue, 21 Aug 2007 15:06:57 -0700
+Message-ID: <200708212212.l7LMC5XB014045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42113 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37204 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752286AbXHUVyv (ORCPT
+	by vger.kernel.org with ESMTP id S1751678AbXHUWMo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 17:54:51 -0400
+	Tue, 21 Aug 2007 18:12:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, shannon.nelson@intel.com
+Cc: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, samuel.thibault@ens-lyon.org
 
 
 The patch titled
-     git-dma-makefile-fix
+     console-keyboard-events-and-accessibility-fix-2
 has been added to the -mm tree.  Its filename is
-     git-dma-makefile-fix.patch
+     console-keyboard-events-and-accessibility-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dma-makefile-fix
+Subject: console-keyboard-events-and-accessibility-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make[1]: *** No rule to make target `drivers/dma/ioat_dma.o', needed by `drivers/dma/ioatdma.o'.  Stop.
+- Fix `make headers_install'.
 
-this doesn't inspire confidence.
+- Remove unneeded include.
 
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Makefile |    2 +-
+ include/linux/keyboard.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/Makefile~git-dma-makefile-fix drivers/dma/Makefile
---- a/drivers/dma/Makefile~git-dma-makefile-fix
-+++ a/drivers/dma/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_DMA_ENGINE) += dmaengine.o
- obj-$(CONFIG_NET_DMA) += iovlock.o
- obj-$(CONFIG_INTEL_IOATDMA) += ioatdma.o
--ioatdma-objs := ioat.o ioat_dma.o ioat_dca.o
-+ioatdma-objs := ioat.o ioat_dca.o
- obj-$(CONFIG_INTEL_IOP_ADMA) += iop-adma.o
+diff -puN include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2 include/linux/keyboard.h
+--- a/include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2
++++ a/include/linux/keyboard.h
+@@ -2,7 +2,6 @@
+ #define __LINUX_KEYBOARD_H
+ 
+ #include <linux/wait.h>
+-#include <linux/notifier.h>
+ 
+ #define KG_SHIFT	0
+ #define KG_CTRL		2
+@@ -24,6 +23,7 @@
+ #define MAX_NR_OF_USER_KEYMAPS 256 	/* should be at least 7 */
+ 
+ #ifdef __KERNEL__
++struct notifier_block;
+ extern const int NR_TYPES;
+ extern const int max_vals[];
+ extern unsigned short *key_maps[MAX_NR_KEYMAPS];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,11 +80,13 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dma.patch
+git-dma-makefile-fix.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 adbhid-produce-all-capslock-key-events.patch
 iforce-warning-fix.patch
 console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
 git-kvm.patch
 git-libata-all.patch
 ide-arm-hack.patch
@@ -187,4 +200,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-dma-makefile-fix.patch
