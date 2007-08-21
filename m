@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch added to -mm tree
-Date: Mon, 20 Aug 2007 23:49:59 -0700
-Message-ID: <200708210655.l7L6t6li011658@imap1.linux-foundation.org>
+Subject: + fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:07:00 -0700
+Message-ID: <200708210712.l7L7C716012348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53657 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761309AbXHUGzp (ORCPT
+	by vger.kernel.org with ESMTP id S1757108AbXHUHMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 02:55:45 -0400
+	Tue, 21 Aug 2007 03:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
+     fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been added to the -mm tree.  Its filename is
-     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+     fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
+Subject: fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-whoever merges second will need this..
+drivers/base/firmware_class.c: In function 'firmware_uevent':
+drivers/base/firmware_class.c:94: warning: unused variable 'len'
+drivers/base/firmware_class.c:94: warning: unused variable 'i'
 
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_bus.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/base/firmware_class.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc drivers/mmc/core/sdio_bus.c
---- a/drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
-+++ a/drivers/mmc/core/sdio_bus.c
-@@ -96,30 +96,21 @@ static int sdio_bus_match(struct device 
- }
- 
- static int
--sdio_bus_uevent(struct device *dev, char **envp, int num_envp, char *buf,
--		int buf_size)
-+sdio_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+diff -puN drivers/base/firmware_class.c~fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/base/firmware_class.c
+@@ -91,7 +91,6 @@ static void fw_dev_release(struct device
+ static int firmware_uevent(struct device *dev, struct kobj_uevent_env *env)
  {
- 	struct sdio_func *func = dev_to_sdio_func(dev);
--	int i = 0, length = 0;
+ 	struct firmware_priv *fw_priv = dev_get_drvdata(dev);
+-	int i = 0, len = 0;
  
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"SDIO_CLASS=%02X", func->class))
-+	if (add_uevent_var(env, "SDIO_CLASS=%02X", func->class))
+ 	if (add_uevent_var(env, "FIRMWARE=%s", fw_priv->fw_id))
  		return -ENOMEM;
- 
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"SDIO_ID=%04X:%04X", func->vendor, func->device))
-+	if (add_uevent_var(env, "SDIO_ID=%04X:%04X",
-+			func->vendor, func->device))
- 		return -ENOMEM;
- 
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"MODALIAS=sdio:c%02Xv%04Xd%04X",
-+	if (add_uevent_var(env, "MODALIAS=sdio:c%02Xv%04Xd%04X",
- 			func->class, func->vendor, func->device))
- 		return -ENOMEM;
- 
--	envp[i] = NULL;
--
- 	return 0;
- }
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +78,7 @@ git-kvm.patch
 git-libata-all.patch
 ide-arm-hack.patch
 git-mmc-fixup.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
 mtdoops-printk-warning-fixes.patch
@@ -204,4 +178,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
