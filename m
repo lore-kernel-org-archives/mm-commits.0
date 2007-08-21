@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch added to -mm tree
-Date: Mon, 20 Aug 2007 23:40:19 -0700
-Message-ID: <200708210645.l7L6jQwY011201@imap1.linux-foundation.org>
+Subject: + git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Mon, 20 Aug 2007 23:45:14 -0700
+Message-ID: <200708210650.l7L6oLUf011407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37757 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55400 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755154AbXHUGqG (ORCPT
+	by vger.kernel.org with ESMTP id S1751701AbXHUGvw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 02:46:06 -0400
+	Tue, 21 Aug 2007 02:51:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, felipe.lima@indt.org.br, greg@kroah.com, thomas@winischhofer.net
+Cc: akpm@linux-foundation.org, gregkh@suse.de, kay.sievers@vrfy.org, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     fix gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
+     git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+     git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
+Subject: git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/misc/sisusbvga/sisusb.c: In function 'sisusb_open':
-drivers/usb/misc/sisusbvga/sisusb.c:2444: warning: 'sisusb' is used uninitialized in this function
+my life sucks
 
-I can tell that'll oops just by looking at it.
-
-How come this code assume a 7,000 column xterm? :(
-
-Cc: Felipe Balbi <felipe.lima@indt.org.br>
-Cc: Greg KH <greg@kroah.com>
-Cc: <thomas@winischhofer.net>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/sisusbvga/sisusb.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/ssb/main.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb.c~fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros drivers/usb/misc/sisusbvga/sisusb.c
---- a/drivers/usb/misc/sisusbvga/sisusb.c~fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
-+++ a/drivers/usb/misc/sisusbvga/sisusb.c
-@@ -3324,15 +3324,7 @@ static int __init usb_sisusb_init(void)
- 	sisusb_init_concode();
- #endif
- 
--	if (!(retval = usb_register(&sisusb_driver))) {
--
--		dev_info(&sisusb->sisusb_dev->dev, "Driver version %d.%d.%d\n", SISUSB_VERSION,
--				SISUSB_REVISION, SISUSB_PATCHLEVEL);
--		dev_info(&sisusb->sisusb_dev->dev, "sisusb: Copyright (C) 2005 Thomas Winischhofer\n");
--
--	}
--
--	return retval;
-+	return usb_register(&sisusb_driver);
+diff -puN drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/ssb/main.c
+--- a/drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/ssb/main.c
+@@ -320,21 +320,17 @@ static int ssb_bus_match(struct device *
+ 	return 0;
  }
  
- static void __exit usb_sisusb_exit(void)
+-static int ssb_device_uevent(struct device *dev, char **envp, int num_envp,
+-			     char *buffer, int buffer_size)
++static int ssb_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct ssb_device *ssb_dev = dev_to_ssb_dev(dev);
+-	int ret, i = 0, length = 0;
++	int ret;
+ 
+ 	if (!dev)
+ 		return -ENODEV;
+ 
+-	ret = add_uevent_var(envp, num_envp, &i,
+-			     buffer, buffer_size, &length,
+-			     "MODALIAS=ssb:v%.4xid%.4xrev%.2x",
++	ret = add_uevent_var(env, "MODALIAS=ssb:v%.4xid%.4xrev%.2x",
+ 			     ssb_dev->id.vendor, ssb_dev->id.coreid,
+ 			     ssb_dev->id.revision);
+-	envp[i] = NULL;
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,9 +115,11 @@ advansys-printk-fix.patch
 git-unionfs.patch
 git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-watchdog.patch
 git-wireless.patch
 git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
@@ -187,4 +193,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
