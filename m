@@ -1,62 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - make-oprofile-call-shutdown-only-once-per-session.patch removed from -mm tree
-Date: Mon, 20 Aug 2007 22:29:21 -0700
-Message-ID: <200708210529.l7L5TLlt008674@imap1.linux-foundation.org>
+Subject: - x86_64-remove-str-macros.patch removed from -mm tree
+Date: Mon, 20 Aug 2007 22:33:40 -0700
+Message-ID: <200708210533.l7L5XeKS008817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56966 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401AbXHUF3r (ORCPT
+	by vger.kernel.org with ESMTP id S1751996AbXHUFeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 01:29:47 -0400
+	Tue, 21 Aug 2007 01:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eranian@hpl.hp.com, ak@suse.de, mm-commits@vger.kernel.org
+To: gcosta@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make Oprofile call shutdown() only once per session
+     x86_64: remove STR() macros
 has been removed from the -mm tree.  Its filename was
-     make-oprofile-call-shutdown-only-once-per-session.patch
+     x86_64-remove-str-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make Oprofile call shutdown() only once per session
-From: Stephane Eranian <eranian@hpl.hp.com>
+Subject: x86_64: remove STR() macros
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Oprofile: call model->shutdown() only once to avoid calling release_ev*()
-multiple times
+Remove the __STR() and STR() macros from x86_64 header files.  They seem to
+be legacy, and has no more users.  Even if there were users, they should
+use __stringify() instead.
 
-Signed-off-by: Stephane Eranian <eranian@hpl.hp.com>
+In fact, there were one third place in which this macro was defined
+(ia32_binfmt.c), and used just below.  In this file, usage was properly
+converted to __stringify()
+
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/oprofile/nmi_int.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/ia32/ia32_binfmt.c |    5 +----
+ include/asm-x86_64/hw_irq.h    |    3 ---
+ include/asm-x86_64/system.h    |    3 ---
+ 3 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN arch/i386/oprofile/nmi_int.c~make-oprofile-call-shutdown-only-once-per-session arch/i386/oprofile/nmi_int.c
---- a/arch/i386/oprofile/nmi_int.c~make-oprofile-call-shutdown-only-once-per-session
-+++ a/arch/i386/oprofile/nmi_int.c
-@@ -269,7 +269,6 @@ static void nmi_cpu_shutdown(void * dumm
- 	apic_write(APIC_LVTPC, saved_lvtpc[cpu]);
- 	apic_write(APIC_LVTERR, v);
- 	nmi_restore_registers(msrs);
--	model->shutdown(msrs);
- }
+diff -puN arch/x86_64/ia32/ia32_binfmt.c~x86_64-remove-str-macros arch/x86_64/ia32/ia32_binfmt.c
+--- a/arch/x86_64/ia32/ia32_binfmt.c~x86_64-remove-str-macros
++++ a/arch/x86_64/ia32/ia32_binfmt.c
+@@ -67,11 +67,8 @@ struct file;
  
-  
-@@ -278,6 +277,7 @@ static void nmi_shutdown(void)
- 	nmi_enabled = 0;
- 	on_each_cpu(nmi_cpu_shutdown, NULL, 0, 1);
- 	unregister_die_notifier(&profile_exceptions_nb);
-+	model->shutdown(cpu_msrs);
- 	free_msrs();
- }
+ #define jiffies_to_timeval(a,b) do { (b)->tv_usec = 0; (b)->tv_sec = (a)/HZ; }while(0)
+ 
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
+-
+ #define _GET_SEG(x) \
+-	({ __u32 seg; asm("movl %%" STR(x) ",%0" : "=r"(seg)); seg; })
++	({ __u32 seg; asm("movl %%" __stringify(x) ",%0" : "=r"(seg)); seg; })
+ 
+ /* Assumes current==process to be dumped */
+ #undef	ELF_CORE_COPY_REGS
+diff -puN include/asm-x86_64/hw_irq.h~x86_64-remove-str-macros include/asm-x86_64/hw_irq.h
+--- a/include/asm-x86_64/hw_irq.h~x86_64-remove-str-macros
++++ a/include/asm-x86_64/hw_irq.h
+@@ -149,9 +149,6 @@ extern atomic_t irq_mis_count;
+ 
+ #define IO_APIC_IRQ(x) (((x) >= 16) || ((1<<(x)) & io_apic_irqs))
+ 
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
+-
+ #include <asm/ptrace.h>
+ 
+ #define IRQ_NAME2(nr) nr##_interrupt(void)
+diff -puN include/asm-x86_64/system.h~x86_64-remove-str-macros include/asm-x86_64/system.h
+--- a/include/asm-x86_64/system.h~x86_64-remove-str-macros
++++ a/include/asm-x86_64/system.h
+@@ -7,9 +7,6 @@
+ 
+ #ifdef __KERNEL__
+ 
+-#define __STR(x) #x
+-#define STR(x) __STR(x)
+-
+ #define __SAVE(reg,offset) "movq %%" #reg ",(14-" #offset ")*8(%%rsp)\n\t"
+ #define __RESTORE(reg,offset) "movq (14-" #offset ")*8(%%rsp),%%" #reg "\n\t"
  
 _
 
-Patches currently in -mm which might be from eranian@hpl.hp.com are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-make-oprofile-call-shutdown-only-once-per-session.patch
+git-kvm.patch
