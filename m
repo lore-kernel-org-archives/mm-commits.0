@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pie-executable-randomization-fix-2.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:35:06 -0700
-Message-ID: <200708210740.l7L7eD9K013352@imap1.linux-foundation.org>
+Subject: + git-net-forcedeth-build-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:41:00 -0700
+Message-ID: <200708210746.l7L7k7xx013524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36472 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750774AbXHUHlP (ORCPT
+	by vger.kernel.org with ESMTP id S1752141AbXHUHqs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:41:15 -0400
+	Tue, 21 Aug 2007 03:46:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, jakub@redhat.com, jkosina@suse.cz, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     pie-executable-randomization-fix-2
+     git-net: forcedeth build fix
 has been added to the -mm tree.  Its filename is
-     pie-executable-randomization-fix-2.patch
+     git-net-forcedeth-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pie-executable-randomization-fix-2
+Subject: git-net: forcedeth build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/binfmt_elf.c: In function 'load_elf_binary':
-fs/binfmt_elf.c:1016: warning: 'interp_map_addr' may be used uninitialized in this function
+drivers/net/forcedeth.c:3017: error: 'RX_WORK_PER_LOOP' undeclared (first use in this function)
 
-Cc: Bret Towe <magnade@gmail.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ulrich Kunitz <kune@deine-taler.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/forcedeth.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~pie-executable-randomization-fix-2 fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-executable-randomization-fix-2
-+++ a/fs/binfmt_elf.c
-@@ -1013,7 +1013,7 @@ static int load_elf_binary(struct linux_
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
--			unsigned long interp_map_addr;	/* unused */
-+			unsigned long uninitialized_var(interp_map_addr);
+diff -puN drivers/net/forcedeth.c~git-net-forcedeth-build-fix drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~git-net-forcedeth-build-fix
++++ a/drivers/net/forcedeth.c
+@@ -159,6 +159,8 @@
+ #define dprintk(x...)		do { } while (0)
+ #endif
  
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
++#define TX_WORK_PER_LOOP  64
++#define RX_WORK_PER_LOOP  64
+ 
+ /*
+  * Hardware access:
+@@ -3083,8 +3085,6 @@ static irqreturn_t nv_nic_irq(int foo, v
+ 	return IRQ_RETVAL(i);
+ }
+ 
+-#define TX_WORK_PER_LOOP  64
+-#define RX_WORK_PER_LOOP  64
+ /**
+  * All _optimized functions are used to help increase performance
+  * (reduce CPU and increase throughput). They use descripter version 3,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -189,3 +191,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+git-net-forcedeth-build-fix.patch
