@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-needs-pci.patch added to -mm tree
-Date: Tue, 21 Aug 2007 16:53:53 -0700
-Message-ID: <200708212359.l7LNx1oX017849@imap1.linux-foundation.org>
+Subject: + selectionh-add-tty_struct-forward-declaration.patch added to -mm tree
+Date: Tue, 21 Aug 2007 16:57:29 -0700
+Message-ID: <200708220002.l7M02bvv018041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38324 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60552 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751387AbXHVAAI (ORCPT
+	by vger.kernel.org with ESMTP id S1752616AbXHVACp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 20:00:08 -0400
+	Tue, 21 Aug 2007 20:02:45 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7M02gjs015388
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 21 Aug 2007 17:02:43 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     ath5k needs PCI
+     selection.h: add tty_struct forward declaration
 has been added to the -mm tree.  Its filename is
-     ath5k-needs-pci.patch
+     selectionh-add-tty_struct-forward-declaration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +30,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ath5k needs PCI
+Subject: selection.h: add tty_struct forward declaration
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/ath5k_base.c: In function `ath_pci_probe':
-drivers/net/wireless/ath5k_base.c:2279: error: implicit declaration of function `pci_request_region'
-drivers/net/wireless/ath5k_base.c:2359: error: implicit declaration of function `pci_release_region'
+In file included from drivers/video/console/newport_con.c:16:
+include/linux/selection.h:16: warning: "struct tty_struct" declared inside parameter list
+include/linux/selection.h:16: warning: its scope is only this definition or declaration, which is probably not what you want
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/selection.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/wireless/ath5k_base.c~ath5k-needs-pci drivers/net/wireless/ath5k_base.c
-diff -puN drivers/net/wireless/Kconfig~ath5k-needs-pci drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~ath5k-needs-pci
-+++ a/drivers/net/wireless/Kconfig
-@@ -858,6 +858,7 @@ config IWL3945
- config ATH5K
- 	tristate "Atheros 5xxx wireless cards support"
- 	depends on MAC80211
-+	depends on PCI
- 	default m
- 	---help---
- 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
+diff -puN include/linux/selection.h~selectionh-add-tty_struct-forward-declaration include/linux/selection.h
+--- a/include/linux/selection.h~selectionh-add-tty_struct-forward-declaration
++++ a/include/linux/selection.h
+@@ -10,6 +10,8 @@
+ #include <linux/tiocl.h>
+ #include <linux/vt_buffer.h>
+ 
++struct tty_struct;
++
+ extern struct vc_data *sel_cons;
+ 
+ extern void clear_selection(void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +120,7 @@ git-wireless-printk-fixes.patch
 net-add-ath5k-wireless-driver-fix.patch
 ath5k-printk-fix.patch
 ath5k-kconfig-fix.patch
+ath5k-needs-pci.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 git-xfs.patch
@@ -194,4 +198,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ath5k-needs-pci.patch
+selectionh-add-tty_struct-forward-declaration.patch
