@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch added to -mm tree
-Date: Mon, 20 Aug 2007 23:22:24 -0700
-Message-ID: <200708210627.l7L6RW6e010579@imap1.linux-foundation.org>
+Subject: + advansys-printk-fix.patch added to -mm tree
+Date: Mon, 20 Aug 2007 23:36:31 -0700
+Message-ID: <200708210641.l7L6fcWc011078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33569 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751571AbXHUG2B (ORCPT
+	by vger.kernel.org with ESMTP id S1754462AbXHUGmT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 02:28:01 -0400
+	Tue, 21 Aug 2007 02:42:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix
+     advansys printk fix
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+     advansys-printk-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix
+Subject: advansys printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needed by fs/gfs2/glock.o (for some reason..)
+Fix this:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+drivers/scsi/advansys.c: In function 'advansys_board_found':
+drivers/scsi/advansys.c:16320: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
+
+and clean the code up a little.
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/advansys.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/pid.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix
-+++ a/kernel/pid.c
-@@ -71,6 +71,7 @@ struct pid_namespace init_pid_ns = {
- 	.level = 0,
- 	.child_reaper = &init_task,
- };
-+EXPORT_SYMBOL_GPL(init_pid_ns);
- 
- int is_global_init(struct task_struct *tsk)
- {
+diff -puN drivers/scsi/advansys.c~advansys-printk-fix drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~advansys-printk-fix
++++ a/drivers/scsi/advansys.c
+@@ -16317,10 +16317,11 @@ advansys_board_found(int iop, struct dev
+ 		boardp->ioremap_addr = ioremap(pci_resource_start(pdev, 1),
+ 					       boardp->asc_n_io_port);
+ 		if (!boardp->ioremap_addr) {
+-			ASC_PRINT3
+-			    ("advansys_board_found: board %d: ioremap(%x, %d) returned NULL\n",
+-			     boardp->id, pci_resource_start(pdev, 1),
+-			     boardp->asc_n_io_port);
++			ASC_PRINT3("advansys_board_found: board %d: "
++				"ioremap(%llx, %d) returned NULL\n",
++				boardp->id,
++				(unsigned long long)pci_resource_start(pdev, 1),
++				boardp->asc_n_io_port);
+ 			goto err_shost;
+ 		}
+ 		adv_dvc_varp->iop_base = (AdvPortAddr)boardp->ioremap_addr
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -174,3 +183,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+advansys-printk-fix.patch
