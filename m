@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + disable-ioat.patch added to -mm tree
-Date: Tue, 21 Aug 2007 15:46:48 -0700
-Message-ID: <200708212251.l7LMpuIu015500@imap1.linux-foundation.org>
+Subject: + git-net-fix-export.patch added to -mm tree
+Date: Tue, 21 Aug 2007 16:03:06 -0700
+Message-ID: <200708212308.l7LN8E6s016058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43165 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753502AbXHUWwE (ORCPT
+	by vger.kernel.org with ESMTP id S1751750AbXHUXIx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 18:52:04 -0400
+	Tue, 21 Aug 2007 19:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, shannon.nelson@intel.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     disable-ioat
+     git-net fix export
 has been added to the -mm tree.  Its filename is
-     disable-ioat.patch
+     git-net-fix-export.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: disable-ioat
+Subject: git-net fix export
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I'm missing a file.
+Must be silly season or something.
 
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/hrtimer.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/dma/Kconfig~disable-ioat drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~disable-ioat
-+++ a/drivers/dma/Kconfig
-@@ -5,6 +5,7 @@
- menuconfig DMADEVICES
- 	bool "DMA Offload Engine support"
- 	depends on (PCI && X86) || ARCH_IOP32X || ARCH_IOP33X || ARCH_IOP13XX
-+	depends on BROKEN
- 	help
- 	  Intel(R) offload engines enable offloading memory copies in the
- 	  network stack and RAID operations in the MD driver.
+diff -puN kernel/hrtimer.c~git-net-fix-export kernel/hrtimer.c
+--- a/kernel/hrtimer.c~git-net-fix-export
++++ a/kernel/hrtimer.c
+@@ -299,8 +299,7 @@ ktime_t ktime_sub_ns(const ktime_t kt, u
+ 
+ 	return ktime_sub(kt, tmp);
+ }
+-
+-EXPORT_SYMBOL_GPL(ktime_add_ns);
++EXPORT_SYMBOL_GPL(ktime_sub_ns);
+ # endif /* !CONFIG_KTIME_SCALAR */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +71,7 @@ fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dma.patch
 git-dma-makefile-fix.patch
+disable-ioat.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 adbhid-produce-all-capslock-key-events.patch
@@ -188,4 +191,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-disable-ioat.patch
+git-net-fix-export.patch
