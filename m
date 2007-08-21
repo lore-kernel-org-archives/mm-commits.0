@@ -1,67 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-printk-fixes.patch added to -mm tree
-Date: Tue, 21 Aug 2007 02:15:45 -0700
-Message-ID: <200708210920.l7L9Kq5n016655@imap1.linux-foundation.org>
+Subject: - git-dma-up-fix.patch removed from -mm tree
+Date: Tue, 21 Aug 2007 12:43:13 -0700
+Message-ID: <200708211943.l7LJhDQp007562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38384 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752630AbXHUJVk (ORCPT
+	by vger.kernel.org with ESMTP id S1754967AbXHUTn0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 05:21:40 -0400
+	Tue, 21 Aug 2007 15:43:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com
+To: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless printk fixes
-has been added to the -mm tree.  Its filename is
-     git-wireless-printk-fixes.patch
+     git-dma UP fix
+has been removed from the -mm tree.  Its filename was
+     git-dma-up-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-wireless printk fixes
+Subject: git-dma UP fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/libertas/if_cs.c: In function 'if_cs_prog_helper':
-drivers/net/wireless/libertas/if_cs.c:462: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-drivers/net/wireless/libertas/if_cs.c: In function 'if_cs_prog_real':
-drivers/net/wireless/libertas/if_cs.c:538: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+drivers/dma/ioat_dca.c: In function 'ioat_dca_get_tag':
+drivers/dma/ioat_dca.c:177: error: implicit declaration of function 'cpu_physical_id'
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
+This is soooo screwed up.  Root cause: linux/smp.h only includes asm/smp.h if
+CONFIG_SMP=y.
+
+To get at cpu_physical_id() on UP, the user must include asm/smp.h, not
+linux/smp.h.
+
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/libertas/if_cs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dma/ioat_dca.c |    3 +++
+ 1 files changed, 3 insertions(+)
 
-diff -puN drivers/net/wireless/libertas/if_cs.c~git-wireless-printk-fixes drivers/net/wireless/libertas/if_cs.c
---- a/drivers/net/wireless/libertas/if_cs.c~git-wireless-printk-fixes
-+++ a/drivers/net/wireless/libertas/if_cs.c
-@@ -459,7 +459,7 @@ static int if_cs_prog_helper(struct if_c
- 		ret = -ENODEV;
- 		goto done;
- 	}
--	lbs_deb_cs("helper size %d\n", fw->size);
-+	lbs_deb_cs("helper size %td\n", fw->size);
+diff -puN drivers/dma/ioat_dca.c~git-dma-up-fix drivers/dma/ioat_dca.c
+--- a/drivers/dma/ioat_dca.c~git-dma-up-fix
++++ a/drivers/dma/ioat_dca.c
+@@ -25,6 +25,9 @@
+ #include <linux/smp.h>
+ #include <linux/interrupt.h>
+ #include <linux/dca.h>
++
++#include <asm/smp.h>
++
+ #include "ioatdma.h"
+ #include "ioatdma_registers.h"
  
- 	/* "Set the 5 bytes of the helper image to 0" */
- 	/* Not needed, this contains an ARM branch instruction */
-@@ -535,7 +535,7 @@ static int if_cs_prog_real(struct if_cs_
- 		ret = -ENODEV;
- 		goto done;
- 	}
--	lbs_deb_cs("fw size %d\n", fw->size);
-+	lbs_deb_cs("fw size %td\n", fw->size);
- 
- 	ret = if_cs_poll_while_fw_download(card, IF_CS_C_SQ_READ_LOW, IF_CS_C_SQ_HELPER_OK);
- 	if (ret < 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +74,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-dma.patch
 git-dma-up-fix.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
@@ -117,6 +112,7 @@ git-watchdog.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
 net-add-ath5k-wireless-driver-fix.patch
 ath5k-printk-fix.patch
 ath5k-kconfig-fix.patch
@@ -197,4 +193,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-wireless-printk-fixes.patch
