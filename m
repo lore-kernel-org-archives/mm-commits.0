@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:22:56 -0700
-Message-ID: <200708210728.l7L7S3U2012953@imap1.linux-foundation.org>
+Subject: + mm-mempolicyc-cleanups-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:27:45 -0700
+Message-ID: <200708210732.l7L7WqBT013048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750759AbXHUH2W (ORCPT
+	by vger.kernel.org with ESMTP id S1752426AbXHUHdL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:28:22 -0400
+	Tue, 21 Aug 2007 03:33:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, bunk@stusta.de, clameter@sgi.com
 
 
 The patch titled
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix
+     mm-mempolicyc-cleanups-fix
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+     mm-mempolicyc-cleanups-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix
+Subject: mm-mempolicyc-cleanups-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mempolicy.c: In function 'sys_migrate_pages':
-mm/mempolicy.c:934: error: dereferencing pointer to incomplete type
+mm/mempolicy.c: In function 'sys_get_mempolicy':
+mm/mempolicy.c:982: warning: 'pval' may be used uninitialized in this function
 
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mempolicy.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix mm/mempolicy.c
---- a/mm/mempolicy.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix
+diff -puN mm/mempolicy.c~mm-mempolicyc-cleanups-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-cleanups-fix
 +++ a/mm/mempolicy.c
-@@ -78,6 +78,7 @@
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/module.h>
-+#include <linux/nsproxy.h>
- #include <linux/interrupt.h>
- #include <linux/init.h>
- #include <linux/compat.h>
+@@ -979,7 +979,8 @@ asmlinkage long sys_get_mempolicy(int __
+ 				unsigned long maxnode,
+ 				unsigned long addr, unsigned long flags)
+ {
+-	int err, pval;
++	int err;
++	int uninitialized_var(pval);
+ 	nodemask_t nodes;
+ 
+ 	if (nmask != NULL && maxnode < MAX_NUMNODES)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +129,7 @@ maps2-add-proc-pid-pagemap-interface.patch
 maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
