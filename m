@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-e1000e.patch added to -mm tree
-Date: Mon, 20 Aug 2007 16:56:35 -0700
-Message-ID: <200708210001.l7L01gog030387@imap1.linux-foundation.org>
+Subject: + git-net-xen-fix.patch added to -mm tree
+Date: Mon, 20 Aug 2007 17:09:40 -0700
+Message-ID: <200708210014.l7L0ElKJ030827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750841AbXHUAB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750759AbXHUAPL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Aug 2007 20:01:57 -0400
+	Mon, 20 Aug 2007 20:15:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, jeff@garzik.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     git-net-vs-e1000e
+     git-net xen fix
 has been added to the -mm tree.  Its filename is
-     git-net-vs-e1000e.patch
+     git-net-xen-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-vs-e1000e
+Subject: git-net xen fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-the net-2.6 tree destroyed this driver and I can't be assed fixing it.
+drivers/net/xen-netfront.c: In function 'xennet_poll':
+drivers/net/xen-netfront.c:854: error: 'budget' redeclared as different kind of symbol
+drivers/net/xen-netfront.c:845: error: previous definition of 'budget' was here
 
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/xen-netfront.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/Kconfig~git-net-vs-e1000e drivers/net/Kconfig
---- a/drivers/net/Kconfig~git-net-vs-e1000e
-+++ a/drivers/net/Kconfig
-@@ -2058,6 +2058,7 @@ config E1000_DISABLE_PACKET_SPLIT
- config E1000E
- 	tristate "Intel(R) PRO/1000 PCI-Express Gigabit Ethernet support"
- 	depends on PCI
-+	depends on BROKEN
- 	---help---
- 	  This driver supports the PCI-Express Intel(R) PRO/1000 gigabit
- 	  ethernet family of adapters. For PCI or PCI-X e1000 adapters,
+diff -puN drivers/net/xen-netfront.c~git-net-xen-fix drivers/net/xen-netfront.c
+--- a/drivers/net/xen-netfront.c~git-net-xen-fix
++++ a/drivers/net/xen-netfront.c
+@@ -851,7 +851,7 @@ static int xennet_poll(struct napi_struc
+ 	struct xen_netif_rx_response *rx = &rinfo.rx;
+ 	struct xen_netif_extra_info *extras = rinfo.extras;
+ 	RING_IDX i, rp;
+-	int work_done, budget;
++	int work_done;
+ 	struct sk_buff_head rxq;
+ 	struct sk_buff_head errq;
+ 	struct sk_buff_head tmpq;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +86,7 @@ revert-8139too-clean-up-i-o-remapping.patch
 git-net.patch
 git-net-fixup.patch
 git-net-vs-e1000e.patch
+git-net-xen-fix.patch
 git-backlight.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
