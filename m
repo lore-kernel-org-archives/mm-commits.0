@@ -1,61 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-dma-up-fix.patch removed from -mm tree
-Date: Tue, 21 Aug 2007 12:43:13 -0700
-Message-ID: <200708211943.l7LJhDQp007562@imap1.linux-foundation.org>
+Subject: - bridge-sysfs-fix.patch removed from -mm tree
+Date: Tue, 21 Aug 2007 12:49:55 -0700
+Message-ID: <200708211949.l7LJntTl007764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38553 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34992 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754967AbXHUTn0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750963AbXHUTuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 15:43:26 -0400
+	Tue, 21 Aug 2007 15:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, shannon.nelson@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dma UP fix
+     bridge: sysfs fix
 has been removed from the -mm tree.  Its filename was
-     git-dma-up-fix.patch
+     bridge-sysfs-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dma UP fix
+Subject: bridge: sysfs fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/dma/ioat_dca.c: In function 'ioat_dca_get_tag':
-drivers/dma/ioat_dca.c:177: error: implicit declaration of function 'cpu_physical_id'
+net/bridge/br_sysfs_br.c: In function 'store_stp_state':
+net/bridge/br_sysfs_br.c:170: warning: control reaches end of non-void function
 
-This is soooo screwed up.  Root cause: linux/smp.h only includes asm/smp.h if
-CONFIG_SMP=y.
-
-To get at cpu_physical_id() on UP, the user must include asm/smp.h, not
-linux/smp.h.
-
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dca.c |    3 +++
- 1 files changed, 3 insertions(+)
+ net/bridge/br_sysfs_br.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/dma/ioat_dca.c~git-dma-up-fix drivers/dma/ioat_dca.c
---- a/drivers/dma/ioat_dca.c~git-dma-up-fix
-+++ a/drivers/dma/ioat_dca.c
-@@ -25,6 +25,9 @@
- #include <linux/smp.h>
- #include <linux/interrupt.h>
- #include <linux/dca.h>
-+
-+#include <asm/smp.h>
-+
- #include "ioatdma.h"
- #include "ioatdma_registers.h"
- 
+diff -puN net/bridge/br_sysfs_br.c~bridge-sysfs-fix net/bridge/br_sysfs_br.c
+--- a/net/bridge/br_sysfs_br.c~bridge-sysfs-fix
++++ a/net/bridge/br_sysfs_br.c
+@@ -166,7 +166,7 @@ static ssize_t store_stp_state(struct de
+ 	rtnl_lock();
+ 	br_stp_set_enabled(br, val);
+ 	rtnl_unlock();
+-
++	return len;
+ }
+ static DEVICE_ATTR(stp_state, S_IRUGO | S_IWUSR, show_stp_state,
+ 		   store_stp_state);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +67,6 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dma.patch
-git-dma-up-fix.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 adbhid-produce-all-capslock-key-events.patch
@@ -121,7 +112,6 @@ x86_64-get-mp_bus_to_node-as-early-v3.patch
 git-xfs.patch
 git-kgdb-fixup.patch
 pci-align-bar-settings-for-legacy-mode-ide.patch
-bridge-sysfs-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
