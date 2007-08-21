@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ath5k-printk-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:42:32 -0700
-Message-ID: <200708210747.l7L7ldkR013565@imap1.linux-foundation.org>
+Subject: + ath5k-kconfig-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:51:20 -0700
+Message-ID: <200708210756.l7L7uRUl013861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40316 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840AbXHUHs0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750742AbXHUH5R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:48:26 -0400
+	Tue, 21 Aug 2007 03:57:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     ath5k-printk-fix
+     ath5k-kconfig-fix
 has been added to the -mm tree.  Its filename is
-     ath5k-printk-fix.patch
+     ath5k-kconfig-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ath5k-printk-fix
+Subject: ath5k-kconfig-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/ath5k_base.c: In function 'ath_txq_setup':
-drivers/net/wireless/ath5k_base.c:2033: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
+It needs stuff from net/mac80211/ieee80211.c
 
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/ath5k_base.c~ath5k-printk-fix drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~ath5k-printk-fix
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -2029,7 +2029,7 @@ static struct ath_txq *ath_txq_setup(str
- 		return ERR_PTR(qnum);
- 	}
- 	if (qnum >= ARRAY_SIZE(sc->txqs)) {
--		printk(KERN_ERR "hal qnum %u out of range, max %u!\n",
-+		printk(KERN_ERR "hal qnum %u out of range, max %tu!\n",
- 			qnum, ARRAY_SIZE(sc->txqs));
- 		ath5k_hw_release_tx_queue(ah, qnum);
- 		return ERR_PTR(-EINVAL);
+diff -puN drivers/net/wireless/Kconfig~ath5k-kconfig-fix drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~ath5k-kconfig-fix
++++ a/drivers/net/wireless/Kconfig
+@@ -857,6 +857,7 @@ config IWL3945
+ 
+ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
++	depends on MAC80211
+ 	default m
+ 	---help---
+ 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +106,8 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
+ath5k-printk-fix.patch
+ath5k-kconfig-fix.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 git-xfs.patch
@@ -185,4 +185,3 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ath5k-printk-fix.patch
