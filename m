@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:29:51 -0700
-Message-ID: <200708210734.l7L7YwFq013171@imap1.linux-foundation.org>
+Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:30:56 -0700
+Message-ID: <200708210736.l7L7a3Q7013191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45301 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751847AbXHUHfV (ORCPT
+	by vger.kernel.org with ESMTP id S1751847AbXHUHgd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:35:21 -0400
+	Tue, 21 Aug 2007 03:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us
 
 
 The patch titled
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2
+     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2
+Subject: pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/migrate.c: In function 'sys_move_pages':
-mm/migrate.c:921: error: dereferencing pointer to incomplete type
+kernel/futex_compat.c:119: error: dereferencing pointer to incomplete type
 
 Cc: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -39,20 +38,20 @@ Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
+ kernel/futex_compat.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN mm/migrate.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2 mm/migrate.c
---- a/mm/migrate.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2
-+++ a/mm/migrate.c
-@@ -19,6 +19,7 @@
- #include <linux/pagemap.h>
- #include <linux/buffer_head.h>
- #include <linux/mm_inline.h>
+diff -puN kernel/futex_compat.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3 kernel/futex_compat.c
+--- a/kernel/futex_compat.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
++++ a/kernel/futex_compat.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/linkage.h>
+ #include <linux/compat.h>
 +#include <linux/nsproxy.h>
- #include <linux/pagevec.h>
- #include <linux/rmap.h>
- #include <linux/topology.h>
+ #include <linux/futex.h>
+ 
+ #include <asm/uaccess.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -177,6 +176,7 @@ fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
 pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
