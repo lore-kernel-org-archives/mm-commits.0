@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
-Date: Mon, 20 Aug 2007 23:45:14 -0700
-Message-ID: <200708210650.l7L6oLUf011407@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Mon, 20 Aug 2007 23:47:01 -0700
+Message-ID: <200708210652.l7L6q8do011447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751701AbXHUGvw (ORCPT
+	by vger.kernel.org with ESMTP id S1756091AbXHUGwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 02:51:52 -0400
+	Tue, 21 Aug 2007 02:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, kay.sievers@vrfy.org, linville@tuxdriver.com, mb@bu3sch.de
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been added to the -mm tree.  Its filename is
-     git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-my life sucks
-
 Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/main.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/spi/spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/ssb/main.c
---- a/drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/ssb/main.c
-@@ -320,21 +320,17 @@ static int ssb_bus_match(struct device *
- 	return 0;
- }
- 
--static int ssb_device_uevent(struct device *dev, char **envp, int num_envp,
--			     char *buffer, int buffer_size)
-+static int ssb_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+diff -puN drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/spi/spi.c
+--- a/drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/spi/spi.c
+@@ -71,7 +71,7 @@ static int spi_uevent(struct device *dev
  {
- 	struct ssb_device *ssb_dev = dev_to_ssb_dev(dev);
--	int ret, i = 0, length = 0;
-+	int ret;
+ 	const struct spi_device		*spi = to_spi_device(dev);
  
- 	if (!dev)
- 		return -ENODEV;
- 
--	ret = add_uevent_var(envp, num_envp, &i,
--			     buffer, buffer_size, &length,
--			     "MODALIAS=ssb:v%.4xid%.4xrev%.2x",
-+	ret = add_uevent_var(env, "MODALIAS=ssb:v%.4xid%.4xrev%.2x",
- 			     ssb_dev->id.vendor, ssb_dev->id.coreid,
- 			     ssb_dev->id.revision);
--	envp[i] = NULL;
- 	return ret;
+-	add_uevent_var("MODALIAS=%s", spi->modalias);
++	add_uevent_var(env, "MODALIAS=%s", spi->modalias);
+ 	return 0;
  }
  
 _
@@ -193,3 +173,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
