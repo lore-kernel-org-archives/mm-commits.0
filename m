@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + selectionh-add-tty_struct-forward-declaration.patch added to -mm tree
-Date: Tue, 21 Aug 2007 16:57:29 -0700
-Message-ID: <200708220002.l7M02bvv018041@imap1.linux-foundation.org>
+Subject: + newport_con-warning-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 16:59:07 -0700
+Message-ID: <200708220004.l7M04FTq018084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41956 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616AbXHVACp (ORCPT
+	by vger.kernel.org with ESMTP id S1754692AbXHVAEn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 20:02:45 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7M02gjs015388
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 21 Aug 2007 17:02:43 -0700
+	Tue, 21 Aug 2007 20:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, adaplas@pol.net, ralf@linux-mips.org
 
 
 The patch titled
-     selection.h: add tty_struct forward declaration
+     newport_con warning fix
 has been added to the -mm tree.  Its filename is
-     selectionh-add-tty_struct-forward-declaration.patch
+     newport_con-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,32 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: selection.h: add tty_struct forward declaration
+Subject: newport_con warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/video/console/newport_con.c:16:
-include/linux/selection.h:16: warning: "struct tty_struct" declared inside parameter list
-include/linux/selection.h:16: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/video/console/newport_con.c: In function `newport_console_init':
+drivers/video/console/newport_con.c:743: warning: return makes integer from pointer without a cast
 
+Although one wonders whether that should have been -ENODEV...
 
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/selection.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/console/newport_con.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/selection.h~selectionh-add-tty_struct-forward-declaration include/linux/selection.h
---- a/include/linux/selection.h~selectionh-add-tty_struct-forward-declaration
-+++ a/include/linux/selection.h
-@@ -10,6 +10,8 @@
- #include <linux/tiocl.h>
- #include <linux/vt_buffer.h>
+diff -puN drivers/video/console/newport_con.c~newport_con-warning-fix drivers/video/console/newport_con.c
+--- a/drivers/video/console/newport_con.c~newport_con-warning-fix
++++ a/drivers/video/console/newport_con.c
+@@ -738,9 +738,8 @@ const struct consw newport_con = {
+ #ifdef MODULE
+ static int __init newport_console_init(void)
+ {
+-
+ 	if (!sgi_gfxaddr)
+-		return NULL;
++		return 0;
  
-+struct tty_struct;
-+
- extern struct vc_data *sel_cons;
- 
- extern void clear_selection(void);
+ 	if (!npregs)
+ 		npregs = (struct newport_regs *)/* ioremap cannot fail */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,6 +65,7 @@ sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
 free_irq-fix-debug_shirq-handling.patch
+selectionh-add-tty_struct-forward-declaration.patch
 remove-bdput-from-do_open-in-fs-block_devc-fix.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
@@ -198,4 +199,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-selectionh-add-tty_struct-forward-declaration.patch
+newport_con-warning-fix.patch
