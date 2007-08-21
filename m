@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + advansys-printk-fix.patch added to -mm tree
-Date: Mon, 20 Aug 2007 23:36:31 -0700
-Message-ID: <200708210641.l7L6fcWc011078@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch added to -mm tree
+Date: Mon, 20 Aug 2007 23:40:19 -0700
+Message-ID: <200708210645.l7L6jQwY011201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33569 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37757 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462AbXHUGmT (ORCPT
+	by vger.kernel.org with ESMTP id S1755154AbXHUGqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 02:42:19 -0400
+	Tue, 21 Aug 2007 02:46:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
+Cc: akpm@linux-foundation.org, felipe.lima@indt.org.br, greg@kroah.com, thomas@winischhofer.net
 
 
 The patch titled
-     advansys printk fix
+     fix gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
 has been added to the -mm tree.  Its filename is
-     advansys-printk-fix.patch
+     fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: advansys printk fix
+Subject: fix gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+drivers/usb/misc/sisusbvga/sisusb.c: In function 'sisusb_open':
+drivers/usb/misc/sisusbvga/sisusb.c:2444: warning: 'sisusb' is used uninitialized in this function
 
-drivers/scsi/advansys.c: In function 'advansys_board_found':
-drivers/scsi/advansys.c:16320: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
+I can tell that'll oops just by looking at it.
 
-and clean the code up a little.
+How come this code assume a 7,000 column xterm? :(
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Felipe Balbi <felipe.lima@indt.org.br>
+Cc: Greg KH <greg@kroah.com>
+Cc: <thomas@winischhofer.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/usb/misc/sisusbvga/sisusb.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~advansys-printk-fix drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~advansys-printk-fix
-+++ a/drivers/scsi/advansys.c
-@@ -16317,10 +16317,11 @@ advansys_board_found(int iop, struct dev
- 		boardp->ioremap_addr = ioremap(pci_resource_start(pdev, 1),
- 					       boardp->asc_n_io_port);
- 		if (!boardp->ioremap_addr) {
--			ASC_PRINT3
--			    ("advansys_board_found: board %d: ioremap(%x, %d) returned NULL\n",
--			     boardp->id, pci_resource_start(pdev, 1),
--			     boardp->asc_n_io_port);
-+			ASC_PRINT3("advansys_board_found: board %d: "
-+				"ioremap(%llx, %d) returned NULL\n",
-+				boardp->id,
-+				(unsigned long long)pci_resource_start(pdev, 1),
-+				boardp->asc_n_io_port);
- 			goto err_shost;
- 		}
- 		adv_dvc_varp->iop_base = (AdvPortAddr)boardp->ioremap_addr
+diff -puN drivers/usb/misc/sisusbvga/sisusb.c~fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros drivers/usb/misc/sisusbvga/sisusb.c
+--- a/drivers/usb/misc/sisusbvga/sisusb.c~fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros
++++ a/drivers/usb/misc/sisusbvga/sisusb.c
+@@ -3324,15 +3324,7 @@ static int __init usb_sisusb_init(void)
+ 	sisusb_init_concode();
+ #endif
+ 
+-	if (!(retval = usb_register(&sisusb_driver))) {
+-
+-		dev_info(&sisusb->sisusb_dev->dev, "Driver version %d.%d.%d\n", SISUSB_VERSION,
+-				SISUSB_REVISION, SISUSB_PATCHLEVEL);
+-		dev_info(&sisusb->sisusb_dev->dev, "sisusb: Copyright (C) 2005 Thomas Winischhofer\n");
+-
+-	}
+-
+-	return retval;
++	return usb_register(&sisusb_driver);
+ }
+ 
+ static void __exit usb_sisusb_exit(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +107,7 @@ revert-gregkh-pci-pci_bridge-device.patch
 i386-add-support-for-picopower-irq-router.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 git-scsi-misc.patch
+advansys-printk-fix.patch
 git-unionfs.patch
 git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
@@ -183,4 +187,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-advansys-printk-fix.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
