@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-max-path-calculation-in-radix-treec.patch added to -mm tree
-Date: Tue, 21 Aug 2007 14:00:36 -0700
-Message-ID: <200708212100.l7LL0anM010716@imap1.linux-foundation.org>
+Subject: + hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch added to -mm tree
+Date: Tue, 21 Aug 2007 14:16:48 -0700
+Message-ID: <200708212116.l7LLGmZ2011414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751916AbXHUVAv (ORCPT
+	by vger.kernel.org with ESMTP id S1753757AbXHUVRf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 17:00:51 -0400
+	Tue, 21 Aug 2007 17:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, nickpiggin@yahoo.com.au
+Cc: rjw@sisk.pl, lenb@kernel.org, pavel@ucw.cz
 
 
 The patch titled
-     fix the max path calculation in radix-tree.c
+     Hibernation: Make sure that ACPI is enabled in acpi_hibernation_finish
 has been added to the -mm tree.  Its filename is
-     fix-the-max-path-calculation-in-radix-treec.patch
+     hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix the max path calculation in radix-tree.c
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Hibernation: Make sure that ACPI is enabled in acpi_hibernation_finish
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-A while back, Nick Piggin introduced a patch to reduce the node memory
-usage for small files (commit cfd9b7df4abd3257c9e381b0e445817b26a51c0c):
+If the BIOS does not enable ACPI and the "acpi=off" command line parameter
+is passed to the boot kernel, ACPI may be disabled when the (restored)
+image kernel attempts to execute acpi_hibernation_finish().  To prevent
+this from happening we can call acpi_enable() from
+acpi_hibernation_finish() (if ACPI is already enabled, this will have no
+effect).
 
--#define RADIX_TREE_MAP_SHIFT	6
-+#define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
-
-Unfortunately, he didn't take into account the fact that the
-calculation of the maximum path was based on an assumption of having
-to round up:
-
-#define RADIX_TREE_MAX_PATH (RADIX_TREE_INDEX_BITS/RADIX_TREE_MAP_SHIFT + 2)
-
-So, if CONFIG_BASE_SMALL is set, you will end up with a
-RADIX_TREE_MAX_PATH that is one greater than necessary.  The practical
-upshot of this is just a bit of wasted memory (one long in the
-height_to_maxindex array, an extra pre-allocated radix tree node per
-cpu, and extra stack usage in a couple of functions), but it seems
-worth getting right.
-
-It's also worth noting that I never build with CONFIG_BASE_SMALL.
-What I did to test this was duplicate the code in a small user-space
-program and check the results of the calculations for max path and the
-contents of the height_to_maxindex array.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/sleep/main.c |    5 +++++
+ 1 files changed, 5 insertions(+)
 
-diff -puN lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec lib/radix-tree.c
---- a/lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec
-+++ a/lib/radix-tree.c
-@@ -60,7 +60,8 @@ struct radix_tree_path {
- };
+diff -puN drivers/acpi/sleep/main.c~hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish
++++ a/drivers/acpi/sleep/main.c
+@@ -230,6 +230,11 @@ static int acpi_hibernation_enter(void)
  
- #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
--#define RADIX_TREE_MAX_PATH (RADIX_TREE_INDEX_BITS/RADIX_TREE_MAP_SHIFT + 2)
-+#define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
-+					  RADIX_TREE_MAP_SHIFT) + 1)
- 
- static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH] __read_mostly;
+ static void acpi_hibernation_finish(void)
+ {
++	/*
++	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
++	 * enable it here.
++	 */
++	acpi_enable();
+ 	acpi_leave_sleep_state(ACPI_STATE_S4);
+ 	acpi_disable_wakeup_device(ACPI_STATE_S4);
  
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-fix-the-max-path-calculation-in-radix-treec.patch
-aio-account-i-o-wait-time-properly.patch
+pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch
+enable-gpes-before-calling-_wak-on-resume.patch
+hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
+uli526x-add-suspend-and-resume-routines.patch
+make-kernel-power-maincsuspend_enter-static.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+s2ram-kill-old-debugging-junk.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
+shrink_slab-handle-bad-shrinkers.patch
