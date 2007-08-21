@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + profile-likely-unlikely-macros-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2007 14:21:42 -0700
-Message-ID: <200708212121.l7LLLgtT011617@imap1.linux-foundation.org>
+Subject: + git-dma-makefile-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 14:49:30 -0700
+Message-ID: <200708212154.l7LLsd5l013333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49486 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752418AbXHUVWA (ORCPT
+	by vger.kernel.org with ESMTP id S1752286AbXHUVyv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 17:22:00 -0400
+	Tue, 21 Aug 2007 17:54:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, dwalker@mvista.com, hzhong@gmail.com
+Cc: akpm@linux-foundation.org, shannon.nelson@intel.com
 
 
 The patch titled
-     profile-likely-unlikely-macros-fix
+     git-dma-makefile-fix
 has been added to the -mm tree.  Its filename is
-     profile-likely-unlikely-macros-fix.patch
+     git-dma-makefile-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: profile-likely-unlikely-macros-fix
+Subject: git-dma-makefile-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Hua Zhong <hzhong@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
+make[1]: *** No rule to make target `drivers/dma/ioat_dma.o', needed by `drivers/dma/ioatdma.o'.  Stop.
+
+this doesn't inspire confidence.
+
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/vdso/vclock_gettime.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/dma/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/vdso/vclock_gettime.c~profile-likely-unlikely-macros-fix arch/x86_64/vdso/vclock_gettime.c
---- a/arch/x86_64/vdso/vclock_gettime.c~profile-likely-unlikely-macros-fix
-+++ a/arch/x86_64/vdso/vclock_gettime.c
-@@ -48,7 +48,7 @@ static noinline int do_realtime(struct t
- 		ts->tv_sec = gtod->wall_time_sec;
- 		ts->tv_nsec = gtod->wall_time_nsec;
- 		ns = vgetns();
--	} while (unlikely(read_seqretry(&gtod->lock, seq)));
-+	} while (read_seqretry(&gtod->lock, seq));
- 	timespec_add_ns(ts, ns);
- 	return 0;
- }
-@@ -77,14 +77,14 @@ static noinline int do_monotonic(struct 
- 		ns = gtod->wall_time_nsec + vgetns();
- 		secs += gtod->wall_to_monotonic.tv_sec;
- 		ns += gtod->wall_to_monotonic.tv_nsec;
--	} while (unlikely(read_seqretry(&gtod->lock, seq)));
-+	} while (read_seqretry(&gtod->lock, seq));
- 	vset_normalized_timespec(ts, secs, ns);
- 	return 0;
- }
- 
- int __vdso_clock_gettime(clockid_t clock, struct timespec *ts)
- {
--	if (likely(gtod->sysctl_enabled && gtod->clock.vread))
-+	if (gtod->sysctl_enabled && gtod->clock.vread)
- 		switch (clock) {
- 		case CLOCK_REALTIME:
- 			return do_realtime(ts);
-@@ -99,13 +99,13 @@ int clock_gettime(clockid_t, struct time
- int __vdso_gettimeofday(struct timeval *tv, struct timezone *tz)
- {
- 	long ret;
--	if (likely(gtod->sysctl_enabled && gtod->clock.vread)) {
-+	if (gtod->sysctl_enabled && gtod->clock.vread) {
- 		BUILD_BUG_ON(offsetof(struct timeval, tv_usec) !=
- 			     offsetof(struct timespec, tv_nsec) ||
- 			     sizeof(*tv) != sizeof(struct timespec));
- 		do_realtime((struct timespec *)tv);
- 		tv->tv_usec /= 1000;
--		if (unlikely(tz != NULL)) {
-+		if (tz != NULL) {
- 			/* This relies on gcc inlining the memcpy. We'll notice
- 			   if it ever fails to do so. */
- 			memcpy(tz, &gtod->sys_tz, sizeof(struct timezone));
+diff -puN drivers/dma/Makefile~git-dma-makefile-fix drivers/dma/Makefile
+--- a/drivers/dma/Makefile~git-dma-makefile-fix
++++ a/drivers/dma/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_DMA_ENGINE) += dmaengine.o
+ obj-$(CONFIG_NET_DMA) += iovlock.o
+ obj-$(CONFIG_INTEL_IOATDMA) += ioatdma.o
+-ioatdma-objs := ioat.o ioat_dma.o ioat_dca.o
++ioatdma-objs := ioat.o ioat_dca.o
+ obj-$(CONFIG_INTEL_IOP_ADMA) += iop-adma.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -220,3 +187,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+git-dma-makefile-fix.patch
