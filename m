@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-forcedeth-build-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:41:00 -0700
-Message-ID: <200708210746.l7L7k7xx013524@imap1.linux-foundation.org>
+Subject: + ath5k-printk-fix.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:42:32 -0700
+Message-ID: <200708210747.l7L7ldkR013565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52728 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752141AbXHUHqs (ORCPT
+	by vger.kernel.org with ESMTP id S1750840AbXHUHs0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:46:48 -0400
+	Tue, 21 Aug 2007 03:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     git-net: forcedeth build fix
+     ath5k-printk-fix
 has been added to the -mm tree.  Its filename is
-     git-net-forcedeth-build-fix.patch
+     ath5k-printk-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: forcedeth build fix
+Subject: ath5k-printk-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/forcedeth.c:3017: error: 'RX_WORK_PER_LOOP' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c: In function 'ath_txq_setup':
+drivers/net/wireless/ath5k_base.c:2033: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'long unsigned int'
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ath5k_base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~git-net-forcedeth-build-fix drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~git-net-forcedeth-build-fix
-+++ a/drivers/net/forcedeth.c
-@@ -159,6 +159,8 @@
- #define dprintk(x...)		do { } while (0)
- #endif
- 
-+#define TX_WORK_PER_LOOP  64
-+#define RX_WORK_PER_LOOP  64
- 
- /*
-  * Hardware access:
-@@ -3083,8 +3085,6 @@ static irqreturn_t nv_nic_irq(int foo, v
- 	return IRQ_RETVAL(i);
- }
- 
--#define TX_WORK_PER_LOOP  64
--#define RX_WORK_PER_LOOP  64
- /**
-  * All _optimized functions are used to help increase performance
-  * (reduce CPU and increase throughput). They use descripter version 3,
+diff -puN drivers/net/wireless/ath5k_base.c~ath5k-printk-fix drivers/net/wireless/ath5k_base.c
+--- a/drivers/net/wireless/ath5k_base.c~ath5k-printk-fix
++++ a/drivers/net/wireless/ath5k_base.c
+@@ -2029,7 +2029,7 @@ static struct ath_txq *ath_txq_setup(str
+ 		return ERR_PTR(qnum);
+ 	}
+ 	if (qnum >= ARRAY_SIZE(sc->txqs)) {
+-		printk(KERN_ERR "hal qnum %u out of range, max %u!\n",
++		printk(KERN_ERR "hal qnum %u out of range, max %tu!\n",
+ 			qnum, ARRAY_SIZE(sc->txqs));
+ 		ath5k_hw_release_tx_queue(ah, qnum);
+ 		return ERR_PTR(-EINVAL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +88,7 @@ e1000e-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 git-net.patch
 git-net-fixup.patch
+git-net-forcedeth-build-fix.patch
 git-net-vs-e1000e.patch
 git-net-xen-fix.patch
 git-backlight.patch
@@ -191,4 +185,4 @@ git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-forcedeth-build-fix.patch
+ath5k-printk-fix.patch
