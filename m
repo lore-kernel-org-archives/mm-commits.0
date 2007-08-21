@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch added to -mm tree
-Date: Tue, 21 Aug 2007 00:30:56 -0700
-Message-ID: <200708210736.l7L7a3Q7013191@imap1.linux-foundation.org>
+Subject: + pie-executable-randomization-fix-2.patch added to -mm tree
+Date: Tue, 21 Aug 2007 00:35:06 -0700
+Message-ID: <200708210740.l7L7eD9K013352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56584 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53165 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751847AbXHUHgd (ORCPT
+	by vger.kernel.org with ESMTP id S1750774AbXHUHlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 03:36:33 -0400
+	Tue, 21 Aug 2007 03:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, hpa@zytor.com, jakub@redhat.com, jkosina@suse.cz, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
+     pie-executable-randomization-fix-2
 has been added to the -mm tree.  Its filename is
-     pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+     pie-executable-randomization-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
+Subject: pie-executable-randomization-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/futex_compat.c:119: error: dereferencing pointer to incomplete type
+fs/binfmt_elf.c: In function 'load_elf_binary':
+fs/binfmt_elf.c:1016: warning: 'interp_map_addr' may be used uninitialized in this function
 
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Bret Towe <magnade@gmail.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Kunitz <kune@deine-taler.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/futex_compat.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3 kernel/futex_compat.c
---- a/kernel/futex_compat.c~pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3
-+++ a/kernel/futex_compat.c
-@@ -8,6 +8,7 @@
+diff -puN fs/binfmt_elf.c~pie-executable-randomization-fix-2 fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-executable-randomization-fix-2
++++ a/fs/binfmt_elf.c
+@@ -1013,7 +1013,7 @@ static int load_elf_binary(struct linux_
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+ 		} else {
+-			unsigned long interp_map_addr;	/* unused */
++			unsigned long uninitialized_var(interp_map_addr);
  
- #include <linux/linkage.h>
- #include <linux/compat.h>
-+#include <linux/nsproxy.h>
- #include <linux/futex.h>
- 
- #include <asm/uaccess.h>
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +153,7 @@ core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
