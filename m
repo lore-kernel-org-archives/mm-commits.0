@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + console-events-and-accessibility.patch added to -mm tree
-Date: Wed, 22 Aug 2007 15:01:55 -0700
-Message-ID: <200708222201.l7MM1tdt006918@imap1.linux-foundation.org>
+Subject: + fix-ver_linux-glibc-version-printing.patch added to -mm tree
+Date: Wed, 22 Aug 2007 15:02:55 -0700
+Message-ID: <200708222202.l7MM2tnv006939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49721 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763508AbXHVWCP (ORCPT
+	by vger.kernel.org with ESMTP id S934546AbXHVWDq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 18:02:15 -0400
+	Wed, 22 Aug 2007 18:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@ens-lyon.org
+Cc: jesper.juhl@gmail.com, adobriyan@sw.ru, viro@ftp.linux.org.uk
 
 
 The patch titled
-     Console events and accessibility
+     Fix ver_linux glibc version printing
 has been added to the -mm tree.  Its filename is
-     console-events-and-accessibility.patch
+     fix-ver_linux-glibc-version-printing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,222 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Console events and accessibility
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: Fix ver_linux glibc version printing
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Some external modules like Speakup need to monitor console output.
+Alexey Dobriyan reported that commit
+4a645d5ea65baaa5736bcb566673bf4a351b2ad8 broke ver_linux when glibc has a 3
+digit version number, and proposed a patch.  Al Viro then suggested a
+simpler way to solve the problem which I've then simply put into patch
+form.
 
-This adds a VT notifier that such modules can use to get console output events:
-allocation, deallocation, writes, other updates (cursor position, switch, etc.)
-
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Al Viro <viro@ftp.linux.org.uk>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c        |   45 ++++++++++++++++++++++++++++++++++++-
- include/linux/notifier.h |    6 ++++
- include/linux/vt.h       |   12 +++++++++
- 3 files changed, 62 insertions(+), 1 deletion(-)
+ scripts/ver_linux |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/vt.c~console-events-and-accessibility drivers/char/vt.c
---- a/drivers/char/vt.c~console-events-and-accessibility
-+++ a/drivers/char/vt.c
-@@ -99,6 +99,7 @@
- #include <linux/pm.h>
- #include <linux/font.h>
- #include <linux/bitops.h>
-+#include <linux/notifier.h>
+diff -puN scripts/ver_linux~fix-ver_linux-glibc-version-printing scripts/ver_linux
+--- a/scripts/ver_linux~fix-ver_linux-glibc-version-printing
++++ a/scripts/ver_linux
+@@ -63,9 +63,8 @@ isdnctrl 2>&1 | grep version | awk \
+ showmount --version 2>&1 | grep nfs-utils | awk \
+ 'NR==1{print "nfs-utils             ", $NF}'
  
- #include <asm/io.h>
- #include <asm/system.h>
-@@ -223,6 +224,35 @@ enum {
- };
+-ls -l `ldd /bin/sh | awk '/libc/{print $3}'` | sed \
+--e 's/\.so$//' | sed -e 's/>//' | \
+-awk -F'[.-]' '{print "Linux C Library        "$(NF-1)"."$NF}'
++echo -n "Linux C Library        "
++sed -n -e '/^.*\/libc-\([^/]*\)\.so$/{s//\1/;p;q}' < /proc/self/maps
  
- /*
-+ * Notifier list for console events.
-+ */
-+static ATOMIC_NOTIFIER_HEAD(vt_notifier_list);
-+
-+int register_vt_notifier(struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_register(&vt_notifier_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_vt_notifier);
-+
-+int unregister_vt_notifier(struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_unregister(&vt_notifier_list, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_vt_notifier);
-+
-+static void notify_write(struct vc_data *vc, unsigned int unicode)
-+{
-+	struct vt_notifier_param param = { .vc = vc, unicode = unicode };
-+	atomic_notifier_call_chain(&vt_notifier_list, VT_WRITE, &param);
-+}
-+
-+static void notify_update(struct vc_data *vc)
-+{
-+	struct vt_notifier_param param = { .vc = vc };
-+	atomic_notifier_call_chain(&vt_notifier_list, VT_UPDATE, &param);
-+}
-+
-+/*
-  *	Low-Level Functions
-  */
- 
-@@ -718,6 +748,7 @@ int vc_allocate(unsigned int currcons)	/
- 		return -ENXIO;
- 	if (!vc_cons[currcons].d) {
- 	    struct vc_data *vc;
-+	    struct vt_notifier_param param;
- 
- 	    /* prevent users from taking too much memory */
- 	    if (currcons >= MAX_NR_USER_CONSOLES && !capable(CAP_SYS_RESOURCE))
-@@ -729,7 +760,7 @@ int vc_allocate(unsigned int currcons)	/
- 	    /* although the numbers above are not valid since long ago, the
- 	       point is still up-to-date and the comment still has its value
- 	       even if only as a historical artifact.  --mj, July 1998 */
--	    vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
-+	    param.vc = vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
- 	    if (!vc)
- 		return -ENOMEM;
- 	    vc_cons[currcons].d = vc;
-@@ -746,6 +777,7 @@ int vc_allocate(unsigned int currcons)	/
- 	    }
- 	    vc->vc_kmalloced = 1;
- 	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
-+	    atomic_notifier_call_chain(&vt_notifier_list, VT_ALLOCATE, &param);
- 	}
- 	return 0;
- }
-@@ -902,6 +934,8 @@ void vc_deallocate(unsigned int currcons
- 
- 	if (vc_cons_allocated(currcons)) {
- 		struct vc_data *vc = vc_cons[currcons].d;
-+		struct vt_notifier_param param = { .vc = vc };
-+		atomic_notifier_call_chain(&vt_notifier_list, VT_DEALLOCATE, &param);
- 		vc->vc_sw->con_deinit(vc);
- 		put_pid(vc->vt_pid);
- 		module_put(vc->vc_sw->owner);
-@@ -1014,6 +1048,7 @@ static void lf(struct vc_data *vc)
- 		vc->vc_pos += vc->vc_size_row;
- 	}
- 	vc->vc_need_wrap = 0;
-+	notify_write(vc, '\n');
- }
- 
- static void ri(struct vc_data *vc)
-@@ -1034,6 +1069,7 @@ static inline void cr(struct vc_data *vc
- {
- 	vc->vc_pos -= vc->vc_x << 1;
- 	vc->vc_need_wrap = vc->vc_x = 0;
-+	notify_write(vc, '\r');
- }
- 
- static inline void bs(struct vc_data *vc)
-@@ -1042,6 +1078,7 @@ static inline void bs(struct vc_data *vc
- 		vc->vc_pos -= 2;
- 		vc->vc_x--;
- 		vc->vc_need_wrap = 0;
-+		notify_write(vc, '\b');
- 	}
- }
- 
-@@ -1588,6 +1625,7 @@ static void do_con_trol(struct tty_struc
- 				break;
- 		}
- 		vc->vc_pos += (vc->vc_x << 1);
-+		notify_write(vc, '\t');
- 		return;
- 	case 10: case 11: case 12:
- 		lf(vc);
-@@ -2247,6 +2285,7 @@ rescan_last_byte:
- 				tc = conv_uni_to_pc(vc, ' '); /* A space is printed in the second column */
- 				if (tc < 0) tc = ' ';
- 			}
-+			notify_write(vc, c);
- 
- 			if (inverse) {
- 				FLUSH
-@@ -2269,6 +2308,7 @@ rescan_last_byte:
- 	release_console_sem();
- 
- out:
-+	notify_update(vc);
- 	return n;
- #undef FLUSH
- }
-@@ -2312,6 +2352,7 @@ static void console_callback(struct work
- 		do_blank_screen(0);
- 		blank_timer_expired = 0;
- 	}
-+	notify_update(vc_cons[fg_console].d);
- 
- 	release_console_sem();
- }
-@@ -2413,6 +2454,7 @@ static void vt_console_print(struct cons
- 				continue;
- 		}
- 		scr_writew((vc->vc_attr << 8) + c, (unsigned short *)vc->vc_pos);
-+		notify_write(vc, c);
- 		cnt++;
- 		if (myx == vc->vc_cols - 1) {
- 			vc->vc_need_wrap = 1;
-@@ -2431,6 +2473,7 @@ static void vt_console_print(struct cons
- 		}
- 	}
- 	set_cursor(vc);
-+	notify_update(vc);
- 
- quit:
- 	clear_bit(0, &printing);
-diff -puN include/linux/notifier.h~console-events-and-accessibility include/linux/notifier.h
---- a/include/linux/notifier.h~console-events-and-accessibility
-+++ a/include/linux/notifier.h
-@@ -242,5 +242,11 @@ static inline int notifier_to_errno(int 
- 
- extern struct blocking_notifier_head reboot_notifier_list;
- 
-+/* Virtual Terminal events. */
-+#define VT_ALLOCATE		0x0001 /* Console got allocated */
-+#define VT_DEALLOCATE		0x0002 /* Console will be deallocated */
-+#define VT_WRITE		0x0003 /* A char got output */
-+#define VT_UPDATE		0x0004 /* A bigger update occurred */
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_NOTIFIER_H */
-diff -puN include/linux/vt.h~console-events-and-accessibility include/linux/vt.h
---- a/include/linux/vt.h~console-events-and-accessibility
-+++ a/include/linux/vt.h
-@@ -1,6 +1,18 @@
- #ifndef _LINUX_VT_H
- #define _LINUX_VT_H
- 
-+#ifdef __KERNEL__
-+#include <linux/notifier.h>
-+
-+struct vt_notifier_param {
-+	struct vc_data *vc;	/* VC on which the update happened */
-+	unsigned int c;		/* Printed char */
-+};
-+
-+extern int register_vt_notifier(struct notifier_block *nb);
-+extern int unregister_vt_notifier(struct notifier_block *nb);
-+#endif
-+
- /*
-  * These constants are also useful for user-level apps (e.g., VC
-  * resizing).
+ ldd -v > /dev/null 2>&1 && ldd -v || ldd --version |head -n 1 | awk \
+ 'NR==1{print "Dynamic linker (ldd)  ", $NF}'
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-keyboard-capsshift-lock.patch
-10-dots-braille-keyboards.patch
-console-keyboard-events-and-accessibility.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-unicode-diacritics-support.patch
-unicode-diacritics-support-s390-fix.patch
-console-events-and-accessibility.patch
+origin.patch
+fix-ver_linux-glibc-version-printing.patch
+git-alsa.patch
+git-agpgart.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-powerpc.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+clean-up-duplicate-includes-in-drivers-input.patch
+scripts-ver_linux-correct-printing-of-binutils-version.patch
+improve-scripts-gcc-versionsh-output-a-bit-when-called-without-args.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-scsi-misc.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-watchdog.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
