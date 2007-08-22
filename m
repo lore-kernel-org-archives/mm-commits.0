@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch removed from -mm tree
-Date: Wed, 22 Aug 2007 13:24:11 -0700
-Message-ID: <200708222024.l7MKOBKL002411@imap1.linux-foundation.org>
+Subject: - remove-bdput-from-do_open-in-fs-block_devc-fix.patch removed from -mm tree
+Date: Wed, 22 Aug 2007 13:24:49 -0700
+Message-ID: <200708222024.l7MKOnKS002430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763233AbXHVUYw (ORCPT
+	by vger.kernel.org with ESMTP id S1763171AbXHVUZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 16:24:52 -0400
+	Wed, 22 Aug 2007 16:25:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, rafalbilski@interia.pl, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synchronous lumpy: improve commentary on writeback wait
+     remove-bdput-from-do_open-in-fs-block_devc-fix
 has been removed from the -mm tree.  Its filename was
-     wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
+     remove-bdput-from-do_open-in-fs-block_devc-fix.patch
 
-This patch was dropped because it was folded into wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
+This patch was dropped because it was folded into remove-bdput-from-do_=
+open-in-fs-block_devc.patch
 
 ------------------------------------------------------
-Subject: synchronous lumpy: improve commentary on writeback wait
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: remove-bdput-from-do_open-in-fs-block_devc-fix
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-Improve code commentary on the initial writeback wait in synchronous
-reclaim mode.
+=46ix up blkdev_open() error-path refcounting.
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Rafa=B3 Bilski <rafalbilski@interia.pl>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/block_dev.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix mm/vmscan.c
---- a/mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix
-+++ a/mm/vmscan.c
-@@ -479,6 +479,14 @@ static unsigned long shrink_page_list(st
- 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
- 
- 		if (PageWriteback(page)) {
-+			/*
-+			 * Synchronous reclaim is performed in two passes,
-+			 * first an asynchronous pass over the list to
-+			 * start parallel writeback, and a second synchronous
-+			 * pass to wait for the IO to complete.  Wait here
-+			 * for any page for which writeback has already
-+			 * started.
-+			 */
- 			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
- 				wait_on_page_writeback(page);
- 			else
+diff -puN fs/block_dev.c~remove-bdput-from-do_open-in-fs-block_devc-fix=
+ fs/block_dev.c
+--- a/fs/block_dev.c~remove-bdput-from-do_open-in-fs-block_devc-fix
++++ a/fs/block_dev.c
+@@ -1246,8 +1246,10 @@ static int blkdev_open(struct inode * in
+ 		return -ENOMEM;
+=20
+ 	res =3D do_open(bdev, filp, 0);
+-	if (res)
++	if (res) {
++		bdput(bdev);
+ 		return res;
++	}
+=20
+ 	if (!(filp->f_flags & O_EXCL) )
+ 		return 0;
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
 origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
-wait-for-page-writeback-when-directly-reclaiming-contiguous-areas-fix.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.pa=
+tch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+free_irq-fix-debug_shirq-handling.patch
+selectionh-add-tty_struct-forward-declaration.patch
+newport_con-warning-fix.patch
+remove-bdput-from-do_open-in-fs-block_devc.patch
+remove-bdput-from-do_open-in-fs-block_devc-fix.patch
