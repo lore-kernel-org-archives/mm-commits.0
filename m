@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + get_nodes-should-ignore-invalid-node.patch added to -mm tree
-Date: Tue, 21 Aug 2007 19:35:13 -0700
-Message-ID: <200708220235.l7M2ZDDW023334@imap1.linux-foundation.org>
+Subject: + flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch added to -mm tree
+Date: Tue, 21 Aug 2007 19:37:04 -0700
+Message-ID: <200708220237.l7M2b4hl023435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40598 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44935 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752034AbXHVCf2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752402AbXHVChW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 22:35:28 -0400
+	Tue, 21 Aug 2007 22:37:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, clameter@sgi.com, stable@kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com
 
 
 The patch titled
-     get_nodes() should ignore invalid node
+     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
 has been added to the -mm tree.  Its filename is
-     get_nodes-should-ignore-invalid-node.patch
+     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_nodes() should ignore invalid node
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-get_nodes() doesn't check if nodes in node mask are valid, cause a kernel
-oops when an invalid node is used..
+* add pte_present_exec_user()
+* remove pte_user
+* fixed comments.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: <stable@kernel.org>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-ia64/pgtable.h |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN mm/mempolicy.c~get_nodes-should-ignore-invalid-node mm/mempolicy.c
---- a/mm/mempolicy.c~get_nodes-should-ignore-invalid-node
-+++ a/mm/mempolicy.c
-@@ -850,6 +850,8 @@ static int get_nodes(nodemask_t *nodes, 
- 	if (copy_from_user(nodes_addr(*nodes), nmask, nlongs*sizeof(unsigned long)))
- 		return -EFAULT;
- 	nodes_addr(*nodes)[nlongs-1] &= endmask;
+diff -puN include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update
++++ a/include/asm-ia64/pgtable.h
+@@ -297,7 +297,6 @@ ia64_phys_addr_valid (unsigned long addr
+ /*
+  * The following have defined behavior only work if pte_present() is true.
+  */
+-#define pte_user(pte)	((pte_val(pte) & _PAGE_PL_MASK) == _PAGE_PL_3)
+ #define pte_write(pte)	((unsigned) (((pte_val(pte) & _PAGE_AR_MASK) >> _PAGE_AR_SHIFT) - 2) <= 4)
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+@@ -324,14 +323,20 @@ ia64_phys_addr_valid (unsigned long addr
+  *  set_pte() is also called by the kernel, but we can expect that the kernel
+  *  flushes icache explicitly if necessary.
+  */
++#define pte_present_exec_user(pte)\
++	((pte_val(pte) & (_PAGE_P | _PAGE_PL_MASK | _PAGE_AR_RX)) == \
++		(_PAGE_P | _PAGE_PL_3 | _PAGE_AR_RX))
 +
-+	nodes_and(*nodes, *nodes, node_online_map);
- 	return 0;
- }
- 
+ extern void __ia64_sync_icache_dcache(pte_t pteval);
+ static inline void set_pte(pte_t *ptep, pte_t pteval)
+ {
+-	if (pte_present(pteval) &&// swap out ?
+-	    pte_exec(pteval) &&    // flush only new executable page.
+-	    pte_user(pteval) &&    // ignore kernel page
+-	    (!pte_present(*ptep) ||// do_no_page or swap in, migration,
+-		pte_pfn(*ptep) != pte_pfn(pteval))) // do_wp_page(), page copy
++	/* page is present && page is user  && page is executable
++	 * && (page swapin or new page or page migraton
++	 *	|| copy_on_write with page copying.)
++	 */
++	if (pte_present_exec_user(pteval) &&
++	    (!pte_present(*ptep) ||
++		pte_pfn(*ptep) != pte_pfn(pteval)))
+ 		/* load_module() calles flush_icache_range() explicitly*/
+ 		__ia64_sync_icache_dcache(pteval);
+ 	*ptep = pteval;
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-get_nodes-should-ignore-invalid-node.patch
-git-acpi.patch
-git-kvm.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-ia64-interface.patch
