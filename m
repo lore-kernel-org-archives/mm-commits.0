@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-driver-runtime-footprint-shrinkage.patch added to -mm tree
-Date: Wed, 22 Aug 2007 16:09:35 -0700
-Message-ID: <200708222309.l7MN9ZsD009659@imap1.linux-foundation.org>
+Subject: + char-moxa-cleanup-prints.patch added to -mm tree
+Date: Wed, 22 Aug 2007 16:10:46 -0700
+Message-ID: <200708222310.l7MNAk77009682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50110 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760356AbXHVXKU (ORCPT
+	by vger.kernel.org with ESMTP id S932877AbXHVXLY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 19:10:20 -0400
+	Wed, 22 Aug 2007 19:11:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     SPI driver runtime footprint shrinkage
+     Char: moxa, cleanup prints
 has been added to the -mm tree.  Its filename is
-     spi-driver-runtime-footprint-shrinkage.patch
+     char-moxa-cleanup-prints.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,255 +26,242 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SPI driver runtime footprint shrinkage
-From: David Brownell <david-b@pacbell.net>
+Subject: Char: moxa, cleanup prints
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Shrink the runtime footprint of various SPI drivers:
+- use dev_* where pdev is available (probe function)
+- add some printks on fail paths
+- add KERN_ macros otherwise
+- remove useless verbose variable
+- wrap lines to 80 cols at most
 
-  - Move the probe() routine into the init section where practical,
-    using platform_driver_probe() to make that safe.  This often saves
-    around 1KB.  Using platform_driver_probe() can also be a correctness
-    fix, if the probe routine is already marked __init but the driver
-    struct keeps a dangling pointer to it after init section removal.
-
-  - Likewise move remove() routines into the exit sections.
-
-These changes would be inappropriate iff the platform devices were
-actually hotpluggable (e.g. they're found on optional addon cards,
-or in an FPGA that's dynamically reprogrammed).  In these cases,
-that's not the situation; it's an SOC controller and the only device
-is initialized before these drivers.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap_uwire.c  |    9 ++++-----
- drivers/spi/pxa2xx_spi.c  |   11 ++++-------
- drivers/spi/spi_imx.c     |   11 +++++------
- drivers/spi/spi_mpc83xx.c |    7 +++----
- drivers/spi/spi_s3c24xx.c |    9 ++++-----
- 5 files changed, 20 insertions(+), 27 deletions(-)
+ drivers/char/moxa.c |   73 +++++++++++++++++-------------------------
+ 1 files changed, 31 insertions(+), 42 deletions(-)
 
-diff -puN drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage drivers/spi/omap_uwire.c
---- a/drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/omap_uwire.c
-@@ -481,7 +481,7 @@ static void uwire_off(struct uwire_spi *
- 	spi_master_put(uwire->bitbang.master);
- }
+diff -puN drivers/char/moxa.c~char-moxa-cleanup-prints drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-cleanup-prints
++++ a/drivers/char/moxa.c
+@@ -166,7 +166,6 @@ struct moxa_port {
  
--static int uwire_probe(struct platform_device *pdev)
-+static int __init uwire_probe(struct platform_device *pdev)
- {
- 	struct spi_master	*master;
- 	struct uwire_spi	*uwire;
-@@ -525,7 +525,7 @@ static int uwire_probe(struct platform_d
- 	return status;
- }
+ #define WAKEUP_CHARS		256
  
--static int uwire_remove(struct platform_device *pdev)
-+static int __exit uwire_remove(struct platform_device *pdev)
- {
- 	struct uwire_spi	*uwire = dev_get_drvdata(&pdev->dev);
- 	int			status;
-@@ -543,8 +543,7 @@ static struct platform_driver uwire_driv
- 		.bus		= &platform_bus_type,
- 		.owner		= THIS_MODULE,
- 	},
--	.probe		= uwire_probe,
--	.remove		= uwire_remove,
-+	.remove		= __exit_p(uwire_remove),
- 	// suspend ... unuse ck
- 	// resume ... use ck
- };
-@@ -566,7 +565,7 @@ static int __init omap_uwire_init(void)
- 		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
+-static int verbose = 0;
+ static int ttymajor = MOXAMAJOR;
+ /* Variables for insmod */
+ #ifdef MODULE
+@@ -184,7 +183,6 @@ module_param_array(baseaddr, int, NULL, 
+ module_param_array(numports, int, NULL, 0);
+ #endif
+ module_param(ttymajor, int, 0);
+-module_param(verbose, bool, 0644);
+ 
+ /*
+  * static functions:
+@@ -283,8 +281,10 @@ static int __devinit moxa_pci_probe(stru
+ 	int retval;
+ 
+ 	retval = pci_enable_device(pdev);
+-	if (retval)
++	if (retval) {
++		dev_err(&pdev->dev, "can't enable pci device\n");
+ 		goto err;
++	}
+ 
+ 	for (i = 0; i < MAX_BOARDS; i++)
+ 		if (moxa_boards[i].basemem == NULL)
+@@ -292,16 +292,17 @@ static int __devinit moxa_pci_probe(stru
+ 
+ 	retval = -ENODEV;
+ 	if (i >= MAX_BOARDS) {
+-		if (verbose)
+-			printk("More than %d MOXA Intellio family boards "
++		dev_warn(&pdev->dev, "more than %u MOXA Intellio family boards "
+ 				"found. Board is ignored.\n", MAX_BOARDS);
+ 		goto err;
  	}
  
--	return platform_driver_register(&uwire_driver);
-+	return platform_driver_probe(&uwire_driver, uwire_probe);
- }
+ 	board = &moxa_boards[i];
+ 	board->basemem = pci_iomap(pdev, 2, 0x4000);
+-	if (board->basemem == NULL)
++	if (board->basemem == NULL) {
++		dev_err(&pdev->dev, "can't remap io space 2\n");
+ 		goto err;
++	}
  
- static void __exit omap_uwire_exit(void)
-diff -puN drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1229,7 +1229,7 @@ static void cleanup(struct spi_device *s
- 	kfree(chip);
- }
+ 	board->boardType = board_type;
+ 	switch (board_type) {
+@@ -347,7 +348,8 @@ static int __init moxa_init(void)
+ 	int i, numBoards, retval = 0;
+ 	struct moxa_port *ch;
  
--static int init_queue(struct driver_data *drv_data)
-+static int __init init_queue(struct driver_data *drv_data)
+-	printk(KERN_INFO "MOXA Intellio family driver version %s\n", MOXA_VERSION);
++	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
++			MOXA_VERSION);
+ 	moxaDriver = alloc_tty_driver(MAX_PORTS + 1);
+ 	if (!moxaDriver)
+ 		return -ENOMEM;
+@@ -378,7 +380,7 @@ static int __init moxa_init(void)
+ 				(unsigned long)ch);
+ 	}
+ 
+-	printk("Tty devices major number = %d\n", ttymajor);
++	pr_debug("Moxa tty devices major number = %d\n", ttymajor);
+ 
+ 	if (tty_register_driver(moxaDriver)) {
+ 		printk(KERN_ERR "Couldn't install MOXA Smartio family driver !\n");
+@@ -400,11 +402,10 @@ static int __init moxa_init(void)
+ 				moxa_boards[numBoards].numPorts = moxa_isa_boards[i].numPorts;
+ 			moxa_boards[numBoards].busType = MOXA_BUS_TYPE_ISA;
+ 			moxa_boards[numBoards].baseAddr = moxa_isa_boards[i].baseAddr;
+-			if (verbose)
+-				printk("Board %2d: %s board(baseAddr=%lx)\n",
+-				       numBoards + 1,
+-				       moxa_brdname[moxa_boards[numBoards].boardType - 1],
+-				       moxa_boards[numBoards].baseAddr);
++			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
++			       numBoards + 1,
++			       moxa_brdname[moxa_boards[numBoards].boardType-1],
++			       moxa_boards[numBoards].baseAddr);
+ 			numBoards++;
+ 		}
+ 	}
+@@ -413,14 +414,13 @@ static int __init moxa_init(void)
+ 	for (i = 0; i < MAX_BOARDS; i++) {
+ 		if ((type[i] == MOXA_BOARD_C218_ISA) ||
+ 		    (type[i] == MOXA_BOARD_C320_ISA)) {
+-			if (verbose)
+-				printk("Board %2d: %s board(baseAddr=%lx)\n",
+-				       numBoards + 1,
+-				       moxa_brdname[type[i] - 1],
+-				       (unsigned long) baseaddr[i]);
++			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
++			       numBoards + 1, moxa_brdname[type[i] - 1],
++			       (unsigned long)baseaddr[i]);
+ 			if (numBoards >= MAX_BOARDS) {
+-				if (verbose)
+-					printk("More than %d MOXA Intellio family boards found. Board is ignored.", MAX_BOARDS);
++				printk(KERN_WARNING "More than %d MOXA "
++					"Intellio family boards found. Board "
++					"is ignored.\n", MAX_BOARDS);
+ 				continue;
+ 			}
+ 			moxa_boards[numBoards].boardType = type[i];
+@@ -456,16 +456,14 @@ static void __exit moxa_exit(void)
  {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1317,7 +1317,7 @@ static int destroy_queue(struct driver_d
- 	return 0;
- }
+ 	int i;
  
--static int pxa2xx_spi_probe(struct platform_device *pdev)
-+static int __init pxa2xx_spi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct pxa2xx_spi_master *platform_info;
-@@ -1621,8 +1621,7 @@ static struct platform_driver driver = {
- 		.bus = &platform_bus_type,
- 		.owner = THIS_MODULE,
- 	},
--	.probe = pxa2xx_spi_probe,
--	.remove = __devexit_p(pxa2xx_spi_remove),
-+	.remove = pxa2xx_spi_remove,
- 	.shutdown = pxa2xx_spi_shutdown,
- 	.suspend = pxa2xx_spi_suspend,
- 	.resume = pxa2xx_spi_resume,
-@@ -1630,9 +1629,7 @@ static struct platform_driver driver = {
- 
- static int __init pxa2xx_spi_init(void)
- {
--	platform_driver_register(&driver);
+-	if (verbose)
+-		printk("Unloading module moxa ...\n");
 -
--	return 0;
-+	return platform_driver_probe(&driver, pxa2xx_spi_probe);
- }
- module_init(pxa2xx_spi_init);
+ 	del_timer_sync(&moxaTimer);
  
-diff -puN drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_imx.c
-@@ -1361,7 +1361,7 @@ static void cleanup(struct spi_device *s
- 	kfree(spi_get_ctldata(spi));
- }
+ 	for (i = 0; i < MAX_PORTS; i++)
+ 		del_timer_sync(&moxa_ports[i].emptyTimer);
  
--static int init_queue(struct driver_data *drv_data)
-+static int __init init_queue(struct driver_data *drv_data)
- {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1444,7 +1444,7 @@ static int destroy_queue(struct driver_d
- 	return 0;
- }
+ 	if (tty_unregister_driver(moxaDriver))
+-		printk("Couldn't unregister MOXA Intellio family serial driver\n");
++		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
++				"serial driver\n");
+ 	put_tty_driver(moxaDriver);
  
--static int spi_imx_probe(struct platform_device *pdev)
-+static int __init spi_imx_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct spi_imx_master *platform_info;
-@@ -1622,7 +1622,7 @@ err_no_mem:
- 	return status;
+ #ifdef CONFIG_PCI
+@@ -475,9 +473,6 @@ static void __exit moxa_exit(void)
+ 	for (i = 0; i < MAX_BOARDS; i++)
+ 		if (moxa_boards[i].basemem)
+ 			iounmap(moxa_boards[i].basemem);
+-
+-	if (verbose)
+-		printk("Done\n");
  }
  
--static int __devexit spi_imx_remove(struct platform_device *pdev)
-+static int __exit spi_imx_remove(struct platform_device *pdev)
- {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int irq;
-@@ -1739,8 +1739,7 @@ static struct platform_driver driver = {
- 		.bus = &platform_bus_type,
- 		.owner = THIS_MODULE,
- 	},
--	.probe = spi_imx_probe,
--	.remove = __devexit_p(spi_imx_remove),
-+	.remove = __exit_p(spi_imx_remove),
- 	.shutdown = spi_imx_shutdown,
- 	.suspend = spi_imx_suspend,
- 	.resume = spi_imx_resume,
-@@ -1748,7 +1747,7 @@ static struct platform_driver driver = {
+ module_init(moxa_init);
+@@ -532,9 +527,7 @@ static void moxa_close(struct tty_struct
+ 		return;
+ 	}
+ 	if (!MoxaPortIsValid(port)) {
+-#ifdef SERIAL_DEBUG_CLOSE
+-		printk("Invalid portno in moxa_close\n");
+-#endif
++		pr_debug("Invalid portno in moxa_close\n");
+ 		tty->driver_data = NULL;
+ 		return;
+ 	}
+@@ -547,13 +540,13 @@ static void moxa_close(struct tty_struct
+ 	ch = (struct moxa_port *) tty->driver_data;
  
- static int __init spi_imx_init(void)
- {
--	return platform_driver_register(&driver);
-+	return platform_driver_probe(&driver, spi_imx_probe);
- }
- module_init(spi_imx_init);
- 
-diff -puN drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -514,7 +514,7 @@ err:
- 	return ret;
- }
- 
--static int __devexit mpc83xx_spi_remove(struct platform_device *dev)
-+static int __exit mpc83xx_spi_remove(struct platform_device *dev)
- {
- 	struct mpc83xx_spi *mpc83xx_spi;
- 	struct spi_master *master;
-@@ -532,8 +532,7 @@ static int __devexit mpc83xx_spi_remove(
- 
- MODULE_ALIAS("mpc83xx_spi");			/* for platform bus hotplug */
- static struct platform_driver mpc83xx_spi_driver = {
--	.probe = mpc83xx_spi_probe,
--	.remove = __devexit_p(mpc83xx_spi_remove),
-+	.remove = __exit_p(mpc83xx_spi_remove),
- 	.driver = {
- 		   .name = "mpc83xx_spi",
- 	},
-@@ -541,7 +540,7 @@ static struct platform_driver mpc83xx_sp
- 
- static int __init mpc83xx_spi_init(void)
- {
--	return platform_driver_register(&mpc83xx_spi_driver);
-+	return platform_driver_probe(&mpc83xx_spi_driver, mpc83xx_spi_probe);
- }
- 
- static void __exit mpc83xx_spi_exit(void)
-diff -puN drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -233,7 +233,7 @@ static irqreturn_t s3c24xx_spi_irq(int i
- 	return IRQ_HANDLED;
- }
- 
--static int s3c24xx_spi_probe(struct platform_device *pdev)
-+static int __init s3c24xx_spi_probe(struct platform_device *pdev)
- {
- 	struct s3c24xx_spi *hw;
- 	struct spi_master *master;
-@@ -382,7 +382,7 @@ static int s3c24xx_spi_probe(struct plat
- 	return err;
- }
- 
--static int s3c24xx_spi_remove(struct platform_device *dev)
-+static int __exit s3c24xx_spi_remove(struct platform_device *dev)
- {
- 	struct s3c24xx_spi *hw = platform_get_drvdata(dev);
- 
-@@ -429,8 +429,7 @@ static int s3c24xx_spi_resume(struct pla
- 
- MODULE_ALIAS("s3c2410_spi");			/* for platform bus hotplug */
- static struct platform_driver s3c24xx_spidrv = {
--	.probe		= s3c24xx_spi_probe,
--	.remove		= s3c24xx_spi_remove,
-+	.remove		= __exit_p(s3c24xx_spi_remove),
- 	.suspend	= s3c24xx_spi_suspend,
- 	.resume		= s3c24xx_spi_resume,
- 	.driver		= {
-@@ -441,7 +440,7 @@ static struct platform_driver s3c24xx_sp
- 
- static int __init s3c24xx_spi_init(void)
- {
--        return platform_driver_register(&s3c24xx_spidrv);
-+        return platform_driver_probe(&s3c24xx_spidrv, s3c24xx_spi_probe);
- }
- 
- static void __exit s3c24xx_spi_exit(void)
+ 	if ((tty->count == 1) && (ch->count != 1)) {
+-		printk("moxa_close: bad serial port count; tty->count is 1, "
+-		       "ch->count is %d\n", ch->count);
++		printk(KERN_WARNING "moxa_close: bad serial port count; "
++			"tty->count is 1, ch->count is %d\n", ch->count);
+ 		ch->count = 1;
+ 	}
+ 	if (--ch->count < 0) {
+-		printk("moxa_close: bad serial port count, device=%s\n",
+-		       tty->name);
++		printk(KERN_WARNING "moxa_close: bad serial port count, "
++			"device=%s\n", tty->name);
+ 		ch->count = 0;
+ 	}
+ 	if (ch->count) {
+@@ -971,10 +964,8 @@ static int block_till_ready(struct tty_s
+ 	 */
+ 	retval = 0;
+ 	add_wait_queue(&ch->open_wait, &wait);
+-#ifdef SERIAL_DEBUG_OPEN
+-	printk("block_til_ready before block: ttys%d, count = %d\n",
+-	       ch->line, ch->count);
+-#endif
++	pr_debug("block_til_ready before block: ttys%d, count = %d\n",
++		ch->port, ch->count);
+ 	spin_lock_irqsave(&moxa_lock, flags);
+ 	if (!tty_hung_up_p(filp))
+ 		ch->count--;
+@@ -1013,10 +1004,8 @@ static int block_till_ready(struct tty_s
+ 		ch->count++;
+ 	ch->blocked_open--;
+ 	spin_unlock_irqrestore(&moxa_lock, flags);
+-#ifdef SERIAL_DEBUG_OPEN
+-	printk("block_til_ready after blocking: ttys%d, count = %d\n",
+-	       ch->line, ch->count);
+-#endif
++	pr_debug("block_til_ready after blocking: ttys%d, count = %d\n",
++		ch->port, ch->count);
+ 	if (retval)
+ 		return (retval);
+ 	/* FIXME: review to see if we need to use set_bit on these */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-correct-name-for-rtc-m41t80.patch
-rtc-max6902-minor-fixes.patch
-spi-driver-hotplug-coldplug-fixes.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-git-mmc.patch
-git-mtd.patch
-ohci-fix-oddball-gcc-warning.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-spi-driver-runtime-footprint-shrinkage.patch
-rtc-periodic-irq-fix.patch
-rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+net-add-ath5k-wireless-driver.patch
+net-add-ath5k-wireless-driver-fix.patch
+ath5k-printk-fix.patch
+ath5k-kconfig-fix.patch
+ath5k-needs-pci.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+char-mxser_new-upgrade-to-110.patch
+char-mxser_new-move-to-pci_vdevice.patch
+char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+char-cyclades-remove-bottom-half-processing.patch
+char-cyclades-make-the-isr-code-readable.patch
+char-cyclades-move-spin_lock-to-one-place.patch
+char-cyclades-fix-some-w-warnings.patch
+char-moxa-cleanup-prints.patch
+char-moxa-function-names-cleanup.patch
+char-moxa-remove-sleep_on.patch
+fs-select-remove-unused-macros.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+shrink_slab-handle-bad-shrinkers.patch
