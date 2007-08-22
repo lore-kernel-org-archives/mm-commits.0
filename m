@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-linker-script-alignment-bugs.patch added to -mm tree
-Date: Wed, 22 Aug 2007 14:49:28 -0700
-Message-ID: <200708222149.l7MLnS0D006404@imap1.linux-foundation.org>
+Subject: + kprobes-support-kretprobe-blacklist.patch added to -mm tree
+Date: Wed, 22 Aug 2007 15:01:11 -0700
+Message-ID: <200708222201.l7MM1B9d006889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763471AbXHVVtn (ORCPT
+	by vger.kernel.org with ESMTP id S933131AbXHVWBj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 17:49:43 -0400
+	Wed, 22 Aug 2007 18:01:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com
 
 
 The patch titled
-     uml: fix linker script alignment bugs
+     kprobes: support kretprobe blacklist
 has been added to the -mm tree.  Its filename is
-     uml-fix-linker-script-alignment-bugs.patch
+     kprobes-support-kretprobe-blacklist.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,280 +26,287 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix linker script alignment bugs
-From: Jeff Dike <jdike@addtoit.com>
+Subject: kprobes: support kretprobe blacklist
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Fix a class of bugs in the UML linker scripts which caused section boundary
-variables to sometimes not line up with their sections.
+Introduce architecture dependent kretprobe blacklists to prohibit users
+from inserting return probes on the function in which kprobes can be
+inserted but kretprobes can not.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+This patch also removes "__kprobes" mark from "__switch_to" on x86_64 and
+registers "__switch_to" to the blacklist on x86-64, because that mark is to
+prohibit user from inserting only kretprobe.
+
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/dyn.lds.S    |   12 +--
- arch/um/kernel/uml.lds.S    |   11 +-
- include/asm-um/common.lds.S |  128 ++++++++++++++++++++--------------
- 3 files changed, 92 insertions(+), 59 deletions(-)
+ arch/avr32/kernel/kprobes.c   |    2 ++
+ arch/i386/kernel/kprobes.c    |    7 +++++++
+ arch/ia64/kernel/kprobes.c    |    2 ++
+ arch/powerpc/kernel/kprobes.c |    2 ++
+ arch/s390/kernel/kprobes.c    |    2 ++
+ arch/sparc64/kernel/kprobes.c |    2 ++
+ arch/x86_64/kernel/kprobes.c  |    7 +++++++
+ arch/x86_64/kernel/process.c  |    2 +-
+ include/asm-avr32/kprobes.h   |    2 ++
+ include/asm-i386/kprobes.h    |    2 ++
+ include/asm-ia64/kprobes.h    |    1 +
+ include/asm-powerpc/kprobes.h |    1 +
+ include/asm-s390/kprobes.h    |    1 +
+ include/asm-sparc64/kprobes.h |    2 ++
+ include/asm-x86_64/kprobes.h  |    1 +
+ include/linux/kprobes.h       |    6 ++++++
+ kernel/kprobes.c              |   23 +++++++++++++++++++++++
+ 17 files changed, 64 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/dyn.lds.S~uml-fix-linker-script-alignment-bugs arch/um/kernel/dyn.lds.S
---- a/arch/um/kernel/dyn.lds.S~uml-fix-linker-script-alignment-bugs
-+++ a/arch/um/kernel/dyn.lds.S
-@@ -71,11 +71,13 @@ SECTIONS
-     *(.gnu.warning)
+diff -puN arch/avr32/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/avr32/kernel/kprobes.c
+--- a/arch/avr32/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/avr32/kernel/kprobes.c
+@@ -22,6 +22,8 @@ DEFINE_PER_CPU(struct kprobe *, current_
+ static unsigned long kprobe_status;
+ static struct pt_regs jprobe_saved_regs;
  
-     . = ALIGN(4096);
--    __syscall_stub_start = .;
--    *(.__syscall_stub*)
--    __syscall_stub_end = .;
--    . = ALIGN(4096);
-   } =0x90909090
-+  . = ALIGN(4096);
-+  .syscall_stub : {
-+	__syscall_stub_start = .;
-+	*(.__syscall_stub*)
-+	__syscall_stub_end = .;
-+  }
-   .fini           : {
-     KEEP (*(.fini))
-   } =0x90909090
-@@ -138,8 +140,8 @@ SECTIONS
-   .got            : { *(.got.plt) *(.got) }
-   _edata = .;
-   PROVIDE (edata = .);
--  __bss_start = .;
-   .bss            : {
-+   __bss_start = .;
-    *(.dynbss)
-    *(.bss .bss.* .gnu.linkonce.b.*)
-    *(COMMON)
-diff -puN arch/um/kernel/uml.lds.S~uml-fix-linker-script-alignment-bugs arch/um/kernel/uml.lds.S
---- a/arch/um/kernel/uml.lds.S~uml-fix-linker-script-alignment-bugs
-+++ a/arch/um/kernel/uml.lds.S
-@@ -44,12 +44,13 @@ SECTIONS
-     /* .gnu.warning sections are handled specially by elf32.em.  */
-     *(.gnu.warning)
-     *(.gnu.linkonce.t*)
-+  }
- 
--    . = ALIGN(4096);
--    __syscall_stub_start = .;
--    *(.__syscall_stub*)
--    __syscall_stub_end = .;
--    . = ALIGN(4096);
-+  . = ALIGN(4096);
-+  .syscall_stub : {
-+	__syscall_stub_start = .;
-+	*(.__syscall_stub*)
-+	__syscall_stub_end = .;
-   }
- 
-   #include "asm/common.lds.S"
-diff -puN include/asm-um/common.lds.S~uml-fix-linker-script-alignment-bugs include/asm-um/common.lds.S
---- a/include/asm-um/common.lds.S~uml-fix-linker-script-alignment-bugs
-+++ a/include/asm-um/common.lds.S
-@@ -16,82 +16,112 @@
- 
-   . = ALIGN(4096);
-   .note : { *(.note.*) }
--  __start___ex_table = .;
--  __ex_table : { *(__ex_table) }
--  __stop___ex_table = .;
-+  __ex_table : {
-+	__start___ex_table = .;
-+	*(__ex_table)
-+	__stop___ex_table = .;
-+  }
- 
-   BUG_TABLE
- 
--  __uml_setup_start = .;
--  .uml.setup.init : { *(.uml.setup.init) }
--  __uml_setup_end = .;
-+  .uml.setup.init : {
-+	__uml_setup_start = .;
-+	*(.uml.setup.init)
-+	__uml_setup_end = .;
-+  }
- 	
--  __uml_help_start = .;
--  .uml.help.init : { *(.uml.help.init) }
--  __uml_help_end = .;
-+  .uml.help.init : {
-+	__uml_help_start = .;
-+	*(.uml.help.init)
-+	__uml_help_end = .;
-+  }
- 	
--  __uml_postsetup_start = .;
--  .uml.postsetup.init : { *(.uml.postsetup.init) }
--  __uml_postsetup_end = .;
-+  .uml.postsetup.init : {
-+	__uml_postsetup_start = .;
-+	*(.uml.postsetup.init)
-+	__uml_postsetup_end = .;
-+  }
- 	
--  __setup_start = .;
--  .init.setup : { *(.init.setup) }
--  __setup_end = .;
-+  .init.setup : {
-+	__setup_start = .;
-+	*(.init.setup)
-+	__setup_end = .;
-+  }
- 
-   . = ALIGN(32);
--  __per_cpu_start = . ; 
--  .data.percpu : { *(.data.percpu) }
--  __per_cpu_end = . ;
-+  .data.percpu : {
-+	__per_cpu_start = . ;
-+	*(.data.percpu)
-+	__per_cpu_end = . ;
-+  }
- 	
--  __initcall_start = .;
-   .initcall.init : {
-+	__initcall_start = .;
- 	INITCALLS
-+	__initcall_end = .;
-+  }
++struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
 +
-+  .con_initcall.init : {
-+	__con_initcall_start = .;
-+	*(.con_initcall.init)
-+	__con_initcall_end = .;
-   }
--  __initcall_end = .;
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+ {
+ 	int ret = 0;
+diff -puN arch/i386/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/i386/kernel/kprobes.c
+--- a/arch/i386/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/i386/kernel/kprobes.c
+@@ -42,6 +42,13 @@ void jprobe_return_end(void);
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
  
--  __con_initcall_start = .;
--  .con_initcall.init : { *(.con_initcall.init) }
--  __con_initcall_end = .;
--
--  __uml_initcall_start = .;
--  .uml.initcall.init : { *(.uml.initcall.init) }
--  __uml_initcall_end = .;
-+  .uml.initcall.init : {
-+	__uml_initcall_start = .;
-+	*(.uml.initcall.init)
-+	__uml_initcall_end = .;
-+  }
-   __init_end = .;
- 
-   SECURITY_INIT
- 
--  __exitcall_begin = .;
--  .exitcall : { *(.exitcall.exit) }
--  __exitcall_end = .;
--
--  __uml_exitcall_begin = .;
--  .uml.exitcall : { *(.uml.exitcall.exit) }
--  __uml_exitcall_end = .;
-+  .exitcall : {
-+	__exitcall_begin = .;
-+	*(.exitcall.exit)
-+	__exitcall_end = .;
-+  }
++struct kretprobe_blackpoint kretprobe_blacklist[] = {
++	{"__switch_to", }, /* This function switches only current task, but
++			     doesn't switch kernel stack.*/
++	{NULL, NULL}	/* Terminator */
++};
++const int kretprobe_blacklist_size = ARRAY_SIZE(kretprobe_blacklist);
 +
-+  .uml.exitcall : {
-+	__uml_exitcall_begin = .;
-+	*(.uml.exitcall.exit)
-+	__uml_exitcall_end = .;
-+  }
+ /* insert a jmp code */
+ static __always_inline void set_jmp_op(void *from, void *to)
+ {
+diff -puN arch/ia64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/ia64/kernel/kprobes.c
+--- a/arch/ia64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/ia64/kernel/kprobes.c
+@@ -40,6 +40,8 @@ extern void jprobe_inst_return(void);
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
  
-   . = ALIGN(4);
--  __alt_instructions = .;
--  .altinstructions : { *(.altinstructions) }
--  __alt_instructions_end = .;
-+  .altinstructions : {
-+	__alt_instructions = .;
-+	*(.altinstructions)
-+	__alt_instructions_end = .;
-+  }
-   .altinstr_replacement : { *(.altinstr_replacement) }
-   /* .exit.text is discard at runtime, not link time, to deal with references
-      from .altinstructions and .eh_frame */
-   .exit.text : { *(.exit.text) }
-   .exit.data : { *(.exit.data) }
++struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
++
+ enum instruction_type {A, I, M, F, B, L, X, u};
+ static enum instruction_type bundle_encoding[32][3] = {
+   { M, I, I },				/* 00 */
+diff -puN arch/powerpc/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/powerpc/kernel/kprobes.c
+--- a/arch/powerpc/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/powerpc/kernel/kprobes.c
+@@ -38,6 +38,8 @@
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
  
--  __preinit_array_start = .;
--  .preinit_array : { *(.preinit_array) }
--  __preinit_array_end = .;
--  __init_array_start = .;
--  .init_array : { *(.init_array) }
--  __init_array_end = .;
--  __fini_array_start = .;
--  .fini_array : { *(.fini_array) }
--  __fini_array_end = .;
-+  .preinit_array : {
-+	__preinit_array_start = .;
-+	*(.preinit_array)
-+	__preinit_array_end = .;
-+  }
-+  .init_array : {
-+	__init_array_start = .;
-+	*(.init_array)
-+	__init_array_end = .;
-+  }
-+  .fini_array : {
-+	__fini_array_start = .;
-+	*(.fini_array)
-+	__fini_array_end = .;
-+  }
++struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
++
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+ {
+ 	int ret = 0;
+diff -puN arch/s390/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/s390/kernel/kprobes.c
+--- a/arch/s390/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/s390/kernel/kprobes.c
+@@ -33,6 +33,8 @@
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
  
-    . = ALIGN(4096);
--  __initramfs_start = .;
--  .init.ramfs : { *(.init.ramfs) }
--  __initramfs_end = .;
-+  .init.ramfs : {
-+	__initramfs_start = .;
-+	*(.init.ramfs)
-+	__initramfs_end = .;
-+  }
++struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
++
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+ {
+ 	/* Make sure the probe isn't going on a difficult instruction */
+diff -puN arch/sparc64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/sparc64/kernel/kprobes.c
+--- a/arch/sparc64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/sparc64/kernel/kprobes.c
+@@ -42,6 +42,8 @@
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
  
-   /* Sections to be discarded */
-   /DISCARD/ : {
++struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
++
+ int __kprobes arch_prepare_kprobe(struct kprobe *p)
+ {
+ 	p->ainsn.insn[0] = *p->addr;
+diff -puN arch/x86_64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/x86_64/kernel/kprobes.c
+--- a/arch/x86_64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/arch/x86_64/kernel/kprobes.c
+@@ -49,6 +49,13 @@ static void __kprobes arch_copy_kprobe(s
+ DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+ DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
+ 
++struct kretprobe_blackpoint kretprobe_blacklist[] = {
++	{"__switch_to", }, /* This function switches only current task, but
++			      doesn't switch kernel stack.*/
++	{NULL, NULL}	/* Terminator */
++};
++const int kretprobe_blacklist_size = ARRAY_SIZE(kretprobe_blacklist);
++
+ /*
+  * returns non-zero if opcode modifies the interrupt flag.
+  */
+diff -puN arch/x86_64/kernel/process.c~kprobes-support-kretprobe-blacklist arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~kprobes-support-kretprobe-blacklist
++++ a/arch/x86_64/kernel/process.c
+@@ -584,7 +584,7 @@ static inline void __switch_to_xtra(stru
+  *
+  * Kprobes not supported here. Set the probe on schedule instead.
+  */
+-__kprobes struct task_struct *
++struct task_struct *
+ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
+ {
+ 	struct thread_struct *prev = &prev_p->thread,
+diff -puN include/asm-avr32/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-avr32/kprobes.h
+--- a/include/asm-avr32/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-avr32/kprobes.h
+@@ -17,6 +17,8 @@ typedef u16	kprobe_opcode_t;
+ #define BREAKPOINT_INSTRUCTION	0xd673	/* breakpoint */
+ #define MAX_INSN_SIZE		2
+ 
++#define kretprobe_blacklist_size 0
++
+ #define arch_remove_kprobe(p)	do { } while (0)
+ 
+ /* Architecture specific copy of original instruction */
+diff -puN include/asm-i386/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-i386/kprobes.h
+--- a/include/asm-i386/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-i386/kprobes.h
+@@ -45,6 +45,8 @@ typedef u8 kprobe_opcode_t;
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define flush_insn_slot(p)	do { } while (0)
+ 
++extern const int kretprobe_blacklist_size;
++
+ void arch_remove_kprobe(struct kprobe *p);
+ void kretprobe_trampoline(void);
+ 
+diff -puN include/asm-ia64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-ia64/kprobes.h
+--- a/include/asm-ia64/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-ia64/kprobes.h
+@@ -83,6 +83,7 @@ struct kprobe_ctlblk {
+ };
+ 
+ #define ARCH_SUPPORTS_KRETPROBES
++#define kretprobe_blacklist_size 0
+ 
+ #define SLOT0_OPCODE_SHIFT	(37)
+ #define SLOT1_p1_OPCODE_SHIFT	(37 - (64-46))
+diff -puN include/asm-powerpc/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-powerpc/kprobes.h
+--- a/include/asm-powerpc/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-powerpc/kprobes.h
+@@ -82,6 +82,7 @@ typedef unsigned int kprobe_opcode_t;
+ 
+ #define ARCH_SUPPORTS_KRETPROBES
+ #define flush_insn_slot(p)	do { } while (0)
++#define kretprobe_blacklist_size 0
+ 
+ void kretprobe_trampoline(void);
+ extern void arch_remove_kprobe(struct kprobe *p);
+diff -puN include/asm-s390/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-s390/kprobes.h
+--- a/include/asm-s390/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-s390/kprobes.h
+@@ -47,6 +47,7 @@ typedef u16 kprobe_opcode_t;
+ 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
+ 
+ #define ARCH_SUPPORTS_KRETPROBES
++#define kretprobe_blacklist_size 0
+ 
+ #define KPROBE_SWAP_INST	0x10
+ 
+diff -puN include/asm-sparc64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-sparc64/kprobes.h
+--- a/include/asm-sparc64/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-sparc64/kprobes.h
+@@ -10,6 +10,8 @@ typedef u32 kprobe_opcode_t;
+ #define BREAKPOINT_INSTRUCTION_2 0x91d02071 /* ta 0x71 */
+ #define MAX_INSN_SIZE 2
+ 
++#define kretprobe_blacklist_size 0
++
+ #define arch_remove_kprobe(p)	do {} while (0)
+ 
+ #define flush_insn_slot(p)		\
+diff -puN include/asm-x86_64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-x86_64/kprobes.h
+--- a/include/asm-x86_64/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/asm-x86_64/kprobes.h
+@@ -42,6 +42,7 @@ typedef u8 kprobe_opcode_t;
+ 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
+ 
+ #define ARCH_SUPPORTS_KRETPROBES
++extern const int kretprobe_blacklist_size;
+ 
+ void kretprobe_trampoline(void);
+ extern void arch_remove_kprobe(struct kprobe *p);
+diff -puN include/linux/kprobes.h~kprobes-support-kretprobe-blacklist include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-support-kretprobe-blacklist
++++ a/include/linux/kprobes.h
+@@ -166,6 +166,12 @@ struct kretprobe_instance {
+ 	struct task_struct *task;
+ };
+ 
++struct kretprobe_blackpoint {
++	const char *name;
++	void *addr;
++};
++extern struct kretprobe_blackpoint kretprobe_blacklist[];
++
+ static inline void kretprobe_assert(struct kretprobe_instance *ri,
+ 	unsigned long orig_ret_address, unsigned long trampoline_address)
+ {
+diff -puN kernel/kprobes.c~kprobes-support-kretprobe-blacklist kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
++++ a/kernel/kprobes.c
+@@ -716,6 +716,18 @@ int __kprobes register_kretprobe(struct 
+ 	int ret = 0;
+ 	struct kretprobe_instance *inst;
+ 	int i;
++	void *addr = rp->kp.addr;
++
++	if (kretprobe_blacklist_size) {
++		if (addr == NULL)
++			kprobe_lookup_name(rp->kp.symbol_name, addr);
++		addr += rp->kp.offset;
++
++		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
++			if (kretprobe_blacklist[i].addr == addr)
++				return -EINVAL;
++		}
++	}
+ 
+ 	rp->kp.pre_handler = pre_handler_kretprobe;
+ 	rp->kp.post_handler = NULL;
+@@ -794,6 +806,17 @@ static int __init init_kprobes(void)
+ 		INIT_HLIST_HEAD(&kretprobe_inst_table[i]);
+ 	}
+ 
++	if (kretprobe_blacklist_size) {
++		/* lookup the function address from its name */
++		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
++			kprobe_lookup_name(kretprobe_blacklist[i].name,
++					   kretprobe_blacklist[i].addr);
++			if (!kretprobe_blacklist[i].addr)
++				printk("kretprobe: lookup failed: %s\n",
++				       kretprobe_blacklist[i].name);
++		}
++	}
++
+ 	/* By default, kprobes are enabled */
+ 	kprobe_enabled = true;
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-introduce-config_check_signature-was-re-uninline.patch
-uml-fix-previous-request-size-limit-fix.patch
-uml-fix-linker-script-alignment-bugs.patch
-uml-fix-x86_64-core-dump-crash.patch
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-use-64-bits-for-block-size-on-x86_64.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
+kprobes-support-kretprobe-blacklist.patch
