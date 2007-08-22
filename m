@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_flat-warning-fixes.patch added to -mm tree
-Date: Tue, 21 Aug 2007 17:31:55 -0700
-Message-ID: <200708220037.l7M0b3Ua019351@imap1.linux-foundation.org>
+Subject: + infiniband-work-around-gcc-slub-problem.patch added to -mm tree
+Date: Tue, 21 Aug 2007 17:53:43 -0700
+Message-ID: <200708220058.l7M0wpj5020041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46552 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbXHVAiI (ORCPT
+	by vger.kernel.org with ESMTP id S1752195AbXHVA7K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 20:38:08 -0400
+	Tue, 21 Aug 2007 20:59:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, gerg@uclinux.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, davem@davemloft.net, roland@redhat.com
 
 
 The patch titled
-     binfmt_flat: warning fixes
+     infiniband: work around gcc/slub problem
 has been added to the -mm tree.  Its filename is
-     binfmt_flat-warning-fixes.patch
+     infiniband-work-around-gcc-slub-problem.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: binfmt_flat: warning fixes
+Subject: infiniband: work around gcc/slub problem
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this lot:
+With gcc-3.4.5 on sparc64 (http://userweb.kernel.org/~akpm/cross-compilers/)
+and CONFIG_SLUB (via allmodconfig) I get
 
-fs/binfmt_flat.c: In function `decompress_exec':
-fs/binfmt_flat.c:293: warning: label `out' defined but not used
-fs/binfmt_flat.c: In function `load_flat_file':
-fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 3)
-fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 4)
-fs/binfmt_flat.c:518: warning: comparison of distinct pointer types lacks a cast
-fs/binfmt_flat.c:549: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
-fs/binfmt_flat.c:601: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
-fs/binfmt_flat.c: In function `load_flat_binary':
-fs/binfmt_flat.c:116: warning: 'dummy' might be used uninitialized in this function
+ERROR: "__kmalloc_size_too_large" [drivers/infiniband/hw/ipath/ib_ipath.ko] undefined!
 
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: David Howells <dhowells@redhat.com>
+It works OK with slab.  Replacing `count' with `sizeof(struct ipath_flash)' in
+the kmalloc statement doesn't help.  But this fixed it.  Weird.
+
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_fs.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/binfmt_flat.c~binfmt_flat-warning-fixes fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~binfmt_flat-warning-fixes
-+++ a/fs/binfmt_flat.c
-@@ -113,7 +113,7 @@ static unsigned long create_flat_tables(
- 	char * p = (char*)pp;
- 	int argc = bprm->argc;
- 	int envc = bprm->envc;
--	char dummy;
-+	char uninitialized_var(dummy);
- 
- 	sp = (unsigned long *) ((-(unsigned long)sizeof(char *))&(unsigned long) p);
- 
-@@ -290,7 +290,6 @@ out_free_buf:
- 	kfree(buf);
- out_free:
- 	kfree(strm.workspace);
--out:
- 	return retval;
- }
- 
-@@ -459,7 +458,9 @@ static int load_flat_file(struct linux_b
- 		printk("BINFMT_FLAT: Loading file: %s\n", bprm->filename);
- 
- 	if (rev != FLAT_VERSION && rev != OLD_FLAT_VERSION) {
--		printk("BINFMT_FLAT: bad flat file version 0x%x (supported 0x%x and 0x%x)\n", rev, FLAT_VERSION, OLD_FLAT_VERSION);
-+		printk("BINFMT_FLAT: bad flat file version 0x%x (supported "
-+			"0x%lx and 0x%lx)\n",
-+			rev, FLAT_VERSION, OLD_FLAT_VERSION);
- 		ret = -ENOEXEC;
- 		goto err;
+diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~infiniband-work-around-gcc-slub-problem drivers/infiniband/hw/ipath/ipath_fs.c
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c~infiniband-work-around-gcc-slub-problem
++++ a/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -365,11 +365,6 @@ static ssize_t flash_write(struct file *
+ 		goto bail;
  	}
-@@ -515,7 +516,8 @@ static int load_flat_file(struct linux_b
- 	/*
- 	 * calculate the extra space we need to map in
- 	 */
--	extra = max(bss_len + stack_len, relocs * sizeof(unsigned long));
-+	extra = max_t(unsigned long, bss_len + stack_len,
-+			relocs * sizeof(unsigned long));
  
- 	/*
- 	 * there are a couple of cases here,  the separate code/data
-@@ -546,7 +548,7 @@ static int load_flat_file(struct linux_b
- 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
- 		/* Remap to use all availabe slack region space */
- 		if (realdatastart && (realdatastart < (unsigned long)-4096)) {
--			reallen = ksize(realdatastart);
-+			reallen = ksize((void *)realdatastart);
- 			if (reallen > len) {
- 				realdatastart = do_mremap(realdatastart, len,
- 					reallen, MREMAP_FIXED, realdatastart);
-@@ -598,7 +600,7 @@ static int load_flat_file(struct linux_b
- 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
- 		/* Remap to use all availabe slack region space */
- 		if (textpos && (textpos < (unsigned long) -4096)) {
--			reallen = ksize(textpos);
-+			reallen = ksize((void *)textpos);
- 			if (reallen > len) {
- 				textpos = do_mremap(textpos, len, reallen,
- 					MREMAP_FIXED, textpos);
+-	if (count != sizeof(struct ipath_flash)) {
+-		ret = -EINVAL;
+-		goto bail;
+-	}
+-
+ 	tmp = kmalloc(count, GFP_KERNEL);
+ 	if (!tmp) {
+ 		ret = -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,6 +170,7 @@ printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -254,4 +207,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-binfmt_flat-warning-fixes.patch
+infiniband-work-around-gcc-slub-problem.patch
