@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch added to -mm tree
-Date: Tue, 21 Aug 2007 19:37:04 -0700
-Message-ID: <200708220237.l7M2b4hl023435@imap1.linux-foundation.org>
+Subject: + fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released.patch added to -mm tree
+Date: Tue, 21 Aug 2007 22:03:40 -0700
+Message-ID: <200708220503.l7M53eBN028342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44935 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33320 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752402AbXHVChW (ORCPT
+	by vger.kernel.org with ESMTP id S1751951AbXHVFEB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 22:37:22 -0400
+	Wed, 22 Aug 2007 01:04:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com
+Cc: rgetz@blackfin.uclinux.org, kraxel@redhat.com, lethal@linux-sh.org, vapier.adi@gmail.com
 
 
 The patch titled
-     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
+     fix - ensure we don't use bootconsoles after init has been released
 has been added to the -mm tree.  Its filename is
-     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+     fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: fix - ensure we don't use bootconsoles after init has been released
+From: Robin Getz <rgetz@blackfin.uclinux.org>
 
-* add pte_present_exec_user()
-* remove pte_user
-* fixed comments.
+Gerd Hoffmann pointed out that my patch from yesterday can lead to a null
+pointer dereference if the kernel is booted with no console, and no
+earlyprintk defined.  This fixes that issue.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: "Gerd Hoffmann" <kraxel@redhat.com>
+Cc: "Paul Mundt" <lethal@linux-sh.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/pgtable.h |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ kernel/printk.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update
-+++ a/include/asm-ia64/pgtable.h
-@@ -297,7 +297,6 @@ ia64_phys_addr_valid (unsigned long addr
- /*
-  * The following have defined behavior only work if pte_present() is true.
-  */
--#define pte_user(pte)	((pte_val(pte) & _PAGE_PL_MASK) == _PAGE_PL_3)
- #define pte_write(pte)	((unsigned) (((pte_val(pte) & _PAGE_AR_MASK) >> _PAGE_AR_SHIFT) - 2) <= 4)
- #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
- #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
-@@ -324,14 +323,20 @@ ia64_phys_addr_valid (unsigned long addr
-  *  set_pte() is also called by the kernel, but we can expect that the kernel
-  *  flushes icache explicitly if necessary.
-  */
-+#define pte_present_exec_user(pte)\
-+	((pte_val(pte) & (_PAGE_P | _PAGE_PL_MASK | _PAGE_AR_RX)) == \
-+		(_PAGE_P | _PAGE_PL_3 | _PAGE_AR_RX))
-+
- extern void __ia64_sync_icache_dcache(pte_t pteval);
- static inline void set_pte(pte_t *ptep, pte_t pteval)
+diff -puN kernel/printk.c~fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released kernel/printk.c
+--- a/kernel/printk.c~fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released
++++ a/kernel/printk.c
+@@ -1085,10 +1085,12 @@ EXPORT_SYMBOL(unregister_console);
+ 
+ static int __init disable_boot_consoles(void)
  {
--	if (pte_present(pteval) &&// swap out ?
--	    pte_exec(pteval) &&    // flush only new executable page.
--	    pte_user(pteval) &&    // ignore kernel page
--	    (!pte_present(*ptep) ||// do_no_page or swap in, migration,
--		pte_pfn(*ptep) != pte_pfn(pteval))) // do_wp_page(), page copy
-+	/* page is present && page is user  && page is executable
-+	 * && (page swapin or new page or page migraton
-+	 *	|| copy_on_write with page copying.)
-+	 */
-+	if (pte_present_exec_user(pteval) &&
-+	    (!pte_present(*ptep) ||
-+		pte_pfn(*ptep) != pte_pfn(pteval)))
- 		/* load_module() calles flush_icache_range() explicitly*/
- 		__ia64_sync_icache_dcache(pteval);
- 	*ptep = pteval;
+-	if (console_drivers->flags & CON_BOOT) {
+-		printk(KERN_INFO "turn off boot console %s%d\n",
+-			console_drivers->name, console_drivers->index);
+-		return unregister_console(console_drivers);
++	if (console_drivers != NULL) {
++		if (console_drivers->flags & CON_BOOT) {
++			printk(KERN_INFO "turn off boot console %s%d\n",
++				console_drivers->name, console_drivers->index);
++			return unregister_console(console_drivers);
++		}
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from rgetz@blackfin.uclinux.org are
 
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+origin.patch
+fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
