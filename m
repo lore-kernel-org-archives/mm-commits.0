@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-support-kretprobe-blacklist.patch added to -mm tree
-Date: Wed, 22 Aug 2007 15:01:11 -0700
-Message-ID: <200708222201.l7MM1B9d006889@imap1.linux-foundation.org>
+Subject: + console-events-and-accessibility.patch added to -mm tree
+Date: Wed, 22 Aug 2007 15:01:55 -0700
+Message-ID: <200708222201.l7MM1tdt006918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49721 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933131AbXHVWBj (ORCPT
+	by vger.kernel.org with ESMTP id S1763508AbXHVWCP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 18:01:39 -0400
+	Wed, 22 Aug 2007 18:02:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, prasanna@in.ibm.com
+Cc: samuel.thibault@ens-lyon.org
 
 
 The patch titled
-     kprobes: support kretprobe blacklist
+     Console events and accessibility
 has been added to the -mm tree.  Its filename is
-     kprobes-support-kretprobe-blacklist.patch
+     console-events-and-accessibility.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,287 +26,222 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kprobes: support kretprobe blacklist
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: Console events and accessibility
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Introduce architecture dependent kretprobe blacklists to prohibit users
-from inserting return probes on the function in which kprobes can be
-inserted but kretprobes can not.
+Some external modules like Speakup need to monitor console output.
 
-This patch also removes "__kprobes" mark from "__switch_to" on x86_64 and
-registers "__switch_to" to the blacklist on x86-64, because that mark is to
-prohibit user from inserting only kretprobe.
+This adds a VT notifier that such modules can use to get console output events:
+allocation, deallocation, writes, other updates (cursor position, switch, etc.)
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/kprobes.c   |    2 ++
- arch/i386/kernel/kprobes.c    |    7 +++++++
- arch/ia64/kernel/kprobes.c    |    2 ++
- arch/powerpc/kernel/kprobes.c |    2 ++
- arch/s390/kernel/kprobes.c    |    2 ++
- arch/sparc64/kernel/kprobes.c |    2 ++
- arch/x86_64/kernel/kprobes.c  |    7 +++++++
- arch/x86_64/kernel/process.c  |    2 +-
- include/asm-avr32/kprobes.h   |    2 ++
- include/asm-i386/kprobes.h    |    2 ++
- include/asm-ia64/kprobes.h    |    1 +
- include/asm-powerpc/kprobes.h |    1 +
- include/asm-s390/kprobes.h    |    1 +
- include/asm-sparc64/kprobes.h |    2 ++
- include/asm-x86_64/kprobes.h  |    1 +
- include/linux/kprobes.h       |    6 ++++++
- kernel/kprobes.c              |   23 +++++++++++++++++++++++
- 17 files changed, 64 insertions(+), 1 deletion(-)
+ drivers/char/vt.c        |   45 ++++++++++++++++++++++++++++++++++++-
+ include/linux/notifier.h |    6 ++++
+ include/linux/vt.h       |   12 +++++++++
+ 3 files changed, 62 insertions(+), 1 deletion(-)
 
-diff -puN arch/avr32/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/avr32/kernel/kprobes.c
---- a/arch/avr32/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/avr32/kernel/kprobes.c
-@@ -22,6 +22,8 @@ DEFINE_PER_CPU(struct kprobe *, current_
- static unsigned long kprobe_status;
- static struct pt_regs jprobe_saved_regs;
+diff -puN drivers/char/vt.c~console-events-and-accessibility drivers/char/vt.c
+--- a/drivers/char/vt.c~console-events-and-accessibility
++++ a/drivers/char/vt.c
+@@ -99,6 +99,7 @@
+ #include <linux/pm.h>
+ #include <linux/font.h>
+ #include <linux/bitops.h>
++#include <linux/notifier.h>
  
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
+ #include <asm/io.h>
+ #include <asm/system.h>
+@@ -223,6 +224,35 @@ enum {
+ };
+ 
+ /*
++ * Notifier list for console events.
++ */
++static ATOMIC_NOTIFIER_HEAD(vt_notifier_list);
 +
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
- {
- 	int ret = 0;
-diff -puN arch/i386/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/i386/kernel/kprobes.c
---- a/arch/i386/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/i386/kernel/kprobes.c
-@@ -42,6 +42,13 @@ void jprobe_return_end(void);
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
++int register_vt_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&vt_notifier_list, nb);
++}
++EXPORT_SYMBOL_GPL(register_vt_notifier);
++
++int unregister_vt_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&vt_notifier_list, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_vt_notifier);
++
++static void notify_write(struct vc_data *vc, unsigned int unicode)
++{
++	struct vt_notifier_param param = { .vc = vc, unicode = unicode };
++	atomic_notifier_call_chain(&vt_notifier_list, VT_WRITE, &param);
++}
++
++static void notify_update(struct vc_data *vc)
++{
++	struct vt_notifier_param param = { .vc = vc };
++	atomic_notifier_call_chain(&vt_notifier_list, VT_UPDATE, &param);
++}
++
++/*
+  *	Low-Level Functions
+  */
  
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {
-+	{"__switch_to", }, /* This function switches only current task, but
-+			     doesn't switch kernel stack.*/
-+	{NULL, NULL}	/* Terminator */
+@@ -718,6 +748,7 @@ int vc_allocate(unsigned int currcons)	/
+ 		return -ENXIO;
+ 	if (!vc_cons[currcons].d) {
+ 	    struct vc_data *vc;
++	    struct vt_notifier_param param;
+ 
+ 	    /* prevent users from taking too much memory */
+ 	    if (currcons >= MAX_NR_USER_CONSOLES && !capable(CAP_SYS_RESOURCE))
+@@ -729,7 +760,7 @@ int vc_allocate(unsigned int currcons)	/
+ 	    /* although the numbers above are not valid since long ago, the
+ 	       point is still up-to-date and the comment still has its value
+ 	       even if only as a historical artifact.  --mj, July 1998 */
+-	    vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
++	    param.vc = vc = kzalloc(sizeof(struct vc_data), GFP_KERNEL);
+ 	    if (!vc)
+ 		return -ENOMEM;
+ 	    vc_cons[currcons].d = vc;
+@@ -746,6 +777,7 @@ int vc_allocate(unsigned int currcons)	/
+ 	    }
+ 	    vc->vc_kmalloced = 1;
+ 	    vc_init(vc, vc->vc_rows, vc->vc_cols, 1);
++	    atomic_notifier_call_chain(&vt_notifier_list, VT_ALLOCATE, &param);
+ 	}
+ 	return 0;
+ }
+@@ -902,6 +934,8 @@ void vc_deallocate(unsigned int currcons
+ 
+ 	if (vc_cons_allocated(currcons)) {
+ 		struct vc_data *vc = vc_cons[currcons].d;
++		struct vt_notifier_param param = { .vc = vc };
++		atomic_notifier_call_chain(&vt_notifier_list, VT_DEALLOCATE, &param);
+ 		vc->vc_sw->con_deinit(vc);
+ 		put_pid(vc->vt_pid);
+ 		module_put(vc->vc_sw->owner);
+@@ -1014,6 +1048,7 @@ static void lf(struct vc_data *vc)
+ 		vc->vc_pos += vc->vc_size_row;
+ 	}
+ 	vc->vc_need_wrap = 0;
++	notify_write(vc, '\n');
+ }
+ 
+ static void ri(struct vc_data *vc)
+@@ -1034,6 +1069,7 @@ static inline void cr(struct vc_data *vc
+ {
+ 	vc->vc_pos -= vc->vc_x << 1;
+ 	vc->vc_need_wrap = vc->vc_x = 0;
++	notify_write(vc, '\r');
+ }
+ 
+ static inline void bs(struct vc_data *vc)
+@@ -1042,6 +1078,7 @@ static inline void bs(struct vc_data *vc
+ 		vc->vc_pos -= 2;
+ 		vc->vc_x--;
+ 		vc->vc_need_wrap = 0;
++		notify_write(vc, '\b');
+ 	}
+ }
+ 
+@@ -1588,6 +1625,7 @@ static void do_con_trol(struct tty_struc
+ 				break;
+ 		}
+ 		vc->vc_pos += (vc->vc_x << 1);
++		notify_write(vc, '\t');
+ 		return;
+ 	case 10: case 11: case 12:
+ 		lf(vc);
+@@ -2247,6 +2285,7 @@ rescan_last_byte:
+ 				tc = conv_uni_to_pc(vc, ' '); /* A space is printed in the second column */
+ 				if (tc < 0) tc = ' ';
+ 			}
++			notify_write(vc, c);
+ 
+ 			if (inverse) {
+ 				FLUSH
+@@ -2269,6 +2308,7 @@ rescan_last_byte:
+ 	release_console_sem();
+ 
+ out:
++	notify_update(vc);
+ 	return n;
+ #undef FLUSH
+ }
+@@ -2312,6 +2352,7 @@ static void console_callback(struct work
+ 		do_blank_screen(0);
+ 		blank_timer_expired = 0;
+ 	}
++	notify_update(vc_cons[fg_console].d);
+ 
+ 	release_console_sem();
+ }
+@@ -2413,6 +2454,7 @@ static void vt_console_print(struct cons
+ 				continue;
+ 		}
+ 		scr_writew((vc->vc_attr << 8) + c, (unsigned short *)vc->vc_pos);
++		notify_write(vc, c);
+ 		cnt++;
+ 		if (myx == vc->vc_cols - 1) {
+ 			vc->vc_need_wrap = 1;
+@@ -2431,6 +2473,7 @@ static void vt_console_print(struct cons
+ 		}
+ 	}
+ 	set_cursor(vc);
++	notify_update(vc);
+ 
+ quit:
+ 	clear_bit(0, &printing);
+diff -puN include/linux/notifier.h~console-events-and-accessibility include/linux/notifier.h
+--- a/include/linux/notifier.h~console-events-and-accessibility
++++ a/include/linux/notifier.h
+@@ -242,5 +242,11 @@ static inline int notifier_to_errno(int 
+ 
+ extern struct blocking_notifier_head reboot_notifier_list;
+ 
++/* Virtual Terminal events. */
++#define VT_ALLOCATE		0x0001 /* Console got allocated */
++#define VT_DEALLOCATE		0x0002 /* Console will be deallocated */
++#define VT_WRITE		0x0003 /* A char got output */
++#define VT_UPDATE		0x0004 /* A bigger update occurred */
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_NOTIFIER_H */
+diff -puN include/linux/vt.h~console-events-and-accessibility include/linux/vt.h
+--- a/include/linux/vt.h~console-events-and-accessibility
++++ a/include/linux/vt.h
+@@ -1,6 +1,18 @@
+ #ifndef _LINUX_VT_H
+ #define _LINUX_VT_H
+ 
++#ifdef __KERNEL__
++#include <linux/notifier.h>
++
++struct vt_notifier_param {
++	struct vc_data *vc;	/* VC on which the update happened */
++	unsigned int c;		/* Printed char */
 +};
-+const int kretprobe_blacklist_size = ARRAY_SIZE(kretprobe_blacklist);
 +
- /* insert a jmp code */
- static __always_inline void set_jmp_op(void *from, void *to)
- {
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -40,6 +40,8 @@ extern void jprobe_inst_return(void);
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
-+
- enum instruction_type {A, I, M, F, B, L, X, u};
- static enum instruction_type bundle_encoding[32][3] = {
-   { M, I, I },				/* 00 */
-diff -puN arch/powerpc/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/powerpc/kernel/kprobes.c
---- a/arch/powerpc/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/powerpc/kernel/kprobes.c
-@@ -38,6 +38,8 @@
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
-+
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
- {
- 	int ret = 0;
-diff -puN arch/s390/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/s390/kernel/kprobes.c
---- a/arch/s390/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/s390/kernel/kprobes.c
-@@ -33,6 +33,8 @@
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
-+
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
- {
- 	/* Make sure the probe isn't going on a difficult instruction */
-diff -puN arch/sparc64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/sparc64/kernel/kprobes.c
---- a/arch/sparc64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/sparc64/kernel/kprobes.c
-@@ -42,6 +42,8 @@
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {{NULL, NULL}};
-+
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
- {
- 	p->ainsn.insn[0] = *p->addr;
-diff -puN arch/x86_64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist arch/x86_64/kernel/kprobes.c
---- a/arch/x86_64/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/x86_64/kernel/kprobes.c
-@@ -49,6 +49,13 @@ static void __kprobes arch_copy_kprobe(s
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-+struct kretprobe_blackpoint kretprobe_blacklist[] = {
-+	{"__switch_to", }, /* This function switches only current task, but
-+			      doesn't switch kernel stack.*/
-+	{NULL, NULL}	/* Terminator */
-+};
-+const int kretprobe_blacklist_size = ARRAY_SIZE(kretprobe_blacklist);
++extern int register_vt_notifier(struct notifier_block *nb);
++extern int unregister_vt_notifier(struct notifier_block *nb);
++#endif
 +
  /*
-  * returns non-zero if opcode modifies the interrupt flag.
-  */
-diff -puN arch/x86_64/kernel/process.c~kprobes-support-kretprobe-blacklist arch/x86_64/kernel/process.c
---- a/arch/x86_64/kernel/process.c~kprobes-support-kretprobe-blacklist
-+++ a/arch/x86_64/kernel/process.c
-@@ -584,7 +584,7 @@ static inline void __switch_to_xtra(stru
-  *
-  * Kprobes not supported here. Set the probe on schedule instead.
-  */
--__kprobes struct task_struct *
-+struct task_struct *
- __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
- {
- 	struct thread_struct *prev = &prev_p->thread,
-diff -puN include/asm-avr32/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-avr32/kprobes.h
---- a/include/asm-avr32/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-avr32/kprobes.h
-@@ -17,6 +17,8 @@ typedef u16	kprobe_opcode_t;
- #define BREAKPOINT_INSTRUCTION	0xd673	/* breakpoint */
- #define MAX_INSN_SIZE		2
- 
-+#define kretprobe_blacklist_size 0
-+
- #define arch_remove_kprobe(p)	do { } while (0)
- 
- /* Architecture specific copy of original instruction */
-diff -puN include/asm-i386/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-i386/kprobes.h
---- a/include/asm-i386/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-i386/kprobes.h
-@@ -45,6 +45,8 @@ typedef u8 kprobe_opcode_t;
- #define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
- 
-+extern const int kretprobe_blacklist_size;
-+
- void arch_remove_kprobe(struct kprobe *p);
- void kretprobe_trampoline(void);
- 
-diff -puN include/asm-ia64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-ia64/kprobes.h
-@@ -83,6 +83,7 @@ struct kprobe_ctlblk {
- };
- 
- #define ARCH_SUPPORTS_KRETPROBES
-+#define kretprobe_blacklist_size 0
- 
- #define SLOT0_OPCODE_SHIFT	(37)
- #define SLOT1_p1_OPCODE_SHIFT	(37 - (64-46))
-diff -puN include/asm-powerpc/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-powerpc/kprobes.h
---- a/include/asm-powerpc/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-powerpc/kprobes.h
-@@ -82,6 +82,7 @@ typedef unsigned int kprobe_opcode_t;
- 
- #define ARCH_SUPPORTS_KRETPROBES
- #define flush_insn_slot(p)	do { } while (0)
-+#define kretprobe_blacklist_size 0
- 
- void kretprobe_trampoline(void);
- extern void arch_remove_kprobe(struct kprobe *p);
-diff -puN include/asm-s390/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-s390/kprobes.h
---- a/include/asm-s390/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-s390/kprobes.h
-@@ -47,6 +47,7 @@ typedef u16 kprobe_opcode_t;
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
- #define ARCH_SUPPORTS_KRETPROBES
-+#define kretprobe_blacklist_size 0
- 
- #define KPROBE_SWAP_INST	0x10
- 
-diff -puN include/asm-sparc64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-sparc64/kprobes.h
---- a/include/asm-sparc64/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-sparc64/kprobes.h
-@@ -10,6 +10,8 @@ typedef u32 kprobe_opcode_t;
- #define BREAKPOINT_INSTRUCTION_2 0x91d02071 /* ta 0x71 */
- #define MAX_INSN_SIZE 2
- 
-+#define kretprobe_blacklist_size 0
-+
- #define arch_remove_kprobe(p)	do {} while (0)
- 
- #define flush_insn_slot(p)		\
-diff -puN include/asm-x86_64/kprobes.h~kprobes-support-kretprobe-blacklist include/asm-x86_64/kprobes.h
---- a/include/asm-x86_64/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/asm-x86_64/kprobes.h
-@@ -42,6 +42,7 @@ typedef u8 kprobe_opcode_t;
- 	: (((unsigned long)current_thread_info()) + THREAD_SIZE - (ADDR)))
- 
- #define ARCH_SUPPORTS_KRETPROBES
-+extern const int kretprobe_blacklist_size;
- 
- void kretprobe_trampoline(void);
- extern void arch_remove_kprobe(struct kprobe *p);
-diff -puN include/linux/kprobes.h~kprobes-support-kretprobe-blacklist include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-support-kretprobe-blacklist
-+++ a/include/linux/kprobes.h
-@@ -166,6 +166,12 @@ struct kretprobe_instance {
- 	struct task_struct *task;
- };
- 
-+struct kretprobe_blackpoint {
-+	const char *name;
-+	void *addr;
-+};
-+extern struct kretprobe_blackpoint kretprobe_blacklist[];
-+
- static inline void kretprobe_assert(struct kretprobe_instance *ri,
- 	unsigned long orig_ret_address, unsigned long trampoline_address)
- {
-diff -puN kernel/kprobes.c~kprobes-support-kretprobe-blacklist kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-support-kretprobe-blacklist
-+++ a/kernel/kprobes.c
-@@ -716,6 +716,18 @@ int __kprobes register_kretprobe(struct 
- 	int ret = 0;
- 	struct kretprobe_instance *inst;
- 	int i;
-+	void *addr = rp->kp.addr;
-+
-+	if (kretprobe_blacklist_size) {
-+		if (addr == NULL)
-+			kprobe_lookup_name(rp->kp.symbol_name, addr);
-+		addr += rp->kp.offset;
-+
-+		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
-+			if (kretprobe_blacklist[i].addr == addr)
-+				return -EINVAL;
-+		}
-+	}
- 
- 	rp->kp.pre_handler = pre_handler_kretprobe;
- 	rp->kp.post_handler = NULL;
-@@ -794,6 +806,17 @@ static int __init init_kprobes(void)
- 		INIT_HLIST_HEAD(&kretprobe_inst_table[i]);
- 	}
- 
-+	if (kretprobe_blacklist_size) {
-+		/* lookup the function address from its name */
-+		for (i = 0; kretprobe_blacklist[i].name != NULL; i++) {
-+			kprobe_lookup_name(kretprobe_blacklist[i].name,
-+					   kretprobe_blacklist[i].addr);
-+			if (!kretprobe_blacklist[i].addr)
-+				printk("kretprobe: lookup failed: %s\n",
-+				       kretprobe_blacklist[i].name);
-+		}
-+	}
-+
- 	/* By default, kprobes are enabled */
- 	kprobe_enabled = true;
- 
+  * These constants are also useful for user-level apps (e.g., VC
+  * resizing).
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
-kprobes-support-kretprobe-blacklist.patch
+keyboard-capsshift-lock.patch
+10-dots-braille-keyboards.patch
+console-keyboard-events-and-accessibility.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+unicode-diacritics-support.patch
+unicode-diacritics-support-s390-fix.patch
+console-events-and-accessibility.patch
