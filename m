@@ -1,50 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Wed, 22 Aug 2007 14:07:35 -0700
-Message-ID: <200708222107.l7ML7ZZh004636@imap1.linux-foundation.org>
+Subject: - fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
+Date: Wed, 22 Aug 2007 14:07:41 -0700
+Message-ID: <200708222107.l7ML7fm6004643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55046 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763875AbXHVVIN (ORCPT
+	by vger.kernel.org with ESMTP id S932920AbXHVVIS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 17:08:13 -0400
+	Wed, 22 Aug 2007 17:08:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/base/firmware_class.c: In function 'firmware_uevent':
+drivers/base/firmware_class.c:94: warning: unused variable 'len'
+drivers/base/firmware_class.c:94: warning: unused variable 'i'
 
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/firmware_class.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/spi/spi.c
---- a/drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/spi/spi.c
-@@ -71,7 +71,7 @@ static int spi_uevent(struct device *dev
+diff -puN drivers/base/firmware_class.c~fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/base/firmware_class.c
+@@ -91,7 +91,6 @@ static void fw_dev_release(struct device
+ static int firmware_uevent(struct device *dev, struct kobj_uevent_env *env)
  {
- 	const struct spi_device		*spi = to_spi_device(dev);
+ 	struct firmware_priv *fw_priv = dev_get_drvdata(dev);
+-	int i = 0, len = 0;
  
--	add_uevent_var("MODALIAS=%s", spi->modalias);
-+	add_uevent_var(env, "MODALIAS=%s", spi->modalias);
- 	return 0;
- }
- 
+ 	if (add_uevent_var(env, "FIRMWARE=%s", fw_priv->fw_id))
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +67,6 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
