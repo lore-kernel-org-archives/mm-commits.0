@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Wed, 22 Aug 2007 14:07:45 -0700
-Message-ID: <200708222107.l7ML7kmY004648@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
+Date: Wed, 22 Aug 2007 14:07:35 -0700
+Message-ID: <200708222107.l7ML7ZZh004636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40885 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44544 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933739AbXHVVIY (ORCPT
+	by vger.kernel.org with ESMTP id S1763875AbXHVVIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 17:08:24 -0400
+	Wed, 22 Aug 2007 17:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been removed from the -mm tree.  Its filename was
-     fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/crypto/ap_bus.c |    2 +-
+ drivers/spi/spi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/crypto/ap_bus.c~fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/s390/crypto/ap_bus.c
---- a/drivers/s390/crypto/ap_bus.c~fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/s390/crypto/ap_bus.c
-@@ -458,7 +458,7 @@ static int ap_bus_match(struct device *d
-  * uevent function for AP devices. It sets up a single environment
-  * variable DEV_TYPE which contains the hardware device type.
-  */
--static int ap_uevent (struct device *dev, struct kobj_uevent_env)
-+static int ap_uevent(struct device *dev, struct kobj_uevent_env *env)
+diff -puN drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/spi/spi.c
+--- a/drivers/spi/spi.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/spi/spi.c
+@@ -71,7 +71,7 @@ static int spi_uevent(struct device *dev
  {
- 	struct ap_device *ap_dev = to_ap_dev(dev);
- 	int retval = 0;
+ 	const struct spi_device		*spi = to_spi_device(dev);
+ 
+-	add_uevent_var("MODALIAS=%s", spi->modalias);
++	add_uevent_var(env, "MODALIAS=%s", spi->modalias);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +64,8 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 revert-gregkh-driver-block-device.patch
