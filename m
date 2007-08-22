@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pata_via-add-armia-w730-k8-and-other-rebadgings.patch added to -mm tree
-Date: Wed, 22 Aug 2007 16:14:23 -0700
-Message-ID: <200708222314.l7MNENm2009864@imap1.linux-foundation.org>
+Subject: + pata_sis-add-the-fsc-amilo-and-friends.patch added to -mm tree
+Date: Wed, 22 Aug 2007 16:14:21 -0700
+Message-ID: <200708222314.l7MNELrk009861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763324AbXHVXOl (ORCPT
+	by vger.kernel.org with ESMTP id S1763246AbXHVXOk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 19:14:41 -0400
+	Wed, 22 Aug 2007 19:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_via: add Armia W730-K8 and other rebadgings
+     pata_sis: add the FSC Amilo and friends
 has been added to the -mm tree.  Its filename is
-     pata_via-add-armia-w730-k8-and-other-rebadgings.patch
+     pata_sis-add-the-fsc-amilo-and-friends.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_via: add Armia W730-K8 and other rebadgings
+Subject: pata_sis: add the FSC Amilo and friends
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-More cable funnies
+More short cables
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/ata/pata_sis.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_via.c~pata_via-add-armia-w730-k8-and-other-rebadgings drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~pata_via-add-armia-w730-k8-and-other-rebadgings
-+++ a/drivers/ata/pata_via.c
-@@ -63,7 +63,7 @@
- #include <linux/dmi.h>
- 
- #define DRV_NAME "pata_via"
--#define DRV_VERSION "0.3.1"
-+#define DRV_VERSION "0.3.2"
- 
- /*
-  *	The following comes directly from Vojtech Pavlik's ide/pci/via82cxxx
-@@ -144,6 +144,9 @@ static int via_cable_override(struct pci
- 	/* Systems by DMI */
- 	if (dmi_check_system(cable_dmi_table))
- 		return 1;
-+	/* Armia W730-K8/Targa Visionary 811/... */
-+	if (pdev->subsystem_vendor == 0x161F && pdev->subsystem_device == 0x2032)
-+		return 1;
- 	return 0;
- }
- 
+diff -puN drivers/ata/pata_sis.c~pata_sis-add-the-fsc-amilo-and-friends drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~pata_sis-add-the-fsc-amilo-and-friends
++++ a/drivers/ata/pata_sis.c
+@@ -54,6 +54,7 @@ struct sis_laptop {
+ static const struct sis_laptop sis_laptop[] = {
+ 	/* devid, subvendor, subdev */
+ 	{ 0x5513, 0x1043, 0x1107 },	/* ASUS A6K */
++	{ 0x5513, 0x1734, 0x105F },	/* FSC Amilo A1630 */
+ 	/* end marker */
+ 	{ 0, }
+ };
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
