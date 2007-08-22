@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + assign-task_structexit_code-before-taskstats_exit.patch added to -mm tree
-Date: Wed, 22 Aug 2007 16:07:06 -0700
-Message-ID: <200708222307.l7MN76WT009549@imap1.linux-foundation.org>
+Subject: + spi-driver-hotplug-coldplug-fixes.patch added to -mm tree
+Date: Wed, 22 Aug 2007 16:07:47 -0700
+Message-ID: <200708222307.l7MN7lHT009555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60851 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758288AbXHVXIL (ORCPT
+	by vger.kernel.org with ESMTP id S1762088AbXHVXIt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 19:08:11 -0400
+	Wed, 22 Aug 2007 19:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlim@sgi.com, balbir@in.ibm.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, khali@linux-fr.org
 
 
 The patch titled
-     Assign task_struct.exit_code before taskstats_exit()
+     SPI driver hotplug/coldplug fixes
 has been added to the -mm tree.  Its filename is
-     assign-task_structexit_code-before-taskstats_exit.patch
+     spi-driver-hotplug-coldplug-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Assign task_struct.exit_code before taskstats_exit()
-From: Jonathan Lim <jlim@sgi.com>
+Subject: SPI driver hotplug/coldplug fixes
+From: David Brownell <david-b@pacbell.net>
 
-taskstats.ac_exitcode is assigned to task_struct.exit_code in bacct_add_tsk()
-through the following kernel function calls:
+Update various SPI drivers so they properly support
 
-  do_exit()
-    taskstats_exit()
-      fill_pid()
-        bacct_add_tsk()
+  - coldplug through "modprobe $(cat /sys/devices/.../modalias)"
 
-The problem is that in do_exit(), task_struct.exit_code is set to 'code' only
-after taskstats_exit() has been called.  So we need to move the assignment
-before taskstats_exit().
+  - hotplug through "modprobe $(MODALIAS)"
 
-Signed-off-by: Jonathan Lim <jlim@sgi.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+The basic rule for platform, SPI, and (new style) I2C drivers is just
+to make sure that modprobing the driver name works.  In this case, all
+the relevant drivers are platform drivers, and this patch either
+
+  (a)	Changes the driver name, if no in-tree code would break;
+	this is simpler and thus preferable in the long term.
+
+  (b)	Adds MODULE_ALIAS directives, when in-tree platforms declare
+	devices using the current driver name; less desirable.
+
+Most systems will link SPI controller drivers statically, but
+there's no point in being needlessly broken.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_bfin5xx.c      |    3 ++-
+ drivers/spi/spi_imx.c          |    2 +-
+ drivers/spi/spi_mpc83xx.c      |    1 +
+ drivers/spi/spi_s3c24xx.c      |    1 +
+ drivers/spi/spi_s3c24xx_gpio.c |    2 +-
+ drivers/spi/spi_txx9.c         |    1 +
+ drivers/spi/xilinx_spi.c       |    2 +-
+ 7 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~assign-task_structexit_code-before-taskstats_exit kernel/exit.c
---- a/kernel/exit.c~assign-task_structexit_code-before-taskstats_exit
-+++ a/kernel/exit.c
-@@ -975,6 +975,7 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (unlikely(tsk->audit_context))
- 		audit_free(tsk);
+diff -puN drivers/spi/spi_bfin5xx.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -1303,8 +1303,9 @@ static int bfin5xx_spi_resume(struct pla
+ #define bfin5xx_spi_resume NULL
+ #endif				/* CONFIG_PM */
  
-+	tsk->exit_code = code;
- 	taskstats_exit(tsk, group_dead);
++MODULE_ALIAS("bfin-spi-master");	/* for platform bus hotplug */
+ static struct platform_driver bfin5xx_spi_driver = {
+-	.driver 	= {
++	.driver	= {
+ 		.name	= "bfin-spi-master",
+ 		.owner	= THIS_MODULE,
+ 	},
+diff -puN drivers/spi/spi_imx.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_imx.c
+@@ -1735,7 +1735,7 @@ static int spi_imx_resume(struct platfor
  
- 	exit_mm(tsk);
-@@ -996,7 +997,6 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (tsk->binfmt)
- 		module_put(tsk->binfmt->module);
+ static struct platform_driver driver = {
+ 	.driver = {
+-		.name = "imx-spi",
++		.name = "spi_imx",
+ 		.bus = &platform_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+diff -puN drivers/spi/spi_mpc83xx.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -530,6 +530,7 @@ static int __devexit mpc83xx_spi_remove(
+ 	return 0;
+ }
  
--	tsk->exit_code = code;
- 	proc_exit_connector(tsk);
- 	exit_task_namespaces(tsk);
- 	exit_notify(tsk);
++MODULE_ALIAS("mpc83xx_spi");			/* for platform bus hotplug */
+ static struct platform_driver mpc83xx_spi_driver = {
+ 	.probe = mpc83xx_spi_probe,
+ 	.remove = __devexit_p(mpc83xx_spi_remove),
+diff -puN drivers/spi/spi_s3c24xx.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -427,6 +427,7 @@ static int s3c24xx_spi_resume(struct pla
+ #define s3c24xx_spi_resume  NULL
+ #endif
+ 
++MODULE_ALIAS("s3c2410_spi");			/* for platform bus hotplug */
+ static struct platform_driver s3c24xx_spidrv = {
+ 	.probe		= s3c24xx_spi_probe,
+ 	.remove		= s3c24xx_spi_remove,
+diff -puN drivers/spi/spi_s3c24xx_gpio.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_s3c24xx_gpio.c
+--- a/drivers/spi/spi_s3c24xx_gpio.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_s3c24xx_gpio.c
+@@ -180,7 +180,7 @@ static struct platform_driver s3c2410_sp
+         .suspend	= s3c2410_spigpio_suspend,
+         .resume		= s3c2410_spigpio_resume,
+         .driver		= {
+-		.name	= "s3c24xx-spi-gpio",
++		.name	= "spi_s3c24xx_gpio",
+ 		.owner	= THIS_MODULE,
+         },
+ };
+diff -puN drivers/spi/spi_txx9.c~spi-driver-hotplug-coldplug-fixes drivers/spi/spi_txx9.c
+--- a/drivers/spi/spi_txx9.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/spi_txx9.c
+@@ -450,6 +450,7 @@ static int __exit txx9spi_remove(struct 
+ 	return 0;
+ }
+ 
++MODULE_ALIAS("txx9spi");			/* for platform bus hotplug */
+ static struct platform_driver txx9spi_driver = {
+ 	.remove = __exit_p(txx9spi_remove),
+ 	.driver = {
+diff -puN drivers/spi/xilinx_spi.c~spi-driver-hotplug-coldplug-fixes drivers/spi/xilinx_spi.c
+--- a/drivers/spi/xilinx_spi.c~spi-driver-hotplug-coldplug-fixes
++++ a/drivers/spi/xilinx_spi.c
+@@ -21,7 +21,7 @@
+ 
+ #include <syslib/virtex_devices.h>
+ 
+-#define XILINX_SPI_NAME "xspi"
++#define XILINX_SPI_NAME "xilinx_spi"
+ 
+ /* Register definitions as per "OPB Serial Peripheral Interface (SPI) (v1.00e)
+  * Product Specification", DS464
 _
 
-Patches currently in -mm which might be from jlim@sgi.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-assign-task_structexit_code-before-taskstats_exit.patch
-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
+origin.patch
+correct-name-for-rtc-m41t80.patch
+rtc-max6902-minor-fixes.patch
+spi-driver-hotplug-coldplug-fixes.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-mmc.patch
+git-mtd.patch
+ohci-fix-oddball-gcc-warning.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+rtc-periodic-irq-fix.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
