@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
-Date: Tue, 21 Aug 2007 17:17:50 -0700
-Message-ID: <200708220022.l7M0MwNh018833@imap1.linux-foundation.org>
+Subject: + binfmt_flat-warning-fixes.patch added to -mm tree
+Date: Tue, 21 Aug 2007 17:31:55 -0700
+Message-ID: <200708220037.l7M0b3Ua019351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750720AbXHVAXG (ORCPT
+	by vger.kernel.org with ESMTP id S1751438AbXHVAiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Aug 2007 20:23:06 -0400
+	Tue, 21 Aug 2007 20:38:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, gerg@uclinux.org
 
 
 The patch titled
-     fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     binfmt_flat: warning fixes
 has been added to the -mm tree.  Its filename is
-     fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     binfmt_flat-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: binfmt_flat: warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Fix this lot:
+
+fs/binfmt_flat.c: In function `decompress_exec':
+fs/binfmt_flat.c:293: warning: label `out' defined but not used
+fs/binfmt_flat.c: In function `load_flat_file':
+fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 3)
+fs/binfmt_flat.c:462: warning: unsigned int format, long int arg (arg 4)
+fs/binfmt_flat.c:518: warning: comparison of distinct pointer types lacks a cast
+fs/binfmt_flat.c:549: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
+fs/binfmt_flat.c:601: warning: passing arg 1 of `ksize' makes pointer from integer without a cast
+fs/binfmt_flat.c: In function `load_flat_binary':
+fs/binfmt_flat.c:116: warning: 'dummy' might be used uninitialized in this function
+
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/crypto/ap_bus.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_flat.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/s390/crypto/ap_bus.c~fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/s390/crypto/ap_bus.c
---- a/drivers/s390/crypto/ap_bus.c~fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/s390/crypto/ap_bus.c
-@@ -458,7 +458,7 @@ static int ap_bus_match(struct device *d
-  * uevent function for AP devices. It sets up a single environment
-  * variable DEV_TYPE which contains the hardware device type.
-  */
--static int ap_uevent (struct device *dev, struct kobj_uevent_env)
-+static int ap_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
- 	struct ap_device *ap_dev = to_ap_dev(dev);
- 	int retval = 0;
+diff -puN fs/binfmt_flat.c~binfmt_flat-warning-fixes fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~binfmt_flat-warning-fixes
++++ a/fs/binfmt_flat.c
+@@ -113,7 +113,7 @@ static unsigned long create_flat_tables(
+ 	char * p = (char*)pp;
+ 	int argc = bprm->argc;
+ 	int envc = bprm->envc;
+-	char dummy;
++	char uninitialized_var(dummy);
+ 
+ 	sp = (unsigned long *) ((-(unsigned long)sizeof(char *))&(unsigned long) p);
+ 
+@@ -290,7 +290,6 @@ out_free_buf:
+ 	kfree(buf);
+ out_free:
+ 	kfree(strm.workspace);
+-out:
+ 	return retval;
+ }
+ 
+@@ -459,7 +458,9 @@ static int load_flat_file(struct linux_b
+ 		printk("BINFMT_FLAT: Loading file: %s\n", bprm->filename);
+ 
+ 	if (rev != FLAT_VERSION && rev != OLD_FLAT_VERSION) {
+-		printk("BINFMT_FLAT: bad flat file version 0x%x (supported 0x%x and 0x%x)\n", rev, FLAT_VERSION, OLD_FLAT_VERSION);
++		printk("BINFMT_FLAT: bad flat file version 0x%x (supported "
++			"0x%lx and 0x%lx)\n",
++			rev, FLAT_VERSION, OLD_FLAT_VERSION);
+ 		ret = -ENOEXEC;
+ 		goto err;
+ 	}
+@@ -515,7 +516,8 @@ static int load_flat_file(struct linux_b
+ 	/*
+ 	 * calculate the extra space we need to map in
+ 	 */
+-	extra = max(bss_len + stack_len, relocs * sizeof(unsigned long));
++	extra = max_t(unsigned long, bss_len + stack_len,
++			relocs * sizeof(unsigned long));
+ 
+ 	/*
+ 	 * there are a couple of cases here,  the separate code/data
+@@ -546,7 +548,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (realdatastart && (realdatastart < (unsigned long)-4096)) {
+-			reallen = ksize(realdatastart);
++			reallen = ksize((void *)realdatastart);
+ 			if (reallen > len) {
+ 				realdatastart = do_mremap(realdatastart, len,
+ 					reallen, MREMAP_FIXED, realdatastart);
+@@ -598,7 +600,7 @@ static int load_flat_file(struct linux_b
+ 			PROT_READ | PROT_EXEC | PROT_WRITE, MAP_PRIVATE, 0);
+ 		/* Remap to use all availabe slack region space */
+ 		if (textpos && (textpos < (unsigned long) -4096)) {
+-			reallen = ksize(textpos);
++			reallen = ksize((void *)textpos);
+ 			if (reallen > len) {
+ 				textpos = do_mremap(textpos, len, reallen,
+ 					MREMAP_FIXED, textpos);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +129,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 fix-2-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dma.patch
 git-dma-makefile-fix.patch
 disable-ioat.patch
@@ -193,4 +254,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-3-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+binfmt_flat-warning-fixes.patch
