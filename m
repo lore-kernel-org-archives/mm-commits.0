@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch added to -mm tree
-Date: Wed, 22 Aug 2007 16:46:23 -0700
-Message-ID: <200708222346.l7MNkN57011057@imap1.linux-foundation.org>
+Subject: + slub-limit-the-maximum-size-of-merged-slab-caches.patch added to -mm tree
+Date: Wed, 22 Aug 2007 16:47:58 -0700
+Message-ID: <200708222347.l7MNlw8R011073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48809 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51590 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764267AbXHVXrE (ORCPT
+	by vger.kernel.org with ESMTP id S933996AbXHVXsc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 19:47:04 -0400
+	Wed, 22 Aug 2007 19:48:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, davem@davemloft.net
 
 
 The patch titled
-     Do not fail if we cannot register a slab with sysfs
+     slub: limit the maximum size of merged slab caches
 has been added to the -mm tree.  Its filename is
-     do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch
+     slub-limit-the-maximum-size-of-merged-slab-caches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Do not fail if we cannot register a slab with sysfs
+Subject: slub: limit the maximum size of merged slab caches
 From: Christoph Lameter <clameter@sgi.com>
 
-Do not BUG() if we cannot register a slab with sysfs.  Just print an error.
- The only consequence of not registering is that the slab cache is not
-visible via /sys/slab.  A BUG() may not be visible that early during boot
-and we have had multiple issues here already.
+We always switch off the debugging bits of slabs that are too large for
+free pointer relocationi (256k, 512k).  This means that we may create
+kmem_cache structures that look as if they are satisfying the requirements
+for merging even if slub_debug is set.  Sysfs handling may think they are
+mergeable and thus creates unique ids that may then clash.
+
+[Patches in the works are soon going to make that limit obsolete]
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ mm/slub.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~do-not-fail-if-we-cannot-register-a-slab-with-sysfs mm/slub.c
---- a/mm/slub.c~do-not-fail-if-we-cannot-register-a-slab-with-sysfs
+diff -puN mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches mm/slub.c
+--- a/mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches
 +++ a/mm/slub.c
-@@ -3813,7 +3813,9 @@ static int __init slab_sysfs_init(void)
+@@ -209,6 +209,7 @@ static inline void ClearSlabDebug(struct
+  * The page->inuse field is 16 bit thus we have this limitation
+  */
+ #define MAX_OBJECTS_PER_SLAB 65535
++#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void))
  
+ /* Internal SLUB flags */
+ #define __OBJECT_POISON		0x80000000 /* Poison object */
+@@ -1000,7 +1001,7 @@ static void kmem_cache_open_debug_check(
+ 	 * Debugging or ctor may create a need to move the free
+ 	 * pointer. Fail if this happens.
+ 	 */
+-	if (s->objsize >= 65535 * sizeof(void *)) {
++	if (s->objsize >= MAX_MERGE_SIZE) {
+ 		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
+ 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
+ 		BUG_ON(s->ctor);
+@@ -2656,6 +2657,12 @@ static int slab_unmergeable(struct kmem_
+ 	if (s->refcount < 0)
+ 		return 1;
+ 
++	/*
++	 * Or a slab that is too large for merging
++	 */
++	if (s->size >= MAX_MERGE_SIZE)
++		return 1;
++
+ 	return 0;
+ }
+ 
+@@ -2675,6 +2682,9 @@ static struct kmem_cache *find_mergeable
+ 	align = calculate_alignment(flags, align, size);
+ 	size = ALIGN(size, align);
+ 
++	if (size >= MAX_MERGE_SIZE)
++		return NULL;
++
  	list_for_each_entry(s, &slab_caches, list) {
- 		err = sysfs_slab_add(s);
--		BUG_ON(err);
-+		if (err)
-+			printk(KERN_ERR "SLUB: Unable to add boot slab %s"
-+						" to sysfs\n", s->name);
- 	}
- 
- 	while (alias_list) {
-@@ -3821,7 +3823,9 @@ static int __init slab_sysfs_init(void)
- 
- 		alias_list = alias_list->next;
- 		err = sysfs_slab_alias(al->s, al->name);
--		BUG_ON(err);
-+		if (err)
-+			printk(KERN_ERR "SLUB: Unable to add boot slab alias"
-+					" %s to sysfs\n", s->name);
- 		kfree(al);
- 	}
- 
+ 		if (slab_unmergeable(s))
+ 			continue;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -80,6 +101,7 @@ slub-do-not-fail-on-broken-memory-configurations.patch
 process_zones-fix-recovery-code.patch
 fix-rcu_read_lock-in-page-migraton.patch
 do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch
+slub-limit-the-maximum-size-of-merged-slab-caches.patch
 apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
 check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
 infiniband-work-around-gcc-slub-problem.patch
