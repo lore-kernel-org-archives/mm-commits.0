@@ -1,198 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Wed, 22 Aug 2007 14:07:50 -0700
-Message-ID: <200708222107.l7ML7ock004652@imap1.linux-foundation.org>
+Subject: + uml-fix-x86_64-core-dump-crash.patch added to -mm tree
+Date: Wed, 22 Aug 2007 14:49:30 -0700
+Message-ID: <200708222149.l7MLnUxo006407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39435 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933850AbXHVVIb (ORCPT
+	by vger.kernel.org with ESMTP id S1763226AbXHVVtj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 17:08:31 -0400
+	Wed, 22 Aug 2007 17:49:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-has been removed from the -mm tree.  Its filename was
-     fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     uml: fix x86_64 core dump crash
+has been added to the -mm tree.  Its filename is
+     uml-fix-x86_64-core-dump-crash.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: fix x86_64 core dump crash
+From: Jeff Dike <jdike@addtoit.com>
 
-arch/powerpc/kernel/vio.c: In function `vio_hotplug':
-arch/powerpc/kernel/vio.c:376: error: `length' undeclared (first use in this function)
-arch/powerpc/kernel/vio.c:376: error: (Each undeclared identifier is reported only once
-arch/powerpc/kernel/vio.c:376: error: for each function it appears in.)
+Stop UML crashing when trying to dump a process core on x86_64.  This is the
+minimal fix to stop the crash - more things are broken here, and patches are
+forthcoming.
 
-Is this right?
+The immediate thing to do is define ELF_CORE_COPY_REGS and
+ELF_CORE_COPY_FPREGS.  Defining ELF_CORE_COPY_FPREGS allows dump_fpu to go
+away.  It is defined in terms of save_fp_registers, so that needs to be added.
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ arch/um/os-Linux/sys-x86_64/registers.c |   15 ++++++++
+ arch/um/sys-x86_64/ptrace.c             |    6 ---
+ include/asm-um/elf-x86_64.h             |   40 ++++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/arch/powerpc/kernel/vio.c
-@@ -373,7 +373,7 @@ static int vio_hotplug(struct device *de
- 	dn = dev->archdata.of_node;
- 	if (!dn)
- 		return -ENODEV;
--	cp = of_get_property(dn, "compatible", &length);
-+	cp = of_get_property(dn, "compatible", &env->buflen);
- 	if (!cp)
- 		return -ENODEV;
+diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-fix-x86_64-core-dump-crash arch/um/os-Linux/sys-x86_64/registers.c
+--- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-fix-x86_64-core-dump-crash
++++ a/arch/um/os-Linux/sys-x86_64/registers.c
+@@ -4,6 +4,7 @@
+  */
  
+ #include <errno.h>
++#include <sys/ptrace.h>
+ #include <string.h>
+ #include "ptrace_user.h"
+ #include "uml-config.h"
+@@ -17,6 +18,20 @@
+ static unsigned long exec_regs[MAX_REG_NR];
+ static unsigned long exec_fp_regs[HOST_FP_SIZE];
+ 
++int save_fp_registers(int pid, unsigned long *fp_regs)
++{
++	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
++		return -errno;
++	return 0;
++}
++
++int restore_fp_registers(int pid, unsigned long *fp_regs)
++{
++	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
++		return -errno;
++	return 0;
++}
++
+ void init_thread_registers(union uml_pt_regs *to)
+ {
+ 	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
+diff -puN arch/um/sys-x86_64/ptrace.c~uml-fix-x86_64-core-dump-crash arch/um/sys-x86_64/ptrace.c
+--- a/arch/um/sys-x86_64/ptrace.c~uml-fix-x86_64-core-dump-crash
++++ a/arch/um/sys-x86_64/ptrace.c
+@@ -156,12 +156,6 @@ int is_syscall(unsigned long addr)
+ 	return(instr == 0x050f);
+ }
+ 
+-int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu )
+-{
+-	panic("dump_fpu");
+-	return(1);
+-}
+-
+ int get_fpregs(unsigned long buf, struct task_struct *child)
+ {
+ 	panic("get_fpregs");
+diff -puN include/asm-um/elf-x86_64.h~uml-fix-x86_64-core-dump-crash include/asm-um/elf-x86_64.h
+--- a/include/asm-um/elf-x86_64.h~uml-fix-x86_64-core-dump-crash
++++ a/include/asm-um/elf-x86_64.h
+@@ -6,7 +6,9 @@
+ #ifndef __UM_ELF_X86_64_H
+ #define __UM_ELF_X86_64_H
+ 
++#include <linux/sched.h>
+ #include <asm/user.h>
++#include "skas.h"
+ 
+ /* x86-64 relocation types, taken from asm-x86_64/elf.h */
+ #define R_X86_64_NONE		0	/* No reloc */
+@@ -64,6 +66,44 @@ typedef struct { } elf_fpregset_t;
+ 	PT_REGS_R15(regs) = 0; \
+ } while (0)
+ 
++#define ELF_CORE_COPY_REGS(pr_reg, regs)		\
++	(pr_reg)[0] = (regs)->regs.gp[0];			\
++	(pr_reg)[1] = (regs)->regs.gp[1];			\
++	(pr_reg)[2] = (regs)->regs.gp[2];			\
++	(pr_reg)[3] = (regs)->regs.gp[3];			\
++	(pr_reg)[4] = (regs)->regs.gp[4];			\
++	(pr_reg)[5] = (regs)->regs.gp[5];			\
++	(pr_reg)[6] = (regs)->regs.gp[6];			\
++	(pr_reg)[7] = (regs)->regs.gp[7];			\
++	(pr_reg)[8] = (regs)->regs.gp[8];			\
++	(pr_reg)[9] = (regs)->regs.gp[9];			\
++	(pr_reg)[10] = (regs)->regs.gp[10];			\
++	(pr_reg)[11] = (regs)->regs.gp[11];			\
++	(pr_reg)[12] = (regs)->regs.gp[12];			\
++	(pr_reg)[13] = (regs)->regs.gp[13];			\
++	(pr_reg)[14] = (regs)->regs.gp[14];			\
++	(pr_reg)[15] = (regs)->regs.gp[15];			\
++	(pr_reg)[16] = (regs)->regs.gp[16];			\
++	(pr_reg)[17] = (regs)->regs.gp[17];			\
++	(pr_reg)[18] = (regs)->regs.gp[18];			\
++	(pr_reg)[19] = (regs)->regs.gp[19];			\
++	(pr_reg)[20] = (regs)->regs.gp[20];			\
++	(pr_reg)[21] = current->thread.arch.fs;			\
++	(pr_reg)[22] = 0;					\
++	(pr_reg)[23] = 0;					\
++	(pr_reg)[24] = 0;					\
++	(pr_reg)[25] = 0;					\
++	(pr_reg)[26] = 0;
++
++static inline int elf_core_copy_fpregs(struct task_struct *t,
++				       elf_fpregset_t *fpu)
++{
++	int cpu = current_thread->cpu;
++	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
++}
++
++#define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
++
+ #ifdef TIF_IA32 /* XXX */
+ #error XXX, indeed
+         clear_thread_flag(TIF_IA32);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-selectionh-add-tty_struct-forward-declaration.patch
-newport_con-warning-fix.patch
-process_zones-fix-recovery-code.patch
-remove-bdput-from-do_open-in-fs-block_devc.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-fix-4-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-revert-gregkh-driver-block-device.patch
-git-dma.patch
-git-dma-makefile-fix.patch
-disable-ioat.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-infiniband-work-around-gcc-slub-problem.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
+introduce-config_check_signature-was-re-uninline.patch
+uml-fix-previous-request-size-limit-fix.patch
+uml-fix-linker-script-alignment-bugs.patch
+uml-fix-x86_64-core-dump-crash.patch
 git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mmc-fixup.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-wireless-printk-fixes.patch
-net-add-ath5k-wireless-driver-fix.patch
-ath5k-printk-fix.patch
-ath5k-kconfig-fix.patch
-ath5k-needs-pci.patch
-x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+hostfs-convert-to-new-aops.patch
+uml-move-userspace-code-to-userspace-file.patch
+uml-tidy-recently-moved-code.patch
+uml-fix-error-cleanup-ordering.patch
+uml-console-subsystem-tidying.patch
+uml-fix-console-writing-bugs.patch
+uml-console-tidying.patch
+uml-stop-using-libc-asm-pageh.patch
+uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
+uml-fix-nonremovability-of-watchdog.patch
+uml-stop-specially-protecting-kernel-stacks.patch
+uml-stop-saving-process-fp-state.patch
+uml-physmem-code-tidying.patch
+uml-add-vde-networking-support.patch
+uml-remove-unnecessary-hostfs_getattr.patch
+uml-throw-out-config_mode_tt.patch
+uml-remove-sysdep-threadh.patch
+uml-style-fixes-pass-1.patch
+uml-throw-out-choose_mode.patch
+uml-style-fixes-pass-2.patch
+uml-remove-code-made-redundant-by-choose_mode-removal.patch
+uml-style-fixes-pass-3.patch
+uml-remove-__u64-usage-from-physical-memory-subsystem.patch
+uml-get-rid-of-do_longjmp.patch
+uml-fold-mmu_context_skas-into-mm_context.patch
+uml-rename-pt_regs-general-purpose-register-file.patch
+uml-free-ldt-state-on-process-exit.patch
+uml-remove-os_-usage-from-userspace-files.patch
+uml-replace-clone-with-fork.patch
+uml-fix-inlines.patch
+uml-use-64-bits-for-block-size-on-x86_64.patch
+uml-userspace-files-should-call-libc-directly.patch
+uml-clean-up-tlb-flush-path.patch
+uml-remove-unneeded-if-from-hostfs.patch
+uml-fix-hostfs-style.patch
