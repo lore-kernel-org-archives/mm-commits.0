@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-ecryptfs-fix-lookup-error-for-special-files.patch added to -mm tree
-Date: Thu, 23 Aug 2007 00:26:42 -0700
-Message-ID: <200708230726.l7N7QgcR026580@imap1.linux-foundation.org>
+Subject: + revert-x86_64-mm-less-stack-alignment.patch added to -mm tree
+Date: Thu, 23 Aug 2007 13:50:05 -0700
+Message-ID: <200708232050.l7NKo6X7026407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52080 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751751AbXHWHcS (ORCPT
+	by vger.kernel.org with ESMTP id S1757650AbXHWUuT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 03:32:18 -0400
+	Thu, 23 Aug 2007 16:50:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp, mhalcrow@us.ibm.com
+Cc: akpm@linux-foundation.org, ak@suse.de, mel@csn.ul.ie
 
 
 The patch titled
-     revert "eCryptfs: fix lookup error for special files"
+     revert x86_64-mm-less-stack-alignment
 has been added to the -mm tree.  Its filename is
-     revert-ecryptfs-fix-lookup-error-for-special-files.patch
+     revert-x86_64-mm-less-stack-alignment.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "eCryptfs: fix lookup error for special files"
+Subject: revert x86_64-mm-less-stack-alignment
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch got appied twice.
+> > >From elm3b6 on test.kernel.org, we get the following build error
+> > 
+> > 08/22/07-07:01:07 building kernel - make bzImage
+> >   CHK     include/linux/version.h
+> >   UPD     include/linux/version.h
+> >   CHK     include/linux/utsrelease.h
+> >   UPD     include/linux/utsrelease.h
+> >   SYMLINK include/asm -> include/asm-x86_64
+> >   CC      arch/x86_64/kernel/asm-offsets.s
+> > arch/x86_64/kernel/asm-offsets.c:1: error: -mpreferred-stack-boundary=3
+> > is not between 4 and 12
+> > make[1]: *** [arch/x86_64/kernel/asm-offsets.s] Error 1
+> > make: *** [prepare0] Error 2
+> > 08/22/07-07:01:08 Build the kernel. Failed rc = 2
+> > 08/22/07-07:01:08 build: Building kernel... Failed rc = 1
+> > Failed and terminated the run
+> > 08/22/07-07:01:08 command complete: (1) rc=126 (TEST ABORT)
+> >  Fatal error, aborting autorun
+> > 
+> > config file at: http://test.kernel.org/abat/107411/build/dotconfig
+> > gcc version is 3.4.4
+> > 
+> > This does not occur when using a cross-compiler gcc 3.4.0
+> > 
 
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86_64/Makefile |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~revert-ecryptfs-fix-lookup-error-for-special-files fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~revert-ecryptfs-fix-lookup-error-for-special-files
-+++ a/fs/ecryptfs/inode.c
-@@ -357,10 +357,6 @@ static struct dentry *ecryptfs_lookup(st
- 		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
- 		goto out;
- 	}
--	if (special_file(lower_inode->i_mode)) {
--		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
--		goto out;
--	}
- 	if (!nd) {
- 		ecryptfs_printk(KERN_DEBUG, "We have a NULL nd, just leave"
- 				"as we *think* we are about to unlink\n");
+diff -puN arch/x86_64/Makefile~revert-x86_64-mm-less-stack-alignment arch/x86_64/Makefile
+--- a/arch/x86_64/Makefile~revert-x86_64-mm-less-stack-alignment
++++ a/arch/x86_64/Makefile
+@@ -58,8 +58,6 @@ cflags-y += $(call cc-option,-mno-sse -m
+ # newer gccs do it by default
+ cflags-y += -maccumulate-outgoing-args
+ 
+-cflags-y += $(call cc-option,-mpreferred-stack-boundary=3)
+-
+ # do binutils support CFI?
+ cflags-y += $(call as-instr,.cfi_startproc\n.cfi_rel_offset rsp${comma}0\n.cfi_endproc,-DCONFIG_AS_CFI=1,)
+ AFLAGS += $(call as-instr,.cfi_startproc\n.cfi_rel_offset rsp${comma}0\n.cfi_endproc,-DCONFIG_AS_CFI=1,)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-revert-ecryptfs-fix-lookup-error-for-special-files.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
@@ -119,6 +139,7 @@ net-add-ath5k-wireless-driver-fix.patch
 ath5k-printk-fix.patch
 ath5k-kconfig-fix.patch
 ath5k-needs-pci.patch
+revert-x86_64-mm-less-stack-alignment.patch
 x86_64-dynticks-disable-hpet_id_legsup-hpets.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 git-xfs.patch
