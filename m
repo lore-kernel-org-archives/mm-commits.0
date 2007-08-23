@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-portmap-remove-unused-definitions.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:24:39 -0700
-Message-ID: <200708232224.l7NMOdcI029842@imap1.linux-foundation.org>
+Subject: + libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:24:45 -0700
+Message-ID: <200708232224.l7NMOjLm029853@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48869 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756950AbXHWWYu (ORCPT
+	by vger.kernel.org with ESMTP id S1762345AbXHWWY4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:24:50 -0400
+	Thu, 23 Aug 2007 18:24:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata-portmap: Remove unused definitions
+     libata: allow for original IDE drives that don't support geometry setting
 has been added to the -mm tree.  Its filename is
-     libata-portmap-remove-unused-definitions.patch
+     libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-portmap: Remove unused definitions
+Subject: libata: allow for original IDE drives that don't support geometry setting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-With the PCI layer properly handling legacy IDE and the kernel now using it
-these can go.
+This is mandatory for all early ATA devices but may fail on IDE.  As we try to
+set the geometry to the geometry we already have a failure of this request is
+harmless.  We can't skip the request as its mandatory during setup and some
+older ATA drives pee themselves if you don't do it.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/libata-portmap.h |    5 -----
- 1 files changed, 5 deletions(-)
+ drivers/ata/libata-core.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN include/asm-generic/libata-portmap.h~libata-portmap-remove-unused-definitions include/asm-generic/libata-portmap.h
---- a/include/asm-generic/libata-portmap.h~libata-portmap-remove-unused-definitions
-+++ a/include/asm-generic/libata-portmap.h
-@@ -1,12 +1,7 @@
- #ifndef __ASM_GENERIC_LIBATA_PORTMAP_H
- #define __ASM_GENERIC_LIBATA_PORTMAP_H
+diff -puN drivers/ata/libata-core.c~libata-allow-for-original-ide-drives-that-dont-support-geometry-setting drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-allow-for-original-ide-drives-that-dont-support-geometry-setting
++++ a/drivers/ata/libata-core.c
+@@ -4090,6 +4090,8 @@ static unsigned int ata_dev_set_AN(struc
+  *	@heads: Number of heads (taskfile parameter)
+  *	@sectors: Number of sectors (taskfile parameter)
+  *
++ *	FIXME: Although mandatory on ATA1-4 it is not on original IDE
++ *
+  *	LOCKING:
+  *	Kernel thread context (may sleep)
+  *
+@@ -4117,6 +4119,11 @@ static unsigned int ata_dev_init_params(
+ 	tf.device |= (heads - 1) & 0x0f; /* max head = num. of heads - 1 */
  
--#define ATA_PRIMARY_CMD		0x1F0
--#define ATA_PRIMARY_CTL		0x3F6
- #define ATA_PRIMARY_IRQ(dev)	14
--
--#define ATA_SECONDARY_CMD	0x170
--#define ATA_SECONDARY_CTL	0x376
- #define ATA_SECONDARY_IRQ(dev)	15
+ 	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
++	/* A clean abort indicates an original or just out of spec drive
++	   and we should continue as we issue the setup based on the
++	   drive reported working geometry */
++	if (err_mask == AC_ERR_DEV && (tf.feature & ATA_ABORTED))
++		err_mask &= ~AC_ERR_DEV;
  
- #endif
+ 	DPRINTK("EXIT, err_mask=%x\n", err_mask);
+ 	return err_mask;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
