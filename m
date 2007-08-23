@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s390-appldata_base-remove-module_exit-function-and-modular.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:02:34 -0700
-Message-ID: <200708232302.l7NN2YEU031540@imap1.linux-foundation.org>
+Subject: + i386-cpuid-misc-cpuinit-annotations.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:02:59 -0700
+Message-ID: <200708232302.l7NN2xhh031543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762977AbXHWXCn (ORCPT
+	by vger.kernel.org with ESMTP id S1761999AbXHWXDJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:02:43 -0400
+	Thu, 23 Aug 2007 19:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: satyam@infradead.org, ak@suse.de
 
 
 The patch titled
-     s390 appldata_base: Remove module_exit function and modular stuff
+     i386 cpuid: Misc cpuinit annotations
 has been added to the -mm tree.  Its filename is
-     s390-appldata_base-remove-module_exit-function-and-modular.patch
+     i386-cpuid-misc-cpuinit-annotations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s390 appldata_base: Remove module_exit function and modular stuff
+Subject: i386 cpuid: Misc cpuinit annotations
 From: Satyam Sharma <satyam@infradead.org>
 
-arch/s390/Kconfig tells us that CONFIG_APPLDATA_BASE is bool and hence can
-never be built modular.  Given this, defining appldata_exit() function is
-pointless (and wasteful, actually).  Remove all that.
+cpuid_class_cpu_callback() is callback function of a CPU hotplug
+notifier_block (that is already marked as __cpuinitdata).  Therefore it can
+safely be marked as __cpuinit.
 
-Previous patch annotated appldata_offline_cpu() as __cpuexit, but now with the
-__exit function appldata_exit() gone, the only callsite that references it is
-__cpuinit, so this function can also be __cpuinit, thereby saving space when
-HOTPLUG_CPU=n.
+cpuid_device_create() is only referenced from other functions that are
+__cpuinit or __init.  So it can also be safely marked __cpuinit.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/appldata/appldata_base.c |   48 ---------------------------
- 1 files changed, 1 insertion(+), 47 deletions(-)
+ arch/i386/kernel/cpuid.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/appldata/appldata_base.c~s390-appldata_base-remove-module_exit-function-and-modular arch/s390/appldata/appldata_base.c
---- a/arch/s390/appldata/appldata_base.c~s390-appldata_base-remove-module_exit-function-and-modular
-+++ a/arch/s390/appldata/appldata_base.c
-@@ -547,7 +547,7 @@ static void __cpuinit appldata_online_cp
- 	spin_unlock(&appldata_timer_lock);
- }
+diff -puN arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations arch/i386/kernel/cpuid.c
+--- a/arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations
++++ a/arch/i386/kernel/cpuid.c
+@@ -136,7 +136,7 @@ static const struct file_operations cpui
+ 	.open = cpuid_open,
+ };
  
--static void __cpuexit appldata_offline_cpu(int cpu)
-+static void __cpuinit appldata_offline_cpu(int cpu)
+-static int cpuid_device_create(int i)
++static int __cpuinit cpuid_device_create(int i)
  {
- 	del_virt_timer(&per_cpu(appldata_timer, cpu));
- 	if (atomic_dec_and_test(&appldata_expire_count)) {
-@@ -607,61 +607,15 @@ static int __init appldata_init(void)
- 	register_hotcpu_notifier(&appldata_nb);
- 
- 	appldata_sysctl_header = register_sysctl_table(appldata_dir_table);
--#ifdef MODULE
--	appldata_dir_table[0].de->owner = THIS_MODULE;
--	appldata_table[0].de->owner = THIS_MODULE;
--	appldata_table[1].de->owner = THIS_MODULE;
--#endif
- 
- 	P_DEBUG("Base interface initialized.\n");
- 	return 0;
+ 	int err = 0;
+ 	struct device *dev;
+@@ -147,7 +147,9 @@ static int cpuid_device_create(int i)
+ 	return err;
  }
  
--/*
-- * appldata_exit()
-- *
-- * stop timer, unregister /proc entries
-- */
--static void __exit appldata_exit(void)
--{
--	struct list_head *lh;
--	struct appldata_ops *ops;
--	int rc, i;
--
--	P_DEBUG("Unloading module ...\n");
--	/*
--	 * ops list should be empty, but just in case something went wrong...
--	 */
--	spin_lock(&appldata_ops_lock);
--	list_for_each(lh, &appldata_ops_list) {
--		ops = list_entry(lh, struct appldata_ops, list);
--		rc = appldata_diag(ops->record_nr, APPLDATA_STOP_REC,
--				(unsigned long) ops->data, ops->size,
--				ops->mod_lvl);
--		if (rc != 0) {
--			P_ERROR("STOP DIAG 0xDC for %s failed, "
--				"return code: %d\n", ops->name, rc);
--		}
--	}
--	spin_unlock(&appldata_ops_lock);
--
--	unregister_hotcpu_notifier(&appldata_nb);
--
--	for_each_online_cpu(i)
--		appldata_offline_cpu(i);
--
--	appldata_timer_active = 0;
--
--	unregister_sysctl_table(appldata_sysctl_header);
--
--	destroy_workqueue(appldata_wq);
--	P_DEBUG("... module unloaded!\n");
--}
- /**************************** init / exit <END> ******************************/
+-static int cpuid_class_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
++static int __cpuinit cpuid_class_cpu_callback(struct notifier_block *nfb,
++					      unsigned long action,
++					      void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
  
- 
- module_init(appldata_init);
--module_exit(appldata_exit);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Gerald Schaefer");
- MODULE_DESCRIPTION("Linux-VM Monitor Stream, base infrastructure");
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
