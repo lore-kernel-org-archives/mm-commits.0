@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:25:47 -0700
-Message-ID: <200708232325.l7NNPlmt032351@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-possible-fault-in-ecryptfs_sync_page.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:27:30 -0700
+Message-ID: <200708232327.l7NNRUgg032400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753677AbXHWX0B (ORCPT
+	by vger.kernel.org with ESMTP id S933062AbXHWX1m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:26:01 -0400
+	Thu, 23 Aug 2007 19:27:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, mhoffman@lightlink.com, r.marek@assembler.cz
+Cc: konishi.ryusuke@lab.ntt.co.jp, mhalcrow@us.ibm.com
 
 
 The patch titled
-     hwmon coretemp: remove bogus __cpuinitdata etc cleanup
+     eCryptfs: fix possible fault in ecryptfs_sync_page
 has been added to the -mm tree.  Its filename is
-     hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
+     ecryptfs-fix-possible-fault-in-ecryptfs_sync_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hwmon coretemp: remove bogus __cpuinitdata etc cleanup
-From: Satyam Sharma <satyam@infradead.org>
+Subject: eCryptfs: fix possible fault in ecryptfs_sync_page
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-The CPU hotplug notifier_block coretemp_cpu_notifier is already defined
-inside an #ifdef HOTPLUG_CPU, therefore marking it as __cpuinitdata is
-quite a pointless thing to do.
+This will avoid a possible fault in ecryptfs_sync_page().
 
-Also, remove duplicate prototype of function coretemp_update_device() at
-the top of this file (another one already exists barely 10 lines above this
-one :-)
+In the function, eCryptfs calls sync_page() method of a lower filesystem
+without checking its existence.  However, there are many filesystems that
+don't have this method including network filesystems such as NFS, AFS, and
+so forth.  They may fail when an eCryptfs page is waiting for lock.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Cc: Mark Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/coretemp.c |    4 +---
- 1 files changed, 1 insertion(+), 3 deletions(-)
+ fs/ecryptfs/mmap.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/coretemp.c~hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup drivers/hwmon/coretemp.c
---- a/drivers/hwmon/coretemp.c~hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup
-+++ a/drivers/hwmon/coretemp.c
-@@ -58,8 +58,6 @@ struct coretemp_data {
- 	u8 alarm;
- };
- 
--static struct coretemp_data *coretemp_update_device(struct device *dev);
--
- /*
-  * Sysfs stuff
-  */
-@@ -350,7 +348,7 @@ static int coretemp_cpu_callback(struct 
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block __cpuinitdata coretemp_cpu_notifier = {
-+static struct notifier_block coretemp_cpu_notifier = {
- 	.notifier_call = coretemp_cpu_callback,
- };
- #endif				/* !CONFIG_HOTPLUG_CPU */
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-fix-possible-fault-in-ecryptfs_sync_page fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-fix-possible-fault-in-ecryptfs_sync_page
++++ a/fs/ecryptfs/mmap.c
+@@ -834,7 +834,8 @@ static void ecryptfs_sync_page(struct pa
+ 		ecryptfs_printk(KERN_DEBUG, "find_lock_page failed\n");
+ 		return;
+ 	}
+-	lower_page->mapping->a_ops->sync_page(lower_page);
++	if (lower_page->mapping->a_ops->sync_page)
++		lower_page->mapping->a_ops->sync_page(lower_page);
+ 	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16x]\n",
+ 			lower_page->index);
+ 	unlock_page(lower_page);
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-origin.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-git-netdev-all.patch
-git-net.patch
-s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch
-s390-appldata_base-remove-module_exit-function-and-modular.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-x86_64-mce_amd-fix-section-mismatch-warnings.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+ecryptfs-fix-lookup-error-for-special-files.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
+ecryptfs-fix-possible-fault-in-ecryptfs_sync_page.patch
