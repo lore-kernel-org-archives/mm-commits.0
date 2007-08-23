@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:08:01 -0700
-Message-ID: <200708232208.l7NM81IG029199@imap1.linux-foundation.org>
+Subject: + make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:08:03 -0700
+Message-ID: <200708232208.l7NM84Fi029202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763078AbXHWWIh (ORCPT
+	by vger.kernel.org with ESMTP id S932148AbXHWWIi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:08:37 -0400
+	Thu, 23 Aug 2007 18:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, haveblue@us.ibm.com
+Cc: haveblue@us.ibm.com, greg@kroah.com
 
 
 The patch titled
-     revert gregkh-driver-warn-when-statically-allocated-kobjects-are-used
+     make kobject dynamic allocation check use kallsyms_lookup()
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+     make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,240 +26,176 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-warn-when-statically-allocated-kobjects-are-used
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: make kobject dynamic allocation check use kallsyms_lookup()
+From: Dave Hansen <haveblue@us.ibm.com>
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
+One of the top ten sysfs problems is that users use statically allocated
+kobjects.  This patch reminds them that this is a naughty thing.
+
+One _really_ nice thing this patch does, is us the kallsyms mechanism to
+print out exactly which symbol is being complained about:
+
+	The kobject at, or inside 'statickobj.2'@(0xc040d020) is not dynamically allocated.
+
+This patch replaces the previous implementation's use of a _sdata symbol in
+favor of using kallsyms_lookup().  If a kobject's address is a resolvable
+symbol, then it isn't dynamically allocated.
+
+The one exception to this is init symbols.  The patch also checks to see
+whether __init memory has been freed and if it has will allow kobjects in
+those sections.
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/vmlinux.lds.S |    2 -
- lib/kobject.c                  |   43 -------------------------------
- 2 files changed, 45 deletions(-)
+ include/linux/init.h |    1 
+ init/main.c          |    9 ++++++
+ lib/kobject.c        |   56 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff -puN arch/i386/kernel/vmlinux.lds.S~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used arch/i386/kernel/vmlinux.lds.S
---- a/arch/i386/kernel/vmlinux.lds.S~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used
-+++ a/arch/i386/kernel/vmlinux.lds.S
-@@ -71,8 +71,6 @@ SECTIONS
-   	__tracedata_end = .;
-   }
+diff -puN include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup include/linux/init.h
+--- a/include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
++++ a/include/linux/init.h
+@@ -83,6 +83,7 @@ extern initcall_t __security_initcall_st
+ extern char __initdata boot_command_line[];
+ extern char *saved_command_line;
+ extern unsigned int reset_devices;
++extern int initmem_now_dynamic;
  
--  _sdata = .;			/* End of text section */
--
-   RODATA
+ /* used by init/main.c */
+ void setup_arch(char **);
+diff -puN init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup init/main.c
+--- a/init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
++++ a/init/main.c
+@@ -776,12 +776,21 @@ static void run_init_process(char *init_
+ 	kernel_execve(init_filename, argv_init, envp_init);
+ }
  
-   /* writeable */
-diff -puN lib/kobject.c~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used lib/kobject.c
---- a/lib/kobject.c~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used
++/*
++ * __init/__init_data sections are turned into normal
++ * dynamically allocated memory later in boot.  When
++ * this is 0, the memory is for the __init purposes,
++ * when it it some other value, the memory is dynamic.
++ */
++int initmem_now_dynamic;
++
+ /* This is a non __init function. Force it to be noinline otherwise gcc
+  * makes it inline to init() and it becomes part of init.text section
+  */
+ static int noinline init_post(void)
+ {
+ 	free_initmem();
++	initmem_now_dynamic = 1;
+ 	unlock_kernel();
+ 	mark_rodata_ro();
+ 	system_state = SYSTEM_RUNNING;
+diff -puN lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup lib/kobject.c
+--- a/lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
 +++ a/lib/kobject.c
-@@ -15,8 +15,6 @@
+@@ -15,6 +15,8 @@
  #include <linux/module.h>
  #include <linux/stat.h>
  #include <linux/slab.h>
--#include <linux/kallsyms.h>
--#include <asm-generic/sections.h>
++#include <linux/kallsyms.h>
++#include <asm-generic/sections.h>
  
  /**
   *	populate_dir - populate directory with attributes.
-@@ -123,46 +121,6 @@ char *kobject_get_path(struct kobject *k
+@@ -121,6 +123,59 @@ char *kobject_get_path(struct kobject *k
  }
  EXPORT_SYMBOL_GPL(kobject_get_path);
  
--#ifdef CONFIG_X86_32
--static int ptr_in_range(void *ptr, void *start, void *end)
--{
--	/*
--	 * This should hopefully get rid of causing warnings
--	 * if the architecture did not set one of the section
--	 * variables up.
--	 */
--	if (start >= end)
--		return 0;
--
--	if ((ptr >= start) && (ptr < end))
--		return 1;
--	return 0;
--}
--
--static void verify_dynamic_kobject_allocation(struct kobject *kobj)
--{
--	if (ptr_in_range(kobj, &_sdata[0], &_edata[0]))
--		goto warn;
--	if (ptr_in_range(kobj, &__bss_start[0], &__bss_stop[0]))
--		goto warn;
--	return;
--warn:
--	pr_debug("---- begin silly warning ----\n");
--	pr_debug("This is a janitorial warning, not a kernel bug.\n");
--#ifdef CONFIG_DEBUG_KOBJECT
--	print_symbol("The kobject at, or inside %s is not dynamically allocated.\n",
--			(unsigned long)kobj);
--#endif
--	pr_debug("kobjects must be dynamically allocated, not static\n");
--	/* dump_stack(); */
--	pr_debug("---- end silly warning ----\n");
--}
--#else
--static void verify_dynamic_kobject_allocation(struct kobject *kobj)
--{
--}
--#endif
--
++#ifdef CONFIG_X86_32
++static int ptr_in_range(void *ptr, void *start, void *end)
++{
++	/*
++	 * This should hopefully get rid of causing warnings
++	 * if the architecture did not set one of the section
++	 * variables up.
++	 */
++	if (start >= end)
++		return 0;
++
++	if ((ptr >= start) && (ptr < end))
++		return 1;
++	return 0;
++}
++
++void verify_dynamic_kobject_allocation(struct kobject *kobj)
++{
++	char *namebuf;
++	const char *ret;
++
++	namebuf = kzalloc(KSYM_NAME_LEN, GFP_KERNEL);
++	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL,
++			namebuf);
++	/*
++	 * This is the X86_32-only part of this function.
++	 * This is here because it is valid to have a kobject
++	 * in an __init section, but only after those
++	 * sections have been freed back to the dynamic pool.
++	 */
++	if (!initmem_now_dynamic &&
++	    ptr_in_range(kobj, __init_begin, __init_end))
++		goto out;
++	if (!ret || !strlen(ret))
++		goto out;
++	pr_debug("---- begin silly warning ----\n");
++	pr_debug("This is a janitorial warning, not a kernel bug.\n");
++#ifdef CONFIG_DEBUG_KOBJECT
++	pr_debug("The kobject at, or inside '%s'@(0x%p) is not dynamically allocated.\n",
++			namebuf, kobj);
++#endif
++	pr_debug("kobjects must be dynamically allocated, not static\n");
++	/* dump_stack(); */
++	pr_debug("---- end silly warning ----\n");
++out:
++	kfree(namebuf);
++}
++#else
++static void verify_dynamic_kobject_allocation(struct kobject *kobj)
++{
++}
++#endif
++
  /**
   *	kobject_init - initialize object.
   *	@kobj:	object in question.
-@@ -172,7 +130,6 @@ void kobject_init(struct kobject * kobj)
+@@ -130,6 +185,7 @@ void kobject_init(struct kobject * kobj)
  	if (!kobj)
  		return;
  	WARN_ON(atomic_read(&kobj->kref.refcount));
--	verify_dynamic_kobject_allocation(kobj);
++	verify_dynamic_kobject_allocation(kobj);
  	kref_init(&kobj->kref);
  	INIT_LIST_HEAD(&kobj->entry);
  	init_waitqueue_head(&kobj->poll);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-origin.patch
-revert-ecryptfs-fix-lookup-error-for-special-files.patch
-sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-free_irq-fix-debug_shirq-handling.patch
-selectionh-add-tty_struct-forward-declaration.patch
-newport_con-warning-fix.patch
-process_zones-fix-recovery-code.patch
-remove-bdput-from-do_open-in-fs-block_devc.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dma.patch
-git-dma-makefile-fix.patch
-disable-ioat.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-infiniband-work-around-gcc-slub-problem.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mmc-fixup.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-fix-printk-warning-in-jffs2_block_check_erase.patch
-mtdoops-printk-warning-fixes.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-i386-add-support-for-picopower-irq-router.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-watchdog.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-wireless-printk-fixes.patch
-net-add-ath5k-wireless-driver-fix.patch
-ath5k-printk-fix.patch
-ath5k-kconfig-fix.patch
-ath5k-needs-pci.patch
-revert-x86_64-mm-less-stack-alignment.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
 pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
 page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
