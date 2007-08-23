@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-mce_amd-fix-section-mismatch-warnings.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:18:50 -0700
-Message-ID: <200708232318.l7NNIoip032062@imap1.linux-foundation.org>
+Subject: + drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:23:26 -0700
+Message-ID: <200708232323.l7NNNQtQ032237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48573 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764523AbXHWXS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755902AbXHWXXg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:18:58 -0400
+	Thu, 23 Aug 2007 19:23:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org
+Cc: satyam@infradead.org, adaplas@pol.net, eugeneteo@kernel.sg
 
 
 The patch titled
-     x86_64 mce{_amd}: Fix section mismatch warnings
+     drivers/video/geode/lxfb_core.c: Fix build warning
 has been added to the -mm tree.  Its filename is
-     x86_64-mce_amd-fix-section-mismatch-warnings.patch
+     drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,113 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64 mce{_amd}: Fix section mismatch warnings
+Subject: drivers/video/geode/lxfb_core.c: Fix build warning
 From: Satyam Sharma <satyam@infradead.org>
 
-* mce.c:
-
-mce_create_device() is marked __cpuinit and hence goes into .init.text
-when HOTPLUG_CPU=n. However, the hotplug notifier callback function
-mce_cpu_callback() is not marked __cpuinit therefore goes into .text
-section unconditionally. This causes reference to .init.text from .text
-which would cause modpost to warn (bogusly, because a CPU hotplug event
-can never happen anyway if HOTPLUG_CPU=n). Anyway, let's fix this by
-marking callback as __cpuinit and the notifier_block as __cpuinitdata.
-Having done that, mce_remove_device() is only ever called from __cpuinit
-marked functions so can be marked __cpuinit itself.
-
-* mce_amd.c:
-
-Has an exactly similar section mismatch as that discussed in previous
-case. Solve it similarly by marking notifier callback as __cpuinit and
-notifier_block as __cpuinitdata. This causes a viral effect and allows
-us to mark a bunch of other functions as __cpuinit also.
+drivers/video/geode/lxfb_core.c: In function 'lxfb_setup':
+drivers/video/geode/lxfb_core.c:564: warning: unused variable 'opt'
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/mce.c     |    6 +++---
- arch/x86_64/kernel/mce_amd.c |   10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/video/geode/lxfb_core.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce.c
---- a/arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/mce.c
-@@ -833,7 +833,7 @@ static __cpuinit int mce_create_device(u
- 	return err;
- }
- 
--static void mce_remove_device(unsigned int cpu)
-+static void __cpuinit mce_remove_device(unsigned int cpu)
+diff -puN drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix
++++ a/drivers/video/geode/lxfb_core.c
+@@ -561,8 +561,6 @@ static struct pci_driver lxfb_driver = {
+ #ifndef MODULE
+ static int __init lxfb_setup(char *options)
  {
- 	int i;
- 
-@@ -845,7 +845,7 @@ static void mce_remove_device(unsigned i
- }
- 
- /* Get notified when a cpu comes on/off. Be hotplug friendly. */
--static int
-+static int __cpuinit
- mce_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
- {
- 	unsigned int cpu = (unsigned long)hcpu;
-@@ -863,7 +863,7 @@ mce_cpu_callback(struct notifier_block *
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block mce_cpu_notifier = {
-+static struct notifier_block mce_cpu_notifier __cpuinitdata = {
- 	.notifier_call = mce_cpu_callback,
- };
- 
-diff -puN arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce_amd.c
---- a/arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings
-+++ a/arch/x86_64/kernel/mce_amd.c
-@@ -570,7 +570,7 @@ out:
-  *   of shared sysfs dir/files, and rest of the cores will be symlinked to it.
-  */
- 
--static void deallocate_threshold_block(unsigned int cpu,
-+static void __cpuinit deallocate_threshold_block(unsigned int cpu,
- 						 unsigned int bank)
- {
- 	struct threshold_block *pos = NULL;
-@@ -590,7 +590,7 @@ static void deallocate_threshold_block(u
- 	per_cpu(threshold_banks, cpu)[bank]->blocks = NULL;
- }
- 
--static void threshold_remove_bank(unsigned int cpu, int bank)
-+static void __cpuinit threshold_remove_bank(unsigned int cpu, int bank)
- {
- 	int i = 0;
- 	struct threshold_bank *b;
-@@ -632,7 +632,7 @@ free_out:
- 	per_cpu(threshold_banks, cpu)[bank] = NULL;
- }
- 
--static void threshold_remove_device(unsigned int cpu)
-+static void __cpuinit threshold_remove_device(unsigned int cpu)
- {
- 	unsigned int bank;
- 
-@@ -644,7 +644,7 @@ static void threshold_remove_device(unsi
- }
- 
- /* get notified when a cpu comes on/off */
--static int threshold_cpu_callback(struct notifier_block *nfb,
-+static int __cpuinit threshold_cpu_callback(struct notifier_block *nfb,
- 					    unsigned long action, void *hcpu)
- {
- 	/* cpu was unsigned int to begin with */
-@@ -669,7 +669,7 @@ static int threshold_cpu_callback(struct
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block threshold_cpu_notifier = {
-+static struct notifier_block threshold_cpu_notifier __cpuinitdata = {
- 	.notifier_call = threshold_cpu_callback,
- };
+-	char *opt;
+-
+ 	if (!options || !*options)
+ 		return 0;
  
 _
 
@@ -157,7 +76,7 @@ x86_64-mce_amd-fix-section-mismatch-warnings.patch
 therm_throtc-fix-section-mismatch.patch
 slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
 argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
 redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
 x86-msr-driver-misc-cpuinit-annotations.patch
 i386-cpuid-misc-cpuinit-annotations.patch
-drivers-video-geode-lxfb_corec-fix-build.patch
