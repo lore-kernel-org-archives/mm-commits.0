@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-spot-bridge-chips.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:24:43 -0700
-Message-ID: <200708232224.l7NMOhS6029850@imap1.linux-foundation.org>
+Subject: + libata-strict-checking-for-identify-reporting.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:25:32 -0700
+Message-ID: <200708232225.l7NMPWgD029877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50779 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762412AbXHWWZG (ORCPT
+	by vger.kernel.org with ESMTP id S1763528AbXHWWZn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:25:06 -0400
+	Thu, 23 Aug 2007 18:25:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata: spot bridge chips
+     libata: strict checking for identify reporting
 has been added to the -mm tree.  Its filename is
-     libata-spot-bridge-chips.patch
+     libata-strict-checking-for-identify-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: spot bridge chips
+Subject: libata: strict checking for identify reporting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If we have a PATA cable with a SATA drive on it then we've found a bridge and
-we can flip the cable type.  This fixes some cable detect problems with SATA
-bridges on chipsets and misdetected cable types.
+The ATA specifications require checks on certain flags before assuming the
+validity of other data.  Go through the methods and correct those needing
+extra checks.  Also note limits on ata_id_major_version with respect to ATA-1
+and ATA-2.  Correct the 32bit PIO check.
 
-In theory cable detection and mode limiting is needed if you put a SATA/PATA
-bridge on a 40 wire cable, but I see no way to deal with that other than to
-point out its not a good idea anyway.
+Wants to sit in -mm for a bit in case of a screwup on my part that I didn't
+hit on the test drives and also in case someone, somewhere has a drive that
+gets it wrong.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ include/linux/ata.h |   96 +++++++++++++++++++++++++++++++++++++-----
+ 1 files changed, 85 insertions(+), 11 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-spot-bridge-chips drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-spot-bridge-chips
-+++ a/drivers/ata/libata-core.c
-@@ -2182,6 +2182,17 @@ int ata_bus_probe(struct ata_port *ap)
- 	if (ap->ops->cable_detect)
- 		ap->cbl = ap->ops->cable_detect(ap);
+diff -puN include/linux/ata.h~libata-strict-checking-for-identify-reporting include/linux/ata.h
+--- a/include/linux/ata.h~libata-strict-checking-for-identify-reporting
++++ a/include/linux/ata.h
+@@ -334,22 +334,12 @@ struct ata_taskfile {
+ };
  
-+	/* We may have SATA bridge glue hiding here irrespective of the
-+	   reported cable types and sensed types */
-+	ata_link_for_each_dev(dev, &ap->link) {
-+		if (!ata_dev_enabled(dev))
-+			continue;
-+		/* SATA drives indicate we have a bridge. We don't know which
-+		   end of the link the bridge is which is a problem */
-+		if (ata_id_is_sata(dev->id))
-+			ap->cbl = ATA_CBL_SATA;
-+	}
+ #define ata_id_is_ata(id)	(((id)[0] & (1 << 15)) == 0)
+-#define ata_id_rahead_enabled(id) ((id)[85] & (1 << 6))
+-#define ata_id_wcache_enabled(id) ((id)[85] & (1 << 5))
+-#define ata_id_hpa_enabled(id)	((id)[85] & (1 << 10))
+-#define ata_id_has_fua(id)	((id)[84] & (1 << 6))
+-#define ata_id_has_flush(id)	((id)[83] & (1 << 12))
+-#define ata_id_has_flush_ext(id) ((id)[83] & (1 << 13))
+-#define ata_id_has_lba48(id)	((id)[83] & (1 << 10))
+-#define ata_id_has_hpa(id)	((id)[82] & (1 << 10))
+-#define ata_id_has_wcache(id)	((id)[82] & (1 << 5))
+-#define ata_id_has_pm(id)	((id)[82] & (1 << 3))
+ #define ata_id_has_lba(id)	((id)[49] & (1 << 9))
+ #define ata_id_has_dma(id)	((id)[49] & (1 << 8))
+ #define ata_id_has_ncq(id)	((id)[76] & (1 << 8))
+ #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
+ #define ata_id_removeable(id)	((id)[0] & (1 << 7))
+-#define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
++#define ata_id_has_dword_io(id)	((id)[48] & (1 << 0))
+ #define ata_id_has_AN(id)	\
+ 	( (((id)[76] != 0x0000) && ((id)[76] != 0xffff)) && \
+ 	  ((id)[78] & (1 << 5)) )
+@@ -365,6 +355,90 @@ struct ata_taskfile {
+ 
+ #define ata_id_cdb_intr(id)	(((id)[0] & 0x60) == 0x20)
+ 
++static inline int ata_id_has_fua(const u16 *id)
++{
++	if ((id[84] & 0xC000) != 0x4000)
++		return 0;
++	return id[84] & (1 << 6);
++}
 +
- 	/* After the identify sequence we can now set up the devices. We do
- 	   this in the normal order so that the user doesn't get confused */
- 
++static inline int ata_id_has_flush(const u16 *id)
++{
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	return id[83] & (1 << 12);
++}
++
++static inline int ata_id_has_flush_ext(const u16 *id)
++{
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	return id[83] & (1 << 13);
++}
++
++static inline int ata_id_has_lba48(const u16 *id)
++{
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	return id[83] & (1 << 10);
++}
++
++static inline int ata_id_hpa_enabled(const u16 *id)
++{
++	/* Yes children, word 83 valid bits cover word 82 data */
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	/* And 87 covers 85-87 */
++	if ((id[87] & 0xC000) != 0x4000)
++		return 0;
++	/* Check command sets enabled as well as supported */
++	if ((id[85] & ( 1 << 10)) == 0)
++		return 0;
++	return id[82] & (1 << 10);
++}
++
++static inline int ata_id_has_wcache(const u16 *id)
++{
++	/* Yes children, word 83 valid bits cover word 82 data */
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	return id[82] & (1 << 5);
++}
++
++static inline int ata_id_has_pm(const u16 *id)
++{
++	if ((id[83] & 0xC000) != 0x4000)
++		return 0;
++	return id[82] & (1 << 3);
++}
++
++static inline int ata_id_rahead_enabled(const u16 *id)
++{
++	if ((id[87] & 0xC000) != 0x4000)
++		return 0;
++	return id[85] & (1 << 6);
++}
++
++static inline int ata_id_wcache_enabled(const u16 *id)
++{
++	if ((id[87] & 0xC000) != 0x4000)
++		return 0;
++	return id[85] & (1 << 5);
++}
++
++/**
++ *	ata_id_major_version	-	get ATA level of drive
++ *	@id: Identify data
++ *
++ *	Caveats:
++ *		ATA-1 considers identify optional
++ *		ATA-2 introduces mandatory identify
++ *		ATA-3 introduces word 80 and accurate reporting
++ *
++ *	The practical impact of this is that ata_id_major_version cannot
++ *	reliably report on drives below ATA3. 
++ */
++
+ static inline unsigned int ata_id_major_version(const u16 *id)
+ {
+ 	unsigned int mver;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -87,6 +185,8 @@ libata-portmap-remove-unused-definitions.patch
 libata-correct-handling-of-srst-reset-sequences.patch
 libata-spot-bridge-chips.patch
 libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
+libata-strict-checking-for-identify-reporting.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
 st340823a-hpa-and-libata.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 tty-add-the-new-ioctls-and-definitionto-the-mips.patch
