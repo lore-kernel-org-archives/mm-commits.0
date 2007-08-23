@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-limit-the-maximum-size-of-merged-slab-caches.patch added to -mm tree
-Date: Wed, 22 Aug 2007 16:47:58 -0700
-Message-ID: <200708222347.l7MNlw8R011073@imap1.linux-foundation.org>
+Subject: + slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch added to -mm tree
+Date: Wed, 22 Aug 2007 23:46:49 -0700
+Message-ID: <200708230646.l7N6kn4B025171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35251 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933996AbXHVXsc (ORCPT
+	by vger.kernel.org with ESMTP id S1751978AbXHWGq6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2007 19:48:32 -0400
+	Thu, 23 Aug 2007 02:46:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, davem@davemloft.net
+Cc: clameter@sgi.com
 
 
 The patch titled
-     slub: limit the maximum size of merged slab caches
+     slub-limit-the-maximum-size-of-merged-slab-caches fix
 has been added to the -mm tree.  Its filename is
-     slub-limit-the-maximum-size-of-merged-slab-caches.patch
+     slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: limit the maximum size of merged slab caches
+Subject: slub-limit-the-maximum-size-of-merged-slab-caches fix
 From: Christoph Lameter <clameter@sgi.com>
 
-We always switch off the debugging bits of slabs that are too large for
-free pointer relocationi (256k, 512k).  This means that we may create
-kmem_cache structures that look as if they are satisfying the requirements
-for merging even if slub_debug is set.  Sysfs handling may think they are
-mergeable and thus creates unique ids that may then clash.
-
-[Patches in the works are soon going to make that limit obsolete]
+Not sizeof(void) but sizeof(void *)
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches mm/slub.c
---- a/mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches
+diff -puN mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches-fix mm/slub.c
+--- a/mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches-fix
 +++ a/mm/slub.c
-@@ -209,6 +209,7 @@ static inline void ClearSlabDebug(struct
+@@ -209,7 +209,7 @@ static inline void ClearSlabDebug(struct
   * The page->inuse field is 16 bit thus we have this limitation
   */
  #define MAX_OBJECTS_PER_SLAB 65535
-+#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void))
+-#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void))
++#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void *))
  
  /* Internal SLUB flags */
  #define __OBJECT_POISON		0x80000000 /* Poison object */
-@@ -1000,7 +1001,7 @@ static void kmem_cache_open_debug_check(
- 	 * Debugging or ctor may create a need to move the free
- 	 * pointer. Fail if this happens.
- 	 */
--	if (s->objsize >= 65535 * sizeof(void *)) {
-+	if (s->objsize >= MAX_MERGE_SIZE) {
- 		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
- 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
- 		BUG_ON(s->ctor);
-@@ -2656,6 +2657,12 @@ static int slab_unmergeable(struct kmem_
- 	if (s->refcount < 0)
- 		return 1;
- 
-+	/*
-+	 * Or a slab that is too large for merging
-+	 */
-+	if (s->size >= MAX_MERGE_SIZE)
-+		return 1;
-+
- 	return 0;
- }
- 
-@@ -2675,6 +2682,9 @@ static struct kmem_cache *find_mergeable
- 	align = calculate_alignment(flags, align, size);
- 	size = ALIGN(size, align);
- 
-+	if (size >= MAX_MERGE_SIZE)
-+		return NULL;
-+
- 	list_for_each_entry(s, &slab_caches, list) {
- 		if (slab_unmergeable(s))
- 			continue;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -102,6 +64,7 @@ process_zones-fix-recovery-code.patch
 fix-rcu_read_lock-in-page-migraton.patch
 do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch
 slub-limit-the-maximum-size-of-merged-slab-caches.patch
+slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch
 apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
 check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
 infiniband-work-around-gcc-slub-problem.patch
