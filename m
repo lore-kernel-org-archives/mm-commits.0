@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 8250_pci-autodetect-mainpine-cards.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:08:35 -0700
-Message-ID: <200708232208.l7NM8ZKu029206@imap1.linux-foundation.org>
+Subject: + kobil_sct-rework-driver.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:09:39 -0700
+Message-ID: <200708232209.l7NM9dbY029306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38646 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757665AbXHWWJl (ORCPT
+	by vger.kernel.org with ESMTP id S1760132AbXHWWKW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:09:41 -0400
+	Thu, 23 Aug 2007 18:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     8250_pci: Autodetect mainpine cards
+     kobil_sct: rework driver
 has been added to the -mm tree.  Its filename is
-     8250_pci-autodetect-mainpine-cards.patch
+     kobil_sct-rework-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,167 +26,245 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 8250_pci: Autodetect mainpine cards
+Subject: kobil_sct: rework driver
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add support for a whole range of boards. Some are partly autodetected but
-not fully correctly others (PCI Express notably) not at all. Stick all
-the right entries in.
-
-Thanks to Mainpine for information and testing.
+No hardware but this driver is currently totally broken so we can't make it
+much worse.  Remove all tbe broken invalid termios handling and replace it
+with a proper set_termios method.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |  120 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 120 insertions(+)
+ drivers/usb/serial/kobil_sct.c |  144 +++++++++++--------------------
+ 1 files changed, 55 insertions(+), 89 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards
-+++ a/drivers/serial/8250_pci.c
-@@ -1036,6 +1036,7 @@ enum pci_board_num_t {
- 	pbn_b0_2_115200,
- 	pbn_b0_4_115200,
- 	pbn_b0_5_115200,
-+	pbn_b0_8_115200,
+diff -puN drivers/usb/serial/kobil_sct.c~kobil_sct-rework-driver drivers/usb/serial/kobil_sct.c
+--- a/drivers/usb/serial/kobil_sct.c~kobil_sct-rework-driver
++++ a/drivers/usb/serial/kobil_sct.c
+@@ -82,6 +82,7 @@ static int  kobil_tiocmset(struct usb_se
+ 			   unsigned int set, unsigned int clear);
+ static void kobil_read_int_callback( struct urb *urb );
+ static void kobil_write_callback( struct urb *purb );
++static void kobil_set_termios(struct usb_serial_port *port, struct ktermios *old);
  
- 	pbn_b0_1_921600,
- 	pbn_b0_2_921600,
-@@ -1172,6 +1173,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b0_8_115200] = {
-+		.flags		= FL_BASE0,
-+		.num_ports	= 8,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
  
- 	[pbn_b0_1_921600] = {
- 		.flags		= FL_BASE0,
-@@ -2566,6 +2573,119 @@ static struct pci_device_id serial_pci_t
- 	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
- 		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS8,
- 		0, 0, pbn_b2_8_921600 },
-+		
-+	/*
-+	 * Mainpine series cards: Fairly standard layout but fools
-+	 * parts of the autodetect in some cases and uses otherwise
-+	 * unmatched communications subclasses in the PCI Express case
-+	 */
-+	 
-+	{	/* RockForceDUO */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0200,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUATRO */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0300,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceDUO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0400,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUATRO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0500,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForce+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0600,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForce+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0700,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceOCTO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0800,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceDUO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0C00,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUARTRO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0D00,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceOCTO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x1D00,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceD1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2000,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* RockForceF1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2100,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* RockForceD2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2200,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceF2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2300,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceD4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2400,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceF4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2500,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceD8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2600,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceF8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2700,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* IQ Express D1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3000, 
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* IQ Express F1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3100, 
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* IQ Express D2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3200, 
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* IQ Express F2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3300, 
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* IQ Express D4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3400, 
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* IQ Express F4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3500, 
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* IQ Express D8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3C00, 
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* IQ Express F8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3D00, 
-+		0, 0, pbn_b0_8_115200 },
-+	
+ static struct usb_device_id id_table [] = {
+@@ -119,6 +120,7 @@ static struct usb_serial_driver kobil_de
+ 	.attach =		kobil_startup,
+ 	.shutdown =		kobil_shutdown,
+ 	.ioctl =		kobil_ioctl,
++	.set_termios =		kobil_set_termios,
+ 	.tiocmget =		kobil_tiocmget,
+ 	.tiocmset =		kobil_tiocmset,
+ 	.open =			kobil_open,
+@@ -137,7 +139,6 @@ struct kobil_private {
+ 	int cur_pos; // index of the next char to send in buf
+ 	__u16 device_type;
+ 	int line_state;
+-	struct ktermios internal_termios;
+ };
+ 
+ 
+@@ -216,7 +217,7 @@ static void kobil_shutdown (struct usb_s
+ 
+ static int kobil_open (struct usb_serial_port *port, struct file *filp)
+ {
+-	int i, result = 0;
++	int result = 0;
+ 	struct kobil_private *priv;
+ 	unsigned char *transfer_buffer;
+ 	int transfer_buffer_length = 8;
+@@ -242,16 +243,6 @@ static int kobil_open (struct usb_serial
+ 	port->tty->termios->c_iflag = IGNBRK | IGNPAR | IXOFF;
+ 	port->tty->termios->c_oflag &= ~ONLCR; // do NOT translate CR to CR-NL (0x0A -> 0x0A 0x0D)
+ 	
+-	// set up internal termios structure 
+-	priv->internal_termios.c_iflag = port->tty->termios->c_iflag;
+-	priv->internal_termios.c_oflag = port->tty->termios->c_oflag;
+-	priv->internal_termios.c_cflag = port->tty->termios->c_cflag;
+-	priv->internal_termios.c_lflag = port->tty->termios->c_lflag;
+-
+-	for (i=0; i<NCCS; i++) {
+-		priv->internal_termios.c_cc[i] = port->tty->termios->c_cc[i];
+-	}
+-	
+ 	// allocate memory for transfer buffer
+ 	transfer_buffer = kzalloc(transfer_buffer_length, GFP_KERNEL);
+ 	if (! transfer_buffer) {
+@@ -607,102 +598,79 @@ static int  kobil_tiocmset(struct usb_se
+ 	return (result < 0) ? result : 0;
+ }
+ 
+-
+-static int  kobil_ioctl(struct usb_serial_port *port, struct file *file,
+-			unsigned int cmd, unsigned long arg)
++static void kobil_set_termios(struct usb_serial_port *port, struct ktermios *old)
+ {
+ 	struct kobil_private * priv;
+ 	int result;
+ 	unsigned short urb_val = 0;
+-	unsigned char *transfer_buffer;
+-	int transfer_buffer_length = 8;
+-	char *settings;
+-	void __user *user_arg = (void __user *)arg;
++	int c_cflag = port->tty->termios->c_cflag;
++	speed_t speed;
++	void * settings;
+ 
+ 	priv = usb_get_serial_port_data(port);
+-	if ((priv->device_type == KOBIL_USBTWIN_PRODUCT_ID) || (priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)) {
++	if (priv->device_type == KOBIL_USBTWIN_PRODUCT_ID || priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)
+ 		// This device doesn't support ioctl calls
+-		return 0;
+-	}
+-
+-	switch (cmd) {
+-	case TCGETS:   // 0x5401
+-		if (!access_ok(VERIFY_WRITE, user_arg, sizeof(struct ktermios))) {
+-			dbg("%s - port %d Error in access_ok", __FUNCTION__, port->number);
+-			return -EFAULT;
+-		}
+-		if (kernel_termios_to_user_termios((struct ktermios __user *)arg,
+-						   &priv->internal_termios))
+-			return -EFAULT;
+-		return 0;
+-
+-	case TCSETS:   // 0x5402
+-		if (!(port->tty->termios)) {
+-			dbg("%s - port %d Error: port->tty->termios is NULL", __FUNCTION__, port->number);
+-			return -ENOTTY;
+-		}
+-		if (!access_ok(VERIFY_READ, user_arg, sizeof(struct ktermios))) {
+-			dbg("%s - port %d Error in access_ok", __FUNCTION__, port->number);
+-			return -EFAULT;
+-		}
+-		if (user_termios_to_kernel_termios(&priv->internal_termios,
+-						   (struct ktermios __user *)arg))
+-			return -EFAULT;
+-		
+-		settings = kzalloc(50, GFP_KERNEL);
+-		if (! settings) {
+-			return -ENOBUFS;
+-		}
++		return;
+ 
+-		switch (priv->internal_termios.c_cflag & CBAUD) {
+-		case B1200:
++	switch (speed = tty_get_baud_rate(port->tty)) {
++		case 1200:
+ 			urb_val = SUSBCR_SBR_1200;
+-			strcat(settings, "1200 ");
+ 			break;
+-		case B9600:
++		case 9600:
+ 		default:
+ 			urb_val = SUSBCR_SBR_9600;
+-			strcat(settings, "9600 ");
+ 			break;
+-		}
++	}
++	urb_val |= (c_cflag & CSTOPB) ? SUSBCR_SPASB_2StopBits : SUSBCR_SPASB_1StopBit;
 +
- 	/*
- 	 * PA Semi PA6T-1682M on-chip UART
- 	 */
++	settings = kzalloc(50, GFP_KERNEL);
++	if (! settings)
++		return;
+ 
+-		urb_val |= (priv->internal_termios.c_cflag & CSTOPB) ? SUSBCR_SPASB_2StopBits : SUSBCR_SPASB_1StopBit;
+-		strcat(settings, (priv->internal_termios.c_cflag & CSTOPB) ? "2 StopBits " : "1 StopBit ");
++	sprintf(settings, "%d ", speed);
+ 
+-		if (priv->internal_termios.c_cflag & PARENB) {
+-			if  (priv->internal_termios.c_cflag & PARODD) {
+-				urb_val |= SUSBCR_SPASB_OddParity;
+-				strcat(settings, "Odd Parity");
+-			} else {
+-				urb_val |= SUSBCR_SPASB_EvenParity;
+-				strcat(settings, "Even Parity");
+-			}
++	if (c_cflag & PARENB) {
++		if  (c_cflag & PARODD) {
++			urb_val |= SUSBCR_SPASB_OddParity;
++			strcat(settings, "Odd Parity");
+ 		} else {
+-			urb_val |= SUSBCR_SPASB_NoParity;
+-			strcat(settings, "No Parity");
++			urb_val |= SUSBCR_SPASB_EvenParity;
++			strcat(settings, "Even Parity");
+ 		}
+-		dbg("%s - port %d setting port to: %s", __FUNCTION__, port->number, settings );
++	} else {
++		urb_val |= SUSBCR_SPASB_NoParity;
++		strcat(settings, "No Parity");
++	}
+ 
+-		result = usb_control_msg( port->serial->dev, 
+-					  usb_rcvctrlpipe(port->serial->dev, 0 ), 
+-					  SUSBCRequest_SetBaudRateParityAndStopBits,
+-					  USB_TYPE_VENDOR | USB_RECIP_ENDPOINT | USB_DIR_OUT,
+-					  urb_val,
+-					  0,
+-					  settings,
+-					  0,
+-					  KOBIL_TIMEOUT
+-			);
++	result = usb_control_msg( port->serial->dev,
++				  usb_rcvctrlpipe(port->serial->dev, 0 ),
++				  SUSBCRequest_SetBaudRateParityAndStopBits,
++				  USB_TYPE_VENDOR | USB_RECIP_ENDPOINT | USB_DIR_OUT,
++				  urb_val,
++				  0,
++				  settings,
++				  0,
++				  KOBIL_TIMEOUT
++		);
++	kfree(settings);
++}
+ 
+-		dbg("%s - port %d Send set_baudrate URB returns: %i", __FUNCTION__, port->number, result);
+-		kfree(settings);
++static int kobil_ioctl(struct usb_serial_port *port, struct file * file, unsigned int cmd, unsigned long arg)
++{
++	struct kobil_private * priv = usb_get_serial_port_data(port);
++	unsigned char *transfer_buffer;
++	int transfer_buffer_length = 8;
++	int result;
++
++	if (priv->device_type == KOBIL_USBTWIN_PRODUCT_ID || priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)
++		// This device doesn't support ioctl calls
+ 		return 0;
+ 
++	switch (cmd) {
+ 	case TCFLSH:   // 0x540B
+ 		transfer_buffer = kmalloc(transfer_buffer_length, GFP_KERNEL);
+-		if (! transfer_buffer) {
++		if (! transfer_buffer)
+ 		 	return -ENOBUFS;
+-		}
+ 
+ 		result = usb_control_msg( port->serial->dev, 
+ 		 			  usb_rcvctrlpipe(port->serial->dev, 0 ), 
+@@ -716,15 +684,13 @@ static int  kobil_ioctl(struct usb_seria
+ 			);
+ 		
+ 		dbg("%s - port %d Send reset_all_queues (FLUSH) URB returns: %i", __FUNCTION__, port->number, result);
+-
+ 		kfree(transfer_buffer);
+-		return ((result < 0) ? -EFAULT : 0);
+-
++		return (result < 0) ? -EFAULT : 0;
++	default:
++		return -ENOIOCTLCMD;
+ 	}
+-	return -ENOIOCTLCMD;
+ }
+ 
+-
+ static int __init kobil_init (void)
+ {
+ 	int retval;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -213,6 +291,7 @@ serial-keep-the-dtr-setting-for-serial-console.patch
 8250_pci-autodetect-mainpine-cards.patch
 git-scsi-misc.patch
 fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+kobil_sct-rework-driver.patch
 geode-mfgpt-support-for-geode-class-machines.patch
 geode-mfgpt-clock-event-device-support.patch
 xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
