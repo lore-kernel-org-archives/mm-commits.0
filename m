@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:08:03 -0700
-Message-ID: <200708232208.l7NM84Fi029202@imap1.linux-foundation.org>
+Subject: + 8250_pci-autodetect-mainpine-cards.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:08:35 -0700
+Message-ID: <200708232208.l7NM8ZKu029206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44652 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932148AbXHWWIi (ORCPT
+	by vger.kernel.org with ESMTP id S1757665AbXHWWJl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:08:38 -0400
+	Thu, 23 Aug 2007 18:09:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, greg@kroah.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     make kobject dynamic allocation check use kallsyms_lookup()
+     8250_pci: Autodetect mainpine cards
 has been added to the -mm tree.  Its filename is
-     make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
+     8250_pci-autodetect-mainpine-cards.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,176 +26,202 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make kobject dynamic allocation check use kallsyms_lookup()
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: 8250_pci: Autodetect mainpine cards
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-One of the top ten sysfs problems is that users use statically allocated
-kobjects.  This patch reminds them that this is a naughty thing.
+Add support for a whole range of boards. Some are partly autodetected but
+not fully correctly others (PCI Express notably) not at all. Stick all
+the right entries in.
 
-One _really_ nice thing this patch does, is us the kallsyms mechanism to
-print out exactly which symbol is being complained about:
+Thanks to Mainpine for information and testing.
 
-	The kobject at, or inside 'statickobj.2'@(0xc040d020) is not dynamically allocated.
-
-This patch replaces the previous implementation's use of a _sdata symbol in
-favor of using kallsyms_lookup().  If a kobject's address is a resolvable
-symbol, then it isn't dynamically allocated.
-
-The one exception to this is init symbols.  The patch also checks to see
-whether __init memory has been freed and if it has will allow kobjects in
-those sections.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    1 
- init/main.c          |    9 ++++++
- lib/kobject.c        |   56 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+)
+ drivers/serial/8250_pci.c |  120 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 120 insertions(+)
 
-diff -puN include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup include/linux/init.h
---- a/include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
-+++ a/include/linux/init.h
-@@ -83,6 +83,7 @@ extern initcall_t __security_initcall_st
- extern char __initdata boot_command_line[];
- extern char *saved_command_line;
- extern unsigned int reset_devices;
-+extern int initmem_now_dynamic;
+diff -puN drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards
++++ a/drivers/serial/8250_pci.c
+@@ -1036,6 +1036,7 @@ enum pci_board_num_t {
+ 	pbn_b0_2_115200,
+ 	pbn_b0_4_115200,
+ 	pbn_b0_5_115200,
++	pbn_b0_8_115200,
  
- /* used by init/main.c */
- void setup_arch(char **);
-diff -puN init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup init/main.c
---- a/init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
-+++ a/init/main.c
-@@ -776,12 +776,21 @@ static void run_init_process(char *init_
- 	kernel_execve(init_filename, argv_init, envp_init);
- }
+ 	pbn_b0_1_921600,
+ 	pbn_b0_2_921600,
+@@ -1172,6 +1173,12 @@ static struct pciserial_board pci_boards
+ 		.base_baud	= 115200,
+ 		.uart_offset	= 8,
+ 	},
++	[pbn_b0_8_115200] = {
++		.flags		= FL_BASE0,
++		.num_ports	= 8,
++		.base_baud	= 115200,
++		.uart_offset	= 8,
++	},
  
-+/*
-+ * __init/__init_data sections are turned into normal
-+ * dynamically allocated memory later in boot.  When
-+ * this is 0, the memory is for the __init purposes,
-+ * when it it some other value, the memory is dynamic.
-+ */
-+int initmem_now_dynamic;
-+
- /* This is a non __init function. Force it to be noinline otherwise gcc
-  * makes it inline to init() and it becomes part of init.text section
-  */
- static int noinline init_post(void)
- {
- 	free_initmem();
-+	initmem_now_dynamic = 1;
- 	unlock_kernel();
- 	mark_rodata_ro();
- 	system_state = SYSTEM_RUNNING;
-diff -puN lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup lib/kobject.c
---- a/lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
-+++ a/lib/kobject.c
-@@ -15,6 +15,8 @@
- #include <linux/module.h>
- #include <linux/stat.h>
- #include <linux/slab.h>
-+#include <linux/kallsyms.h>
-+#include <asm-generic/sections.h>
- 
- /**
-  *	populate_dir - populate directory with attributes.
-@@ -121,6 +123,59 @@ char *kobject_get_path(struct kobject *k
- }
- EXPORT_SYMBOL_GPL(kobject_get_path);
- 
-+#ifdef CONFIG_X86_32
-+static int ptr_in_range(void *ptr, void *start, void *end)
-+{
+ 	[pbn_b0_1_921600] = {
+ 		.flags		= FL_BASE0,
+@@ -2566,6 +2573,119 @@ static struct pci_device_id serial_pci_t
+ 	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
+ 		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS8,
+ 		0, 0, pbn_b2_8_921600 },
++		
 +	/*
-+	 * This should hopefully get rid of causing warnings
-+	 * if the architecture did not set one of the section
-+	 * variables up.
++	 * Mainpine series cards: Fairly standard layout but fools
++	 * parts of the autodetect in some cases and uses otherwise
++	 * unmatched communications subclasses in the PCI Express case
 +	 */
-+	if (start >= end)
-+		return 0;
++	 
++	{	/* RockForceDUO */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0200,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForceQUATRO */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0300,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForceDUO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0400,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForceQUATRO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0500,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForce+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0600,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForce+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0700,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForceOCTO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0800,
++		0, 0, pbn_b0_8_115200 },
++	{	/* RockForceDUO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0C00,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForceQUARTRO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x0D00,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForceOCTO+ */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x1D00,
++		0, 0, pbn_b0_8_115200 },
++	{	/* RockForceD1 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2000,
++		0, 0, pbn_b0_1_115200 },
++	{	/* RockForceF1 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2100,
++		0, 0, pbn_b0_1_115200 },
++	{	/* RockForceD2 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2200,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForceF2 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2300,
++		0, 0, pbn_b0_2_115200 },
++	{	/* RockForceD4 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2400,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForceF4 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2500,
++		0, 0, pbn_b0_4_115200 },
++	{	/* RockForceD8 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2600,
++		0, 0, pbn_b0_8_115200 },
++	{	/* RockForceF8 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x2700,
++		0, 0, pbn_b0_8_115200 },
++	{	/* IQ Express D1 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3000, 
++		0, 0, pbn_b0_1_115200 },
++	{	/* IQ Express F1 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3100, 
++		0, 0, pbn_b0_1_115200 },
++	{	/* IQ Express D2 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3200, 
++		0, 0, pbn_b0_2_115200 },
++	{	/* IQ Express F2 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3300, 
++		0, 0, pbn_b0_2_115200 },
++	{	/* IQ Express D4 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3400, 
++		0, 0, pbn_b0_4_115200 },
++	{	/* IQ Express F4 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3500, 
++		0, 0, pbn_b0_4_115200 },
++	{	/* IQ Express D8 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3C00, 
++		0, 0, pbn_b0_8_115200 },
++	{	/* IQ Express F8 */
++		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
++		PCI_VENDOR_ID_MAINPINE, 0x3D00, 
++		0, 0, pbn_b0_8_115200 },
++	
 +
-+	if ((ptr >= start) && (ptr < end))
-+		return 1;
-+	return 0;
-+}
-+
-+void verify_dynamic_kobject_allocation(struct kobject *kobj)
-+{
-+	char *namebuf;
-+	const char *ret;
-+
-+	namebuf = kzalloc(KSYM_NAME_LEN, GFP_KERNEL);
-+	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL,
-+			namebuf);
-+	/*
-+	 * This is the X86_32-only part of this function.
-+	 * This is here because it is valid to have a kobject
-+	 * in an __init section, but only after those
-+	 * sections have been freed back to the dynamic pool.
-+	 */
-+	if (!initmem_now_dynamic &&
-+	    ptr_in_range(kobj, __init_begin, __init_end))
-+		goto out;
-+	if (!ret || !strlen(ret))
-+		goto out;
-+	pr_debug("---- begin silly warning ----\n");
-+	pr_debug("This is a janitorial warning, not a kernel bug.\n");
-+#ifdef CONFIG_DEBUG_KOBJECT
-+	pr_debug("The kobject at, or inside '%s'@(0x%p) is not dynamically allocated.\n",
-+			namebuf, kobj);
-+#endif
-+	pr_debug("kobjects must be dynamically allocated, not static\n");
-+	/* dump_stack(); */
-+	pr_debug("---- end silly warning ----\n");
-+out:
-+	kfree(namebuf);
-+}
-+#else
-+static void verify_dynamic_kobject_allocation(struct kobject *kobj)
-+{
-+}
-+#endif
-+
- /**
-  *	kobject_init - initialize object.
-  *	@kobj:	object in question.
-@@ -130,6 +185,7 @@ void kobject_init(struct kobject * kobj)
- 	if (!kobj)
- 		return;
- 	WARN_ON(atomic_read(&kobj->kref.refcount));
-+	verify_dynamic_kobject_allocation(kobj);
- 	kref_init(&kobj->kref);
- 	INIT_LIST_HEAD(&kobj->entry);
- 	init_waitqueue_head(&kobj->poll);
+ 	/*
+ 	 * PA Semi PA6T-1682M on-chip UART
+ 	 */
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-page-owner-tracking-leak-detector.patch
+origin.patch
+serial-add-support-for-ite-887x-chips.patch
+serial_txx9-fix-modem-control-line-handling.patch
+serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
+add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+fix-null-pointer-dereference-in-__vm_enough_memory.patch
+m68k-enable-arbitary-speed-tty-support.patch
+introduce-config_check_signature-was-re-uninline.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-switch-most-of-the-remaining-sff-drivers-to.patch
+pata_sis-add-the-fsc-amilo-and-friends.patch
+pata_via-add-armia-w730-k8-and-other-rebadgings.patch
+pata_marvell-add-more-identifiers.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+git-scsi-misc.patch
+fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+pata_it821x-fix-regression-corruptor.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
