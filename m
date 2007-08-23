@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-less-stack-alignment.patch added to -mm tree
-Date: Thu, 23 Aug 2007 13:50:05 -0700
-Message-ID: <200708232050.l7NKo6X7026407@imap1.linux-foundation.org>
+Subject: + alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch added to -mm tree
+Date: Thu, 23 Aug 2007 14:06:32 -0700
+Message-ID: <200708232106.l7NL6WrZ026961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45017 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51541 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757650AbXHWUuT (ORCPT
+	by vger.kernel.org with ESMTP id S1756049AbXHWVGh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 16:50:19 -0400
+	Thu, 23 Aug 2007 17:06:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, thomas.jarosch@intra2net.com
 
 
 The patch titled
-     revert x86_64-mm-less-stack-alignment
+     alloc_pages(): permit get_zeroed_page(GFP_ATOMIC) from interrupt context
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-less-stack-alignment.patch
+     alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-less-stack-alignment
+Subject: alloc_pages(): permit get_zeroed_page(GFP_ATOMIC) from interrupt context
 From: Andrew Morton <akpm@linux-foundation.org>
 
-> > >From elm3b6 on test.kernel.org, we get the following build error
-> > 
-> > 08/22/07-07:01:07 building kernel - make bzImage
-> >   CHK     include/linux/version.h
-> >   UPD     include/linux/version.h
-> >   CHK     include/linux/utsrelease.h
-> >   UPD     include/linux/utsrelease.h
-> >   SYMLINK include/asm -> include/asm-x86_64
-> >   CC      arch/x86_64/kernel/asm-offsets.s
-> > arch/x86_64/kernel/asm-offsets.c:1: error: -mpreferred-stack-boundary=3
-> > is not between 4 and 12
-> > make[1]: *** [arch/x86_64/kernel/asm-offsets.s] Error 1
-> > make: *** [prepare0] Error 2
-> > 08/22/07-07:01:08 Build the kernel. Failed rc = 2
-> > 08/22/07-07:01:08 build: Building kernel... Failed rc = 1
-> > Failed and terminated the run
-> > 08/22/07-07:01:08 command complete: (1) rc=126 (TEST ABORT)
-> >  Fatal error, aborting autorun
-> > 
-> > config file at: http://test.kernel.org/abat/107411/build/dotconfig
-> > gcc version is 3.4.4
-> > 
-> > This does not occur when using a cross-compiler gcc 3.4.0
-> > 
+See http://bugzilla.kernel.org/show_bug.cgi?id=8928
 
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <ak@suse.de>
+I think it makes sense to permit a non-BUGging get_zeroed_page(GFP_ATOMIC)
+from interrupt context.
+
+We could fix this in several places, but I do think we want to keep the sanity
+checks in kmap_atomic() even for non-highmem pages, so that people who are
+testing new code on non-highmem machines get their bugs detected earlier.
+
+Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Makefile |    2 --
- 1 files changed, 2 deletions(-)
+ mm/page_alloc.c |   26 +++++++++++++++++++-------
+ 1 files changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86_64/Makefile~revert-x86_64-mm-less-stack-alignment arch/x86_64/Makefile
---- a/arch/x86_64/Makefile~revert-x86_64-mm-less-stack-alignment
-+++ a/arch/x86_64/Makefile
-@@ -58,8 +58,6 @@ cflags-y += $(call cc-option,-mno-sse -m
- # newer gccs do it by default
- cflags-y += -maccumulate-outgoing-args
+diff -puN mm/page_alloc.c~alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context mm/page_alloc.c
+--- a/mm/page_alloc.c~alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context
++++ a/mm/page_alloc.c
+@@ -284,13 +284,25 @@ static inline void prep_zero_page(struct
+ 	int i;
  
--cflags-y += $(call cc-option,-mpreferred-stack-boundary=3)
--
- # do binutils support CFI?
- cflags-y += $(call as-instr,.cfi_startproc\n.cfi_rel_offset rsp${comma}0\n.cfi_endproc,-DCONFIG_AS_CFI=1,)
- AFLAGS += $(call as-instr,.cfi_startproc\n.cfi_rel_offset rsp${comma}0\n.cfi_endproc,-DCONFIG_AS_CFI=1,)
+ 	VM_BUG_ON((gfp_flags & (__GFP_WAIT | __GFP_HIGHMEM)) == __GFP_HIGHMEM);
+-	/*
+-	 * clear_highpage() will use KM_USER0, so it's a bug to use __GFP_ZERO
+-	 * and __GFP_HIGHMEM from hard or soft interrupt context.
+-	 */
+-	VM_BUG_ON((gfp_flags & __GFP_HIGHMEM) && in_interrupt());
+-	for (i = 0; i < (1 << order); i++)
+-		clear_highpage(page + i);
++	if (gfp_flags & __GFP_HIGHMEM) {
++		/*
++		 * clear_highpage() will use KM_USER0, so it's a bug to use
++		 * __GFP_ZERO and __GFP_HIGHMEM from hard or soft interrupt
++		 * context.
++		 */
++		VM_BUG_ON(in_interrupt());
++		for (i = 0; i < (1 << order); i++)
++			clear_highpage(page + i);
++	} else {
++		/*
++		 * Go direct to clear_page(), because the caller might be
++		 * performing a non-highmem GFP_ZERO allocation from interrupt
++		 * context.  kmap_atomic() will go BUG when that happens, but it
++		 * is a legitimate thing to do
++		 */
++		for (i = 0; i < (1 << order); i++)
++			clear_page(page + i);
++	}
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
 sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
 serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
 add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
@@ -150,6 +158,7 @@ sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 git-nfs-vs-nfs-convert-to-new-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
