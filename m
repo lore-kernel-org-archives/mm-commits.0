@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-maintainers-entry-for-ioc3-serial-driver.patch added to -mm tree
-Date: Thu, 23 Aug 2007 14:08:10 -0700
-Message-ID: <200708232108.l7NL8AhA026992@imap1.linux-foundation.org>
+Subject: + shrink-task_struct-if-config_futex=n.patch added to -mm tree
+Date: Thu, 23 Aug 2007 14:12:43 -0700
+Message-ID: <200708232112.l7NLChmb027143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756049AbXHWVI4 (ORCPT
+	by vger.kernel.org with ESMTP id S1759703AbXHWVN7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 17:08:56 -0400
+	Thu, 23 Aug 2007 17:13:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, pfg@sgi.com
+Cc: adobriyan@sw.ru, mingo@elte.hu
 
 
 The patch titled
-     Add MAINTAINERS entry for IOC3 serial driver
+     Shrink task_struct if CONFIG_FUTEX=n
 has been added to the -mm tree.  Its filename is
-     add-maintainers-entry-for-ioc3-serial-driver.patch
+     shrink-task_struct-if-config_futex=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add MAINTAINERS entry for IOC3 serial driver
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Shrink task_struct if CONFIG_FUTEX=n
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-The IOC3 is a multifunction device but not in sense of the PCI
-specification.  Currently its ethernet and serial functionality are
-supported by two separate drivers authored and maintained by different
-people, so MAINTAINERS should reflect that.
+robust_list, compat_robust_list, pi_state_list, pi_state_cache are
+really used if futexes are on.
 
-Cc: Patrick Gefre <pfg@sgi.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/sched.h |    3 ++-
+ kernel/exit.c         |    6 +++++-
+ kernel/fork.c         |    3 ++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~add-maintainers-entry-for-ioc3-serial-driver MAINTAINERS
---- a/MAINTAINERS~add-maintainers-entry-for-ioc3-serial-driver
-+++ a/MAINTAINERS
-@@ -2126,12 +2126,18 @@ W:	http://intellinuxwireless.org
- T:	git git://intellinuxwireless.org/repos/iwlwifi
- S:	Supported
+diff -puN include/linux/sched.h~shrink-task_struct-if-config_futex=n include/linux/sched.h
+--- a/include/linux/sched.h~shrink-task_struct-if-config_futex=n
++++ a/include/linux/sched.h
+@@ -1095,13 +1095,14 @@ struct task_struct {
+ 	int cpuset_mems_generation;
+ 	int cpuset_mem_spread_rotor;
+ #endif
++#ifdef CONFIG_FUTEX
+ 	struct robust_list_head __user *robust_list;
+ #ifdef CONFIG_COMPAT
+ 	struct compat_robust_list_head __user *compat_robust_list;
+ #endif
+ 	struct list_head pi_state_list;
+ 	struct futex_pi_state *pi_state_cache;
+-
++#endif
+ 	atomic_t fs_excl;	/* holding fs exclusive resources */
+ 	struct rcu_head rcu;
  
--IOC3 DRIVER
-+IOC3 ETHERNET DRIVER
- P:	Ralf Baechle
- M:	ralf@linux-mips.org
- L:	linux-mips@linux-mips.org
- S:	Maintained
- 
-+IOC3 SERIAL DRIVER
-+P:	Pat Gefre
-+M:	pfg@sgi.com
-+L:	linux-kernel@linux-mips.org
-+S:	Maintained
-+
- IP MASQUERADING:
- P:	Juanjo Ciarlante
- M:	jjciarla@raiz.uncu.edu.ar
+diff -puN kernel/exit.c~shrink-task_struct-if-config_futex=n kernel/exit.c
+--- a/kernel/exit.c~shrink-task_struct-if-config_futex=n
++++ a/kernel/exit.c
+@@ -955,12 +955,14 @@ fastcall NORET_TYPE void do_exit(long co
+ 		exit_itimers(tsk->signal);
+ 	}
+ 	acct_collect(code, group_dead);
++#ifdef CONFIG_FUTEX
+ 	if (unlikely(tsk->robust_list))
+ 		exit_robust_list(tsk);
+-#if defined(CONFIG_FUTEX) && defined(CONFIG_COMPAT)
++#ifdef CONFIG_COMPAT
+ 	if (unlikely(tsk->compat_robust_list))
+ 		compat_exit_robust_list(tsk);
+ #endif
++#endif
+ 	if (group_dead)
+ 		tty_audit_exit();
+ 	if (unlikely(tsk->audit_context))
+@@ -995,6 +997,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 	mpol_free(tsk->mempolicy);
+ 	tsk->mempolicy = NULL;
+ #endif
++#ifdef CONFIG_FUTEX
+ 	/*
+ 	 * This must happen late, after the PID is not
+ 	 * hashed anymore:
+@@ -1003,6 +1006,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 		exit_pi_state_list(tsk);
+ 	if (unlikely(current->pi_state_cache))
+ 		kfree(current->pi_state_cache);
++#endif
+ 	/*
+ 	 * Make sure we are holding no locks:
+ 	 */
+diff -puN kernel/fork.c~shrink-task_struct-if-config_futex=n kernel/fork.c
+--- a/kernel/fork.c~shrink-task_struct-if-config_futex=n
++++ a/kernel/fork.c
+@@ -1140,13 +1140,14 @@ static struct task_struct *copy_process(
+ 	 * Clear TID on mm_release()?
+ 	 */
+ 	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr: NULL;
++#ifdef CONFIG_FUTEX
+ 	p->robust_list = NULL;
+ #ifdef CONFIG_COMPAT
+ 	p->compat_robust_list = NULL;
+ #endif
+ 	INIT_LIST_HEAD(&p->pi_state_list);
+ 	p->pi_state_cache = NULL;
+-
++#endif
+ 	/*
+ 	 * sigaltstack should be cleared when sharing the same VM
+ 	 */
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-serial_txx9-fix-modem-control-line-handling.patch
-newport_con-warning-fix.patch
-au1100fb-move-au1100fb_fb_blank-beforce.patch
-fix-font-dependency-for-sgi-newport-console-driver.patch
-add-maintainers-entry-for-ioc3-serial-driver.patch
-git-mips.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-mips-qemu-network-work-again.patch
-mips-detect-bcm947xx-cpus.patch
-mips-bcm947xx-support.patch
-rfc-add-bcm947xx-to-kconfig.patch
-mips-add-bcm947xx-to-makefile.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-irix_getcontext-will-always-fail-efault.patch
-git-mtd.patch
-git-netdev-all.patch
-dont-use-gfp_dma-for-zone-allocation.patch
-sgiseeq-fix-return-type-of-sgiseeq_remove.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-serio-fix-modpost-warning.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-define-global-bit-macro.patch
+fix-ver_linux-glibc-version-printing.patch
+consolidate-ptrace_detach.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+lguest-should-depend-on-config_futex.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+single_open-seq_release-leak-diagnostics.patch
