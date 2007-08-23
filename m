@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch added to -mm tree
-Date: Wed, 22 Aug 2007 23:46:49 -0700
-Message-ID: <200708230646.l7N6kn4B025171@imap1.linux-foundation.org>
+Subject: + page-migration-require-nodes-with-memory.patch added to -mm tree
+Date: Wed, 22 Aug 2007 23:52:24 -0700
+Message-ID: <200708230652.l7N6qOKG025430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35251 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978AbXHWGq6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754380AbXHWGwi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 02:46:58 -0400
+	Thu, 23 Aug 2007 02:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, shaohua.li@intel.com
 
 
 The patch titled
-     slub-limit-the-maximum-size-of-merged-slab-caches fix
+     Page Migration: Require nodes with memory
 has been added to the -mm tree.  Its filename is
-     slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch
+     page-migration-require-nodes-with-memory.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-limit-the-maximum-size-of-merged-slab-caches fix
+Subject: Page Migration: Require nodes with memory
 From: Christoph Lameter <clameter@sgi.com>
 
-Not sizeof(void) but sizeof(void *)
+Check that nodes specified as a targeted have actual memory.  Fail with
+-EINVAL if not.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches-fix mm/slub.c
---- a/mm/slub.c~slub-limit-the-maximum-size-of-merged-slab-caches-fix
-+++ a/mm/slub.c
-@@ -209,7 +209,7 @@ static inline void ClearSlabDebug(struct
-  * The page->inuse field is 16 bit thus we have this limitation
-  */
- #define MAX_OBJECTS_PER_SLAB 65535
--#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void))
-+#define MAX_MERGE_SIZE (MAX_OBJECTS_PER_SLAB * sizeof(void *))
+diff -puN mm/mempolicy.c~page-migration-require-nodes-with-memory mm/mempolicy.c
+--- a/mm/mempolicy.c~page-migration-require-nodes-with-memory
++++ a/mm/mempolicy.c
+@@ -953,6 +953,11 @@ asmlinkage long sys_migrate_pages(pid_t 
+ 		goto out;
+ 	}
  
- /* Internal SLUB flags */
- #define __OBJECT_POISON		0x80000000 /* Poison object */
++	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
++		err = -EINVAL;
++		goto out;
++	}
++
+ 	err = security_task_movememory(task);
+ 	if (err)
+ 		goto out;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -98,6 +103,7 @@ slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
 slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
 slab-allocators-fail-if-ksize-is-called-with-a-null-parameter.patch
+page-migration-require-nodes-with-memory.patch
 memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
 memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
