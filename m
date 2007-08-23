@@ -1,32 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - page-migration-require-nodes-with-memory.patch removed from -mm tree
-Date: Thu, 23 Aug 2007 15:12:32 -0700
-Message-ID: <200708232212.l7NMCWvc029359@imap1.linux-foundation.org>
+Subject: + page-migration-do-not-accept-invalid-nodes-in-the-target-nodeset.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:13:30 -0700
+Message-ID: <200708232213.l7NMDUuH029387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49960 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760132AbXHWWNH (ORCPT
+	by vger.kernel.org with ESMTP id S1761729AbXHWWOC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:13:07 -0400
+	Thu, 23 Aug 2007 18:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com, shaohua.li@intel.com
 
 
 The patch titled
-     Page Migration: Require nodes with memory
-has been removed from the -mm tree.  Its filename was
-     page-migration-require-nodes-with-memory.patch
+     Page migration: Do not accept invalid nodes in the target nodeset
+has been added to the -mm tree.  Its filename is
+     page-migration-do-not-accept-invalid-nodes-in-the-target-nodeset.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Page Migration: Require nodes with memory
+Subject: Page migration: Do not accept invalid nodes in the target nodeset
 From: Christoph Lameter <clameter@sgi.com>
 
-Check that nodes specified as a targeted have actual memory.  Fail with
--EINVAL if not.
+Page migration currently does not check if the target of the move contains
+nodes that that are invalid and may try to allocate from invalid nodes if
+these are specified leading to oopses.
+
+Return -EINVAL if a node is specified that is not known to have memory.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Shaohua Li <shaohua.li@intel.com>
@@ -34,12 +41,12 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/mempolicy.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ 1 files changed, 5 insertions(+)
 
-diff -puN mm/mempolicy.c~page-migration-require-nodes-with-memory mm/mempolicy.c
---- a/mm/mempolicy.c~page-migration-require-nodes-with-memory
+diff -puN mm/mempolicy.c~page-migration-do-not-accept-invalid-nodes-in-the-target-nodeset mm/mempolicy.c
+--- a/mm/mempolicy.c~page-migration-do-not-accept-invalid-nodes-in-the-target-nodeset
 +++ a/mm/mempolicy.c
-@@ -953,6 +953,11 @@ asmlinkage long sys_migrate_pages(pid_t 
+@@ -955,6 +955,11 @@ asmlinkage long sys_migrate_pages(pid_t 
  		goto out;
  	}
  
@@ -66,6 +73,7 @@ fix-rcu_read_lock-in-page-migraton.patch
 do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch
 slub-limit-the-maximum-size-of-merged-slab-caches.patch
 slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch
+page-migration-do-not-accept-invalid-nodes-in-the-target-nodeset.patch
 apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
 check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
 infiniband-work-around-gcc-slub-problem.patch
@@ -99,7 +107,6 @@ slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
 slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
 slab-allocators-fail-if-ksize-is-called-with-a-null-parameter.patch
-page-migration-require-nodes-with-memory.patch
 memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
 memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
