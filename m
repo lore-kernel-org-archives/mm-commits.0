@@ -1,306 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: + kobil_sct-rework-driver.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:09:39 -0700
-Message-ID: <200708232209.l7NM9dbY029306@imap1.linux-foundation.org>
+Subject: - page-migration-require-nodes-with-memory.patch removed from -mm tree
+Date: Thu, 23 Aug 2007 15:12:32 -0700
+Message-ID: <200708232212.l7NMCWvc029359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49960 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760132AbXHWWKW (ORCPT
+	by vger.kernel.org with ESMTP id S1760132AbXHWWNH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:10:22 -0400
+	Thu, 23 Aug 2007 18:13:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
+To: clameter@sgi.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kobil_sct: rework driver
-has been added to the -mm tree.  Its filename is
-     kobil_sct-rework-driver.patch
+     Page Migration: Require nodes with memory
+has been removed from the -mm tree.  Its filename was
+     page-migration-require-nodes-with-memory.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: kobil_sct: rework driver
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Page Migration: Require nodes with memory
+From: Christoph Lameter <clameter@sgi.com>
 
-No hardware but this driver is currently totally broken so we can't make it
-much worse.  Remove all tbe broken invalid termios handling and replace it
-with a proper set_termios method.
+Check that nodes specified as a targeted have actual memory.  Fail with
+-EINVAL if not.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/kobil_sct.c |  144 +++++++++++--------------------
- 1 files changed, 55 insertions(+), 89 deletions(-)
+ mm/mempolicy.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/usb/serial/kobil_sct.c~kobil_sct-rework-driver drivers/usb/serial/kobil_sct.c
---- a/drivers/usb/serial/kobil_sct.c~kobil_sct-rework-driver
-+++ a/drivers/usb/serial/kobil_sct.c
-@@ -82,6 +82,7 @@ static int  kobil_tiocmset(struct usb_se
- 			   unsigned int set, unsigned int clear);
- static void kobil_read_int_callback( struct urb *urb );
- static void kobil_write_callback( struct urb *purb );
-+static void kobil_set_termios(struct usb_serial_port *port, struct ktermios *old);
- 
- 
- static struct usb_device_id id_table [] = {
-@@ -119,6 +120,7 @@ static struct usb_serial_driver kobil_de
- 	.attach =		kobil_startup,
- 	.shutdown =		kobil_shutdown,
- 	.ioctl =		kobil_ioctl,
-+	.set_termios =		kobil_set_termios,
- 	.tiocmget =		kobil_tiocmget,
- 	.tiocmset =		kobil_tiocmset,
- 	.open =			kobil_open,
-@@ -137,7 +139,6 @@ struct kobil_private {
- 	int cur_pos; // index of the next char to send in buf
- 	__u16 device_type;
- 	int line_state;
--	struct ktermios internal_termios;
- };
- 
- 
-@@ -216,7 +217,7 @@ static void kobil_shutdown (struct usb_s
- 
- static int kobil_open (struct usb_serial_port *port, struct file *filp)
- {
--	int i, result = 0;
-+	int result = 0;
- 	struct kobil_private *priv;
- 	unsigned char *transfer_buffer;
- 	int transfer_buffer_length = 8;
-@@ -242,16 +243,6 @@ static int kobil_open (struct usb_serial
- 	port->tty->termios->c_iflag = IGNBRK | IGNPAR | IXOFF;
- 	port->tty->termios->c_oflag &= ~ONLCR; // do NOT translate CR to CR-NL (0x0A -> 0x0A 0x0D)
- 	
--	// set up internal termios structure 
--	priv->internal_termios.c_iflag = port->tty->termios->c_iflag;
--	priv->internal_termios.c_oflag = port->tty->termios->c_oflag;
--	priv->internal_termios.c_cflag = port->tty->termios->c_cflag;
--	priv->internal_termios.c_lflag = port->tty->termios->c_lflag;
--
--	for (i=0; i<NCCS; i++) {
--		priv->internal_termios.c_cc[i] = port->tty->termios->c_cc[i];
--	}
--	
- 	// allocate memory for transfer buffer
- 	transfer_buffer = kzalloc(transfer_buffer_length, GFP_KERNEL);
- 	if (! transfer_buffer) {
-@@ -607,102 +598,79 @@ static int  kobil_tiocmset(struct usb_se
- 	return (result < 0) ? result : 0;
- }
- 
--
--static int  kobil_ioctl(struct usb_serial_port *port, struct file *file,
--			unsigned int cmd, unsigned long arg)
-+static void kobil_set_termios(struct usb_serial_port *port, struct ktermios *old)
- {
- 	struct kobil_private * priv;
- 	int result;
- 	unsigned short urb_val = 0;
--	unsigned char *transfer_buffer;
--	int transfer_buffer_length = 8;
--	char *settings;
--	void __user *user_arg = (void __user *)arg;
-+	int c_cflag = port->tty->termios->c_cflag;
-+	speed_t speed;
-+	void * settings;
- 
- 	priv = usb_get_serial_port_data(port);
--	if ((priv->device_type == KOBIL_USBTWIN_PRODUCT_ID) || (priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)) {
-+	if (priv->device_type == KOBIL_USBTWIN_PRODUCT_ID || priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)
- 		// This device doesn't support ioctl calls
--		return 0;
--	}
--
--	switch (cmd) {
--	case TCGETS:   // 0x5401
--		if (!access_ok(VERIFY_WRITE, user_arg, sizeof(struct ktermios))) {
--			dbg("%s - port %d Error in access_ok", __FUNCTION__, port->number);
--			return -EFAULT;
--		}
--		if (kernel_termios_to_user_termios((struct ktermios __user *)arg,
--						   &priv->internal_termios))
--			return -EFAULT;
--		return 0;
--
--	case TCSETS:   // 0x5402
--		if (!(port->tty->termios)) {
--			dbg("%s - port %d Error: port->tty->termios is NULL", __FUNCTION__, port->number);
--			return -ENOTTY;
--		}
--		if (!access_ok(VERIFY_READ, user_arg, sizeof(struct ktermios))) {
--			dbg("%s - port %d Error in access_ok", __FUNCTION__, port->number);
--			return -EFAULT;
--		}
--		if (user_termios_to_kernel_termios(&priv->internal_termios,
--						   (struct ktermios __user *)arg))
--			return -EFAULT;
--		
--		settings = kzalloc(50, GFP_KERNEL);
--		if (! settings) {
--			return -ENOBUFS;
--		}
-+		return;
- 
--		switch (priv->internal_termios.c_cflag & CBAUD) {
--		case B1200:
-+	switch (speed = tty_get_baud_rate(port->tty)) {
-+		case 1200:
- 			urb_val = SUSBCR_SBR_1200;
--			strcat(settings, "1200 ");
- 			break;
--		case B9600:
-+		case 9600:
- 		default:
- 			urb_val = SUSBCR_SBR_9600;
--			strcat(settings, "9600 ");
- 			break;
--		}
-+	}
-+	urb_val |= (c_cflag & CSTOPB) ? SUSBCR_SPASB_2StopBits : SUSBCR_SPASB_1StopBit;
-+
-+	settings = kzalloc(50, GFP_KERNEL);
-+	if (! settings)
-+		return;
- 
--		urb_val |= (priv->internal_termios.c_cflag & CSTOPB) ? SUSBCR_SPASB_2StopBits : SUSBCR_SPASB_1StopBit;
--		strcat(settings, (priv->internal_termios.c_cflag & CSTOPB) ? "2 StopBits " : "1 StopBit ");
-+	sprintf(settings, "%d ", speed);
- 
--		if (priv->internal_termios.c_cflag & PARENB) {
--			if  (priv->internal_termios.c_cflag & PARODD) {
--				urb_val |= SUSBCR_SPASB_OddParity;
--				strcat(settings, "Odd Parity");
--			} else {
--				urb_val |= SUSBCR_SPASB_EvenParity;
--				strcat(settings, "Even Parity");
--			}
-+	if (c_cflag & PARENB) {
-+		if  (c_cflag & PARODD) {
-+			urb_val |= SUSBCR_SPASB_OddParity;
-+			strcat(settings, "Odd Parity");
- 		} else {
--			urb_val |= SUSBCR_SPASB_NoParity;
--			strcat(settings, "No Parity");
-+			urb_val |= SUSBCR_SPASB_EvenParity;
-+			strcat(settings, "Even Parity");
- 		}
--		dbg("%s - port %d setting port to: %s", __FUNCTION__, port->number, settings );
-+	} else {
-+		urb_val |= SUSBCR_SPASB_NoParity;
-+		strcat(settings, "No Parity");
-+	}
- 
--		result = usb_control_msg( port->serial->dev, 
--					  usb_rcvctrlpipe(port->serial->dev, 0 ), 
--					  SUSBCRequest_SetBaudRateParityAndStopBits,
--					  USB_TYPE_VENDOR | USB_RECIP_ENDPOINT | USB_DIR_OUT,
--					  urb_val,
--					  0,
--					  settings,
--					  0,
--					  KOBIL_TIMEOUT
--			);
-+	result = usb_control_msg( port->serial->dev,
-+				  usb_rcvctrlpipe(port->serial->dev, 0 ),
-+				  SUSBCRequest_SetBaudRateParityAndStopBits,
-+				  USB_TYPE_VENDOR | USB_RECIP_ENDPOINT | USB_DIR_OUT,
-+				  urb_val,
-+				  0,
-+				  settings,
-+				  0,
-+				  KOBIL_TIMEOUT
-+		);
-+	kfree(settings);
-+}
- 
--		dbg("%s - port %d Send set_baudrate URB returns: %i", __FUNCTION__, port->number, result);
--		kfree(settings);
-+static int kobil_ioctl(struct usb_serial_port *port, struct file * file, unsigned int cmd, unsigned long arg)
-+{
-+	struct kobil_private * priv = usb_get_serial_port_data(port);
-+	unsigned char *transfer_buffer;
-+	int transfer_buffer_length = 8;
-+	int result;
-+
-+	if (priv->device_type == KOBIL_USBTWIN_PRODUCT_ID || priv->device_type == KOBIL_KAAN_SIM_PRODUCT_ID)
-+		// This device doesn't support ioctl calls
- 		return 0;
- 
-+	switch (cmd) {
- 	case TCFLSH:   // 0x540B
- 		transfer_buffer = kmalloc(transfer_buffer_length, GFP_KERNEL);
--		if (! transfer_buffer) {
-+		if (! transfer_buffer)
- 		 	return -ENOBUFS;
--		}
- 
- 		result = usb_control_msg( port->serial->dev, 
- 		 			  usb_rcvctrlpipe(port->serial->dev, 0 ), 
-@@ -716,15 +684,13 @@ static int  kobil_ioctl(struct usb_seria
- 			);
- 		
- 		dbg("%s - port %d Send reset_all_queues (FLUSH) URB returns: %i", __FUNCTION__, port->number, result);
--
- 		kfree(transfer_buffer);
--		return ((result < 0) ? -EFAULT : 0);
--
-+		return (result < 0) ? -EFAULT : 0;
-+	default:
-+		return -ENOIOCTLCMD;
+diff -puN mm/mempolicy.c~page-migration-require-nodes-with-memory mm/mempolicy.c
+--- a/mm/mempolicy.c~page-migration-require-nodes-with-memory
++++ a/mm/mempolicy.c
+@@ -953,6 +953,11 @@ asmlinkage long sys_migrate_pages(pid_t 
+ 		goto out;
  	}
--	return -ENOIOCTLCMD;
- }
  
--
- static int __init kobil_init (void)
- {
- 	int retval;
++	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
++		err = -EINVAL;
++		goto out;
++	}
++
+ 	err = security_task_movememory(task);
+ 	if (err)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-serial-add-support-for-ite-887x-chips.patch
-serial_txx9-fix-modem-control-line-handling.patch
-serial-8250-handle-saving-the-clear-on-read-bits-from-the-lsr.patch
-add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-m68k-enable-arbitary-speed-tty-support.patch
-introduce-config_check_signature-was-re-uninline.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-switch-most-of-the-remaining-sff-drivers-to.patch
-pata_sis-add-the-fsc-amilo-and-friends.patch
-pata_via-add-armia-w730-k8-and-other-rebadgings.patch
-pata_marvell-add-more-identifiers.patch
-st340823a-hpa-and-libata.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-git-scsi-misc.patch
-fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-kobil_sct-rework-driver.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-pata_it821x-fix-regression-corruptor.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
+sparsemem-ensure-we-initialise-the-node-mapping-for-sparsemem_static.patch
+document-linux-memory-policy-v3.patch
+slab-skip-calling-cache_free_alien-when-the-platform-is-not-numa-capable.patch
+slub-use-atomic_long_read-for-atomic_long-variables.patch
+slub-do-not-fail-on-broken-memory-configurations.patch
+process_zones-fix-recovery-code.patch
+fix-rcu_read_lock-in-page-migraton.patch
+do-not-fail-if-we-cannot-register-a-slab-with-sysfs.patch
+slub-limit-the-maximum-size-of-merged-slab-caches.patch
+slub-limit-the-maximum-size-of-merged-slab-caches-fix.patch
+apply-memory-policies-to-top-two-highest-zones-when-highest-zone-is-zone_movable.patch
+check-for-pageslab-in-arch-flush_dcache_page-to-avoid-triggering-vm_bug_on.patch
+infiniband-work-around-gcc-slub-problem.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+x86_64-get-boot_cpu_id-as-early-for-k8_scan_nodes.patch
+x86_64-family-10h-and-11h-to-k8topology.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+slab-allocators-fail-if-ksize-is-called-with-a-null-parameter.patch
+page-migration-require-nodes-with-memory.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+categorize-gfp-flags.patch
+categorize-gfp-flags-fix.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-exploit-page-mobility-to-increase-allocation-order.patch
+slub-reduce-antifrag-max-order.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+mm-mempolicyc-cleanups.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-vmstatc-cleanups.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+mm-implement-swap-prefetching.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-prefetch.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+page-owner-tracking-leak-detector.patch
