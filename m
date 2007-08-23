@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:44:26 -0700
-Message-ID: <200708232344.l7NNiQPP000581@imap1.linux-foundation.org>
+Subject: + userns-dont-leak-root-user.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:45:26 -0700
+Message-ID: <200708232345.l7NNjQbQ000598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758742AbXHWXpI (ORCPT
+	by vger.kernel.org with ESMTP id S1756636AbXHWXqf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:45:08 -0400
+	Thu, 23 Aug 2007 19:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkao2@o2.pl, m.kozlowski@tuxland.pl
+Cc: adobriyan@sw.ru, clg@fr.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     request_irq: fix DEBUG_SHIRQ handling
+     userns: don't leak root user
 has been added to the -mm tree.  Its filename is
-     request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch
+     userns-dont-leak-root-user.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: request_irq: fix DEBUG_SHIRQ handling
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: userns: don't leak root user
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Mariusz Kozlowski reported lockdep's warning:
-
-> =================================
-> [ INFO: inconsistent lock state ]
-> 2.6.23-rc2-mm1 #7
-> ---------------------------------
-> inconsistent {in-hardirq-W} -> {hardirq-on-W} usage.
-> ifconfig/5492 [HC0[0]:SC0[0]:HE1:SE1] takes:
->  (&tp->lock){+...}, at: [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
-> {in-hardirq-W} state was registered at:
->   [<c0138eeb>] __lock_acquire+0x949/0x11ac
->   [<c01397e7>] lock_acquire+0x99/0xb2
->   [<c0452ff3>] _spin_lock+0x35/0x42
->   [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
->   [<c0147a5d>] handle_IRQ_event+0x28/0x59
->   [<c01493ca>] handle_level_irq+0xad/0x10b
->   [<c0105a13>] do_IRQ+0x93/0xd0
->   [<c010441e>] common_interrupt+0x2e/0x34
-...
-> other info that might help us debug this:
-> 1 lock held by ifconfig/5492:
->  #0:  (rtnl_mutex){--..}, at: [<c0451778>] mutex_lock+0x1c/0x1f
->
-> stack backtrace:
-...
->  [<c0452ff3>] _spin_lock+0x35/0x42
->  [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
->  [<c01480fd>] free_irq+0x11b/0x146
->  [<de871d59>] rtl8139_close+0x8a/0x14a [8139too]
->  [<c03bde63>] dev_close+0x57/0x74
-...
-
-This shows that a driver's irq handler was running both in hard interrupt
-and process contexts with irqs enabled. The latter was done during
-free_irq() call and was possible only with CONFIG_DEBUG_SHIRQ enabled.
-This was fixed by another patch.
-
-But similar problem is possible with request_irq(): any locks taken from
-irq handler could be vulnerable - especially with soft interrupts. This
-patch fixes it by disabling local interrupts during handler's run. (It
-seems, disabling softirqs should be enough, but it needs more checking
-on possible races or other special cases).
-
-Reported-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ kernel/user_namespace.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN kernel/irq/manage.c~request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state kernel/irq/manage.c
---- a/kernel/irq/manage.c~request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state
-+++ a/kernel/irq/manage.c
-@@ -547,14 +547,11 @@ int request_irq(unsigned int irq, irq_ha
- 		 * We do this before actually registering it, to make sure that
- 		 * a 'real' IRQ doesn't run in parallel with our fake
- 		 */
--		if (irqflags & IRQF_DISABLED) {
--			unsigned long flags;
-+		unsigned long flags;
+diff -puN kernel/user_namespace.c~userns-dont-leak-root-user kernel/user_namespace.c
+--- a/kernel/user_namespace.c~userns-dont-leak-root-user
++++ a/kernel/user_namespace.c
+@@ -81,6 +81,7 @@ void free_user_ns(struct kref *kref)
+ 	struct user_namespace *ns;
  
--			local_irq_save(flags);
--			handler(irq, dev_id);
--			local_irq_restore(flags);
--		} else
--			handler(irq, dev_id);
-+		local_irq_save(flags);
-+		handler(irq, dev_id);
-+		local_irq_restore(flags);
- 	}
- #endif
+ 	ns = container_of(kref, struct user_namespace, kref);
++	free_uid(ns->root_user);
+ 	kfree(ns);
+ }
  
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch
-acpi-fix-a-warning-of-discarding-qualifiers-from-pointer-target-type.patch
+fix-ver_linux-glibc-version-printing.patch
+userns-dont-leak-root-user.patch
+consolidate-ptrace_detach.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+lguest-should-depend-on-config_futex.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+single_open-seq_release-leak-diagnostics.patch
