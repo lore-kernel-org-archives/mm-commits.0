@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-strict-checking-for-identify-reporting.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:25:32 -0700
-Message-ID: <200708232225.l7NMPWgD029877@imap1.linux-foundation.org>
+Subject: + libata-add-a-drivers-ide-style-dma-disable.patch added to -mm tree
+Date: Thu, 23 Aug 2007 15:26:16 -0700
+Message-ID: <200708232226.l7NMQH0S029888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763528AbXHWWZn (ORCPT
+	by vger.kernel.org with ESMTP id S1763875AbXHWW06 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:25:43 -0400
+	Thu, 23 Aug 2007 18:26:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata: strict checking for identify reporting
+     From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 has been added to the -mm tree.  Its filename is
-     libata-strict-checking-for-identify-reporting.patch
+     libata-add-a-drivers-ide-style-dma-disable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: strict checking for identify reporting
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ATA specifications require checks on certain flags before assuming the
-validity of other data.  Go through the methods and correct those needing
-extra checks.  Also note limits on ata_id_major_version with respect to ATA-1
-and ATA-2.  Correct the 32bit PIO check.
 
-Wants to sit in -mm for a bit in case of a screwup on my part that I didn't
-hit on the test drives and also in case someone, somewhere has a drive that
-gets it wrong.
+This is useful when debugging, handling problem systems, or for
+distributions just to get the system installed so it can be sorted
+out later.
+
+This is a bit smarter than the old IDE one and lets you do
+
+libata.pata_dma=0		Disable all PATA DMA like old IDE
+libata.pata_dma=1		Disk DMA only
+libata.pata_dma=2		ATAPI DMA only
+libata.pata_dma=4		CF DMA only
+
+(or combinations thereof - 0,1,3 being the useful ones I suspect)
+
+(I've split CF as it seems to be a seperate case of pain and suffering
+
+SATA is not affected - for one its not clear it makes sense to disable
+DMA for SATA if even always possible, for two we've seen no failure
+evidence to justify needing to support this kind of hammer on SATA.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ata.h |   96 +++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 85 insertions(+), 11 deletions(-)
+ drivers/ata/libata-core.c |   17 +++++++++++++++++
+ include/linux/libata.h    |    6 ++++++
+ 2 files changed, 23 insertions(+)
 
-diff -puN include/linux/ata.h~libata-strict-checking-for-identify-reporting include/linux/ata.h
---- a/include/linux/ata.h~libata-strict-checking-for-identify-reporting
-+++ a/include/linux/ata.h
-@@ -334,22 +334,12 @@ struct ata_taskfile {
+diff -puN drivers/ata/libata-core.c~libata-add-a-drivers-ide-style-dma-disable drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-add-a-drivers-ide-style-dma-disable
++++ a/drivers/ata/libata-core.c
+@@ -99,6 +99,10 @@ static int ata_ignore_hpa = 0;
+ module_param_named(ignore_hpa, ata_ignore_hpa, int, 0644);
+ MODULE_PARM_DESC(ignore_hpa, "Ignore HPA limit (0=keep BIOS limits, 1=ignore limits, using full disk)");
+ 
++static int ata_pata_dma = ATA_DMA_MASK_ATA|ATA_DMA_MASK_ATAPI|ATA_DMA_MASK_CFA;
++module_param_named(pata_dma, ata_pata_dma, int, 0644);
++MODULE_PARM_DESC(pata_dma, "Use DMA on PATA devices");
++
+ static int ata_probe_timeout = ATA_TMOUT_INTERNAL / HZ;
+ module_param(ata_probe_timeout, int, 0444);
+ MODULE_PARM_DESC(ata_probe_timeout, "Set ATA probing timeout (seconds)");
+@@ -2846,14 +2850,27 @@ int ata_do_set_mode(struct ata_link *lin
+ 	/* step 1: calculate xfer_mask */
+ 	ata_link_for_each_dev(dev, link) {
+ 		unsigned int pio_mask, dma_mask;
++		unsigned int mode_mask;
+ 
+ 		if (!ata_dev_enabled(dev))
+ 			continue;
+ 
++		mode_mask = ATA_DMA_MASK_ATA;
++		if (dev->class == ATA_DEV_ATAPI)
++			mode_mask = ATA_DMA_MASK_ATAPI;
++		else if (ata_id_is_cfa(dev->id))
++			mode_mask = ATA_DMA_MASK_CFA;
++
+ 		ata_dev_xfermask(dev);
+ 
+ 		pio_mask = ata_pack_xfermask(dev->pio_mask, 0, 0);
+ 		dma_mask = ata_pack_xfermask(0, dev->mwdma_mask, dev->udma_mask);
++
++		if ((ata_pata_dma & mode_mask) || ap->cbl == ATA_CBL_SATA)
++			dma_mask = ata_pack_xfermask(0, dev->mwdma_mask, dev->udma_mask);
++		else
++			dma_mask = 0;
++
+ 		dev->pio_mode = ata_xfer_mask2mode(pio_mask);
+ 		dev->dma_mode = ata_xfer_mask2mode(dma_mask);
+ 
+diff -puN include/linux/libata.h~libata-add-a-drivers-ide-style-dma-disable include/linux/libata.h
+--- a/include/linux/libata.h~libata-add-a-drivers-ide-style-dma-disable
++++ a/include/linux/libata.h
+@@ -314,6 +314,12 @@ enum {
+ 	ATA_HORKAGE_NODMA	= (1 << 1),	/* DMA problems */
+ 	ATA_HORKAGE_NONCQ	= (1 << 2),	/* Don't use NCQ */
+ 	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
++
++	/* DMA mask for user DMA control: User visible values do not
++	   renumber */
++	ATA_DMA_MASK_ATA	= (1 << 0),	/* DMA on ATA Disk */
++	ATA_DMA_MASK_ATAPI	= (1 << 1),	/* DMA on ATAPI */
++	ATA_DMA_MASK_CFA	= (1 << 2),	/* DMA on CF Card */
  };
  
- #define ata_id_is_ata(id)	(((id)[0] & (1 << 15)) == 0)
--#define ata_id_rahead_enabled(id) ((id)[85] & (1 << 6))
--#define ata_id_wcache_enabled(id) ((id)[85] & (1 << 5))
--#define ata_id_hpa_enabled(id)	((id)[85] & (1 << 10))
--#define ata_id_has_fua(id)	((id)[84] & (1 << 6))
--#define ata_id_has_flush(id)	((id)[83] & (1 << 12))
--#define ata_id_has_flush_ext(id) ((id)[83] & (1 << 13))
--#define ata_id_has_lba48(id)	((id)[83] & (1 << 10))
--#define ata_id_has_hpa(id)	((id)[82] & (1 << 10))
--#define ata_id_has_wcache(id)	((id)[82] & (1 << 5))
--#define ata_id_has_pm(id)	((id)[82] & (1 << 3))
- #define ata_id_has_lba(id)	((id)[49] & (1 << 9))
- #define ata_id_has_dma(id)	((id)[49] & (1 << 8))
- #define ata_id_has_ncq(id)	((id)[76] & (1 << 8))
- #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
- #define ata_id_removeable(id)	((id)[0] & (1 << 7))
--#define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
-+#define ata_id_has_dword_io(id)	((id)[48] & (1 << 0))
- #define ata_id_has_AN(id)	\
- 	( (((id)[76] != 0x0000) && ((id)[76] != 0xffff)) && \
- 	  ((id)[78] & (1 << 5)) )
-@@ -365,6 +355,90 @@ struct ata_taskfile {
- 
- #define ata_id_cdb_intr(id)	(((id)[0] & 0x60) == 0x20)
- 
-+static inline int ata_id_has_fua(const u16 *id)
-+{
-+	if ((id[84] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[84] & (1 << 6);
-+}
-+
-+static inline int ata_id_has_flush(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 12);
-+}
-+
-+static inline int ata_id_has_flush_ext(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 13);
-+}
-+
-+static inline int ata_id_has_lba48(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 10);
-+}
-+
-+static inline int ata_id_hpa_enabled(const u16 *id)
-+{
-+	/* Yes children, word 83 valid bits cover word 82 data */
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	/* And 87 covers 85-87 */
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	/* Check command sets enabled as well as supported */
-+	if ((id[85] & ( 1 << 10)) == 0)
-+		return 0;
-+	return id[82] & (1 << 10);
-+}
-+
-+static inline int ata_id_has_wcache(const u16 *id)
-+{
-+	/* Yes children, word 83 valid bits cover word 82 data */
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[82] & (1 << 5);
-+}
-+
-+static inline int ata_id_has_pm(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[82] & (1 << 3);
-+}
-+
-+static inline int ata_id_rahead_enabled(const u16 *id)
-+{
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[85] & (1 << 6);
-+}
-+
-+static inline int ata_id_wcache_enabled(const u16 *id)
-+{
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[85] & (1 << 5);
-+}
-+
-+/**
-+ *	ata_id_major_version	-	get ATA level of drive
-+ *	@id: Identify data
-+ *
-+ *	Caveats:
-+ *		ATA-1 considers identify optional
-+ *		ATA-2 introduces mandatory identify
-+ *		ATA-3 introduces word 80 and accurate reporting
-+ *
-+ *	The practical impact of this is that ata_id_major_version cannot
-+ *	reliably report on drives below ATA3. 
-+ */
-+
- static inline unsigned int ata_id_major_version(const u16 *id)
- {
- 	unsigned int mver;
+ enum hsm_task_states {
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
