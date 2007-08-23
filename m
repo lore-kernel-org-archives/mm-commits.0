@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq_stats-misc-cpuinit-section-annotations.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:17:28 -0700
-Message-ID: <200708232317.l7NNHSaC032040@imap1.linux-foundation.org>
+Subject: + x86_64-mce_amd-fix-section-mismatch-warnings.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:18:50 -0700
+Message-ID: <200708232318.l7NNIoip032062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762148AbXHWXRm (ORCPT
+	by vger.kernel.org with ESMTP id S1764523AbXHWXS6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:17:42 -0400
+	Thu, 23 Aug 2007 19:18:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, davej@codemonkey.org.uk
+Cc: satyam@infradead.org
 
 
 The patch titled
-     cpufreq_stats: misc cpuinit section annotations
+     x86_64 mce{_amd}: Fix section mismatch warnings
 has been added to the -mm tree.  Its filename is
-     cpufreq_stats-misc-cpuinit-section-annotations.patch
+     x86_64-mce_amd-fix-section-mismatch-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,91 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpufreq_stats: misc cpuinit section annotations
+Subject: x86_64 mce{_amd}: Fix section mismatch warnings
 From: Satyam Sharma <satyam@infradead.org>
 
-* Stop referencing the callback directly from the __init and __exit
-  functions of this driver, and instead explicitly call
-  cpufreq_update_policy() et al. This enables the callback function
-  to be marked as __cpuinit (and the notifier_block __cpuinitdata),
-  thereby saving space when HOTPLUG_CPU=n. This also enables us to
-  use other tricks to replace __cpuinit{data} in future.
+* mce.c:
 
-* cpufreq_stats_free_table() is only called from __cpuinit or __exit
-  marked functions, making it an ideal candidate for __cpuexit.
+mce_create_device() is marked __cpuinit and hence goes into .init.text
+when HOTPLUG_CPU=n. However, the hotplug notifier callback function
+mce_cpu_callback() is not marked __cpuinit therefore goes into .text
+section unconditionally. This causes reference to .init.text from .text
+which would cause modpost to warn (bogusly, because a CPU hotplug event
+can never happen anyway if HOTPLUG_CPU=n). Anyway, let's fix this by
+marking callback as __cpuinit and the notifier_block as __cpuinitdata.
+Having done that, mce_remove_device() is only ever called from __cpuinit
+marked functions so can be marked __cpuinit itself.
 
-* Undo some 80-column extremism which was leading to the description
-  of this module to being incorrectly printed with /sbin/modinfo :-(
+* mce_amd.c:
+
+Has an exactly similar section mismatch as that discussed in previous
+case. Solve it similarly by marking notifier callback as __cpuinit and
+notifier_block as __cpuinitdata. This causes a viral effect and allows
+us to mark a bunch of other functions as __cpuinit also.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_stats.c |   19 ++++++++-----------
- 1 files changed, 8 insertions(+), 11 deletions(-)
+ arch/x86_64/kernel/mce.c     |    6 +++---
+ arch/x86_64/kernel/mce_amd.c |   10 +++++-----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq_stats.c~cpufreq_stats-misc-cpuinit-section-annotations drivers/cpufreq/cpufreq_stats.c
---- a/drivers/cpufreq/cpufreq_stats.c~cpufreq_stats-misc-cpuinit-section-annotations
-+++ a/drivers/cpufreq/cpufreq_stats.c
-@@ -164,8 +164,7 @@ freq_table_get_index(struct cpufreq_stat
- 	return -1;
+diff -puN arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/mce.c
+@@ -833,7 +833,7 @@ static __cpuinit int mce_create_device(u
+ 	return err;
  }
  
--static void
--cpufreq_stats_free_table (unsigned int cpu)
-+static void __cpuexit cpufreq_stats_free_table(unsigned int cpu)
+-static void mce_remove_device(unsigned int cpu)
++static void __cpuinit mce_remove_device(unsigned int cpu)
  {
- 	struct cpufreq_stats *stat = cpufreq_stats_table[cpu];
- 	struct cpufreq_policy *policy = cpufreq_cpu_get(cpu);
-@@ -305,8 +304,9 @@ cpufreq_stat_notifier_trans (struct noti
- 	return 0;
+ 	int i;
+ 
+@@ -845,7 +845,7 @@ static void mce_remove_device(unsigned i
  }
  
--static int cpufreq_stat_cpu_callback(struct notifier_block *nfb,
--					unsigned long action, void *hcpu)
-+static int __cpuinit cpufreq_stat_cpu_callback(struct notifier_block *nfb,
-+					       unsigned long action,
-+					       void *hcpu)
+ /* Get notified when a cpu comes on/off. Be hotplug friendly. */
+-static int
++static int __cpuinit
+ mce_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
  {
  	unsigned int cpu = (unsigned long)hcpu;
- 
-@@ -323,7 +323,7 @@ static int cpufreq_stat_cpu_callback(str
+@@ -863,7 +863,7 @@ mce_cpu_callback(struct notifier_block *
  	return NOTIFY_OK;
  }
  
--static struct notifier_block cpufreq_stat_cpu_notifier =
-+static struct notifier_block cpufreq_stat_cpu_notifier __cpuinitdata =
- {
- 	.notifier_call = cpufreq_stat_cpu_callback,
+-static struct notifier_block mce_cpu_notifier = {
++static struct notifier_block mce_cpu_notifier __cpuinitdata = {
+ 	.notifier_call = mce_cpu_callback,
  };
-@@ -356,8 +356,7 @@ __init cpufreq_stats_init(void)
  
- 	register_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
- 	for_each_online_cpu(cpu) {
--		cpufreq_stat_cpu_callback(&cpufreq_stat_cpu_notifier,
--				CPU_ONLINE, (void *)(long)cpu);
-+		cpufreq_update_policy(cpu);
- 	}
- 	return 0;
- }
-@@ -372,14 +371,12 @@ __exit cpufreq_stats_exit(void)
- 			CPUFREQ_TRANSITION_NOTIFIER);
- 	unregister_hotcpu_notifier(&cpufreq_stat_cpu_notifier);
- 	for_each_online_cpu(cpu) {
--		cpufreq_stat_cpu_callback(&cpufreq_stat_cpu_notifier,
--						CPU_DEAD, (void *)(long)cpu);
-+		cpufreq_stats_free_table(cpu);
- 	}
+diff -puN arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce_amd.c
+--- a/arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/mce_amd.c
+@@ -570,7 +570,7 @@ out:
+  *   of shared sysfs dir/files, and rest of the cores will be symlinked to it.
+  */
+ 
+-static void deallocate_threshold_block(unsigned int cpu,
++static void __cpuinit deallocate_threshold_block(unsigned int cpu,
+ 						 unsigned int bank)
+ {
+ 	struct threshold_block *pos = NULL;
+@@ -590,7 +590,7 @@ static void deallocate_threshold_block(u
+ 	per_cpu(threshold_banks, cpu)[bank]->blocks = NULL;
  }
  
- MODULE_AUTHOR ("Zou Nan hai <nanhai.zou@intel.com>");
--MODULE_DESCRIPTION ("'cpufreq_stats' - A driver to export cpufreq stats"
--				"through sysfs filesystem");
-+MODULE_DESCRIPTION ("'cpufreq_stats' - A driver to export cpufreq stats through sysfs filesystem");
- MODULE_LICENSE ("GPL");
+-static void threshold_remove_bank(unsigned int cpu, int bank)
++static void __cpuinit threshold_remove_bank(unsigned int cpu, int bank)
+ {
+ 	int i = 0;
+ 	struct threshold_bank *b;
+@@ -632,7 +632,7 @@ free_out:
+ 	per_cpu(threshold_banks, cpu)[bank] = NULL;
+ }
  
- module_init(cpufreq_stats_init);
+-static void threshold_remove_device(unsigned int cpu)
++static void __cpuinit threshold_remove_device(unsigned int cpu)
+ {
+ 	unsigned int bank;
+ 
+@@ -644,7 +644,7 @@ static void threshold_remove_device(unsi
+ }
+ 
+ /* get notified when a cpu comes on/off */
+-static int threshold_cpu_callback(struct notifier_block *nfb,
++static int __cpuinit threshold_cpu_callback(struct notifier_block *nfb,
+ 					    unsigned long action, void *hcpu)
+ {
+ 	/* cpu was unsigned int to begin with */
+@@ -669,7 +669,7 @@ static int threshold_cpu_callback(struct
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block threshold_cpu_notifier = {
++static struct notifier_block threshold_cpu_notifier __cpuinitdata = {
+ 	.notifier_call = threshold_cpu_callback,
+ };
+ 
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
@@ -130,11 +153,11 @@ use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
 ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+x86_64-mce_amd-fix-section-mismatch-warnings.patch
 therm_throtc-fix-section-mismatch.patch
 slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
 argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
 redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
 x86-msr-driver-misc-cpuinit-annotations.patch
 i386-cpuid-misc-cpuinit-annotations.patch
-x86_64-mce_amd-fix-section-mismatch-warnings.patch
 drivers-video-geode-lxfb_corec-fix-build.patch
