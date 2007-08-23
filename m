@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch added to -mm tree
-Date: Thu, 23 Aug 2007 15:55:47 -0700
-Message-ID: <200708232255.l7NMtlpg031256@imap1.linux-foundation.org>
+Subject: + s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:02:32 -0700
+Message-ID: <200708232302.l7NN2W0F031537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39143 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759703AbXHWWzz (ORCPT
+	by vger.kernel.org with ESMTP id S1761048AbXHWXCl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 18:55:55 -0400
+	Thu, 23 Aug 2007 19:02:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, rolandd@cisco.com
+Cc: satyam@infradead.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     ehca_irq: misc cpuinit section annotations and #ifdef cleanups
+     s390 appldata_base: Misc cpuinit annotations and bugfix
 has been added to the -mm tree.  Its filename is
-     ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+     s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,115 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ehca_irq: misc cpuinit section annotations and #ifdef cleanups
+Subject: s390 appldata_base: Misc cpuinit annotations and bugfix
 From: Satyam Sharma <satyam@infradead.org>
 
-* Replace {un}register_cpu_notifier with {un}register_hotcpu_notifier
-  thereby losing a couple of #ifdef HOTPLUG_CPU pairs.
-* Move comp_pool_callback_nb declaration to below that of callback
-  function so that initialization of .notifier_call and .priority can
-  occur at build time itself and not runtime.
-* Mark the notifier_block (and callback function, and another static
-  function used by it) as __cpuinit{data} for the sake of consistency
-  and remove enclosing #ifdef. (This may increase size for modular
-  build of this module, however, because these are no longer dropped
-  unconditionally now.)
+appldata_offline_cpu() is only called from __cpuinit-marked hotplug
+notifier callback and from the __exit-marked module_exit function,
+therefore candidate for __cpuexit.
+
+BTW the __exit module_exit function appldata_exit() of this driver fails to
+unregister_hotcpu_notifier() the notifier_block that was registered by
+appldata_init() during module startup.  This will lead to oops if hotplug
+notification comes after module has been unloaded.  Let's fix this by
+unregistering the notifier appropriately (before appldata_offline_cpu()'ing
+the CPUs).
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |   29 +++++++++---------------
- 1 files changed, 11 insertions(+), 18 deletions(-)
+ arch/s390/appldata/appldata_base.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -69,9 +69,6 @@
- static void queue_comp_task(struct ehca_cq *__cq);
- 
- static struct ehca_comp_pool *pool;
--#ifdef CONFIG_HOTPLUG_CPU
--static struct notifier_block comp_pool_callback_nb;
--#endif
- 
- static inline void comp_event_callback(struct ehca_cq *cq)
- {
-@@ -746,9 +743,7 @@ static void destroy_comp_task(struct ehc
- 		kthread_stop(task);
+diff -puN arch/s390/appldata/appldata_base.c~s390-appldata_base-misc-cpuinit-annotations-and-bugfix arch/s390/appldata/appldata_base.c
+--- a/arch/s390/appldata/appldata_base.c~s390-appldata_base-misc-cpuinit-annotations-and-bugfix
++++ a/arch/s390/appldata/appldata_base.c
+@@ -547,8 +547,7 @@ static void __cpuinit appldata_online_cp
+ 	spin_unlock(&appldata_timer_lock);
  }
  
--#ifdef CONFIG_HOTPLUG_CPU
--static void take_over_work(struct ehca_comp_pool *pool,
--			   int cpu)
-+static void __cpuinit take_over_work(struct ehca_comp_pool *pool, int cpu)
+-static void
+-appldata_offline_cpu(int cpu)
++static void __cpuexit appldata_offline_cpu(int cpu)
  {
- 	struct ehca_cpu_comp_task *cct = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
- 	LIST_HEAD(list);
-@@ -771,9 +766,9 @@ static void take_over_work(struct ehca_c
- 
+ 	del_virt_timer(&per_cpu(appldata_timer, cpu));
+ 	if (atomic_dec_and_test(&appldata_expire_count)) {
+@@ -560,9 +559,9 @@ appldata_offline_cpu(int cpu)
+ 	spin_unlock(&appldata_timer_lock);
  }
  
--static int comp_pool_callback(struct notifier_block *nfb,
--			      unsigned long action,
--			      void *hcpu)
-+static int __cpuinit comp_pool_callback(struct notifier_block *nfb,
-+					unsigned long action,
-+					void *hcpu)
+-static int __cpuinit
+-appldata_cpu_notify(struct notifier_block *self,
+-		    unsigned long action, void *hcpu)
++static int __cpuinit appldata_cpu_notify(struct notifier_block *self,
++					 unsigned long action,
++					 void *hcpu)
  {
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct ehca_cpu_comp_task *cct;
-@@ -819,7 +814,11 @@ static int comp_pool_callback(struct not
- 
- 	return NOTIFY_OK;
- }
--#endif
-+
-+static struct notifier_block comp_pool_callback_nb __cpuinitdata = {
-+	.notifier_call	= comp_pool_callback,
-+	.priority	= 0,
-+};
- 
- int ehca_create_comp_pool(void)
- {
-@@ -850,11 +849,7 @@ int ehca_create_comp_pool(void)
- 		}
+ 	switch (action) {
+ 	case CPU_ONLINE:
+@@ -646,6 +645,8 @@ static void __exit appldata_exit(void)
  	}
+ 	spin_unlock(&appldata_ops_lock);
  
--#ifdef CONFIG_HOTPLUG_CPU
--	comp_pool_callback_nb.notifier_call = comp_pool_callback;
--	comp_pool_callback_nb.priority = 0;
--	register_cpu_notifier(&comp_pool_callback_nb);
--#endif
-+	register_hotcpu_notifier(&comp_pool_callback_nb);
++	unregister_hotcpu_notifier(&appldata_nb);
++
+ 	for_each_online_cpu(i)
+ 		appldata_offline_cpu(i);
  
- 	printk(KERN_INFO "eHCA scaling code enabled\n");
- 
-@@ -868,9 +863,7 @@ void ehca_destroy_comp_pool(void)
- 	if (!ehca_scaling_code)
- 		return;
- 
--#ifdef CONFIG_HOTPLUG_CPU
--	unregister_cpu_notifier(&comp_pool_callback_nb);
--#endif
-+	unregister_hotcpu_notifier(&comp_pool_callback_nb);
- 
- 	for (i = 0; i < NR_CPUS; i++) {
- 		if (cpu_online(i))
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
 
 origin.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
 git-ieee1394.patch
 ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
 git-netdev-all.patch
 git-net.patch
+s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch
+s390-appldata_base-remove-module_exit-function-and-modular.patch
 use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
 ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+i386-cpuid-misc-cpuinit-annotations.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
 therm_throtc-fix-section-mismatch.patch
 slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
 argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
