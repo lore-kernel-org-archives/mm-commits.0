@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + i386-cpuid-misc-cpuinit-annotations.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:02:59 -0700
-Message-ID: <200708232302.l7NN2xhh031543@imap1.linux-foundation.org>
+Subject: + x86-msr-driver-misc-cpuinit-annotations.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:03:01 -0700
+Message-ID: <200708232303.l7NN31aa031552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45874 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53293 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761999AbXHWXDJ (ORCPT
+	by vger.kernel.org with ESMTP id S1762339AbXHWXDJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 23 Aug 2007 19:03:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: satyam@infradead.org, ak@suse.de
 
 
 The patch titled
-     i386 cpuid: Misc cpuinit annotations
+     x86 msr driver: Misc cpuinit annotations
 has been added to the -mm tree.  Its filename is
-     i386-cpuid-misc-cpuinit-annotations.patch
+     x86-msr-driver-misc-cpuinit-annotations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386 cpuid: Misc cpuinit annotations
+Subject: x86 msr driver: Misc cpuinit annotations
 From: Satyam Sharma <satyam@infradead.org>
 
-cpuid_class_cpu_callback() is callback function of a CPU hotplug
-notifier_block (that is already marked as __cpuinitdata).  Therefore it can
-safely be marked as __cpuinit.
-
-cpuid_device_create() is only referenced from other functions that are
-__cpuinit or __init.  So it can also be safely marked __cpuinit.
+msr_class_cpu_callback() can be marked __cpuinit, being the notifier callback
+for a __cpuinitdata notifier_block.  So can be marked msr_device_create() too,
+called only from the newly-__cpuinit msr_class_cpu_callback() or from
+__init-marked msr_init().
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpuid.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/i386/kernel/msr.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations arch/i386/kernel/cpuid.c
---- a/arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations
-+++ a/arch/i386/kernel/cpuid.c
-@@ -136,7 +136,7 @@ static const struct file_operations cpui
- 	.open = cpuid_open,
+diff -puN arch/i386/kernel/msr.c~x86-msr-driver-misc-cpuinit-annotations arch/i386/kernel/msr.c
+--- a/arch/i386/kernel/msr.c~x86-msr-driver-misc-cpuinit-annotations
++++ a/arch/i386/kernel/msr.c
+@@ -135,7 +135,7 @@ static const struct file_operations msr_
+ 	.open = msr_open,
  };
  
--static int cpuid_device_create(int i)
-+static int __cpuinit cpuid_device_create(int i)
+-static int msr_device_create(int i)
++static int __cpuinit msr_device_create(int i)
  {
  	int err = 0;
  	struct device *dev;
-@@ -147,7 +147,9 @@ static int cpuid_device_create(int i)
+@@ -146,7 +146,7 @@ static int msr_device_create(int i)
  	return err;
  }
  
--static int cpuid_class_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
-+static int __cpuinit cpuid_class_cpu_callback(struct notifier_block *nfb,
-+					      unsigned long action,
-+					      void *hcpu)
+-static int msr_class_cpu_callback(struct notifier_block *nfb,
++static int __cpuinit msr_class_cpu_callback(struct notifier_block *nfb,
+ 				unsigned long action, void *hcpu)
  {
  	unsigned int cpu = (unsigned long)hcpu;
- 
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
