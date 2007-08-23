@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + userns-dont-leak-root-user.patch added to -mm tree
-Date: Thu, 23 Aug 2007 16:45:26 -0700
-Message-ID: <200708232345.l7NNjQbQ000598@imap1.linux-foundation.org>
+Subject: + move-preempt_notifiers-into-an-always-included-kconfig.patch added to -mm tree
+Date: Thu, 23 Aug 2007 16:53:21 -0700
+Message-ID: <200708232353.l7NNrLLp000874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756636AbXHWXqf (ORCPT
+	by vger.kernel.org with ESMTP id S1762981AbXHWXyP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 19:46:35 -0400
+	Thu, 23 Aug 2007 19:54:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, clg@fr.ibm.com, serue@us.ibm.com
+Cc: avi@qumranet.com, geert@linux-m68k.org, mingo@elte.hu, zippel@linux-m68k.org
 
 
 The patch titled
-     userns: don't leak root user
+     Move PREEMPT_NOTIFIERS into an always-included Kconfig
 has been added to the -mm tree.  Its filename is
-     userns-dont-leak-root-user.patch
+     move-preempt_notifiers-into-an-always-included-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: userns: don't leak root user
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: Move PREEMPT_NOTIFIERS into an always-included Kconfig
+From: Avi Kivity <avi@qumranet.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Kconfig.preempt is not included on some archs (for example, m68k).  On those
+archs, the Kconfig machinery complains that KVM selects an undefined symbol
+PREEMPT_NOTIFIERS (which lives in Kconfig.preempt).
+
+So move the offending symbol into a Kconfig file which is included by
+everyone.
+
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    1 +
- 1 files changed, 1 insertion(+)
+ init/Kconfig           |    3 +++
+ kernel/Kconfig.preempt |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/user_namespace.c~userns-dont-leak-root-user kernel/user_namespace.c
---- a/kernel/user_namespace.c~userns-dont-leak-root-user
-+++ a/kernel/user_namespace.c
-@@ -81,6 +81,7 @@ void free_user_ns(struct kref *kref)
- 	struct user_namespace *ns;
+diff -puN init/Kconfig~move-preempt_notifiers-into-an-always-included-kconfig init/Kconfig
+--- a/init/Kconfig~move-preempt_notifiers-into-an-always-included-kconfig
++++ a/init/Kconfig
+@@ -685,3 +685,6 @@ config STOP_MACHINE
+ 	  Need stop_machine() primitive.
  
- 	ns = container_of(kref, struct user_namespace, kref);
-+	free_uid(ns->root_user);
- 	kfree(ns);
- }
+ source "block/Kconfig"
++
++config PREEMPT_NOTIFIERS
++	bool
+diff -puN kernel/Kconfig.preempt~move-preempt_notifiers-into-an-always-included-kconfig kernel/Kconfig.preempt
+--- a/kernel/Kconfig.preempt~move-preempt_notifiers-into-an-always-included-kconfig
++++ a/kernel/Kconfig.preempt
+@@ -63,6 +63,3 @@ config PREEMPT_BKL
+ 	  Say Y here if you are building a kernel for a desktop system.
+ 	  Say N if you are unsure.
  
+-config PREEMPT_NOTIFIERS
+-	bool
+-
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-fix-ver_linux-glibc-version-printing.patch
-userns-dont-leak-root-user.patch
-consolidate-ptrace_detach.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-lguest-should-depend-on-config_futex.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-single_open-seq_release-leak-diagnostics.patch
+origin.patch
+git-kvm.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
