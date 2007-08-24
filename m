@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch added to -mm tree
-Date: Fri, 24 Aug 2007 16:25:12 -0700
-Message-ID: <200708242325.l7ONPCtK020098@imap1.linux-foundation.org>
+Subject: + usbmon-doc-update-mention-new-wildcard-0-bus.patch added to -mm tree
+Date: Fri, 24 Aug 2007 16:26:03 -0700
+Message-ID: <200708242326.l7ONQ3fF020113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42636 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765919AbXHXXZX (ORCPT
+	by vger.kernel.org with ESMTP id S1754544AbXHXX0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 19:25:23 -0400
+	Fri, 24 Aug 2007 19:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, lethal@linux-sh.org, satyam@infradead.org
+Cc: blaisorblade@yahoo.it, greg@kroah.com, stern@rowland.harvard.edu, zaitcev@redhat.com
 
 
 The patch titled
-     Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
+     usbmon doc update": mention new wildcard ('0') bus
 has been added to the -mm tree.  Its filename is
-     remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+     usbmon-doc-update-mention-new-wildcard-0-bus.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: usbmon doc update": mention new wildcard ('0') bus
+From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
 
-Remove superfluous definition of __setup_null_param() macro, as nobody uses
-it anymore.
+Update usbmon documentation, mentioning the "zero" (wildcard) bus. 
+Possibly, in my first hunk, the 'either ...  or ...' should be rephrased a
+bit to be expressed better.
 
-Also kill the #ifdef-MODULE-case (empty) definition for __setup_param.  It
-is only required for the !MODULE case, as __setup() is empty for the MODULE
-case already.  Also, no user outside init.h must use __setup_null_param
-directly anyway (and nobody does), so it's not something whose empty
-definition we necessarily need to make available to rest of the kernel. 
-Moreover, this MODULE case of __setup_param has been broken for more than
-two years now -- as far back as git history takes us.  Let's get rid of it.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    5 -----
- 1 files changed, 5 deletions(-)
+ Documentation/usb/usbmon.txt |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param include/linux/init.h
---- a/include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param
-+++ a/include/linux/init.h
-@@ -166,9 +166,6 @@ struct obs_kernel_param {
- 		__attribute__((aligned((sizeof(long)))))	\
- 		= { __setup_str_##unique_id, fn, early }
+diff -puN Documentation/usb/usbmon.txt~usbmon-doc-update-mention-new-wildcard-0-bus Documentation/usb/usbmon.txt
+--- a/Documentation/usb/usbmon.txt~usbmon-doc-update-mention-new-wildcard-0-bus
++++ a/Documentation/usb/usbmon.txt
+@@ -34,9 +34,12 @@ if usbmon is built into the kernel.
+ Verify that bus sockets are present.
  
--#define __setup_null_param(str, unique_id)			\
--	__setup_param(str, unique_id, NULL, 0)
--
- #define __setup(str, fn)					\
- 	__setup_param(str, fn, fn, 0)
+ # ls /sys/kernel/debug/usbmon
+-1s  1t  1u  2s  2t  2u  3s  3t  3u  4s  4t  4u
++0s  0t  0u  1s  1t  1u  2s  2t  2u  3s  3t  3u  4s  4t  4u
+ #
  
-@@ -234,8 +231,6 @@ void __init parse_early_param(void);
- 	{ return exitfn; }					\
- 	void cleanup_module(void) __attribute__((alias(#exitfn)));
++Now you can choose to either use the sockets numbered '0' (to capture packets on
++all buses), and skip to step #3, or find the bus used by your device with step #2.
++
+ 2. Find which bus connects to the desired device
  
--#define __setup_param(str, unique_id, fn)	/* nothing */
--#define __setup_null_param(str, unique_id) 	/* nothing */
- #define __setup(str, func) 			/* nothing */
- #endif
+ Run "cat /proc/bus/usb/devices", and find the T-line which corresponds to
+@@ -56,6 +59,10 @@ Bus=03 means it's bus 3.
  
+ # cat /sys/kernel/debug/usbmon/3u > /tmp/1.mon.out
+ 
++to listen on a single bus, otherwise, to listen on all buses, type:
++
++# cat /sys/kernel/debug/usbmon/0u > /tmp/1.mon.out
++
+ This process will be reading until killed. Naturally, the output can be
+ redirected to a desirable location. This is preferred, because it is going
+ to be quite long.
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-origin.patch
-git-kvm.patch
-git-mtd.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-remove-dead-references-to-module_parm-macro.patch
-m68knommu-remove-unused-config-symbol-config_disktel.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+usbmon-doc-update-mention-new-wildcard-0-bus.patch
+uml-move-userspace-code-to-userspace-file.patch
+uml-tidy-recently-moved-code.patch
+uml-fix-error-cleanup-ordering.patch
+uml-console-subsystem-tidying.patch
