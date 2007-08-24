@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-apic-shuffle-calibration-around.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:04:59 -0700
-Message-ID: <200708242204.l7OM4xTS017008@imap1.linux-foundation.org>
+Subject: + jiffies-remove-unused-macros.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:27 -0700
+Message-ID: <200708242205.l7OM5R8C017041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47354 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36206 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759268AbXHXWGX (ORCPT
+	by vger.kernel.org with ESMTP id S1759558AbXHXWGa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:06:23 -0400
+	Fri, 24 Aug 2007 18:06:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu
+Cc: chrisw@sous-sol.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86_64: Move apic calibration code around
+     jiffies: remove unused macros
 has been added to the -mm tree.  Its filename is
-     x86_64-apic-shuffle-calibration-around.patch
+     jiffies-remove-unused-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: Move apic calibration code around
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: jiffies: remove unused macros
+From: Chris Wright <chrisw@sous-sol.org>
 
-Let the calibration code fill in calibration_result directly and
-move the variable on top of the file.
+The x86 hpet cleanups allow removal of some unused macros.
 
-Fixup a printk w/o log level while at it.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |   15 ++++++---------
- 1 files changed, 6 insertions(+), 9 deletions(-)
+ include/linux/jiffies.h |    6 ------
+ 1 files changed, 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-shuffle-calibration-around arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-apic-shuffle-calibration-around
-+++ a/arch/x86_64/kernel/apic.c
-@@ -55,6 +55,8 @@ static struct resource lapic_resource = 
- 	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
- };
+diff -puN include/linux/jiffies.h~jiffies-remove-unused-macros include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffies-remove-unused-macros
++++ a/include/linux/jiffies.h
+@@ -36,8 +36,6 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
  
-+static unsigned int calibration_result;
-+
- /*
-  * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-  * IPIs in place of local APIC timers
-@@ -825,7 +827,7 @@ static void setup_APIC_timer(unsigned in
- 
- #define TICK_COUNT 100000000
- 
--static int __init calibrate_APIC_clock(void)
-+static void __init calibrate_APIC_clock(void)
- {
- 	unsigned apic, apic_start;
- 	unsigned long tsc, tsc_start;
-@@ -859,17 +861,14 @@ static int __init calibrate_APIC_clock(v
- 		result = (apic_start - apic) * 1000L * tsc_khz /
- 					(tsc - tsc_start);
- 	}
--	printk("result %d\n", result);
+-#define LATCH_HPET ((HPET_TICK_RATE + HZ/2) / HZ)
 -
-+	printk(KERN_DEBUG "APIC timer calibration result %d\n", result);
+ /* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, the we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+@@ -53,13 +51,9 @@
+ /* HZ is the requested value. ACTHZ is actual HZ ("<< 8" is for accuracy) */
+ #define ACTHZ (SH_DIV (CLOCK_TICK_RATE, LATCH, 8))
  
- 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
- 		result / 1000 / 1000, result / 1000 % 1000);
- 
--	return result * APIC_DIVISOR / HZ;
-+	calibration_result = result * APIC_DIVISOR / HZ;
- }
- 
--static unsigned int calibration_result;
+-#define ACTHZ_HPET (SH_DIV (HPET_TICK_RATE, LATCH_HPET, 8))
 -
- void __init setup_boot_APIC_clock (void)
- {
- 	if (disable_apic_timer) {
-@@ -882,7 +881,7 @@ void __init setup_boot_APIC_clock (void)
+ /* TICK_NSEC is the time between ticks in nsec assuming real ACTHZ */
+ #define TICK_NSEC (SH_DIV (1000000UL * 1000, ACTHZ, 8))
  
- 	local_irq_disable();
- 
--	calibration_result = calibrate_APIC_clock();
-+	calibrate_APIC_clock();
- 	/*
- 	 * Now set up the timer for real.
- 	 */
-@@ -989,8 +988,6 @@ void setup_APIC_extended_lvt(unsigned ch
- 	apic_write(reg, v);
- }
- 
--#undef APIC_DIVISOR
+-#define TICK_NSEC_HPET (SH_DIV(1000000UL * 1000, ACTHZ_HPET, 8))
 -
- /*
-  * Local timer interrupt handler. It does both profiling and
-  * process statistics/rescheduling.
+ /* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
+ #define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
 origin.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-git-acpi.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
 x86_64-consolidate-tsc-calibration.patch
 i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
 i386-prepare-sharing-pit-code.patch
 x86_64-use-i386-i8253-h.patch
 x86_64-preparatory-apic-set-lvtt.patch
@@ -132,25 +89,25 @@ x86_64-convert-to-clockevents.patch
 x86_64-remove-unused-code.patch
 x86_64-cleanup-apic-c.patch
 jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
 i386-pit-remove-the-useless-ifdefs.patch
 i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
+file-capabilities-clear-fcaps-on-inode-change.patch
+security-cleanups.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+whitespace-fixes-capability-syscalls.patch
