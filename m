@@ -1,232 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:50 -0700
-Message-ID: <200708242055.l7OKtope013987@imap1.linux-foundation.org>
+Subject: - fix-null-pointer-dereference-in-__vm_enough_memory.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:55 -0700
+Message-ID: <200708242055.l7OKttlh013993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52164 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756917AbXHXU46 (ORCPT
+	by vger.kernel.org with ESMTP id S1752724AbXHXU46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 16:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jmorris@redhat.com, ranma+kernel@tdiedrich.de, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synchronous lumpy reclaim: wait for page writeback when directly reclaiming contiguous areas
+     fix NULL pointer dereference in __vm_enough_memory()
 has been removed from the -mm tree.  Its filename was
-     wait-for-page-writeback-when-directly-reclaiming-contiguous-areas.patch
+     fix-null-pointer-dereference-in-__vm_enough_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: synchronous lumpy reclaim: wait for page writeback when directly reclaiming contiguous areas
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: fix NULL pointer dereference in __vm_enough_memory()
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Lumpy reclaim works by selecting a lead page from the LRU list and then
-selecting pages for reclaim from the order-aligned area of pages.  In the
-situation were all pages in that region are inactive and not referenced by any
-process over time, it works well.
+The new exec code inserts an accounted vma into an mm struct which is not
+current->mm.  The existing memory check code has a hard coded assumption
+that this does not happen as does the security code.
 
-In the situation where there is even light load on the system, the pages may
-not free quickly.  Out of a area of 1024 pages, maybe only 950 of them are
-freed when the allocation attempt occurs because lumpy reclaim returned early.
- This patch alters the behaviour of direct reclaim for large contiguous
-blocks.
+As the correct mm is known we pass the mm to the security method and the
+helper function.  A new security test is added for the case where we need
+to pass the mm and the existing one is modified to pass current->mm to
+avoid the need to change large amounts of code.
 
-The first attempt to call shrink_page_list() is asynchronous but if it fails,
-the pages are submitted a second time and the calling process waits for the IO
-to complete.  This may stall allocators waiting for contiguous memory but that
-should be expected behaviour for high-order users.  It is preferable behaviour
-to potentially queueing unnecessary areas for IO.  Note that kswapd will not
-stall in this fashion.
+(Thanks to Tobias for fixing rejects and testing)
 
-[apw@shadowen.org: update to version 2]
-[apw@shadowen.org: update to version 3]
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+Cc: James Morris <jmorris@redhat.com>
+Cc: Tobias Diedrich <ranma+kernel@tdiedrich.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   68 ++++++++++++++++++++++++++++++++++++++++++++------
- 1 files changed, 60 insertions(+), 8 deletions(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/security.h |   20 +++++++++++++++-----
+ mm/mmap.c                |    6 +++---
+ mm/nommu.c               |    2 +-
+ security/commoncap.c     |    4 ++--
+ security/dummy.c         |    4 ++--
+ security/selinux/hooks.c |    4 ++--
+ 7 files changed, 26 insertions(+), 16 deletions(-)
 
-diff -puN mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas mm/vmscan.c
---- a/mm/vmscan.c~wait-for-page-writeback-when-directly-reclaiming-contiguous-areas
-+++ a/mm/vmscan.c
-@@ -271,6 +271,12 @@ static void handle_write_error(struct ad
- 	unlock_page(page);
+diff -puN include/linux/mm.h~fix-null-pointer-dereference-in-__vm_enough_memory include/linux/mm.h
+--- a/include/linux/mm.h~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/include/linux/mm.h
+@@ -1042,7 +1042,7 @@ static inline void vma_nonlinear_insert(
  }
  
-+/* Request for sync pageout. */
-+enum pageout_io {
-+	PAGEOUT_IO_ASYNC,
-+	PAGEOUT_IO_SYNC,
-+};
-+
- /* possible outcome of pageout() */
- typedef enum {
- 	/* failed to write page out, page is locked */
-@@ -287,7 +293,8 @@ typedef enum {
-  * pageout is called by shrink_page_list() for each dirty page.
-  * Calls ->writepage().
-  */
--static pageout_t pageout(struct page *page, struct address_space *mapping)
-+static pageout_t pageout(struct page *page, struct address_space *mapping,
-+						enum pageout_io sync_writeback)
+ /* mmap.c */
+-extern int __vm_enough_memory(long pages, int cap_sys_admin);
++extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
+ extern void vma_adjust(struct vm_area_struct *vma, unsigned long start,
+ 	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert);
+ extern struct vm_area_struct *vma_merge(struct mm_struct *,
+diff -puN include/linux/security.h~fix-null-pointer-dereference-in-__vm_enough_memory include/linux/security.h
+--- a/include/linux/security.h~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/include/linux/security.h
+@@ -54,7 +54,7 @@ extern int cap_inode_removexattr(struct 
+ extern int cap_task_post_setuid (uid_t old_ruid, uid_t old_euid, uid_t old_suid, int flags);
+ extern void cap_task_reparent_to_init (struct task_struct *p);
+ extern int cap_syslog (int type);
+-extern int cap_vm_enough_memory (long pages);
++extern int cap_vm_enough_memory (struct mm_struct *mm, long pages);
+ 
+ struct msghdr;
+ struct sk_buff;
+@@ -1125,6 +1125,7 @@ struct request_sock;
+  *	Return 0 if permission is granted.
+  * @vm_enough_memory:
+  *	Check permissions for allocating a new virtual mapping.
++ *	@mm contains the mm struct it is being added to.
+  *      @pages contains the number of pages.
+  *	Return 0 if permission is granted.
+  *
+@@ -1169,7 +1170,7 @@ struct security_operations {
+ 	int (*quota_on) (struct dentry * dentry);
+ 	int (*syslog) (int type);
+ 	int (*settime) (struct timespec *ts, struct timezone *tz);
+-	int (*vm_enough_memory) (long pages);
++	int (*vm_enough_memory) (struct mm_struct *mm, long pages);
+ 
+ 	int (*bprm_alloc_security) (struct linux_binprm * bprm);
+ 	void (*bprm_free_security) (struct linux_binprm * bprm);
+@@ -1469,10 +1470,14 @@ static inline int security_settime(struc
+ 	return security_ops->settime(ts, tz);
+ }
+ 
+-
+ static inline int security_vm_enough_memory(long pages)
  {
+-	return security_ops->vm_enough_memory(pages);
++	return security_ops->vm_enough_memory(current->mm, pages);
++}
++
++static inline int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
++{
++	return security_ops->vm_enough_memory(mm, pages);
+ }
+ 
+ static inline int security_bprm_alloc (struct linux_binprm *bprm)
+@@ -2219,7 +2224,12 @@ static inline int security_settime(struc
+ 
+ static inline int security_vm_enough_memory(long pages)
+ {
+-	return cap_vm_enough_memory(pages);
++	return cap_vm_enough_memory(current->mm, pages);
++}
++
++static inline int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
++{
++	return cap_vm_enough_memory(mm, pages);
+ }
+ 
+ static inline int security_bprm_alloc (struct linux_binprm *bprm)
+diff -puN mm/mmap.c~fix-null-pointer-dereference-in-__vm_enough_memory mm/mmap.c
+--- a/mm/mmap.c~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/mm/mmap.c
+@@ -93,7 +93,7 @@ atomic_t vm_committed_space = ATOMIC_INI
+  * Note this is a helper function intended to be used by LSMs which
+  * wish to use this logic.
+  */
+-int __vm_enough_memory(long pages, int cap_sys_admin)
++int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+ {
+ 	unsigned long free, allowed;
+ 
+@@ -166,7 +166,7 @@ int __vm_enough_memory(long pages, int c
+ 
+ 	/* Don't let a single process grow too big:
+ 	   leave 3% of the size of this process for other processes */
+-	allowed -= current->mm->total_vm / 32;
++	allowed -= mm->total_vm / 32;
+ 
  	/*
- 	 * If the page is dirty, only perform writeback if that write
-@@ -346,6 +353,15 @@ static pageout_t pageout(struct page *pa
- 			ClearPageReclaim(page);
- 			return PAGE_ACTIVATE;
- 		}
-+
-+		/*
-+		 * Wait on writeback if requested to. This happens when
-+		 * direct reclaiming a large contiguous area and the
-+		 * first attempt to free a range of pages fails.
-+		 */
-+		if (PageWriteback(page) && sync_writeback == PAGEOUT_IO_SYNC)
-+			wait_on_page_writeback(page);
-+
- 		if (!PageWriteback(page)) {
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
-@@ -423,7 +439,8 @@ cannot_free:
-  * shrink_page_list() returns the number of reclaimed pages
+ 	 * cast `allowed' as a signed long because vm_committed_space
+@@ -2077,7 +2077,7 @@ int insert_vm_struct(struct mm_struct * 
+ 	if (__vma && __vma->vm_start < vma->vm_end)
+ 		return -ENOMEM;
+ 	if ((vma->vm_flags & VM_ACCOUNT) &&
+-	     security_vm_enough_memory(vma_pages(vma)))
++	     security_vm_enough_memory_mm(mm, vma_pages(vma)))
+ 		return -ENOMEM;
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
+ 	return 0;
+diff -puN mm/nommu.c~fix-null-pointer-dereference-in-__vm_enough_memory mm/nommu.c
+--- a/mm/nommu.c~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/mm/nommu.c
+@@ -1270,7 +1270,7 @@ EXPORT_SYMBOL(get_unmapped_area);
+  * Note this is a helper function intended to be used by LSMs which
+  * wish to use this logic.
   */
- static unsigned long shrink_page_list(struct list_head *page_list,
--					struct scan_control *sc)
-+					struct scan_control *sc,
-+					enum pageout_io sync_writeback)
+-int __vm_enough_memory(long pages, int cap_sys_admin)
++int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
  {
- 	LIST_HEAD(ret_pages);
- 	struct pagevec freed_pvec;
-@@ -458,8 +475,23 @@ static unsigned long shrink_page_list(st
- 		if (page_mapped(page) || PageSwapCache(page))
- 			sc->nr_scanned++;
+ 	unsigned long free, allowed;
  
--		if (PageWriteback(page))
--			goto keep_locked;
-+		may_enter_fs = (sc->gfp_mask & __GFP_FS) ||
-+			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
-+
-+		if (PageWriteback(page)) {
-+			/*
-+			 * Synchronous reclaim is performed in two passes,
-+			 * first an asynchronous pass over the list to
-+			 * start parallel writeback, and a second synchronous
-+			 * pass to wait for the IO to complete.  Wait here
-+			 * for any page for which writeback has already
-+			 * started.
-+			 */
-+			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
-+				wait_on_page_writeback(page);
-+			else
-+				goto keep_locked;
-+		}
+diff -puN security/commoncap.c~fix-null-pointer-dereference-in-__vm_enough_memory security/commoncap.c
+--- a/security/commoncap.c~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/security/commoncap.c
+@@ -315,13 +315,13 @@ int cap_syslog (int type)
+ 	return 0;
+ }
  
- 		referenced = page_referenced(page, 1);
- 		/* In active use or really unfreeable?  Activate it. */
-@@ -478,8 +510,6 @@ static unsigned long shrink_page_list(st
- #endif /* CONFIG_SWAP */
+-int cap_vm_enough_memory(long pages)
++int cap_vm_enough_memory(struct mm_struct *mm, long pages)
+ {
+ 	int cap_sys_admin = 0;
  
- 		mapping = page_mapping(page);
--		may_enter_fs = (sc->gfp_mask & __GFP_FS) ||
--			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
+ 	if (cap_capable(current, CAP_SYS_ADMIN) == 0)
+ 		cap_sys_admin = 1;
+-	return __vm_enough_memory(pages, cap_sys_admin);
++	return __vm_enough_memory(mm, pages, cap_sys_admin);
+ }
  
- 		/*
- 		 * The page is mapped into the page tables of one or more
-@@ -505,7 +535,7 @@ static unsigned long shrink_page_list(st
- 				goto keep_locked;
+ EXPORT_SYMBOL(cap_capable);
+diff -puN security/dummy.c~fix-null-pointer-dereference-in-__vm_enough_memory security/dummy.c
+--- a/security/dummy.c~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/security/dummy.c
+@@ -108,13 +108,13 @@ static int dummy_settime(struct timespec
+ 	return 0;
+ }
  
- 			/* Page is dirty, try to write it out here */
--			switch(pageout(page, mapping)) {
-+			switch (pageout(page, mapping, sync_writeback)) {
- 			case PAGE_KEEP:
- 				goto keep_locked;
- 			case PAGE_ACTIVATE:
-@@ -786,7 +816,29 @@ static unsigned long shrink_inactive_lis
- 		spin_unlock_irq(&zone->lru_lock);
+-static int dummy_vm_enough_memory(long pages)
++static int dummy_vm_enough_memory(struct mm_struct *mm, long pages)
+ {
+ 	int cap_sys_admin = 0;
  
- 		nr_scanned += nr_scan;
--		nr_freed = shrink_page_list(&page_list, sc);
-+		nr_freed = shrink_page_list(&page_list, sc, PAGEOUT_IO_ASYNC);
-+
-+		/*
-+		 * If we are direct reclaiming for contiguous pages and we do
-+		 * not reclaim everything in the list, try again and wait
-+		 * for IO to complete. This will stall high-order allocations
-+		 * but that should be acceptable to the caller
-+		 */
-+		if (nr_freed < nr_taken && !current_is_kswapd() &&
-+					sc->order > PAGE_ALLOC_COSTLY_ORDER) {
-+			congestion_wait(WRITE, HZ/10);
-+
-+			/*
-+			 * The attempt at page out may have made some
-+			 * of the pages active, mark them inactive again.
-+			 */
-+			nr_active = clear_active_flags(&page_list);
-+			count_vm_events(PGDEACTIVATE, nr_active);
-+
-+			nr_freed += shrink_page_list(&page_list, sc,
-+							PAGEOUT_IO_SYNC);
-+		}
-+
- 		nr_reclaimed += nr_freed;
- 		local_irq_disable();
- 		if (current_is_kswapd()) {
+ 	if (dummy_capable(current, CAP_SYS_ADMIN) == 0)
+ 		cap_sys_admin = 1;
+-	return __vm_enough_memory(pages, cap_sys_admin);
++	return __vm_enough_memory(mm, pages, cap_sys_admin);
+ }
+ 
+ static int dummy_bprm_alloc_security (struct linux_binprm *bprm)
+diff -puN security/selinux/hooks.c~fix-null-pointer-dereference-in-__vm_enough_memory security/selinux/hooks.c
+--- a/security/selinux/hooks.c~fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/security/selinux/hooks.c
+@@ -1584,7 +1584,7 @@ static int selinux_syslog(int type)
+  * Do not audit the selinux permission check, as this is applied to all
+  * processes that allocate mappings.
+  */
+-static int selinux_vm_enough_memory(long pages)
++static int selinux_vm_enough_memory(struct mm_struct *mm, long pages)
+ {
+ 	int rc, cap_sys_admin = 0;
+ 	struct task_security_struct *tsec = current->security;
+@@ -1600,7 +1600,7 @@ static int selinux_vm_enough_memory(long
+ 	if (rc == 0)
+ 		cap_sys_admin = 1;
+ 
+-	return __vm_enough_memory(pages, cap_sys_admin);
++	return __vm_enough_memory(mm, pages, cap_sys_admin);
+ }
+ 
+ /* binprm security operations */
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-mips-irix_getcontext-will-always-fail-efault.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-get-mp_bus_to_node-as-early-v3-update.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
-page-owner-tracking-leak-detector.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-switch-most-of-the-remaining-sff-drivers-to.patch
+pata_marvell-add-more-identifiers.patch
+libata-portmap-remove-unused-definitions.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-spot-bridge-chips.patch
+libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
+libata-strict-checking-for-identify-reporting.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+git-scsi-misc.patch
+fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+kobil_sct-rework-driver.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
