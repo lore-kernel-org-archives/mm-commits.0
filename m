@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-page-offset-to-kmem_cache_cpu-offset.patch added to -mm tree
-Date: Fri, 24 Aug 2007 14:45:16 -0700
-Message-ID: <200708242145.l7OLjHg8016220@imap1.linux-foundation.org>
+Subject: + slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way.patch added to -mm tree
+Date: Fri, 24 Aug 2007 14:45:21 -0700
+Message-ID: <200708242145.l7OLjLLo016228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760295AbXHXVpU (ORCPT
+	by vger.kernel.org with ESMTP id S1759307AbXHXVpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:45:20 -0400
+	Fri, 24 Aug 2007 17:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Move page->offset to kmem_cache_cpu->offset
+     SLUB: Place kmem_cache_cpu structures in a NUMA aware way
 has been added to the -mm tree.  Its filename is
-     slub-move-page-offset-to-kmem_cache_cpu-offset.patch
+     slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,266 +26,318 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Move page->offset to kmem_cache_cpu->offset
+Subject: SLUB: Place kmem_cache_cpu structures in a NUMA aware way
 From: Christoph Lameter <clameter@sgi.com>
 
-We need the offset from the page struct during slab_alloc and slab_free. In
-both cases we also reference the cacheline of the kmem_cache_cpu structure.
-We can therefore move the offset field into the kmem_cache_cpu structure
-freeing up 16 bits in the page struct.
+The kmem_cache_cpu structures introduced are currently an array placed in the
+kmem_cache struct. Meaning the kmem_cache_cpu structures are overwhelmingly
+on the wrong node for systems with a higher amount of nodes. These are
+performance critical structures since the per node information has
+to be touched for every alloc and free in a slab.
 
-Moving the offset allows an allocation from slab_alloc() without touching the
-page struct in the hot path.
+In order to place the kmem_cache_cpu structure optimally we put an array
+of pointers to kmem_cache_cpu structs in kmem_cache (similar to SLAB).
 
-The only thing left in slab_free() that touches the page struct cacheline for
-per cpu freeing is the checking of SlabDebug(page). The next patch deals with
-that.
+However, the kmem_cache_cpu structures can now be allocated in a more
+intelligent way.
 
-Use the available 16 bits to broaden page->inuse. More than 64k objects per
-slab become possible and we can get rid of the checks for that limitation.
+We would like to put per cpu structures for the same cpu but different
+slab caches in cachelines together to save space and decrease the cache
+footprint. However, the slab allocators itself control only allocations
+per node. We set up a simple per cpu array for every processor with
+100 per cpu structures which is usually enough to get them all set up right.
+If we run out then we fall back to kmalloc_node. This also solves the
+bootstrap problem since we do not have to use slab allocator functions
+early in boot to get memory for the small per cpu structures.
 
-No need anymore to shrink the order of slabs if we boot with 2M sized slabs
-(slub_min_order=9).
+Pro:
+	- NUMA aware placement improves memory performance
+	- All global structures in struct kmem_cache become readonly
+	- Dense packing of per cpu structures reduces cacheline
+	  footprint in SMP and NUMA.
+	- Potential avoidance of exclusive cacheline fetches
+	  on the free and alloc hotpath since multiple kmem_cache_cpu
+	  structures are in one cacheline. This is particularly important
+	  for the kmalloc array.
 
-No need anymore to switch off the offset calculation for very large slabs
-since the field in the kmem_cache_cpu structure is 32 bits and so the offset
-field can now handle slab sizes of up to 8GB.
+Cons:
+	- Additional reference to one read only cacheline (per cpu
+	  array of pointers to kmem_cache_cpu) in both slab_alloc()
+	  and slab_free().
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    5 --
- include/linux/slub_def.h |    1 
- mm/slub.c                |   80 +++++++------------------------------
- 3 files changed, 18 insertions(+), 68 deletions(-)
+ include/linux/slub_def.h |    9 +-
+ mm/slub.c                |  162 +++++++++++++++++++++++++++++++++----
+ 2 files changed, 154 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/mm_types.h~slub-move-page-offset-to-kmem_cache_cpu-offset include/linux/mm_types.h
---- a/include/linux/mm_types.h~slub-move-page-offset-to-kmem_cache_cpu-offset
-+++ a/include/linux/mm_types.h
-@@ -37,10 +37,7 @@ struct page {
- 					 * to show when page is mapped
- 					 * & limit reverse map searches.
- 					 */
--		struct {	/* SLUB uses */
--			short unsigned int inuse;
--			short unsigned int offset;
--		};
-+		unsigned int inuse;	/* SLUB: Nr of objects */
- 	};
- 	union {
- 	    struct {
-diff -puN include/linux/slub_def.h~slub-move-page-offset-to-kmem_cache_cpu-offset include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-move-page-offset-to-kmem_cache_cpu-offset
+diff -puN include/linux/slub_def.h~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way
 +++ a/include/linux/slub_def.h
-@@ -15,6 +15,7 @@ struct kmem_cache_cpu {
- 	void **freelist;
+@@ -16,8 +16,7 @@ struct kmem_cache_cpu {
  	struct page *page;
  	int node;
-+	unsigned int offset;
- 	/* Lots of wasted space */
- } ____cacheline_aligned_in_smp;
+ 	unsigned int offset;
+-	/* Lots of wasted space */
+-} ____cacheline_aligned_in_smp;
++};
  
-diff -puN mm/slub.c~slub-move-page-offset-to-kmem_cache_cpu-offset mm/slub.c
---- a/mm/slub.c~slub-move-page-offset-to-kmem_cache_cpu-offset
-+++ a/mm/slub.c
-@@ -200,11 +200,6 @@ static inline void ClearSlabDebug(struct
- #define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
+ struct kmem_cache_node {
+ 	spinlock_t list_lock;	/* Protect partial list and nr_partial */
+@@ -62,7 +61,11 @@ struct kmem_cache {
+ 	int defrag_ratio;
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
  #endif
+-	struct kmem_cache_cpu cpu_slab[NR_CPUS];
++#ifdef CONFIG_SMP
++	struct kmem_cache_cpu *cpu_slab[NR_CPUS];
++#else
++	struct kmem_cache_cpu cpu_slab;
++#endif
+ };
  
--/*
-- * The page->inuse field is 16 bit thus we have this limitation
-- */
--#define MAX_OBJECTS_PER_SLAB 65535
--
- /* Internal SLUB flags */
- #define __OBJECT_POISON		0x80000000 /* Poison object */
- #define __SYSFS_ADD_DEFERRED	0x40000000 /* Not yet visible via sysfs */
-@@ -729,11 +724,6 @@ static int check_slab(struct kmem_cache 
- 		slab_err(s, page, "Not a valid slab page");
- 		return 0;
- 	}
--	if (page->offset * sizeof(void *) != s->offset) {
--		slab_err(s, page, "Corrupted offset %lu",
--			(unsigned long)(page->offset * sizeof(void *)));
--		return 0;
--	}
- 	if (page->inuse > s->objects) {
- 		slab_err(s, page, "inuse %u > max %u",
- 			s->name, page->inuse, s->objects);
-@@ -872,8 +862,6 @@ bad:
- 		slab_fix(s, "Marking all objects used");
- 		page->inuse = s->objects;
- 		page->freelist = NULL;
--		/* Fix up fields that may be corrupted */
--		page->offset = s->offset / sizeof(void *);
- 	}
- 	return 0;
- }
-@@ -989,30 +977,12 @@ __setup("slub_debug", setup_slub_debug);
- static void kmem_cache_open_debug_check(struct kmem_cache *s)
+ /*
+diff -puN mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way mm/slub.c
+--- a/mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way
++++ a/mm/slub.c
+@@ -269,7 +269,11 @@ static inline struct kmem_cache_node *ge
+ 
+ static inline struct kmem_cache_cpu *get_cpu_slab(struct kmem_cache *s, int cpu)
  {
- 	/*
--	 * The page->offset field is only 16 bit wide. This is an offset
--	 * in units of words from the beginning of an object. If the slab
--	 * size is bigger then we cannot move the free pointer behind the
--	 * object anymore.
--	 *
--	 * On 32 bit platforms the limit is 256k. On 64bit platforms
--	 * the limit is 512k.
--	 *
--	 * Debugging or ctor may create a need to move the free
--	 * pointer. Fail if this happens.
-+	 * Enable debugging if selected on the kernel commandline.
- 	 */
--	if (s->objsize >= 65535 * sizeof(void *)) {
--		BUG_ON(s->flags & (SLAB_RED_ZONE | SLAB_POISON |
--				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
--		BUG_ON(s->ctor);
--	}
--	else
--		/*
--		 * Enable debugging if selected on the kernel commandline.
--		 */
--		if (slub_debug && (!slub_debug_slabs ||
--		    strncmp(slub_debug_slabs, s->name,
--		    	strlen(slub_debug_slabs)) == 0))
--				s->flags |= slub_debug;
-+	if (slub_debug && (!slub_debug_slabs ||
-+		strncmp(slub_debug_slabs, s->name,
-+		strlen(slub_debug_slabs)) == 0))
-+			s->flags |= slub_debug;
+-	return &s->cpu_slab[cpu];
++#ifdef CONFIG_SMP
++	return s->cpu_slab[cpu];
++#else
++	return &s->cpu_slab;
++#endif
  }
- #else
- static inline void setup_object_debug(struct kmem_cache *s,
-@@ -1095,7 +1065,6 @@ static struct page *new_slab(struct kmem
- 	n = get_node(s, page_to_nid(page));
- 	if (n)
- 		atomic_long_inc(&n->nr_slabs);
--	page->offset = s->offset / sizeof(void *);
- 	page->slab = s;
- 	page->flags |= 1 << PG_slab;
- 	if (s->flags & (SLAB_DEBUG_FREE | SLAB_RED_ZONE | SLAB_POISON |
-@@ -1389,10 +1358,10 @@ static void deactivate_slab(struct kmem_
  
- 		/* Retrieve object from cpu_freelist */
- 		object = c->freelist;
--		c->freelist = c->freelist[page->offset];
-+		c->freelist = c->freelist[c->offset];
- 
- 		/* And put onto the regular freelist */
--		object[page->offset] = page->freelist;
-+		object[c->offset] = page->freelist;
- 		page->freelist = object;
- 		page->inuse--;
- 	}
-@@ -1488,7 +1457,7 @@ load_freelist:
- 		goto debug;
- 
- 	object = c->page->freelist;
--	c->freelist = object[c->page->offset];
-+	c->freelist = object[c->offset];
- 	c->page->inuse = s->objects;
- 	c->page->freelist = NULL;
- 	c->node = page_to_nid(c->page);
-@@ -1540,7 +1509,7 @@ debug:
- 		goto another_slab;
- 
- 	c->page->inuse++;
--	c->page->freelist = object[c->page->offset];
-+	c->page->freelist = object[c->offset];
- 	slab_unlock(c->page);
- 	return object;
- }
-@@ -1571,7 +1540,7 @@ static void __always_inline *slab_alloc(
- 
- 	else {
- 		object = c->freelist;
--		c->freelist = object[c->page->offset];
-+		c->freelist = object[c->offset];
- 	}
- 	local_irq_restore(flags);
- 
-@@ -1604,7 +1573,7 @@ EXPORT_SYMBOL(kmem_cache_alloc_node);
-  * handling required then we can return immediately.
-  */
- static void __slab_free(struct kmem_cache *s, struct page *page,
--					void *x, void *addr)
-+				void *x, void *addr, unsigned int offset)
- {
- 	void *prior;
- 	void **object = (void *)x;
-@@ -1614,7 +1583,7 @@ static void __slab_free(struct kmem_cach
- 	if (unlikely(SlabDebug(page)))
- 		goto debug;
- checks_ok:
--	prior = object[page->offset] = page->freelist;
-+	prior = object[offset] = page->freelist;
- 	page->freelist = object;
- 	page->inuse--;
- 
-@@ -1675,10 +1644,10 @@ static void __always_inline slab_free(st
- 	debug_check_no_locks_freed(object, s->objsize);
- 	c = get_cpu_slab(s, smp_processor_id());
- 	if (likely(page == c->page && !SlabDebug(page))) {
--		object[page->offset] = c->freelist;
-+		object[c->offset] = c->freelist;
- 		c->freelist = object;
- 	} else
--		__slab_free(s, page, x, addr);
-+		__slab_free(s, page, x, addr, c->offset);
- 
- 	local_irq_restore(flags);
- }
-@@ -1765,14 +1734,6 @@ static inline int slab_order(int size, i
- 	int rem;
- 	int min_order = slub_min_order;
- 
--	/*
--	 * If we would create too many object per slab then reduce
--	 * the slab order even if it goes below slub_min_order.
--	 */
--	while (min_order > 0 &&
--		(PAGE_SIZE << min_order) >= MAX_OBJECTS_PER_SLAB * size)
--			min_order--;
--
- 	for (order = max(min_order,
- 				fls(min_objects * size - 1) - PAGE_SHIFT);
- 			order <= max_order; order++) {
-@@ -1787,9 +1748,6 @@ static inline int slab_order(int size, i
- 		if (rem <= slab_size / fract_leftover)
- 			break;
- 
--		/* If the next size is too high then exit now */
--		if (slab_size * 2 >= MAX_OBJECTS_PER_SLAB * size)
--			break;
- 	}
- 
- 	return order;
-@@ -1869,6 +1827,7 @@ static void init_kmem_cache_cpu(struct k
- {
- 	c->page = NULL;
- 	c->freelist = NULL;
-+	c->offset = s->offset / sizeof(void *);
+ static inline int check_valid_pointer(struct kmem_cache *s,
+@@ -1831,16 +1835,6 @@ static void init_kmem_cache_cpu(struct k
  	c->node = 0;
  }
  
-@@ -2101,14 +2060,7 @@ static int calculate_sizes(struct kmem_c
- 	 */
- 	s->objects = (PAGE_SIZE << s->order) / size;
- 
--	/*
--	 * Verify that the number of objects is within permitted limits.
--	 * The page->inuse field is only 16 bit wide! So we cannot have
--	 * more than 64k objects per slab.
--	 */
--	if (!s->objects || s->objects > MAX_OBJECTS_PER_SLAB)
--		return 0;
+-static inline int alloc_kmem_cache_cpus(struct kmem_cache *s, gfp_t flags)
+-{
+-	int cpu;
+-
+-	for_each_possible_cpu(cpu)
+-		init_kmem_cache_cpu(s, get_cpu_slab(s, cpu));
+-
 -	return 1;
-+	return !!s->objects;
- 
+-}
+-
+ static void init_kmem_cache_node(struct kmem_cache_node *n)
+ {
+ 	n->nr_partial = 0;
+@@ -1852,6 +1846,125 @@ static void init_kmem_cache_node(struct 
+ #endif
  }
  
++#ifdef CONFIG_SMP
++/*
++ * Per cpu array for per cpu structures.
++ *
++ * The per cpu array places all kmem_cache_cpu structures from one processor
++ * close together meaning that it becomes possible that multiple per cpu
++ * structures are contained in one cacheline. This may be particularly
++ * beneficial for the kmalloc caches.
++ *
++ * A desktop system typically has around 60-80 slabs. With 100 here we are
++ * likely able to get per cpu structures for all caches from the array defined
++ * here. We must be able to cover all kmalloc caches during bootstrap.
++ *
++ * If the per cpu array is exhausted then fall back to kmalloc
++ * of individual cachelines. No sharing is possible then.
++ */
++#define NR_KMEM_CACHE_CPU 100
++
++static DEFINE_PER_CPU(struct kmem_cache_cpu,
++				kmem_cache_cpu)[NR_KMEM_CACHE_CPU];
++
++static DEFINE_PER_CPU(struct kmem_cache_cpu *, kmem_cache_cpu_free);
++
++static struct kmem_cache_cpu *alloc_kmem_cache_cpu(struct kmem_cache *s,
++							int cpu, gfp_t flags)
++{
++	struct kmem_cache_cpu *c = per_cpu(kmem_cache_cpu_free, cpu);
++
++	if (c)
++		per_cpu(kmem_cache_cpu_free, cpu) =
++				(void *)c->freelist;
++	else {
++		/* Table overflow: So allocate ourselves */
++		c = kmalloc_node(
++			ALIGN(sizeof(struct kmem_cache_cpu), cache_line_size()),
++			flags, cpu_to_node(cpu));
++		if (!c)
++			return NULL;
++	}
++
++	init_kmem_cache_cpu(s, c);
++	return c;
++}
++
++static void free_kmem_cache_cpu(struct kmem_cache_cpu *c, int cpu)
++{
++	if (c < per_cpu(kmem_cache_cpu, cpu) ||
++			c > per_cpu(kmem_cache_cpu, cpu) + NR_KMEM_CACHE_CPU) {
++		kfree(c);
++		return;
++	}
++	c->freelist = (void *)per_cpu(kmem_cache_cpu_free, cpu);
++	per_cpu(kmem_cache_cpu_free, cpu) = c;
++}
++
++static void free_kmem_cache_cpus(struct kmem_cache *s)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu) {
++		struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
++
++		if (c) {
++			s->cpu_slab[cpu] = NULL;
++			free_kmem_cache_cpu(c, cpu);
++		}
++	}
++}
++
++static int alloc_kmem_cache_cpus(struct kmem_cache *s, gfp_t flags)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu) {
++		struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
++
++		if (c)
++			continue;
++
++		c = alloc_kmem_cache_cpu(s, cpu, flags);
++		if (!c) {
++			free_kmem_cache_cpus(s);
++			return 0;
++		}
++		s->cpu_slab[cpu] = c;
++	}
++	return 1;
++}
++
++/*
++ * Initialize the per cpu array.
++ */
++static void init_alloc_cpu_cpu(int cpu)
++{
++	int i;
++
++	for (i = NR_KMEM_CACHE_CPU - 1; i >= 0; i--)
++		free_kmem_cache_cpu(&per_cpu(kmem_cache_cpu, cpu)[i], cpu);
++}
++
++static void __init init_alloc_cpu(void)
++{
++	int cpu;
++
++	for_each_online_cpu(cpu)
++		init_alloc_cpu_cpu(cpu);
++  }
++
++#else
++static inline void free_kmem_cache_cpus(struct kmem_cache *s) {}
++static inline void init_alloc_cpu(void) {}
++
++static inline int alloc_kmem_cache_cpus(struct kmem_cache *s, gfp_t flags)
++{
++	init_kmem_cache_cpu(s, &s->cpu_slab);
++	return 1;
++}
++#endif
++
+ #ifdef CONFIG_NUMA
+ /*
+  * No kmalloc_node yet so do it by hand. We know that this is the first
+@@ -1859,7 +1972,8 @@ static void init_kmem_cache_node(struct 
+  * possible.
+  *
+  * Note that this function only works on the kmalloc_node_cache
+- * when allocating for the kmalloc_node_cache.
++ * when allocating for the kmalloc_node_cache. This is used for bootstrapping
++ * memory on a fresh node that has no slab structures yet.
+  */
+ static struct kmem_cache_node *early_kmem_cache_node_alloc(gfp_t gfpflags,
+ 							   int node)
+@@ -2089,6 +2203,7 @@ static int kmem_cache_open(struct kmem_c
+ 
+ 	if (alloc_kmem_cache_cpus(s, gfpflags & ~SLUB_DMA))
+ 		return 1;
++	free_kmem_cache_nodes(s);
+ error:
+ 	if (flags & SLAB_PANIC)
+ 		panic("Cannot create slab %s size=%lu realsize=%u "
+@@ -2171,6 +2286,7 @@ static inline int kmem_cache_close(struc
+ 	flush_all(s);
+ 
+ 	/* Attempt to free all objects */
++	free_kmem_cache_cpus(s);
+ 	for_each_node_state(node, N_NORMAL_MEMORY) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+@@ -2558,6 +2674,8 @@ void __init kmem_cache_init(void)
+ 	int i;
+ 	int caches = 0;
+ 
++	init_alloc_cpu();
++
+ #ifdef CONFIG_NUMA
+ 	/*
+ 	 * Must first have the slab cache available for the allocations of the
+@@ -2618,10 +2736,12 @@ void __init kmem_cache_init(void)
+ 
+ #ifdef CONFIG_SMP
+ 	register_cpu_notifier(&slab_notifier);
++	kmem_size = offsetof(struct kmem_cache, cpu_slab) +
++				nr_cpu_ids * sizeof(struct kmem_cache_cpu *);
++#else
++	kmem_size = sizeof(struct kmem_cache);
+ #endif
+ 
+-	kmem_size = offsetof(struct kmem_cache, cpu_slab) +
+-				nr_cpu_ids * sizeof(struct kmem_cache_cpu);
+ 
+ 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
+ 		" CPUs=%d, Nodes=%d\n",
+@@ -2748,15 +2868,29 @@ static int __cpuinit slab_cpuup_callback
+ 	unsigned long flags;
+ 
+ 	switch (action) {
++	case CPU_UP_PREPARE:
++	case CPU_UP_PREPARE_FROZEN:
++		init_alloc_cpu_cpu(cpu);
++		down_read(&slub_lock);
++		list_for_each_entry(s, &slab_caches, list)
++			s->cpu_slab[cpu] = alloc_kmem_cache_cpu(s, cpu,
++							GFP_KERNEL);
++		up_read(&slub_lock);
++		break;
++
+ 	case CPU_UP_CANCELED:
+ 	case CPU_UP_CANCELED_FROZEN:
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		down_read(&slub_lock);
+ 		list_for_each_entry(s, &slab_caches, list) {
++			struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
++
+ 			local_irq_save(flags);
+ 			__flush_cpu_slab(s, cpu);
+ 			local_irq_restore(flags);
++			free_kmem_cache_cpu(c, cpu);
++			s->cpu_slab[cpu] = NULL;
+ 		}
+ 		up_read(&slub_lock);
+ 		break;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
