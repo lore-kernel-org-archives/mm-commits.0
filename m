@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:05:41 -0700
-Message-ID: <200708242205.l7OM5fMv017062@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:47 -0700
+Message-ID: <200708242205.l7OM5liu017071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53635 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39558 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758173AbXHXWLN (ORCPT
+	by vger.kernel.org with ESMTP id S1758322AbXHXWLU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:11:13 -0400
+	Fri, 24 Aug 2007 18:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, 
 
 
 The patch titled
-     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
+     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
 has been added to the -mm tree.  Its filename is
-     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
+Subject: ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/quirks.c: In function 'ich_force_enable_hpet':
-arch/i386/kernel/quirks.c:94: warning: 'rcba' is used uninitialized in this function
+arch/i386/kernel/quirks.c: In function 'old_ich_force_enable_hpet':
+arch/i386/kernel/quirks.c:196: warning: 'gen_cntl' is used uninitialized in this function
+arch/i386/kernel/quirks.c: In function 'force_hpet_resume':
+arch/i386/kernel/quirks.c:171: warning: 'gen_cntl' is used uninitialized in this function
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: Greg KH <greg@kroah.com>
@@ -42,22 +44,32 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
 +++ a/arch/i386/kernel/quirks.c
-@@ -83,7 +83,8 @@ void ich_force_hpet_resume(void)
+@@ -161,7 +161,8 @@ static struct pci_dev *cached_dev;
  
- static void ich_force_enable_hpet(struct pci_dev *dev)
+ static void old_ich_force_hpet_resume(void)
  {
--	u32 val, rcba;
+-	u32 val, gen_cntl;
 +	u32 val;
-+	u32 uninitialized_var(rcba);
- 	int err = 0;
++	u32 uninitialized_var(gen_cntl);
+ 
+ 	if (!force_hpet_address || !cached_dev)
+ 		return;
+@@ -182,7 +183,8 @@ static void old_ich_force_hpet_resume(vo
+ 
+ static void old_ich_force_enable_hpet(struct pci_dev *dev)
+ {
+-	u32 val, gen_cntl;
++	u32 val;
++	u32 uninitialized_var(gen_cntl);
  
  	if (hpet_address || force_hpet_address)
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
