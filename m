@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - slub-do-not-fail-on-broken-memory-configurations.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:59 -0700
-Message-ID: <200708242056.l7OKux1k014115@imap1.linux-foundation.org>
+Subject: - slub-use-atomic_long_read-for-atomic_long-variables.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:57 -0700
+Message-ID: <200708242056.l7OKuvIa014112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759040AbXHXVIS (ORCPT
+	by vger.kernel.org with ESMTP id S1759488AbXHXVIS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 17:08:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,48 +15,56 @@ To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: do not fail on broken memory configurations
+     SLUB: use atomic_long_read for atomic_long variables
 has been removed from the -mm tree.  Its filename was
-     slub-do-not-fail-on-broken-memory-configurations.patch
+     slub-use-atomic_long_read-for-atomic_long-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: do not fail on broken memory configurations
+Subject: SLUB: use atomic_long_read for atomic_long variables
 From: Christoph Lameter <clameter@sgi.com>
 
-Print a big fat warning and do what is necessary to continue if a node is
-marked as up (meaning either node is online (upstream) or node has memory
-(Andrew's tree)) but allocations from the node do not succeed.
+SLUB is using atomic_read() for variables declared atomic_long_t.
+Switch to atomic_long_read().
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletion(-)
+ mm/slub.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-do-not-fail-on-broken-memory-configurations mm/slub.c
---- a/mm/slub.c~slub-do-not-fail-on-broken-memory-configurations
+diff -puN mm/slub.c~slub-use-atomic_long_read-for-atomic_long-variables mm/slub.c
+--- a/mm/slub.c~slub-use-atomic_long_read-for-atomic_long-variables
 +++ a/mm/slub.c
-@@ -1877,9 +1877,16 @@ static struct kmem_cache_node * __init e
+@@ -3112,7 +3112,7 @@ static int list_locations(struct kmem_ca
+ 		unsigned long flags;
+ 		struct page *page;
  
- 	BUG_ON(kmalloc_caches->size < sizeof(struct kmem_cache_node));
+-		if (!atomic_read(&n->nr_slabs))
++		if (!atomic_long_read(&n->nr_slabs))
+ 			continue;
  
--	page = new_slab(kmalloc_caches, gfpflags | GFP_THISNODE, node);
-+	page = new_slab(kmalloc_caches, gfpflags, node);
+ 		spin_lock_irqsave(&n->list_lock, flags);
+@@ -3247,7 +3247,7 @@ static unsigned long slab_objects(struct
+ 		}
  
- 	BUG_ON(!page);
-+	if (page_to_nid(page) != node) {
-+		printk(KERN_ERR "SLUB: Unable to allocate memory from "
-+				"node %d\n", node);
-+		printk(KERN_ERR "SLUB: Allocating a useless per node structure "
-+				"in order to be able to continue\n");
-+	}
-+
- 	n = page->freelist;
- 	BUG_ON(!n);
- 	page->freelist = get_freepointer(kmalloc_caches, n);
+ 		if (flags & SO_FULL) {
+-			int full_slabs = atomic_read(&n->nr_slabs)
++			int full_slabs = atomic_long_read(&n->nr_slabs)
+ 					- per_cpu[node]
+ 					- n->nr_partial;
+ 
+@@ -3283,7 +3283,7 @@ static int any_slab_objects(struct kmem_
+ 	for_each_node(node) {
+ 		struct kmem_cache_node *n = get_node(s, node);
+ 
+-		if (n->nr_partial || atomic_read(&n->nr_slabs))
++		if (n->nr_partial || atomic_long_read(&n->nr_slabs))
+ 			return 1;
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
