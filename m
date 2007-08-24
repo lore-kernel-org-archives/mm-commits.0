@@ -1,79 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - w1-fix-w1_remove_master_device-searching.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:42 -0700
-Message-ID: <200708242056.l7OKugkG014089@imap1.linux-foundation.org>
+Subject: - pnpacpi-remove-unnecessary-casts-of-void.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:59 -0700
+Message-ID: <200708242058.l7OKwx94014350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47100 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762885AbXHXVJD (ORCPT
+	by vger.kernel.org with ESMTP id S1763877AbXHXVJK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:03 -0400
+	Fri, 24 Aug 2007 17:09:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnpol@2ka.mipt.ru, bunk@stusta.de, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: fix w1_remove_master_device() searching
+     PNPACPI: remove unnecessary casts of "void *"
 has been removed from the -mm tree.  Its filename was
-     w1-fix-w1_remove_master_device-searching.patch
+     pnpacpi-remove-unnecessary-casts-of-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: w1: fix w1_remove_master_device() searching
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: PNPACPI: remove unnecessary casts of "void *"
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-In case bus master driver provided bogus value as its private data, search
-can be incorrect.  Problem found by Adrian Bunk.
+Remove unnecessary casts of void pointers.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_int.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/w1/w1_int.c~w1-fix-w1_remove_master_device-searching drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-fix-w1_remove_master_device-searching
-+++ a/drivers/w1/w1_int.c
-@@ -170,22 +170,24 @@ void __w1_remove_master_device(struct w1
- 
- void w1_remove_master_device(struct w1_bus_master *bm)
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-unnecessary-casts-of-void drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-remove-unnecessary-casts-of-void
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -240,8 +240,7 @@ static void pnpacpi_parse_allocated_addr
+ static acpi_status pnpacpi_allocated_resource(struct acpi_resource *res,
+ 					      void *data)
  {
--	struct w1_master *dev = NULL;
-+	struct w1_master *dev, *found = NULL;
+-	struct pnp_resource_table *res_table =
+-	    (struct pnp_resource_table *)data;
++	struct pnp_resource_table *res_table = data;
+ 	int i;
  
- 	list_for_each_entry(dev, &w1_masters, w1_master_entry) {
- 		if (!dev->initialized)
- 			continue;
+ 	switch (res->type) {
+@@ -564,8 +563,7 @@ static acpi_status pnpacpi_option_resour
+ 					   void *data)
+ {
+ 	int priority = 0;
+-	struct acpipnp_parse_option_s *parse_data =
+-	    (struct acpipnp_parse_option_s *)data;
++	struct acpipnp_parse_option_s *parse_data = data;
+ 	struct pnp_dev *dev = parse_data->dev;
+ 	struct pnp_option *option = parse_data->option;
  
--		if (dev->bus_master->data == bm->data)
-+		if (dev->bus_master->data == bm->data) {
-+			found = dev;
- 			break;
-+		}
- 	}
+@@ -703,7 +701,7 @@ static int pnpacpi_supported_resource(st
+ static acpi_status pnpacpi_count_resources(struct acpi_resource *res,
+ 					   void *data)
+ {
+-	int *res_cnt = (int *)data;
++	int *res_cnt = data;
  
--	if (!dev) {
-+	if (!found) {
- 		printk(KERN_ERR "Device doesn't exist.\n");
- 		return;
- 	}
+ 	if (pnpacpi_supported_resource(res))
+ 		(*res_cnt)++;
+@@ -712,7 +710,7 @@ static acpi_status pnpacpi_count_resourc
  
--	__w1_remove_master_device(dev);
-+	__w1_remove_master_device(found);
- }
+ static acpi_status pnpacpi_type_resources(struct acpi_resource *res, void *data)
+ {
+-	struct acpi_resource **resource = (struct acpi_resource **)data;
++	struct acpi_resource **resource = data;
  
- EXPORT_SYMBOL(w1_add_master_device);
+ 	if (pnpacpi_supported_resource(res)) {
+ 		(*resource)->type = res->type;
+@@ -884,8 +882,7 @@ int pnpacpi_encode_resources(struct pnp_
+ 	int i = 0;
+ 	/* pnpacpi_build_resource_template allocates extra mem */
+ 	int res_cnt = (buffer->length - 1) / sizeof(struct acpi_resource) - 1;
+-	struct acpi_resource *resource =
+-	    (struct acpi_resource *)buffer->pointer;
++	struct acpi_resource *resource = buffer->pointer;
+ 	int port = 0, irq = 0, dma = 0, mem = 0;
+ 
+ 	pnp_dbg("res cnt %d", res_cnt);
 _
 
-Patches currently in -mm which might be from johnpol@2ka.mipt.ru are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-connector-change-connectors-max-message-size.patch
-uvesafb-add-connector-entries.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+git-acpi.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+move-free-pages-between-lists-on-steal.patch
+convert-ill-defined-log2-to-ilog2.patch
+tpm_tis-fix-interrupt-probing.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
