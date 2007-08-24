@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - isapnp-removed-unused-isapnp_detected-and-isapnp_debug.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:59:01 -0700
-Message-ID: <200708242059.l7OKx1Ec014354@imap1.linux-foundation.org>
+Subject: - pnpacpi-simplify-irq_flags.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:57 -0700
+Message-ID: <200708242058.l7OKwvwo014347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764210AbXHXVJG (ORCPT
+	by vger.kernel.org with ESMTP id S1762978AbXHXVJH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:06 -0400
+	Fri, 24 Aug 2007 17:09:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ISAPNP: removed unused isapnp_detected and ISAPNP_DEBUG
+     PNPACPI: simplify irq_flags()
 has been removed from the -mm tree.  Its filename was
-     isapnp-removed-unused-isapnp_detected-and-isapnp_debug.patch
+     pnpacpi-simplify-irq_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ISAPNP: removed unused isapnp_detected and ISAPNP_DEBUG
+Subject: PNPACPI: simplify irq_flags()
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ISAPNP_DEBUG isn't used at all.  isapnp_detected is set but never read.
-So remove them both.
+No need for a temporary variable; just return the flags once we know them.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -35,54 +34,37 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/isapnp/core.c |    7 -------
- 1 files changed, 7 deletions(-)
+ drivers/pnp/pnpacpi/rsparser.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pnp/isapnp/core.c~isapnp-removed-unused-isapnp_detected-and-isapnp_debug drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~isapnp-removed-unused-isapnp_detected-and-isapnp_debug
-+++ a/drivers/pnp/isapnp/core.c
-@@ -47,9 +47,6 @@
- #if 0
- #define ISAPNP_REGION_OK
- #endif
--#if 0
--#define ISAPNP_DEBUG
--#endif
- 
- int isapnp_disable;		/* Disable ISA PnP */
- static int isapnp_rdp;		/* Read Data Port */
-@@ -93,7 +90,6 @@ MODULE_LICENSE("GPL");
- 
- static unsigned char isapnp_checksum_value;
- static DEFINE_MUTEX(isapnp_cfg_mutex);
--static int isapnp_detected;
- static int isapnp_csn_count;
- 
- /* some prototypes */
-@@ -1067,7 +1063,6 @@ static int __init isapnp_init(void)
- 	struct pnp_dev *dev;
- 
- 	if (isapnp_disable) {
--		isapnp_detected = 0;
- 		printk(KERN_INFO "isapnp: ISA Plug & Play support disabled\n");
- 		return 0;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnpacpi-simplify-irq_flags drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnpacpi-simplify-irq_flags
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -34,20 +34,17 @@
+  */
+ static int irq_flags(int triggering, int polarity)
+ {
+-	int flag;
+-
+ 	if (triggering == ACPI_LEVEL_SENSITIVE) {
+ 		if (polarity == ACPI_ACTIVE_LOW)
+-			flag = IORESOURCE_IRQ_LOWLEVEL;
++			return IORESOURCE_IRQ_LOWLEVEL;
+ 		else
+-			flag = IORESOURCE_IRQ_HIGHLEVEL;
++			return IORESOURCE_IRQ_HIGHLEVEL;
+ 	} else {
+ 		if (polarity == ACPI_ACTIVE_LOW)
+-			flag = IORESOURCE_IRQ_LOWEDGE;
++			return IORESOURCE_IRQ_LOWEDGE;
+ 		else
+-			flag = IORESOURCE_IRQ_HIGHEDGE;
++			return IORESOURCE_IRQ_HIGHEDGE;
  	}
-@@ -1115,7 +1110,6 @@ static int __init isapnp_init(void)
- 		}
- 		isapnp_set_rdp();
- 	}
--	isapnp_detected = 1;
- 	if (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff) {
- 		cards = isapnp_isolate();
- 		if (cards < 0 || (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff)) {
-@@ -1123,7 +1117,6 @@ static int __init isapnp_init(void)
- 			release_region(_PIDXR, 1);
- #endif
- 			release_region(_PNPWRP, 1);
--			isapnp_detected = 0;
- 			printk(KERN_INFO
- 			       "isapnp: No Plug & Play device found\n");
- 			return 0;
+-	return flag;
+ }
+ 
+ static void decode_irq_flags(int flag, int *triggering, int *polarity)
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
