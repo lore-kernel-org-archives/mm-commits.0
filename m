@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + i386-pit-remove-the-useless-ifdefs.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:05:31 -0700
-Message-ID: <200708242205.l7OM5VUC017047@imap1.linux-foundation.org>
+Subject: + x86_64-cleanup-apic-c.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:25 -0700
+Message-ID: <200708242205.l7OM5Pij017038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43588 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60436 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758322AbXHXWMz (ORCPT
+	by vger.kernel.org with ESMTP id S1759471AbXHXWNU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:12:55 -0400
+	Fri, 24 Aug 2007 18:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mi
 
 
 The patch titled
-     i386: Remove the useless #ifdef in i8253.h
+     x86_64: cleanup apic.c after clock events switch
 has been added to the -mm tree.  Its filename is
-     i386-pit-remove-the-useless-ifdefs.patch
+     x86_64-cleanup-apic-c.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: Remove the useless #ifdef in i8253.h
+Subject: x86_64: cleanup apic.c after clock events switch
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Make variables static.
+
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/i8253.h |    4 ----
- 1 files changed, 4 deletions(-)
+ arch/x86_64/kernel/apic.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-i386/i8253.h~i386-pit-remove-the-useless-ifdefs include/asm-i386/i8253.h
---- a/include/asm-i386/i8253.h~i386-pit-remove-the-useless-ifdefs
-+++ a/include/asm-i386/i8253.h
-@@ -8,12 +8,8 @@
+diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c
++++ a/arch/x86_64/kernel/apic.c
+@@ -41,8 +41,8 @@
+ #include <asm/apic.h>
  
- extern spinlock_t i8253_lock;
+ int apic_verbosity;
+-int apic_calibrate_pmtmr __initdata;
+-int disable_apic_timer __initdata;
++static int apic_calibrate_pmtmr __initdata;
++static int disable_apic_timer __initdata;
  
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
--
- extern struct clock_event_device *global_clock_event;
- 
- extern void setup_pit_timer(void);
- 
--#endif
--
- #endif	/* __ASM_I8253_H__ */
+ /* Local APIC timer works in C2? */
+ int local_apic_timer_c2_ok;
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
