@@ -1,115 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - pci-align-bar-settings-for-legacy-mode-ide.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 15:20:59 -0700
-Message-ID: <200708242221.l7OML00K017678@imap1.linux-foundation.org>
+Subject: + ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:39 -0700
+Message-ID: <200708242205.l7OM5dHS017059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52045 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757555AbXHXWVK (ORCPT
+	by vger.kernel.org with ESMTP id S1756616AbXHXWVt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:21:10 -0400
+	Fri, 24 Aug 2007 18:21:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, ktk@enterprise.bidmc.harvard.edu, nix.or.die@googlemail.com, protasnb@gmail.com, yoichi_yuasa@tripea
+To: mm-commits@vger.kernel.org
+Cc: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pci: align BAR settings for legacy mode IDE
-has been removed from the -mm tree.  Its filename was
-     pci-align-bar-settings-for-legacy-mode-ide.patch
+     ich force hpet: ich7 or later quirk to force detect enable
+has been added to the -mm tree.  Its filename is
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 
-This patch was dropped because patch from yoichi_yuasa@tripeaks.co.jp destroyed it
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pci: align BAR settings for legacy mode IDE
-From: Jan Beulich <jbeulich@novell.com>
+Subject: ich force hpet: ich7 or later quirk to force detect enable
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Fix http://bugzilla.kernel.org/show_bug.cgi?id=8187
+Force detect and/or enable HPET on ICH chipsets.  This patch just handles the
+detection part and following patches use this information.  Adds a function to
+repeat the force enabling during resume time.
 
-The change to force legacy mode IDE channels' resources to fixed non-zero
-values confuses (at least some versions of) X, because the values reported by
-the kernel and those readable from PCI config space aren't consistent anymore.
- Therefore, this patch arranges for the respective BARs to also get updated if
-possible.
+Using HPET this way, instead of PIT increases the time CPUs can reside in
+C-state when system is totally idle.  On my test system with Core 2 Duo,
+average C-state residency goes up from ~20mS to ~80mS.
 
-[akpm@linux-foundation.org: <alan>Just remove that chunk</aman>]
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Natalie Protasevich <protasnb@gmail.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Gabriel C <nix.or.die@googlemail.com>
-Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   40 +++++++++++++++++++++++++++-------------
- 1 files changed, 27 insertions(+), 13 deletions(-)
+ arch/i386/kernel/quirks.c |  101 ++++++++++++++++++++++++++++++++++++
+ include/asm-i386/hpet.h   |    1 
+ 2 files changed, 102 insertions(+)
 
-diff -puN drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-align-bar-settings-for-legacy-mode-ide
-+++ a/drivers/pci/probe.c
-@@ -741,7 +741,29 @@ static void pci_read_irq(struct pci_dev 
- 	dev->irq = irq;
- }
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
++++ a/arch/i386/kernel/quirks.c
+@@ -4,6 +4,8 @@
+ #include <linux/pci.h>
+ #include <linux/irq.h>
  
--#define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
-+static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
-+				resource_size_t start, resource_size_t end)
-+{
-+	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
-+	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
++#include <asm/hpet.h>
 +
-+	if (pci_resource_len(dev, index) != len) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_len(dev, index));
-+	} else {
-+		printk(KERN_INFO "%s: trying to change BAR%u from %Lx to %Lx\n",
-+			pci_name(dev), index,
-+			(unsigned long long)pci_resource_start(dev, index),
-+			(unsigned long long)base);
-+		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4,
-+					base);
-+	}
-+	pci_resource_start(dev, index) = start;
-+	pci_resource_end(dev, index) = end;
-+	pci_resource_flags(dev, index) = IORESOURCE_IO|IORESOURCE_PCI_FIXED|
-+					PCI_BASE_ADDRESS_SPACE_IO;
-+}
+ #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
  
- /**
-  * pci_setup_device - fill in class and map information of a device
-@@ -795,20 +817,12 @@ static int pci_setup_device(struct pci_d
- 			u8 progif;
- 			pci_read_config_byte(dev, PCI_CLASS_PROG, &progif);
- 			if ((progif & 1) == 0) {
--				dev->resource[0].start = 0x1F0;
--				dev->resource[0].end = 0x1F7;
--				dev->resource[0].flags = LEGACY_IO_RESOURCE;
--				dev->resource[1].start = 0x3F6;
--				dev->resource[1].end = 0x3F6;
--				dev->resource[1].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 0, 0x1F0, 0x1F7);
-+				change_legacy_io_resource(dev, 1, 0x3F6, 0x3F6);
- 			}
- 			if ((progif & 4) == 0) {
--				dev->resource[2].start = 0x170;
--				dev->resource[2].end = 0x177;
--				dev->resource[2].flags = LEGACY_IO_RESOURCE;
--				dev->resource[3].start = 0x376;
--				dev->resource[3].end = 0x376;
--				dev->resource[3].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 2, 0x170, 0x177);
-+				change_legacy_io_resource(dev, 3, 0x376, 0x376);
- 			}
- 		}
- 		break;
+ static void __devinit quirk_intel_irqbalance(struct pci_dev *dev)
+@@ -47,3 +49,102 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7525_MCH,	quirk_intel_irqbalance);
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7520_MCH,	quirk_intel_irqbalance);
+ #endif
++
++#if defined(CONFIG_HPET_TIMER)
++unsigned long force_hpet_address;
++
++static void __iomem *rcba_base;
++
++void ich_force_hpet_resume(void)
++{
++	u32 val;
++
++	if (!force_hpet_address)
++		return;
++
++	if (rcba_base == NULL)
++		BUG();
++
++	/* read the Function Disable register, dword mode only */
++	val = readl(rcba_base + 0x3404);
++	if (!(val & 0x80)) {
++		/* HPET disabled in HPTC. Trying to enable */
++		writel(val | 0x80, rcba_base + 0x3404);
++	}
++
++	val = readl(rcba_base + 0x3404);
++	if (!(val & 0x80))
++		BUG();
++	else
++		printk(KERN_DEBUG "Force enabled HPET at resume\n");
++
++	return;
++}
++
++static void ich_force_enable_hpet(struct pci_dev *dev)
++{
++	u32 val, rcba;
++	int err = 0;
++
++	if (hpet_address || force_hpet_address)
++		return;
++
++	pci_read_config_dword(dev, 0xF0, &rcba);
++	rcba &= 0xFFFFC000;
++	if (rcba == 0) {
++		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
++		return;
++	}
++
++	/* use bits 31:14, 16 kB aligned */
++	rcba_base = ioremap_nocache(rcba, 0x4000);
++	if (rcba_base == NULL) {
++		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
++		return;
++	}
++
++	/* read the Function Disable register, dword mode only */
++	val = readl(rcba_base + 0x3404);
++
++	if (val & 0x80) {
++		/* HPET is enabled in HPTC. Just not reported by BIOS */
++		val = val & 0x3;
++		force_hpet_address = 0xFED00000 | (val << 12);
++		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		iounmap(rcba_base);
++		return;
++	}
++
++	/* HPET disabled in HPTC. Trying to enable */
++	writel(val | 0x80, rcba_base + 0x3404);
++
++	val = readl(rcba_base + 0x3404);
++	if (!(val & 0x80)) {
++		err = 1;
++	} else {
++		val = val & 0x3;
++		force_hpet_address = 0xFED00000 | (val << 12);
++	}
++
++	if (err) {
++		force_hpet_address = 0;
++		iounmap(rcba_base);
++		printk(KERN_DEBUG "Failed to force enable HPET\n");
++	} else {
++		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
++			       force_hpet_address);
++	}
++}
++
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_0,
++                         ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
++                         ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_1,
++                         ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_31,
++                         ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
++                         ich_force_enable_hpet);
++#endif
+diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable include/asm-i386/hpet.h
+--- a/include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
++++ a/include/asm-i386/hpet.h
+@@ -67,6 +67,7 @@ extern unsigned long hpet_address;
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
+ extern unsigned long hpet_readl(unsigned long a);
++extern void ich_force_hpet_resume(void);
+ 
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
+git-acpi.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+hpet-force-enable-on-ich34.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
