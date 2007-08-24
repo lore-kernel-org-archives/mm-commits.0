@@ -1,148 +1,298 @@
 From: akpm@linux-foundation.org
-Subject: - exec-kill-unsafe-bug_onsig-count-checks.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:03 -0700
-Message-ID: <200708242057.l7OKv3tA014130@imap1.linux-foundation.org>
+Subject: - remove-dead-code-in-via-pmu68k.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:08 -0700
+Message-ID: <200708242056.l7OKu8BJ014014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33178 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59396 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760691AbXHXVJn (ORCPT
+	by vger.kernel.org with ESMTP id S1760253AbXHXVJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:43 -0400
+	Fri, 24 Aug 2007 17:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: kill unsafe BUG_ON(sig->count) checks
+     remove dead code in via-pmu68k
 has been removed from the -mm tree.  Its filename was
-     exec-kill-unsafe-bug_onsig-count-checks.patch
+     remove-dead-code-in-via-pmu68k.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exec: kill unsafe BUG_ON(sig->count) checks
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: remove dead code in via-pmu68k
+From: Johannes Berg <johannes@sipsolutions.net>
 
-de_thread:
+When suspend is ever implemented for pmu68k it really should follow the
+generic pm_ops concept and not mirror the platform-specific /dev/pmu
+device with ioctls on it. Hence, this patch removes the unused code there;
+should the implementers need it they can look at via-pmu.c and/or the
+history of the file.
 
-	if (atomic_read(&oldsighand->count) <= 1)
-		BUG_ON(atomic_read(&sig->count) != 1);
-
-This is not safe without the rmb() in between.  The results of two
-correctly ordered __exit_signal()->atomic_dec_and_test()'s could be seen
-out of order on our CPU.
-
-The same is true for the "thread_group_empty()" case, __unhash_process()'s
-changes could be seen before atomic_dec_and_test(&sig->count).
-
-On some platforms (including i386) atomic_read() doesn't provide even the
-compiler barrier, in that case these checks are simply racy.
-
-Remove these BUG_ON()'s. Alternatively, we can do something like
-
-	BUG_ON( ({ smp_rmb(); atomic_read(&sig->count) != 1; }) );
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    3 ---
- 1 files changed, 3 deletions(-)
+ drivers/macintosh/via-pmu68k.c |  240 -------------------------------
+ 1 files changed, 240 deletions(-)
 
-diff -puN fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks fs/exec.c
---- a/fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks
-+++ a/fs/exec.c
-@@ -784,7 +784,6 @@ static int de_thread(struct task_struct 
- 	 * and we can just re-use it all.
- 	 */
- 	if (atomic_read(&oldsighand->count) <= 1) {
--		BUG_ON(atomic_read(&sig->count) != 1);
- 		signalfd_detach(tsk);
- 		exit_itimers(sig);
- 		return 0;
-@@ -929,8 +928,6 @@ no_thread_group:
- 	if (leader)
- 		release_task(leader);
- 
--	BUG_ON(atomic_read(&sig->count) != 1);
+diff -puN drivers/macintosh/via-pmu68k.c~remove-dead-code-in-via-pmu68k drivers/macintosh/via-pmu68k.c
+--- a/drivers/macintosh/via-pmu68k.c~remove-dead-code-in-via-pmu68k
++++ a/drivers/macintosh/via-pmu68k.c
+@@ -818,243 +818,3 @@ pmu_present(void)
+ {
+ 	return (pmu_kind != PMU_UNKNOWN);
+ }
 -
- 	if (atomic_read(&oldsighand->count) == 1) {
- 		/*
- 		 * Now that we nuked the rest of the thread group,
+-#if 0 /* needs some work for 68K */
+-
+-/*
+- * This struct is used to store config register values for
+- * PCI devices which may get powered off when we sleep.
+- */
+-static struct pci_save {
+-	u16	command;
+-	u16	cache_lat;
+-	u16	intr;
+-} *pbook_pci_saves;
+-static int n_pbook_pci_saves;
+-
+-static inline void
+-pbook_pci_save(void)
+-{
+-	int npci;
+-	struct pci_dev *pd = NULL;
+-	struct pci_save *ps;
+-
+-	npci = 0;
+-	while ((pd = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, pd)) != NULL)
+-		++npci;
+-	n_pbook_pci_saves = npci;
+-	if (npci == 0)
+-		return;
+-	ps = kmalloc(npci * sizeof(*ps), GFP_KERNEL);
+-	pbook_pci_saves = ps;
+-	if (ps == NULL)
+-		return;
+-
+-	pd = NULL;
+-	while ((pd = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, pd)) != NULL) {
+-		pci_read_config_word(pd, PCI_COMMAND, &ps->command);
+-		pci_read_config_word(pd, PCI_CACHE_LINE_SIZE, &ps->cache_lat);
+-		pci_read_config_word(pd, PCI_INTERRUPT_LINE, &ps->intr);
+-		++ps;
+-		--npci;
+-	}
+-}
+-
+-static inline void
+-pbook_pci_restore(void)
+-{
+-	u16 cmd;
+-	struct pci_save *ps = pbook_pci_saves;
+-	struct pci_dev *pd = NULL;
+-	int j;
+-
+-	while ((pd = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, pd)) != NULL) {
+-		if (ps->command == 0)
+-			continue;
+-		pci_read_config_word(pd, PCI_COMMAND, &cmd);
+-		if ((ps->command & ~cmd) == 0)
+-			continue;
+-		switch (pd->hdr_type) {
+-		case PCI_HEADER_TYPE_NORMAL:
+-			for (j = 0; j < 6; ++j)
+-				pci_write_config_dword(pd,
+-					PCI_BASE_ADDRESS_0 + j*4,
+-					pd->resource[j].start);
+-			pci_write_config_dword(pd, PCI_ROM_ADDRESS,
+-			       pd->resource[PCI_ROM_RESOURCE].start);
+-			pci_write_config_word(pd, PCI_CACHE_LINE_SIZE,
+-				ps->cache_lat);
+-			pci_write_config_word(pd, PCI_INTERRUPT_LINE,
+-				ps->intr);
+-			pci_write_config_word(pd, PCI_COMMAND, ps->command);
+-			break;
+-			/* other header types not restored at present */
+-		}
+-	}
+-}
+-
+-/*
+- * Put the powerbook to sleep.
+- */
+-#define IRQ_ENABLE	((unsigned int *)0xf3000024)
+-#define MEM_CTRL	((unsigned int *)0xf8000070)
+-
+-int powerbook_sleep(void)
+-{
+-	int ret, i, x;
+-	static int save_backlight;
+-	static unsigned int save_irqen;
+-	unsigned long msr;
+-	unsigned int hid0;
+-	unsigned long p, wait;
+-	struct adb_request sleep_req;
+-
+-	/* Notify device drivers */
+-	ret = blocking_notifier_call_chain(&sleep_notifier_list,
+-			PBOOK_SLEEP, NULL);
+-	if (ret & NOTIFY_STOP_MASK)
+-		return -EBUSY;
+-
+-	/* Sync the disks. */
+-	/* XXX It would be nice to have some way to ensure that
+-	 * nobody is dirtying any new buffers while we wait. */
+-	sys_sync();
+-
+-	/* Turn off the display backlight */
+-	save_backlight = backlight_enabled;
+-	if (save_backlight)
+-		pmu_enable_backlight(0);
+-
+-	/* Give the disks a little time to actually finish writing */
+-	for (wait = jiffies + (HZ/4); time_before(jiffies, wait); )
+-		mb();
+-
+-	/* Disable all interrupts except pmu */
+-	save_irqen = in_le32(IRQ_ENABLE);
+-	for (i = 0; i < 32; ++i)
+-		if (i != vias->intrs[0].line && (save_irqen & (1 << i)))
+-			disable_irq(i);
+-	asm volatile("mtdec %0" : : "r" (0x7fffffff));
+-
+-	/* Save the state of PCI config space for some slots */
+-	pbook_pci_save();
+-
+-	/* Set the memory controller to keep the memory refreshed
+-	   while we're asleep */
+-	for (i = 0x403f; i >= 0x4000; --i) {
+-		out_be32(MEM_CTRL, i);
+-		do {
+-			x = (in_be32(MEM_CTRL) >> 16) & 0x3ff;
+-		} while (x == 0);
+-		if (x >= 0x100)
+-			break;
+-	}
+-
+-	/* Ask the PMU to put us to sleep */
+-	pmu_request(&sleep_req, NULL, 5, PMU_SLEEP, 'M', 'A', 'T', 'T');
+-	while (!sleep_req.complete)
+-		mb();
+-	/* displacement-flush the L2 cache - necessary? */
+-	for (p = KERNELBASE; p < KERNELBASE + 0x100000; p += 0x1000)
+-		i = *(volatile int *)p;
+-	asleep = 1;
+-
+-	/* Put the CPU into sleep mode */
+-	asm volatile("mfspr %0,1008" : "=r" (hid0) :);
+-	hid0 = (hid0 & ~(HID0_NAP | HID0_DOZE)) | HID0_SLEEP;
+-	asm volatile("mtspr 1008,%0" : : "r" (hid0));
+-	local_save_flags(msr);
+-	msr |= MSR_POW | MSR_EE;
+-	local_irq_restore(msr);
+-	udelay(10);
+-
+-	/* OK, we're awake again, start restoring things */
+-	out_be32(MEM_CTRL, 0x3f);
+-	pbook_pci_restore();
+-
+-	/* wait for the PMU interrupt sequence to complete */
+-	while (asleep)
+-		mb();
+-
+-	/* reenable interrupts */
+-	for (i = 0; i < 32; ++i)
+-		if (i != vias->intrs[0].line && (save_irqen & (1 << i)))
+-			enable_irq(i);
+-
+-	/* Notify drivers */
+-	blocking_notifier_call_chain(&sleep_notifier_list, PBOOK_WAKE, NULL);
+-
+-	/* reenable ADB autopoll */
+-	pmu_adb_autopoll(adb_dev_map);
+-
+-	/* Turn on the screen backlight, if it was on before */
+-	if (save_backlight)
+-		pmu_enable_backlight(1);
+-
+-	/* Wait for the hard disk to spin up */
+-
+-	return 0;
+-}
+-
+-/*
+- * Support for /dev/pmu device
+- */
+-static int pmu_open(struct inode *inode, struct file *file)
+-{
+-	return 0;
+-}
+-
+-static ssize_t pmu_read(struct file *file, char *buf,
+-			size_t count, loff_t *ppos)
+-{
+-	return 0;
+-}
+-
+-static ssize_t pmu_write(struct file *file, const char *buf,
+-			 size_t count, loff_t *ppos)
+-{
+-	return 0;
+-}
+-
+-static int pmu_ioctl(struct inode * inode, struct file *filp,
+-		     u_int cmd, u_long arg)
+-{
+-	int error;
+-	__u32 value;
+-
+-	switch (cmd) {
+-	    case PMU_IOC_SLEEP:
+-	    	return -ENOSYS;
+-	    case PMU_IOC_GET_BACKLIGHT:
+-		return put_user(backlight_level, (__u32 *)arg);
+-	    case PMU_IOC_SET_BACKLIGHT:
+-		error = get_user(value, (__u32 *)arg);
+-		if (!error)
+-			pmu_set_brightness(value);
+-		return error;
+-	    case PMU_IOC_GET_MODEL:
+-	    	return put_user(pmu_kind, (__u32 *)arg);
+-	}
+-	return -EINVAL;
+-}
+-
+-static const struct file_operations pmu_device_fops = {
+-	.read		= pmu_read,
+-	.write		= pmu_write,
+-	.ioctl		= pmu_ioctl,
+-	.open		= pmu_open,
+-};
+-
+-static struct miscdevice pmu_device = {
+-	PMU_MINOR, "pmu", &pmu_device_fops
+-};
+-
+-void pmu_device_init(void)
+-{
+-	if (!via)
+-		return;
+-	if (misc_register(&pmu_device) < 0)
+-		printk(KERN_ERR "via-pmu68k: cannot register misc device.\n");
+-}
+-#endif /* CONFIG_PMAC_PBOOK */
+-
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
+git-alsa.patch
+git-net.patch
+git-wireless.patch
 workqueue-debug-flushing-deadlocks-with-lockdep.patch
 workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
