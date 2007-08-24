@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-eliminate-floating-point-state-from-register-file.patch added to -mm tree
-Date: Thu, 23 Aug 2007 17:10:07 -0700
-Message-ID: <200708240010.l7O0A7Ro001551@imap1.linux-foundation.org>
+Subject: + pie-executable-randomization-fix-3.patch added to -mm tree
+Date: Thu, 23 Aug 2007 17:34:45 -0700
+Message-ID: <200708240034.l7O0YjHM002502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933958AbXHXAKo (ORCPT
+	by vger.kernel.org with ESMTP id S1761860AbXHXAfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 20:10:44 -0400
+	Thu, 23 Aug 2007 20:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: jkosina@suse.cz, ak@suse.de, hpa@zytor.com, jakub@redhat.com, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com, zlynx@acm.org
 
 
 The patch titled
-     uml: eliminate floating point state from register file
+     Handle MAP_32BIT flags properly in x86_64 flexmmap
 has been added to the -mm tree.  Its filename is
-     uml-eliminate-floating-point-state-from-register-file.patch
+     pie-executable-randomization-fix-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,91 +26,188 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: eliminate floating point state from register file
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Handle MAP_32BIT flags properly in x86_64 flexmmap
+From: Jiri Kosina <jkosina@suse.cz>
 
-The floating point fields in the pt_regs register file aren't used, so they
-are deleted.
+We need to handle MAP_32BIT flags of mmap() properly for 64bit applications
+with filexible mmap layout.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+This patch introduces x86_64-specific version of
+arch_get_unmapped_area_topdown() which differs from the generic one in
+handling of the MAP_32BIT flag -- when this flag is passed to mmap(), we
+stick back to the legacy layout for this particular mmap, which gives
+proper 32bit range.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Zan Lynx <zlynx@acm.org>
+Cc: Bret Towe <magnade@gmail.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Kunitz <kune@deine-taler.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/sysdep-i386/ptrace.h   |    2 --
- arch/um/include/sysdep-x86_64/ptrace.h |    1 -
- 2 files changed, 3 deletions(-)
+ arch/x86_64/kernel/sys_x86_64.c |   98 ++++++++++++++++++++++++++++++
+ include/asm-x86_64/pgtable.h    |    1 
+ 2 files changed, 99 insertions(+)
 
-diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-eliminate-floating-point-state-from-register-file arch/um/include/sysdep-i386/ptrace.h
---- a/arch/um/include/sysdep-i386/ptrace.h~uml-eliminate-floating-point-state-from-register-file
-+++ a/arch/um/include/sysdep-i386/ptrace.h
-@@ -54,8 +54,6 @@ extern int sysemu_supported;
+diff -puN arch/x86_64/kernel/sys_x86_64.c~pie-executable-randomization-fix-3 arch/x86_64/kernel/sys_x86_64.c
+--- a/arch/x86_64/kernel/sys_x86_64.c~pie-executable-randomization-fix-3
++++ a/arch/x86_64/kernel/sys_x86_64.c
+@@ -16,6 +16,7 @@
+ #include <linux/file.h>
+ #include <linux/utsname.h>
+ #include <linux/personality.h>
++#include <linux/random.h>
  
- struct uml_pt_regs {
- 	unsigned long gp[MAX_REG_NR];
--	unsigned long fp[HOST_FP_SIZE];
--	unsigned long xfp[HOST_XFP_SIZE];
- 	struct faultinfo faultinfo;
- 	long syscall;
- 	int is_user;
-diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-eliminate-floating-point-state-from-register-file arch/um/include/sysdep-x86_64/ptrace.h
---- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-eliminate-floating-point-state-from-register-file
-+++ a/arch/um/include/sysdep-x86_64/ptrace.h
-@@ -86,7 +86,6 @@
+ #include <asm/uaccess.h>
+ #include <asm/ia32.h>
+@@ -69,6 +70,7 @@ static void find_start_end(unsigned long
+ 			   unsigned long *end)
+ {
+ 	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT)) {
++		unsigned long new_begin;
+ 		/* This is usually used needed to map code in small
+ 		   model, so it needs to be in the first 31bit. Limit
+ 		   it to that.  This means we need to move the
+@@ -78,6 +80,11 @@ static void find_start_end(unsigned long
+ 		   of playground for now. -AK */ 
+ 		*begin = 0x40000000; 
+ 		*end = 0x80000000;		
++		if (current->flags & PF_RANDOMIZE) {
++			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
++			if (new_begin)
++				*begin = new_begin;
++		}
+ 	} else {
+ 		*begin = TASK_UNMAPPED_BASE;
+ 		*end = TASK_SIZE; 
+@@ -147,6 +154,97 @@ full_search:
+ 	}
+ }
  
- struct uml_pt_regs {
- 	unsigned long gp[MAX_REG_NR];
--	unsigned long fp[HOST_FP_SIZE];
- 	struct faultinfo faultinfo;
- 	long syscall;
- 	int is_user;
++
++unsigned long
++arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
++			  const unsigned long len, const unsigned long pgoff,
++			  const unsigned long flags)
++{
++	struct vm_area_struct *vma;
++	struct mm_struct *mm = current->mm;
++	unsigned long addr = addr0;
++
++	/* requested length too big for entire address space */
++	if (len > TASK_SIZE)
++		return -ENOMEM;
++
++	if (flags & MAP_FIXED)
++		return addr;
++
++	/* for MAP_32BIT mappings we force the legact mmap base */
++	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT))
++		goto bottomup;
++
++	/* requesting a specific address */
++	if (addr) {
++		addr = PAGE_ALIGN(addr);
++		vma = find_vma(mm, addr);
++		if (TASK_SIZE - len >= addr &&
++				(!vma || addr + len <= vma->vm_start))
++			return addr;
++	}
++
++	/* check if free_area_cache is useful for us */
++	if (len <= mm->cached_hole_size) {
++ 	        mm->cached_hole_size = 0;
++ 		mm->free_area_cache = mm->mmap_base;
++ 	}
++
++	/* either no address requested or can't fit in requested address hole */
++	addr = mm->free_area_cache;
++
++	/* make sure it can fit in the remaining address space */
++	if (addr > len) {
++		vma = find_vma(mm, addr-len);
++		if (!vma || addr <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr-len);
++	}
++
++	if (mm->mmap_base < len)
++		goto bottomup;
++
++	addr = mm->mmap_base-len;
++
++	do {
++		/*
++		 * Lookup failure means no vma is above this address,
++		 * else if new region fits below vma->vm_start,
++		 * return with success:
++		 */
++		vma = find_vma(mm, addr);
++		if (!vma || addr+len <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr);
++
++ 		/* remember the largest hole we saw so far */
++ 		if (addr + mm->cached_hole_size < vma->vm_start)
++ 		        mm->cached_hole_size = vma->vm_start - addr;
++
++		/* try just below the current vma->vm_start */
++		addr = vma->vm_start-len;
++	} while (len < vma->vm_start);
++
++bottomup:
++	/*
++	 * A failed mmap() very likely causes application failure,
++	 * so fall back to the bottom-up function here. This scenario
++	 * can happen with large stack limits and large mmap()
++	 * allocations.
++	 */
++	mm->cached_hole_size = ~0UL;
++  	mm->free_area_cache = TASK_UNMAPPED_BASE;
++	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
++	/*
++	 * Restore the topdown base:
++	 */
++	mm->free_area_cache = mm->mmap_base;
++	mm->cached_hole_size = ~0UL;
++
++	return addr;
++}
++
++
+ asmlinkage long sys_uname(struct new_utsname __user * name)
+ {
+ 	int err;
+diff -puN include/asm-x86_64/pgtable.h~pie-executable-randomization-fix-3 include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~pie-executable-randomization-fix-3
++++ a/include/asm-x86_64/pgtable.h
+@@ -411,6 +411,7 @@ pte_t *lookup_address(unsigned long addr
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+ #define HAVE_ARCH_UNMAPPED_AREA
++#define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+ 
+ #define pgtable_cache_init()   do { } while (0)
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-introduce-config_check_signature-was-re-uninline.patch
-uml-fix-previous-request-size-limit-fix.patch
-uml-fix-linker-script-alignment-bugs.patch
-uml-fix-x86_64-core-dump-crash.patch
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-use-64-bits-for-block-size-on-x86_64.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
-uml-dont-use-glibc-asm-userh.patch
-uml-floating-point-signal-delivery-fixes.patch
-uml-ptrace-floating-point-fixes.patch
-uml-coredumping-floating-point-fixes.patch
-uml-sysrq-and-mconsole-fixes.patch
-uml-style-fixes-in-fp-code.patch
-uml-eliminate-floating-point-state-from-register-file.patch
+git-hid.patch
+adbhid-produce-all-capslock-key-events.patch
+keyboard-capsshift-lock.patch
+10-dots-braille-keyboards.patch
+console-keyboard-events-and-accessibility.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-ipwireless_cs.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+pie-executable-randomization-fix-2.patch
+pie-executable-randomization-fix-3.patch
+get-rid-of-input-bit-duplicate-defines.patch
