@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-incorporate-napi_struct-changes-from-net-2624git.patch added to -mm tree
-Date: Thu, 23 Aug 2007 17:00:48 -0700
-Message-ID: <200708240000.l7O00mko001197@imap1.linux-foundation.org>
+Subject: + remove-unused-variables-from-fs-proc-basec.patch added to -mm tree
+Date: Thu, 23 Aug 2007 17:03:23 -0700
+Message-ID: <200708240003.l7O03Nkj001244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755945AbXHXAAy (ORCPT
+	by vger.kernel.org with ESMTP id S1754129AbXHXAD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 20:00:54 -0400
+	Thu, 23 Aug 2007 20:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: auke-jan.h.kok@intel.com, davem@davemloft.net
+Cc: xemul@openvz.org
 
 
 The patch titled
-     e1000e: incorporate napi_struct changes from net-2.6.24.git
+     Remove unused variables from fs/proc/base.c
 has been added to the -mm tree.  Its filename is
-     e1000e-incorporate-napi_struct-changes-from-net-2624git.patch
+     remove-unused-variables-from-fs-proc-basec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,164 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: e1000e: incorporate napi_struct changes from net-2.6.24.git
-From: Auke Kok <auke-jan.h.kok@intel.com>
+Subject: Remove unused variables from fs/proc/base.c
+From: Pavel Emelyanov <xemul@openvz.org>
 
-This incorporates the new napi_struct changes into e1000e. Included
-bugfix for ifdown hang from Krishna Kumar for e1000.
+When removing the explicit task_struct->pid usage I found that
+proc_readfd_common() and proc_pident_readdir() get this field, but do not
+use it at all.  So this cleanup is a cheap help with the task_struct->pid
+isolation.
 
-Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/e1000.h  |    2 +
- drivers/net/e1000e/netdev.c |   35 +++++++++++++++-------------------
- 2 files changed, 18 insertions(+), 19 deletions(-)
+ fs/proc/base.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/net/e1000e/e1000.h~e1000e-incorporate-napi_struct-changes-from-net-2624git drivers/net/e1000e/e1000.h
---- a/drivers/net/e1000e/e1000.h~e1000e-incorporate-napi_struct-changes-from-net-2624git
-+++ a/drivers/net/e1000e/e1000.h
-@@ -197,6 +197,8 @@ struct e1000_adapter {
- 	struct e1000_ring *tx_ring /* One per active queue */
- 						____cacheline_aligned_in_smp;
+diff -puN fs/proc/base.c~remove-unused-variables-from-fs-proc-basec fs/proc/base.c
+--- a/fs/proc/base.c~remove-unused-variables-from-fs-proc-basec
++++ a/fs/proc/base.c
+@@ -1434,7 +1434,7 @@ static int proc_readfd_common(struct fil
+ 	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct task_struct *p = get_proc_task(inode);
+-	unsigned int fd, tid, ino;
++	unsigned int fd, ino;
+ 	int retval;
+ 	struct files_struct * files;
+ 	struct fdtable *fdt;
+@@ -1443,7 +1443,6 @@ static int proc_readfd_common(struct fil
+ 	if (!p)
+ 		goto out_no_task;
+ 	retval = 0;
+-	tid = p->pid;
  
-+	struct napi_struct napi;
-+
- 	unsigned long tx_queue_len;
- 	unsigned int restart_queue;
- 	u32 txd_cmd;
-diff -puN drivers/net/e1000e/netdev.c~e1000e-incorporate-napi_struct-changes-from-net-2624git drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-incorporate-napi_struct-changes-from-net-2624git
-+++ a/drivers/net/e1000e/netdev.c
-@@ -1149,12 +1149,12 @@ static irqreturn_t e1000_intr_msi(int ir
- 			mod_timer(&adapter->watchdog_timer, jiffies + 1);
- 	}
- 
--	if (netif_rx_schedule_prep(netdev)) {
-+	if (netif_rx_schedule_prep(netdev, &adapter->napi)) {
- 		adapter->total_tx_bytes = 0;
- 		adapter->total_tx_packets = 0;
- 		adapter->total_rx_bytes = 0;
- 		adapter->total_rx_packets = 0;
--		__netif_rx_schedule(netdev);
-+		__netif_rx_schedule(netdev, &adapter->napi);
- 	} else {
- 		atomic_dec(&adapter->irq_sem);
- 	}
-@@ -1212,12 +1212,12 @@ static irqreturn_t e1000_intr(int irq, v
- 			mod_timer(&adapter->watchdog_timer, jiffies + 1);
- 	}
- 
--	if (netif_rx_schedule_prep(netdev)) {
-+	if (netif_rx_schedule_prep(netdev, &adapter->napi)) {
- 		adapter->total_tx_bytes = 0;
- 		adapter->total_tx_packets = 0;
- 		adapter->total_rx_bytes = 0;
- 		adapter->total_rx_packets = 0;
--		__netif_rx_schedule(netdev);
-+		__netif_rx_schedule(netdev, &adapter->napi);
- 	} else {
- 		atomic_dec(&adapter->irq_sem);
- 	}
-@@ -1663,10 +1663,10 @@ set_itr_now:
-  * e1000_clean - NAPI Rx polling callback
-  * @adapter: board private structure
-  **/
--static int e1000_clean(struct net_device *poll_dev, int *budget)
-+static int e1000_clean(struct napi_struct *napi, int budget)
+ 	fd = filp->f_pos;
+ 	switch (fd) {
+@@ -1678,7 +1677,6 @@ static int proc_pident_readdir(struct fi
+ 		const struct pid_entry *ents, unsigned int nents)
  {
--	struct e1000_adapter *adapter;
--	int work_to_do = min(*budget, poll_dev->quota);
-+	struct e1000_adapter *adapter = container_of(napi, struct e1000_adapter, napi);
-+	struct net_device *poll_dev = adapter->netdev;
- 	int tx_cleaned = 0, work_done = 0;
+ 	int i;
+-	int pid;
+ 	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	struct task_struct *task = get_proc_task(inode);
+@@ -1691,7 +1689,6 @@ static int proc_pident_readdir(struct fi
+ 		goto out_no_task;
  
- 	/* Must NOT use netdev_priv macro here. */
-@@ -1685,17 +1685,15 @@ static int e1000_clean(struct net_device
- 		spin_unlock(&adapter->tx_queue_lock);
- 	}
- 
--	adapter->clean_rx(adapter, &work_done, work_to_do);
--	*budget -= work_done;
--	poll_dev->quota -= work_done;
-+	adapter->clean_rx(adapter, &work_done, budget);
- 
- 	/* If no Tx and not enough Rx work done, exit the polling mode */
--	if ((!tx_cleaned && (work_done == 0)) ||
-+	if ((tx_cleaned && (work_done < budget)) ||
- 	   !netif_running(poll_dev)) {
- quit_polling:
- 		if (adapter->itr_setting & 3)
- 			e1000_set_itr(adapter);
--		netif_rx_complete(poll_dev);
-+		netif_rx_complete(poll_dev, napi);
- 		if (test_bit(__E1000_DOWN, &adapter->state))
- 			atomic_dec(&adapter->irq_sem);
- 		else
-@@ -1703,7 +1701,7 @@ quit_polling:
- 		return 0;
- 	}
- 
--	return 1;
-+	return work_done;
- }
- 
- static void e1000_vlan_rx_add_vid(struct net_device *netdev, u16 vid)
-@@ -2441,7 +2439,7 @@ int e1000e_up(struct e1000_adapter *adap
- 
- 	clear_bit(__E1000_DOWN, &adapter->state);
- 
--	netif_poll_enable(adapter->netdev);
-+	napi_enable(&adapter->napi);
- 	e1000_irq_enable(adapter);
- 
- 	/* fire a link change interrupt to start the watchdog */
-@@ -2474,7 +2472,7 @@ void e1000e_down(struct e1000_adapter *a
- 	e1e_flush();
- 	msleep(10);
- 
--	netif_poll_disable(netdev);
-+	napi_disable(&adapter->napi);
- 	e1000_irq_disable(adapter);
- 
- 	del_timer_sync(&adapter->watchdog_timer);
-@@ -2607,7 +2605,7 @@ static int e1000_open(struct net_device 
- 	/* From here on the code is the same as e1000e_up() */
- 	clear_bit(__E1000_DOWN, &adapter->state);
- 
--	netif_poll_enable(netdev);
-+	napi_enable(&adapter->napi);
- 
- 	e1000_irq_enable(adapter);
- 
-@@ -4102,8 +4100,7 @@ static int __devinit e1000_probe(struct 
- 	e1000e_set_ethtool_ops(netdev);
- 	netdev->tx_timeout		= &e1000_tx_timeout;
- 	netdev->watchdog_timeo		= 5 * HZ;
--	netdev->poll			= &e1000_clean;
--	netdev->weight			= 64;
-+	netif_napi_add(netdev, &adapter->napi, e1000_clean, 64);
- 	netdev->vlan_rx_register	= e1000_vlan_rx_register;
- 	netdev->vlan_rx_add_vid		= e1000_vlan_rx_add_vid;
- 	netdev->vlan_rx_kill_vid	= e1000_vlan_rx_kill_vid;
-@@ -4272,7 +4269,7 @@ static int __devinit e1000_probe(struct 
- 	/* tell the stack to leave us alone until e1000_open() is called */
- 	netif_carrier_off(netdev);
- 	netif_stop_queue(netdev);
--	netif_poll_disable(netdev);
-+	napi_disable(&adapter->napi);
- 
- 	strcpy(netdev->name, "eth%d");
- 	err = register_netdev(netdev);
+ 	ret = 0;
+-	pid = task->pid;
+ 	i = filp->f_pos;
+ 	switch (i) {
+ 	case 0:
 _
 
-Patches currently in -mm which might be from auke-jan.h.kok@intel.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-origin.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-e1000-if-0-two-functions.patch
 git-net.patch
-e1000e-incorporate-napi_struct-changes-from-net-2624git.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+remove-unused-variables-from-fs-proc-basec.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
