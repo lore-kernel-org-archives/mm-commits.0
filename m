@@ -1,40 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:31 -0700
-Message-ID: <200708242056.l7OKuVfk014067@imap1.linux-foundation.org>
+Subject: - signalfd-fix-interaction-with-posix-timers.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:28 -0700
+Message-ID: <200708242056.l7OKuSZN014064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761631AbXHXVJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1762788AbXHXVJk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:58 -0400
+	Fri, 24 Aug 2007 17:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, benh@kernel.crashing.org, davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, roland@redhat.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signalfd: make it group-wide, fix posix-timers scheduling
+     signalfd: fix interaction with posix-timers
 has been removed from the -mm tree.  Its filename was
-     signalfd-make-it-group-wide-fix-posix-timers-scheduling.patch
+     signalfd-fix-interaction-with-posix-timers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: signalfd: make it group-wide, fix posix-timers scheduling
+Subject: signalfd: fix interaction with posix-timers
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-With this patch any thread can dequeue its own private signals via signalfd,
-even if it was created by another sub-thread.
+dequeue_signal:
 
-To do so, we pass "current" to dequeue_signal() if the caller is from the same
-thread group. This also fixes the scheduling of posix timers broken by the
-previous patch.
+	if (__SI_TIMER) {
+		spin_unlock(&tsk->sighand->siglock);
+		do_schedule_next_timer(info);
+		spin_lock(&tsk->sighand->siglock);
+	}
 
-If the caller doesn't belong to this thread group, we can't handle __SI_TIMER
-case properly anyway. Perhaps we should forbid the cross-process signalfd usage
-and convert ctx->tsk to ctx->sighand.
+Unless tsk == curent, this is absolutely unsafe: nothing prevents tsk from
+exiting. If signalfd was passed to another process, do_schedule_next_timer()
+is just wrong.
+
+Add yet another "tsk == current" check into dequeue_signal().
+
+This patch fixes an oopsable bug, but breaks the scheduling of posix timers
+if the shared __SI_TIMER signal was fetched via signalfd attached to another
+sub-thread. Mostly fixed by the next patch.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -47,74 +54,29 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c     |    9 ++-------
- fs/signalfd.c |   14 ++++++++++----
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ kernel/signal.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~signalfd-make-it-group-wide-fix-posix-timers-scheduling fs/exec.c
---- a/fs/exec.c~signalfd-make-it-group-wide-fix-posix-timers-scheduling
-+++ a/fs/exec.c
-@@ -780,18 +780,12 @@ static int de_thread(struct task_struct 
- 	int count;
- 
- 	/*
--	 * Tell all the sighand listeners that this sighand has
--	 * been detached. The signalfd_detach() function grabs the
--	 * sighand lock, if signal listeners are present on the sighand.
--	 */
--	signalfd_detach(tsk);
--
--	/*
- 	 * If we don't share sighandlers, then we aren't sharing anything
- 	 * and we can just re-use it all.
+diff -puN kernel/signal.c~signalfd-fix-interaction-with-posix-timers kernel/signal.c
+--- a/kernel/signal.c~signalfd-fix-interaction-with-posix-timers
++++ a/kernel/signal.c
+@@ -378,7 +378,7 @@ int dequeue_signal(struct task_struct *t
+ 	/* We only dequeue private signals from ourselves, we don't let
+ 	 * signalfd steal them
  	 */
- 	if (atomic_read(&oldsighand->count) <= 1) {
- 		BUG_ON(atomic_read(&sig->count) != 1);
-+		signalfd_detach(tsk);
- 		exit_itimers(sig);
- 		return 0;
+-	if (tsk == current)
++	if (likely(tsk == current))
+ 		signr = __dequeue_signal(&tsk->pending, mask, info);
+ 	if (!signr) {
+ 		signr = __dequeue_signal(&tsk->signal->shared_pending,
+@@ -425,7 +425,7 @@ int dequeue_signal(struct task_struct *t
+ 		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
+ 			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
  	}
-@@ -930,6 +924,7 @@ static int de_thread(struct task_struct 
- 	sig->flags = 0;
- 
- no_thread_group:
-+	signalfd_detach(tsk);
- 	exit_itimers(sig);
- 	if (leader)
- 		release_task(leader);
-diff -puN fs/signalfd.c~signalfd-make-it-group-wide-fix-posix-timers-scheduling fs/signalfd.c
---- a/fs/signalfd.c~signalfd-make-it-group-wide-fix-posix-timers-scheduling
-+++ a/fs/signalfd.c
-@@ -56,12 +56,18 @@ static int signalfd_lock(struct signalfd
- 		sighand = lock_task_sighand(lk->tsk, &lk->flags);
- 	rcu_read_unlock();
- 
--	if (sighand && !ctx->tsk) {
-+	if (!sighand)
-+		return 0;
-+
-+	if (!ctx->tsk) {
- 		unlock_task_sighand(lk->tsk, &lk->flags);
--		sighand = NULL;
-+		return 0;
- 	}
- 
--	return sighand != NULL;
-+	if (lk->tsk->tgid == current->tgid)
-+		lk->tsk = current;
-+
-+	return 1;
- }
- 
- static void signalfd_unlock(struct signalfd_lockctx *lk)
-@@ -331,7 +337,7 @@ asmlinkage long sys_signalfd(int ufd, si
- 
- 		init_waitqueue_head(&ctx->wqh);
- 		ctx->sigmask = sigmask;
--		ctx->tsk = current;
-+		ctx->tsk = current->group_leader;
- 
- 		sighand = current->sighand;
+-	if ( signr &&
++	if (signr && likely(tsk == current) &&
+ 	     ((info->si_code & __SI_MASK) == __SI_TIMER) &&
+ 	     info->si_sys_private){
  		/*
 _
 
