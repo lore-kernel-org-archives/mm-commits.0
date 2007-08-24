@@ -1,95 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - pata_via-add-armia-w730-k8-and-other-rebadgings.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:37 -0700
-Message-ID: <200708242057.l7OKvben014235@imap1.linux-foundation.org>
+Subject: - isapnp-removed-unused-isapnp_detected-and-isapnp_debug.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:59:01 -0700
+Message-ID: <200708242059.l7OKx1Ec014354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760021AbXHXVIq (ORCPT
+	by vger.kernel.org with ESMTP id S1764210AbXHXVJG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:46 -0400
+	Fri, 24 Aug 2007 17:09:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikpe@it.uu.se, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_via: add Arima W730-K8 and other rebadgings
+     ISAPNP: removed unused isapnp_detected and ISAPNP_DEBUG
 has been removed from the -mm tree.  Its filename was
-     pata_via-add-armia-w730-k8-and-other-rebadgings.patch
+     isapnp-removed-unused-isapnp_detected-and-isapnp_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_via: add Arima W730-K8 and other rebadgings
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ISAPNP: removed unused isapnp_detected and ISAPNP_DEBUG
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-More cable funnies
+ISAPNP_DEBUG isn't used at all.  isapnp_detected is set but never read.
+So remove them both.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Tested-by: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/pnp/isapnp/core.c |    7 -------
+ 1 files changed, 7 deletions(-)
 
-diff -puN drivers/ata/pata_via.c~pata_via-add-armia-w730-k8-and-other-rebadgings drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~pata_via-add-armia-w730-k8-and-other-rebadgings
-+++ a/drivers/ata/pata_via.c
-@@ -63,7 +63,7 @@
- #include <linux/dmi.h>
+diff -puN drivers/pnp/isapnp/core.c~isapnp-removed-unused-isapnp_detected-and-isapnp_debug drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~isapnp-removed-unused-isapnp_detected-and-isapnp_debug
++++ a/drivers/pnp/isapnp/core.c
+@@ -47,9 +47,6 @@
+ #if 0
+ #define ISAPNP_REGION_OK
+ #endif
+-#if 0
+-#define ISAPNP_DEBUG
+-#endif
  
- #define DRV_NAME "pata_via"
--#define DRV_VERSION "0.3.1"
-+#define DRV_VERSION "0.3.2"
+ int isapnp_disable;		/* Disable ISA PnP */
+ static int isapnp_rdp;		/* Read Data Port */
+@@ -93,7 +90,6 @@ MODULE_LICENSE("GPL");
  
- /*
-  *	The following comes directly from Vojtech Pavlik's ide/pci/via82cxxx
-@@ -144,6 +144,9 @@ static int via_cable_override(struct pci
- 	/* Systems by DMI */
- 	if (dmi_check_system(cable_dmi_table))
- 		return 1;
-+	/* Armia W730-K8/Targa Visionary 811/... */
-+	if (pdev->subsystem_vendor == 0x161F && pdev->subsystem_device == 0x2032)
-+		return 1;
- 	return 0;
- }
+ static unsigned char isapnp_checksum_value;
+ static DEFINE_MUTEX(isapnp_cfg_mutex);
+-static int isapnp_detected;
+ static int isapnp_csn_count;
  
+ /* some prototypes */
+@@ -1067,7 +1063,6 @@ static int __init isapnp_init(void)
+ 	struct pnp_dev *dev;
+ 
+ 	if (isapnp_disable) {
+-		isapnp_detected = 0;
+ 		printk(KERN_INFO "isapnp: ISA Plug & Play support disabled\n");
+ 		return 0;
+ 	}
+@@ -1115,7 +1110,6 @@ static int __init isapnp_init(void)
+ 		}
+ 		isapnp_set_rdp();
+ 	}
+-	isapnp_detected = 1;
+ 	if (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff) {
+ 		cards = isapnp_isolate();
+ 		if (cards < 0 || (isapnp_rdp < 0x203 || isapnp_rdp > 0x3ff)) {
+@@ -1123,7 +1117,6 @@ static int __init isapnp_init(void)
+ 			release_region(_PIDXR, 1);
+ #endif
+ 			release_region(_PNPWRP, 1);
+-			isapnp_detected = 0;
+ 			printk(KERN_INFO
+ 			       "isapnp: No Plug & Play device found\n");
+ 			return 0;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-switch-most-of-the-remaining-sff-drivers-to.patch
-pata_marvell-add-more-identifiers.patch
-libata-portmap-remove-unused-definitions.patch
-libata-correct-handling-of-srst-reset-sequences.patch
-libata-spot-bridge-chips.patch
-libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
-libata-strict-checking-for-identify-reporting.patch
-libata-add-a-drivers-ide-style-dma-disable.patch
-st340823a-hpa-and-libata.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-serial_txx9-cleanup-includes.patch
+git-acpi.patch
 serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-git-scsi-misc.patch
-fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-kobil_sct-rework-driver.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
+move-free-pages-between-lists-on-steal.patch
+convert-ill-defined-log2-to-ilog2.patch
+tpm_tis-fix-interrupt-probing.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
