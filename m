@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-ide-legacy-mode-resources.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:15:24 -0700
-Message-ID: <200708242215.l7OMFPwE017451@imap1.linux-foundation.org>
+Subject: + hpet-force-enable-on-vt8235-37-chipsets.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:56 -0700
+Message-ID: <200708242205.l7OM5udm017086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759251AbXHXWPo (ORCPT
+	by vger.kernel.org with ESMTP id S1752854AbXHXWPy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:15:44 -0400
+	Fri, 24 Aug 2007 18:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yoichi_yuasa@tripeaks.co.jp, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, ralf@linux-mips.org
+Cc: us15@os.inf.tu-dresden.de, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     fix IDE legacy mode resources
+     Force enable HPET on VT8235/8237 chipsets
 has been added to the -mm tree.  Its filename is
-     fix-ide-legacy-mode-resources.patch
+     hpet-force-enable-on-vt8235-37-chipsets.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,112 +26,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix IDE legacy mode resources
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: Force enable HPET on VT8235/8237 chipsets
+From: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>
 
-I got the following error on MIPS Cobalt.
+This patch adds quirks to force enable HPET on Via VT8235 and VT8237 chipse=
+ts.  The datasheet for 8237 documents HPET functionality (although wrongly)
+wher= eas HPET is undocumented for 8235.
 
-PCI: Unable to reserve I/O region #1:8@f00001f0 for device 0000:00:09.1
-pata_via 0000:00:09.1: failed to request/iomap BARs for port 0 (errno=-16)
-PCI: Unable to reserve I/O region #3:8@f0000170 for device 0000:00:09.1
-pata_via 0000:00:09.1: failed to request/iomap BARs for port 1 (errno=-16)
-pata_via 0000:00:09.1: no available native port
+Tested on A7V880 (8237) and K7VT4A+ (8235) boards.
 
-The legacy mode IDE resources set the following order.
-
-pci_setup_device()
-    Legacy mode ATA controllers have fixed addresses.
-    IDE resources: 0x1F0-0x1F7, 0x3F6, 0x170-0x177, 0x376
-    |
-    V
-pcibios_fixup_bus()
-    MIPS Cobalt PCI bus regions have the -0x10000000 offset from PCI resources.
-    pcibios_fixup_bus() fix PCI bus regions.
-    0x1F0 - 0x10000000 = 0xF00001F0
-    |
-    V
-ata_pci_init_one()
-    PCI: Unable to reserve I/O region #1:8@f00001f0 for device 0000:00:09.1
-
-In some architectures, PCI bus regions have the offset from PCI resources. 
-For this reason, pci_setup_device() should set PCI bus regions to
-dev->resource[].
-
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   42 ++++++++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 12 deletions(-)
+ arch/i386/kernel/quirks.c |   68 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 67 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/probe.c~fix-ide-legacy-mode-resources drivers/pci/probe.c
---- a/drivers/pci/probe.c~fix-ide-legacy-mode-resources
-+++ a/drivers/pci/probe.c
-@@ -793,22 +793,40 @@ static int pci_setup_device(struct pci_d
- 		 */
- 		if (class == PCI_CLASS_STORAGE_IDE) {
- 			u8 progif;
-+			struct pci_bus_region region;
-+			struct resource resource;
- 			pci_read_config_byte(dev, PCI_CLASS_PROG, &progif);
- 			if ((progif & 1) == 0) {
--				dev->resource[0].start = 0x1F0;
--				dev->resource[0].end = 0x1F7;
--				dev->resource[0].flags = LEGACY_IO_RESOURCE;
--				dev->resource[1].start = 0x3F6;
--				dev->resource[1].end = 0x3F6;
--				dev->resource[1].flags = LEGACY_IO_RESOURCE;
-+				resource.start = 0x1F0;
-+				resource.end = 0x1F7;
-+				resource.flags = LEGACY_IO_RESOURCE;
-+				pcibios_resource_to_bus(dev, &region, &resource);
-+				dev->resource[0].start = region.start;
-+				dev->resource[0].end = region.end;
-+				dev->resource[0].flags = resource.flags;
-+				resource.start = 0x3F6;
-+				resource.end = 0x3F6;
-+				resource.flags = LEGACY_IO_RESOURCE;
-+				pcibios_resource_to_bus(dev, &region, &resource);
-+				dev->resource[1].start = region.start;
-+				dev->resource[1].end = region.end;
-+				dev->resource[1].flags = resource.flags;
- 			}
- 			if ((progif & 4) == 0) {
--				dev->resource[2].start = 0x170;
--				dev->resource[2].end = 0x177;
--				dev->resource[2].flags = LEGACY_IO_RESOURCE;
--				dev->resource[3].start = 0x376;
--				dev->resource[3].end = 0x376;
--				dev->resource[3].flags = LEGACY_IO_RESOURCE;
-+				resource.start = 0x170;
-+				resource.end = 0x177;
-+				resource.flags = LEGACY_IO_RESOURCE;
-+				pcibios_resource_to_bus(dev, &region, &resource);
-+				dev->resource[2].start = region.start;
-+				dev->resource[2].end = region.end;
-+				dev->resource[2].flags = resource.flags;
-+				resource.start = 0x376;
-+				resource.end = 0x376;
-+				resource.flags = LEGACY_IO_RESOURCE;
-+				pcibios_resource_to_bus(dev, &region, &resource);
-+				dev->resource[3].start = region.start;
-+				dev->resource[3].end = region.end;
-+				dev->resource[3].flags = resource.flags;
- 			}
- 		}
+diff -puN arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets
++++ a/arch/i386/kernel/quirks.c
+@@ -56,7 +56,8 @@ unsigned long force_hpet_address;
+ static enum {
+ 	NONE_FORCE_HPET_RESUME,
+ 	OLD_ICH_FORCE_HPET_RESUME,
+-	ICH_FORCE_HPET_RESUME
++	ICH_FORCE_HPET_RESUME,
++	VT8237_FORCE_HPET_RESUME
+ } force_hpet_resume_type;
+ 
+ static void __iomem *rcba_base;
+@@ -245,6 +246,68 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_12,
+                          old_ich_force_enable_hpet);
+ 
++
++static void vt8237_force_hpet_resume(void)
++{
++	u32 val;
++
++	if (!force_hpet_address || !cached_dev)
++		return;
++
++	val = 0xfed00000 | 0x80;
++	pci_write_config_dword(cached_dev, 0x68, val);
++
++	pci_read_config_dword(cached_dev, 0x68, &val);
++	if (val & 0x80)
++		printk(KERN_DEBUG "Force enabled HPET at resume\n");
++	else
++		BUG();
++}
++
++static void vt8237_force_enable_hpet(struct pci_dev *dev)
++{
++	u32 val;
++
++	if (hpet_address || force_hpet_address)
++		return;
++
++	pci_read_config_dword(dev, 0x68, &val);
++	/*
++	 * Bit 7 is HPET enable bit.
++	 * Bit 31:10 is HPET base address (contrary to what datasheet claims)
++	 */
++	if (val & 0x80) {
++		force_hpet_address = (val & ~0x3ff);
++		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		return;
++	}
++
++	/*
++	 * HPET is disabled. Trying enabling at FED00000 and check
++	 * whether it sticks
++	 */
++	val = 0xfed00000 | 0x80;
++	pci_write_config_dword(dev, 0x68, val);
++
++	pci_read_config_dword(dev, 0x68, &val);
++	if (val & 0x80) {
++		force_hpet_address = (val & ~0x3ff);
++		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		cached_dev = dev;
++		force_hpet_resume_type = VT8237_FORCE_HPET_RESUME;
++		return;
++	}
++
++	printk(KERN_DEBUG "Failed to force enable HPET\n");
++}
++
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8235,
++			 vt8237_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
++			 vt8237_force_enable_hpet);
++
+ void force_hpet_resume(void)
+ {
+ 	switch (force_hpet_resume_type) {
+@@ -254,6 +317,9 @@ void force_hpet_resume(void)
+ 	    case OLD_ICH_FORCE_HPET_RESUME:
+ 		return old_ich_force_hpet_resume();
+ 
++	    case VT8237_FORCE_HPET_RESUME:
++		return vt8237_force_hpet_resume();
++
+ 	    default:
  		break;
+ 	}
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from us15@os.inf.tu-dresden.de are
 
-origin.patch
-git-mips.patch
-git-mtd.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
+hpet-force-enable-on-ich34.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
