@@ -1,71 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - g_file_storage-fix-bug-in-dma-buffer-handling.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:46 -0700
-Message-ID: <200708242058.l7OKwk6e014332@imap1.linux-foundation.org>
+Subject: - i386-pci_get_device-called-from-interrupt-in-reboot-fixups.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:50 -0700
+Message-ID: <200708242058.l7OKwoBj014338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40148 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59324 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758431AbXHXVIA (ORCPT
+	by vger.kernel.org with ESMTP id S1758628AbXHXVIF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:00 -0400
+	Fri, 24 Aug 2007 17:08:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
+To: den@openvz.org, ak@suse.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     g_file_storage: fix bug in DMA buffer handling
+     i386: pci_get_device() called from interrupt in reboot fixups
 has been removed from the -mm tree.  Its filename was
-     g_file_storage-fix-bug-in-dma-buffer-handling.patch
+     i386-pci_get_device-called-from-interrupt-in-reboot-fixups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: g_file_storage: fix bug in DMA buffer handling
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: i386: pci_get_device() called from interrupt in reboot fixups
+From: "Denis V. Lunev" <den@openvz.org>
 
-This patch (as963) fixes a recently-introduced bug.  The gadget conversion
-removing DMA-mapped buffer allocation did not remove quite enough code from
-the g_file_storage driver; DMA pointers were being set to 0.
+The following calltrace is possible now:
+ handle_sysrq
+   machine_emergency_restart
+     mach_reboot_fixups
+       pci_get_device
+         pci_get_subsys
+	   down_read
+The patch skips reboot fixup if called from sysrq-B code.
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/file_storage.c |    3 ---
- 1 files changed, 3 deletions(-)
+ arch/i386/kernel/reboot_fixups.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/file_storage.c~g_file_storage-fix-bug-in-dma-buffer-handling drivers/usb/gadget/file_storage.c
---- a/drivers/usb/gadget/file_storage.c~g_file_storage-fix-bug-in-dma-buffer-handling
-+++ a/drivers/usb/gadget/file_storage.c
-@@ -576,7 +576,6 @@ enum fsg_buffer_state {
+diff -puN arch/i386/kernel/reboot_fixups.c~i386-pci_get_device-called-from-interrupt-in-reboot-fixups arch/i386/kernel/reboot_fixups.c
+--- a/arch/i386/kernel/reboot_fixups.c~i386-pci_get_device-called-from-interrupt-in-reboot-fixups
++++ a/arch/i386/kernel/reboot_fixups.c
+@@ -11,6 +11,7 @@
  
- struct fsg_buffhd {
- 	void				*buf;
--	dma_addr_t			dma;
- 	enum fsg_buffer_state		state;
- 	struct fsg_buffhd		*next;
+ #include <asm/delay.h>
+ #include <linux/pci.h>
++#include <linux/interrupt.h>
+ #include <asm/reboot_fixups.h>
+ #include <asm/msr.h>
  
-@@ -2570,7 +2569,6 @@ static int send_status(struct fsg_dev *f
+@@ -56,6 +57,11 @@ void mach_reboot_fixups(void)
+ 	struct pci_dev *dev;
+ 	int i;
  
- 		fsg->intr_buffhd = bh;		// Point to the right buffhd
- 		fsg->intreq->buf = bh->inreq->buf;
--		fsg->intreq->dma = bh->inreq->dma;
- 		fsg->intreq->context = bh;
- 		start_transfer(fsg, fsg->intr_in, fsg->intreq,
- 				&fsg->intreq_busy, &bh->state);
-@@ -3163,7 +3161,6 @@ reset:
- 		if ((rc = alloc_request(fsg, fsg->bulk_out, &bh->outreq)) != 0)
- 			goto reset;
- 		bh->inreq->buf = bh->outreq->buf = bh->buf;
--		bh->inreq->dma = bh->outreq->dma = bh->dma;
- 		bh->inreq->context = bh->outreq->context = bh;
- 		bh->inreq->complete = bulk_in_complete;
- 		bh->outreq->complete = bulk_out_complete;
++	/* we can be called from sysrq-B code. In such a case it is
++	 * prohibited to dig PCI */
++	if (in_interrupt())
++		return;
++
+ 	for (i=0; i < ARRAY_SIZE(fixups_table); i++) {
+ 		cur = &(fixups_table[i]);
+ 		dev = pci_get_device(cur->vendor, cur->device, NULL);
+@@ -65,4 +71,3 @@ void mach_reboot_fixups(void)
+ 		cur->reboot_fixup(dev);
+ 	}
+ }
+-
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
-
-origin.patch
+Patches currently in -mm which might be from den@openvz.org are
