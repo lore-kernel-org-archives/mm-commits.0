@@ -1,153 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - signalfd-fix-interaction-with-posix-timers.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:28 -0700
-Message-ID: <200708242056.l7OKuSZN014064@imap1.linux-foundation.org>
+Subject: - accounting-regression-since-rc1.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:38 -0700
+Message-ID: <200708242058.l7OKwcjL014323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53659 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762788AbXHXVJk (ORCPT
+	by vger.kernel.org with ESMTP id S1753764AbXHXVNw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:40 -0400
+	Fri, 24 Aug 2007 17:13:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, benh@kernel.crashing.org, davidel@xmailserver.org, mingo@elte.hu, mtk-manpages@gmx.net, roland@redhat.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, jang@linux.vnet.ibm.com, mingo@elte.hu, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signalfd: fix interaction with posix-timers
+     accounting regression since rc1
 has been removed from the -mm tree.  Its filename was
-     signalfd-fix-interaction-with-posix-timers.patch
+     accounting-regression-since-rc1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: signalfd: fix interaction with posix-timers
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: accounting regression since rc1
+From: Christian Borntraeger <borntraeger@de.ibm.com>
 
-dequeue_signal:
+Fix the accounting regression for CONFIG_VIRT_CPU_ACCOUNTING.  It reverts
+parts of commit b27f03d4bdc145a09fb7b0c0e004b29f1ee555fa by converting
+fs/proc/array.c back to cputime_t.  The new functions task_utime and
+task_stime now return cputime_t instead of clock_t.  If
+CONFIG_VIRT_CPU_ACCOUTING is set, task->utime and task->stime are returned
+directly instead of using sum_exec_runtime.
 
-	if (__SI_TIMER) {
-		spin_unlock(&tsk->sighand->siglock);
-		do_schedule_next_timer(info);
-		spin_lock(&tsk->sighand->siglock);
-	}
+Patch is tested on s390x with and without VIRT_CPU_ACCOUTING as well as on
+i386.
 
-Unless tsk == curent, this is absolutely unsafe: nothing prevents tsk from
-exiting. If signalfd was passed to another process, do_schedule_next_timer()
-is just wrong.
-
-Add yet another "tsk == current" check into dequeue_signal().
-
-This patch fixes an oopsable bug, but breaks the scheduling of posix timers
-if the shared __SI_TIMER signal was fetched via signalfd attached to another
-sub-thread. Mostly fixed by the next patch.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Jan Glauber <jang@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/array.c |   41 ++++++++++++++++++++++++++---------------
+ 1 files changed, 26 insertions(+), 15 deletions(-)
 
-diff -puN kernel/signal.c~signalfd-fix-interaction-with-posix-timers kernel/signal.c
---- a/kernel/signal.c~signalfd-fix-interaction-with-posix-timers
-+++ a/kernel/signal.c
-@@ -378,7 +378,7 @@ int dequeue_signal(struct task_struct *t
- 	/* We only dequeue private signals from ourselves, we don't let
- 	 * signalfd steal them
- 	 */
--	if (tsk == current)
-+	if (likely(tsk == current))
- 		signr = __dequeue_signal(&tsk->pending, mask, info);
- 	if (!signr) {
- 		signr = __dequeue_signal(&tsk->signal->shared_pending,
-@@ -425,7 +425,7 @@ int dequeue_signal(struct task_struct *t
- 		if (!(tsk->signal->flags & SIGNAL_GROUP_EXIT))
- 			tsk->signal->flags |= SIGNAL_STOP_DEQUEUED;
+diff -puN fs/proc/array.c~accounting-regression-since-rc1 fs/proc/array.c
+--- a/fs/proc/array.c~accounting-regression-since-rc1
++++ a/fs/proc/array.c
+@@ -320,7 +320,18 @@ int proc_pid_status(struct task_struct *
+ 	return buffer - orig;
+ }
+ 
+-static clock_t task_utime(struct task_struct *p)
++#if defined(CONFIG_VIRT_CPU_ACCOUNTING)
++static cputime_t task_utime(struct task_struct *p)
++{
++	return p->utime;
++}
++
++static cputime_t task_stime(struct task_struct *p)
++{
++	return p->stime;
++}
++#else
++static cputime_t task_utime(struct task_struct *p)
+ {
+ 	clock_t utime = cputime_to_clock_t(p->utime),
+ 		total = utime + cputime_to_clock_t(p->stime);
+@@ -337,10 +348,10 @@ static clock_t task_utime(struct task_st
  	}
--	if ( signr &&
-+	if (signr && likely(tsk == current) &&
- 	     ((info->si_code & __SI_MASK) == __SI_TIMER) &&
- 	     info->si_sys_private){
- 		/*
+ 	utime = (clock_t)temp;
+ 
+-	return utime;
++	return clock_t_to_cputime(utime);
+ }
+ 
+-static clock_t task_stime(struct task_struct *p)
++static cputime_t task_stime(struct task_struct *p)
+ {
+ 	clock_t stime;
+ 
+@@ -349,10 +360,12 @@ static clock_t task_stime(struct task_st
+ 	 * the total, to make sure the total observed by userspace
+ 	 * grows monotonically - apps rely on that):
+ 	 */
+-	stime = nsec_to_clock_t(p->se.sum_exec_runtime) - task_utime(p);
++	stime = nsec_to_clock_t(p->se.sum_exec_runtime) -
++			cputime_to_clock_t(task_utime(p));
+ 
+-	return stime;
++	return clock_t_to_cputime(stime);
+ }
++#endif
+ 
+ static int do_task_stat(struct task_struct *task, char *buffer, int whole)
+ {
+@@ -368,8 +381,7 @@ static int do_task_stat(struct task_stru
+ 	unsigned long long start_time;
+ 	unsigned long cmin_flt = 0, cmaj_flt = 0;
+ 	unsigned long  min_flt = 0,  maj_flt = 0;
+-	cputime_t cutime, cstime;
+-	clock_t utime, stime;
++	cputime_t cutime, cstime, utime, stime;
+ 	unsigned long rsslim = 0;
+ 	char tcomm[sizeof(task->comm)];
+ 	unsigned long flags;
+@@ -387,8 +399,7 @@ static int do_task_stat(struct task_stru
+ 
+ 	sigemptyset(&sigign);
+ 	sigemptyset(&sigcatch);
+-	cutime = cstime = cputime_zero;
+-	utime = stime = 0;
++	cutime = cstime = utime = stime = cputime_zero;
+ 
+ 	rcu_read_lock();
+ 	if (lock_task_sighand(task, &flags)) {
+@@ -414,15 +425,15 @@ static int do_task_stat(struct task_stru
+ 			do {
+ 				min_flt += t->min_flt;
+ 				maj_flt += t->maj_flt;
+-				utime += task_utime(t);
+-				stime += task_stime(t);
++				utime = cputime_add(utime, task_utime(t));
++				stime = cputime_add(stime, task_stime(t));
+ 				t = next_thread(t);
+ 			} while (t != task);
+ 
+ 			min_flt += sig->min_flt;
+ 			maj_flt += sig->maj_flt;
+-			utime += cputime_to_clock_t(sig->utime);
+-			stime += cputime_to_clock_t(sig->stime);
++			utime = cputime_add(utime, sig->utime);
++			stime = cputime_add(stime, sig->stime);
+ 		}
+ 
+ 		sid = signal_session(sig);
+@@ -471,8 +482,8 @@ static int do_task_stat(struct task_stru
+ 		cmin_flt,
+ 		maj_flt,
+ 		cmaj_flt,
+-		utime,
+-		stime,
++		cputime_to_clock_t(utime),
++		cputime_to_clock_t(stime),
+ 		cputime_to_clock_t(cutime),
+ 		cputime_to_clock_t(cstime),
+ 		priority,
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
 
 origin.patch
-setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+git-s390.patch
