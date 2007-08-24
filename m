@@ -1,158 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - accounting-regression-since-rc1.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:38 -0700
-Message-ID: <200708242058.l7OKwcjL014323@imap1.linux-foundation.org>
+Subject: + enforce-noreplace-smp-in-alternative_instructions.patch added to -mm tree
+Date: Fri, 24 Aug 2007 14:23:54 -0700
+Message-ID: <200708242123.l7OLNtXn015384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49769 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753764AbXHXVNw (ORCPT
+	by vger.kernel.org with ESMTP id S1756034AbXHXVYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:13:52 -0400
+	Fri, 24 Aug 2007 17:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, jang@linux.vnet.ibm.com, mingo@elte.hu, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: deweerdt@free.fr, ak@suse.de, frederik.deweerdt@gmail.com, jeremy@goop.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     accounting regression since rc1
-has been removed from the -mm tree.  Its filename was
-     accounting-regression-since-rc1.patch
+     enforce noreplace-smp in alternative_instructions()
+has been added to the -mm tree.  Its filename is
+     enforce-noreplace-smp-in-alternative_instructions.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: accounting regression since rc1
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: enforce noreplace-smp in alternative_instructions()
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Fix the accounting regression for CONFIG_VIRT_CPU_ACCOUNTING.  It reverts
-parts of commit b27f03d4bdc145a09fb7b0c0e004b29f1ee555fa by converting
-fs/proc/array.c back to cputime_t.  The new functions task_utime and
-task_stime now return cputime_t instead of clock_t.  If
-CONFIG_VIRT_CPU_ACCOUTING is set, task->utime and task->stime are returned
-directly instead of using sum_exec_runtime.
+arch/i386/kernel/alternative.c:alternative_instructions() doesn't
+check for noreplace-smp before setting capability bits and freeing the
+__smp_locks section.
 
-Patch is tested on s390x with and without VIRT_CPU_ACCOUTING as well as on
-i386.
+Every call to alternatives_smp_unlock() checks for noreplace-smp
+beforehand, so remove the check from there.
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Jan Glauber <jang@linux.vnet.ibm.com>
+Without this patch, lguest crashes with
+
+[    0.131000] SMP alternatives: switching to UP code
+lguest: bad stack page 0xc057a000
+
+I added a dump_stack on the Host, which gives:
+[124320.090946]  [<c01052f8>] dump_trace+0x65/0x1de
+[124320.090956]  [<c010548b>] show_trace_log_lvl+0x1a/0x2f
+[124320.090970]  [<c0105ea4>] show_trace+0x12/0x14
+[124320.090975]  [<c0105fcd>] dump_stack+0x16/0x18
+[124320.090980]  [<f888032c>] pin_page+0x5f/0xa3 [lg]
+[124320.090993]  [<f8880654>] pin_stack_pages+0x3a/0x4a [lg]
+[124320.091004]  [<f888007e>] guest_pagetable_clear_all+0x12/0x15 [lg]
+[124320.091013]  [<f887f81a>] do_hcall+0xb1/0x1cb [lg]
+[124320.091021]  [<f887fbbe>] do_hypercalls+0x28a/0x2a0 [lg]
+[124320.091029]  [<f887f2a2>] run_guest+0x24/0x492 [lg]
+[124320.091037]  [<f8881b48>] read+0x83/0x8f [lg]
+[124320.091048]  [<c0175a77>] vfs_read+0x8e/0x117
+[124320.091054]  [<c0175e99>] sys_read+0x3d/0x61
+[124320.091059]  [<c0104166>] sysenter_past_esp+0x6b/0xb5
+[124320.091065]  [<ffffe410>] 0xffffe410
+[124320.091069]  =======================
+
+(akpm: it's unclear to me why this happens, and how the patch fixed it)
+
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   41 ++++++++++++++++++++++++++---------------
- 1 files changed, 26 insertions(+), 15 deletions(-)
+ arch/i386/kernel/alternative.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/proc/array.c~accounting-regression-since-rc1 fs/proc/array.c
---- a/fs/proc/array.c~accounting-regression-since-rc1
-+++ a/fs/proc/array.c
-@@ -320,7 +320,18 @@ int proc_pid_status(struct task_struct *
- 	return buffer - orig;
- }
+diff -puN arch/i386/kernel/alternative.c~enforce-noreplace-smp-in-alternative_instructions arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~enforce-noreplace-smp-in-alternative_instructions
++++ a/arch/i386/kernel/alternative.c
+@@ -221,9 +221,6 @@ static void alternatives_smp_unlock(u8 *
+ 	u8 **ptr;
+ 	char insn[1];
  
--static clock_t task_utime(struct task_struct *p)
-+#if defined(CONFIG_VIRT_CPU_ACCOUNTING)
-+static cputime_t task_utime(struct task_struct *p)
-+{
-+	return p->utime;
-+}
-+
-+static cputime_t task_stime(struct task_struct *p)
-+{
-+	return p->stime;
-+}
-+#else
-+static cputime_t task_utime(struct task_struct *p)
- {
- 	clock_t utime = cputime_to_clock_t(p->utime),
- 		total = utime + cputime_to_clock_t(p->stime);
-@@ -337,10 +348,10 @@ static clock_t task_utime(struct task_st
- 	}
- 	utime = (clock_t)temp;
+-	if (noreplace_smp)
+-		return;
+-
+ 	add_nops(insn, 1);
+ 	for (ptr = start; ptr < end; ptr++) {
+ 		if (*ptr < text)
+@@ -404,7 +401,7 @@ void __init alternative_instructions(voi
+ #endif
  
--	return utime;
-+	return clock_t_to_cputime(utime);
- }
- 
--static clock_t task_stime(struct task_struct *p)
-+static cputime_t task_stime(struct task_struct *p)
- {
- 	clock_t stime;
- 
-@@ -349,10 +360,12 @@ static clock_t task_stime(struct task_st
- 	 * the total, to make sure the total observed by userspace
- 	 * grows monotonically - apps rely on that):
- 	 */
--	stime = nsec_to_clock_t(p->se.sum_exec_runtime) - task_utime(p);
-+	stime = nsec_to_clock_t(p->se.sum_exec_runtime) -
-+			cputime_to_clock_t(task_utime(p));
- 
--	return stime;
-+	return clock_t_to_cputime(stime);
- }
-+#endif
- 
- static int do_task_stat(struct task_struct *task, char *buffer, int whole)
- {
-@@ -368,8 +381,7 @@ static int do_task_stat(struct task_stru
- 	unsigned long long start_time;
- 	unsigned long cmin_flt = 0, cmaj_flt = 0;
- 	unsigned long  min_flt = 0,  maj_flt = 0;
--	cputime_t cutime, cstime;
--	clock_t utime, stime;
-+	cputime_t cutime, cstime, utime, stime;
- 	unsigned long rsslim = 0;
- 	char tcomm[sizeof(task->comm)];
- 	unsigned long flags;
-@@ -387,8 +399,7 @@ static int do_task_stat(struct task_stru
- 
- 	sigemptyset(&sigign);
- 	sigemptyset(&sigcatch);
--	cutime = cstime = cputime_zero;
--	utime = stime = 0;
-+	cutime = cstime = utime = stime = cputime_zero;
- 
- 	rcu_read_lock();
- 	if (lock_task_sighand(task, &flags)) {
-@@ -414,15 +425,15 @@ static int do_task_stat(struct task_stru
- 			do {
- 				min_flt += t->min_flt;
- 				maj_flt += t->maj_flt;
--				utime += task_utime(t);
--				stime += task_stime(t);
-+				utime = cputime_add(utime, task_utime(t));
-+				stime = cputime_add(stime, task_stime(t));
- 				t = next_thread(t);
- 			} while (t != task);
- 
- 			min_flt += sig->min_flt;
- 			maj_flt += sig->maj_flt;
--			utime += cputime_to_clock_t(sig->utime);
--			stime += cputime_to_clock_t(sig->stime);
-+			utime = cputime_add(utime, sig->utime);
-+			stime = cputime_add(stime, sig->stime);
- 		}
- 
- 		sid = signal_session(sig);
-@@ -471,8 +482,8 @@ static int do_task_stat(struct task_stru
- 		cmin_flt,
- 		maj_flt,
- 		cmaj_flt,
--		utime,
--		stime,
-+		cputime_to_clock_t(utime),
-+		cputime_to_clock_t(stime),
- 		cputime_to_clock_t(cutime),
- 		cputime_to_clock_t(cstime),
- 		priority,
+ #ifdef CONFIG_SMP
+-	if (smp_alt_once) {
++	if (smp_alt_once && !noreplace_smp) {
+ 		if (1 == num_possible_cpus()) {
+ 			printk(KERN_INFO "SMP alternatives: switching to UP code\n");
+ 			set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-origin.patch
-git-s390.patch
+xtensa-consolec-remove-duplicate-include.patch
+enforce-noreplace-smp-in-alternative_instructions.patch
+revoke-core-code.patch
+reiser4-sb_sync_inodes.patch
