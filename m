@@ -1,147 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: - tpmdd-maintainers.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:13 -0700
-Message-ID: <200708242055.l7OKtDPh013945@imap1.linux-foundation.org>
+Subject: - serial-add-support-for-ite-887x-chips.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:28 -0700
+Message-ID: <200708242055.l7OKtSrU013963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42226 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756579AbXHXUzf (ORCPT
+	by vger.kernel.org with ESMTP id S1756625AbXHXUzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 16:55:35 -0400
+	Fri, 24 Aug 2007 16:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shpedoikal@gmail.com, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: niels.devos@wincor-nixdorf.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpmdd maintainers
+     serial: add support for ITE 887x chips
 has been removed from the -mm tree.  Its filename was
-     tpmdd-maintainers.patch
+     serial-add-support-for-ite-887x-chips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tpmdd maintainers
-From: "Kent Yoder" <shpedoikal@gmail.com>
+Subject: serial: add support for ITE 887x chips
+From: Niels de Vos <niels.devos@wincor-nixdorf.com>
 
-Fix up the maintainers info in the tpm drivers.  Kylene will be out for
-some time, so copying the sourceforge list is the best way to get some
-attention.
+Add support for the it887x-chips (PCI) manufactured by ITE.
 
-Cc: Marcel Selhorst <tpm@selhorst.net>
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+Signed-off-by: Niels de Vos <niels.devos@wincor-nixdorf.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    2 +-
- drivers/char/tpm/tpm.c       |    2 +-
- drivers/char/tpm/tpm.h       |    2 +-
- drivers/char/tpm/tpm_atmel.c |    2 +-
- drivers/char/tpm/tpm_atmel.h |    2 +-
- drivers/char/tpm/tpm_bios.c  |    2 ++
- drivers/char/tpm/tpm_nsc.c   |    2 +-
- drivers/char/tpm/tpm_tis.c   |    2 ++
- 8 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/serial/8250_pci.c |  159 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 159 insertions(+)
 
-diff -puN MAINTAINERS~tpmdd-maintainers MAINTAINERS
---- a/MAINTAINERS~tpmdd-maintainers
-+++ a/MAINTAINERS
-@@ -3458,7 +3458,7 @@ S:	Maintained
+diff -puN drivers/serial/8250_pci.c~serial-add-support-for-ite-887x-chips drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~serial-add-support-for-ite-887x-chips
++++ a/drivers/serial/8250_pci.c
+@@ -580,6 +580,138 @@ static int pci_netmos_init(struct pci_de
+ 	return num_serial;
+ }
  
- TPM DEVICE DRIVER
- P:	Kylene Hall
--M:	kjhall@us.ibm.com
-+M:	tpmdd-devel@lists.sourceforge.net
- W:	http://tpmdd.sourceforge.net
- P:	Marcel Selhorst
- M:	tpm@selhorst.net
-diff -puN drivers/char/tpm/tpm.c~tpmdd-maintainers drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm.h~tpmdd-maintainers drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm.h
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers drivers/char/tpm/tpm_atmel.c
---- a/drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_atmel.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers drivers/char/tpm/tpm_atmel.h
---- a/drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_atmel.h
-@@ -4,7 +4,7 @@
-  * Authors:
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org
-diff -puN drivers/char/tpm/tpm_bios.c~tpmdd-maintainers drivers/char/tpm/tpm_bios.c
---- a/drivers/char/tpm/tpm_bios.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_bios.c
-@@ -7,6 +7,8 @@
-  *	Reiner Sailer <sailer@watson.ibm.com>
-  *	Kylene Hall <kjhall@us.ibm.com>
-  *
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
++/*
++ * ITE support by Niels de Vos <niels.devos@wincor-nixdorf.com>
 + *
-  * Access to the eventlog extended by the TCG BIOS of PC platform
-  *
-  * This program is free software; you can redistribute it and/or
-diff -puN drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers drivers/char/tpm/tpm_nsc.c
---- a/drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_nsc.c
-@@ -7,7 +7,7 @@
-  * Reiner Sailer <sailer@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
-  *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org	 
-diff -puN drivers/char/tpm/tpm_tis.c~tpmdd-maintainers drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpmdd-maintainers
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -5,6 +5,8 @@
-  * Leendert van Doorn <leendert@watson.ibm.com>
-  * Kylene Hall <kjhall@us.ibm.com>
-  *
-+ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
++ * These chips are available with optionally one parallel port and up to
++ * two serial ports. Unfortunately they all have the same product id.
 + *
-  * Device driver for TCG/TCPA TPM (trusted platform module).
-  * Specifications at www.trustedcomputinggroup.org
-  *
++ * Basic configuration is done over a region of 32 I/O ports. The base
++ * ioport is called INTA or INTC, depending on docs/other drivers.
++ *
++ * The region of the 32 I/O ports is configured in POSIO0R...
++ */
++
++/* registers */
++#define ITE_887x_MISCR		0x9c
++#define ITE_887x_INTCBAR	0x78
++#define ITE_887x_UARTBAR	0x7c
++#define ITE_887x_PS0BAR		0x10
++#define ITE_887x_POSIO0		0x60
++
++/* I/O space size */
++#define ITE_887x_IOSIZE		32
++/* I/O space size (bits 26-24; 8 bytes = 011b) */
++#define ITE_887x_POSIO_IOSIZE_8		(3 << 24)
++/* I/O space size (bits 26-24; 32 bytes = 101b) */
++#define ITE_887x_POSIO_IOSIZE_32	(5 << 24)
++/* Decoding speed (1 = slow, 2 = medium, 3 = fast) */
++#define ITE_887x_POSIO_SPEED		(3 << 29)
++/* enable IO_Space bit */
++#define ITE_887x_POSIO_ENABLE		(1 << 31)
++
++static int __devinit pci_ite887x_init(struct pci_dev *dev)
++{
++	/* inta_addr are the configuration addresses of the ITE */
++	static const short inta_addr[] = { 0x2a0, 0x2c0, 0x220, 0x240, 0x1e0,
++							0x200, 0x280, 0 };
++	int ret, i, type;
++	struct resource *iobase = NULL;
++	u32 miscr, uartbar, ioport;
++
++	/* search for the base-ioport */
++	i = 0;
++	while (inta_addr[i] && iobase == NULL) {
++		iobase = request_region(inta_addr[i], ITE_887x_IOSIZE,
++								"ite887x");
++		if (iobase != NULL) {
++			/* write POSIO0R - speed | size | ioport */
++			pci_write_config_dword(dev, ITE_887x_POSIO0,
++				ITE_887x_POSIO_ENABLE | ITE_887x_POSIO_SPEED |
++				ITE_887x_POSIO_IOSIZE_32 | inta_addr[i]);
++			/* write INTCBAR - ioport */
++			pci_write_config_dword(dev, ITE_887x_INTCBAR, inta_addr[i]);
++			ret = inb(inta_addr[i]);
++			if (ret != 0xff) {
++				/* ioport connected */
++				break;
++			}
++			release_region(iobase->start, ITE_887x_IOSIZE);
++			iobase = NULL;
++		}
++		i++;
++	}
++
++	if (!inta_addr[i]) {
++		printk(KERN_ERR "ite887x: could not find iobase\n");
++		return -ENODEV;
++	}
++
++	/* start of undocumented type checking (see parport_pc.c) */
++	type = inb(iobase->start + 0x18) & 0x0f;
++
++	switch (type) {
++	case 0x2:	/* ITE8871 (1P) */
++	case 0xa:	/* ITE8875 (1P) */
++		ret = 0;
++		break;
++	case 0xe:	/* ITE8872 (2S1P) */
++		ret = 2;
++		break;
++	case 0x6:	/* ITE8873 (1S) */
++		ret = 1;
++		break;
++	case 0x8:	/* ITE8874 (2S) */
++		ret = 2;
++		break;
++	default:
++		moan_device("Unknown ITE887x", dev);
++		ret = -ENODEV;
++	}
++
++	/* configure all serial ports */
++	for (i = 0; i < ret; i++) {
++		/* read the I/O port from the device */
++		pci_read_config_dword(dev, ITE_887x_PS0BAR + (0x4 * (i + 1)),
++								&ioport);
++		ioport &= 0x0000FF00;	/* the actual base address */
++		pci_write_config_dword(dev, ITE_887x_POSIO0 + (0x4 * (i + 1)),
++			ITE_887x_POSIO_ENABLE | ITE_887x_POSIO_SPEED |
++			ITE_887x_POSIO_IOSIZE_8 | ioport);
++
++		/* write the ioport to the UARTBAR */
++		pci_read_config_dword(dev, ITE_887x_UARTBAR, &uartbar);
++		uartbar &= ~(0xffff << (16 * i));	/* clear half the reg */
++		uartbar |= (ioport << (16 * i));	/* set the ioport */
++		pci_write_config_dword(dev, ITE_887x_UARTBAR, uartbar);
++
++		/* get current config */
++		pci_read_config_dword(dev, ITE_887x_MISCR, &miscr);
++		/* disable interrupts (UARTx_Routing[3:0]) */
++		miscr &= ~(0xf << (12 - 4 * i));
++		/* activate the UART (UARTx_En) */
++		miscr |= 1 << (23 - i);
++		/* write new config with activated UART */
++		pci_write_config_dword(dev, ITE_887x_MISCR, miscr);
++	}
++
++	if (ret <= 0) {
++		/* the device has no UARTs if we get here */
++		release_region(iobase->start, ITE_887x_IOSIZE);
++	}
++
++	return ret;
++}
++
++static void __devexit pci_ite887x_exit(struct pci_dev *dev)
++{
++	u32 ioport;
++	/* the ioport is bit 0-15 in POSIO0R */
++	pci_read_config_dword(dev, ITE_887x_POSIO0, &ioport);
++	ioport &= 0xffff;
++	release_region(ioport, ITE_887x_IOSIZE);
++}
++
+ static int
+ pci_default_setup(struct serial_private *priv, struct pciserial_board *board,
+ 		  struct uart_port *port, int idx)
+@@ -653,6 +785,18 @@ static struct pci_serial_quirk pci_seria
+ 		.setup		= pci_default_setup,
+ 	},
+ 	/*
++	 * ITE
++	 */
++	{
++		.vendor		= PCI_VENDOR_ID_ITE,
++		.device		= PCI_DEVICE_ID_ITE_8872,
++		.subvendor	= PCI_ANY_ID,
++		.subdevice	= PCI_ANY_ID,
++		.init		= pci_ite887x_init,
++		.setup		= pci_default_setup,
++		.exit		= __devexit_p(pci_ite887x_exit),
++	},
++	/*
+ 	 * Panacom
+ 	 */
+ 	{
+@@ -933,6 +1077,7 @@ enum pci_board_num_t {
+ 
+ 	pbn_b1_2_1250000,
+ 
++	pbn_b1_bt_1_115200,
+ 	pbn_b1_bt_2_921600,
+ 
+ 	pbn_b1_1_1382400,
+@@ -1211,6 +1356,13 @@ static struct pciserial_board pci_boards
+ 		.uart_offset	= 8,
+ 	},
+ 
++	[pbn_b1_bt_1_115200] = {
++		.flags		= FL_BASE1|FL_BASE_BARS,
++		.num_ports	= 1,
++		.base_baud	= 115200,
++		.uart_offset	= 8,
++	},
++
+ 	[pbn_b1_bt_2_921600] = {
+ 		.flags		= FL_BASE1|FL_BASE_BARS,
+ 		.num_ports	= 2,
+@@ -2364,6 +2516,13 @@ static struct pci_device_id serial_pci_t
+ 	{	PCI_VENDOR_ID_TOPIC, PCI_DEVICE_ID_TOPIC_TP560,
+ 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
+ 		pbn_b0_1_115200 },
++	/*
++	 * ITE
++	 */
++	{	PCI_VENDOR_ID_ITE, PCI_DEVICE_ID_ITE_8872,
++		PCI_ANY_ID, PCI_ANY_ID,
++		0, 0,
++		pbn_b1_bt_1_115200 },
+ 
+ 	/*
+ 	 * IntaShield IS-200
 _
 
-Patches currently in -mm which might be from shpedoikal@gmail.com are
+Patches currently in -mm which might be from niels.devos@wincor-nixdorf.com are
 
 origin.patch
