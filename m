@@ -1,157 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-config_check_signature-was-re-uninline.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:22 -0700
-Message-ID: <200708242056.l7OKuMNm014055@imap1.linux-foundation.org>
+Subject: - pnp-remove-module-infrastructure.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:59:03 -0700
+Message-ID: <200708242059.l7OKx3im014363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50809 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764147AbXHXVI4 (ORCPT
+	by vger.kernel.org with ESMTP id S1764246AbXHXVJH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:56 -0400
+	Fri, 24 Aug 2007 17:09:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, alan@lxorguk.ukuu.org.uk, heiko.carstens@de.ibm.com, jdike@addtoit.com, rmk@arm.linux.org.uk, schwidefsky@de.ibm.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce CONFIG_CHECK_SIGNATURE
+     PNP: remove MODULE infrastructure
 has been removed from the -mm tree.  Its filename was
-     introduce-config_check_signature-was-re-uninline.patch
+     pnp-remove-module-infrastructure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Introduce CONFIG_CHECK_SIGNATURE
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: PNP: remove MODULE infrastructure
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Introduce CONFIG_CHECK_SIGNATURE to control inclusion of check_signature()
-and avoid problems on platforms that don't have readb().
+We don't support building any part of PNP as a module (*drivers* can be
+modules, of course, but the PNP infrastructure itself can not).  Since
+MODULE will never be defined, remove the ifdefs and dead code.
 
-Let the few legacy (ISA || PCI || X86) drivers that need check_signature()
-select CONFIG_CHECK_SIGNATURE.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig      |    1 +
- drivers/input/misc/Kconfig |    1 +
- drivers/scsi/Kconfig       |    6 ++++++
- lib/Kconfig                |    3 +++
- lib/Makefile               |    3 ++-
- 5 files changed, 13 insertions(+), 1 deletion(-)
+ drivers/pnp/isapnp/proc.c  |   45 -----------------------------------
+ drivers/pnp/pnpbios/core.c |   43 ---------------------------------
+ 2 files changed, 88 deletions(-)
 
-diff -puN drivers/block/Kconfig~introduce-config_check_signature-was-re-uninline drivers/block/Kconfig
---- a/drivers/block/Kconfig~introduce-config_check_signature-was-re-uninline
-+++ a/drivers/block/Kconfig
-@@ -68,6 +68,7 @@ config AMIGA_Z2RAM
- config BLK_DEV_XD
- 	tristate "XT hard disk support"
- 	depends on ISA && ISA_DMA_API
-+	select CHECK_SIGNATURE
- 	help
- 	  Very old 8 bit hard disk controllers used in the IBM XT computer
- 	  will be supported if you say Y here.
-diff -puN drivers/input/misc/Kconfig~introduce-config_check_signature-was-re-uninline drivers/input/misc/Kconfig
---- a/drivers/input/misc/Kconfig~introduce-config_check_signature-was-re-uninline
-+++ a/drivers/input/misc/Kconfig
-@@ -68,6 +68,7 @@ config INPUT_WISTRON_BTNS
- 	select INPUT_POLLDEV
- 	select NEW_LEDS
- 	select LEDS_CLASS
-+	select CHECK_SIGNATURE
- 	help
- 	  Say Y here for support of Winstron laptop button interface, used on
- 	  laptops of various brands, including Acer and Fujitsu-Siemens. If
-diff -puN drivers/scsi/Kconfig~introduce-config_check_signature-was-re-uninline drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~introduce-config_check_signature-was-re-uninline
-+++ a/drivers/scsi/Kconfig
-@@ -367,6 +367,7 @@ config SCSI_3W_9XXX
- config SCSI_7000FASST
- 	tristate "7000FASST SCSI support"
- 	depends on ISA && SCSI && ISA_DMA_API
-+	select CHECK_SIGNATURE
- 	help
- 	  This driver supports the Western Digital 7000 SCSI host adapter
- 	  family.  Some information is in the source:
-@@ -388,6 +389,7 @@ config SCSI_AHA152X
- 	tristate "Adaptec AHA152X/2825 support"
- 	depends on ISA && SCSI && !64BIT
- 	select SCSI_SPI_ATTRS
-+	select CHECK_SIGNATURE
- 	---help---
- 	  This is a driver for the AHA-1510, AHA-1520, AHA-1522, and AHA-2825
- 	  SCSI host adapters. It also works for the AVA-1505, but the IRQ etc.
-@@ -583,6 +585,7 @@ config SCSI_DTC3280
- 	tristate "DTC3180/3280 SCSI support"
- 	depends on ISA && SCSI
- 	select SCSI_SPI_ATTRS
-+	select CHECK_SIGNATURE
- 	help
- 	  This is support for DTC 3180/3280 SCSI Host Adapters.  Please read
- 	  the SCSI-HOWTO, available from
-@@ -657,6 +660,7 @@ config SCSI_EATA_PIO
- config SCSI_FUTURE_DOMAIN
- 	tristate "Future Domain 16xx SCSI/AHA-2920A support"
- 	depends on (ISA || PCI) && SCSI
-+	select CHECK_SIGNATURE
- 	---help---
- 	  This is support for Future Domain's 16-bit SCSI host adapters
- 	  (TMC-1660/1680, TMC-1650/1670, TMC-3260, TMC-1610M/MER/MEX) and
-@@ -1324,6 +1328,7 @@ config SCSI_LPFC
- config SCSI_SEAGATE
- 	tristate "Seagate ST-02 and Future Domain TMC-8xx SCSI support"
- 	depends on X86 && ISA && SCSI
-+	select CHECK_SIGNATURE
- 	---help---
- 	  These are 8-bit SCSI controllers; the ST-01 is also supported by
- 	  this driver.  It is explained in section 3.9 of the SCSI-HOWTO,
-@@ -1397,6 +1402,7 @@ config SCSI_T128
- 	tristate "Trantor T128/T128F/T228 SCSI support"
- 	depends on ISA && SCSI
- 	select SCSI_SPI_ATTRS
-+	select CHECK_SIGNATURE
- 	---help---
- 	  This is support for a SCSI host adapter. It is explained in section
- 	  3.11 of the SCSI-HOWTO, available from
-diff -puN lib/Kconfig~introduce-config_check_signature-was-re-uninline lib/Kconfig
---- a/lib/Kconfig~introduce-config_check_signature-was-re-uninline
-+++ a/lib/Kconfig
-@@ -138,4 +138,7 @@ config HAS_DMA
- 	depends on !NO_DMA
- 	default y
+diff -puN drivers/pnp/isapnp/proc.c~pnp-remove-module-infrastructure drivers/pnp/isapnp/proc.c
+--- a/drivers/pnp/isapnp/proc.c~pnp-remove-module-infrastructure
++++ a/drivers/pnp/isapnp/proc.c
+@@ -112,33 +112,6 @@ static int isapnp_proc_attach_device(str
+ 	return 0;
+ }
  
-+config CHECK_SIGNATURE
-+	bool
-+
- endmenu
-diff -puN lib/Makefile~introduce-config_check_signature-was-re-uninline lib/Makefile
---- a/lib/Makefile~introduce-config_check_signature-was-re-uninline
-+++ a/lib/Makefile
-@@ -21,7 +21,8 @@ CFLAGS_kobject_uevent.o += -DDEBUG
- endif
+-#ifdef MODULE
+-static int __exit isapnp_proc_detach_device(struct pnp_dev *dev)
+-{
+-	struct pnp_card *bus = dev->card;
+-	struct proc_dir_entry *de;
+-	char name[16];
+-
+-	if (!(de = bus->procdir))
+-		return -EINVAL;
+-	sprintf(name, "%02x", dev->number);
+-	remove_proc_entry(name, de);
+-	return 0;
+-}
+-
+-static int __exit isapnp_proc_detach_bus(struct pnp_card *bus)
+-{
+-	struct proc_dir_entry *de;
+-	char name[16];
+-
+-	if (!(de = bus->procdir))
+-		return -EINVAL;
+-	sprintf(name, "%02x", bus->number);
+-	remove_proc_entry(name, isapnp_proc_bus_dir);
+-	return 0;
+-}
+-#endif				/* MODULE */
+-
+ int __init isapnp_proc_init(void)
+ {
+ 	struct pnp_dev *dev;
+@@ -149,21 +122,3 @@ int __init isapnp_proc_init(void)
+ 	}
+ 	return 0;
+ }
+-
+-#ifdef MODULE
+-int __exit isapnp_proc_done(void)
+-{
+-	struct pnp_dev *dev;
+-	struct pnp_bus *card;
+-
+-	isapnp_for_each_dev(dev) {
+-		isapnp_proc_detach_device(dev);
+-	}
+-	isapnp_for_each_card(card) {
+-		isapnp_proc_detach_bus(card);
+-	}
+-	if (isapnp_proc_bus_dir)
+-		remove_proc_entry("isapnp", proc_bus);
+-	return 0;
+-}
+-#endif				/* MODULE */
+diff -puN drivers/pnp/pnpbios/core.c~pnp-remove-module-infrastructure drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnp-remove-module-infrastructure
++++ a/drivers/pnp/pnpbios/core.c
+@@ -419,7 +419,6 @@ static void __init build_devlist(void)
+ static int pnpbios_disabled;
+ int pnpbios_dont_use_current_config;
  
- obj-$(CONFIG_GENERIC_IOMAP) += iomap.o
--obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o check_signature.o
-+obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o
-+obj-$(CONFIG_CHECK_SIGNATURE) += check_signature.o
- obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS) += locking-selftest.o
- obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock_debug.o
- lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += rwsem-spinlock.o
+-#ifndef MODULE
+ static int __init pnpbios_setup(char *str)
+ {
+ 	int invert;
+@@ -443,7 +442,6 @@ static int __init pnpbios_setup(char *st
+ }
+ 
+ __setup("pnpbios=", pnpbios_setup);
+-#endif
+ 
+ /* PnP BIOS signature: "$PnP" */
+ #define PNP_SIGNATURE   (('$' << 0) + ('P' << 8) + ('n' << 16) + ('P' << 24))
+@@ -607,48 +605,7 @@ static int __init pnpbios_thread_init(vo
+ 	return 0;
+ }
+ 
+-#ifndef MODULE
+-
+-/* init/main.c calls pnpbios_init early */
+-
+ /* Start the kernel thread later: */
+ module_init(pnpbios_thread_init);
+ 
+-#else
+-
+-/*
+- * N.B.: Building pnpbios as a module hasn't been fully implemented
+- */
+-
+-MODULE_LICENSE("GPL");
+-
+-static int __init pnpbios_init_all(void)
+-{
+-	int r;
+-
+-	r = pnpbios_init();
+-	if (r)
+-		return r;
+-	r = pnpbios_thread_init();
+-	if (r)
+-		return r;
+-	return 0;
+-}
+-
+-static void __exit pnpbios_exit(void)
+-{
+-#ifdef CONFIG_HOTPLUG
+-	unloading = 1;
+-	wait_for_completion(&unload_sem);
+-#endif
+-	pnpbios_proc_exit();
+-	/* We ought to free resources here */
+-	return;
+-}
+-
+-module_init(pnpbios_init_all);
+-module_exit(pnpbios_exit);
+-
+-#endif
+-
+ EXPORT_SYMBOL(pnpbios_protocol);
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-move-preempt_notifiers-into-an-always-included-kconfig.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+git-acpi.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+move-free-pages-between-lists-on-steal.patch
+convert-ill-defined-log2-to-ilog2.patch
+tpm_tis-fix-interrupt-probing.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
