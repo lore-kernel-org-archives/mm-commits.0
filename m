@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + clockevents-remove-unused-inline-function.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:04:41 -0700
-Message-ID: <200708242204.l7OM4fLe016975@imap1.linux-foundation.org>
+Subject: + x86_64-apic-remove-nested-irq-disable.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:08 -0700
+Message-ID: <200708242205.l7OM5Fkd017023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34500 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34159 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759616AbXHXWGk (ORCPT
+	by vger.kernel.org with ESMTP id S1759616AbXHXWGa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:06:40 -0400
+	Fri, 24 Aug 2007 18:06:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu
+Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     clockevents: Remove unused inline function
+     x86_64: remove nested irq disables
 has been added to the -mm tree.  Its filename is
-     clockevents-remove-unused-inline-function.patch
+     x86_64-apic-remove-nested-irq-disable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: clockevents: Remove unused inline function
+Subject: x86_64: remove nested irq disables
 From: Thomas Gleixner <tglx@linutronix.de>
 
+setup_APIC_timer disables interrupts anyway.  So no need to do the same in
+setup_boot_APIC_clock and setup_secondary_APIC_clock.  Disable interrupts
+explicit in the calibration code.
+
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    1 -
- 1 files changed, 1 deletion(-)
+ arch/x86_64/kernel/apic.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/clockchips.h~clockevents-remove-unused-inline-function include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-remove-unused-inline-function
-+++ a/include/linux/clockchips.h
-@@ -130,7 +130,6 @@ extern void clockevents_notify(unsigned 
+diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-remove-nested-irq-disable arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-apic-remove-nested-irq-disable
++++ a/arch/x86_64/kernel/apic.c
+@@ -830,6 +830,9 @@ static void __init calibrate_APIC_clock(
+ 	unsigned apic, apic_start;
+ 	unsigned long tsc, tsc_start;
+ 	int result;
++
++	local_irq_disable();
++
+ 	/*
+ 	 * Put whatever arbitrary (but long enough) timeout
+ 	 * value into the APIC clock, we just want to get the
+@@ -859,6 +862,9 @@ static void __init calibrate_APIC_clock(
+ 		result = (apic_start - apic) * 1000L * tsc_khz /
+ 					(tsc - tsc_start);
+ 	}
++
++	local_irq_enable();
++
+ 	printk(KERN_DEBUG "APIC timer calibration result %d\n", result);
  
- #else
+ 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
+@@ -877,22 +883,16 @@ void __init setup_boot_APIC_clock (void)
+ 	printk(KERN_INFO "Using local APIC timer interrupts.\n");
+ 	using_apic_timer = 1;
  
--static inline void clockevents_resume_events(void) { }
- #define clockevents_notify(reason, arg) do { } while (0)
+-	local_irq_disable();
+-
+ 	calibrate_APIC_clock();
+ 	/*
+ 	 * Now set up the timer for real.
+ 	 */
+ 	setup_APIC_timer();
+-
+-	local_irq_enable();
+ }
  
- #endif
+ void __cpuinit setup_secondary_APIC_clock(void)
+ {
+-	local_irq_disable(); /* FIXME: Do we need this? --RR */
+ 	setup_APIC_timer();
+-	local_irq_enable();
+ }
+ 
+ void disable_APIC_timer(void)
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
