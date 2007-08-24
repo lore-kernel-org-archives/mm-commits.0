@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-prepare-sharing-pit-code.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:04:51 -0700
-Message-ID: <200708242204.l7OM4p8f016990@imap1.linux-foundation.org>
+Subject: + x86_64-prep-idle-loop-for-dynticks.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:17 -0700
+Message-ID: <200708242205.l7OM5HAX017026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56633 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759125AbXHXWGS (ORCPT
+	by vger.kernel.org with ESMTP id S1759558AbXHXWGX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:06:18 -0400
+	Fri, 24 Aug 2007 18:06:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, mingo@elte.hu
+Cc: chrisw@sous-sol.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     i386: prepare sharing the PIT code
+     x86_64: prepare idle loop for dynamic ticks
 has been added to the -mm tree.  Its filename is
-     i386-prepare-sharing-pit-code.patch
+     x86_64-prep-idle-loop-for-dynticks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: prepare sharing the PIT code
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86_64: prepare idle loop for dynamic ticks
+From: Chris Wright <chrisw@sous-sol.org>
 
-PIT clock events work already and the PIT handling is the same for i386 and
-x86_64.  x86_64 does not support PIT as a clock source, so disable the PIT
-clocksource for x86_64.
+Add tick_nohz_{stop,restart}_sched_tick to idle loop in prepartion for turning
+on dynticks.  These are just noops until NO_HZ is enabled.
 
-Prepare i8253.h to be shared with x8664
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/i8253.c |    4 +++-
- include/asm-i386/i8253.h |    6 ++++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/process.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN arch/i386/kernel/i8253.c~i386-prepare-sharing-pit-code arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~i386-prepare-sharing-pit-code
-+++ a/arch/i386/kernel/i8253.c
-@@ -13,7 +13,6 @@
- #include <asm/delay.h>
- #include <asm/i8253.h>
- #include <asm/io.h>
--#include <asm/timer.h>
+diff -puN arch/x86_64/kernel/process.c~x86_64-prep-idle-loop-for-dynticks arch/x86_64/kernel/process.c
+--- a/arch/x86_64/kernel/process.c~x86_64-prep-idle-loop-for-dynticks
++++ a/arch/x86_64/kernel/process.c
+@@ -38,6 +38,7 @@
+ #include <linux/notifier.h>
+ #include <linux/kprobes.h>
+ #include <linux/kdebug.h>
++#include <linux/tick.h>
  
- DEFINE_SPINLOCK(i8253_lock);
- EXPORT_SYMBOL(i8253_lock);
-@@ -120,6 +119,7 @@ void __init setup_pit_timer(void)
- 	global_clock_event = &pit_clockevent;
- }
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
+@@ -208,6 +209,8 @@ void cpu_idle (void)
+ 			if (__get_cpu_var(cpu_idle_state))
+ 				__get_cpu_var(cpu_idle_state) = 0;
  
-+#ifndef CONFIG_X86_64
- /*
-  * Since the PIT overflows every tick, its not very useful
-  * to just read by itself. So use jiffies to emulate a free
-@@ -204,3 +204,5 @@ static int __init init_pit_clocksource(v
- 	return clocksource_register(&clocksource_pit);
- }
- arch_initcall(init_pit_clocksource);
++			tick_nohz_stop_sched_tick();
 +
-+#endif
-diff -puN include/asm-i386/i8253.h~i386-prepare-sharing-pit-code include/asm-i386/i8253.h
---- a/include/asm-i386/i8253.h~i386-prepare-sharing-pit-code
-+++ a/include/asm-i386/i8253.h
-@@ -1,8 +1,6 @@
- #ifndef __ASM_I8253_H__
- #define __ASM_I8253_H__
+ 			check_pgt_cache();
+ 			rmb();
+ 			idle = pm_idle;
+@@ -229,6 +232,7 @@ void cpu_idle (void)
+ 			__exit_idle();
+ 		}
  
--#include <linux/clockchips.h>
--
- /* i8253A PIT registers */
- #define PIT_MODE		0x43
- #define PIT_CH0			0x40
-@@ -10,8 +8,12 @@
- 
- extern spinlock_t i8253_lock;
- 
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+
- extern struct clock_event_device *global_clock_event;
- 
- extern void setup_pit_timer(void);
- 
-+#endif
-+
- #endif	/* __ASM_I8253_H__ */
++		tick_nohz_restart_sched_tick();
+ 		preempt_enable_no_resched();
+ 		schedule();
+ 		preempt_disable();
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
 origin.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-git-acpi.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
 x86_64-consolidate-tsc-calibration.patch
 i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
 i386-prepare-sharing-pit-code.patch
 x86_64-use-i386-i8253-h.patch
 x86_64-preparatory-apic-set-lvtt.patch
@@ -124,25 +92,25 @@ x86_64-convert-to-clockevents.patch
 x86_64-remove-unused-code.patch
 x86_64-cleanup-apic-c.patch
 jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
 i386-pit-remove-the-useless-ifdefs.patch
 i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
+file-capabilities-clear-fcaps-on-inode-change.patch
+security-cleanups.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+whitespace-fixes-capability-syscalls.patch
