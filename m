@@ -1,108 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:00 -0700
-Message-ID: <200708242058.l7OKw0aP014269@imap1.linux-foundation.org>
+Subject: - autofs4-deadlock-during-create.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:51 -0700
+Message-ID: <200708242056.l7OKup6b014103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49491 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759755AbXHXVIN (ORCPT
+	by vger.kernel.org with ESMTP id S1762291AbXHXVIR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:13 -0400
+	Fri, 24 Aug 2007 17:08:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s390 appldata_base: Misc cpuinit annotations and bugfix
+     autofs4: deadlock during create
 has been removed from the -mm tree.  Its filename was
-     s390-appldata_base-misc-cpuinit-annotations-and-bugfix.patch
+     autofs4-deadlock-during-create.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s390 appldata_base: Misc cpuinit annotations and bugfix
-From: Satyam Sharma <satyam@infradead.org>
+Subject: autofs4: deadlock during create
+From: Ian Kent <raven@themaw.net>
 
-appldata_offline_cpu() is only called from __cpuinit-marked hotplug
-notifier callback and from the __exit-marked module_exit function,
-therefore candidate for __cpuexit.
+Due to inconsistent locking in the VFS between calls to lookup and
+revalidate deadlock can occur in the automounter.
 
-BTW the __exit module_exit function appldata_exit() of this driver fails to
-unregister_hotcpu_notifier() the notifier_block that was registered by
-appldata_init() during module startup.  This will lead to oops if hotplug
-notification comes after module has been unloaded.  Let's fix this by
-unregistering the notifier appropriately (before appldata_offline_cpu()'ing
-the CPUs).
+The inconsistency is that the directory inode mutex is held for both lookup
+and revalidate calls when called via lookup_hash whereas it is held only
+for lookup during a path walk.  Consequently, if the mutex is held during a
+call to revalidate autofs4 can't release the mutex to callback the daemon
+as it can't know whether it owns the mutex.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+This situation happens when a process tries to create a directory within an
+automount and a second process also tries to create the same directory
+between the lookup and the mkdir.  Since the first process has dropped the
+mutex for the daemon callback, the second process takes it during
+revalidate leading to deadlock between the autofs daemon and the second
+process when the daemon tries to create the mount point directory.
+
+After spending quite a bit of time trying to resolve this on more than one
+occassion, using rather complex and ulgy approaches, it turns out that just
+delaying the hashing of the dentry until the create operation works fine.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/appldata/appldata_base.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ fs/autofs4/root.c |   31 +++++++++++++++++--------------
+ 1 files changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN arch/s390/appldata/appldata_base.c~s390-appldata_base-misc-cpuinit-annotations-and-bugfix arch/s390/appldata/appldata_base.c
---- a/arch/s390/appldata/appldata_base.c~s390-appldata_base-misc-cpuinit-annotations-and-bugfix
-+++ a/arch/s390/appldata/appldata_base.c
-@@ -547,8 +547,7 @@ static void __cpuinit appldata_online_cp
- 	spin_unlock(&appldata_timer_lock);
- }
+diff -puN fs/autofs4/root.c~autofs4-deadlock-during-create fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-deadlock-during-create
++++ a/fs/autofs4/root.c
+@@ -587,19 +587,20 @@ static struct dentry *autofs4_lookup(str
+ 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (!unhashed) {
+ 		/*
+-		 * Mark the dentry incomplete, but add it. This is needed so
+-		 * that the VFS layer knows about the dentry, and we can count
+-		 * on catching any lookups through the revalidate.
+-		 *
+-		 * Let all the hard work be done by the revalidate function that
+-		 * needs to be able to do this anyway..
+-		 *
+-		 * We need to do this before we release the directory semaphore.
++		 * Mark the dentry incomplete but don't hash it. We do this
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
+ 		 */
+ 		dentry->d_op = &autofs4_root_dentry_operations;
  
--static void
--appldata_offline_cpu(int cpu)
-+static void __cpuexit appldata_offline_cpu(int cpu)
- {
- 	del_virt_timer(&per_cpu(appldata_timer, cpu));
- 	if (atomic_dec_and_test(&appldata_expire_count)) {
-@@ -560,9 +559,9 @@ appldata_offline_cpu(int cpu)
- 	spin_unlock(&appldata_timer_lock);
- }
- 
--static int __cpuinit
--appldata_cpu_notify(struct notifier_block *self,
--		    unsigned long action, void *hcpu)
-+static int __cpuinit appldata_cpu_notify(struct notifier_block *self,
-+					 unsigned long action,
-+					 void *hcpu)
- {
- 	switch (action) {
- 	case CPU_ONLINE:
-@@ -646,6 +645,8 @@ static void __exit appldata_exit(void)
+ 		dentry->d_fsdata = NULL;
+-		d_add(dentry, NULL);
++		d_instantiate(dentry, NULL);
+ 	} else {
+ 		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+ 		DPRINTK("rehash %p with %p", dentry, unhashed);
+@@ -607,15 +608,17 @@ static struct dentry *autofs4_lookup(str
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
++		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
++		 * before continuing as revalidate may fail when calling
++		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+-		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				unhashed, unhashed->d_name.len,
+ 				unhashed->d_name.name);
+ 			autofs4_wait(sbi, unhashed, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		d_rehash(unhashed);
+ 		dentry = unhashed;
  	}
- 	spin_unlock(&appldata_ops_lock);
  
-+	unregister_hotcpu_notifier(&appldata_nb);
-+
- 	for_each_online_cpu(i)
- 		appldata_offline_cpu(i);
+@@ -658,7 +661,7 @@ static struct dentry *autofs4_lookup(str
+ 	 * for all system calls, but it should be OK for the operations
+ 	 * we permit from an autofs.
+ 	 */
+-	if (dentry->d_inode && d_unhashed(dentry)) {
++	if (!oz_mode && d_unhashed(dentry)) {
+ 		/*
+ 		 * A user space application can (and has done in the past)
+ 		 * remove and re-create this directory during the callback.
+@@ -716,7 +719,7 @@ static int autofs4_dir_symlink(struct in
+ 	strcpy(cp, symname);
  
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+@@ -844,7 +847,7 @@ static int autofs4_dir_mkdir(struct inod
+ 		return -ENOSPC;
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from raven@themaw.net are
 
 origin.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-git-netdev-all.patch
-git-net.patch
-git-s390.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+autofs4-reinstate-negatitive-timeout-of-mount-fails.patch
+autofs4-reinstate-negatitive-timeout-of-mount-fails-fix.patch
