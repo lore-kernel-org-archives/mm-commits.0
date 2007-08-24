@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-apic-calibration-remove-divisor.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:05:01 -0700
-Message-ID: <200708242205.l7OM55ZD017017@imap1.linux-foundation.org>
+Subject: + i386-hpet-sharing-optimize.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:05:33 -0700
+Message-ID: <200708242205.l7OM5XVt017050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32773 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757623AbXHXWOH (ORCPT
+	by vger.kernel.org with ESMTP id S1757703AbXHXWPA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:14:07 -0400
+	Fri, 24 Aug 2007 18:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mi
 
 
 The patch titled
-     x86_64: Remove APIC_DIVISOR
+     i386/x86_64: cleanup the shared hpet code
 has been added to the -mm tree.  Its filename is
-     x86_64-apic-calibration-remove-divisor.patch
+     i386-hpet-sharing-optimize.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: Remove APIC_DIVISOR
+Subject: i386/x86_64: cleanup the shared hpet code
 From: Thomas Gleixner <tglx@linutronix.de>
 
-APIC_DIVISOR is rather useless.  It makes the calibration result more accurate
-in the first place, but we discard this later when we write the value to the
-APIC timer by dividing the calibration value by APIC_DIVISOR.
+Remove hpet_readl/writel from vsyscall.h, where it does not belong anyway. 
+Use the hpet code itself.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+ arch/i386/kernel/hpet.c       |    6 +-----
+ include/asm-i386/hpet.h       |    2 ++
+ include/asm-x86_64/vsyscall.h |    3 ---
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-calibration-remove-divisor arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-apic-calibration-remove-divisor
-+++ a/arch/x86_64/kernel/apic.c
-@@ -763,8 +763,6 @@ void __init init_apic_mappings(void)
-  * P5 APIC double write bug.
-  */
+diff -puN arch/i386/kernel/hpet.c~i386-hpet-sharing-optimize arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~i386-hpet-sharing-optimize
++++ a/arch/i386/kernel/hpet.c
+@@ -25,11 +25,7 @@
+ unsigned long hpet_address;
+ static void __iomem *hpet_virt_address;
  
--#define APIC_DIVISOR 16
+-/* Temporary hack. Cleanup after x86_64 clock events conversion */
+-#undef hpet_readl
+-#undef hpet_writel
 -
- static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
+-static inline unsigned long hpet_readl(unsigned long a)
++unsigned long hpet_readl(unsigned long a)
  {
- 	unsigned int lvtt_value, tmp_value;
-@@ -786,7 +784,7 @@ static void __setup_APIC_LVTT(unsigned i
- 				| APIC_TDR_DIV_16);
- 
- 	if (!oneshot)
--		apic_write(APIC_TMICT, clocks/APIC_DIVISOR);
-+		apic_write(APIC_TMICT, clocks);
+ 	return readl(hpet_virt_address + a);
  }
+diff -puN include/asm-i386/hpet.h~i386-hpet-sharing-optimize include/asm-i386/hpet.h
+--- a/include/asm-i386/hpet.h~i386-hpet-sharing-optimize
++++ a/include/asm-i386/hpet.h
+@@ -66,6 +66,7 @@
+ extern unsigned long hpet_address;
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
++extern unsigned long hpet_readl(unsigned long a);
  
- static void setup_APIC_timer(unsigned int clocks)
-@@ -839,7 +837,7 @@ static void __init calibrate_APIC_clock(
- 	 *
- 	 * No interrupt enable !
- 	 */
--	__setup_APIC_LVTT(4000000000, 0, 0);
-+	__setup_APIC_LVTT(250000000, 0, 0);
+ #ifdef CONFIG_HPET_EMULATE_RTC
  
- 	apic_start = apic_read(APIC_TMCCT);
- #ifdef CONFIG_X86_PM_TIMER
-@@ -866,7 +864,7 @@ static void __init calibrate_APIC_clock(
- 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
- 		result / 1000 / 1000, result / 1000 % 1000);
+@@ -85,6 +86,7 @@ extern irqreturn_t hpet_rtc_interrupt(in
+ #else
  
--	calibration_result = result * APIC_DIVISOR / HZ;
-+	calibration_result = result / HZ;
- }
+ static inline int hpet_enable(void) { return 0; }
++static inline unsigned long hpet_readl(unsigned long a) { return 0; }
  
- void __init setup_boot_APIC_clock (void)
+ #endif /* CONFIG_HPET_TIMER */
+ #endif /* _I386_HPET_H */
+diff -puN include/asm-x86_64/vsyscall.h~i386-hpet-sharing-optimize include/asm-x86_64/vsyscall.h
+--- a/include/asm-x86_64/vsyscall.h~i386-hpet-sharing-optimize
++++ a/include/asm-x86_64/vsyscall.h
+@@ -29,9 +29,6 @@ enum vsyscall_num {
+ #define VGETCPU_RDTSCP	1
+ #define VGETCPU_LSL	2
+ 
+-#define hpet_readl(a)           readl((const void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
+-#define hpet_writel(d,a)        writel(d, (void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
+-
+ extern int __vgetcpu_mode;
+ extern volatile unsigned long __jiffies;
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
