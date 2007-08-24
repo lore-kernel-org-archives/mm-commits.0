@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-apic-remove-bogus-pit-synchronization.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:04:57 -0700
-Message-ID: <200708242204.l7OM4vj3017005@imap1.linux-foundation.org>
+Subject: + i386-prepare-sharing-pit-code.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:04:51 -0700
+Message-ID: <200708242204.l7OM4p8f016990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56633 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757035AbXHXWGR (ORCPT
+	by vger.kernel.org with ESMTP id S1759125AbXHXWGS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:06:17 -0400
+	Fri, 24 Aug 2007 18:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu
+Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, mingo@elte.hu
 
 
 The patch titled
-     x86_64: remove pit synchronization
+     i386: prepare sharing the PIT code
 has been added to the -mm tree.  Its filename is
-     x86_64-apic-remove-bogus-pit-synchronization.patch
+     i386-prepare-sharing-pit-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: remove pit synchronization
+Subject: i386: prepare sharing the PIT code
 From: Thomas Gleixner <tglx@linutronix.de>
 
-The APIC timer setup code synchronizes the local APIC timer to the PIT/HPET. 
-This is pointless as the PIT and the local APIC timer frequency are not
-correlated and the APIC timer calibration can never be accurate enough to
-avoid that the local APIC timer and the PIT/HPET drift apart.
+PIT clock events work already and the PIT handling is the same for i386 and
+x86_64.  x86_64 does not support PIT as a clock source, so disable the PIT
+clocksource for x86_64.
 
-Simply remove it.
+Prepare i8253.h to be shared with x8664
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
-Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |   18 ------------------
- 1 files changed, 18 deletions(-)
+ arch/i386/kernel/i8253.c |    4 +++-
+ include/asm-i386/i8253.h |    6 ++++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-remove-bogus-pit-synchronization arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-apic-remove-bogus-pit-synchronization
-+++ a/arch/x86_64/kernel/apic.c
-@@ -794,24 +794,6 @@ static void setup_APIC_timer(unsigned in
+diff -puN arch/i386/kernel/i8253.c~i386-prepare-sharing-pit-code arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~i386-prepare-sharing-pit-code
++++ a/arch/i386/kernel/i8253.c
+@@ -13,7 +13,6 @@
+ #include <asm/delay.h>
+ #include <asm/i8253.h>
+ #include <asm/io.h>
+-#include <asm/timer.h>
  
- 	local_irq_save(flags);
+ DEFINE_SPINLOCK(i8253_lock);
+ EXPORT_SYMBOL(i8253_lock);
+@@ -120,6 +119,7 @@ void __init setup_pit_timer(void)
+ 	global_clock_event = &pit_clockevent;
+ }
  
--	/* wait for irq slice */
--	if (hpet_address && hpet_use_timer) {
--		u32 trigger = hpet_readl(HPET_T0_CMP);
--		while (hpet_readl(HPET_T0_CMP) == trigger)
--			/* do nothing */ ;
--	} else {
--		int c1, c2;
--		outb_p(0x00, 0x43);
--		c2 = inb_p(0x40);
--		c2 |= inb_p(0x40) << 8;
--		do {
--			c1 = c2;
--			outb_p(0x00, 0x43);
--			c2 = inb_p(0x40);
--			c2 |= inb_p(0x40) << 8;
--		} while (c2 - c1 < 300);
--	}
++#ifndef CONFIG_X86_64
+ /*
+  * Since the PIT overflows every tick, its not very useful
+  * to just read by itself. So use jiffies to emulate a free
+@@ -204,3 +204,5 @@ static int __init init_pit_clocksource(v
+ 	return clocksource_register(&clocksource_pit);
+ }
+ arch_initcall(init_pit_clocksource);
++
++#endif
+diff -puN include/asm-i386/i8253.h~i386-prepare-sharing-pit-code include/asm-i386/i8253.h
+--- a/include/asm-i386/i8253.h~i386-prepare-sharing-pit-code
++++ a/include/asm-i386/i8253.h
+@@ -1,8 +1,6 @@
+ #ifndef __ASM_I8253_H__
+ #define __ASM_I8253_H__
+ 
+-#include <linux/clockchips.h>
 -
- 	irqen = ! cpu_isset(smp_processor_id(),
- 			    timer_interrupt_broadcast_ipi_mask);
- 	__setup_APIC_LVTT(clocks, 0, irqen);
+ /* i8253A PIT registers */
+ #define PIT_MODE		0x43
+ #define PIT_CH0			0x40
+@@ -10,8 +8,12 @@
+ 
+ extern spinlock_t i8253_lock;
+ 
++#ifdef CONFIG_GENERIC_CLOCKEVENTS
++
+ extern struct clock_event_device *global_clock_event;
+ 
+ extern void setup_pit_timer(void);
+ 
++#endif
++
+ #endif	/* __ASM_I8253_H__ */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
