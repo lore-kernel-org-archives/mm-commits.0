@@ -1,78 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-fix-lookup-error-for-special-files.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:08 -0700
-Message-ID: <200708242055.l7OKt8d5013939@imap1.linux-foundation.org>
+Subject: - fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:04 -0700
+Message-ID: <200708242055.l7OKt4Nq013936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36392 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755213AbXHXUzT (ORCPT
+	by vger.kernel.org with ESMTP id S1755357AbXHXUzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 16:55:19 -0400
+	Fri, 24 Aug 2007 16:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: rgetz@blackfin.uclinux.org, kraxel@redhat.com, lethal@linux-sh.org, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: fix lookup error for special files
+     fix - ensure we don't use bootconsoles after init has been released
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-lookup-error-for-special-files.patch
+     fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: fix lookup error for special files
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: fix - ensure we don't use bootconsoles after init has been released
+From: Robin Getz <rgetz@blackfin.uclinux.org>
 
-When ecryptfs_lookup() is called against special files, eCryptfs generates
-the following errors because it tries to treat them like regular eCryptfs
-files.
+Gerd Hoffmann pointed out that my patch from yesterday can lead to a null
+pointer dereference if the kernel is booted with no console, and no
+earlyprintk defined.  This fixes that issue.
 
-Error opening lower file for lower_dentry [0xffff810233a6f150], lower_mnt [0xffff810235bb4c80], and flags
-[0x8000]
-Error opening lower_file to read header region
-Error attempting to read the [user.ecryptfs] xattr from the lower file; return value = [-95]
-Valid metadata not found in header region or xattr region; treating file as unencrypted
-
-For instance, the problem can be reproduced by the steps below.
-
-  # mkdir /root/crypt /mnt/crypt
-  # mount -t ecryptfs /root/crypt /mnt/crypt
-  # mknod /mnt/crypt/c0 c 0 0
-  # umount /mnt/crypt
-  # mount -t ecryptfs /root/crypt /mnt/crypt
-  # ls -l /mnt/crypt
-
-This patch fixes it by adding a check similar to directories and
-symlinks.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: "Gerd Hoffmann" <kraxel@redhat.com>
+Cc: "Paul Mundt" <lethal@linux-sh.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ kernel/printk.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-fix-lookup-error-for-special-files fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-fix-lookup-error-for-special-files
-+++ a/fs/ecryptfs/inode.c
-@@ -357,6 +357,10 @@ static struct dentry *ecryptfs_lookup(st
- 		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
- 		goto out;
+diff -puN kernel/printk.c~fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released kernel/printk.c
+--- a/kernel/printk.c~fix-ensure-we-dont-use-bootconsoles-after-init-has-been-released
++++ a/kernel/printk.c
+@@ -1085,10 +1085,12 @@ EXPORT_SYMBOL(unregister_console);
+ 
+ static int __init disable_boot_consoles(void)
+ {
+-	if (console_drivers->flags & CON_BOOT) {
+-		printk(KERN_INFO "turn off boot console %s%d\n",
+-			console_drivers->name, console_drivers->index);
+-		return unregister_console(console_drivers);
++	if (console_drivers != NULL) {
++		if (console_drivers->flags & CON_BOOT) {
++			printk(KERN_INFO "turn off boot console %s%d\n",
++				console_drivers->name, console_drivers->index);
++			return unregister_console(console_drivers);
++		}
  	}
-+	if (special_file(lower_inode->i_mode)) {
-+		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
-+		goto out;
-+	}
- 	if (!nd) {
- 		ecryptfs_printk(KERN_DEBUG, "We have a NULL nd, just leave"
- 				"as we *think* we are about to unlink\n");
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from rgetz@blackfin.uclinux.org are
 
 origin.patch
-revert-ecryptfs-fix-lookup-error-for-special-files.patch
-ecryptfs-fix-possible-fault-in-ecryptfs_sync_page.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
