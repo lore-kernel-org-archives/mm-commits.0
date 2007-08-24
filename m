@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-floppyh.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:43:46 -0700
-Message-ID: <200708242243.l7OMhk1U018595@imap1.linux-foundation.org>
+Subject: + sysfs-crash-debugging.patch added to -mm tree
+Date: Fri, 24 Aug 2007 16:11:54 -0700
+Message-ID: <200708242311.l7ONBsvq019579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761520AbXHXWoR (ORCPT
+	by vger.kernel.org with ESMTP id S1759133AbXHXXMf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:44:17 -0400
+	Fri, 24 Aug 2007 19:12:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     cleanup floppy.h
+     sysfs: crash debugging
 has been added to the -mm tree.  Its filename is
-     cleanup-floppyh.patch
+     sysfs-crash-debugging.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,204 +26,241 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cleanup floppy.h
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: sysfs: crash debugging
+From: Andrew Morton <akpm@linux-foundation.org>
 
-AUTO_DMA and FLOPPY_MOTOR_MASK in include/asm-*/floppy.h are dead symbols -
-remove them.
+Print the name of the last-accessed sysfs file when we oops, to help track
+down oopses which occur in sysfs store/read handlers.  Because these oopses
+tend to not leave any trace of the offending code in the stack traces.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/floppy.h   |    2 --
- include/asm-arm/floppy.h     |    2 --
- include/asm-i386/floppy.h    |    4 ----
- include/asm-m68k/floppy.h    |    3 ---
- include/asm-mips/floppy.h    |    2 --
- include/asm-parisc/floppy.h  |    4 ----
- include/asm-powerpc/floppy.h |    2 --
- include/asm-ppc/floppy.h     |    2 --
- include/asm-sh/floppy.h      |    4 ----
- include/asm-sparc/floppy.h   |    2 --
- include/asm-sparc64/floppy.h |    4 ----
- include/asm-x86_64/floppy.h  |    4 ----
- 12 files changed, 35 deletions(-)
+ arch/i386/kernel/traps.c   |    1 +
+ arch/x86_64/kernel/traps.c |    1 +
+ fs/sysfs/file.c            |   14 ++++++++++++++
+ include/linux/sysfs.h      |    5 +++++
+ 4 files changed, 21 insertions(+)
 
-diff -puN include/asm-alpha/floppy.h~cleanup-floppyh include/asm-alpha/floppy.h
---- a/include/asm-alpha/floppy.h~cleanup-floppyh
-+++ a/include/asm-alpha/floppy.h
-@@ -91,8 +91,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * Most Alphas have no problems with floppy DMA crossing 64k borders,
-  * except for certain ones, like XL and RUFFIAN.
-diff -puN include/asm-arm/floppy.h~cleanup-floppyh include/asm-arm/floppy.h
---- a/include/asm-arm/floppy.h~cleanup-floppyh
-+++ a/include/asm-arm/floppy.h
-@@ -128,8 +128,6 @@ static inline void fd_scandrives (void)
- #define N_FDC 1
- #define N_DRIVE 4
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
- #define CROSS_64KB(a,s) (0)
- 
- /*
-diff -puN include/asm-i386/floppy.h~cleanup-floppyh include/asm-i386/floppy.h
---- a/include/asm-i386/floppy.h~cleanup-floppyh
-+++ a/include/asm-i386/floppy.h
-@@ -275,10 +275,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_I386_FLOPPY_H */
-diff -puN include/asm-m68k/floppy.h~cleanup-floppyh include/asm-m68k/floppy.h
---- a/include/asm-m68k/floppy.h~cleanup-floppyh
-+++ a/include/asm-m68k/floppy.h
-@@ -31,9 +31,6 @@ asmlinkage irqreturn_t floppy_hardint(in
- #define FLOPPY0_TYPE (MACH_IS_Q40 ? 6 : 4)
- #define FLOPPY1_TYPE 0
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--
- /* basically PC init + set use_virtual_dma */
- #define  FDC1 m68k_floppy_init()
- 
-diff -puN include/asm-mips/floppy.h~cleanup-floppyh include/asm-mips/floppy.h
---- a/include/asm-mips/floppy.h~cleanup-floppyh
-+++ a/include/asm-mips/floppy.h
-@@ -32,8 +32,6 @@ static inline void fd_cacheflush(char * 
- #define N_FDC 1			/* do you *really* want a second controller? */
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The DMA channel used by the floppy controller cannot access data at
-  * addresses >= 16MB
-diff -puN include/asm-parisc/floppy.h~cleanup-floppyh include/asm-parisc/floppy.h
---- a/include/asm-parisc/floppy.h~cleanup-floppyh
-+++ a/include/asm-parisc/floppy.h
-@@ -266,10 +266,6 @@ static int FDC2 = -1;
- #define N_FDC 1
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_PARISC_FLOPPY_H */
-diff -puN include/asm-powerpc/floppy.h~cleanup-floppyh include/asm-powerpc/floppy.h
---- a/include/asm-powerpc/floppy.h~cleanup-floppyh
-+++ a/include/asm-powerpc/floppy.h
-@@ -202,8 +202,6 @@ static int FDC2 = -1;
- #define N_FDC 2			/* Don't change this! */
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The PowerPC has no problems with floppy DMA crossing 64k borders.
-  */
-diff -puN include/asm-ppc/floppy.h~cleanup-floppyh include/asm-ppc/floppy.h
---- a/include/asm-ppc/floppy.h~cleanup-floppyh
-+++ a/include/asm-ppc/floppy.h
-@@ -166,8 +166,6 @@ static int FDC2 = -1;
- #define N_FDC 2			/* Don't change this! */
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The PowerPC has no problems with floppy DMA crossing 64k borders.
-  */
-diff -puN include/asm-sh/floppy.h~cleanup-floppyh include/asm-sh/floppy.h
---- a/include/asm-sh/floppy.h~cleanup-floppyh
-+++ a/include/asm-sh/floppy.h
-@@ -263,10 +263,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_SH_FLOPPY_H */
-diff -puN include/asm-sparc/floppy.h~cleanup-floppyh include/asm-sparc/floppy.h
---- a/include/asm-sparc/floppy.h~cleanup-floppyh
-+++ a/include/asm-sparc/floppy.h
-@@ -77,8 +77,6 @@ static struct sun_floppy_ops sun_fdops;
- #define fd_dma_mem_free(addr,size) (vfree((void *)(addr)))
+diff -puN arch/i386/kernel/traps.c~sysfs-crash-debugging arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~sysfs-crash-debugging
++++ a/arch/i386/kernel/traps.c
+@@ -416,6 +416,7 @@ void die(const char * str, struct pt_reg
  #endif
+ 		if (nl)
+ 			printk("\n");
++		sysfs_printk_last_file();
+ 		if (notify_die(DIE_OOPS, str, regs, err,
+ 					current->thread.trap_no, SIGSEGV) !=
+ 				NOTIFY_STOP) {
+diff -puN arch/x86_64/kernel/traps.c~sysfs-crash-debugging arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~sysfs-crash-debugging
++++ a/arch/x86_64/kernel/traps.c
+@@ -521,6 +521,7 @@ void __kprobes __die(const char * str, s
+ 	printk("DEBUG_PAGEALLOC");
+ #endif
+ 	printk("\n");
++	sysfs_printk_last_file();
+ 	notify_die(DIE_OOPS, str, regs, err, current->thread.trap_no, SIGSEGV);
+ 	show_registers(regs);
+ 	add_taint(TAINT_DIE);
+diff -puN fs/sysfs/file.c~sysfs-crash-debugging fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-crash-debugging
++++ a/fs/sysfs/file.c
+@@ -9,12 +9,20 @@
+ #include <linux/poll.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/limits.h>
+ #include <asm/uaccess.h>
  
--#define FLOPPY_MOTOR_MASK         0x10
--
- /* XXX This isn't really correct. XXX */
- #define get_dma_residue(x)        (0)
+ #include "sysfs.h"
  
-diff -puN include/asm-sparc64/floppy.h~cleanup-floppyh include/asm-sparc64/floppy.h
---- a/include/asm-sparc64/floppy.h~cleanup-floppyh
-+++ a/include/asm-sparc64/floppy.h
-@@ -84,8 +84,6 @@ static struct sun_floppy_ops sun_fdops;
- #define fd_free_irq()             sun_fdops.fd_free_irq()
- #define fd_eject(drive)           sun_fdops.fd_eject(drive)
+ #define to_sattr(a) container_of(a,struct subsys_attribute, attr)
  
--static int FLOPPY_MOTOR_MASK = 0x10;
--
- /* Super paranoid... */
- #undef HAVE_DISABLE_HLT
++/* used in crash dumps to help with debugging */
++static char last_sysfs_file[PATH_MAX];
++void sysfs_printk_last_file(void)
++{
++	printk(KERN_EMERG "last sysfs file: %s\n", last_sysfs_file);
++}
++
+ /*
+  * Subsystem file operations.
+  * These operations allow subsystems to have files that can be 
+@@ -245,6 +253,12 @@ static int sysfs_open_file(struct inode 
+ 	struct sysfs_buffer * buffer;
+ 	struct sysfs_ops * ops = NULL;
+ 	int error;
++	char *p;
++
++	p = d_path(file->f_dentry, sysfs_mount, last_sysfs_file,
++		   sizeof(last_sysfs_file));
++	if (p)
++		memmove(last_sysfs_file, p, strlen(p) + 1);
  
-@@ -622,7 +620,6 @@ isa_done:
- 	sun_fdops.fd_eject = sun_pci_fd_eject;
+ 	/* need attr_sd for attr and ops, its parent for kobj */
+ 	if (!sysfs_get_active_two(attr_sd))
+diff -puN include/linux/sysfs.h~sysfs-crash-debugging include/linux/sysfs.h
+--- a/include/linux/sysfs.h~sysfs-crash-debugging
++++ a/include/linux/sysfs.h
+@@ -133,6 +133,7 @@ void sysfs_remove_file_from_group(struct
+ 		const struct attribute *attr, const char *group);
  
-         fdc_status = (unsigned long) &sun_fdc->status_82077;
--	FLOPPY_MOTOR_MASK = 0xf0;
+ void sysfs_notify(struct kobject * k, char *dir, char *attr);
++void sysfs_printk_last_file(void);
  
- 	allowed_drive_mask = 0;
- 	sun_floppy_types[0] = 0;
-@@ -729,7 +726,6 @@ static unsigned long __init sun_floppy_i
- 		sun_fdops.fd_eject = sun_pci_fd_eject;
+ extern int __must_check sysfs_init(void);
  
-         	fdc_status = (unsigned long) &sun_fdc->status_82077;
--		FLOPPY_MOTOR_MASK = 0xf0;
+@@ -234,6 +235,10 @@ static inline int __must_check sysfs_ini
+ 	return 0;
+ }
  
- 		/*
- 		 * XXX: Find out on which machines this is really needed.
-diff -puN include/asm-x86_64/floppy.h~cleanup-floppyh include/asm-x86_64/floppy.h
---- a/include/asm-x86_64/floppy.h~cleanup-floppyh
-+++ a/include/asm-x86_64/floppy.h
-@@ -274,10 +274,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
++static inline void sysfs_printk_last_file(void)
++{
++}
++
+ #endif /* CONFIG_SYSFS */
  
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_X86_64_FLOPPY_H */
+ #endif /* _SYSFS_H_ */
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-floppy-tolerate-dma-channel-unavailability.patch
-cleanup-floppyh.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
+process_zones-fix-recovery-code.patch
+remove-bdput-from-do_open-in-fs-block_devc.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+sysfs-crash-debugging.patch
+git-dma.patch
+git-dma-makefile-fix.patch
+disable-ioat.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+infiniband-work-around-gcc-slub-problem.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mmc-fixup.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
