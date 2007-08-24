@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - selectionh-add-tty_struct-forward-declaration.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:12 -0700
-Message-ID: <200708242057.l7OKvC6T014139@imap1.linux-foundation.org>
+Subject: - mtdoops-printk-warning-fixes.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:50 -0700
+Message-ID: <200708242057.l7OKvoFl014257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37759 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51309 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758497AbXHXVH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758160AbXHXVH6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 17:07:58 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7OL7mHV027681
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2007 14:07:56 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     selection.h: add tty_struct forward declaration
+     mtdoops printk warning fixes
 has been removed from the -mm tree.  Its filename was
-     selectionh-add-tty_struct-forward-declaration.patch
+     mtdoops-printk-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: selection.h: add tty_struct forward declaration
+Subject: mtdoops printk warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/video/console/newport_con.c:16:
-include/linux/selection.h:16: warning: "struct tty_struct" declared inside parameter list
-include/linux/selection.h:16: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/mtd/mtdoops.c: In function 'mtdoops_inc_counter':
+drivers/mtd/mtdoops.c:109: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+drivers/mtd/mtdoops.c: In function 'mtdoops_console_sync':
+drivers/mtd/mtdoops.c:277: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
+someone buy Dave an x86_64 box.
 
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/selection.h |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/mtd/mtdoops.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/selection.h~selectionh-add-tty_struct-forward-declaration include/linux/selection.h
---- a/include/linux/selection.h~selectionh-add-tty_struct-forward-declaration
-+++ a/include/linux/selection.h
-@@ -10,6 +10,8 @@
- #include <linux/tiocl.h>
- #include <linux/vt_buffer.h>
+diff -puN drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes drivers/mtd/mtdoops.c
+--- a/drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes
++++ a/drivers/mtd/mtdoops.c
+@@ -104,7 +104,7 @@ static int mtdoops_inc_counter(struct mt
+ 	ret = mtd->read(mtd, cxt->nextpage * OOPS_PAGE_SIZE, 4,
+ 			&retlen, (u_char *) &count);
+ 	if ((retlen != 4) || (ret < 0)) {
+-		printk(KERN_ERR "mtdoops: Read failure at %d (%d of 4 read)"
++		printk(KERN_ERR "mtdoops: Read failure at %d (%td of 4 read)"
+ 				", err %d.\n", cxt->nextpage * OOPS_PAGE_SIZE,
+ 				retlen, ret);
+ 		return 1;
+@@ -273,7 +273,7 @@ static void mtdoops_console_sync(void)
+ 	cxt->writecount = 0;
  
-+struct tty_struct;
-+
- extern struct vc_data *sel_cons;
+ 	if ((retlen != OOPS_PAGE_SIZE) || (ret < 0))
+-		printk(KERN_ERR "mtdoops: Write failure at %d (%d of %d written), err %d.\n",
++		printk(KERN_ERR "mtdoops: Write failure at %d (%td of %d written), err %d.\n",
+ 			cxt->nextpage * OOPS_PAGE_SIZE, retlen,	OOPS_PAGE_SIZE, ret);
  
- extern void clear_selection(void);
+ 	ret = mtdoops_inc_counter(cxt);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
