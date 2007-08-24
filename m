@@ -1,64 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - md-make-sure-a-re-add-after-a-restart-honours-bitmap-when-resyncing.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:44 -0700
-Message-ID: <200708242056.l7OKuiov014092@imap1.linux-foundation.org>
+Subject: - m68k-kill-superfluous-extern.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:04 -0700
+Message-ID: <200708242056.l7OKu4SP014006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759882AbXHXVIK (ORCPT
+	by vger.kernel.org with ESMTP id S1761919AbXHXVIP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:10 -0400
+	Fri, 24 Aug 2007 17:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: make sure a re-add after a restart honours bitmap when resyncing
+     m68k: Kill superfluous extern
 has been removed from the -mm tree.  Its filename was
-     md-make-sure-a-re-add-after-a-restart-honours-bitmap-when-resyncing.patch
+     m68k-kill-superfluous-extern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: make sure a re-add after a restart honours bitmap when resyncing
-From: NeilBrown <neilb@suse.de>
+Subject: m68k: Kill superfluous extern
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Commit 1757128438d41670ded8bc3bc735325cc07dc8f9 was slightly bad.  If an array
-has a write-intent bitmap, and you remove a drive, then readd it, only the
-changed parts should be resynced.  However after the above commit, this only
-works if the array has not been shut down and restarted.
+Kill a superfluous extern declaration
 
-This is because it sets 'fullsync' at little more often than it should.  This
-patch is more careful.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid1.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ arch/m68k/mm/motorola.c |    6 +-----
+ 1 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/md/raid1.c~md-make-sure-a-re-add-after-a-restart-honours-bitmap-when-resyncing drivers/md/raid1.c
---- a/drivers/md/raid1.c~md-make-sure-a-re-add-after-a-restart-honours-bitmap-when-resyncing
-+++ a/drivers/md/raid1.c
-@@ -1972,7 +1972,8 @@ static int run(mddev_t *mddev)
- 		    !test_bit(In_sync, &disk->rdev->flags)) {
- 			disk->head_position = 0;
- 			mddev->degraded++;
--			conf->fullsync = 1;
-+			if (disk->rdev)
-+				conf->fullsync = 1;
- 		}
- 	}
- 	if (mddev->degraded == conf->raid_disks) {
+diff -puN arch/m68k/mm/motorola.c~m68k-kill-superfluous-extern arch/m68k/mm/motorola.c
+--- a/arch/m68k/mm/motorola.c~m68k-kill-superfluous-extern
++++ a/arch/m68k/mm/motorola.c
+@@ -210,11 +210,7 @@ void __init paging_init(void)
+ 	int i;
+ 
+ #ifdef DEBUG
+-	{
+-		extern unsigned long availmem;
+-		printk ("start of paging_init (%p, %lx)\n",
+-			kernel_pg_dir, availmem);
+-	}
++	printk ("start of paging_init (%p, %lx)\n", kernel_pg_dir, availmem);
+ #endif
+ 
+ 	/* Fix the cache mode in the page descriptors for the 680[46]0.  */
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-git-nfsd.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
