@@ -1,89 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - pata_it821x-fix-regression-corruptor.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:48 -0700
-Message-ID: <200708242058.l7OKwmCu014335@imap1.linux-foundation.org>
+Subject: - lguest-should-depend-on-config_futex.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:53 -0700
+Message-ID: <200708242058.l7OKwrfT014341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58568 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758700AbXHXVIN (ORCPT
+	by vger.kernel.org with ESMTP id S1762426AbXHXVIj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:13 -0400
+	Fri, 24 Aug 2007 17:08:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_it821x: fix regression/corruptor
+     lguest should depend on CONFIG_FUTEX
 has been removed from the -mm tree.  Its filename was
-     pata_it821x-fix-regression-corruptor.patch
+     lguest-should-depend-on-config_futex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_it821x: fix regression/corruptor
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: lguest should depend on CONFIG_FUTEX
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Whoever did the PCI revision patch slipped up on the it821x, and I didn't
-spot this at the time either. They moved the check for the errata from
-the 0x10 revision to 0x11. Put it back
+It uses get_futex_key().
 
-This one is important for 2.6.23 final as in some cases bad things will
-occur if 0x10 revision boards don't get the fixups.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |    2 +-
+ drivers/lguest/Kconfig |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_it821x.c~pata_it821x-fix-regression-corruptor drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~pata_it821x-fix-regression-corruptor
-+++ a/drivers/ata/pata_it821x.c
-@@ -586,7 +586,7 @@ static int it821x_port_start(struct ata_
- 	itdev->want[1][1] = ATA_ANY;
- 	itdev->last_device = -1;
- 
--	if (pdev->revision == 0x11) {
-+	if (pdev->revision == 0x10) {
- 		itdev->timing10 = 1;
- 		/* Need to disable ATAPI DMA for this case */
- 		if (!itdev->smart)
+diff -puN drivers/lguest/Kconfig~lguest-should-depend-on-config_futex drivers/lguest/Kconfig
+--- a/drivers/lguest/Kconfig~lguest-should-depend-on-config_futex
++++ a/drivers/lguest/Kconfig
+@@ -1,6 +1,6 @@
+ config LGUEST
+ 	tristate "Linux hypervisor example code"
+-	depends on X86 && PARAVIRT && EXPERIMENTAL && !X86_PAE
++	depends on X86 && PARAVIRT && EXPERIMENTAL && !X86_PAE && FUTEX
+ 	select LGUEST_GUEST
+ 	select HVC_DRIVER
+ 	---help---
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-libata-switch-most-of-the-remaining-sff-drivers-to.patch
-pata_marvell-add-more-identifiers.patch
-libata-portmap-remove-unused-definitions.patch
-libata-correct-handling-of-srst-reset-sequences.patch
-libata-spot-bridge-chips.patch
-libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
-libata-strict-checking-for-identify-reporting.patch
-libata-add-a-drivers-ide-style-dma-disable.patch
-st340823a-hpa-and-libata.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-git-scsi-misc.patch
-fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
-kobil_sct-rework-driver.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
+fix-ver_linux-glibc-version-printing.patch
+userns-dont-leak-root-user.patch
+sigqueue_free-fix-the-race-with-collect_signal.patch
+consolidate-ptrace_detach.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
 sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+single_open-seq_release-leak-diagnostics.patch
