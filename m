@@ -1,84 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - serial_txx9-fix-modem-control-line-handling.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:31 -0700
-Message-ID: <200708242055.l7OKtVvk013966@imap1.linux-foundation.org>
+Subject: - correct-name-for-rtc-m41t80.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:53 -0700
+Message-ID: <200708242055.l7OKtrBx013990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44109 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40492 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761899AbXHXVBB (ORCPT
+	by vger.kernel.org with ESMTP id S1763083AbXHXVBm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:01:01 -0400
+	Fri, 24 Aug 2007 17:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial_txx9: Fix modem control line handling
+     correct name for rtc-m41t80
 has been removed from the -mm tree.  Its filename was
-     serial_txx9-fix-modem-control-line-handling.patch
+     correct-name-for-rtc-m41t80.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial_txx9: Fix modem control line handling
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: correct name for rtc-m41t80
+From: David Brownell <david-b@pacbell.net>
 
-This chip does not have modem control lines.  Return TIOCM_CAR and
-TIOCM_DSR always on get_mctrl() and ajust some bits in termios cflag.
+The new rtc-m41t80 driver name doesn't match its module name, which
+prevents it from properly hotplugging.  Since it's new, no platforms yet
+depend on that name ...  so this patch fixes the driver name to match its
+module name, rather than going the other way around with a MODULE_ALIAS().
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+NOTE: This sort of bug is a new thing to watch out for with new-style I2C
+drivers; previously I2C couldn't hotplug.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_txx9.c |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-m41t80.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/serial_txx9.c~serial_txx9-fix-modem-control-line-handling drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial_txx9-fix-modem-control-line-handling
-+++ a/drivers/serial/serial_txx9.c
-@@ -37,7 +37,7 @@
+diff -puN drivers/rtc/rtc-m41t80.c~correct-name-for-rtc-m41t80 drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~correct-name-for-rtc-m41t80
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -892,7 +892,7 @@ static int m41t80_remove(struct i2c_clie
  
- #include <asm/io.h>
- 
--static char *serial_version = "1.09";
-+static char *serial_version = "1.10";
- static char *serial_name = "TX39/49 Serial driver";
- 
- #define PASS_LIMIT	256
-@@ -436,8 +436,10 @@ static unsigned int serial_txx9_get_mctr
- 	struct uart_txx9_port *up = (struct uart_txx9_port *)port;
- 	unsigned int ret;
- 
--	ret =  ((sio_in(up, TXX9_SIFLCR) & TXX9_SIFLCR_RTSSC) ? 0 : TIOCM_RTS)
--		| ((sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS) ? 0 : TIOCM_CTS);
-+	/* no modem control lines */
-+	ret = TIOCM_CAR | TIOCM_DSR;
-+	ret |= (sio_in(up, TXX9_SIFLCR) & TXX9_SIFLCR_RTSSC) ? 0 : TIOCM_RTS;
-+	ret |= (sio_in(up, TXX9_SICISR) & TXX9_SICISR_CTSS) ? 0 : TIOCM_CTS;
- 
- 	return ret;
- }
-@@ -557,6 +559,12 @@ serial_txx9_set_termios(struct uart_port
- 	unsigned long flags;
- 	unsigned int baud, quot;
- 
-+	/*
-+	 * We don't support modem control lines.
-+	 */
-+	termios->c_cflag &= ~(HUPCL | CMSPAR);
-+	termios->c_cflag |= CLOCAL;
-+
- 	cval = sio_in(up, TXX9_SILCR);
- 	/* byte size and parity */
- 	cval &= ~TXX9_SILCR_UMODE_MASK;
+ static struct i2c_driver m41t80_driver = {
+ 	.driver = {
+-		.name = "m41t80",
++		.name = "rtc-m41t80",
+ 	},
+ 	.probe = m41t80_probe,
+ 	.remove = m41t80_remove,
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-spi-driver-hotplug-coldplug-fixes-fix.patch
-serial_txx9-cleanup-includes.patch
+spi-driver-hotplug-coldplug-fixes.patch
+fix-typo-in-atmel_spic.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-mmc.patch
+git-mtd.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+spi-driver-runtime-footprint-shrinkage.patch
+rtc-periodic-irq-fix.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
