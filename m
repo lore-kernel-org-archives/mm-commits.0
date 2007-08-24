@@ -1,191 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: + mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch added to -mm tree
-Date: Fri, 24 Aug 2007 16:28:04 -0700
-Message-ID: <200708242328.l7ONS4sY020222@imap1.linux-foundation.org>
+Subject: + script-to-check-for-undefined-kconfig-symbols.patch added to -mm tree
+Date: Fri, 24 Aug 2007 16:29:46 -0700
+Message-ID: <200708242329.l7ONTkx6020275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755181AbXHXX2v (ORCPT
+	by vger.kernel.org with ESMTP id S1751512AbXHXXaf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 19:28:51 -0400
+	Fri, 24 Aug 2007 19:30:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: blaisorblade@yahoo.it, giuseppe.patane@tvblob.com, ralf@linux-mips.org
+Cc: blaisorblade@yahoo.it, bunk@stusta.de, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a few ov=
-erlooked files
+     Script to check for undefined Kconfig symbols
 has been added to the -mm tree.  Its filename is
-     mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-ove=
-rlooked-files.patch
+     script-to-check-for-undefined-kconfig-symbols.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a fe=
-w overlooked files
-=46rom: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
+Subject: Script to check for undefined Kconfig symbols
+From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
 
-=46inish the rename of CONFIG_USB_OHCI to CONFIG_USB_OHCI_HCD, which st=
-arted
-in 2005 (before 2.6.12-rc2).  The patch in this message has not been
-applied yet; moreover, it is not something to fix afterwards.  I've
-verified that no more instances of 'CONFIG_USB_[UOE]HCI\>' exist in the
-source tree.
+To avoid having to look manually for used but undefined Kconfig variables,
+I've written a script which tries do this efficiently, in case all other
+attention fail.  It accounts for _MODULE suffix and for UML_ prefixes to
+Kconfig variable, but otherwise looks for exact matches (i.e.  \<CONFIG_;
+this is done to exclude macros like MMCONFIG_).
 
-http://www.linux-mips.org/archives/linux-mips/2005-06/msg00060.html
+Undefined Kconfig variables should be not be removed without care, but for
+instance arch/i386/boot/ uses a bunch of undefined Kconfig vars:
 
-I'm also sending a script to detect undefined Kconfig variables in next=
- patch.
+$ scripts/checkunknowndefines.sh arch/i386/boot/
+arch/i386/boot/video.h uses undefined symbol VIDEO_400_HACK
+arch/i386/boot/video-vga.c uses undefined symbol VIDEO_400_HACK
+arch/i386/boot/video.c uses undefined symbol VIDEO_RETAIN
+arch/i386/boot/video.h uses undefined symbol VIDEO_RETAIN
+arch/i386/boot/video.h uses undefined symbol VIDEO_SVGA
+arch/i386/boot/video.h uses undefined symbol VIDEO_VESA
+arch/i386/boot/video-vesa.c uses undefined symbol VIDEO_VESA
 
-Thanks to my colleague Giuseppe Patan=C3=A8 for the original report: he=
- discovered
-the original mail (above) and for verified that the fix had not yet bee=
-n
-applied.
+It should also be mentioned in SubmittingPatches and SubmitChecklist.
 
-Cc: Giuseppe Patan=C3=A8 <giuseppe.patane@tvblob.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/mtx-1/board_setup.c  |    4 ++--
- arch/mips/au1000/pb1000/board_setup.c |    6 +++---
- arch/mips/au1000/pb1100/board_setup.c |    4 ++--
- arch/mips/au1000/pb1500/board_setup.c |    6 +++---
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ scripts/checkunknowndefines.sh |   59 +++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+)
 
-diff -puN arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_=
-ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au100=
-0/mtx-1/board_setup.c
---- a/arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_ohci=
--with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/mtx-1/board_setup.c
-@@ -54,11 +54,11 @@ void board_reset (void)
-=20
- void __init board_setup(void)
- {
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	// enable USB power switch
- 	au_writel( au_readl(GPIO2_DIR) | 0x10, GPIO2_DIR );
- 	au_writel( 0x100000, GPIO2_OUTPUT );
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- #ifdef CONFIG_PCI
- #if defined(__MIPSEB__)
-diff -puN arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1000/board_setup.c
---- a/arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1000/board_setup.c
-@@ -54,7 +54,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PINSTATERD);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	/* zero and disable FREQ2 */
- 	sys_freqctrl =3D au_readl(SYS_FREQCTRL0);
- 	sys_freqctrl &=3D ~0xFFF00000;
-@@ -102,7 +102,7 @@ void __init board_setup(void)
- 	/*
- 	 * Route 48MHz FREQ2 into USB Host and/or Device
- 	 */
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
- #endif
- 	au_writel(sys_clksrc, SYS_CLKSRC);
-@@ -116,7 +116,7 @@ void __init board_setup(void)
- 	au_writel(pin_func, SYS_PINFUNC);
- 	au_writel(0x2800, SYS_TRIOUTCLR);
- 	au_writel(0x0030, SYS_OUTPUTCLR);
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- 	// make gpio 15 an input (for interrupt line)
- 	pin_func =3D au_readl(SYS_PINFUNC) & (u32)(~0x100);
-diff -puN arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1100/board_setup.c
---- a/arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1100/board_setup.c
-@@ -54,7 +54,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PININPUTEN);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	{
- 		u32 pin_func, sys_freqctrl, sys_clksrc;
-=20
-@@ -98,7 +98,7 @@ void __init board_setup(void)
- 		pin_func |=3D 0x8000;
- 		au_writel(pin_func, SYS_PINFUNC);
- 	}
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- 	/* Enable sys bus clock divider when IDLE state or no bus activity. *=
-/
- 	au_writel(au_readl(SYS_POWERCTRL) | (0x3 << 5), SYS_POWERCTRL);
-diff -puN arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1500/board_setup.c
---- a/arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1500/board_setup.c
-@@ -56,7 +56,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PINSTATERD);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
-=20
- 	/* GPIO201 is input for PCMCIA card detect */
- 	/* GPIO203 is input for PCMCIA interrupt request */
-@@ -85,7 +85,7 @@ void __init board_setup(void)
- 	/*
- 	 * Route 48MHz FREQ2 into USB Host and/or Device
- 	 */
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
- #endif
- 	au_writel(sys_clksrc, SYS_CLKSRC);
-@@ -95,7 +95,7 @@ void __init board_setup(void)
- 	// 2nd USB port is USB host
- 	pin_func |=3D 0x8000;
- 	au_writel(pin_func, SYS_PINFUNC);
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
-=20
-=20
+diff -puN /dev/null scripts/checkunknowndefines.sh
+--- /dev/null
++++ a/scripts/checkunknowndefines.sh
+@@ -0,0 +1,59 @@
++#!/bin/sh
++# Find Kconfig variables used in source code but never defined in Kconfig
++# Copyright (C) 2007, Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
++
++# Tested with dash.
++paths="$@"
++[ -z "$paths" ] && paths=.
++
++# Doing this once at the beginning saves a lot of time, on a cache-hot tree.
++Kconfigs="`find . -name 'Kconfig' -o -name 'Kconfig*[^~]'`"
++
++echo "File list \tundefined symbol used"
++find $paths -name '*.[chS]' -o -name 'Makefile' -o -name 'Makefile*[^~]'| while read i
++do
++	# Output the bare Kconfig variable and the filename; the _MODULE part at
++	# the end is not removed here (would need perl an not-hungry regexp for that).
++	sed -ne 's!^.*\<\(UML_\)\?CONFIG_\([0-9A-Z_]\+\).*!\2 '$i'!p' < $i
++done | \
++# Smart "sort|uniq" implemented in awk and tuned to collect the names of all
++# files which use a given symbol
++awk '{map[$1, count[$1]++] = $2; }
++END {
++	for (combIdx in map) {
++		split(combIdx, separate, SUBSEP);
++		# The value may have been removed.
++		if (! ( (separate[1], separate[2]) in map ) )
++			continue;
++		symb=separate[1];
++		printf "%s ", symb;
++		#Use gawk extension to delete the names vector
++		delete names;
++		#Portably delete the names vector
++		#split("", names);
++		for (i=0; i < count[symb]; i++) {
++			names[map[symb, i]] = 1;
++			# Unfortunately, we may still encounter symb, i in the
++			# outside iteration.
++			delete map[symb, i];
++		}
++		i=0;
++		for (name in names) {
++			if (i > 0)
++				printf ", %s", name;
++			else
++				printf "%s", name;
++			i++;
++		}
++		printf "\n";
++	}
++}' |
++while read symb files; do
++	# Remove the _MODULE suffix when checking the variable name. This should
++	# be done only on tristate symbols, actually, but Kconfig parsing is
++	# beyond the purpose of this script.
++	symb_bare=`echo $symb | sed -e 's/_MODULE//'`
++	if ! grep -q $symb_bare $Kconfigs; then
++		echo "$files: \t$symb"
++	fi
++done|sort
 _
 
 Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlook=
-ed-files.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
 usbmon-doc-update-mention-new-wildcard-0-bus.patch
 uml-move-userspace-code-to-userspace-file.patch
 uml-tidy-recently-moved-code.patch
 uml-fix-error-cleanup-ordering.patch
 uml-console-subsystem-tidying.patch
+script-to-check-for-undefined-kconfig-symbols.patch
