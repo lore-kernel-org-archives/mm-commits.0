@@ -1,111 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-auditscc-fix-an-off-by-one.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:16 -0700
-Message-ID: <200708242055.l7OKtGSU013948@imap1.linux-foundation.org>
+Subject: - tpmdd-maintainers.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:13 -0700
+Message-ID: <200708242055.l7OKtDPh013945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750916AbXHXUza (ORCPT
+	by vger.kernel.org with ESMTP id S1756579AbXHXUzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 16:55:30 -0400
+	Fri, 24 Aug 2007 16:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, amy.griffis@hp.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: shpedoikal@gmail.com, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/auditsc.c: fix an off-by-one
+     tpmdd maintainers
 has been removed from the -mm tree.  Its filename was
-     kernel-auditscc-fix-an-off-by-one.patch
+     tpmdd-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/auditsc.c: fix an off-by-one
-From: Adrian Bunk <bunk@stusta.de>
+Subject: tpmdd maintainers
+From: "Kent Yoder" <shpedoikal@gmail.com>
 
-This patch fixes an off-by-one in a BUG_ON() spotted by the Coverity
-checker.
+Fix up the maintainers info in the tpm drivers.  Kylene will be out for
+some time, so copying the sourceforge list is the best way to get some
+attention.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Amy Griffis <amy.griffis@hp.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Marcel Selhorst <tpm@selhorst.net>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS                  |    2 +-
+ drivers/char/tpm/tpm.c       |    2 +-
+ drivers/char/tpm/tpm.h       |    2 +-
+ drivers/char/tpm/tpm_atmel.c |    2 +-
+ drivers/char/tpm/tpm_atmel.h |    2 +-
+ drivers/char/tpm/tpm_bios.c  |    2 ++
+ drivers/char/tpm/tpm_nsc.c   |    2 +-
+ drivers/char/tpm/tpm_tis.c   |    2 ++
+ 8 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN kernel/auditsc.c~kernel-auditscc-fix-an-off-by-one kernel/auditsc.c
---- a/kernel/auditsc.c~kernel-auditscc-fix-an-off-by-one
-+++ a/kernel/auditsc.c
-@@ -2023,7 +2023,7 @@ int __audit_signal_info(int sig, struct 
- 		axp->d.next = ctx->aux_pids;
- 		ctx->aux_pids = (void *)axp;
- 	}
--	BUG_ON(axp->pid_count > AUDIT_AUX_PIDS);
-+	BUG_ON(axp->pid_count >= AUDIT_AUX_PIDS);
+diff -puN MAINTAINERS~tpmdd-maintainers MAINTAINERS
+--- a/MAINTAINERS~tpmdd-maintainers
++++ a/MAINTAINERS
+@@ -3458,7 +3458,7 @@ S:	Maintained
  
- 	axp->target_pid[axp->pid_count] = t->tgid;
- 	selinux_get_task_sid(t, &axp->target_sid[axp->pid_count]);
+ TPM DEVICE DRIVER
+ P:	Kylene Hall
+-M:	kjhall@us.ibm.com
++M:	tpmdd-devel@lists.sourceforge.net
+ W:	http://tpmdd.sourceforge.net
+ P:	Marcel Selhorst
+ M:	tpm@selhorst.net
+diff -puN drivers/char/tpm/tpm.c~tpmdd-maintainers drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm.c
+@@ -7,7 +7,7 @@
+  * Reiner Sailer <sailer@watson.ibm.com>
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
+- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
+  *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org	 
+diff -puN drivers/char/tpm/tpm.h~tpmdd-maintainers drivers/char/tpm/tpm.h
+--- a/drivers/char/tpm/tpm.h~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm.h
+@@ -7,7 +7,7 @@
+  * Reiner Sailer <sailer@watson.ibm.com>
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
+- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
+  *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org	 
+diff -puN drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers drivers/char/tpm/tpm_atmel.c
+--- a/drivers/char/tpm/tpm_atmel.c~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm_atmel.c
+@@ -7,7 +7,7 @@
+  * Reiner Sailer <sailer@watson.ibm.com>
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
+- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
+  *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org	 
+diff -puN drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers drivers/char/tpm/tpm_atmel.h
+--- a/drivers/char/tpm/tpm_atmel.h~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm_atmel.h
+@@ -4,7 +4,7 @@
+  * Authors:
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
+- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
+  *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org
+diff -puN drivers/char/tpm/tpm_bios.c~tpmdd-maintainers drivers/char/tpm/tpm_bios.c
+--- a/drivers/char/tpm/tpm_bios.c~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm_bios.c
+@@ -7,6 +7,8 @@
+  *	Reiner Sailer <sailer@watson.ibm.com>
+  *	Kylene Hall <kjhall@us.ibm.com>
+  *
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
++ *
+  * Access to the eventlog extended by the TCG BIOS of PC platform
+  *
+  * This program is free software; you can redistribute it and/or
+diff -puN drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers drivers/char/tpm/tpm_nsc.c
+--- a/drivers/char/tpm/tpm_nsc.c~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm_nsc.c
+@@ -7,7 +7,7 @@
+  * Reiner Sailer <sailer@watson.ibm.com>
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
+- * Maintained by: <tpmdd_devel@lists.sourceforge.net>
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
+  *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org	 
+diff -puN drivers/char/tpm/tpm_tis.c~tpmdd-maintainers drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpmdd-maintainers
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -5,6 +5,8 @@
+  * Leendert van Doorn <leendert@watson.ibm.com>
+  * Kylene Hall <kjhall@us.ibm.com>
+  *
++ * Maintained by: <tpmdd-devel@lists.sourceforge.net>
++ *
+  * Device driver for TCG/TCPA TPM (trusted platform module).
+  * Specifications at www.trustedcomputinggroup.org
+  *
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from shpedoikal@gmail.com are
 
 origin.patch
-slow-down-printk-during-boot-fix-3.patch
-git-acpi.patch
-git-alsa.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
-git-dma.patch
-git-drm.patch
-git-dvb.patch
-include-linux-kbuild-remove-duplicate-entries.patch
-git-kvm.patch
-git-mmc.patch
-git-mtd.patch
-remove-fs-jffs2-ioctlc.patch
-git-netdev-all.patch
-drivers-net-cxgb3-xgmacc-remove-dead-code.patch
-e1000-if-0-two-functions.patch
-git-backlight.patch
-parisc-extern-inline-static-inline.patch
-git-scsi-misc.patch
-drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-v9fs.patch
-git-ipwireless_cs.patch
-git-cryptodev.patch
-slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
-mm-page_allocc-make-code-static.patch
-maps2-add-proc-kpagemap-interface.patch
-hugetlbfs-read-support-fix-2.patch
-mm-shmemc-make-3-functions-static.patch
-mm-mempolicyc-cleanups.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-vmstatc-cleanups.patch
-cleanup-arch-alpha-makefile.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-unicode-diacritics-support-s390-fix.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-radeon_driver_vblank_do_wait-static.patch
-unexport-fb_prepare_logo.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-mm-implement-swap-prefetching.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
