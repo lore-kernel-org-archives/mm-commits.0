@@ -1,80 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - net-ath5k-no-printk-after-sta-ibss-switch.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:28 -0700
-Message-ID: <200708242058.l7OKwSjo014303@imap1.linux-foundation.org>
+Subject: - sched-skip-updating-rqs-next_balance-under-null-sd.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:06 -0700
+Message-ID: <200708242058.l7OKw64a014284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41450 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49695 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758160AbXHXVH4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757849AbXHXVH4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 17:07:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Net: ath5k, no printk after STA->IBSS switch
+     sched: skip updating  rq's next_balance under null SD
 has been removed from the -mm tree.  Its filename was
-     net-ath5k-no-printk-after-sta-ibss-switch.patch
+     sched-skip-updating-rqs-next_balance-under-null-sd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Net: ath5k, no printk after STA->IBSS switch
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: sched: skip updating  rq's next_balance under null SD
+From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 
-If STA->IBSS switch was done, but beacon_update weas not called so far, do not
-emit a warning about non-existent skbuf.
+Was playing with sched_smt_power_savings/sched_mc_power_savings and found out
+that while the scheduler domains are reconstructed when sysfs settings change,
+rebalance_domains() can get triggered with null domain on other cpus, which is
+setting next_balance to jiffies + 60*HZ.  Resulting in no idle/busy balancing
+for 60 seconds.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Fix this.
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_base.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ kernel/sched.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k_base.c~net-ath5k-no-printk-after-sta-ibss-switch drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~net-ath5k-no-printk-after-sta-ibss-switch
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -655,7 +655,9 @@ static void ath_beacon_config(struct ath
- 	DPRINTF(sc, ATH_DEBUG_BEACON, "%s: intval %u hw tsftu %u\n", __func__,
- 			intval, tsftu);
+diff -puN kernel/sched.c~sched-skip-updating-rqs-next_balance-under-null-sd kernel/sched.c
+--- a/kernel/sched.c~sched-skip-updating-rqs-next_balance-under-null-sd
++++ a/kernel/sched.c
+@@ -3020,6 +3020,7 @@ static inline void rebalance_domains(int
+ 	struct sched_domain *sd;
+ 	/* Earliest time when we have to do rebalance again */
+ 	unsigned long next_balance = jiffies + 60*HZ;
++	int update_next_balance = 0;
  
--	if (sc->opmode == IEEE80211_IF_TYPE_STA) {
-+	if (sc->opmode == IEEE80211_IF_TYPE_STA ||
-+			(sc->opmode == IEEE80211_IF_TYPE_IBSS &&
-+				!sc->bbuf->skb)) {
- 		ath5k_hw_set_intr(ah, 0);
- 		sc->imask |= AR5K_INT_BMISS;
- 		sc->bmisscount = 0;
+ 	for_each_domain(cpu, sd) {
+ 		if (!(sd->flags & SD_LOAD_BALANCE))
+@@ -3056,8 +3057,10 @@ static inline void rebalance_domains(int
+ 		if (sd->flags & SD_SERIALIZE)
+ 			spin_unlock(&balancing);
+ out:
+-		if (time_after(next_balance, sd->last_balance + interval))
++		if (time_after(next_balance, sd->last_balance + interval)) {
+ 			next_balance = sd->last_balance + interval;
++			update_next_balance = 1;
++		}
+ 
+ 		/*
+ 		 * Stop the load balance at this level. There is another
+@@ -3067,7 +3070,14 @@ out:
+ 		if (!balance)
+ 			break;
+ 	}
+-	rq->next_balance = next_balance;
++
++	/*
++	 * next_balance will be updated only when there is a need.
++	 * When the cpu is attached to null domain for ex, it will not be
++	 * updated.
++	 */
++	if (likely(update_next_balance))
++		rq->next_balance = next_balance;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-git-wireless.patch
-net-add-ath5k-wireless-driver-fix.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-char-mxser_new-upgrade-to-110.patch
-char-mxser_new-move-to-pci_vdevice.patch
-char-mxser_new-remove-useless-comments-in-mxser_cards.patch
-mxser-remove-commented-crap.patch
-char-moxa-fix-and-optimise-empty-timer.patch
-char-cyclades-remove-bottom-half-processing.patch
-char-cyclades-make-the-isr-code-readable.patch
-char-cyclades-move-spin_lock-to-one-place.patch
-char-cyclades-fix-some-w-warnings.patch
-char-moxa-cleanup-prints.patch
-char-moxa-function-names-cleanup.patch
-char-moxa-remove-sleep_on.patch
-fs-select-remove-unused-macros.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-optimize-sg-map-unmap-calls.patch
