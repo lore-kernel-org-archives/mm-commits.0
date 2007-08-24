@@ -1,105 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - posix-timers-fix-deletion-race.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:24 -0700
-Message-ID: <200708242056.l7OKuORO014058@imap1.linux-foundation.org>
+Subject: - introduce-config_check_signature-was-re-uninline.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:22 -0700
+Message-ID: <200708242056.l7OKuMNm014055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50809 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760205AbXHXVIo (ORCPT
+	by vger.kernel.org with ESMTP id S1764147AbXHXVI4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:44 -0400
+	Fri, 24 Aug 2007 17:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, alan@lxorguk.ukuu.org.uk, heiko.carstens@de.ibm.com, jdike@addtoit.com, rmk@arm.linux.org.uk, schwidefsky@de.ibm.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     posix-timers: fix deletion race
+     Introduce CONFIG_CHECK_SIGNATURE
 has been removed from the -mm tree.  Its filename was
-     posix-timers-fix-deletion-race.patch
+     introduce-config_check_signature-was-re-uninline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: posix-timers: fix deletion race
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Introduce CONFIG_CHECK_SIGNATURE
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-timer_delete does:
-lock_timer();
-timer->it_process = NULL;
-unlock_timer();
-release_posix_timer();
+Introduce CONFIG_CHECK_SIGNATURE to control inclusion of check_signature()
+and avoid problems on platforms that don't have readb().
 
-timer->it_process is checked in lock_timer() to prevent access to a
-timer, which is on the way to be deleted, but the check happens after
-idr_lock is dropped. This allows release_posix_timer() to delete the
-timer before the lock code can check the timer:
+Let the few legacy (ISA || PCI || X86) drivers that need check_signature()
+select CONFIG_CHECK_SIGNATURE.
 
-CPU 0				CPU 1
-lock_timer();
-timer->it_process = NULL;
-unlock_timer();
-				lock_timer()
-					spin_lock(idr_lock);
-					timer = idr_find();
-					spin_lock(timer->lock);
-					spin_unlock(idr_lock);
-release_posix_timer();
-	spin_lock(idr_lock);
-	idr_remove(timer);
-	spin_unlock(idr_lock);
-	free_timer(timer);
-					if (timer->......)
-
-Change the locking to prevent this.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/block/Kconfig      |    1 +
+ drivers/input/misc/Kconfig |    1 +
+ drivers/scsi/Kconfig       |    6 ++++++
+ lib/Kconfig                |    3 +++
+ lib/Makefile               |    3 ++-
+ 5 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-fix-deletion-race kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-fix-deletion-race
-+++ a/kernel/posix-timers.c
-@@ -605,13 +605,14 @@ static struct k_itimer * lock_timer(time
- 	timr = (struct k_itimer *) idr_find(&posix_timers_id, (int) timer_id);
- 	if (timr) {
- 		spin_lock(&timr->it_lock);
--		spin_unlock(&idr_lock);
+diff -puN drivers/block/Kconfig~introduce-config_check_signature-was-re-uninline drivers/block/Kconfig
+--- a/drivers/block/Kconfig~introduce-config_check_signature-was-re-uninline
++++ a/drivers/block/Kconfig
+@@ -68,6 +68,7 @@ config AMIGA_Z2RAM
+ config BLK_DEV_XD
+ 	tristate "XT hard disk support"
+ 	depends on ISA && ISA_DMA_API
++	select CHECK_SIGNATURE
+ 	help
+ 	  Very old 8 bit hard disk controllers used in the IBM XT computer
+ 	  will be supported if you say Y here.
+diff -puN drivers/input/misc/Kconfig~introduce-config_check_signature-was-re-uninline drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~introduce-config_check_signature-was-re-uninline
++++ a/drivers/input/misc/Kconfig
+@@ -68,6 +68,7 @@ config INPUT_WISTRON_BTNS
+ 	select INPUT_POLLDEV
+ 	select NEW_LEDS
+ 	select LEDS_CLASS
++	select CHECK_SIGNATURE
+ 	help
+ 	  Say Y here for support of Winstron laptop button interface, used on
+ 	  laptops of various brands, including Acer and Fujitsu-Siemens. If
+diff -puN drivers/scsi/Kconfig~introduce-config_check_signature-was-re-uninline drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~introduce-config_check_signature-was-re-uninline
++++ a/drivers/scsi/Kconfig
+@@ -367,6 +367,7 @@ config SCSI_3W_9XXX
+ config SCSI_7000FASST
+ 	tristate "7000FASST SCSI support"
+ 	depends on ISA && SCSI && ISA_DMA_API
++	select CHECK_SIGNATURE
+ 	help
+ 	  This driver supports the Western Digital 7000 SCSI host adapter
+ 	  family.  Some information is in the source:
+@@ -388,6 +389,7 @@ config SCSI_AHA152X
+ 	tristate "Adaptec AHA152X/2825 support"
+ 	depends on ISA && SCSI && !64BIT
+ 	select SCSI_SPI_ATTRS
++	select CHECK_SIGNATURE
+ 	---help---
+ 	  This is a driver for the AHA-1510, AHA-1520, AHA-1522, and AHA-2825
+ 	  SCSI host adapters. It also works for the AVA-1505, but the IRQ etc.
+@@ -583,6 +585,7 @@ config SCSI_DTC3280
+ 	tristate "DTC3180/3280 SCSI support"
+ 	depends on ISA && SCSI
+ 	select SCSI_SPI_ATTRS
++	select CHECK_SIGNATURE
+ 	help
+ 	  This is support for DTC 3180/3280 SCSI Host Adapters.  Please read
+ 	  the SCSI-HOWTO, available from
+@@ -657,6 +660,7 @@ config SCSI_EATA_PIO
+ config SCSI_FUTURE_DOMAIN
+ 	tristate "Future Domain 16xx SCSI/AHA-2920A support"
+ 	depends on (ISA || PCI) && SCSI
++	select CHECK_SIGNATURE
+ 	---help---
+ 	  This is support for Future Domain's 16-bit SCSI host adapters
+ 	  (TMC-1660/1680, TMC-1650/1670, TMC-3260, TMC-1610M/MER/MEX) and
+@@ -1324,6 +1328,7 @@ config SCSI_LPFC
+ config SCSI_SEAGATE
+ 	tristate "Seagate ST-02 and Future Domain TMC-8xx SCSI support"
+ 	depends on X86 && ISA && SCSI
++	select CHECK_SIGNATURE
+ 	---help---
+ 	  These are 8-bit SCSI controllers; the ST-01 is also supported by
+ 	  this driver.  It is explained in section 3.9 of the SCSI-HOWTO,
+@@ -1397,6 +1402,7 @@ config SCSI_T128
+ 	tristate "Trantor T128/T128F/T228 SCSI support"
+ 	depends on ISA && SCSI
+ 	select SCSI_SPI_ATTRS
++	select CHECK_SIGNATURE
+ 	---help---
+ 	  This is support for a SCSI host adapter. It is explained in section
+ 	  3.11 of the SCSI-HOWTO, available from
+diff -puN lib/Kconfig~introduce-config_check_signature-was-re-uninline lib/Kconfig
+--- a/lib/Kconfig~introduce-config_check_signature-was-re-uninline
++++ a/lib/Kconfig
+@@ -138,4 +138,7 @@ config HAS_DMA
+ 	depends on !NO_DMA
+ 	default y
  
- 		if ((timr->it_id != timer_id) || !(timr->it_process) ||
- 				timr->it_process->tgid != current->tgid) {
--			unlock_timer(timr, *flags);
-+			spin_unlock(&timr->it_lock);
-+			spin_unlock_irqrestore(&idr_lock, *flags);
- 			timr = NULL;
--		}
-+		} else
-+			spin_unlock(&idr_lock);
- 	} else
- 		spin_unlock_irqrestore(&idr_lock, *flags);
++config CHECK_SIGNATURE
++	bool
++
+ endmenu
+diff -puN lib/Makefile~introduce-config_check_signature-was-re-uninline lib/Makefile
+--- a/lib/Makefile~introduce-config_check_signature-was-re-uninline
++++ a/lib/Makefile
+@@ -21,7 +21,8 @@ CFLAGS_kobject_uevent.o += -DDEBUG
+ endif
  
+ obj-$(CONFIG_GENERIC_IOMAP) += iomap.o
+-obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o check_signature.o
++obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o
++obj-$(CONFIG_CHECK_SIGNATURE) += check_signature.o
+ obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS) += locking-selftest.o
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock_debug.o
+ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += rwsem-spinlock.o
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-git-acpi.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-x86_64-hpet-restore-vread.patch
-x86_64-restore-restore-nohpet-cmdline.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-enable-high-resolution-timers-and-dynticks.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
