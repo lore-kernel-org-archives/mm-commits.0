@@ -1,79 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - lguest-should-depend-on-config_futex.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:53 -0700
-Message-ID: <200708242058.l7OKwrfT014341@imap1.linux-foundation.org>
+Subject: - pata_sis-add-the-fsc-amilo-and-friends.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:35 -0700
+Message-ID: <200708242057.l7OKvZLJ014232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762426AbXHXVIj (ORCPT
+	by vger.kernel.org with ESMTP id S1760064AbXHXVIg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:39 -0400
+	Fri, 24 Aug 2007 17:08:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest should depend on CONFIG_FUTEX
+     pata_sis: add the FSC Amilo and friends
 has been removed from the -mm tree.  Its filename was
-     lguest-should-depend-on-config_futex.patch
+     pata_sis-add-the-fsc-amilo-and-friends.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lguest should depend on CONFIG_FUTEX
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: pata_sis: add the FSC Amilo and friends
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-It uses get_futex_key().
+More short cables
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_sis.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/lguest/Kconfig~lguest-should-depend-on-config_futex drivers/lguest/Kconfig
---- a/drivers/lguest/Kconfig~lguest-should-depend-on-config_futex
-+++ a/drivers/lguest/Kconfig
-@@ -1,6 +1,6 @@
- config LGUEST
- 	tristate "Linux hypervisor example code"
--	depends on X86 && PARAVIRT && EXPERIMENTAL && !X86_PAE
-+	depends on X86 && PARAVIRT && EXPERIMENTAL && !X86_PAE && FUTEX
- 	select LGUEST_GUEST
- 	select HVC_DRIVER
- 	---help---
+diff -puN drivers/ata/pata_sis.c~pata_sis-add-the-fsc-amilo-and-friends drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~pata_sis-add-the-fsc-amilo-and-friends
++++ a/drivers/ata/pata_sis.c
+@@ -54,6 +54,7 @@ struct sis_laptop {
+ static const struct sis_laptop sis_laptop[] = {
+ 	/* devid, subvendor, subdev */
+ 	{ 0x5513, 0x1043, 0x1107 },	/* ASUS A6K */
++	{ 0x5513, 0x1734, 0x105F },	/* FSC Amilo A1630 */
+ 	/* end marker */
+ 	{ 0, }
+ };
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-fix-ver_linux-glibc-version-printing.patch
-userns-dont-leak-root-user.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-consolidate-ptrace_detach.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-switch-most-of-the-remaining-sff-drivers-to.patch
+pata_marvell-add-more-identifiers.patch
+libata-portmap-remove-unused-definitions.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-spot-bridge-chips.patch
+libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
+libata-strict-checking-for-identify-reporting.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+git-scsi-misc.patch
+fix-gregkh-usb-usb-serial-fix-oti6858c-segfault-in-termios-handling.patch
+kobil_sct-rework-driver.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+xtensa-enable-arbitary-tty-speed-setting-ioctls.patch
+pci-align-bar-settings-for-legacy-mode-ide.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
 sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-single_open-seq_release-leak-diagnostics.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
