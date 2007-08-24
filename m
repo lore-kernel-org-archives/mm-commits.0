@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + script-to-check-for-undefined-kconfig-symbols.patch added to -mm tree
-Date: Fri, 24 Aug 2007 16:29:46 -0700
-Message-ID: <200708242329.l7ONTkx6020275@imap1.linux-foundation.org>
+Date: Fri, 24 Aug 2007 16:31:48 -0700
+Message-ID: <200708242331.l7ONVnEJ020311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751512AbXHXXaf (ORCPT
+	by vger.kernel.org with ESMTP id S1750817AbXHXXch (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 19:30:35 -0400
+	Fri, 24 Aug 2007 19:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -118,7 +118,7 @@ diff -puN /dev/null scripts/checkunknowndefines.sh
 +	# be done only on tristate symbols, actually, but Kconfig parsing is
 +	# beyond the purpose of this script.
 +	symb_bare=`echo $symb | sed -e 's/_MODULE//'`
-+	if ! grep -q $symb_bare $Kconfigs; then
++	if ! grep -q "\<$symb_bare\>" $Kconfigs; then
 +		echo "$files: \t$symb"
 +	fi
 +done|sort
