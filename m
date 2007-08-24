@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-remove-null-pointer-checks.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:59:06 -0700
-Message-ID: <200708242059.l7OKx6bV014367@imap1.linux-foundation.org>
+Subject: - pnp-fix-up-after-lindent.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:55 -0700
+Message-ID: <200708242058.l7OKwt1v014344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54499 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763128AbXHXVJK (ORCPT
+	by vger.kernel.org with ESMTP id S1763025AbXHXVJI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:10 -0400
+	Fri, 24 Aug 2007 17:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: remove null pointer checks
+     PNP: fix up after Lindent
 has been removed from the -mm tree.  Its filename was
-     pnp-remove-null-pointer-checks.patch
+     pnp-fix-up-after-lindent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: remove null pointer checks
+Subject: PNP: fix up after Lindent
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Remove some null pointer checks.  Null pointers in these areas indicate
-programming errors, and I think it's better to oops immediately rather
-than return an error that is easily ignored.
+More manual fixups after Lindent.  No functional change.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Jaroslav Kysela <perex@suse.cz>
@@ -36,230 +34,290 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c        |    7 +------
- drivers/pnp/driver.c      |    4 ----
- drivers/pnp/isapnp/core.c |    2 +-
- drivers/pnp/manager.c     |   23 -----------------------
- drivers/pnp/resource.c    |   26 --------------------------
- 5 files changed, 2 insertions(+), 60 deletions(-)
+ drivers/pnp/card.c             |   16 ++++++++--------
+ drivers/pnp/driver.c           |    2 +-
+ drivers/pnp/interface.c        |    9 +++++----
+ drivers/pnp/isapnp/core.c      |   15 ++++++---------
+ drivers/pnp/manager.c          |    4 ++--
+ drivers/pnp/pnpacpi/core.c     |    4 ++--
+ drivers/pnp/pnpacpi/rsparser.c |    1 +
+ drivers/pnp/pnpbios/core.c     |    1 +
+ drivers/pnp/pnpbios/proc.c     |    2 +-
+ drivers/pnp/pnpbios/rsparser.c |    9 +++++----
+ 10 files changed, 32 insertions(+), 31 deletions(-)
 
-diff -puN drivers/pnp/core.c~pnp-remove-null-pointer-checks drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-remove-null-pointer-checks
-+++ a/drivers/pnp/core.c
-@@ -52,9 +52,6 @@ int pnp_register_protocol(struct pnp_pro
- 	int nodenum;
- 	struct list_head *pos;
+diff -puN drivers/pnp/card.c~pnp-fix-up-after-lindent drivers/pnp/card.c
+--- a/drivers/pnp/card.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/card.c
+@@ -25,13 +25,13 @@ static const struct pnp_card_device_id *
+ 				int found;
+ 				struct pnp_dev *dev;
  
--	if (!protocol)
--		return -EINVAL;
--
- 	INIT_LIST_HEAD(&protocol->devices);
- 	INIT_LIST_HEAD(&protocol->cards);
- 	nodenum = 0;
-@@ -94,8 +91,6 @@ static void pnp_free_ids(struct pnp_dev 
- 	struct pnp_id *id;
- 	struct pnp_id *next;
+-				if (i == PNP_MAX_DEVICES
+-				    || !*drv_id->devs[i].id)
++				if (i == PNP_MAX_DEVICES ||
++				    !*drv_id->devs[i].id)
+ 					return drv_id;
+ 				found = 0;
+ 				card_for_each_dev(card, dev) {
+-					if (compare_pnp_id
+-					    (dev->id, drv_id->devs[i].id)) {
++					if (compare_pnp_id(dev->id,
++						   drv_id->devs[i].id)) {
+ 						found = 1;
+ 						break;
+ 					}
+@@ -183,7 +183,7 @@ static int pnp_interface_attach_card(str
  
--	if (!dev)
--		return;
- 	id = dev->id;
- 	while (id) {
- 		next = id->next;
-@@ -143,7 +138,7 @@ int __pnp_add_device(struct pnp_dev *dev
-  */
- int pnp_add_device(struct pnp_dev *dev)
- {
--	if (!dev || !dev->protocol || dev->card)
-+	if (dev->card)
- 		return -EINVAL;
- 	dev->dev.parent = &dev->protocol->dev;
- 	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
-diff -puN drivers/pnp/driver.c~pnp-remove-null-pointer-checks drivers/pnp/driver.c
---- a/drivers/pnp/driver.c~pnp-remove-null-pointer-checks
+ 	return 0;
+ 
+-      err_name:
++err_name:
+ 	device_remove_file(&card->dev, &dev_attr_name);
+ 	return rc;
+ }
+@@ -321,10 +321,10 @@ struct pnp_dev *pnp_request_card_device(
+ 		pos = pos->next;
+ 	}
+ 
+-      done:
++done:
+ 	return NULL;
+ 
+-      found:
++found:
+ 	dev->card_link = clink;
+ 	dev->dev.driver = &drv->link.driver;
+ 	if (pnp_bus_type.probe(&dev->dev))
+@@ -334,7 +334,7 @@ struct pnp_dev *pnp_request_card_device(
+ 
+ 	return dev;
+ 
+-      err_out:
++err_out:
+ 	dev->dev.driver = NULL;
+ 	dev->card_link = NULL;
+ 	return NULL;
+diff -puN drivers/pnp/driver.c~pnp-fix-up-after-lindent drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-fix-up-after-lindent
 +++ a/drivers/pnp/driver.c
-@@ -232,10 +232,6 @@ int pnp_add_id(struct pnp_id *id, struct
- {
- 	struct pnp_id *ptr;
+@@ -118,7 +118,7 @@ static int pnp_device_probe(struct devic
+ 		goto fail;
+ 	return error;
  
--	if (!id)
--		return -EINVAL;
--	if (!dev)
--		return -EINVAL;
- 	id->next = NULL;
- 	ptr = dev->id;
- 	while (ptr && ptr->next)
-diff -puN drivers/pnp/isapnp/core.c~pnp-remove-null-pointer-checks drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~pnp-remove-null-pointer-checks
+-      fail:
++fail:
+ 	pnp_device_detach(pnp_dev);
+ 	return error;
+ }
+diff -puN drivers/pnp/interface.c~pnp-fix-up-after-lindent drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/interface.c
+@@ -459,7 +459,8 @@ pnp_set_current_resources(struct device 
+ 		up(&pnp_res_mutex);
+ 		goto done;
+ 	}
+-      done:
++
++done:
+ 	if (retval < 0)
+ 		return retval;
+ 	return count;
+@@ -499,10 +500,10 @@ int pnp_interface_attach_device(struct p
+ 
+ 	return 0;
+ 
+-      err_res:
++err_res:
+ 	device_remove_file(&dev->dev, &dev_attr_resources);
+-      err_opt:
++err_opt:
+ 	device_remove_file(&dev->dev, &dev_attr_options);
+-      err:
++err:
+ 	return rc;
+ }
+diff -puN drivers/pnp/isapnp/core.c~pnp-fix-up-after-lindent drivers/pnp/isapnp/core.c
+--- a/drivers/pnp/isapnp/core.c~pnp-fix-up-after-lindent
 +++ a/drivers/pnp/isapnp/core.c
-@@ -1040,7 +1040,7 @@ static int isapnp_set_resources(struct p
+@@ -335,7 +335,7 @@ static int __init isapnp_isolate(void)
+ 		} else if (iteration > 1) {
+ 			break;
+ 		}
+-	      __next:
++__next:
+ 		if (csn == 255)
+ 			break;
+ 		checksum = 0x6a;
+@@ -733,7 +733,7 @@ static int __init isapnp_create_device(s
+ 			       "isapnp: unexpected or unknown tag type 0x%x for logical device %i (device %i), ignored\n",
+ 			       type, dev->number, card->number);
+ 		}
+-	      __skip:
++__skip:
+ 		if (size > 0)
+ 			isapnp_skip_bytes(size);
+ 	}
+@@ -788,7 +788,7 @@ static void __init isapnp_parse_resource
+ 			       "isapnp: unexpected or unknown tag type 0x%x for device %i, ignored\n",
+ 			       type, card->number);
+ 		}
+-	      __skip:
++__skip:
+ 		if (size > 0)
+ 			isapnp_skip_bytes(size);
+ 	}
+@@ -940,9 +940,6 @@ EXPORT_SYMBOL(isapnp_protocol);
+ EXPORT_SYMBOL(isapnp_present);
+ EXPORT_SYMBOL(isapnp_cfg_begin);
+ EXPORT_SYMBOL(isapnp_cfg_end);
+-#if 0
+-EXPORT_SYMBOL(isapnp_read_byte);
+-#endif
+ EXPORT_SYMBOL(isapnp_write_byte);
  
- static int isapnp_disable_resources(struct pnp_dev *dev)
+ static int isapnp_read_resources(struct pnp_dev *dev,
+@@ -993,6 +990,7 @@ static int isapnp_get_resources(struct p
+ 				struct pnp_resource_table *res)
  {
--	if (!dev || !dev->active)
-+	if (!dev->active)
- 		return -EINVAL;
+ 	int ret;
++
+ 	pnp_init_resource_table(res);
  	isapnp_cfg_begin(dev->card->number, dev->number);
- 	isapnp_deactivate(dev->number);
-diff -puN drivers/pnp/manager.c~pnp-remove-null-pointer-checks drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-remove-null-pointer-checks
+ 	ret = isapnp_read_resources(dev, res);
+@@ -1148,13 +1146,12 @@ static int __init isapnp_init(void)
+ 			}
+ 		}
+ 	}
+-	if (cards) {
++	if (cards)
+ 		printk(KERN_INFO
+ 		       "isapnp: %i Plug & Play card%s detected total\n", cards,
+ 		       cards > 1 ? "s" : "");
+-	} else {
++	else
+ 		printk(KERN_INFO "isapnp: No Plug & Play card found\n");
+-	}
+ 
+ 	isapnp_proc_init();
+ 	return 0;
+diff -puN drivers/pnp/manager.c~pnp-fix-up-after-lindent drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-fix-up-after-lindent
 +++ a/drivers/pnp/manager.c
-@@ -21,9 +21,6 @@ static int pnp_assign_port(struct pnp_de
- 	resource_size_t *start, *end;
- 	unsigned long *flags;
+@@ -390,7 +390,7 @@ static int pnp_assign_resources(struct p
+ 	up(&pnp_res_mutex);
+ 	return 1;
  
--	if (!dev || !rule)
--		return -EINVAL;
--
- 	if (idx >= PNP_MAX_PORT) {
- 		pnp_err
- 		    ("More than 4 ports is incompatible with pnp specifications.");
-@@ -66,9 +63,6 @@ static int pnp_assign_mem(struct pnp_dev
- 	resource_size_t *start, *end;
- 	unsigned long *flags;
+-      fail:
++fail:
+ 	pnp_clean_resource_table(&dev->res);
+ 	up(&pnp_res_mutex);
+ 	return 0;
+@@ -444,7 +444,7 @@ int pnp_manual_config_dev(struct pnp_dev
+ 	kfree(bak);
+ 	return 0;
  
--	if (!dev || !rule)
--		return -EINVAL;
--
- 	if (idx >= PNP_MAX_MEM) {
- 		pnp_err
- 		    ("More than 8 mems is incompatible with pnp specifications.");
-@@ -127,9 +121,6 @@ static int pnp_assign_irq(struct pnp_dev
- 		5, 10, 11, 12, 9, 14, 15, 7, 3, 4, 13, 0, 1, 6, 8, 2
- 	};
+-      fail:
++fail:
+ 	dev->res = *bak;
+ 	up(&pnp_res_mutex);
+ 	kfree(bak);
+diff -puN drivers/pnp/pnpacpi/core.c~pnp-fix-up-after-lindent drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -248,9 +248,9 @@ static int __init pnpacpi_add_device(str
+ 	num++;
  
--	if (!dev || !rule)
--		return -EINVAL;
--
- 	if (idx >= PNP_MAX_IRQ) {
- 		pnp_err
- 		    ("More than 2 irqs is incompatible with pnp specifications.");
-@@ -181,9 +172,6 @@ static int pnp_assign_dma(struct pnp_dev
- 		1, 3, 5, 6, 7, 0, 2, 4
- 	};
- 
--	if (!dev || !rule)
--		return -EINVAL;
--
- 	if (idx >= PNP_MAX_DMA) {
- 		pnp_err
- 		    ("More than 2 dmas is incompatible with pnp specifications.");
-@@ -410,8 +398,6 @@ int pnp_manual_config_dev(struct pnp_dev
- 	int i;
- 	struct pnp_resource_table *bak;
- 
--	if (!dev || !res)
--		return -EINVAL;
- 	if (!pnp_can_configure(dev))
- 		return -ENODEV;
- 	bak = pnp_alloc(sizeof(struct pnp_resource_table));
-@@ -460,9 +446,6 @@ int pnp_auto_config_dev(struct pnp_dev *
- 	struct pnp_option *dep;
- 	int i = 1;
- 
--	if (!dev)
--		return -EINVAL;
--
- 	if (!pnp_can_configure(dev)) {
- 		pnp_dbg("Device %s does not support resource configuration.",
- 			dev->dev.bus_id);
-@@ -541,8 +524,6 @@ int pnp_activate_dev(struct pnp_dev *dev
+ 	return AE_OK;
+-      err1:
++err1:
+ 	kfree(dev_id);
+-      err:
++err:
+ 	kfree(dev);
+ 	return -EINVAL;
+ }
+diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-fix-up-after-lindent drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -35,6 +35,7 @@
+ static int irq_flags(int triggering, int polarity)
  {
- 	int error;
- 
--	if (!dev)
--		return -EINVAL;
- 	if (dev->active)
- 		return 0;	/* the device is already active */
- 
-@@ -568,8 +549,6 @@ int pnp_disable_dev(struct pnp_dev *dev)
+ 	int flag;
++
+ 	if (triggering == ACPI_LEVEL_SENSITIVE) {
+ 		if (polarity == ACPI_ACTIVE_LOW)
+ 			flag = IORESOURCE_IRQ_LOWLEVEL;
+diff -puN drivers/pnp/pnpbios/core.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/pnpbios/core.c
+@@ -591,6 +591,7 @@ subsys_initcall(pnpbios_init);
+ static int __init pnpbios_thread_init(void)
  {
- 	int error;
+ 	struct task_struct *task;
++
+ #if defined(CONFIG_PPC_MERGE)
+ 	if (check_legacy_ioport(PNPBIOS_BASE))
+ 		return 0;
+diff -puN drivers/pnp/pnpbios/proc.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/proc.c
+--- a/drivers/pnp/pnpbios/proc.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/pnpbios/proc.c
+@@ -213,7 +213,7 @@ static int proc_write_node(struct file *
+ 		goto out;
+ 	}
+ 	ret = count;
+-      out:
++out:
+ 	kfree(node);
+ 	return ret;
+ }
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-fix-up-after-lindent
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -238,7 +238,7 @@ static unsigned char *pnpbios_parse_allo
+ 			break;
  
--	if (!dev)
--		return -EINVAL;
- 	if (!dev->active)
- 		return 0;	/* the device is already disabled */
- 
-@@ -596,8 +575,6 @@ int pnp_disable_dev(struct pnp_dev *dev)
- void pnp_resource_change(struct resource *resource, resource_size_t start,
- 			 resource_size_t size)
+ 		default:	/* an unkown tag */
+-		      len_err:
++len_err:
+ 			printk(KERN_ERR
+ 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+ 			       tag, len);
+@@ -298,6 +298,7 @@ static void pnpbios_parse_fixed_mem32_op
+ 					     struct pnp_option *option)
  {
--	if (resource == NULL)
--		return;
- 	resource->flags &= ~(IORESOURCE_AUTO | IORESOURCE_UNSET);
- 	resource->start = start;
- 	resource->end = start + size - 1;
-diff -puN drivers/pnp/resource.c~pnp-remove-null-pointer-checks drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-remove-null-pointer-checks
-+++ a/drivers/pnp/resource.c
-@@ -47,9 +47,6 @@ struct pnp_option *pnp_register_independ
- {
- 	struct pnp_option *option;
+ 	struct pnp_mem *mem;
++
+ 	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
+ 	if (!mem)
+ 		return;
+@@ -468,7 +469,7 @@ static unsigned char *pnpbios_parse_reso
+ 			return p + 2;
  
--	if (!dev)
--		return NULL;
--
- 	option = pnp_build_option(PNP_RES_PRIORITY_PREFERRED);
+ 		default:	/* an unkown tag */
+-		      len_err:
++len_err:
+ 			printk(KERN_ERR
+ 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+ 			       tag, len);
+@@ -562,7 +563,7 @@ static unsigned char *pnpbios_parse_comp
+ 			break;
  
- 	/* this should never happen but if it does we'll try to continue */
-@@ -64,9 +61,6 @@ struct pnp_option *pnp_register_dependen
- {
- 	struct pnp_option *option;
+ 		default:	/* an unkown tag */
+-		      len_err:
++len_err:
+ 			printk(KERN_ERR
+ 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+ 			       tag, len);
+@@ -756,7 +757,7 @@ static unsigned char *pnpbios_encode_all
+ 			break;
  
--	if (!dev)
--		return NULL;
--
- 	option = pnp_build_option(priority);
- 
- 	if (dev->dependent) {
-@@ -83,11 +77,6 @@ int pnp_register_irq_resource(struct pnp
- {
- 	struct pnp_irq *ptr;
- 
--	if (!option)
--		return -EINVAL;
--	if (!data)
--		return -EINVAL;
--
- 	ptr = option->irq;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
-@@ -112,11 +101,6 @@ int pnp_register_dma_resource(struct pnp
- {
- 	struct pnp_dma *ptr;
- 
--	if (!option)
--		return -EINVAL;
--	if (!data)
--		return -EINVAL;
--
- 	ptr = option->dma;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
-@@ -132,11 +116,6 @@ int pnp_register_port_resource(struct pn
- {
- 	struct pnp_port *ptr;
- 
--	if (!option)
--		return -EINVAL;
--	if (!data)
--		return -EINVAL;
--
- 	ptr = option->port;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
-@@ -152,11 +131,6 @@ int pnp_register_mem_resource(struct pnp
- {
- 	struct pnp_mem *ptr;
- 
--	if (!option)
--		return -EINVAL;
--	if (!data)
--		return -EINVAL;
--
- 	ptr = option->mem;
- 	while (ptr && ptr->next)
- 		ptr = ptr->next;
+ 		default:	/* an unkown tag */
+-		      len_err:
++len_err:
+ 			printk(KERN_ERR
+ 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
+ 			       tag, len);
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
