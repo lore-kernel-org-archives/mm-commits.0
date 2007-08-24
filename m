@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-ptrace-floating-point-fixes.patch added to -mm tree
-Date: Thu, 23 Aug 2007 17:09:59 -0700
-Message-ID: <200708240009.l7O09xNg001528@imap1.linux-foundation.org>
+Subject: + uml-style-fixes-in-fp-code.patch added to -mm tree
+Date: Thu, 23 Aug 2007 17:10:05 -0700
+Message-ID: <200708240010.l7O0A5qi001546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55703 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933861AbXHXAKg (ORCPT
+	by vger.kernel.org with ESMTP id S933959AbXHXAKn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Aug 2007 20:10:36 -0400
+	Thu, 23 Aug 2007 20:10:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: ptrace floating point fixes
+     uml: style fixes in FP code
 has been added to the -mm tree.  Its filename is
-     uml-ptrace-floating-point-fixes.patch
+     uml-style-fixes-in-fp-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,316 +26,618 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: ptrace floating point fixes
+Subject: uml: style fixes in FP code
 From: Jeff Dike <jdike@addtoit.com>
 
-Handle floating point state better in ptrace.  The code now correctly
-distinguishes between PTRACE_[GS]ETFPREGS and PTRACE_[GS]ETFPXREGS.  The FPX
-requests get handed off to arch-specific code because that's not generic.
+Tidy the code affected by the floating point fixes.
 
-get_fpregs, set_fpregs, set_fpregs, and set_fpxregs needed real
-implementations.
+A bunch of unused stuff is gone, including two sigcontext.c files,
+which turned out to be entirely unneeded.
 
-Something here exposed a missing include in asm/page.h, which needed
-linux/types.h in order to get gfp_t, so that's fixed here.
+There are the usual fixes -
+	whitespace and style cleanups
+	copyright updates
+	emacs formatting comments gone
+	include cleanups
+	adding severities to printks
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/ptrace.c         |   18 ++-----
- arch/um/sys-i386/ptrace.c       |   73 +++++++++++++++++++-----------
- arch/um/sys-x86_64/ptrace.c     |   53 ++++++++++++++++-----
- include/asm-um/page.h           |    1 
- include/asm-um/ptrace-generic.h |   11 ++--
- include/asm-um/ptrace-i386.h    |    6 ++
- 6 files changed, 107 insertions(+), 55 deletions(-)
+ arch/um/include/sysdep-i386/sigcontext.h   |   13 --
+ arch/um/include/sysdep-x86_64/sigcontext.h |   28 -----
+ arch/um/kernel/ptrace.c                    |    2 
+ arch/um/os-Linux/sys-i386/registers.c      |   26 +++--
+ arch/um/sys-i386/Makefile                  |    6 -
+ arch/um/sys-i386/sigcontext.c              |   71 -------------
+ arch/um/sys-x86_64/Makefile                |    6 -
+ arch/um/sys-x86_64/ptrace.c                |   97 +++++++------------
+ arch/um/sys-x86_64/sigcontext.c            |   39 -------
+ arch/um/sys-x86_64/signal.c                |   23 ++--
+ include/asm-um/elf-x86_64.h                |   12 --
+ 11 files changed, 76 insertions(+), 247 deletions(-)
 
-diff -puN arch/um/kernel/ptrace.c~uml-ptrace-floating-point-fixes arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~uml-ptrace-floating-point-fixes
+diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-i386/sigcontext.h
+--- a/arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code
++++ a/arch/um/include/sysdep-i386/sigcontext.h
+@@ -6,15 +6,10 @@
+ #ifndef __SYS_SIGCONTEXT_I386_H
+ #define __SYS_SIGCONTEXT_I386_H
+ 
+-#include "uml-config.h"
+-#include "skas.h"
+ #include "sysdep/sc.h"
+ 
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+-#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
+-#define SC_SET_SYSCALL_RETURN(sc, result) SC_EAX(sc) = (result)
+-
+ #define GET_FAULTINFO_FROM_SC(fi,sc) \
+ 	{ \
+ 		(fi).cr2 = SC_CR2(sc); \
+@@ -22,18 +17,10 @@
+ 		(fi).trap_no = SC_TRAPNO(sc); \
+ 	}
+ 
+-/* ptrace expects that, at the start of a system call, %eax contains
+- * -ENOSYS, so this makes it so.
+- */
+-#define SC_START_SYSCALL(sc) do SC_EAX(sc) = -ENOSYS; while(0)
+-
+ /* This is Page Fault */
+ #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
+ 
+ /* SKAS3 has no trap_no on i386, but get_skas_faultinfo() sets it to 0. */
+ #define SEGV_MAYBE_FIXABLE(fi)	((fi)->trap_no == 0 && ptrace_faultinfo)
+ 
+-extern unsigned long *sc_sigmask(void *sc_ptr);
+-extern int sc_get_fpregs(unsigned long buf, void *sc_ptr);
+-
+ #endif
+diff -puN arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-x86_64/sigcontext.h
+--- a/arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code
++++ a/arch/um/include/sysdep-x86_64/sigcontext.h
+@@ -11,43 +11,17 @@
+ 
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+-#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
+-#define SC_SET_SYSCALL_RETURN(sc, result) SC_RAX(sc) = (result)
+-
+-#define SC_FAULT_ADDR(sc) SC_CR2(sc)
+-#define SC_FAULT_TYPE(sc) SC_ERR(sc)
+-
+-#define GET_FAULTINFO_FROM_SC(fi,sc) \
++#define GET_FAULTINFO_FROM_SC(fi, sc) \
+ 	{ \
+ 		(fi).cr2 = SC_CR2(sc); \
+ 		(fi).error_code = SC_ERR(sc); \
+ 		(fi).trap_no = SC_TRAPNO(sc); \
+ 	}
+ 
+-/* ptrace expects that, at the start of a system call, %eax contains
+- * -ENOSYS, so this makes it so.
+- */
+-
+-#define SC_START_SYSCALL(sc) do SC_RAX(sc) = -ENOSYS; while(0)
+-
+ /* This is Page Fault */
+ #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
+ 
+ /* No broken SKAS API, which doesn't pass trap_no, here. */
+ #define SEGV_MAYBE_FIXABLE(fi)	0
+ 
+-extern unsigned long *sc_sigmask(void *sc_ptr);
+-
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+-
+diff -puN arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code
 +++ a/arch/um/kernel/ptrace.c
-@@ -143,22 +143,14 @@ long arch_ptrace(struct task_struct *chi
- #endif
- #ifdef PTRACE_GETFPREGS
- 	case PTRACE_GETFPREGS: /* Get the child FPU state. */
--		ret = get_fpregs(data, child);
-+		ret = get_fpregs((struct user_i387_struct __user *) data,
-+				 child);
- 		break;
- #endif
- #ifdef PTRACE_SETFPREGS
- 	case PTRACE_SETFPREGS: /* Set the child FPU state. */
--	        ret = set_fpregs(data, child);
--		break;
--#endif
--#ifdef PTRACE_GETFPXREGS
--	case PTRACE_GETFPXREGS: /* Get the child FPU state. */
--		ret = get_fpxregs(data, child);
--		break;
--#endif
--#ifdef PTRACE_SETFPXREGS
--	case PTRACE_SETFPXREGS: /* Set the child FPU state. */
--		ret = set_fpxregs(data, child);
-+	        ret = set_fpregs((struct user_i387_struct __user *) data,
-+				 child);
- 		break;
- #endif
- 	case PTRACE_GET_THREAD_AREA:
-@@ -227,6 +219,8 @@ long arch_ptrace(struct task_struct *chi
- #endif
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
-+		if (ret == -EIO)
-+			ret = subarch_ptrace(child, request, addr, data);
+@@ -171,8 +171,6 @@ long arch_ptrace(struct task_struct *chi
+ 		 */
+ 		ret = copy_to_user(p, &child->thread.arch.faultinfo,
+ 				   sizeof(struct ptrace_faultinfo));
+-		if (ret)
+-			break;
  		break;
  	}
  
-diff -puN arch/um/sys-i386/ptrace.c~uml-ptrace-floating-point-fixes arch/um/sys-i386/ptrace.c
---- a/arch/um/sys-i386/ptrace.c~uml-ptrace-floating-point-fixes
-+++ a/arch/um/sys-i386/ptrace.c
-@@ -6,6 +6,7 @@
- #include "linux/mm.h"
- #include "linux/sched.h"
- #include "asm/uaccess.h"
-+#include "skas.h"
- 
- extern int arch_switch_tls(struct task_struct *from, struct task_struct *to);
- 
-@@ -144,48 +145,64 @@ int peek_user(struct task_struct *child,
- 	return put_user(tmp, (unsigned long __user *) data);
- }
- 
--static inline int convert_fxsr_to_user(struct _fpstate __user *buf,
--				       struct pt_regs *regs)
-+int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
--	return 0;
--}
-+	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_FP_SIZE];
- 
--static inline int convert_fxsr_from_user(struct pt_regs *regs,
--					 struct _fpstate __user *buf)
--{
--	return 0;
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	err = save_fp_registers(userspace_pid[cpu], fpregs);
-+	if (err)
-+		return err;
-+
-+	n = copy_to_user((void *) buf, fpregs, sizeof(fpregs));
-+	if(n > 0)
-+		return -EFAULT;
-+
-+	return n;
- }
- 
--int get_fpregs(unsigned long buf, struct task_struct *child)
-+int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
--	int err;
-+	int n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_FP_SIZE];
- 
--	err = convert_fxsr_to_user((struct _fpstate __user *) buf,
--				   &child->thread.regs);
--	if (err)
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	n = copy_from_user(fpregs, (void *) buf, sizeof(fpregs));
-+	if (n > 0)
- 		return -EFAULT;
--	return 0;
-+
-+	return restore_fp_registers(userspace_pid[cpu], fpregs);
- }
- 
--int set_fpregs(unsigned long buf, struct task_struct *child)
-+int get_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
- {
--	int err;
-+	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_XFP_SIZE];
- 
--	err = convert_fxsr_from_user(&child->thread.regs,
--				     (struct _fpstate __user *) buf);
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	err = save_fpx_registers(userspace_pid[cpu], fpregs);
- 	if (err)
-+		return err;
-+
-+	n = copy_to_user((void *) buf, fpregs, sizeof(fpregs));
-+	if(n > 0)
- 		return -EFAULT;
--	return 0;
--}
- 
--int get_fpxregs(unsigned long buf, struct task_struct *tsk)
--{
--	return 0;
-+	return n;
- }
- 
--int set_fpxregs(unsigned long buf, struct task_struct *tsk)
-+int set_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
- {
--	return 0;
-+	int n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_XFP_SIZE];
-+
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	n = copy_from_user(fpregs, (void *) buf, sizeof(fpregs));
-+	if (n > 0)
-+		return -EFAULT;
-+
-+	return restore_fpx_registers(userspace_pid[cpu], fpregs);
- }
- 
- #ifdef notdef
-@@ -209,3 +226,9 @@ int dump_fpu(struct pt_regs *regs, elf_f
- {
- 	return 1;
- }
-+
-+long subarch_ptrace(struct task_struct *child, long request, long addr,
-+		    long data)
-+{
-+	return -EIO;
-+}
-diff -puN arch/um/sys-x86_64/ptrace.c~uml-ptrace-floating-point-fixes arch/um/sys-x86_64/ptrace.c
---- a/arch/um/sys-x86_64/ptrace.c~uml-ptrace-floating-point-fixes
-+++ a/arch/um/sys-x86_64/ptrace.c
-@@ -156,28 +156,53 @@ int is_syscall(unsigned long addr)
- 	return(instr == 0x050f);
- }
- 
--int get_fpregs(unsigned long buf, struct task_struct *child)
-+int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
--	panic("get_fpregs");
--	return(0);
--}
-+	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_FP_SIZE];
- 
--int set_fpregs(unsigned long buf, struct task_struct *child)
--{
--	panic("set_fpregs");
--	return(0);
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	err = save_fp_registers(userspace_pid[cpu], fpregs);
-+	if (err)
-+		return err;
-+
-+	n = copy_to_user((void *) buf, fpregs, sizeof(fpregs));
-+	if(n > 0)
-+		return -EFAULT;
-+
-+	return n;
- }
- 
--int get_fpxregs(unsigned long buf, struct task_struct *tsk)
-+int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
--	panic("get_fpxregs");
--	return(0);
-+	int n, cpu = ((struct thread_info *) child->stack)->cpu;
-+	long fpregs[HOST_FP_SIZE];
-+
-+	BUG_ON(sizeof(*buf) != sizeof(fpregs));
-+	n = copy_from_user(fpregs, (void *) buf, sizeof(fpregs));
-+	if (n > 0)
-+		return -EFAULT;
-+
-+	return restore_fp_registers(userspace_pid[cpu], fpregs);
- }
- 
--int set_fpxregs(unsigned long buf, struct task_struct *tsk)
-+long subarch_ptrace(struct task_struct *child, long request, long addr,
-+		    long data)
- {
--	panic("set_fxpregs");
--	return(0);
-+	int ret = -EIO;
-+
-+	switch (request) {
-+	case PTRACE_GETFPXREGS: /* Get the child FPU state. */
-+		ret = get_fpregs((struct user_i387_struct __user *) data,
-+				 child);
-+		break;
-+	case PTRACE_SETFPXREGS: /* Set the child FPU state. */
-+		ret = set_fpregs((struct user_i387_struct __user *) data,
-+				 child);
-+		break;
-+	}
-+
-+	return ret;
- }
- 
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -1,49 +1,55 @@
  /*
-diff -puN include/asm-um/page.h~uml-ptrace-floating-point-fixes include/asm-um/page.h
---- a/include/asm-um/page.h~uml-ptrace-floating-point-fixes
-+++ a/include/asm-um/page.h
-@@ -9,6 +9,7 @@
- 
- struct page;
- 
-+#include <linux/types.h>
- #include <asm/vm-flags.h>
- 
- /* PAGE_SHIFT determines the page size */
-diff -puN include/asm-um/ptrace-generic.h~uml-ptrace-floating-point-fixes include/asm-um/ptrace-generic.h
---- a/include/asm-um/ptrace-generic.h~uml-ptrace-floating-point-fixes
-+++ a/include/asm-um/ptrace-generic.h
-@@ -9,6 +9,7 @@
- #ifndef __ASSEMBLY__
- 
- #include "asm/arch/ptrace-abi.h"
-+#include <asm/user.h>
- #include "sysdep/ptrace.h"
- 
- struct pt_regs {
-@@ -35,12 +36,14 @@ struct pt_regs {
- 
- struct task_struct;
- 
-+extern long subarch_ptrace(struct task_struct *child, long request, long addr,
-+			   long data);
- extern unsigned long getreg(struct task_struct *child, int regno);
- extern int putreg(struct task_struct *child, int regno, unsigned long value);
--extern int get_fpregs(unsigned long buf, struct task_struct *child);
--extern int set_fpregs(unsigned long buf, struct task_struct *child);
--extern int get_fpxregs(unsigned long buf, struct task_struct *child);
--extern int set_fpxregs(unsigned long buf, struct task_struct *tsk);
-+extern int get_fpregs(struct user_i387_struct __user *buf,
-+		      struct task_struct *child);
-+extern int set_fpregs(struct user_i387_struct __user *buf,
-+		      struct task_struct *child);
- 
- extern void show_regs(struct pt_regs *regs);
- 
-diff -puN include/asm-um/ptrace-i386.h~uml-ptrace-floating-point-fixes include/asm-um/ptrace-i386.h
---- a/include/asm-um/ptrace-i386.h~uml-ptrace-floating-point-fixes
-+++ a/include/asm-um/ptrace-i386.h
-@@ -10,6 +10,7 @@
- 
- #include "linux/compiler.h"
- #include "asm/ptrace-generic.h"
-+#include <asm/user.h>
- #include "sysdep/ptrace.h"
- 
- #define PT_REGS_EAX(r) UPT_EAX(&(r)->regs)
-@@ -45,6 +46,11 @@
+  * Copyright (C) 2004 PathScale, Inc
++ * Copyright (C) 2004 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
   */
- struct user_desc;
  
-+extern int get_fpxregs(struct user_fxsr_struct __user *buf,
-+		       struct task_struct *child);
-+extern int set_fpxregs(struct user_fxsr_struct __user *buf,
-+		       struct task_struct *tsk);
-+
- extern int ptrace_get_thread_area(struct task_struct *child, int idx,
-                                   struct user_desc __user *user_desc);
+ #include <errno.h>
+-#include <sysdep/ptrace_user.h>
++#include "kern_constants.h"
+ #include "longjmp.h"
+ #include "user.h"
++#include "sysdep/ptrace_user.h"
  
+ int save_fp_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
+ 
+ int restore_fp_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
+ 
+ int save_fpx_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
+ 
+ int restore_fpx_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
+ 
+ unsigned long get_thread_reg(int reg, jmp_buf *buf)
+ {
+-	switch(reg){
+-	case EIP: return buf[0]->__eip;
+-	case UESP: return buf[0]->__esp;
+-	case EBP: return buf[0]->__ebp;
++	switch (reg) {
++	case EIP:
++		return buf[0]->__eip;
++	case UESP:
++		return buf[0]->__esp;
++	case EBP:
++		return buf[0]->__ebp;
+ 	default:
+-		printk("get_thread_regs - unknown register %d\n", reg);
++		printk(UM_KERN_ERR "get_thread_regs - unknown register %d\n",
++		       reg);
+ 		return 0;
+ 	}
+ }
+diff -puN arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code arch/um/sys-i386/Makefile
+--- a/arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-i386/Makefile
+@@ -3,14 +3,14 @@
+ #
+ 
+ obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
+-	ptrace_user.o setjmp.o signal.o sigcontext.o stub.o stub_segv.o \
+-	syscalls.o sysrq.o sys_call_table.o tls.o
++	ptrace_user.o setjmp.o signal.o stub.o stub_segv.o syscalls.o sysrq.o \
++	sys_call_table.o tls.o
+ 
+ subarch-obj-y = lib/bitops.o lib/semaphore.o lib/string.o
+ subarch-obj-$(CONFIG_HIGHMEM) += mm/highmem.o
+ subarch-obj-$(CONFIG_MODULES) += kernel/module.o
+ 
+-USER_OBJS := bugs.o ptrace_user.o sigcontext.o fault.o
++USER_OBJS := bugs.o ptrace_user.o fault.o
+ 
+ USER_OBJS += user-offsets.s
+ extra-y += user-offsets.s
+diff -puN arch/um/sys-i386/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
+--- a/arch/um/sys-i386/sigcontext.c
++++ /dev/null
+@@ -1,71 +0,0 @@
+-/* 
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include <stddef.h>
+-#include <string.h>
+-#include <asm/ptrace.h>
+-#include <asm/sigcontext.h>
+-#include "sysdep/ptrace.h"
+-#include "kern_util.h"
+-
+-void sc_to_sc(void *to_ptr, void *from_ptr)
+-{
+-	struct sigcontext *to = to_ptr, *from = from_ptr;
+-
+-	memcpy(to, from, sizeof(*to) + sizeof(struct _fpstate));
+-	if(from->fpstate != NULL)
+-		to->fpstate = (struct _fpstate *) (to + 1);
+-}
+-
+-unsigned long *sc_sigmask(void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-	return &sc->oldmask;
+-}
+-
+-int sc_get_fpregs(unsigned long buf, void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-	struct _fpstate *from = sc->fpstate, *to = (struct _fpstate *) buf;
+-	int err = 0;
+-
+-	if(from == NULL){
+-		err |= clear_user_proc(&to->cw, sizeof(to->cw));
+-		err |= clear_user_proc(&to->sw, sizeof(to->sw));
+-		err |= clear_user_proc(&to->tag, sizeof(to->tag));
+-		err |= clear_user_proc(&to->ipoff, sizeof(to->ipoff));
+-		err |= clear_user_proc(&to->cssel, sizeof(to->cssel));
+-		err |= clear_user_proc(&to->dataoff, sizeof(to->dataoff));
+-		err |= clear_user_proc(&to->datasel, sizeof(to->datasel));
+-		err |= clear_user_proc(&to->_st, sizeof(to->_st));
+-	}
+-	else {
+-		err |= copy_to_user_proc(&to->cw, &from->cw, sizeof(to->cw));
+-		err |= copy_to_user_proc(&to->sw, &from->sw, sizeof(to->sw));
+-		err |= copy_to_user_proc(&to->tag, &from->tag, 
+-					 sizeof(to->tag));
+-		err |= copy_to_user_proc(&to->ipoff, &from->ipoff, 
+-					 sizeof(to->ipoff));
+-		err |= copy_to_user_proc(&to->cssel,& from->cssel, 
+-					 sizeof(to->cssel));
+-		err |= copy_to_user_proc(&to->dataoff, &from->dataoff, 
+-				    sizeof(to->dataoff));
+-		err |= copy_to_user_proc(&to->datasel, &from->datasel, 
+-				    sizeof(to->datasel));
+-		err |= copy_to_user_proc(to->_st, from->_st, sizeof(to->_st));
+-	}
+-	return(err);
+-}
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code arch/um/sys-x86_64/Makefile
+--- a/arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/Makefile
+@@ -5,8 +5,8 @@
+ #
+ 
+ obj-y = bug.o bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
+-	setjmp.o sigcontext.o signal.o stub.o stub_segv.o syscalls.o \
+-	syscall_table.o sysrq.o ksyms.o tls.o
++	setjmp.o signal.o stub.o stub_segv.o syscalls.o syscall_table.o \
++	sysrq.o ksyms.o tls.o
+ 
+ obj-$(CONFIG_MODULES) += um_module.o
+ 
+@@ -15,7 +15,7 @@ subarch-obj-$(CONFIG_MODULES) += kernel/
+ 
+ ldt-y = ../sys-i386/ldt.o
+ 
+-USER_OBJS := ptrace_user.o sigcontext.o
++USER_OBJS := ptrace_user.o
+ 
+ USER_OBJS += user-offsets.s
+ extra-y += user-offsets.s
+diff -puN arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/ptrace.c
+--- a/arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/ptrace.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  *
+  * Licensed under the GPL
+  */
+@@ -12,17 +13,10 @@
+ #include <asm/uaccess.h>
+ #include <asm/elf.h>
+ 
+-/* XXX x86_64 */
+-unsigned long not_ss;
+-unsigned long not_ds;
+-unsigned long not_es;
+-
+-#define SC_SS(r) (not_ss)
+-#define SC_DS(r) (not_ds)
+-#define SC_ES(r) (not_es)
+-
+-/* determines which flags the user has access to. */
+-/* 1 = access 0 = no access */
++/*
++ * determines which flags the user has access to.
++ * 1 = access 0 = no access
++ */
+ #define FLAG_MASK 0x44dd5UL
+ 
+ int putreg(struct task_struct *child, int regno, unsigned long value)
+@@ -66,20 +60,21 @@ int putreg(struct task_struct *child, in
+ 
+ int poke_user(struct task_struct *child, long addr, long data)
+ {
+-        if ((addr & 3) || addr < 0)
+-                return -EIO;
++	if ((addr & 3) || addr < 0)
++		return -EIO;
+ 
+-        if (addr < MAX_REG_OFFSET)
+-                return putreg(child, addr, data);
+-        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
+-                (addr <= offsetof(struct user, u_debugreg[7]))){
+-                addr -= offsetof(struct user, u_debugreg[0]);
+-                addr = addr >> 2;
+-                if((addr == 4) || (addr == 5)) return -EIO;
+-                child->thread.arch.debugregs[addr] = data;
+-                return 0;
+-        }
+-        return -EIO;
++	if (addr < MAX_REG_OFFSET)
++		return putreg(child, addr, data);
++	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
++		(addr <= offsetof(struct user, u_debugreg[7]))){
++		addr -= offsetof(struct user, u_debugreg[0]);
++		addr = addr >> 2;
++		if ((addr == 4) || (addr == 5))
++			return -EIO;
++		child->thread.arch.debugregs[addr] = data;
++		return 0;
++	}
++	return -EIO;
+ }
+ 
+ unsigned long getreg(struct task_struct *child, int regno)
+@@ -107,29 +102,22 @@ unsigned long getreg(struct task_struct 
+ int peek_user(struct task_struct *child, long addr, long data)
+ {
+ 	/* read the word at location addr in the USER area. */
+-        unsigned long tmp;
++	unsigned long tmp;
+ 
+-        if ((addr & 3) || addr < 0)
+-                return -EIO;
++	if ((addr & 3) || addr < 0)
++		return -EIO;
+ 
+-        tmp = 0;  /* Default return condition */
+-        if(addr < MAX_REG_OFFSET){
+-                tmp = getreg(child, addr);
+-        }
+-        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
+-                (addr <= offsetof(struct user, u_debugreg[7]))){
+-                addr -= offsetof(struct user, u_debugreg[0]);
+-                addr = addr >> 2;
+-                tmp = child->thread.arch.debugregs[addr];
+-        }
+-        return put_user(tmp, (unsigned long *) data);
+-}
+-
+-void arch_switch(void)
+-{
+-/* XXX
+-	printk("arch_switch\n");
+-*/
++	tmp = 0;  /* Default return condition */
++	if (addr < MAX_REG_OFFSET){
++		tmp = getreg(child, addr);
++	}
++	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
++		(addr <= offsetof(struct user, u_debugreg[7]))){
++		addr -= offsetof(struct user, u_debugreg[0]);
++		addr = addr >> 2;
++		tmp = child->thread.arch.debugregs[addr];
++	}
++	return put_user(tmp, (unsigned long *) data);
+ }
+ 
+ /* XXX Mostly copied from sys-i386 */
+@@ -139,21 +127,21 @@ int is_syscall(unsigned long addr)
+ 	int n;
+ 
+ 	n = copy_from_user(&instr, (void __user *) addr, sizeof(instr));
+-	if(n){
++	if (n){
+ 		/* access_process_vm() grants access to vsyscall and stub,
+ 		 * while copy_from_user doesn't. Maybe access_process_vm is
+ 		 * slow, but that doesn't matter, since it will be called only
+ 		 * in case of singlestepping, if copy_from_user failed.
+ 		 */
+ 		n = access_process_vm(current, addr, &instr, sizeof(instr), 0);
+-		if(n != sizeof(instr)) {
++		if (n != sizeof(instr)) {
+ 			printk("is_syscall : failed to read instruction from "
+ 			       "0x%lx\n", addr);
+-			return(1);
++			return 1;
+ 		}
+ 	}
+ 	/* sysenter */
+-	return(instr == 0x050f);
++	return instr == 0x050f;
+ }
+ 
+ int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
+@@ -204,14 +192,3 @@ long subarch_ptrace(struct task_struct *
+ 
+ 	return ret;
+ }
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
+--- a/arch/um/sys-x86_64/sigcontext.c
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * Copyright 2003 PathScale, Inc.
+- *
+- * Licensed under the GPL
+- */
+-
+-#include <stdio.h>
+-#include <string.h>
+-#include <signal.h>
+-#include "user.h"
+-
+-void sc_to_sc(void *to_ptr, void *from_ptr)
+-{
+-        struct sigcontext *to = to_ptr, *from = from_ptr;
+-        int size = sizeof(*to); /* + sizeof(struct _fpstate); */
+-
+-        memcpy(to, from, size);
+-        if(from->fpstate != NULL)
+-		to->fpstate = (struct _fpstate *) (to + 1);
+-
+-	to->fpstate = NULL;
+-}
+-
+-unsigned long *sc_sigmask(void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-
+-	return(&sc->oldmask);
+-}
+-
+-/* Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/signal.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (C) 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -110,7 +111,8 @@ static int copy_sc_to_user(struct sigcon
+ 	err |= PUTREG(regs, RDI, to, rdi);
+ 	err |= PUTREG(regs, RSI, to, rsi);
+ 	err |= PUTREG(regs, RBP, to, rbp);
+-	/* Must use orignal RSP, which is passed in, rather than what's in
++	/*
++	 * Must use orignal RSP, which is passed in, rather than what's in
+ 	 * the pt_regs, because that's already been updated to point at the
+ 	 * signal frame.
+ 	 */
+@@ -152,7 +154,7 @@ static int copy_sc_to_user(struct sigcon
+ 	if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
+ 		return 1;
+ 
+-	return(err);
++	return err;
+ }
+ 
+ struct rt_sigframe
+@@ -188,7 +190,8 @@ int setup_signal_stack_si(unsigned long 
+ 			goto out;
+ 	}
+ 
+-	/* Update SP now because the page fault handler refuses to extend
++	/*
++	 * Update SP now because the page fault handler refuses to extend
+ 	 * the stack if the faulting address is too far below the current
+ 	 * SP, which frame now certainly is.  If there's an error, the original
+ 	 * value is restored on the way out.
+@@ -216,8 +219,10 @@ int setup_signal_stack_si(unsigned long 
+ 		err |= __copy_to_user(&frame->uc.uc_sigmask, set,
+ 				      sizeof(*set));
+ 
+-	/* Set up to return from userspace.  If provided, use a stub
+-	   already in userspace.  */
++	/*
++	 * Set up to return from userspace.  If provided, use a stub
++	 * already in userspace.
++	 */
+ 	/* x86-64 should always use SA_RESTORER. */
+ 	if (ka->sa.sa_flags & SA_RESTORER)
+ 		err |= __put_user(ka->sa.sa_restorer, &frame->pretcode);
+@@ -239,8 +244,10 @@ int setup_signal_stack_si(unsigned long 
+ 	/* In case the signal handler was declared without prototypes */
+ 	PT_REGS_RAX(regs) = 0;
+ 
+-	/* This also works for non SA_SIGINFO handlers because they expect the
+-	   next argument after the signal number on the stack. */
++	/*
++	 * This also works for non SA_SIGINFO handlers because they expect the
++	 * next argument after the signal number on the stack.
++	 */
+ 	PT_REGS_RSI(regs) = (unsigned long) &frame->info;
+ 	PT_REGS_RDX(regs) = (unsigned long) &frame->uc;
+ 	PT_REGS_RIP(regs) = (unsigned long) ka->sa.sa_handler;
+@@ -276,7 +283,7 @@ long sys_rt_sigreturn(struct pt_regs *re
+ 
+ 	/* Avoid ERESTART handling */
+ 	PT_REGS_SYSCALL_NR(&current->thread.regs) = -1;
+-	return(PT_REGS_SYSCALL_RET(&current->thread.regs));
++	return PT_REGS_SYSCALL_RET(&current->thread.regs);
+ 
+  segfault:
+ 	force_sig(SIGSEGV, current);
+diff -puN include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code include/asm-um/elf-x86_64.h
+--- a/include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code
++++ a/include/asm-um/elf-x86_64.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  *
+  * Licensed under the GPL
+  */
+@@ -122,14 +123,3 @@ extern long elf_aux_hwcap;
+ #define SET_PERSONALITY(ex, ibcs2) do ; while(0)
+ 
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
