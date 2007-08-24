@@ -1,93 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - enable-gpes-before-calling-_wak-on-resume.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:28 -0700
-Message-ID: <200708242057.l7OKvS83014223@imap1.linux-foundation.org>
+Subject: - i386-fix-lazy-mode-vmalloc-synchronization-for-paravirt.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:16 -0700
+Message-ID: <200708242057.l7OKvGJi014214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760181AbXHXVIk (ORCPT
+	by vger.kernel.org with ESMTP id S1761434AbXHXVIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:40 -0400
+	Fri, 24 Aug 2007 17:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: trenn@suse.de, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: zach@vmware.com, ak@suse.de, jeremy@goop.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: enable GPEs before calling _WAK on resume
+     i386: fix lazy mode vmalloc synchronization for paravirt
 has been removed from the -mm tree.  Its filename was
-     enable-gpes-before-calling-_wak-on-resume.patch
+     i386-fix-lazy-mode-vmalloc-synchronization-for-paravirt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: acpi: enable GPEs before calling _WAK on resume
-From: Thomas Renninger <trenn@suse.de>
+Subject: i386: fix lazy mode vmalloc synchronization for paravirt
+From: Zachary Amsden <zach@vmware.com>
 
-It seems it's required to enable GPEs before _WAK.  E.g.  X60 triggers a
-LID related GPE instead of doing a Notify in WAK.  Now the GPE reaches the
-kernel and the Notify for LID status change gets thrown from there.
+Found this looping Ubuntu installs with VMI.
 
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+If unlucky enough to hit a vmalloc sync fault during a lazy mode
+operation (from an IRQ handler for a module which was not yet populated
+in current page directory, or from inside copy_one_pte, which touches
+swap_map, and hit in an unused 4M region), the required PDE update would
+never get flushed, causing an infinite page fault loop.
+
+This bug affects any paravirt-ops backend which uses lazy updates, I
+believe that makes it a bug in Xen, VMI and lguest.  It only happens on
+LOWMEM kernels.
+
+
+Touching vmalloc memory in the middle of a lazy mode update can generate a
+kernel PDE update, which must be flushed immediately.  The fix is to leave
+lazy mode when doing a vmalloc sync.
+
+Signed-off-by: Zachary Amsden <zach@vmware.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/hardware/hwsleep.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+ arch/i386/mm/fault.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwsleep.c~enable-gpes-before-calling-_wak-on-resume drivers/acpi/hardware/hwsleep.c
---- a/drivers/acpi/hardware/hwsleep.c~enable-gpes-before-calling-_wak-on-resume
-+++ a/drivers/acpi/hardware/hwsleep.c
-@@ -576,13 +576,10 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
- 	}
- 
--	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
--	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
--		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
--	}
--	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
--
- 	/*
-+	 * GPEs must be enabled before _WAK is called as GPEs
-+	 * might get fired there
-+	 *
- 	 * Restore the GPEs:
- 	 * 1) Disable/Clear all GPEs
- 	 * 2) Enable all runtime GPEs
-@@ -591,13 +588,19 @@ acpi_status acpi_leave_sleep_state(u8 sl
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
--	acpi_gbl_system_awake_and_running = TRUE;
--
- 	status = acpi_hw_enable_all_runtime_gpes();
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
-+	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
-+		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
-+	}
-+	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
-+
-+	acpi_gbl_system_awake_and_running = TRUE;
-+
- 	/* Enable power button */
- 
- 	(void)
+diff -puN arch/i386/mm/fault.c~i386-fix-lazy-mode-vmalloc-synchronization-for-paravirt arch/i386/mm/fault.c
+--- a/arch/i386/mm/fault.c~i386-fix-lazy-mode-vmalloc-synchronization-for-paravirt
++++ a/arch/i386/mm/fault.c
+@@ -249,9 +249,10 @@ static inline pmd_t *vmalloc_sync_one(pg
+ 	pmd_k = pmd_offset(pud_k, address);
+ 	if (!pmd_present(*pmd_k))
+ 		return NULL;
+-	if (!pmd_present(*pmd))
++	if (!pmd_present(*pmd)) {
+ 		set_pmd(pmd, *pmd_k);
+-	else
++		arch_flush_lazy_mmu_mode();
++	} else
+ 		BUG_ON(pmd_page(*pmd) != pmd_page(*pmd_k));
+ 	return pmd_k;
+ }
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from zach@vmware.com are
 
 origin.patch
-git-acpi.patch
-exit-acpi-processor-module-gracefully-if-acpi-is-disabled.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
