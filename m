@@ -1,83 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-max6902-minor-fixes.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:01 -0700
-Message-ID: <200708242057.l7OKv1DI014122@imap1.linux-foundation.org>
+Subject: - xen-i386-xen-heads-fix-sections-mixup-update-2.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:06 -0700
+Message-ID: <200708242057.l7OKv6UB014133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53577 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760518AbXHXVIt (ORCPT
+	by vger.kernel.org with ESMTP id S1764189AbXHXVIt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 17:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, ak@suse.de, chrisw@sous-sol.org, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-max6902 minor fixes
+     Xen i386 xen-head.S fix sections mixup
 has been removed from the -mm tree.  Its filename was
-     rtc-max6902-minor-fixes.patch
+     xen-i386-xen-heads-fix-sections-mixup-update-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc-max6902 minor fixes
-From: David Brownell <david-b@pacbell.net>
+Subject: Xen i386 xen-head.S fix sections mixup
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Minor tweaks to rtc-max6902: make it hotplug correctly, and fix a few
-space-before-tab whitespace botches.  This driver has no current in-tree
-users, so the hotplug fix changes the driver name.
+Xen i386 xen-head.S fix sections mixup
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+xen-head.S does not come back to the data section, leaving the text section
+as current section. It causes problems with a slightly enhanced DEBUG_RODATA
+that supports CONFIG_HOTPLUG and bringing a CPU up after the text has been
+marked read-only: reference to early_gdt_descr causes a page fault.
+
+Updates:
+
+- It should be using pushsection/popsection.
+- Actually, the push/popsections around the ELFNOTEs are redundant; ELFNOTE()
+  does its own push/popsection to put things into the appropriate .note* section
+  anyway.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6902.c |    6 +++---
+ arch/i386/xen/xen-head.S |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6902.c~rtc-max6902-minor-fixes drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~rtc-max6902-minor-fixes
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -13,7 +13,7 @@
-  *
-  * 24-May-2006: Raphael Assenat <raph@8d.com>
-  *                - Major rework
-- *   				Converted to rtc_device and uses the SPI layer.
-+ *				Converted to rtc_device and uses the SPI layer.
-  *
-  * ??-???-2005: Someone at Compulab
-  *                - Initial driver creation.
-@@ -259,11 +259,11 @@ static int __devexit max6902_remove(stru
+diff -puN arch/i386/xen/xen-head.S~xen-i386-xen-heads-fix-sections-mixup-update-2 arch/i386/xen/xen-head.S
+--- a/arch/i386/xen/xen-head.S~xen-i386-xen-heads-fix-sections-mixup-update-2
++++ a/arch/i386/xen/xen-head.S
+@@ -7,20 +7,20 @@
+ #include <asm/boot.h>
+ #include <xen/interface/elfnote.h>
  
- static struct spi_driver max6902_driver = {
- 	.driver = {
--		.name 	= "max6902",
-+		.name	= "rtc-max6902",
- 		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
--	.probe 	= max6902_probe,
-+	.probe	= max6902_probe,
- 	.remove = __devexit_p(max6902_remove),
- };
+-	.section .init.text
++.pushsection .init.text
+ ENTRY(startup_xen)
+ 	movl %esi,xen_start_info
+ 	cld
+ 	movl $(init_thread_union+THREAD_SIZE),%esp
+ 	jmp xen_start_kernel
++.popsection
  
+-.pushsection ".bss.page_aligned"
++.pushsection .bss.page_aligned
+ 	.align PAGE_SIZE_asm
+ ENTRY(hypercall_page)
+ 	.skip 0x1000
+ .popsection
+ 
+-	.section .text
+ 	ELFNOTE(Xen, XEN_ELFNOTE_GUEST_OS,       .asciz "linux")
+ 	ELFNOTE(Xen, XEN_ELFNOTE_GUEST_VERSION,  .asciz "2.6")
+ 	ELFNOTE(Xen, XEN_ELFNOTE_XEN_VERSION,    .asciz "xen-3.0")
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-spi-driver-hotplug-coldplug-fixes.patch
-fix-typo-in-atmel_spic.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-git-mmc.patch
-git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-spi-driver-runtime-footprint-shrinkage.patch
-rtc-periodic-irq-fix.patch
-rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
