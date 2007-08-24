@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-set-uninitialized-devices-to-size-0.patch added to -mm tree
-Date: Fri, 24 Aug 2007 16:48:10 -0700
-Message-ID: <200708242348.l7ONmB5c020933@imap1.linux-foundation.org>
+Subject: + sky2-clear-pci-power-control-reg-at-startup.patch added to -mm tree
+Date: Fri, 24 Aug 2007 16:55:37 -0700
+Message-ID: <200708242355.l7ONtbxY021182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755460AbXHXXsO (ORCPT
+	by vger.kernel.org with ESMTP id S1755237AbXHXX4L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 19:48:14 -0400
+	Fri, 24 Aug 2007 19:56:11 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7ONtbwB004029
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2007 16:55:38 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paul.clements@steeleye.com
+Cc: shemminger@linux-foundation.org
 
 
 The patch titled
-     NBD: set uninitialized devices to size 0
+     sky2: clear PCI power control reg at startup
 has been added to the -mm tree.  Its filename is
-     nbd-set-uninitialized-devices-to-size-0.patch
+     sky2-clear-pci-power-control-reg-at-startup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +30,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NBD: set uninitialized devices to size 0
-From: Paul Clements <paul.clements@steeleye.com>
+Subject: sky2: clear PCI power control reg at startup
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-This fixes errors with utilities (such as LVM's vgscan) that try to scan all
-devices.  Previously this would generate read errors when uninitialized nbd
-devices were scanned:
+Make sure PCI register for PHY power gets cleared on boot, and make
+sure to avoid any PCI posting problems.
 
-# vgscan
-   Reading all physical volumes.  This may take a while...
-   /dev/nbd0: read failed after 0 of 1024 at 0: Input/output error
-   /dev/nbd0: read failed after 0 of 1024 at 509804544: Input/output error
-   /dev/nbd0: read failed after 0 of 2048 at 0: Input/output error
-   /dev/nbd1: read failed after 0 of 1024 at 509804544: Input/output error
-   /dev/nbd1: read failed after 0 of 2048 at 0: Input/output error
-
- From now on, uninitialized nbd devices will have size zero, which
-prevents these errors.
-
-Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/net/sky2.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-set-uninitialized-devices-to-size-0 drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-set-uninitialized-devices-to-size-0
-+++ a/drivers/block/nbd.c
-@@ -585,6 +585,9 @@ static int nbd_ioctl(struct inode *inode
- 		printk(KERN_WARNING "%s: queue cleared\n", lo->disk->disk_name);
- 		if (file)
- 			fput(file);
-+		lo->bytesize = 0;
-+		inode->i_bdev->bd_inode->i_size = 0;
-+		set_capacity(lo->disk, 0);
- 		return lo->harderror;
- 	case NBD_CLEAR_QUE:
- 		/*
-@@ -662,14 +665,14 @@ static int __init nbd_init(void)
- 		mutex_init(&nbd_dev[i].tx_lock);
- 		init_waitqueue_head(&nbd_dev[i].active_wq);
- 		nbd_dev[i].blksize = 1024;
--		nbd_dev[i].bytesize = 0x7ffffc00ULL << 10; /* 2TB */
-+		nbd_dev[i].bytesize = 0;
- 		disk->major = NBD_MAJOR;
- 		disk->first_minor = i;
- 		disk->fops = &nbd_fops;
- 		disk->private_data = &nbd_dev[i];
- 		disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
- 		sprintf(disk->disk_name, "nbd%d", i);
--		set_capacity(disk, 0x7ffffc00ULL << 1); /* 2 TB */
-+		set_capacity(disk, 0);
- 		add_disk(disk);
+diff -puN drivers/net/sky2.c~sky2-clear-pci-power-control-reg-at-startup drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-clear-pci-power-control-reg-at-startup
++++ a/drivers/net/sky2.c
+@@ -219,9 +219,12 @@ static void sky2_power_on(struct sky2_hw
+ 	else
+ 		sky2_write8(hw, B2_Y2_CLK_GATE, 0);
+ 
+-	if (hw->chip_id == CHIP_ID_YUKON_EC_U || hw->chip_id == CHIP_ID_YUKON_EX) {
++	if (hw->chip_id == CHIP_ID_YUKON_EC_U ||
++	    hw->chip_id == CHIP_ID_YUKON_EX) {
+ 		u32 reg;
+ 
++		sky2_pci_write32(hw, PCI_DEV_REG3, 0);
++
+ 		reg = sky2_pci_read32(hw, PCI_DEV_REG4);
+ 		/* set all bits to 0 except bits 15..12 and 8 */
+ 		reg &= P_ASPM_CONTROL_MSK;
+@@ -238,6 +241,8 @@ static void sky2_power_on(struct sky2_hw
+ 		reg = sky2_read32(hw, B2_GP_IO);
+ 		reg |= GLB_GPIO_STAT_RACE_DIS;
+ 		sky2_write32(hw, B2_GP_IO, reg);
++
++		sky2_read32(hw, B2_GP_IO);
  	}
+ }
  
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch
-nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch
-nbd-set-uninitialized-devices-to-size-0.patch
-nbd-allow-hung-network-i-o-to-be-cancelled.patch
+origin.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+pci-x-pci-express-read-control-interfaces-myrinet.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+sky2-clear-pci-power-control-reg-at-startup.patch
+sky2-only-bring-up-watchdog-if-link-is-active.patch
+sky2-117.patch
+git-net.patch
+i386-optimize-memset-of-6-and-8-bytes.patch
