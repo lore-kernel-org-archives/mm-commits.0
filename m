@@ -1,331 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-fix-up-after-lindent.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:55 -0700
-Message-ID: <200708242058.l7OKwt1v014344@imap1.linux-foundation.org>
+Subject: - exec-kill-unsafe-bug_onsig-count-checks.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:03 -0700
+Message-ID: <200708242057.l7OKv3tA014130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33178 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763025AbXHXVJI (ORCPT
+	by vger.kernel.org with ESMTP id S1760691AbXHXVJn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:09:08 -0400
+	Fri, 24 Aug 2007 17:09:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@suse.cz, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: fix up after Lindent
+     exec: kill unsafe BUG_ON(sig->count) checks
 has been removed from the -mm tree.  Its filename was
-     pnp-fix-up-after-lindent.patch
+     exec-kill-unsafe-bug_onsig-count-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: fix up after Lindent
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: exec: kill unsafe BUG_ON(sig->count) checks
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-More manual fixups after Lindent.  No functional change.
+de_thread:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Len Brown <lenb@kernel.org>
+	if (atomic_read(&oldsighand->count) <= 1)
+		BUG_ON(atomic_read(&sig->count) != 1);
+
+This is not safe without the rmb() in between.  The results of two
+correctly ordered __exit_signal()->atomic_dec_and_test()'s could be seen
+out of order on our CPU.
+
+The same is true for the "thread_group_empty()" case, __unhash_process()'s
+changes could be seen before atomic_dec_and_test(&sig->count).
+
+On some platforms (including i386) atomic_read() doesn't provide even the
+compiler barrier, in that case these checks are simply racy.
+
+Remove these BUG_ON()'s. Alternatively, we can do something like
+
+	BUG_ON( ({ smp_rmb(); atomic_read(&sig->count) != 1; }) );
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/card.c             |   16 ++++++++--------
- drivers/pnp/driver.c           |    2 +-
- drivers/pnp/interface.c        |    9 +++++----
- drivers/pnp/isapnp/core.c      |   15 ++++++---------
- drivers/pnp/manager.c          |    4 ++--
- drivers/pnp/pnpacpi/core.c     |    4 ++--
- drivers/pnp/pnpacpi/rsparser.c |    1 +
- drivers/pnp/pnpbios/core.c     |    1 +
- drivers/pnp/pnpbios/proc.c     |    2 +-
- drivers/pnp/pnpbios/rsparser.c |    9 +++++----
- 10 files changed, 32 insertions(+), 31 deletions(-)
+ fs/exec.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/pnp/card.c~pnp-fix-up-after-lindent drivers/pnp/card.c
---- a/drivers/pnp/card.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/card.c
-@@ -25,13 +25,13 @@ static const struct pnp_card_device_id *
- 				int found;
- 				struct pnp_dev *dev;
- 
--				if (i == PNP_MAX_DEVICES
--				    || !*drv_id->devs[i].id)
-+				if (i == PNP_MAX_DEVICES ||
-+				    !*drv_id->devs[i].id)
- 					return drv_id;
- 				found = 0;
- 				card_for_each_dev(card, dev) {
--					if (compare_pnp_id
--					    (dev->id, drv_id->devs[i].id)) {
-+					if (compare_pnp_id(dev->id,
-+						   drv_id->devs[i].id)) {
- 						found = 1;
- 						break;
- 					}
-@@ -183,7 +183,7 @@ static int pnp_interface_attach_card(str
- 
- 	return 0;
- 
--      err_name:
-+err_name:
- 	device_remove_file(&card->dev, &dev_attr_name);
- 	return rc;
- }
-@@ -321,10 +321,10 @@ struct pnp_dev *pnp_request_card_device(
- 		pos = pos->next;
- 	}
- 
--      done:
-+done:
- 	return NULL;
- 
--      found:
-+found:
- 	dev->card_link = clink;
- 	dev->dev.driver = &drv->link.driver;
- 	if (pnp_bus_type.probe(&dev->dev))
-@@ -334,7 +334,7 @@ struct pnp_dev *pnp_request_card_device(
- 
- 	return dev;
- 
--      err_out:
-+err_out:
- 	dev->dev.driver = NULL;
- 	dev->card_link = NULL;
- 	return NULL;
-diff -puN drivers/pnp/driver.c~pnp-fix-up-after-lindent drivers/pnp/driver.c
---- a/drivers/pnp/driver.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/driver.c
-@@ -118,7 +118,7 @@ static int pnp_device_probe(struct devic
- 		goto fail;
- 	return error;
- 
--      fail:
-+fail:
- 	pnp_device_detach(pnp_dev);
- 	return error;
- }
-diff -puN drivers/pnp/interface.c~pnp-fix-up-after-lindent drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/interface.c
-@@ -459,7 +459,8 @@ pnp_set_current_resources(struct device 
- 		up(&pnp_res_mutex);
- 		goto done;
- 	}
--      done:
-+
-+done:
- 	if (retval < 0)
- 		return retval;
- 	return count;
-@@ -499,10 +500,10 @@ int pnp_interface_attach_device(struct p
- 
- 	return 0;
- 
--      err_res:
-+err_res:
- 	device_remove_file(&dev->dev, &dev_attr_resources);
--      err_opt:
-+err_opt:
- 	device_remove_file(&dev->dev, &dev_attr_options);
--      err:
-+err:
- 	return rc;
- }
-diff -puN drivers/pnp/isapnp/core.c~pnp-fix-up-after-lindent drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/isapnp/core.c
-@@ -335,7 +335,7 @@ static int __init isapnp_isolate(void)
- 		} else if (iteration > 1) {
- 			break;
- 		}
--	      __next:
-+__next:
- 		if (csn == 255)
- 			break;
- 		checksum = 0x6a;
-@@ -733,7 +733,7 @@ static int __init isapnp_create_device(s
- 			       "isapnp: unexpected or unknown tag type 0x%x for logical device %i (device %i), ignored\n",
- 			       type, dev->number, card->number);
- 		}
--	      __skip:
-+__skip:
- 		if (size > 0)
- 			isapnp_skip_bytes(size);
- 	}
-@@ -788,7 +788,7 @@ static void __init isapnp_parse_resource
- 			       "isapnp: unexpected or unknown tag type 0x%x for device %i, ignored\n",
- 			       type, card->number);
- 		}
--	      __skip:
-+__skip:
- 		if (size > 0)
- 			isapnp_skip_bytes(size);
- 	}
-@@ -940,9 +940,6 @@ EXPORT_SYMBOL(isapnp_protocol);
- EXPORT_SYMBOL(isapnp_present);
- EXPORT_SYMBOL(isapnp_cfg_begin);
- EXPORT_SYMBOL(isapnp_cfg_end);
--#if 0
--EXPORT_SYMBOL(isapnp_read_byte);
--#endif
- EXPORT_SYMBOL(isapnp_write_byte);
- 
- static int isapnp_read_resources(struct pnp_dev *dev,
-@@ -993,6 +990,7 @@ static int isapnp_get_resources(struct p
- 				struct pnp_resource_table *res)
- {
- 	int ret;
-+
- 	pnp_init_resource_table(res);
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	ret = isapnp_read_resources(dev, res);
-@@ -1148,13 +1146,12 @@ static int __init isapnp_init(void)
- 			}
- 		}
- 	}
--	if (cards) {
-+	if (cards)
- 		printk(KERN_INFO
- 		       "isapnp: %i Plug & Play card%s detected total\n", cards,
- 		       cards > 1 ? "s" : "");
--	} else {
-+	else
- 		printk(KERN_INFO "isapnp: No Plug & Play card found\n");
--	}
- 
- 	isapnp_proc_init();
- 	return 0;
-diff -puN drivers/pnp/manager.c~pnp-fix-up-after-lindent drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/manager.c
-@@ -390,7 +390,7 @@ static int pnp_assign_resources(struct p
- 	up(&pnp_res_mutex);
- 	return 1;
- 
--      fail:
-+fail:
- 	pnp_clean_resource_table(&dev->res);
- 	up(&pnp_res_mutex);
- 	return 0;
-@@ -444,7 +444,7 @@ int pnp_manual_config_dev(struct pnp_dev
- 	kfree(bak);
- 	return 0;
- 
--      fail:
-+fail:
- 	dev->res = *bak;
- 	up(&pnp_res_mutex);
- 	kfree(bak);
-diff -puN drivers/pnp/pnpacpi/core.c~pnp-fix-up-after-lindent drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -248,9 +248,9 @@ static int __init pnpacpi_add_device(str
- 	num++;
- 
- 	return AE_OK;
--      err1:
-+err1:
- 	kfree(dev_id);
--      err:
-+err:
- 	kfree(dev);
- 	return -EINVAL;
- }
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-fix-up-after-lindent drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -35,6 +35,7 @@
- static int irq_flags(int triggering, int polarity)
- {
- 	int flag;
-+
- 	if (triggering == ACPI_LEVEL_SENSITIVE) {
- 		if (polarity == ACPI_ACTIVE_LOW)
- 			flag = IORESOURCE_IRQ_LOWLEVEL;
-diff -puN drivers/pnp/pnpbios/core.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -591,6 +591,7 @@ subsys_initcall(pnpbios_init);
- static int __init pnpbios_thread_init(void)
- {
- 	struct task_struct *task;
-+
- #if defined(CONFIG_PPC_MERGE)
- 	if (check_legacy_ioport(PNPBIOS_BASE))
+diff -puN fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks fs/exec.c
+--- a/fs/exec.c~exec-kill-unsafe-bug_onsig-count-checks
++++ a/fs/exec.c
+@@ -784,7 +784,6 @@ static int de_thread(struct task_struct 
+ 	 * and we can just re-use it all.
+ 	 */
+ 	if (atomic_read(&oldsighand->count) <= 1) {
+-		BUG_ON(atomic_read(&sig->count) != 1);
+ 		signalfd_detach(tsk);
+ 		exit_itimers(sig);
  		return 0;
-diff -puN drivers/pnp/pnpbios/proc.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/proc.c
---- a/drivers/pnp/pnpbios/proc.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/pnpbios/proc.c
-@@ -213,7 +213,7 @@ static int proc_write_node(struct file *
- 		goto out;
- 	}
- 	ret = count;
--      out:
-+out:
- 	kfree(node);
- 	return ret;
- }
-diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-fix-up-after-lindent drivers/pnp/pnpbios/rsparser.c
---- a/drivers/pnp/pnpbios/rsparser.c~pnp-fix-up-after-lindent
-+++ a/drivers/pnp/pnpbios/rsparser.c
-@@ -238,7 +238,7 @@ static unsigned char *pnpbios_parse_allo
- 			break;
+@@ -929,8 +928,6 @@ no_thread_group:
+ 	if (leader)
+ 		release_task(leader);
  
- 		default:	/* an unkown tag */
--		      len_err:
-+len_err:
- 			printk(KERN_ERR
- 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
- 			       tag, len);
-@@ -298,6 +298,7 @@ static void pnpbios_parse_fixed_mem32_op
- 					     struct pnp_option *option)
- {
- 	struct pnp_mem *mem;
-+
- 	mem = kzalloc(sizeof(struct pnp_mem), GFP_KERNEL);
- 	if (!mem)
- 		return;
-@@ -468,7 +469,7 @@ static unsigned char *pnpbios_parse_reso
- 			return p + 2;
- 
- 		default:	/* an unkown tag */
--		      len_err:
-+len_err:
- 			printk(KERN_ERR
- 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
- 			       tag, len);
-@@ -562,7 +563,7 @@ static unsigned char *pnpbios_parse_comp
- 			break;
- 
- 		default:	/* an unkown tag */
--		      len_err:
-+len_err:
- 			printk(KERN_ERR
- 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
- 			       tag, len);
-@@ -756,7 +757,7 @@ static unsigned char *pnpbios_encode_all
- 			break;
- 
- 		default:	/* an unkown tag */
--		      len_err:
-+len_err:
- 			printk(KERN_ERR
- 			       "PnPBIOS: Unknown tag '0x%x', length '%d'.\n",
- 			       tag, len);
+-	BUG_ON(atomic_read(&sig->count) != 1);
+-
+ 	if (atomic_read(&oldsighand->count) == 1) {
+ 		/*
+ 		 * Now that we nuked the rest of the thread group,
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-acpi.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-move-free-pages-between-lists-on-steal.patch
-convert-ill-defined-log2-to-ilog2.patch
-tpm_tis-fix-interrupt-probing.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
+setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch
+sigqueue_free-fix-the-race-with-collect_signal.patch
+git-dvb.patch
+rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+make-access-to-tasks-nsproxy-lighter.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+proc-export-a-processes-resource-limits-via-proc-pid.patch
+fix-tsk-exit_state-usage-resend.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
