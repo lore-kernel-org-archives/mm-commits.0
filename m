@@ -1,142 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-deadlock-during-create.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:56:51 -0700
-Message-ID: <200708242056.l7OKup6b014103@imap1.linux-foundation.org>
+Subject: - pci-disable-decode-of-io-memory-during-bar-sizing.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:57:52 -0700
+Message-ID: <200708242057.l7OKvqnp014260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49491 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762291AbXHXVIR (ORCPT
+	by vger.kernel.org with ESMTP id S1758424AbXHXVIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:17 -0400
+	Fri, 24 Aug 2007 17:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, mm-commits@vger.kernel.org
+To: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jesse.barnes@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: deadlock during create
+     PCI: disable decode of IO/memory during BAR sizing
 has been removed from the -mm tree.  Its filename was
-     autofs4-deadlock-during-create.patch
+     pci-disable-decode-of-io-memory-during-bar-sizing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: autofs4: deadlock during create
-From: Ian Kent <raven@themaw.net>
+Subject: PCI: disable decode of IO/memory during BAR sizing
+From: Robert Hancock <hancockr@shaw.ca>
 
-Due to inconsistent locking in the VFS between calls to lookup and
-revalidate deadlock can occur in the automounter.
+Change PCI BAR sizing to disable the decode of memory or IO, as
+appropriate, while we are writing the all-ones value to the BAR to
+determine the size.  If this is not done, the device may spuriously decode
+accesses to memory areas it should not.  On some Intel PCI Express
+chipsets, this breaks MMCONFIG configuration space access, since the memory
+the graphics card ends up decoding during this period overlaps the MMCONFIG
+area, and thus it steals the accesses to the area to do any other
+configuration space access, including changing the BAR back to its previous
+value.
 
-The inconsistency is that the directory inode mutex is held for both lookup
-and revalidate calls when called via lookup_hash whereas it is held only
-for lookup during a path walk.  Consequently, if the mutex is held during a
-call to revalidate autofs4 can't release the mutex to callback the daemon
-as it can't know whether it owns the mutex.
+However, don't do this disabling on host bridge devices, as it is reported that
+some of them do silly things like disable CPU to RAM access if this is done.
 
-This situation happens when a process tries to create a directory within an
-automount and a second process also tries to create the same directory
-between the lookup and the mkdir.  Since the first process has dropped the
-mutex for the daemon callback, the second process takes it during
-revalidate leading to deadlock between the autofs daemon and the second
-process when the daemon tries to create the mount point directory.
+Based on an original patch by Jesse Barnes.
 
-After spending quite a bit of time trying to resolve this on more than one
-occassion, using rather complex and ulgy approaches, it turns out that just
-delaying the hashing of the dentry until the create operation works fine.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Robert Hancock <hancockr@shaw.ca>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   31 +++++++++++++++++--------------
- 1 files changed, 17 insertions(+), 14 deletions(-)
+ drivers/pci/probe.c |   63 ++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 55 insertions(+), 8 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-deadlock-during-create fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-deadlock-during-create
-+++ a/fs/autofs4/root.c
-@@ -587,19 +587,20 @@ static struct dentry *autofs4_lookup(str
- 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
- 	if (!unhashed) {
- 		/*
--		 * Mark the dentry incomplete, but add it. This is needed so
--		 * that the VFS layer knows about the dentry, and we can count
--		 * on catching any lookups through the revalidate.
--		 *
--		 * Let all the hard work be done by the revalidate function that
--		 * needs to be able to do this anyway..
--		 *
--		 * We need to do this before we release the directory semaphore.
-+		 * Mark the dentry incomplete but don't hash it. We do this
-+		 * to serialize our inode creation operations (symlink and
-+		 * mkdir) which prevents deadlock during the callback to
-+		 * the daemon. Subsequent user space lookups for the same
-+		 * dentry are placed on the wait queue while the daemon
-+		 * itself is allowed passage unresticted so the create
-+		 * operation itself can then hash the dentry. Finally,
-+		 * we check for the hashed dentry and return the newly
-+		 * hashed dentry.
- 		 */
- 		dentry->d_op = &autofs4_root_dentry_operations;
+diff -puN drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing
++++ a/drivers/pci/probe.c
+@@ -180,6 +180,58 @@ static inline int is_64bit_memory(u32 ma
+ 	return 0;
+ }
  
- 		dentry->d_fsdata = NULL;
--		d_add(dentry, NULL);
-+		d_instantiate(dentry, NULL);
- 	} else {
- 		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
- 		DPRINTK("rehash %p with %p", dentry, unhashed);
-@@ -607,15 +608,17 @@ static struct dentry *autofs4_lookup(str
- 		 * If we are racing with expire the request might not
- 		 * be quite complete but the directory has been removed
- 		 * so it must have been successful, so just wait for it.
-+		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
-+		 * before continuing as revalidate may fail when calling
-+		 * try_to_fill_dentry (returning EAGAIN) if we don't.
- 		 */
--		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
-+		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
- 			DPRINTK("wait for incomplete expire %p name=%.*s",
- 				unhashed, unhashed->d_name.len,
- 				unhashed->d_name.name);
- 			autofs4_wait(sbi, unhashed, NFY_NONE);
- 			DPRINTK("request completed");
- 		}
--		d_rehash(unhashed);
- 		dentry = unhashed;
- 	}
++#define BAR_IS_MEMORY(bar) (((bar) & PCI_BASE_ADDRESS_SPACE) ==	\
++			    PCI_BASE_ADDRESS_SPACE_MEMORY)
++
++/**
++ * pci_bar_size - get raw PCI BAR size
++ * @dev: PCI device
++ * @reg: BAR to probe
++ *
++ * Use basic PCI probing:
++ *   - save original BAR value
++ *   - disable MEM or IO decode in PCI_COMMAND reg if appropriate
++ *   - write all 1s to the BAR
++ *   - read back value
++ *   - reenble MEM or IO decode as necessary
++ *   - write original value back
++ *
++ * Returns raw BAR size to caller.
++ */
++static u32 pci_bar_size(struct pci_dev *dev, unsigned int reg)
++{
++	u32 orig_reg, sz;
++	u16 orig_cmd;
++
++	pci_read_config_dword(dev, reg, &orig_reg);
++	pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
++
++	/*
++	 * Disable memory or IO decode on the device while writing the test
++	 * value to the BAR. This prevents possible spurious decoding
++	 * of random addresses by the device. Don't do this for host bridges,
++	 * however, since some of them do silly things like disable CPU to RAM
++	 * access if this is done.
++	 */
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
++		if (BAR_IS_MEMORY(orig_reg))
++			pci_write_config_word(dev, PCI_COMMAND,
++					      orig_cmd & ~PCI_COMMAND_MEMORY);
++		else
++			pci_write_config_word(dev, PCI_COMMAND,
++					      orig_cmd & ~PCI_COMMAND_IO);
++	}
++
++	pci_write_config_dword(dev, reg, 0xffffffff);
++	pci_read_config_dword(dev, reg, &sz);
++	pci_write_config_dword(dev, reg, orig_reg);
++
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
++		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
++
++	return sz;
++}
++
+ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
+ {
+ 	unsigned int pos, reg, next;
+@@ -196,16 +248,13 @@ static void pci_read_bases(struct pci_de
+ 		res->name = pci_name(dev);
+ 		reg = PCI_BASE_ADDRESS_0 + (pos << 2);
+ 		pci_read_config_dword(dev, reg, &l);
+-		pci_write_config_dword(dev, reg, ~0);
+-		pci_read_config_dword(dev, reg, &sz);
+-		pci_write_config_dword(dev, reg, l);
++		sz = pci_bar_size(dev, reg);
+ 		if (!sz || sz == 0xffffffff)
+ 			continue;
+ 		if (l == 0xffffffff)
+ 			l = 0;
+ 		raw_sz = sz;
+-		if ((l & PCI_BASE_ADDRESS_SPACE) ==
+-				PCI_BASE_ADDRESS_SPACE_MEMORY) {
++		if (BAR_IS_MEMORY(l)) {
+ 			sz = pci_size(l, sz, (u32)PCI_BASE_ADDRESS_MEM_MASK);
+ 			/*
+ 			 * For 64bit prefetchable memory sz could be 0, if the
+@@ -229,9 +278,7 @@ static void pci_read_bases(struct pci_de
+ 			u32 szhi, lhi;
  
-@@ -658,7 +661,7 @@ static struct dentry *autofs4_lookup(str
- 	 * for all system calls, but it should be OK for the operations
- 	 * we permit from an autofs.
- 	 */
--	if (dentry->d_inode && d_unhashed(dentry)) {
-+	if (!oz_mode && d_unhashed(dentry)) {
- 		/*
- 		 * A user space application can (and has done in the past)
- 		 * remove and re-create this directory during the callback.
-@@ -716,7 +719,7 @@ static int autofs4_dir_symlink(struct in
- 	strcpy(cp, symname);
- 
- 	inode = autofs4_get_inode(dir->i_sb, ino);
--	d_instantiate(dentry, inode);
-+	d_add(dentry, inode);
- 
- 	if (dir == dir->i_sb->s_root->d_inode)
- 		dentry->d_op = &autofs4_root_dentry_operations;
-@@ -844,7 +847,7 @@ static int autofs4_dir_mkdir(struct inod
- 		return -ENOSPC;
- 
- 	inode = autofs4_get_inode(dir->i_sb, ino);
--	d_instantiate(dentry, inode);
-+	d_add(dentry, inode);
- 
- 	if (dir == dir->i_sb->s_root->d_inode)
- 		dentry->d_op = &autofs4_root_dentry_operations;
+ 			pci_read_config_dword(dev, reg+4, &lhi);
+-			pci_write_config_dword(dev, reg+4, ~0);
+-			pci_read_config_dword(dev, reg+4, &szhi);
+-			pci_write_config_dword(dev, reg+4, lhi);
++			szhi = pci_bar_size(dev, reg+4);
+ 			sz64 = ((u64)szhi << 32) | raw_sz;
+ 			l64 = ((u64)lhi << 32) | l;
+ 			sz64 = pci_size64(l64, sz64, PCI_BASE_ADDRESS_MEM_MASK);
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from hancockr@shaw.ca are
 
-origin.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-autofs4-reinstate-negatitive-timeout-of-mount-fails.patch
-autofs4-reinstate-negatitive-timeout-of-mount-fails-fix.patch
+libata-add-human-readable-error-value-decoding-v3.patch
