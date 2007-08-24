@@ -1,196 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - mtdoops-printk-warning-fixes.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:50 -0700
-Message-ID: <200708242057.l7OKvoFl014257@imap1.linux-foundation.org>
+Subject: - g_file_storage-fix-bug-in-dma-buffer-handling.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:46 -0700
+Message-ID: <200708242058.l7OKwk6e014332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51309 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758160AbXHXVH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758431AbXHXVIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:07:58 -0400
+	Fri, 24 Aug 2007 17:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtdoops printk warning fixes
+     g_file_storage: fix bug in DMA buffer handling
 has been removed from the -mm tree.  Its filename was
-     mtdoops-printk-warning-fixes.patch
+     g_file_storage-fix-bug-in-dma-buffer-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mtdoops printk warning fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: g_file_storage: fix bug in DMA buffer handling
+From: Alan Stern <stern@rowland.harvard.edu>
 
-drivers/mtd/mtdoops.c: In function 'mtdoops_inc_counter':
-drivers/mtd/mtdoops.c:109: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-drivers/mtd/mtdoops.c: In function 'mtdoops_console_sync':
-drivers/mtd/mtdoops.c:277: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+This patch (as963) fixes a recently-introduced bug.  The gadget conversion
+removing DMA-mapped buffer allocation did not remove quite enough code from
+the g_file_storage driver; DMA pointers were being set to 0.
 
-someone buy Dave an x86_64 box.
-
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdoops.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/file_storage.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes drivers/mtd/mtdoops.c
---- a/drivers/mtd/mtdoops.c~mtdoops-printk-warning-fixes
-+++ a/drivers/mtd/mtdoops.c
-@@ -104,7 +104,7 @@ static int mtdoops_inc_counter(struct mt
- 	ret = mtd->read(mtd, cxt->nextpage * OOPS_PAGE_SIZE, 4,
- 			&retlen, (u_char *) &count);
- 	if ((retlen != 4) || (ret < 0)) {
--		printk(KERN_ERR "mtdoops: Read failure at %d (%d of 4 read)"
-+		printk(KERN_ERR "mtdoops: Read failure at %d (%td of 4 read)"
- 				", err %d.\n", cxt->nextpage * OOPS_PAGE_SIZE,
- 				retlen, ret);
- 		return 1;
-@@ -273,7 +273,7 @@ static void mtdoops_console_sync(void)
- 	cxt->writecount = 0;
+diff -puN drivers/usb/gadget/file_storage.c~g_file_storage-fix-bug-in-dma-buffer-handling drivers/usb/gadget/file_storage.c
+--- a/drivers/usb/gadget/file_storage.c~g_file_storage-fix-bug-in-dma-buffer-handling
++++ a/drivers/usb/gadget/file_storage.c
+@@ -576,7 +576,6 @@ enum fsg_buffer_state {
  
- 	if ((retlen != OOPS_PAGE_SIZE) || (ret < 0))
--		printk(KERN_ERR "mtdoops: Write failure at %d (%d of %d written), err %d.\n",
-+		printk(KERN_ERR "mtdoops: Write failure at %d (%td of %d written), err %d.\n",
- 			cxt->nextpage * OOPS_PAGE_SIZE, retlen,	OOPS_PAGE_SIZE, ret);
+ struct fsg_buffhd {
+ 	void				*buf;
+-	dma_addr_t			dma;
+ 	enum fsg_buffer_state		state;
+ 	struct fsg_buffhd		*next;
  
- 	ret = mtdoops_inc_counter(cxt);
+@@ -2570,7 +2569,6 @@ static int send_status(struct fsg_dev *f
+ 
+ 		fsg->intr_buffhd = bh;		// Point to the right buffhd
+ 		fsg->intreq->buf = bh->inreq->buf;
+-		fsg->intreq->dma = bh->inreq->dma;
+ 		fsg->intreq->context = bh;
+ 		start_transfer(fsg, fsg->intr_in, fsg->intreq,
+ 				&fsg->intreq_busy, &bh->state);
+@@ -3163,7 +3161,6 @@ reset:
+ 		if ((rc = alloc_request(fsg, fsg->bulk_out, &bh->outreq)) != 0)
+ 			goto reset;
+ 		bh->inreq->buf = bh->outreq->buf = bh->buf;
+-		bh->inreq->dma = bh->outreq->dma = bh->dma;
+ 		bh->inreq->context = bh->outreq->context = bh;
+ 		bh->inreq->complete = bulk_in_complete;
+ 		bh->outreq->complete = bulk_out_complete;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
 origin.patch
-revert-ecryptfs-fix-lookup-error-for-special-files.patch
-process_zones-fix-recovery-code.patch
-remove-bdput-from-do_open-in-fs-block_devc.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dma.patch
-git-dma-makefile-fix.patch
-disable-ioat.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-infiniband-work-around-gcc-slub-problem.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mmc-fixup.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-git-s390.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-wireless-printk-fixes.patch
-net-add-ath5k-wireless-driver-fix.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-pci-align-bar-settings-for-legacy-mode-ide.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
