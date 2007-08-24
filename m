@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch added to -mm tree
-Date: Fri, 24 Aug 2007 16:46:07 -0700
-Message-ID: <200708242346.l7ONk7Uo020818@imap1.linux-foundation.org>
+Subject: + do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch added to -mm tree
+Date: Fri, 24 Aug 2007 16:46:03 -0700
+Message-ID: <200708242346.l7ONk31P020813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49260 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761356AbXHXXqh (ORCPT
+	by vger.kernel.org with ESMTP id S1757361AbXHXXqb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 19:46:37 -0400
+	Fri, 24 Aug 2007 19:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, akinobu.mita@gmail.com, cpw@sgi.com, ego@in.ibm.com, mingo@
 
 
 The patch titled
-     migration_call(CPU_DEAD): use spin_lock_irq() instead of task_rq_lock()
+     do CPU_DEAD migrating under read_lock(tasklist) instead of write_lock_irq(tasklist)
 has been added to the -mm tree.  Its filename is
-     migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+     do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: migration_call(CPU_DEAD): use spin_lock_irq() instead of task_rq_lock()
+Subject: do CPU_DEAD migrating under read_lock(tasklist) instead of write_lock_irq(tasklist)
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change migration_call(CPU_DEAD) to use direct spin_lock_irq() instead of
-task_rq_lock(rq->idle), rq->idle can't change its task_rq().
+Currently move_task_off_dead_cpu() is called under
+write_lock_irq(tasklist).  This means it can't use task_lock() which is
+needed to improve migrating to take task's ->cpuset into account.
 
-This makes the code a bit more symmetrical with migrate_dead_tasks()'s path
-which uses spin_lock_irq/spin_unlock_irq.
+Change the code to call move_task_off_dead_cpu() with irqs enabled, and
+change migrate_live_tasks() to use read_lock(tasklist).
+
+This all is a preparation for the futher changes proposed by Cliff Wickman, see
+	http://marc.info/?t=117327786100003
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Cliff Wickman <cpw@sgi.com>
@@ -44,29 +48,66 @@ Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sched.c~migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock kernel/sched.c
---- a/kernel/sched.c~migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock
+diff -puN kernel/sched.c~do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist kernel/sched.c
+--- a/kernel/sched.c~do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist
 +++ a/kernel/sched.c
-@@ -5438,14 +5438,14 @@ migration_call(struct notifier_block *nf
- 		kthread_stop(rq->migration_thread);
- 		rq->migration_thread = NULL;
- 		/* Idle task back to normal (off runqueue, low prio) */
--		rq = task_rq_lock(rq->idle, &flags);
-+		spin_lock_irq(&rq->lock);
- 		update_rq_clock(rq);
- 		deactivate_task(rq, rq->idle, 0);
- 		rq->idle->static_prio = MAX_PRIO;
- 		__setscheduler(rq, rq->idle, SCHED_NORMAL, 0);
- 		rq->idle->sched_class = &idle_sched_class;
- 		migrate_dead_tasks(cpu);
--		task_rq_unlock(rq, &flags);
-+		spin_unlock_irq(&rq->lock);
- 		migrate_nr_uninterruptible(rq);
- 		BUG_ON(rq->nr_running != 0);
+@@ -5099,7 +5099,7 @@ static void move_task_off_dead_cpu(int d
+ 	unsigned long flags;
+ 	cpumask_t mask;
+ 	struct rq *rq;
+-	int dest_cpu;
++	int dest_cpu, done;
  
+ restart:
+ 	/* On same node? */
+@@ -5128,7 +5128,11 @@ restart:
+ 			       "longer affine to cpu%d\n",
+ 			       p->pid, p->comm, dead_cpu);
+ 	}
+-	if (!__migrate_task(p, dead_cpu, dest_cpu))
++
++	local_irq_disable();
++	done = __migrate_task(p, dead_cpu, dest_cpu);
++	local_irq_enable();
++	if (!done)
+ 		goto restart;
+ }
+ 
+@@ -5157,7 +5161,7 @@ static void migrate_live_tasks(int src_c
+ {
+ 	struct task_struct *p, *t;
+ 
+-	write_lock_irq(&tasklist_lock);
++	read_lock(&tasklist_lock);
+ 
+ 	do_each_thread(t, p) {
+ 		if (p == current)
+@@ -5167,7 +5171,7 @@ static void migrate_live_tasks(int src_c
+ 			move_task_off_dead_cpu(src_cpu, p);
+ 	} while_each_thread(t, p);
+ 
+-	write_unlock_irq(&tasklist_lock);
++	read_unlock(&tasklist_lock);
+ }
+ 
+ /*
+@@ -5231,11 +5235,10 @@ static void migrate_dead(unsigned int de
+ 	 * Drop lock around migration; if someone else moves it,
+ 	 * that's OK.  No task can be added to this CPU, so iteration is
+ 	 * fine.
+-	 * NOTE: interrupts should be left disabled  --dev@
+ 	 */
+-	spin_unlock(&rq->lock);
++	spin_unlock_irq(&rq->lock);
+ 	move_task_off_dead_cpu(dead_cpu, p);
+-	spin_lock(&rq->lock);
++	spin_lock_irq(&rq->lock);
+ 
+ 	put_task_struct(p);
+ }
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
