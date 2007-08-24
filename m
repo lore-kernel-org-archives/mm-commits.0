@@ -1,91 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:55:37 -0700
-Message-ID: <200708242055.l7OKtbaN013972@imap1.linux-foundation.org>
+Subject: - ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:55:48 -0700
+Message-ID: <200708242055.l7OKtmfc013984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756819AbXHXU41 (ORCPT
+	by vger.kernel.org with ESMTP id S1756911AbXHXU45 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 16:56:27 -0400
+	Fri, 24 Aug 2007 16:56:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schmidt@digadd.de, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, rmk+lkml@arm.linux.org.uk, yinghai.lu@sun.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add blacklisting capability to serial_pci to avoid misdetection of serial ports
+     synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
 has been removed from the -mm tree.  Its filename was
-     add-blacklisting-capability-to-serial_pci-to-avoid-misdetection.patch
+     ensure-we-count-pages-transitioning-inactive-via-clear_active_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add blacklisting capability to serial_pci to avoid misdetection of serial ports
-From: Christian Schmidt <schmidt@digadd.de>
+Subject: synchronous lumpy reclaim: ensure we count pages transitioning inactive via clear_active_flags
+From: Andy Whitcroft <apw@shadowen.org>
 
-The serial_pci driver tries to guess serial ports on unknown devices based
-on the PCI class (modem or serial).  On certain softmodems (AC'97 modems)
-this can lead to the recognition of non-existing serial ports.
+As pointed out by Mel when reclaim is applied at higher orders a significant
+amount of IO may be started.  As this takes finite time to drain reclaim will
+consider more areas than ultimatly needed to satisfy the request.  This leads
+to more reclaim than strictly required and reduced success rates.
 
-This patch adds a blacklist of PCI IDs that are to be ignored by the driver.
+I was able to confirm Mel's test results on systems locally.  These show that
+even under light load the success rates drop off far more than expected. 
+Testing with a modified version of his patch (which follows) I was able to
+allocate almost all of ZONE_MOVABLE with a near idle system.  I ran 5 test
+passes sequentially following system boot (the system has 29 hugepages in
+ZONE_MOVABLE):
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Christian Schmidt <schmidt@digadd.de>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+  2.6.23-rc1              11  8  6  7  7
+  sync_lumpy              28 28 29 29 26
+
+These show that although hugely better than the near 0% success normally
+expected we can only allocate about a 1/4 of the zone.  Using synchronous
+reclaim for these allocations we get close to 100% as expected.
+
+I have also run our standard high order tests and these show no regressions in
+allocation success rates at rest, and some significant improvements under
+load.
+
+
+This patch:
+
+We are transitioning pages from active to inactive in clear_active_flags,
+those need counting as PGDEACTIVATE vm events.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+)
+ mm/vmscan.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~add-blacklisting-capability-to-serial_pci-to-avoid-misdetection
-+++ a/drivers/serial/8250_pci.c
-@@ -1652,6 +1652,10 @@ static struct pciserial_board pci_boards
- 	},
- };
+diff -puN mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags mm/vmscan.c
+--- a/mm/vmscan.c~ensure-we-count-pages-transitioning-inactive-via-clear_active_flags
++++ a/mm/vmscan.c
+@@ -777,6 +777,7 @@ static unsigned long shrink_inactive_lis
+ 			     (sc->order > PAGE_ALLOC_COSTLY_ORDER)?
+ 					     ISOLATE_BOTH : ISOLATE_INACTIVE);
+ 		nr_active = clear_active_flags(&page_list);
++		__count_vm_events(PGDEACTIVATE, nr_active);
  
-+static const struct pci_device_id softmodem_blacklist[] = {
-+	{ PCI_VDEVICE ( AL, 0x5457 ), }, /* ALi Corporation M5457 AC'97 Modem */
-+};
-+
- /*
-  * Given a complete unknown PCI device, try to use some heuristics to
-  * guess what the configuration might be, based on the pitiful PCI
-@@ -1660,6 +1664,7 @@ static struct pciserial_board pci_boards
- static int __devinit
- serial_pci_guess_board(struct pci_dev *dev, struct pciserial_board *board)
- {
-+	const struct pci_device_id *blacklist;
- 	int num_iomem, num_port, first_port = -1, i;
- 	
- 	/*
-@@ -1674,6 +1679,18 @@ serial_pci_guess_board(struct pci_dev *d
- 	    (dev->class & 0xff) > 6)
- 		return -ENODEV;
- 
-+	/*
-+	 * Do not access blacklisted devices that are known not to
-+	 * feature serial ports.
-+	 */
-+	for (blacklist = softmodem_blacklist;
-+	     blacklist < softmodem_blacklist + ARRAY_SIZE(softmodem_blacklist);
-+	     blacklist++) {
-+		if (dev->vendor == blacklist->vendor &&
-+		    dev->device == blacklist->device)
-+			return -ENODEV;
-+	}
-+
- 	num_iomem = num_port = 0;
- 	for (i = 0; i < PCI_NUM_BAR_RESOURCES; i++) {
- 		if (pci_resource_flags(dev, i) & IORESOURCE_IO) {
+ 		__mod_zone_page_state(zone, NR_ACTIVE, -nr_active);
+ 		__mod_zone_page_state(zone, NR_INACTIVE,
 _
 
-Patches currently in -mm which might be from schmidt@digadd.de are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+mips-irix_getcontext-will-always-fail-efault.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
