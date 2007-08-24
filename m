@@ -1,163 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - usb-storage-fix-bugs-in-the-disconnect-pathway.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:58:43 -0700
-Message-ID: <200708242058.l7OKwhVZ014329@imap1.linux-foundation.org>
+Subject: - x86_64-mce_amd-fix-section-mismatch-warnings.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:58:34 -0700
+Message-ID: <200708242058.l7OKwYC2014315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758497AbXHXVIH (ORCPT
+	by vger.kernel.org with ESMTP id S1758608AbXHXVIC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:07 -0400
+	Fri, 24 Aug 2007 17:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, mdharm-usb@one-eyed-alien.net, mm-commits@vger.kernel.org
+To: satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-storage: fix bugs in the disconnect pathway
+     x86_64 mce{_amd}: Fix section mismatch warnings
 has been removed from the -mm tree.  Its filename was
-     usb-storage-fix-bugs-in-the-disconnect-pathway.patch
+     x86_64-mce_amd-fix-section-mismatch-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb-storage: fix bugs in the disconnect pathway
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: x86_64 mce{_amd}: Fix section mismatch warnings
+From: Satyam Sharma <satyam@infradead.org>
 
-This patch (as961) fixes a couple of bugs in the disconnect pathway of
-usb-storage.
+* mce.c:
 
-The first problem, which apparently has been around for a while
-although nobody noticed it, shows up when an aborted command is still
-pending when a disconnect occurs.  The SCSI error-handler will
-continue to wait in command_abort() until the us->notify completion is
-signalled.  Thus quiesce_and_remove_host() needs to signal it.
+mce_create_device() is marked __cpuinit and hence goes into .init.text
+when HOTPLUG_CPU=n. However, the hotplug notifier callback function
+mce_cpu_callback() is not marked __cpuinit therefore goes into .text
+section unconditionally. This causes reference to .init.text from .text
+which would cause modpost to warn (bogusly, because a CPU hotplug event
+can never happen anyway if HOTPLUG_CPU=n). Anyway, let's fix this by
+marking callback as __cpuinit and the notifier_block as __cpuinitdata.
+Having done that, mce_remove_device() is only ever called from __cpuinit
+marked functions so can be marked __cpuinit itself.
 
-The second problem was introduced recently along with autosuspend
-support.  Since usb_stor_scan_thread() now calls
-usb_autopm_put_interface() before exiting, we can't simply leave the
-scanning thread running after a disconnect; we must wait until the
-thread exits.  This is solved by adding a new struct completion to the
-private data structure.  Fortuitously, it allows the removal of the
-rather clunky mechanism used in the past to insure that all threads
-have finished before the module is unloaded.
+* mce_amd.c:
 
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-Cc: Greg KH <greg@kroah.com>
+Has an exactly similar section mismatch as that discussed in previous
+case. Solve it similarly by marking notifier callback as __cpuinit and
+notifier_block as __cpuinitdata. This causes a viral effect and allows
+us to mark a bunch of other functions as __cpuinit also.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/usb.c |   33 ++++++---------------------------
- drivers/usb/storage/usb.h |    1 +
- 2 files changed, 7 insertions(+), 27 deletions(-)
+ arch/x86_64/kernel/mce.c     |    6 +++---
+ arch/x86_64/kernel/mce_amd.c |   10 +++++-----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/storage/usb.c~usb-storage-fix-bugs-in-the-disconnect-pathway drivers/usb/storage/usb.c
---- a/drivers/usb/storage/usb.c~usb-storage-fix-bugs-in-the-disconnect-pathway
-+++ a/drivers/usb/storage/usb.c
-@@ -112,13 +112,6 @@ module_param(delay_use, uint, S_IRUGO | 
- MODULE_PARM_DESC(delay_use, "seconds to delay before using a new device");
- 
- 
--/* These are used to make sure the module doesn't unload before all the
-- * threads have exited.
-- */
--static atomic_t total_threads = ATOMIC_INIT(0);
--static DECLARE_COMPLETION(threads_gone);
--
--
- /*
-  * The entries in this table correspond, line for line,
-  * with the entries of us_unusual_dev_list[].
-@@ -879,9 +872,6 @@ static void quiesce_and_remove_host(stru
- 	usb_stor_stop_transport(us);
- 	wake_up(&us->delay_wait);
- 
--	/* It doesn't matter if the SCSI-scanning thread is still running.
--	 * The thread will exit when it sees the DISCONNECTING flag. */
--
- 	/* queuecommand won't accept any new commands and the control
- 	 * thread won't execute a previously-queued command.  If there
- 	 * is such a command pending, complete it with an error. */
-@@ -891,12 +881,16 @@ static void quiesce_and_remove_host(stru
- 		scsi_lock(host);
- 		us->srb->scsi_done(us->srb);
- 		us->srb = NULL;
-+		complete(&us->notify);		/* in case of an abort */
- 		scsi_unlock(host);
- 	}
- 	mutex_unlock(&us->dev_mutex);
- 
- 	/* Now we own no commands so it's safe to remove the SCSI host */
- 	scsi_remove_host(host);
-+
-+	/* Wait for the SCSI-scanning thread to stop */
-+	wait_for_completion(&us->scanning_done);
+diff -puN arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86_64-mce_amd-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/mce.c
+@@ -833,7 +833,7 @@ static __cpuinit int mce_create_device(u
+ 	return err;
  }
  
- /* Second stage of disconnect processing: deallocate all resources */
-@@ -947,9 +941,8 @@ retry:
- 		/* Should we unbind if no devices were detected? */
- 	}
+-static void mce_remove_device(unsigned int cpu)
++static void __cpuinit mce_remove_device(unsigned int cpu)
+ {
+ 	int i;
  
--	scsi_host_put(us_to_host(us));
- 	usb_autopm_put_interface(us->pusb_intf);
--	complete_and_exit(&threads_gone, 0);
-+	complete_and_exit(&us->scanning_done, 0);
+@@ -845,7 +845,7 @@ static void mce_remove_device(unsigned i
  }
  
- 
-@@ -984,6 +977,7 @@ static int storage_probe(struct usb_inte
- 	init_MUTEX_LOCKED(&(us->sema));
- 	init_completion(&(us->notify));
- 	init_waitqueue_head(&us->delay_wait);
-+	init_completion(&us->scanning_done);
- 
- 	/* Associate the us_data structure with the USB device */
- 	result = associate_dev(us, intf);
-@@ -1033,11 +1027,6 @@ static int storage_probe(struct usb_inte
- 		goto BadDevice;
- 	}
- 
--	/* Take a reference to the host for the scanning thread and
--	 * count it among all the threads we have launched.  Then
--	 * start it up. */
--	scsi_host_get(us_to_host(us));
--	atomic_inc(&total_threads);
- 	usb_autopm_get_interface(intf); /* dropped in the scanning thread */
- 	wake_up_process(th);
- 
-@@ -1104,16 +1093,6 @@ static void __exit usb_stor_exit(void)
- 	US_DEBUGP("-- calling usb_deregister()\n");
- 	usb_deregister(&usb_storage_driver) ;
- 
--	/* Don't return until all of our control and scanning threads
--	 * have exited.  Since each thread signals threads_gone as its
--	 * last act, we have to call wait_for_completion the right number
--	 * of times.
--	 */
--	while (atomic_read(&total_threads) > 0) {
--		wait_for_completion(&threads_gone);
--		atomic_dec(&total_threads);
--	}
--
- 	usb_usual_clear_present(USB_US_TYPE_STOR);
+ /* Get notified when a cpu comes on/off. Be hotplug friendly. */
+-static int
++static int __cpuinit
+ mce_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+@@ -863,7 +863,7 @@ mce_cpu_callback(struct notifier_block *
+ 	return NOTIFY_OK;
  }
  
-diff -puN drivers/usb/storage/usb.h~usb-storage-fix-bugs-in-the-disconnect-pathway drivers/usb/storage/usb.h
---- a/drivers/usb/storage/usb.h~usb-storage-fix-bugs-in-the-disconnect-pathway
-+++ a/drivers/usb/storage/usb.h
-@@ -150,6 +150,7 @@ struct us_data {
- 	struct semaphore	sema;		 /* to sleep thread on	    */
- 	struct completion	notify;		 /* thread begin/end	    */
- 	wait_queue_head_t	delay_wait;	 /* wait during scan, reset */
-+	struct completion	scanning_done;	 /* wait for scan thread    */
+-static struct notifier_block mce_cpu_notifier = {
++static struct notifier_block mce_cpu_notifier __cpuinitdata = {
+ 	.notifier_call = mce_cpu_callback,
+ };
  
- 	/* subdriver information */
- 	void			*extra;		 /* Any extra data          */
+diff -puN arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings arch/x86_64/kernel/mce_amd.c
+--- a/arch/x86_64/kernel/mce_amd.c~x86_64-mce_amd-fix-section-mismatch-warnings
++++ a/arch/x86_64/kernel/mce_amd.c
+@@ -570,7 +570,7 @@ out:
+  *   of shared sysfs dir/files, and rest of the cores will be symlinked to it.
+  */
+ 
+-static void deallocate_threshold_block(unsigned int cpu,
++static void __cpuinit deallocate_threshold_block(unsigned int cpu,
+ 						 unsigned int bank)
+ {
+ 	struct threshold_block *pos = NULL;
+@@ -590,7 +590,7 @@ static void deallocate_threshold_block(u
+ 	per_cpu(threshold_banks, cpu)[bank]->blocks = NULL;
+ }
+ 
+-static void threshold_remove_bank(unsigned int cpu, int bank)
++static void __cpuinit threshold_remove_bank(unsigned int cpu, int bank)
+ {
+ 	int i = 0;
+ 	struct threshold_bank *b;
+@@ -632,7 +632,7 @@ free_out:
+ 	per_cpu(threshold_banks, cpu)[bank] = NULL;
+ }
+ 
+-static void threshold_remove_device(unsigned int cpu)
++static void __cpuinit threshold_remove_device(unsigned int cpu)
+ {
+ 	unsigned int bank;
+ 
+@@ -644,7 +644,7 @@ static void threshold_remove_device(unsi
+ }
+ 
+ /* get notified when a cpu comes on/off */
+-static int threshold_cpu_callback(struct notifier_block *nfb,
++static int __cpuinit threshold_cpu_callback(struct notifier_block *nfb,
+ 					    unsigned long action, void *hcpu)
+ {
+ 	/* cpu was unsigned int to begin with */
+@@ -669,7 +669,7 @@ static int threshold_cpu_callback(struct
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block threshold_cpu_notifier = {
++static struct notifier_block threshold_cpu_notifier __cpuinitdata = {
+ 	.notifier_call = threshold_cpu_callback,
+ };
+ 
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from satyam@infradead.org are
 
 origin.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-netdev-all.patch
+git-net.patch
+git-s390.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+therm_throtc-fix-section-mismatch.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
