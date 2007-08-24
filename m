@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-properly-register-the-irda-binary-sysctl-numbers.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:22:20 -0700
-Message-ID: <200708242222.l7OMMK5v017697@imap1.linux-foundation.org>
+Subject: + sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:22:22 -0700
+Message-ID: <200708242222.l7OMMMDF017700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760151AbXHXWW1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760764AbXHXWW1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 18:22:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: ebiederm@xmission.com, samuel@sortiz.org
 
 
 The patch titled
-     sysctl: properly register the irda binary sysctl numbers
+     sysctl: for irda update sysctl_checks list of binary paths
 has been added to the -mm tree.  Its filename is
-     sysctl-properly-register-the-irda-binary-sysctl-numbers.patch
+     sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,201 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: properly register the irda binary sysctl numbers
+Subject: sysctl: for irda update sysctl_checks list of binary paths
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Grumble.  These numbers should have been in sysctl.h from the beginning if we
-ever expected anyone to use them.  Oh well put them there now so we can find
-them and make maintenance easier.
+It turns out that the net/irda code didn't register any of it's binary paths
+in the global sysctl.h header file so I missed them completely when making an
+authoritative list of binary sysctl paths in the kernel.  So add them to the
+list of valid binary sysctl paths.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |   20 ++++++++++++++++++++
- net/irda/irsysctl.c    |   34 ++++++++++++++--------------------
- 2 files changed, 34 insertions(+), 20 deletions(-)
+ kernel/sysctl_check.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+)
 
-diff -puN include/linux/sysctl.h~sysctl-properly-register-the-irda-binary-sysctl-numbers include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-properly-register-the-irda-binary-sysctl-numbers
-+++ a/include/linux/sysctl.h
-@@ -238,6 +238,7 @@ enum
- 	NET_LLC=18,
- 	NET_NETFILTER=19,
- 	NET_DCCP=20,
-+	NET_IRDA=412,
+diff -puN kernel/sysctl_check.c~sysctl-for-irda-update-sysctl_checks-list-of-binary-paths kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~sysctl-for-irda-update-sysctl_checks-list-of-binary-paths
++++ a/kernel/sysctl_check.c
+@@ -703,6 +703,24 @@ static struct trans_ctl_table trans_net_
+ 	{}
  };
  
- /* /proc/sys/kernel/random */
-@@ -795,6 +796,25 @@ enum {
- 	NET_BRIDGE_NF_FILTER_PPPOE_TAGGED = 5,
- };
- 
-+/* proc/sys/net/irda */
-+enum {
-+	NET_IRDA_DISCOVERY=1,
-+	NET_IRDA_DEVNAME=2,
-+	NET_IRDA_DEBUG=3,
-+	NET_IRDA_FAST_POLL=4,
-+	NET_IRDA_DISCOVERY_SLOTS=5,
-+	NET_IRDA_DISCOVERY_TIMEOUT=6,
-+	NET_IRDA_SLOT_TIMEOUT=7,
-+	NET_IRDA_MAX_BAUD_RATE=8,
-+	NET_IRDA_MIN_TX_TURN_TIME=9,
-+	NET_IRDA_MAX_TX_DATA_SIZE=10,
-+	NET_IRDA_MAX_TX_WINDOW=11,
-+	NET_IRDA_MAX_NOREPLY_TIME=12,
-+	NET_IRDA_WARN_NOREPLY_TIME=13,
-+	NET_IRDA_LAP_KEEPALIVE_TIME=14,
++static struct trans_ctl_table trans_net_irda_table[] = {
++	{ NET_IRDA_DISCOVERY,		"discovery" },
++	{ NET_IRDA_DEVNAME,		"devname" },
++	{ NET_IRDA_DEBUG,		"debug" },
++	{ NET_IRDA_FAST_POLL,		"fast_poll_increase" },
++	{ NET_IRDA_DISCOVERY_SLOTS,	"discovery_slots" },
++	{ NET_IRDA_DISCOVERY_TIMEOUT,	"discovery_timeout" },
++	{ NET_IRDA_SLOT_TIMEOUT,	"slot_timeout" },
++	{ NET_IRDA_MAX_BAUD_RATE,	"max_baud_rate" },
++	{ NET_IRDA_MIN_TX_TURN_TIME,	"min_tx_turn_time" },
++	{ NET_IRDA_MAX_TX_DATA_SIZE,	"max_tx_data_size" },
++	{ NET_IRDA_MAX_TX_WINDOW,	"max_tx_window" },
++	{ NET_IRDA_MAX_NOREPLY_TIME,	"max_noreply_time" },
++	{ NET_IRDA_WARN_NOREPLY_TIME,	"warn_noreply_time" },
++	{ NET_IRDA_LAP_KEEPALIVE_TIME,	"lap_keepalive_time" },
++	{}
 +};
 +
-+
- /* CTL_FS names: */
- enum
- {
-diff -puN net/irda/irsysctl.c~sysctl-properly-register-the-irda-binary-sysctl-numbers net/irda/irsysctl.c
---- a/net/irda/irsysctl.c~sysctl-properly-register-the-irda-binary-sysctl-numbers
-+++ a/net/irda/irsysctl.c
-@@ -31,12 +31,6 @@
- #include <net/irda/irda.h>		/* irda_debug */
- #include <net/irda/irias_object.h>
- 
--#define NET_IRDA 412 /* Random number */
--enum { DISCOVERY=1, DEVNAME, DEBUG, FAST_POLL, DISCOVERY_SLOTS,
--       DISCOVERY_TIMEOUT, SLOT_TIMEOUT, MAX_BAUD_RATE, MIN_TX_TURN_TIME,
--       MAX_TX_DATA_SIZE, MAX_TX_WINDOW, MAX_NOREPLY_TIME, WARN_NOREPLY_TIME,
--       LAP_KEEPALIVE_TIME };
--
- extern int  sysctl_discovery;
- extern int  sysctl_discovery_slots;
- extern int  sysctl_discovery_timeout;
-@@ -94,7 +88,7 @@ static int do_devname(ctl_table *table, 
- /* One file */
- static ctl_table irda_table[] = {
- 	{
--		.ctl_name	= DISCOVERY,
-+		.ctl_name	= NET_IRDA_DISCOVERY,
- 		.procname	= "discovery",
- 		.data		= &sysctl_discovery,
- 		.maxlen		= sizeof(int),
-@@ -102,7 +96,7 @@ static ctl_table irda_table[] = {
- 		.proc_handler	= &proc_dointvec
- 	},
- 	{
--		.ctl_name	= DEVNAME,
-+		.ctl_name	= NET_IRDA_DEVNAME,
- 		.procname	= "devname",
- 		.data		= sysctl_devname,
- 		.maxlen		= 65,
-@@ -112,7 +106,7 @@ static ctl_table irda_table[] = {
- 	},
- #ifdef CONFIG_IRDA_DEBUG
- 	{
--		.ctl_name	= DEBUG,
-+		.ctl_name	= NET_IRDA_DEBUG,
- 		.procname	= "debug",
- 		.data		= &irda_debug,
- 		.maxlen		= sizeof(int),
-@@ -122,7 +116,7 @@ static ctl_table irda_table[] = {
- #endif
- #ifdef CONFIG_IRDA_FAST_RR
- 	{
--		.ctl_name	= FAST_POLL,
-+		.ctl_name	= NET_IRDA_FAST_POLL,
- 		.procname	= "fast_poll_increase",
- 		.data		= &sysctl_fast_poll_increase,
- 		.maxlen		= sizeof(int),
-@@ -131,7 +125,7 @@ static ctl_table irda_table[] = {
- 	},
- #endif
- 	{
--		.ctl_name	= DISCOVERY_SLOTS,
-+		.ctl_name	= NET_IRDA_DISCOVERY_SLOTS,
- 		.procname	= "discovery_slots",
- 		.data		= &sysctl_discovery_slots,
- 		.maxlen		= sizeof(int),
-@@ -142,7 +136,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_discovery_slots
- 	},
- 	{
--		.ctl_name	= DISCOVERY_TIMEOUT,
-+		.ctl_name	= NET_IRDA_DISCOVERY_TIMEOUT,
- 		.procname	= "discovery_timeout",
- 		.data		= &sysctl_discovery_timeout,
- 		.maxlen		= sizeof(int),
-@@ -150,7 +144,7 @@ static ctl_table irda_table[] = {
- 		.proc_handler	= &proc_dointvec
- 	},
- 	{
--		.ctl_name	= SLOT_TIMEOUT,
-+		.ctl_name	= NET_IRDA_SLOT_TIMEOUT,
- 		.procname	= "slot_timeout",
- 		.data		= &sysctl_slot_timeout,
- 		.maxlen		= sizeof(int),
-@@ -161,7 +155,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_slot_timeout
- 	},
- 	{
--		.ctl_name	= MAX_BAUD_RATE,
-+		.ctl_name	= NET_IRDA_MAX_BAUD_RATE,
- 		.procname	= "max_baud_rate",
- 		.data		= &sysctl_max_baud_rate,
- 		.maxlen		= sizeof(int),
-@@ -172,7 +166,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_max_baud_rate
- 	},
- 	{
--		.ctl_name	= MIN_TX_TURN_TIME,
-+		.ctl_name	= NET_IRDA_MIN_TX_TURN_TIME,
- 		.procname	= "min_tx_turn_time",
- 		.data		= &sysctl_min_tx_turn_time,
- 		.maxlen		= sizeof(int),
-@@ -183,7 +177,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_min_tx_turn_time
- 	},
- 	{
--		.ctl_name	= MAX_TX_DATA_SIZE,
-+		.ctl_name	= NET_IRDA_MAX_TX_DATA_SIZE,
- 		.procname	= "max_tx_data_size",
- 		.data		= &sysctl_max_tx_data_size,
- 		.maxlen		= sizeof(int),
-@@ -194,7 +188,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_max_tx_data_size
- 	},
- 	{
--		.ctl_name	= MAX_TX_WINDOW,
-+		.ctl_name	= NET_IRDA_MAX_TX_WINDOW,
- 		.procname	= "max_tx_window",
- 		.data		= &sysctl_max_tx_window,
- 		.maxlen		= sizeof(int),
-@@ -205,7 +199,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_max_tx_window
- 	},
- 	{
--		.ctl_name	= MAX_NOREPLY_TIME,
-+		.ctl_name	= NET_IRDA_MAX_NOREPLY_TIME,
- 		.procname	= "max_noreply_time",
- 		.data		= &sysctl_max_noreply_time,
- 		.maxlen		= sizeof(int),
-@@ -216,7 +210,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_max_noreply_time
- 	},
- 	{
--		.ctl_name	= WARN_NOREPLY_TIME,
-+		.ctl_name	= NET_IRDA_WARN_NOREPLY_TIME,
- 		.procname	= "warn_noreply_time",
- 		.data		= &sysctl_warn_noreply_time,
- 		.maxlen		= sizeof(int),
-@@ -227,7 +221,7 @@ static ctl_table irda_table[] = {
- 		.extra2		= &max_warn_noreply_time
- 	},
- 	{
--		.ctl_name	= LAP_KEEPALIVE_TIME,
-+		.ctl_name	= NET_IRDA_LAP_KEEPALIVE_TIME,
- 		.procname	= "lap_keepalive_time",
- 		.data		= &sysctl_lap_keepalive_time,
- 		.maxlen		= sizeof(int),
+ static struct trans_ctl_table trans_net_table[] = {
+ 	{ NET_CORE,		"core",		trans_net_core_table },
+ 	/* NET_ETHER not used */
+@@ -724,6 +742,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_LLC,		"llc",		trans_net_llc_table },
+ 	{ NET_NETFILTER,	"netfilter",	trans_net_netfilter_table },
+ 	{ NET_DCCP,		"dccp",		trans_net_dccp_table },
++	{ NET_IRDA,		"irda",		trans_net_irda_table },
+ 	{ 2089,			"nf_conntrack_max" },
+ 	{}
+ };
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
