@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-apic-remove-nested-irq-disable.patch added to -mm tree
-Date: Fri, 24 Aug 2007 15:05:08 -0700
-Message-ID: <200708242205.l7OM5Fkd017023@imap1.linux-foundation.org>
+Subject: + i386-prepare-sharing-hpet-code.patch added to -mm tree
+Date: Fri, 24 Aug 2007 15:04:47 -0700
+Message-ID: <200708242204.l7OM4lhw016984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47431 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759616AbXHXWGa (ORCPT
+	by vger.kernel.org with ESMTP id S1760025AbXHXWGm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 18:06:30 -0400
+	Fri, 24 Aug 2007 18:06:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mi
 
 
 The patch titled
-     x86_64: remove nested irq disables
+     i386: prepare sharing the hpet code with x86_64
 has been added to the -mm tree.  Its filename is
-     x86_64-apic-remove-nested-irq-disable.patch
+     i386-prepare-sharing-hpet-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: remove nested irq disables
+Subject: i386: prepare sharing the hpet code with x86_64
 From: Thomas Gleixner <tglx@linutronix.de>
 
-setup_APIC_timer disables interrupts anyway.  So no need to do the same in
-setup_boot_APIC_clock and setup_secondary_APIC_clock.  Disable interrupts
-explicit in the calibration code.
+The hpet implementations of i386 and x8664 has been mostly the same before the
+clock events conversion of i386.  The clock events conversion of i386 hpet is
+already done.  So it makes sense to share the code for the x86_64 clock events
+conversion.
+
+Abstract out the mapping functions.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -41,55 +44,84 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ arch/i386/kernel/hpet.c |   24 ++++++++++++++++--------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-remove-nested-irq-disable arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-apic-remove-nested-irq-disable
-+++ a/arch/x86_64/kernel/apic.c
-@@ -830,6 +830,9 @@ static void __init calibrate_APIC_clock(
- 	unsigned apic, apic_start;
- 	unsigned long tsc, tsc_start;
- 	int result;
-+
-+	local_irq_disable();
-+
- 	/*
- 	 * Put whatever arbitrary (but long enough) timeout
- 	 * value into the APIC clock, we just want to get the
-@@ -859,6 +862,9 @@ static void __init calibrate_APIC_clock(
- 		result = (apic_start - apic) * 1000L * tsc_khz /
- 					(tsc - tsc_start);
- 	}
-+
-+	local_irq_enable();
-+
- 	printk(KERN_DEBUG "APIC timer calibration result %d\n", result);
+diff -puN arch/i386/kernel/hpet.c~i386-prepare-sharing-hpet-code arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~i386-prepare-sharing-hpet-code
++++ a/arch/i386/kernel/hpet.c
+@@ -8,10 +8,9 @@
+ #include <linux/delay.h>
  
- 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
-@@ -877,22 +883,16 @@ void __init setup_boot_APIC_clock (void)
- 	printk(KERN_INFO "Using local APIC timer interrupts.\n");
- 	using_apic_timer = 1;
+ #include <asm/hpet.h>
++#include <asm/i8253.h>
+ #include <asm/io.h>
  
--	local_irq_disable();
+-extern struct clock_event_device *global_clock_event;
 -
- 	calibrate_APIC_clock();
- 	/*
- 	 * Now set up the timer for real.
- 	 */
- 	setup_APIC_timer();
--
--	local_irq_enable();
- }
+ #define HPET_MASK	CLOCKSOURCE_MASK(32)
+ #define HPET_SHIFT	22
  
- void __cpuinit setup_secondary_APIC_clock(void)
+@@ -22,7 +21,7 @@ extern struct clock_event_device *global
+  * HPET address is set in acpi/boot.c, when an ACPI entry exists
+  */
+ unsigned long hpet_address;
+-static void __iomem * hpet_virt_address;
++static void __iomem *hpet_virt_address;
+ 
+ static inline unsigned long hpet_readl(unsigned long a)
  {
--	local_irq_disable(); /* FIXME: Do we need this? --RR */
- 	setup_APIC_timer();
--	local_irq_enable();
+@@ -34,6 +33,17 @@ static inline void hpet_writel(unsigned 
+ 	writel(d, hpet_virt_address + a);
  }
  
- void disable_APIC_timer(void)
++static inline void hpet_set_mapping(void)
++{
++	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
++}
++
++static inline void hpet_clear_mapping(void)
++{
++	iounmap(hpet_virt_address);
++	hpet_virt_address = NULL;
++}
++
+ /*
+  * HPET command line enable / disable
+  */
+@@ -83,7 +93,7 @@ static void hpet_reserve_platform_timers
+ 
+ 	memset(&hd, 0, sizeof (hd));
+ 	hd.hd_phys_address = hpet_address;
+-	hd.hd_address = hpet_virt_address;
++	hd.hd_address = hpet;
+ 	hd.hd_nirqs = nrtimers;
+ 	hd.hd_flags = HPET_DATA_PLATFORM;
+ 	hpet_reserve_timer(&hd, 0);
+@@ -238,7 +248,7 @@ int __init hpet_enable(void)
+ 	if (!is_hpet_capable())
+ 		return 0;
+ 
+-	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
++	hpet_set_mapping();
+ 
+ 	/*
+ 	 * Read the period and check for a sane value:
+@@ -334,13 +344,11 @@ int __init hpet_enable(void)
+ 	return 0;
+ 
+ out_nohpet:
+-	iounmap(hpet_virt_address);
+-	hpet_virt_address = NULL;
++	hpet_clear_mapping();
+ 	boot_hpet_disable = 1;
+ 	return 0;
+ }
+ 
+-
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
+ /* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
