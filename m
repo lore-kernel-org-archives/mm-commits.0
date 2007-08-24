@@ -1,149 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - pci-disable-decode-of-io-memory-during-bar-sizing.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:52 -0700
-Message-ID: <200708242057.l7OKvqnp014260@imap1.linux-foundation.org>
+Subject: - m68k-fix-a-few-hickups-in-drivers-scsi-kconfig.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:16 -0700
+Message-ID: <200708242056.l7OKuGxu014026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758424AbXHXVIU (ORCPT
+	by vger.kernel.org with ESMTP id S1762651AbXHXVIP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:20 -0400
+	Fri, 24 Aug 2007 17:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, ak@suse.de, greg@kroah.com, jesse.barnes@intel.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI: disable decode of IO/memory during BAR sizing
+     m68k: Fix a few hickups in drivers/scsi/Kconfig
 has been removed from the -mm tree.  Its filename was
-     pci-disable-decode-of-io-memory-during-bar-sizing.patch
+     m68k-fix-a-few-hickups-in-drivers-scsi-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCI: disable decode of IO/memory during BAR sizing
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: m68k: Fix a few hickups in drivers/scsi/Kconfig
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Change PCI BAR sizing to disable the decode of memory or IO, as
-appropriate, while we are writing the all-ones value to the BAR to
-determine the size.  If this is not done, the device may spuriously decode
-accesses to memory areas it should not.  On some Intel PCI Express
-chipsets, this breaks MMCONFIG configuration space access, since the memory
-the graphics card ends up decoding during this period overlaps the MMCONFIG
-area, and thus it steals the accesses to the area to do any other
-configuration space access, including changing the BAR back to its previous
-value.
+m68k: Fix a few hickups in drivers/scsi/Kconfig
 
-However, don't do this disabling on host bridge devices, as it is reported that
-some of them do silly things like disable CPU to RAM access if this is done.
-
-Based on an original patch by Jesse Barnes.
-
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Cc: Greg KH <greg@kroah.com>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   63 ++++++++++++++++++++++++++++++++++++------
- 1 files changed, 55 insertions(+), 8 deletions(-)
+ drivers/scsi/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-disable-decode-of-io-memory-during-bar-sizing
-+++ a/drivers/pci/probe.c
-@@ -180,6 +180,58 @@ static inline int is_64bit_memory(u32 ma
- 	return 0;
- }
+diff -puN drivers/scsi/Kconfig~m68k-fix-a-few-hickups-in-drivers-scsi-kconfig drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~m68k-fix-a-few-hickups-in-drivers-scsi-kconfig
++++ a/drivers/scsi/Kconfig
+@@ -1561,7 +1561,7 @@ config A3000_SCSI
+ 	  built-in SCSI controller, say Y. Otherwise, say N.
  
-+#define BAR_IS_MEMORY(bar) (((bar) & PCI_BASE_ADDRESS_SPACE) ==	\
-+			    PCI_BASE_ADDRESS_SPACE_MEMORY)
-+
-+/**
-+ * pci_bar_size - get raw PCI BAR size
-+ * @dev: PCI device
-+ * @reg: BAR to probe
-+ *
-+ * Use basic PCI probing:
-+ *   - save original BAR value
-+ *   - disable MEM or IO decode in PCI_COMMAND reg if appropriate
-+ *   - write all 1s to the BAR
-+ *   - read back value
-+ *   - reenble MEM or IO decode as necessary
-+ *   - write original value back
-+ *
-+ * Returns raw BAR size to caller.
-+ */
-+static u32 pci_bar_size(struct pci_dev *dev, unsigned int reg)
-+{
-+	u32 orig_reg, sz;
-+	u16 orig_cmd;
-+
-+	pci_read_config_dword(dev, reg, &orig_reg);
-+	pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
-+
-+	/*
-+	 * Disable memory or IO decode on the device while writing the test
-+	 * value to the BAR. This prevents possible spurious decoding
-+	 * of random addresses by the device. Don't do this for host bridges,
-+	 * however, since some of them do silly things like disable CPU to RAM
-+	 * access if this is done.
-+	 */
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
-+		if (BAR_IS_MEMORY(orig_reg))
-+			pci_write_config_word(dev, PCI_COMMAND,
-+					      orig_cmd & ~PCI_COMMAND_MEMORY);
-+		else
-+			pci_write_config_word(dev, PCI_COMMAND,
-+					      orig_cmd & ~PCI_COMMAND_IO);
-+	}
-+
-+	pci_write_config_dword(dev, reg, 0xffffffff);
-+	pci_read_config_dword(dev, reg, &sz);
-+	pci_write_config_dword(dev, reg, orig_reg);
-+
-+	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
-+		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
-+
-+	return sz;
-+}
-+
- static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
- {
- 	unsigned int pos, reg, next;
-@@ -196,16 +248,13 @@ static void pci_read_bases(struct pci_de
- 		res->name = pci_name(dev);
- 		reg = PCI_BASE_ADDRESS_0 + (pos << 2);
- 		pci_read_config_dword(dev, reg, &l);
--		pci_write_config_dword(dev, reg, ~0);
--		pci_read_config_dword(dev, reg, &sz);
--		pci_write_config_dword(dev, reg, l);
-+		sz = pci_bar_size(dev, reg);
- 		if (!sz || sz == 0xffffffff)
- 			continue;
- 		if (l == 0xffffffff)
- 			l = 0;
- 		raw_sz = sz;
--		if ((l & PCI_BASE_ADDRESS_SPACE) ==
--				PCI_BASE_ADDRESS_SPACE_MEMORY) {
-+		if (BAR_IS_MEMORY(l)) {
- 			sz = pci_size(l, sz, (u32)PCI_BASE_ADDRESS_MEM_MASK);
- 			/*
- 			 * For 64bit prefetchable memory sz could be 0, if the
-@@ -229,9 +278,7 @@ static void pci_read_bases(struct pci_de
- 			u32 szhi, lhi;
+ 	  To compile this driver as a module, choose M here: the
+-	  module will be called wd33c93.
++	  module will be called a3000.
  
- 			pci_read_config_dword(dev, reg+4, &lhi);
--			pci_write_config_dword(dev, reg+4, ~0);
--			pci_read_config_dword(dev, reg+4, &szhi);
--			pci_write_config_dword(dev, reg+4, lhi);
-+			szhi = pci_bar_size(dev, reg+4);
- 			sz64 = ((u64)szhi << 32) | raw_sz;
- 			l64 = ((u64)lhi << 32) | l;
- 			sz64 = pci_size64(l64, sz64, PCI_BASE_ADDRESS_MEM_MASK);
+ config A2091_SCSI
+ 	tristate "A2091/A590 WD33C93A support"
+@@ -1571,7 +1571,7 @@ config A2091_SCSI
+ 	  say N.
+ 
+ 	  To compile this driver as a module, choose M here: the
+-	  module will be called wd33c93.
++	  module will be called a2091.
+ 
+ config GVP11_SCSI
+ 	tristate "GVP Series II WD33C93A support"
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-libata-add-human-readable-error-value-decoding-v3.patch
+origin.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
