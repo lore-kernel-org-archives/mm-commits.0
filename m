@@ -1,159 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - au1100fb-move-au1100fb_fb_blank-beforce.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 13:57:19 -0700
-Message-ID: <200708242057.l7OKvJn4014217@imap1.linux-foundation.org>
+Subject: - ipmi-fix-warning-in-ipmi_si_intfc.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 13:56:34 -0700
+Message-ID: <200708242056.l7OKuYMK014070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39598 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764116AbXHXVIj (ORCPT
+	by vger.kernel.org with ESMTP id S1759882AbXHXVIf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 17:08:39 -0400
+	Fri, 24 Aug 2007 17:08:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, adaplas@pol.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: safradin@de.ibm.com, cminyard@mvista.com, krafft@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     au1100fb: move au1100fb_fb_blank() beforce  au1100fb_setmode()
+     IPMI: fix warning in ipmi_si_intf.c
 has been removed from the -mm tree.  Its filename was
-     au1100fb-move-au1100fb_fb_blank-beforce.patch
+     ipmi-fix-warning-in-ipmi_si_intfc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: au1100fb: move au1100fb_fb_blank() beforce  au1100fb_setmode()
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: IPMI: fix warning in ipmi_si_intf.c
+From: Mijo Safradin <safradin@de.ibm.com>
 
-au1100fb_fb_blank() should come before au1100fb_setmode().
+trivial change: fix warning
 
-drivers/video/au1100fb.c: In function 'au1100fb_setmode':
-drivers/video/au1100fb.c:211: error: implicit declaration of function 'au1100fb_fb_blank'
-
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Mijo Safradin <safradin@de.ibm.com>
+Acked-by: Christian Krafft <krafft@de.ibm.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/au1100fb.c |   92 ++++++++++++++++++-------------------
- 1 files changed, 46 insertions(+), 46 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/au1100fb.c~au1100fb-move-au1100fb_fb_blank-beforce drivers/video/au1100fb.c
---- a/drivers/video/au1100fb.c~au1100fb-move-au1100fb_fb_blank-beforce
-+++ a/drivers/video/au1100fb.c
-@@ -115,6 +115,52 @@ static int nocursor = 0;
- module_param(nocursor, int, 0644);
- MODULE_PARM_DESC(nocursor, "cursor enable/disable");
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-fix-warning-in-ipmi_si_intfc
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2292,7 +2292,7 @@ static int __devinit ipmi_of_probe(struc
+ 	info->irq		= irq_of_parse_and_map(dev->node, 0);
+ 	info->dev		= &dev->dev;
  
-+/* fb_blank
-+ * Blank the screen. Depending on the mode, the screen will be
-+ * activated with the backlight color, or desactivated
-+ */
-+static int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
-+{
-+	struct au1100fb_device *fbdev = to_au1100fb_device(fbi);
-+
-+	print_dbg("fb_blank %d %p", blank_mode, fbi);
-+
-+	switch (blank_mode) {
-+
-+	case VESA_NO_BLANKING:
-+			/* Turn on panel */
-+			fbdev->regs->lcd_control |= LCD_CONTROL_GO;
-+#ifdef CONFIG_MIPS_PB1100
-+			if (drv_info.panel_idx == 1) {
-+				au_writew(au_readw(PB1100_G_CONTROL)
-+					  | (PB1100_G_CONTROL_BL | PB1100_G_CONTROL_VDD),
-+			PB1100_G_CONTROL);
-+			}
-+#endif
-+		au_sync();
-+		break;
-+
-+	case VESA_VSYNC_SUSPEND:
-+	case VESA_HSYNC_SUSPEND:
-+	case VESA_POWERDOWN:
-+			/* Turn off panel */
-+			fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
-+#ifdef CONFIG_MIPS_PB1100
-+			if (drv_info.panel_idx == 1) {
-+				au_writew(au_readw(PB1100_G_CONTROL)
-+				  	  & ~(PB1100_G_CONTROL_BL | PB1100_G_CONTROL_VDD),
-+			PB1100_G_CONTROL);
-+			}
-+#endif
-+		au_sync();
-+		break;
-+	default:
-+		break;
-+
-+	}
-+	return 0;
-+}
-+
- /*
-  * Set hardware with var settings. This will enable the controller with a specific
-  * mode, normally validated with the fb_check_var method
-@@ -272,52 +318,6 @@ int au1100fb_fb_setcolreg(unsigned regno
- 	return 0;
- }
+-	dev_dbg(&dev->dev, "addr 0x%lx regsize %ld spacing %ld irq %x\n",
++	dev_dbg(&dev->dev, "addr 0x%lx regsize %d spacing %d irq %x\n",
+ 		info->io.addr_data, info->io.regsize, info->io.regspacing,
+ 		info->irq);
  
--/* fb_blank
-- * Blank the screen. Depending on the mode, the screen will be
-- * activated with the backlight color, or desactivated
-- */
--int au1100fb_fb_blank(int blank_mode, struct fb_info *fbi)
--{
--	struct au1100fb_device *fbdev = to_au1100fb_device(fbi);
--
--	print_dbg("fb_blank %d %p", blank_mode, fbi);
--
--	switch (blank_mode) {
--
--	case VESA_NO_BLANKING:
--			/* Turn on panel */
--			fbdev->regs->lcd_control |= LCD_CONTROL_GO;
--#ifdef CONFIG_MIPS_PB1100
--			if (drv_info.panel_idx == 1) {
--				au_writew(au_readw(PB1100_G_CONTROL)
--					  | (PB1100_G_CONTROL_BL | PB1100_G_CONTROL_VDD),
--			PB1100_G_CONTROL);
--			}
--#endif
--		au_sync();
--		break;
--
--	case VESA_VSYNC_SUSPEND:
--	case VESA_HSYNC_SUSPEND:
--	case VESA_POWERDOWN:
--			/* Turn off panel */
--			fbdev->regs->lcd_control &= ~LCD_CONTROL_GO;
--#ifdef CONFIG_MIPS_PB1100
--			if (drv_info.panel_idx == 1) {
--				au_writew(au_readw(PB1100_G_CONTROL)
--				  	  & ~(PB1100_G_CONTROL_BL | PB1100_G_CONTROL_VDD),
--			PB1100_G_CONTROL);
--			}
--#endif
--		au_sync();
--		break;
--	default:
--		break;
--
--	}
--	return 0;
--}
--
- /* fb_pan_display
-  * Pan display in x and/or y as specified
-  */
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from safradin@de.ibm.com are
 
 origin.patch
-git-mips.patch
-git-mtd.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
