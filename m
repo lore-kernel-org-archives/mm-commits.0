@@ -1,188 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-export.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:27:06 -0700
-Message-ID: <200708250327.l7P3R6ng028125@imap1.linux-foundation.org>
+Subject: - git-ia64.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:26:53 -0700
+Message-ID: <200708250326.l7P3Qrrd028107@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752754AbXHYD1J (ORCPT
+	by vger.kernel.org with ESMTP id S1752935AbXHYD1U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:27:09 -0400
+	Fri, 24 Aug 2007 23:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: tony.luck@intel.com, akpm@linux-foundation.org, eranian@hpl.hp.com, horms@verge.net.au, khalid.aziz@hp.com, khalid_aziz@hp.com, maeda.naoaki@jp.fujitsu.com, michal.k.k.piotrowski@gmail
 
 
 The patch titled
-     git-net fix export
+     git-ia64.patch
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-export.patch
+     git-ia64.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-net fix export
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: git-ia64.patch
 
-Must be silly season or something.
+GIT 33b3db771d7e95ed4e6ebc9ef11b7139a3c13a36 git+ssh://master.kernel.org/pub/scm/linux/kernel/git/aegl/linux-2.6.git#test
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+commit 3c3344ca815487568d617860894898737677600a
+Author: Tony Luck <tony.luck@intel.com>
+Date:   Fri May 11 15:18:45 2007 -0700
 
- kernel/hrtimer.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+    [IA64] s/scalibility/scalability/
+    
+    Previous spelling patch from Simon Arlott broke one spot that
+    didn't need fixing (reported by Simon within 35 minutes of the
+    patch ... but not until after I'd applied to GIT and pushed :-(
+    
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
 
-diff -puN kernel/hrtimer.c~git-net-fix-export kernel/hrtimer.c
---- a/kernel/hrtimer.c~git-net-fix-export
-+++ a/kernel/hrtimer.c
-@@ -299,8 +299,7 @@ ktime_t ktime_sub_ns(const ktime_t kt, u
- 
- 	return ktime_sub(kt, tmp);
- }
--
--EXPORT_SYMBOL_GPL(ktime_add_ns);
-+EXPORT_SYMBOL_GPL(ktime_sub_ns);
- # endif /* !CONFIG_KTIME_SCALAR */
- 
- /*
-_
+commit a19d4e1a15544a12b811c161039212a2cf63e70c
+Author: Tony Luck <tony.luck@intel.com>
+Date:   Tue Mar 6 15:41:24 2007 -0800
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+    Revert "[IA64] add idle loop entry/exit notifier"
+    
+    By request from Stephane:
+    This reverts commit 041be4f00312683016c49362f4575aa4cbc264b3.
+    
+    He has an alternative way to do this.
+    
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit 041be4f00312683016c49362f4575aa4cbc264b3
+Author: Stephane Eranian <eranian@hpl.hp.com>
+Date:   Wed Nov 15 14:23:34 2006 -0800
+
+    [IA64] add idle loop entry/exit notifier
+    
+    - add a notifier to the idle loop to get called when entering/leaving the
+      lowest level of the idle loop
+    - migrate SGI LED acitvity over to using the idle notifier
+    
+    Signed-off-by: stephane eranian <eranian@hpl.hp.com>
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit 7ab62884069d6d300812fc2b07f1c2332e0882c6
+Author: Maeda Naoaki <maeda.naoaki@jp.fujitsu.com>
+Date:   Thu Oct 26 14:50:43 2006 -0700
+
+    [IA64] Kdump don't clear vector in kexec_disable_iosapic
+    
+    Mask IOSAPIC will make the following EOI write to IOSAPIC fail because
+    IOSAPIC will not be able to find RTE entry.  However move EOI write
+    before IOSAPIC mask will leave a small racy windows between them for
+    interrupts. So mask IOSAPIC but leave the vector field.
+    
+    Signed-off-by: Zou Nan hai <nanhai.zou@intel.com>
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit 1050658418ee3d0d385b8679edd1c86941860ab2
+Author: Zou Nan hai <nanhai.zou@intel.com>
+Date:   Wed Oct 25 12:25:59 2006 +0800
+
+    [IA64] Kdump Fix fc.i offset in relocate_kernel.S
+    
+    There is 8 byte wrong offset in icache flush instruction in
+    relocate_kernel.S. Which may cause normal Kexec(not kdump)
+    fail on Montecito Box.
+    
+    Signed-off-by: Zou Nan hai <nanhai.zou@intel.com>
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit 40eee8ab3441cc4d4fcb7cfbdbd339e7b583f846
+Author: Khalid Aziz <khalid_aziz@hp.com>
+Date:   Thu Oct 12 13:19:45 2006 -0600
+
+    [IA64] Fix compile failure with CONFIG_KEXEC but not CONFIG_CRASH_DUMP
+    
+    2.6.18 kernel patched with kexec/kdump patch from Tony's test tree fails
+    to compile if CONFIG_KEXEC is turned on but CONFIG_CRASH_DUMP is not.
+    Following patch fixes this.
+    
+    Signed-off-by: Khalid Aziz <khalid.aziz@hp.com>
+    Acked-by: Simon Horman <horms@verge.net.au>
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit e1983ff22209e0de0595abe9b61d30078ef3ccb9
+Author: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Date:   Tue Oct 10 14:25:29 2006 -0700
+
+    [IA64] kill #include "linux/config.h"
+    
+    config.h is obsolete. This patch removes all #include "linux/config.h".
+    (specifically the one in arch/ia64/kernel/relocate_kernel.S)
+    
+    Signed-off-by: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+    Cc: "Luck, Tony" <tony.luck@intel.com>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+commit dc52454505ea87f0e6d4dab534acdd29ef33e7df
+Author: Zou Nan hai <nanhai.zou@intel.com>
+Date:   Mon Oct 2 13:51:30 2006 -0700
+
+    [IA64] Kexec/Kdump for Itanium
+    
+    Distillation of work largely by Zou Nan hai (who gets Author credit
+    because 'git' only seems to support one author) but also inspired by
+    Khalid Aziz, Simon Horman, and a few others whom I'm too lazy to look
+    up in the mailing list archives, but whose support I appreciate.
+    
+    Signed-off-by: Tony Luck <tony.luck@intel.com>
+
+Patches currently in -mm which might be from tony.luck@intel.com are
 
 origin.patch
-revert-ecryptfs-fix-lookup-error-for-special-files.patch
-process_zones-fix-recovery-code.patch
-remove-bdput-from-do_open-in-fs-block_devc.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-sysfs-crash-debugging.patch
+double-hpet-clocksource-hard-freeze.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
 git-dma.patch
-git-dma-makefile-fix.patch
-disable-ioat.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-infiniband-work-around-gcc-slub-problem.patch
-adbhid-produce-all-capslock-key-events.patch
-iforce-warning-fix.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mmc-fixup.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-net-fixup.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-build-fix.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-wireless-printk-fixes.patch
-net-add-ath5k-wireless-driver-fix.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+report-the-per-irq-statistics-on-allarches.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
