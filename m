@@ -1,113 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - pci-fix-something.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:05 -0700
-Message-ID: <200708250518.l7P5I5UX031837@imap1.linux-foundation.org>
+Subject: - radixtree-introduce-radix_tree_scan_hole.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:18:15 -0700
+Message-ID: <200708250518.l7P5IFat031849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47585 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49470 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753700AbXHYFSQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754062AbXHYFS2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:18:16 -0400
+	Sat, 25 Aug 2007 01:18:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, ktk@enterprise.bidmc.harvard.edu, protasnb@gmail.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, nickpiggin@yahoo.com.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: fix something
+     radixtree: introduce radix_tree_next_hole()
 has been removed from the -mm tree.  Its filename was
-     pci-fix-something.patch
+     radixtree-introduce-radix_tree_scan_hole.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: pci: fix something
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: radixtree: introduce radix_tree_next_hole()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Reputedly fixes http://bugzilla.kernel.org/show_bug.cgi?id=8187
+Introduce radix_tree_next_hole(root, index, max_scan) to scan radix tree for
+the first hole.  It will be used in interleaved readahead.
 
-The closest thing I have to a changlog at present is "It works around a bug in
-older versions of XFree86/Xorg".  Given the problems we've had in there we
-needs a waaaaaaaaaaaay better changelog, please.
+The implementation is dumb and obviously correct.  It can help debug(and
+document) the possible smart one in future.
 
-Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |   42 +++++++++++++++++++++++++++++-------------
- 1 files changed, 29 insertions(+), 13 deletions(-)
+ include/linux/radix-tree.h |    2 +
+ lib/radix-tree.c           |   36 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff -puN drivers/pci/probe.c~pci-fix-something drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-fix-something
-+++ a/drivers/pci/probe.c
-@@ -741,7 +741,31 @@ static void pci_read_irq(struct pci_dev 
- 	dev->irq = irq;
- }
+diff -puN include/linux/radix-tree.h~radixtree-introduce-radix_tree_scan_hole include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radixtree-introduce-radix_tree_scan_hole
++++ a/include/linux/radix-tree.h
+@@ -155,6 +155,8 @@ void *radix_tree_delete(struct radix_tre
+ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items);
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan);
+ int radix_tree_preload(gfp_t gfp_mask);
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+diff -puN lib/radix-tree.c~radixtree-introduce-radix_tree_scan_hole lib/radix-tree.c
+--- a/lib/radix-tree.c~radixtree-introduce-radix_tree_scan_hole
++++ a/lib/radix-tree.c
+@@ -599,6 +599,42 @@ int radix_tree_tag_get(struct radix_tree
+ EXPORT_SYMBOL(radix_tree_tag_get);
+ #endif
  
--#define LEGACY_IO_RESOURCE	(IORESOURCE_IO | IORESOURCE_PCI_FIXED)
-+static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
-+                                      unsigned start, unsigned end)
++/**
++ *	radix_tree_next_hole    -    find the next hole (not-present entry)
++ *	@root:		tree root
++ *	@index:		index key
++ *	@max_scan:	maximum range to search
++ *
++ *	Search the set [index, min(index+max_scan-1, MAX_INDEX)] for the lowest
++ *	indexed hole.
++ *
++ *	Returns: the index of the hole if found, otherwise returns an index
++ *	outside of the set specified (in which case 'return - index >= max_scan'
++ *	will be true).
++ *
++ *	radix_tree_next_hole may be called under rcu_read_lock. However, like
++ *	radix_tree_gang_lookup, this will not atomically search a snapshot of the
++ *	tree at a single point in time. For example, if a hole is created at index
++ *	5, then subsequently a hole is created at index 10, radix_tree_next_hole
++ *	covering both indexes may return 10 if called under rcu_read_lock.
++ */
++unsigned long radix_tree_next_hole(struct radix_tree_root *root,
++				unsigned long index, unsigned long max_scan)
 +{
-+	unsigned base = start & PCI_BASE_ADDRESS_IO_MASK;
-+	unsigned len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
++	unsigned long i;
 +
-+	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
-+		       pci_name(dev), index);
-+		return;
++	for (i = 0; i < max_scan; i++) {
++		if (!radix_tree_lookup(root, index))
++			break;
++		index++;
++		if (index == 0)
++			break;
 +	}
-+	if (pci_resource_len(dev, index) != len)
-+		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %04X)\n",
-+		       pci_name(dev), index, (unsigned)pci_resource_len(dev, index));
-+	else {
-+		printk(KERN_INFO "%s: trying to change BAR%u from %04X to %04X\n",
-+		       pci_name(dev), index,
-+		       (unsigned)pci_resource_start(dev, index), base);
-+		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4, base);
-+	}
-+	pci_resource_start(dev, index) = start;
-+	pci_resource_end(dev, index)   = end;
-+	pci_resource_flags(dev, index) =
-+		IORESOURCE_IO | IORESOURCE_PCI_FIXED | PCI_BASE_ADDRESS_SPACE_IO;
++
++	return index;
 +}
- 
- /**
-  * pci_setup_device - fill in class and map information of a device
-@@ -795,20 +819,12 @@ static int pci_setup_device(struct pci_d
- 			u8 progif;
- 			pci_read_config_byte(dev, PCI_CLASS_PROG, &progif);
- 			if ((progif & 1) == 0) {
--				dev->resource[0].start = 0x1F0;
--				dev->resource[0].end = 0x1F7;
--				dev->resource[0].flags = LEGACY_IO_RESOURCE;
--				dev->resource[1].start = 0x3F6;
--				dev->resource[1].end = 0x3F6;
--				dev->resource[1].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 0, 0x1F0, 0x1F7);
-+				change_legacy_io_resource(dev, 1, 0x3F6, 0x3F6);
- 			}
- 			if ((progif & 4) == 0) {
--				dev->resource[2].start = 0x170;
--				dev->resource[2].end = 0x177;
--				dev->resource[2].flags = LEGACY_IO_RESOURCE;
--				dev->resource[3].start = 0x376;
--				dev->resource[3].end = 0x376;
--				dev->resource[3].flags = LEGACY_IO_RESOURCE;
-+				change_legacy_io_resource(dev, 2, 0x170, 0x177);
-+				change_legacy_io_resource(dev, 3, 0x376, 0x376);
- 			}
- 		}
- 		break;
++EXPORT_SYMBOL(radix_tree_next_hole);
++
+ static unsigned int
+ __lookup(struct radix_tree_node *slot, void **results, unsigned long index,
+ 	unsigned int max_items, unsigned long *next_index)
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-floppy-tolerate-dma-channel-unavailability.patch
-cleanup-floppyh.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+make-swappiness-safer-to-use.patch
+convert-ill-defined-log2-to-ilog2.patch
+seqfile-merge-duplite-code-to-seq_open_private.patch
