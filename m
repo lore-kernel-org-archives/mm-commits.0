@@ -1,54 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-target-fixup.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:27:48 -0700
-Message-ID: <200708250327.l7P3RmMM028156@imap1.linux-foundation.org>
+Subject: - git-scsi-target-kconfig-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:27:49 -0700
+Message-ID: <200708250327.l7P3RnLI028160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36579 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42765 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753261AbXHYD1w (ORCPT
+	by vger.kernel.org with ESMTP id S1753295AbXHYD1x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:27:52 -0400
+	Fri, 24 Aug 2007 23:27:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, tomof@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-target-fixup
+     git-scsi-target kconfig fix
 has been removed from the -mm tree.  Its filename was
-     git-scsi-target-fixup.patch
+     git-scsi-target-kconfig-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-scsi-target-fixup
+Subject: git-scsi-target kconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Fix rejects with mainline
 
 Cc: FUJITA Tomonori <tomof@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/ulp/srp/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/infiniband/ulp/srp/Kconfig |    3 +--
+ drivers/scsi/Kconfig               |    7 +++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup drivers/infiniband/ulp/srp/Kconfig
---- a/drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-fixup
+diff -puN drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-kconfig-fix drivers/infiniband/ulp/srp/Kconfig
+--- a/drivers/infiniband/ulp/srp/Kconfig~git-scsi-target-kconfig-fix
 +++ a/drivers/infiniband/ulp/srp/Kconfig
-@@ -1,11 +1,7 @@
+@@ -1,7 +1,6 @@
  config INFINIBAND_SRP
  	tristate "InfiniBand SCSI RDMA Protocol"
--<<<<<<< HEAD/drivers/infiniband/ulp/srp/Kconfig
--	depends on SCSI
--=======
- 	depends on INFINIBAND && SCSI
- 	select SCSI_SRP_ATTRS
-->>>>>>> /drivers/infiniband/ulp/srp/Kconfig
+-	depends on INFINIBAND && SCSI
+-	select SCSI_SRP_ATTRS
++	depends on INFINIBAND && SCSI && SCSI_SRP_ATTRS
  	---help---
  	  Support for the SCSI RDMA Protocol over InfiniBand.  This
  	  allows you to access storage devices that speak SRP over
+diff -puN drivers/scsi/Kconfig~git-scsi-target-kconfig-fix drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~git-scsi-target-kconfig-fix
++++ a/drivers/scsi/Kconfig
+@@ -291,7 +291,7 @@ source "drivers/scsi/libsas/Kconfig"
+ 
+ config SCSI_SRP_ATTRS
+ 	tristate "SRP Transport Attributes"
+-	depends on SCSI && SCSI_TGT
++	depends on SCSI_TGT
+ 	help
+ 	  If you wish to export transport-specific information about
+ 	  each attached SRP device to sysfs, say Y.
+@@ -848,7 +848,7 @@ config SCSI_IBMVSCSI
+ 
+ config SCSI_IBMVSCSIS
+ 	tristate "IBM Virtual SCSI Server support"
+-	depends on PPC_PSERIES && SCSI_TGT && SCSI_SRP && SCSI_SRP_ATTRS
++	depends on PPC_PSERIES && SCSI_SRP && SCSI_SRP_ATTRS
+ 	help
+ 	  This is the SRP target driver for IBM pSeries virtual environments.
+ 
+@@ -1804,8 +1804,7 @@ config ZFCP
+ 
+ config SCSI_SRP
+ 	tristate "SCSI RDMA Protocol helper library"
+-	depends on SCSI && PCI
+-	select SCSI_TGT
++	depends on PCI && SCSI_TGT
+ 	help
+ 	  If you wish to use SRP target drivers, say Y.
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
