@@ -1,68 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-prerequisite-parser-fix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:54 -0700
-Message-ID: <200708250518.l7P5IsGE031917@imap1.linux-foundation.org>
+Subject: - statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:07 -0700
+Message-ID: <200708250519.l7P5J7NT031944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56223 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755656AbXHYF3r (ORCPT
+	by vger.kernel.org with ESMTP id S1755836AbXHYFaV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:29:47 -0400
+	Sat, 25 Aug 2007 01:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mp3@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     small lib/parser.c cleanup
+     statistics infrastructure: small cleanup in debugfs write function
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-prerequisite-parser-fix.patch
+     statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: small lib/parser.c cleanup
+Subject: statistics infrastructure: small cleanup in debugfs write function
 From: Martin Peschke <mp3@de.ibm.com>
 
-simplifying code by using available string duplication function
+Code looks more sane with this little cleanup, although both memcpy() and
+kfree() are supposed to cope with NULL pointer or zero length respectively.
 
 Signed-off-by: Martin Peschke <mp3@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+ lib/statistic.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN lib/parser.c~statistics-infrastructure-prerequisite-parser-fix lib/parser.c
---- a/lib/parser.c~statistics-infrastructure-prerequisite-parser-fix
-+++ a/lib/parser.c
-@@ -126,11 +126,9 @@ static int match_number(substring_t *s, 
- 	char *buf;
- 	int ret;
- 
--	buf = kmalloc(s->to - s->from + 1, GFP_KERNEL);
-+	buf = match_strdup(s);
- 	if (!buf)
+diff -puN lib/statistic.c~statistics-infrastructure-small-cleanup-in-debugfs-write-function lib/statistic.c
+--- a/lib/statistic.c~statistics-infrastructure-small-cleanup-in-debugfs-write-function
++++ a/lib/statistic.c
+@@ -631,11 +631,13 @@ static ssize_t statistic_write_def(struc
+ 	if (!larger)
  		return -ENOMEM;
--	memcpy(buf, s->from, s->to - s->from);
--	buf[s->to - s->from] = '\0';
- 	*result = simple_strtol(buf, &endp, base);
- 	ret = 0;
- 	if (endp == buf)
-@@ -155,11 +153,9 @@ int match_s64(substring_t *s, s64 *resul
- 	char *buf;
- 	int ret;
- 
--	buf = kmalloc(s->to - s->from + 1, GFP_KERNEL);
-+	buf = match_strdup(s);
- 	if (!buf)
- 		return -ENOMEM;
--	memcpy(buf, s->from, s->to - s->from);
--	buf[s->to - s->from] = '\0';
- 	*result = simple_strtoll(buf, &endp, base);
- 	ret = 0;
- 	if (endp == buf)
+ 	larger[*offset + len] = '\0';
+-	memcpy(larger, seq_priv->w_buf, *offset);
++	if (seq_priv->w_buf) {
++		memcpy(larger, seq_priv->w_buf, *offset);
++		kfree(seq_priv->w_buf);
++	}
+ 	if (copy_from_user(larger + *offset, buf, len))
+ 		return -EFAULT;
+ 	*offset += len;
+-	kfree(seq_priv->w_buf);
+ 	seq_priv->w_buf = larger;
+ 	seq_priv->w_offset = *offset;
+ 	return len;
 _
 
 Patches currently in -mm which might be from mp3@de.ibm.com are
