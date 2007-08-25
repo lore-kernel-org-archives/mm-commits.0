@@ -1,278 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - git-chelsio.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:26:21 -0700
-Message-ID: <200708250326.l7P3QL3i028098@imap1.linux-foundation.org>
+Subject: - git-ixgbe-build-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:27:01 -0700
+Message-ID: <200708250327.l7P3R1jq028116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44531 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48773 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751577AbXHYD0d (ORCPT
+	by vger.kernel.org with ESMTP id S1752292AbXHYD1E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:26:33 -0400
+	Fri, 24 Aug 2007 23:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ayyappan.veeraiyan@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-chelsio.patch
+     git-ixgbe build fix
 has been removed from the -mm tree.  Its filename was
-     git-chelsio.patch
+     git-ixgbe-build-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-chelsio.patch
+Subject: git-ixgbe build fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-GIT 6822b9d59faceb62a7044849cff012d6cf20ad7a git://electric-eye.fr.zoreil.com/home/romieu/linux-2.6.git#chelsio
+this got removed.
 
-commit 
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Tue Dec 12 00:13:48 2006 +0100
+Cc: Ayyappan <ayyappan.veeraiyan@intel.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    chelsio: tabulate the update of the statistic counters
-    
-    Let's try to avoid some code duplication.
-    
-    - cxgb2
-      The data are contiguous. Use plain memcpy.
-    
-    - ixf1010/pm3393/vsc7326
-      The cast of &mac->stats to (u64 *) is not wonderful but it is not clear
-      if it is worth to add an ad-hoc union under the struct cmac_statistics.
-    
-    vsc7326_reg.h suggests that more statistics could be available.
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+ drivers/net/ixgbe/ixgbe_ethtool.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-commit 1f3d073359a4f78731fabc1ef2d9b8cc8dcff16b
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Tue Dec 5 23:57:41 2006 +0100
-
-    chelsio: misc cleanups in sge
-    
-    - duplicated code in sge::free_cmdQ_buffers ;
-    - NET_IP_ALIGN is already defined in (included) <linux/skbuff.h> ;
-    - pci_alloc_consistent() returns void * ;
-    - pci_alloc_consistent() returns a zeroed chunk of memory ;
-    - early return in restart_tx_queues.
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-
-commit e4b382e3b6df583f53bd56285ab32d25924fe653
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Tue Dec 5 23:19:06 2006 +0100
-
-    chelsio: useless test in cxgb2::remove_one
-    
-    pci_get_drvadata() is necessarily distinct from NULL if
-    cxgb2::init_one succeeded. cxgb2::remove_one is solely
-    issued through the PCI device callback.
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-
-commit 1699093b113c327f0b8e79aeae73eba5c6b30910
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Mon Dec 11 23:49:13 2006 +0100
-
-    chelsio: useless curly braces
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-
-commit e284e11a7ede38ed441c52aa51c7bf48a6623e0d
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Mon Dec 11 23:47:00 2006 +0100
-
-    chelsio: spaces, tabs and friends
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-
-commit 18f6e5536f6c00fe27b19745eb8577432bb6bc95
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Mon Dec 11 23:41:36 2006 +0100
-
-    chelsio: the return statement is not a function
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-
-commit 36959faf64235eb0509420b91d950279f797f58e
-Author: Francois Romieu <romieu@fr.zoreil.com>
-Date:   Tue Dec 5 22:38:00 2006 +0100
-
-    chelsio: move return, break and continue statements on their own line
-    
-    Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
- drivers/net/chelsio/common.h  |    6 +++
- drivers/net/chelsio/ixf1010.c |  Unmerged
- drivers/net/chelsio/sge.c     |   77 +++++++++++++++++++++++++++++++++++++++++
- drivers/net/chelsio/vsc8244.c |  Unmerged
- 4 files changed, 83 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/net/chelsio/common.h b/drivers/net/chelsio/common.h
-index 8ba702c..9eb8c92 100644
---- a/drivers/net/chelsio/common.h
-+++ b/drivers/net/chelsio/common.h
-@@ -322,9 +322,15 @@ struct board_info {
- 	unsigned char           mdio_mdiinv;
- 	unsigned char           mdio_mdc;
- 	unsigned char           mdio_phybaseaddr;
-+<<<<<<< HEAD/drivers/net/chelsio/common.h
- 	const struct gmac      *gmac;
- 	const struct gphy      *gphy;
- 	const struct mdio_ops  *mdio_ops;
-+=======
-+	struct gmac            *gmac;
-+	struct gphy            *gphy;
-+	struct mdio_ops        *mdio_ops;
-+>>>>>>> /drivers/net/chelsio/common.h
- 	const char             *desc;
+diff -puN drivers/net/ixgbe/ixgbe_ethtool.c~git-ixgbe-build-fix drivers/net/ixgbe/ixgbe_ethtool.c
+--- a/drivers/net/ixgbe/ixgbe_ethtool.c~git-ixgbe-build-fix
++++ a/drivers/net/ixgbe/ixgbe_ethtool.c
+@@ -861,7 +861,6 @@ static struct ethtool_ops ixgbe_ethtool_
+ 	.phys_id                = ixgbe_phys_id,
+ 	.get_stats_count        = ixgbe_get_stats_count,
+ 	.get_ethtool_stats      = ixgbe_get_ethtool_stats,
+-	.get_perm_addr          = ethtool_op_get_perm_addr,
  };
  
-* Unmerged path drivers/net/chelsio/ixf1010.c
-diff --git a/drivers/net/chelsio/sge.c b/drivers/net/chelsio/sge.c
-index e4f874a..7b3f55b 100644
---- a/drivers/net/chelsio/sge.c
-+++ b/drivers/net/chelsio/sge.c
-@@ -1056,9 +1056,23 @@ static inline struct sk_buff *get_packet
- 		if (!skb)
- 			goto use_orig_buf;
- 
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
- 		skb_reserve(skb, 2);	/* align IP header */
- 		skb_put(skb, len);
- 		pci_dma_sync_single_for_cpu(pdev,
-+=======
-+	if (len < copy_thres) {
-+		skb = alloc_skb(len + skb_pad, GFP_ATOMIC);
-+		if (likely(skb != NULL)) {
-+			skb_reserve(skb, skb_pad);
-+			skb_put(skb, len);
-+			pci_dma_sync_single_for_cpu(pdev,
-+					    pci_unmap_addr(ce, dma_addr),
-+					    pci_unmap_len(ce, dma_len),
-+					    PCI_DMA_FROMDEVICE);
-+			memcpy(skb->data, ce->skb->data + dma_pad, len);
-+			pci_dma_sync_single_for_device(pdev,
-+>>>>>>> /drivers/net/chelsio/sge.c
- 					    pci_unmap_addr(ce, dma_addr),
- 					    pci_unmap_len(ce, dma_len),
- 					    PCI_DMA_FROMDEVICE);
-@@ -1492,6 +1506,10 @@ static int process_responses(struct adap
- 	int done = 0;
- 	unsigned int flags = 0;
- 	unsigned int cmdq_processed[SGE_CMDQ_N] = {0, 0};
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
-+=======
-+
-+>>>>>>> /drivers/net/chelsio/sge.c
- 
- 	while (done < budget && e->GenerationBit == q->genbit) {
- 		flags |= e->Qsleeping;
-@@ -1632,8 +1650,19 @@ int t1_poll(struct net_device *dev, int 
- 	if (unlikely(responses_pending(adapter)))
- 		return 1;
- 
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
- 	netif_rx_complete(dev);
-+=======
-+	spin_lock_irq(&adapter->async_lock);
-+	__netif_rx_complete(dev);
-+>>>>>>> /drivers/net/chelsio/sge.c
- 	writel(adapter->sge->respQ.cidx, adapter->regs + A_SG_SLEEPING);
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
-+=======
-+	writel(adapter->slow_intr_mask | F_PL_INTR_SGE_DATA,
-+	       adapter->regs + A_PL_ENABLE);
-+	spin_unlock_irq(&adapter->async_lock);
-+>>>>>>> /drivers/net/chelsio/sge.c
- 
- 	return 0;
- 
-@@ -1645,12 +1674,22 @@ int t1_poll(struct net_device *dev, int 
- irqreturn_t t1_interrupt(int irq, void *data)
- {
- 	struct adapter *adapter = data;
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
-+=======
-+	struct net_device *dev = adapter->sge->netdev;
-+>>>>>>> /drivers/net/chelsio/sge.c
- 	struct sge *sge = adapter->sge;
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
- 	int handled;
-+=======
-+	u32 cause;
-+	int handled = 0;
-+>>>>>>> /drivers/net/chelsio/sge.c
- 
- 	if (likely(responses_pending(adapter))) {
- 		struct net_device *dev = sge->netdev;
- 
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
- 		writel(F_PL_INTR_SGE_DATA, adapter->regs + A_PL_CAUSE);
- 
- 		if (__netif_rx_schedule_prep(dev)) {
-@@ -1660,6 +1699,24 @@ irqreturn_t t1_interrupt(int irq, void *
- 				/* no data, no NAPI needed */
- 				writel(sge->respQ.cidx, adapter->regs + A_SG_SLEEPING);
- 				netif_poll_enable(dev);	/* undo schedule_prep */
-+=======
-+	spin_lock(&adapter->async_lock);
-+	if (cause & F_PL_INTR_SGE_DATA) {
-+		struct respQ *q = &adapter->sge->respQ;
-+		struct respQ_e *e = &q->entries[q->cidx];
-+
-+		handled = 1;
-+		writel(F_PL_INTR_SGE_DATA, adapter->regs + A_PL_CAUSE);
-+
-+		if (e->GenerationBit == q->genbit &&
-+		    __netif_rx_schedule_prep(dev)) {
-+			if (e->DataValid || process_pure_responses(adapter, e)) {
-+				/* mask off data IRQ */
-+				writel(adapter->slow_intr_mask,
-+				       adapter->regs + A_PL_ENABLE);
-+				__netif_rx_schedule(sge->netdev);
-+				goto unlock;
-+>>>>>>> /drivers/net/chelsio/sge.c
- 			}
- 		}
- 		return IRQ_HANDLED;
-@@ -2083,6 +2140,7 @@ static void espibug_workaround_t204(unsi
- 			return;
- 
- 		for (i = 0; i < nports; i++) {
-+<<<<<<< HEAD/drivers/net/chelsio/sge.c
- 			struct sk_buff *skb = sge->espibug_skb[i];
- 
- 			if (!netif_running(adapter->port[i].dev) ||
-@@ -2104,6 +2162,25 @@ static void espibug_workaround_t204(unsi
- 							       ch_mac_addr,
- 							       ETH_ALEN);
- 				skb->cb[0] = 0xff;
-+=======
-+			struct sk_buff *skb = sge->espibug_skb[i];
-+
-+			if (!netif_running(adapter->port[i].dev) ||
-+			    netif_queue_stopped(adapter->port[i].dev) ||
-+			    !seop[i] || ((seop[i] & 0xfff) != 0) || !skb)
-+				continue;
-+
-+			if (!skb->cb[0]) {
-+				u8 ch_mac_addr[ETH_ALEN] = {
-+					0x0, 0x7, 0x43, 0x0, 0x0, 0x0
-+				};
-+
-+				memcpy(skb->data + sizeof(struct cpl_tx_pkt),
-+					ch_mac_addr, ETH_ALEN);
-+				memcpy(skb->data + skb->len - 10,
-+					ch_mac_addr, ETH_ALEN);
-+				skb->cb[0] = 0xff;
-+>>>>>>> /drivers/net/chelsio/sge.c
- 			}
- 
- 			/* bump the reference count to avoid freeing of
-* Unmerged path drivers/net/chelsio/vsc8244.c
+ void ixgbe_set_ethtool_ops(struct net_device *netdev)
+_
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-r8169.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
+process_zones-fix-recovery-code.patch
+remove-bdput-from-do_open-in-fs-block_devc.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+sysfs-crash-debugging.patch
+git-dma.patch
+git-dma-makefile-fix.patch
+disable-ioat.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+infiniband-work-around-gcc-slub-problem.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mmc-fixup.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
