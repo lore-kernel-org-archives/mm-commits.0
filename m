@@ -1,96 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - flush-icache-before-set_pte-on-ia64-migration-fix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:24:31 -0700
-Message-ID: <200708250324.l7P3OVEU028063@imap1.linux-foundation.org>
+Subject: - fix-stupid-wol-variable-overflow-bug.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:24:26 -0700
+Message-ID: <200708250324.l7P3OQAN028055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34885 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34911 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753016AbXHYDYm (ORCPT
+	by vger.kernel.org with ESMTP id S1751577AbXHYDZD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:24:42 -0400
+	Fri, 24 Aug 2007 23:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flush icache before set_pte() on ia64: migration fix
+     b44: fix stupid wol variable overflow bug
 has been removed from the -mm tree.  Its filename was
-     flush-icache-before-set_pte-on-ia64-migration-fix.patch
+     fix-stupid-wol-variable-overflow-bug.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: flush icache before set_pte() on ia64: migration fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: b44: fix stupid wol variable overflow bug
+From: Michael Buesch <mb@bu3sch.de>
 
-In migration, a new page should be cache flushed before set_pte() in some
-archs which have virtually-tagged cache..  I'll separate this from patch set
-in the next time.
+This bug was introduced by me.  val is 16bit, but the read value is 32bit. 
+Seems like I was smoking crack when porting that part of the driver.  I
+guess that's the last stupid bug in these 4 lines of code.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 files changed, 1 insertion(+)
+ drivers/net/b44.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix mm/migrate.c
---- a/mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix
-+++ a/mm/migrate.c
-@@ -171,6 +171,7 @@ static void remove_migration_pte(struct 
- 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
- 	if (is_write_migration_entry(entry))
- 		pte = pte_mkwrite(pte);
-+	flush_cache_page(vma, addr, pte_pfn(pte));
- 	set_pte_at(mm, addr, ptep, pte);
+diff -puN drivers/net/b44.c~fix-stupid-wol-variable-overflow-bug drivers/net/b44.c
+--- a/drivers/net/b44.c~fix-stupid-wol-variable-overflow-bug
++++ a/drivers/net/b44.c
+@@ -1581,8 +1581,7 @@ static void b44_setup_wol_pci(struct b44
+ 	u16 val;
  
- 	if (PageAnon(new))
+ 	if (bp->sdev->bus->bustype != SSB_BUSTYPE_SSB) {
+-		val = br32(bp, SSB_TMSLOW);
+-		bw32(bp, SSB_TMSLOW, val | SSB_TMSLOW_PE);
++		bw32(bp, SSB_TMSLOW, br32(bp, SSB_TMSLOW) | SSB_TMSLOW_PE);
+ 		pci_read_config_word(bp->sdev->bus->host_pci, SSB_PMCSR, &val);
+ 		pci_write_config_word(bp->sdev->bus->host_pci, SSB_PMCSR, val | SSB_PE);
+ 	}
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from mb@bu3sch.de are
 
-fix-rcu_read_lock-in-page-migraton.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
+git-powerpc.patch
+mips-detect-bcm947xx-cpus.patch
+mips-bcm947xx-support.patch
+rfc-add-bcm947xx-to-kconfig.patch
+mips-add-bcm947xx-to-makefile.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+git-net.patch
+git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
