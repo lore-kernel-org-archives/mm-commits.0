@@ -1,65 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:24:23 -0700
-Message-ID: <200708250324.l7P3ONOS028051@imap1.linux-foundation.org>
+Subject: - flush-icache-before-set_pte-on-ia64-migration-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:24:31 -0700
+Message-ID: <200708250324.l7P3OVEU028063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35195 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34885 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753016AbXHYDYp (ORCPT
+	by vger.kernel.org with ESMTP id S1753016AbXHYDYm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:24:45 -0400
+	Fri, 24 Aug 2007 23:24:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, david-b@pacbell.net, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-at91: compile fix (IS_ERR)
+     flush icache before set_pte() on ia64: migration fix
 has been removed from the -mm tree.  Its filename was
-     fix-jdelvare-i2c-i2c-at91-support-new-style-binding.patch
+     flush-icache-before-set_pte-on-ia64-migration-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: i2c-at91: compile fix (IS_ERR)
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: flush icache before set_pte() on ia64: migration fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-  CC      drivers/i2c/busses/i2c-at91.o
-drivers/i2c/busses/i2c-at91.c: In function 'at91_i2c_probe':
-drivers/i2c/busses/i2c-at91.c:213: warning: implicit declaration of function 'IS_ERR'
+In migration, a new page should be cache flushed before set_pte() in some
+archs which have virtually-tagged cache..  I'll separate this from patch set
+in the next time.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-at91.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/migrate.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/i2c/busses/i2c-at91.c~fix-jdelvare-i2c-i2c-at91-support-new-style-binding drivers/i2c/busses/i2c-at91.c
---- a/drivers/i2c/busses/i2c-at91.c~fix-jdelvare-i2c-i2c-at91-support-new-style-binding
-+++ a/drivers/i2c/busses/i2c-at91.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/version.h>
- #include <linux/kernel.h>
-+#include <linux/err.h>
- #include <linux/slab.h>
- #include <linux/types.h>
- #include <linux/delay.h>
+diff -puN mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix mm/migrate.c
+--- a/mm/migrate.c~flush-icache-before-set_pte-on-ia64-migration-fix
++++ a/mm/migrate.c
+@@ -171,6 +171,7 @@ static void remove_migration_pte(struct 
+ 	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
+ 	if (is_write_migration_entry(entry))
+ 		pte = pte_mkwrite(pte);
++	flush_cache_page(vma, addr, pte_pfn(pte));
+ 	set_pte_at(mm, addr, ptep, pte);
+ 
+ 	if (PageAnon(new))
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-nfs-fix-oops-re-sysctls-and-v4-support.patch
-ifdef-struct-task_structsecurity.patch
-faster-ext2_clear_inode.patch
-fs-proc-mmuc-headers-butchery.patch
-remove-sysctlh-from-fsh.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-shrink-struct-task_structoomkilladj.patch
-remove-struct-task_structio_wait.patch
-revert-faster-ext2_clear_inode.patch
+fix-rcu_read_lock-in-page-migraton.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-ia64-interface.patch
