@@ -1,190 +1,324 @@
 From: akpm@linux-foundation.org
-Subject: - cpci_hotplug-convert-to-use-the-kthread-api.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:23:29 -0700
-Message-ID: <200708250323.l7P3NTxm027944@imap1.linux-foundation.org>
+Subject: - clockevents-fix-resume-logic-updated-version-2.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:23:23 -0700
+Message-ID: <200708250323.l7P3NNRT027938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbXHYDXx (ORCPT
+	by vger.kernel.org with ESMTP id S1752856AbXHYDYB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:23:53 -0400
+	Fri, 24 Aug 2007 23:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scottm@somanetworks.com, greg@kroah.com, hch@lst.de, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpci_hotplug: Convert to use the kthread API
+     clockevents: Fix resume logic: updated version
 has been removed from the -mm tree.  Its filename was
-     cpci_hotplug-convert-to-use-the-kthread-api.patch
+     clockevents-fix-resume-logic-updated-version-2.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: cpci_hotplug: Convert to use the kthread API
-From: Scott Murray <scottm@somanetworks.com>
+Subject: clockevents: Fix resume logic: updated version
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Scott Murray <scottm@somanetworks.com>
-Acked-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpci_hotplug_core.c |   66 +++++++---------------
- 1 files changed, 21 insertions(+), 45 deletions(-)
+ arch/i386/kernel/apic.c      |    3 +
+ arch/i386/kernel/hpet.c      |   71 ++-------------------------------
+ arch/i386/kernel/i8253.c     |   26 +++++-------
+ include/linux/clockchips.h   |    1 
+ kernel/time/tick-broadcast.c |    4 +
+ kernel/time/tick-common.c    |   16 ++++---
+ 6 files changed, 34 insertions(+), 87 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-convert-to-use-the-kthread-api drivers/pci/hotplug/cpci_hotplug_core.c
---- a/drivers/pci/hotplug/cpci_hotplug_core.c~cpci_hotplug-convert-to-use-the-kthread-api
-+++ a/drivers/pci/hotplug/cpci_hotplug_core.c
-@@ -35,6 +35,7 @@
- #include <linux/smp_lock.h>
- #include <asm/atomic.h>
- #include <linux/delay.h>
-+#include <linux/kthread.h>
- #include "cpci_hotplug.h"
+diff -puN arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version-2 arch/i386/kernel/apic.c
+--- a/arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version-2
++++ a/arch/i386/kernel/apic.c
+@@ -263,6 +263,9 @@ static void lapic_timer_setup(enum clock
+ 		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
+ 		apic_write_around(APIC_LVTT, v);
+ 		break;
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
++		break;
+ 	}
  
- #define DRIVER_AUTHOR	"Scott Murray <scottm@somanetworks.com>"
-@@ -59,9 +60,8 @@ static int slots;
- static atomic_t extracting;
- int cpci_debug;
- static struct cpci_hp_controller *controller;
--static struct semaphore event_semaphore;	/* mutex for process loop (up if something to process) */
--static struct semaphore thread_exit;		/* guard ensure thread has exited before calling it quits */
--static int thread_finished = 1;
-+static struct task_struct *cpci_thread;
-+static int thread_finished;
+ 	local_irq_restore(flags);
+diff -puN arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version-2 arch/i386/kernel/hpet.c
+--- a/arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version-2
++++ a/arch/i386/kernel/hpet.c
+@@ -212,6 +212,10 @@ static void hpet_set_mode(enum clock_eve
+ 		cfg &= ~HPET_TN_ENABLE;
+ 		hpet_writel(cfg, HPET_T0_CFG);
+ 		break;
++
++	case CLOCK_EVT_MODE_RESUME:
++		hpet_enable_int();
++		break;
+ 	}
+ }
  
- static int enable_slot(struct hotplug_slot *slot);
- static int disable_slot(struct hotplug_slot *slot);
-@@ -357,9 +357,7 @@ cpci_hp_intr(int irq, void *data)
- 	controller->ops->disable_irq();
+@@ -242,6 +246,7 @@ static struct clocksource clocksource_hp
+ 	.mask		= HPET_MASK,
+ 	.shift		= HPET_SHIFT,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++	.resume		= hpet_start_counter,
+ };
  
- 	/* Trigger processing by the event thread */
--	dbg("Signal event_semaphore");
--	up(&event_semaphore);
--	dbg("exited cpci_hp_intr");
-+	wake_up_process(cpci_thread);
+ /*
+@@ -318,7 +323,6 @@ int __init hpet_enable(void)
+ 
+ 	clocksource_register(&clocksource_hpet);
+ 
+-
+ 	if (id & HPET_ID_LEGSUP) {
+ 		hpet_enable_int();
+ 		hpet_reserve_platform_timers(id);
+@@ -551,68 +555,3 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
  	return IRQ_HANDLED;
  }
- 
-@@ -521,17 +519,12 @@ event_thread(void *data)
- {
- 	int rc;
- 
--	lock_kernel();
--	daemonize("cpci_hp_eventd");
--	unlock_kernel();
+ #endif
 -
- 	dbg("%s - event thread started", __FUNCTION__);
- 	while (1) {
- 		dbg("event thread sleeping");
--		down_interruptible(&event_semaphore);
--		dbg("event thread woken, thread_finished = %d",
--		    thread_finished);
--		if (thread_finished || signal_pending(current))
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule();
-+		if (kthread_should_stop())
- 			break;
- 		do {
- 			rc = check_slots();
-@@ -541,18 +534,17 @@ event_thread(void *data)
- 			} else if (rc < 0) {
- 				dbg("%s - error checking slots", __FUNCTION__);
- 				thread_finished = 1;
--				break;
-+				goto out;
- 			}
--		} while (atomic_read(&extracting) && !thread_finished);
--		if (thread_finished)
-+		} while (atomic_read(&extracting) && !kthread_should_stop());
-+		if (kthread_should_stop())
- 			break;
+-
+-/*
+- * Suspend/resume part
+- */
+-
+-#ifdef CONFIG_PM
+-
+-static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
+-{
+-	unsigned long cfg = hpet_readl(HPET_CFG);
+-
+-	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
+-	hpet_writel(cfg, HPET_CFG);
+-
+-	return 0;
+-}
+-
+-static int hpet_resume(struct sys_device *sys_device)
+-{
+-	unsigned int id;
+-
+-	hpet_start_counter();
+-
+-	id = hpet_readl(HPET_ID);
+-
+-	if (id & HPET_ID_LEGSUP)
+-		hpet_enable_int();
+-
+-	return 0;
+-}
+-
+-static struct sysdev_class hpet_class = {
+-	set_kset_name("hpet"),
+-	.suspend	= hpet_suspend,
+-	.resume		= hpet_resume,
+-};
+-
+-static struct sys_device hpet_device = {
+-	.id		= 0,
+-	.cls		= &hpet_class,
+-};
+-
+-
+-static __init int hpet_register_sysfs(void)
+-{
+-	int err;
+-
+-	if (!is_hpet_capable())
+-		return 0;
+-
+-	err = sysdev_class_register(&hpet_class);
+-
+-	if (!err) {
+-		err = sysdev_register(&hpet_device);
+-		if (err)
+-			sysdev_class_unregister(&hpet_class);
+-	}
+-
+-	return err;
+-}
+-
+-device_initcall(hpet_register_sysfs);
+-
+-#endif
+diff -puN arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version-2 arch/i386/kernel/i8253.c
+--- a/arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version-2
++++ a/arch/i386/kernel/i8253.c
+@@ -3,11 +3,11 @@
+  *
+  */
+ #include <linux/clockchips.h>
+-#include <linux/spinlock.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
+ #include <linux/jiffies.h>
+-#include <linux/sysdev.h>
+ #include <linux/module.h>
+-#include <linux/init.h>
++#include <linux/spinlock.h>
  
- 		/* Re-enable ENUM# interrupt */
- 		dbg("%s - re-enabling irq", __FUNCTION__);
- 		controller->ops->enable_irq();
+ #include <asm/smp.h>
+ #include <asm/delay.h>
+@@ -42,26 +42,24 @@ static void init_pit_timer(enum clock_ev
+ 	case CLOCK_EVT_MODE_PERIODIC:
+ 		/* binary, mode 2, LSB/MSB, ch 0 */
+ 		outb_p(0x34, PIT_MODE);
+-		udelay(10);
+ 		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
+-		udelay(10);
+ 		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
+ 		break;
+ 
+-	/*
+-	 * Avoid unnecessary state transitions, as it confuses
+-	 * Geode / Cyrix based boxen.
+-	 */
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+-		if (evt->mode == CLOCK_EVT_MODE_UNUSED)
+-			break;
+ 	case CLOCK_EVT_MODE_UNUSED:
+-		if (evt->mode == CLOCK_EVT_MODE_SHUTDOWN)
+-			break;
++		outb_p(0x30, PIT_MODE);
++		outb_p(0, PIT_CH0);	/* LSB */
++		outb_p(0, PIT_CH0);	/* MSB */
++		break;
++
+ 	case CLOCK_EVT_MODE_ONESHOT:
+ 		/* One shot setup */
+ 		outb_p(0x38, PIT_MODE);
+-		udelay(10);
++		break;
++
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
+ 		break;
  	}
--	dbg("%s - event thread signals exit", __FUNCTION__);
--	up(&thread_exit);
-+ out:
- 	return 0;
- }
+ 	spin_unlock_irqrestore(&i8253_lock, flags);
+diff -puN include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version-2 include/linux/clockchips.h
+--- a/include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version-2
++++ a/include/linux/clockchips.h
+@@ -23,6 +23,7 @@ enum clock_event_mode {
+ 	CLOCK_EVT_MODE_SHUTDOWN,
+ 	CLOCK_EVT_MODE_PERIODIC,
+ 	CLOCK_EVT_MODE_ONESHOT,
++	CLOCK_EVT_MODE_RESUME,
+ };
  
-@@ -562,12 +554,8 @@ poll_thread(void *data)
+ /* Clock event notification values */
+diff -puN kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version-2 kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version-2
++++ a/kernel/time/tick-broadcast.c
+@@ -292,7 +292,7 @@ void tick_suspend_broadcast(void)
+ 	spin_lock_irqsave(&tick_broadcast_lock, flags);
+ 
+ 	bc = tick_broadcast_device.evtdev;
+-	if (bc && tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
++	if (bc)
+ 		clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
+ 
+ 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
+@@ -309,6 +309,8 @@ int tick_resume_broadcast(void)
+ 	bc = tick_broadcast_device.evtdev;
+ 
+ 	if (bc) {
++		clockevents_set_mode(bc, CLOCK_EVT_MODE_RESUME);
++
+ 		switch (tick_broadcast_device.mode) {
+ 		case TICKDEV_MODE_PERIODIC:
+ 			if(!cpus_empty(tick_broadcast_mask))
+diff -puN kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version-2 kernel/time/tick-common.c
+--- a/kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version-2
++++ a/kernel/time/tick-common.c
+@@ -318,12 +318,17 @@ static void tick_resume(void)
  {
- 	int rc;
+ 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
+ 	unsigned long flags;
++	int broadcast = tick_resume_broadcast();
  
--	lock_kernel();
--	daemonize("cpci_hp_polld");
--	unlock_kernel();
--
- 	while (1) {
--		if (thread_finished || signal_pending(current))
-+		if (kthread_should_stop() || signal_pending(current))
- 			break;
- 		if (controller->ops->query_enum()) {
- 			do {
-@@ -578,48 +566,36 @@ poll_thread(void *data)
- 				} else if (rc < 0) {
- 					dbg("%s - error checking slots", __FUNCTION__);
- 					thread_finished = 1;
--					break;
-+					goto out;
- 				}
--			} while (atomic_read(&extracting) && !thread_finished);
-+			} while (atomic_read(&extracting) && !kthread_should_stop());
- 		}
- 		msleep(100);
- 	}
--	dbg("poll thread signals exit");
--	up(&thread_exit);
-+ out:
- 	return 0;
+ 	spin_lock_irqsave(&tick_device_lock, flags);
+-	if (td->mode == TICKDEV_MODE_PERIODIC)
+-		tick_setup_periodic(td->evtdev, 0);
+-	else
+-		tick_resume_oneshot();
++	clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_RESUME);
++
++	if (!broadcast) {
++		if (td->mode == TICKDEV_MODE_PERIODIC)
++			tick_setup_periodic(td->evtdev, 0);
++		else
++			tick_resume_oneshot();
++	}
+ 	spin_unlock_irqrestore(&tick_device_lock, flags);
  }
  
- static int
- cpci_start_thread(void)
- {
--	int pid;
--
--	/* initialize our semaphores */
--	init_MUTEX_LOCKED(&event_semaphore);
--	init_MUTEX_LOCKED(&thread_exit);
--	thread_finished = 0;
--
- 	if (controller->irq)
--		pid = kernel_thread(event_thread, NULL, 0);
-+		cpci_thread = kthread_run(event_thread, NULL, "cpci_hp_eventd");
- 	else
--		pid = kernel_thread(poll_thread, NULL, 0);
--	if (pid < 0) {
-+		cpci_thread = kthread_run(poll_thread, NULL, "cpci_hp_polld");
-+	if (IS_ERR(cpci_thread)) {
- 		err("Can't start up our thread");
--		return -1;
-+		return PTR_ERR(cpci_thread);
- 	}
--	dbg("Our thread pid = %d", pid);
-+	thread_finished = 0;
- 	return 0;
- }
+@@ -360,8 +365,7 @@ static int tick_notify(struct notifier_b
+ 		break;
  
- static void
- cpci_stop_thread(void)
- {
-+	kthread_stop(cpci_thread);
- 	thread_finished = 1;
--	dbg("thread finish command given");
--	if (controller->irq)
--		up(&event_semaphore);
--	dbg("wait for thread to exit");
--	down(&thread_exit);
- }
+ 	case CLOCK_EVT_NOTIFY_RESUME:
+-		if (!tick_resume_broadcast())
+-			tick_resume();
++		tick_resume();
+ 		break;
  
- int
+ 	default:
 _
 
-Patches currently in -mm which might be from scottm@somanetworks.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
+
+origin.patch
+sigqueue_free-fix-the-race-with-collect_signal.patch
+double-hpet-clocksource-hard-freeze.patch
+git-acpi.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+clockevents-remove-unused-inline-function.patch
+clockevents-allow-build-without-runtime-use.patch
+x86_64-consolidate-tsc-calibration.patch
+i386-prepare-sharing-hpet-code.patch
+i386-hpet-add-x8664-hpet-bits.patch
+i386-prepare-sharing-pit-code.patch
+x86_64-use-i386-i8253-h.patch
+x86_64-preparatory-apic-set-lvtt.patch
+x86_64-apic-remove-bogus-pit-synchronization.patch
+x86_64-apic-shuffle-calibration-around.patch
+x86_64-apic-calibration-remove-divisor.patch
+x86_64-apic-change-setup-calling-convention.patch
+x86_64-apic-remove-nested-irq-disable.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-apic-add-clockevents-functions.patch
+x86_64-convert-to-clockevents.patch
+x86_64-remove-unused-code.patch
+x86_64-cleanup-apic-c.patch
+jiffies-remove-unused-macros.patch
+acpi-remove-the-useless-ifdef-code.patch
+i386-pit-remove-the-useless-ifdefs.patch
+i386-hpet-sharing-optimize.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+hpet-force-enable-on-ich34.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
