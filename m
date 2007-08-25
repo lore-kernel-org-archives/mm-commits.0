@@ -1,396 +1,715 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:24:44 -0700
-Message-ID: <200708250524.l7P5Oi7l032226@imap1.linux-foundation.org>
+Subject: - tglx-debug.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:22 -0700
+Message-ID: <200708250519.l7P5JM5q032035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45780 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751469AbXHYFZU (ORCPT
+	by vger.kernel.org with ESMTP id S1754408AbXHYF2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:25:20 -0400
+	Sat, 25 Aug 2007 01:28:21 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7P5Rmjr016707
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2007 22:27:49 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86_64/vdso/vma.c needs sched.h
+     a
 has been removed from the -mm tree.  Its filename was
-     x86_64-mm-xen-attempt-to-patch-inline-versions-of-common-operations.patch
+     tglx-debug.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: arch/x86_64/vdso/vma.c needs sched.h
-From: Jeremy Fitzhardinge <jeremy@goop.org>
-i386: Attempt to patch inline versions of common operations
+Subject: a
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patchs adds the mechanism to allow us to patch inline versions of
-common operations.
-
-The implementations of the direct-access versions save_fl, restore_fl,
-irq_enable and irq_disable are now in assembler, and the same code is
-used for both out of line and inline uses.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Keir Fraser <keir@xensource.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- arch/i386/kernel/asm-offsets.c |    7 ++
- arch/i386/xen/Makefile         |    2 
- arch/i386/xen/enlighten.c      |  108 +++++++++++++++++++-------------------
- arch/i386/xen/xen-asm.S        |  114 +++++++++++++++++++++++++++++++++++++++++
- arch/i386/xen/xen-ops.h        |   13 ++++
- 5 files changed, 190 insertions(+), 54 deletions(-)
 
-===================================================================
-Index: linux/arch/i386/kernel/asm-offsets.c
-===================================================================
---- linux.orig/arch/i386/kernel/asm-offsets.c
-+++ linux/arch/i386/kernel/asm-offsets.c
-@@ -16,6 +16,7 @@
- #include <asm/processor.h>
- #include <asm/thread_info.h>
- #include <asm/elf.h>
-+#include <xen/interface/xen.h>
+ drivers/acpi/hardware/hwsleep.c   |   36 +++++++++++++++++++++
+ drivers/acpi/namespace/nsxfeval.c |   39 +++++++++++++++++++++++
+ drivers/acpi/sleep/main.c         |    7 ++++
+ drivers/acpi/sleep/wakeup.c       |    9 +++++
+ include/linux/kernel.h            |    2 +
+ kernel/power/disk.c               |   46 ++++++++++++++++++++++++++--
+ kernel/power/snapshot.c           |    3 +
+ kernel/power/swsusp.c             |   10 +++++-
+ 8 files changed, 147 insertions(+), 5 deletions(-)
+
+diff -puN drivers/acpi/hardware/hwsleep.c~tglx-debug drivers/acpi/hardware/hwsleep.c
+--- a/drivers/acpi/hardware/hwsleep.c~tglx-debug
++++ a/drivers/acpi/hardware/hwsleep.c
+@@ -67,15 +67,18 @@ acpi_set_firmware_waking_vector(acpi_phy
+ 	acpi_status status;
  
- #define DEFINE(sym, val) \
-         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-@@ -115,4 +116,10 @@ void foo(void)
- 	OFFSET(PARAVIRT_iret, paravirt_ops, iret);
- 	OFFSET(PARAVIRT_read_cr0, paravirt_ops, read_cr0);
- #endif
-+
-+#ifdef CONFIG_XEN
-+	BLANK();
-+	OFFSET(XEN_vcpu_info_mask, vcpu_info, evtchn_upcall_mask);
-+	OFFSET(XEN_vcpu_info_pending, vcpu_info, evtchn_upcall_pending);
-+#endif
- }
-Index: linux/arch/i386/xen/Makefile
-===================================================================
---- linux.orig/arch/i386/xen/Makefile
-+++ linux/arch/i386/xen/Makefile
-@@ -1,4 +1,4 @@
- obj-y		:= enlighten.o setup.o features.o multicalls.o mmu.o \
--			events.o time.o manage.o
-+			events.o time.o manage.o xen-asm.o
+ 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
++	MMMM();
  
- obj-$(CONFIG_SMP)	+= smp.o
-Index: linux/arch/i386/xen/enlighten.c
-===================================================================
---- linux.orig/arch/i386/xen/enlighten.c
-+++ linux/arch/i386/xen/enlighten.c
-@@ -107,9 +107,11 @@ void xen_vcpu_setup(int cpu)
- 	if (err == 0) {
- 		have_vcpu_info_placement = 1;
- 		per_cpu(xen_vcpu, cpu) = vcpup;
-+
- 		printk("cpu %d using vcpu_info at %p\n",
- 		       cpu, vcpup);
+ 	/* Get the FACS */
+ 
+ 	status =
+ 	    acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
+ 				    (struct acpi_table_header **)&facs);
++	MMMM();
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
  	}
++	MMMM();
+ 
+ 	/* Set the vector */
+ 
+@@ -83,13 +86,16 @@ acpi_set_firmware_waking_vector(acpi_phy
+ 		/*
+ 		 * ACPI 1.0 FACS or short table or optional X_ field is zero
+ 		 */
++	MMMM();
+ 		facs->firmware_waking_vector = (u32) physical_address;
+ 	} else {
+ 		/*
+ 		 * ACPI 2.0 FACS with valid X_ field
+ 		 */
++	MMMM();
+ 		facs->xfirmware_waking_vector = physical_address;
+ 	}
++	MMMM();
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
+@@ -492,6 +498,9 @@ ACPI_EXPORT_SYMBOL(acpi_enter_sleep_stat
+  *              Called with interrupts ENABLED.
+  *
+  ******************************************************************************/
 +
- }
- 
- static void __init xen_banner(void)
-@@ -169,20 +171,6 @@ static unsigned long xen_save_fl(void)
- 	return (-flags) & X86_EFLAGS_IF;
- }
- 
--static unsigned long xen_save_fl_direct(void)
--{
--	unsigned long flags;
--
--	/* flag has opposite sense of mask */
--	flags = !x86_read_percpu(xen_vcpu_info.evtchn_upcall_mask);
--
--	/* convert to IF type flag
--	   -0 -> 0x00000000
--	   -1 -> 0xffffffff
--	*/
--	return (-flags) & X86_EFLAGS_IF;
--}
--
- static void xen_restore_fl(unsigned long flags)
++int akpm;
++
+ acpi_status acpi_leave_sleep_state(u8 sleep_state)
  {
- 	struct vcpu_info *vcpu;
-@@ -209,25 +197,6 @@ static void xen_restore_fl(unsigned long
+ 	struct acpi_object_list arg_list;
+@@ -504,6 +513,8 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_leave_sleep_state);
+ 
++	MMMM();
++
+ 	/*
+ 	 * Set SLP_TYPE and SLP_EN to state S0.
+ 	 * This is unclear from the ACPI Spec, but it is required
+@@ -512,40 +523,50 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 	status = acpi_get_sleep_type_data(ACPI_STATE_S0,
+ 					  &acpi_gbl_sleep_type_a,
+ 					  &acpi_gbl_sleep_type_b);
++	MMMM();
+ 	if (ACPI_SUCCESS(status)) {
+ 		sleep_type_reg_info =
+ 		    acpi_hw_get_bit_register_info(ACPI_BITREG_SLEEP_TYPE_A);
+ 		sleep_enable_reg_info =
+ 		    acpi_hw_get_bit_register_info(ACPI_BITREG_SLEEP_ENABLE);
+ 
++	MMMM();
+ 		/* Get current value of PM1A control */
+ 
+ 		status = acpi_hw_register_read(ACPI_MTX_DO_NOT_LOCK,
+ 					       ACPI_REGISTER_PM1_CONTROL,
+ 					       &PM1Acontrol);
++	MMMM();
+ 		if (ACPI_SUCCESS(status)) {
+ 
+ 			/* Clear SLP_EN and SLP_TYP fields */
+ 
++	MMMM();
+ 			PM1Acontrol &= ~(sleep_type_reg_info->access_bit_mask |
+ 					 sleep_enable_reg_info->
+ 					 access_bit_mask);
++	MMMM();
+ 			PM1Bcontrol = PM1Acontrol;
+ 
+ 			/* Insert SLP_TYP bits */
+ 
++	MMMM();
+ 			PM1Acontrol |=
+ 			    (acpi_gbl_sleep_type_a << sleep_type_reg_info->
+ 			     bit_position);
++	MMMM();
+ 			PM1Bcontrol |=
+ 			    (acpi_gbl_sleep_type_b << sleep_type_reg_info->
+ 			     bit_position);
++	MMMM();
+ 
+ 			/* Just ignore any errors */
++	MMMM();
+ 
+ 			(void)acpi_hw_register_write(ACPI_MTX_DO_NOT_LOCK,
+ 						     ACPI_REGISTER_PM1A_CONTROL,
+ 						     PM1Acontrol);
++	MMMM();
+ 			(void)acpi_hw_register_write(ACPI_MTX_DO_NOT_LOCK,
+ 						     ACPI_REGISTER_PM1B_CONTROL,
+ 						     PM1Bcontrol);
+@@ -554,6 +575,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 
+ 	/* Ensure enter_sleep_state_prep -> enter_sleep_state ordering */
+ 
++	MMMM();
+ 	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
+ 
+ 	/* Setup parameter object */
+@@ -561,6 +583,7 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 	arg_list.count = 1;
+ 	arg_list.pointer = &arg;
+ 	arg.type = ACPI_TYPE_INTEGER;
++	MMMM();
+ 
+ 	/* Ignore any errors from these methods */
+ 
+@@ -569,18 +592,25 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
+ 	}
++	MMMM();
+ 
+ 	arg.integer.value = sleep_state;
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__BFS, &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _BFS"));
+ 	}
++	MMMM();
++	dump_stack();
+ 
++	akpm=1;
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__WAK, &arg_list, NULL);
++	akpm=0;
++	MMMM();
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _WAK"));
+ 	}
+ 	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
++	MMMM();
+ 
+ 	/*
+ 	 * Restore the GPEs:
+@@ -591,28 +621,34 @@ acpi_status acpi_leave_sleep_state(u8 sl
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
++	MMMM();
+ 	acpi_gbl_system_awake_and_running = TRUE;
++	MMMM();
+ 
+ 	status = acpi_hw_enable_all_runtime_gpes();
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
++	MMMM();
+ 
+ 	/* Enable power button */
+ 
+ 	(void)
+ 	    acpi_set_register(acpi_gbl_fixed_event_info
+ 			      [ACPI_EVENT_POWER_BUTTON].enable_register_id, 1);
++	MMMM();
+ 
+ 	(void)
+ 	    acpi_set_register(acpi_gbl_fixed_event_info
+ 			      [ACPI_EVENT_POWER_BUTTON].status_register_id, 1);
++	MMMM();
+ 
+ 	arg.integer.value = ACPI_SST_WORKING;
+ 	status = acpi_evaluate_object(NULL, METHOD_NAME__SST, &arg_list, NULL);
+ 	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
+ 		ACPI_EXCEPTION((AE_INFO, status, "During Method _SST"));
+ 	}
++	MMMM();
+ 
+ 	return_ACPI_STATUS(status);
+ }
+diff -puN drivers/acpi/namespace/nsxfeval.c~tglx-debug drivers/acpi/namespace/nsxfeval.c
+--- a/drivers/acpi/namespace/nsxfeval.c~tglx-debug
++++ a/drivers/acpi/namespace/nsxfeval.c
+@@ -46,6 +46,8 @@
+ #include <acpi/acnamesp.h>
+ #include <acpi/acinterp.h>
+ 
++extern int akpm;
++
+ #define _COMPONENT          ACPI_NAMESPACE
+ ACPI_MODULE_NAME("nsxfeval")
+ #ifdef ACPI_FUTURE_USAGE
+@@ -174,21 +176,27 @@ acpi_evaluate_object(acpi_handle handle,
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_evaluate_object);
+ 
++	if (akpm) MMMM();
++
+ 	/* Allocate and initialize the evaluation information block */
+ 
+ 	info = ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_evaluate_info));
++	if (akpm) MMMM();
+ 	if (!info) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
++	if (akpm) MMMM();
+ 	info->pathname = pathname;
+ 	info->parameter_type = ACPI_PARAM_ARGS;
+ 
+ 	/* Convert and validate the device handle */
+ 
+ 	info->prefix_node = acpi_ns_map_handle_to_node(handle);
++	if (akpm) MMMM();
+ 	if (!info->prefix_node) {
+ 		status = AE_BAD_PARAMETER;
++	if (akpm) MMMM();
+ 		goto cleanup;
+ 	}
+ 
+@@ -201,24 +209,30 @@ acpi_evaluate_object(acpi_handle handle,
+ 		 * Allocate a new parameter block for the internal objects
+ 		 * Add 1 to count to allow for null terminated internal list
+ 		 */
++	if (akpm) MMMM();
+ 		info->parameters = ACPI_ALLOCATE_ZEROED(((acpi_size)
+ 							 external_params->
+ 							 count +
+ 							 1) * sizeof(void *));
++	if (akpm) MMMM();
+ 		if (!info->parameters) {
+ 			status = AE_NO_MEMORY;
+ 			goto cleanup;
+ 		}
+ 
++	if (akpm) MMMM();
+ 		/* Convert each external object in the list to an internal object */
+ 
+ 		for (i = 0; i < external_params->count; i++) {
++	if (akpm) MMMM();
+ 			status =
+ 			    acpi_ut_copy_eobject_to_iobject(&external_params->
+ 							    pointer[i],
+ 							    &info->
+ 							    parameters[i]);
++	if (akpm) MMMM();
+ 			if (ACPI_FAILURE(status)) {
++	if (akpm) MMMM();
+ 				goto cleanup;
+ 			}
+ 		}
+@@ -235,6 +249,7 @@ acpi_evaluate_object(acpi_handle handle,
+ 
+ 		/* The path is fully qualified, just evaluate by name */
+ 
++	if (akpm) MMMM();
+ 		info->prefix_node = NULL;
+ 		status = acpi_ns_evaluate(info);
+ 	} else if (!handle) {
+@@ -243,10 +258,13 @@ acpi_evaluate_object(acpi_handle handle,
+ 		 * Since we've already handled fully qualified names above, this is
+ 		 * an error
+ 		 */
++	if (akpm) MMMM();
+ 		if (!pathname) {
++	if (akpm) MMMM();
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "Both Handle and Pathname are NULL"));
+ 		} else {
++	if (akpm) MMMM();
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 					  "Null Handle with relative pathname [%s]",
+ 					  pathname));
+@@ -256,6 +274,7 @@ acpi_evaluate_object(acpi_handle handle,
+ 	} else {
+ 		/* We have a namespace a node and a possible relative path */
+ 
++	if (akpm) MMMM();
+ 		status = acpi_ns_evaluate(info);
+ 	}
+ 
+@@ -264,9 +283,12 @@ acpi_evaluate_object(acpi_handle handle,
+ 	 * copy the return value to an external object.
+ 	 */
+ 	if (return_buffer) {
++	if (akpm) MMMM();
+ 		if (!info->return_object) {
++	if (akpm) MMMM();
+ 			return_buffer->length = 0;
+ 		} else {
++	if (akpm) MMMM();
+ 			if (ACPI_GET_DESCRIPTOR_TYPE(info->return_object) ==
+ 			    ACPI_DESC_TYPE_NAMED) {
+ 				/*
+@@ -281,27 +303,33 @@ acpi_evaluate_object(acpi_handle handle,
+ 				info->return_object = NULL;	/* No need to delete a NS Node */
+ 				return_buffer->length = 0;
+ 			}
++	if (akpm) MMMM();
+ 
+ 			if (ACPI_SUCCESS(status)) {
+ 
+ 				/* Get the size of the returned object */
+ 
++	if (akpm) MMMM();
+ 				status =
+ 				    acpi_ut_get_object_size(info->return_object,
+ 							    &buffer_space_needed);
++	if (akpm) MMMM();
+ 				if (ACPI_SUCCESS(status)) {
+ 
+ 					/* Validate/Allocate/Clear caller buffer */
+ 
++	if (akpm) MMMM();
+ 					status =
+ 					    acpi_ut_initialize_buffer
+ 					    (return_buffer,
+ 					     buffer_space_needed);
++	if (akpm) MMMM();
+ 					if (ACPI_FAILURE(status)) {
+ 						/*
+ 						 * Caller's buffer is too small or a new one can't
+ 						 * be allocated
+ 						 */
++	if (akpm) MMMM();
+ 						ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 								  "Needed buffer size %X, %s\n",
+ 								  (u32)
+@@ -311,6 +339,7 @@ acpi_evaluate_object(acpi_handle handle,
+ 					} else {
+ 						/* We have enough space for the object, build it */
+ 
++	if (akpm) MMMM();
+ 						status =
+ 						    acpi_ut_copy_iobject_to_eobject
+ 						    (info->return_object,
+@@ -321,31 +350,41 @@ acpi_evaluate_object(acpi_handle handle,
+ 		}
+ 	}
+ 
++	if (akpm) MMMM();
+ 	if (info->return_object) {
+ 		/*
+ 		 * Delete the internal return object. NOTE: Interpreter must be
+ 		 * locked to avoid race condition.
+ 		 */
++		if (akpm) MMMM();
+ 		acpi_ex_enter_interpreter();
+ 
+ 		/* Remove one reference on the return object (should delete it) */
+ 
++		if (akpm) MMMM();
+ 		acpi_ut_remove_reference(info->return_object);
++		if (akpm) MMMM();
+ 		acpi_ex_exit_interpreter();
++		if (akpm) MMMM();
+ 	}
+ 
+       cleanup:
+ 
+ 	/* Free the input parameter list (if we created one) */
+ 
++	if (akpm) MMMM();
+ 	if (info->parameters) {
+ 
+ 		/* Free the allocated parameter block */
+ 
++	if (akpm) MMMM();
+ 		acpi_ut_delete_internal_object_list(info->parameters);
++	if (akpm) MMMM();
+ 	}
+ 
+ 	ACPI_FREE(info);
++	if (akpm) MMMM();
++	if (akpm) dump_stack();
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff -puN drivers/acpi/sleep/main.c~tglx-debug drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~tglx-debug
++++ a/drivers/acpi/sleep/main.c
+@@ -205,15 +205,22 @@ static int acpi_hibernation_enter(void)
+ 
+ static void acpi_hibernation_finish(void)
+ {
++	MMMM();
+ 	acpi_leave_sleep_state(ACPI_STATE_S4);
++	MMMM();
+ 	acpi_disable_wakeup_device(ACPI_STATE_S4);
++	MMMM();
+ 
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
++	MMMM();
+ 
+ 	if (init_8259A_after_S1) {
++		MMMM();
+ 		printk("Broken toshiba laptop -> kicking interrupts\n");
++		MMMM();
+ 		init_8259A(0);
++		MMMM();
  	}
  }
  
--static void xen_restore_fl_direct(unsigned long flags)
--{
--	/* convert from IF type flag */
--	flags = !(flags & X86_EFLAGS_IF);
--
--	/* This is an atomic update, so no need to worry about
--	   preemption. */
--	x86_write_percpu(xen_vcpu_info.evtchn_upcall_mask, flags);
--
--	/* If we get preempted here, then any pending event will be
--	   handled anyway. */
--
--	if (flags == 0) {
--		barrier(); /* unmask then check (avoid races) */
--		if (unlikely(x86_read_percpu(xen_vcpu_info.evtchn_upcall_pending)))
--			force_evtchn_callback();
--	}
--}
--
- static void xen_irq_disable(void)
- {
- 	/* There's a one instruction preempt window here.  We need to
-@@ -238,12 +207,6 @@ static void xen_irq_disable(void)
- 	preempt_enable_no_resched();
+diff -puN drivers/acpi/sleep/wakeup.c~tglx-debug drivers/acpi/sleep/wakeup.c
+--- a/drivers/acpi/sleep/wakeup.c~tglx-debug
++++ a/drivers/acpi/sleep/wakeup.c
+@@ -130,6 +130,7 @@ void acpi_disable_wakeup_device(u8 sleep
+ 	struct list_head *node, *next;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_disable_wakeup_device");
++	MMMM();
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+@@ -137,6 +138,7 @@ void acpi_disable_wakeup_device(u8 sleep
+ 						       struct acpi_device,
+ 						       wakeup_list);
+ 
++	MMMM();
+ 		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+ 			spin_unlock(&acpi_device_lock);
+ 			acpi_set_gpe_type(dev->wakeup.gpe_device,
+@@ -149,13 +151,17 @@ void acpi_disable_wakeup_device(u8 sleep
+ 			continue;
+ 		}
+ 
++	MMMM();
+ 		if (!dev->wakeup.flags.valid ||
+ 		    !dev->wakeup.state.active ||
+ 		    (sleep_state > (u32) dev->wakeup.sleep_state))
+ 			continue;
++	MMMM();
+ 
+ 		spin_unlock(&acpi_device_lock);
++	MMMM();
+ 		acpi_disable_wakeup_device_power(dev);
++	MMMM();
+ 		/* Never disable run-wake GPE */
+ 		if (!dev->wakeup.flags.run_wake) {
+ 			acpi_disable_gpe(dev->wakeup.gpe_device,
+@@ -163,10 +169,13 @@ void acpi_disable_wakeup_device(u8 sleep
+ 			acpi_clear_gpe(dev->wakeup.gpe_device,
+ 				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 		}
++	MMMM();
+ 		dev->wakeup.state.active = 0;
+ 		spin_lock(&acpi_device_lock);
++	MMMM();
+ 	}
+ 	spin_unlock(&acpi_device_lock);
++	MMMM();
  }
  
--static void xen_irq_disable_direct(void)
--{
--	/* Atomic update, so preemption not a concern. */
--	x86_write_percpu(xen_vcpu_info.evtchn_upcall_mask, 1);
--}
--
- static void xen_irq_enable(void)
- {
- 	struct vcpu_info *vcpu;
-@@ -264,19 +227,6 @@ static void xen_irq_enable(void)
- 		force_evtchn_callback();
- }
+ static int acpi_platform_enable_wakeup(struct device *dev, int is_on)
+diff -puN include/linux/kernel.h~tglx-debug include/linux/kernel.h
+--- a/include/linux/kernel.h~tglx-debug
++++ a/include/linux/kernel.h
+@@ -17,6 +17,8 @@
+ #include <asm/byteorder.h>
+ #include <asm/bug.h>
  
--static void xen_irq_enable_direct(void)
--{
--	/* Atomic update, so preemption not a concern. */
--	x86_write_percpu(xen_vcpu_info.evtchn_upcall_mask, 0);
--
--	/* Doesn't matter if we get preempted here, because any
--	   pending event will get dealt with anyway. */
--
--	barrier(); /* unmask then check (avoid races) */
--	if (unlikely(x86_read_percpu(xen_vcpu_info.evtchn_upcall_pending)))
--		force_evtchn_callback();
--}
--
- static void xen_safe_halt(void)
- {
- 	/* Blocking includes an implicit local_irq_enable(). */
-@@ -862,6 +812,57 @@ static __init void xen_pagetable_setup_d
- 	xen_vcpu_setup(smp_processor_id());
- }
++#define MMMM()	printk("%s:%d\n", __FILE__, __LINE__)
++
+ extern const char linux_banner[];
+ extern const char linux_proc_banner[];
  
-+static unsigned xen_patch(u8 type, u16 clobbers, void *insns, unsigned len)
-+{
-+	char *start, *end, *reloc;
-+	unsigned ret;
-+
-+	start = end = reloc = NULL;
-+
-+#define SITE(x)								\
-+	case PARAVIRT_PATCH(x):						\
-+	if (have_vcpu_info_placement) {					\
-+		start = (char *)xen_##x##_direct;			\
-+		end = xen_##x##_direct_end;				\
-+		reloc = xen_##x##_direct_reloc;				\
-+	}								\
-+	goto patch_site
-+
-+	switch(type) {
-+		SITE(irq_enable);
-+		SITE(irq_disable);
-+		SITE(save_fl);
-+		SITE(restore_fl);
-+#undef SITE
-+
-+	patch_site:
-+		if (start == NULL || (end-start) > len)
-+			goto default_patch;
-+
-+		ret = paravirt_patch_insns(insns, len, start, end);
-+
-+		/* Note: because reloc is assigned from something that
-+		   appears to be an array, gcc assumes it's non-null,
-+		   but doesn't know its relationship with start and
-+		   end. */
-+		if (reloc > start && reloc < end) {
-+			int reloc_off = reloc - start;
-+			long *relocp = (long *)(insns + reloc_off);
-+			long delta = start - (char *)insns;
-+
-+			*relocp += delta;
-+		}
-+		break;
-+
-+	default_patch:
-+	default:
-+		ret = paravirt_patch_default(type, clobbers, insns, len);
-+		break;
+diff -puN kernel/power/disk.c~tglx-debug kernel/power/disk.c
+--- a/kernel/power/disk.c~tglx-debug
++++ a/kernel/power/disk.c
+@@ -87,8 +87,11 @@ static int platform_prepare(void)
+ 
+ static void platform_finish(void)
+ {
+-	if (hibernation_mode == HIBERNATION_PLATFORM && hibernation_ops)
++	if (hibernation_mode == HIBERNATION_PLATFORM && hibernation_ops) {
++		printk("%p\n", hibernation_ops->finish);
++		MMMM();
+ 		hibernation_ops->finish();
 +	}
-+
-+	return ret;
-+}
-+
- static const struct paravirt_ops xen_paravirt_ops __initdata = {
- 	.paravirt_enabled = 1,
- 	.shared_kernel_pmd = 0,
-@@ -869,7 +870,7 @@ static const struct paravirt_ops xen_par
- 	.name = "Xen",
- 	.banner = xen_banner,
+ }
  
--	.patch = paravirt_patch_default,
-+	.patch = xen_patch,
+ /**
+@@ -157,14 +160,17 @@ int hibernate(void)
+ 		return -EBUSY;
  
- 	.memory_setup = xen_memory_setup,
- 	.arch_setup = xen_arch_setup,
-@@ -1046,6 +1047,7 @@ static const struct machine_ops __initda
- 	.emergency_restart = xen_emergency_restart,
- };
+ 	/* Allocate memory management structures */
++	MMMM();
+ 	error = create_basic_memory_bitmaps();
+ 	if (error)
+ 		goto Exit;
  
-+
- /* First C function to be called on Xen boot */
- asmlinkage void __init xen_start_kernel(void)
++	MMMM();
+ 	error = prepare_processes();
+ 	if (error)
+ 		goto Finish;
+ 
++	MMMM();
+ 	mutex_lock(&pm_mutex);
+ 	if (hibernation_mode == HIBERNATION_TESTPROC) {
+ 		printk("swsusp debug: Waiting for 5 seconds.\n");
+@@ -173,65 +179,99 @@ int hibernate(void)
+ 	}
+ 
+ 	/* Free memory before shutting down devices. */
++	MMMM();
+ 	error = swsusp_shrink_memory();
+ 	if (error)
+ 		goto Thaw;
+ 
++	MMMM();
+ 	error = platform_prepare();
+ 	if (error)
+ 		goto Thaw;
+ 
++	MMMM();
+ 	suspend_console();
++	MMMM();
+ 	error = device_suspend(PMSG_FREEZE);
++	MMMM();
+ 	if (error) {
++		MMMM();
+ 		printk(KERN_ERR "PM: Some devices failed to suspend\n");
+ 		goto Resume_devices;
+ 	}
++	MMMM();
+ 	error = disable_nonboot_cpus();
+ 	if (error)
+ 		goto Enable_cpus;
+ 
++	MMMM();
+ 	if (hibernation_mode == HIBERNATION_TEST) {
++		MMMM();
+ 		printk("swsusp debug: Waiting for 5 seconds.\n");
+ 		mdelay(5000);
+ 		goto Enable_cpus;
+ 	}
+ 
++	MMMM();
+ 	pr_debug("PM: snapshotting memory.\n");
+ 	in_suspend = 1;
++	MMMM();
+ 	error = swsusp_suspend();
++	MMMM();
+ 	if (error)
+ 		goto Enable_cpus;
+ 
+ 	if (in_suspend) {
++		MMMM();
+ 		enable_nonboot_cpus();
++		MMMM();
+ 		platform_finish();
++		MMMM();
+ 		device_resume();
++		MMMM();
+ 		resume_console();
++		MMMM();
+ 		pr_debug("PM: writing image.\n");
++		MMMM();
+ 		error = swsusp_write();
+-		if (!error)
++		MMMM();
++		if (!error) {
++			MMMM();
+ 			power_down();
+-		else {
++		} else {
++			MMMM();
+ 			swsusp_free();
++			MMMM();
+ 			goto Thaw;
+ 		}
+ 	} else {
+ 		pr_debug("PM: Image restored successfully.\n");
+ 	}
+ 
++	MMMM();
+ 	swsusp_free();
++	MMMM();
+  Enable_cpus:
++	MMMM();
+ 	enable_nonboot_cpus();
++	MMMM();
+  Resume_devices:
++	MMMM();
+ 	platform_finish();
++	MMMM();
+ 	device_resume();
++	MMMM();
+ 	resume_console();
++	MMMM();
+  Thaw:
+ 	mutex_unlock(&pm_mutex);
++	MMMM();
+ 	unprepare_processes();
++	MMMM();
+  Finish:
++	MMMM();
+ 	free_basic_memory_bitmaps();
++	MMMM();
+  Exit:
+ 	atomic_inc(&snapshot_device_available);
+ 	return error;
+diff -puN kernel/power/snapshot.c~tglx-debug kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~tglx-debug
++++ a/kernel/power/snapshot.c
+@@ -1234,7 +1234,8 @@ asmlinkage int swsusp_save(void)
+ 	nr_meta_pages = DIV_ROUND_UP(nr_pages * sizeof(long), PAGE_SIZE);
+ 
+ 	printk("swsusp: critical section: done (%d pages copied)\n", nr_pages);
+-
++	MMMM();
++	dump_stack();
+ 	return 0;
+ }
+ 
+diff -puN kernel/power/swsusp.c~tglx-debug kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~tglx-debug
++++ a/kernel/power/swsusp.c
+@@ -274,9 +274,11 @@ int swsusp_suspend(void)
  {
-Index: linux/arch/i386/xen/xen-asm.S
-===================================================================
---- /dev/null
-+++ linux/arch/i386/xen/xen-asm.S
-@@ -0,0 +1,114 @@
-+/*
-+	Asm versions of Xen pv-ops, suitable for either direct use or inlining.
-+	The inline versions are the same as the direct-use versions, with the
-+	pre- and post-amble chopped off.
-+
-+	This code is encoded for size rather than absolute efficiency,
-+	with a view to being able to inline as much as possible.
-+
-+	We only bother with direct forms (ie, vcpu in pda) of the operations
-+	here; the indirect forms are better handled in C, since they're
-+	generally too large to inline anyway.
-+ */
-+
-+#include <linux/linkage.h>
-+#include <asm/asm-offsets.h>
-+#include <asm/thread_info.h>
-+#include <asm/percpu.h>
-+#include <asm/asm-offsets.h>
-+#include <asm/processor-flags.h>
-+
-+#define RELOC(x, v)	.globl x##_reloc; x##_reloc=v
-+#define ENDPATCH(x)	.globl x##_end; x##_end=.
-+
-+/*
-+	Enable events.  This clears the event mask and tests the pending
-+	event status with one and operation.  If there are pending
-+	events, then enter the hypervisor to get them handled.
-+ */
-+ENTRY(xen_irq_enable_direct)
-+	/* Clear mask and test pending */
-+	andw $0x00ff, PER_CPU_VAR(xen_vcpu_info)+XEN_vcpu_info_pending
-+	/* Preempt here doesn't matter because that will deal with
-+	   any pending interrupts.  The pending check may end up being
-+	   run on the wrong CPU, but that doesn't hurt. */
-+	jz 1f
-+2:	call check_events
-+1:
-+ENDPATCH(xen_irq_enable_direct)
-+	ret
-+	ENDPROC(xen_irq_enable_direct)
-+	RELOC(xen_irq_enable_direct, 2b+1)
-+
-+
-+/*
-+	Disabling events is simply a matter of making the event mask
-+	non-zero.
-+ */
-+ENTRY(xen_irq_disable_direct)
-+	movb $1, PER_CPU_VAR(xen_vcpu_info)+XEN_vcpu_info_mask
-+ENDPATCH(xen_irq_disable_direct)
-+	ret
-+	ENDPROC(xen_irq_disable_direct)
-+	RELOC(xen_irq_disable_direct, 0)
-+
-+/*
-+	(xen_)save_fl is used to get the current interrupt enable status.
-+	Callers expect the status to be in X86_EFLAGS_IF, and other bits
-+	may be set in the return value.  We take advantage of this by
-+	making sure that X86_EFLAGS_IF has the right value (and other bits
-+	in that byte are 0), but other bits in the return value are
-+	undefined.  We need to toggle the state of the bit, because
-+	Xen and x86 use opposite senses (mask vs enable).
-+ */
-+ENTRY(xen_save_fl_direct)
-+	testb $0xff, PER_CPU_VAR(xen_vcpu_info)+XEN_vcpu_info_mask
-+	setz %ah
-+	addb %ah,%ah
-+ENDPATCH(xen_save_fl_direct)
-+	ret
-+	ENDPROC(xen_save_fl_direct)
-+	RELOC(xen_save_fl_direct, 0)
-+
-+
-+/*
-+	In principle the caller should be passing us a value return
-+	from xen_save_fl_direct, but for robustness sake we test only
-+	the X86_EFLAGS_IF flag rather than the whole byte. After
-+	setting the interrupt mask state, it checks for unmasked
-+	pending events and enters the hypervisor to get them delivered
-+	if so.
-+ */
-+ENTRY(xen_restore_fl_direct)
-+	testb $X86_EFLAGS_IF>>8, %ah
-+	setz %al
-+	movb %al, PER_CPU_VAR(xen_vcpu_info)+XEN_vcpu_info_mask
-+	/* Preempt here doesn't matter because that will deal with
-+	   any pending interrupts.  The pending check may end up being
-+	   run on the wrong CPU, but that doesn't hurt. */
-+
-+	/* check for pending but unmasked */
-+	cmpw $0x0001, PER_CPU_VAR(xen_vcpu_info)+XEN_vcpu_info_pending
-+	jz 1f
-+2:	call check_events
-+1:
-+ENDPATCH(xen_restore_fl_direct)
-+	ret
-+	ENDPROC(xen_restore_fl_direct)
-+	RELOC(xen_restore_fl_direct, 2b+1)
-+
-+
-+
-+/*
-+	Force an event check by making a hypercall,
-+	but preserve regs before making the call.
-+ */
-+check_events:
-+	push %eax
-+	push %ecx
-+	push %edx
-+	call force_evtchn_callback
-+	pop %edx
-+	pop %ecx
-+	pop %eax
-+	ret
-Index: linux/arch/i386/xen/xen-ops.h
-===================================================================
---- linux.orig/arch/i386/xen/xen-ops.h
-+++ linux/arch/i386/xen/xen-ops.h
-@@ -54,4 +54,17 @@ int xen_smp_call_function_single(int cpu
- int xen_smp_call_function_mask(cpumask_t mask, void (*func)(void *),
- 			       void *info, int wait);
+ 	int error;
  
-+
-+/* Declare an asm function, along with symbols needed to make it
-+   inlineable */
-+#define DECL_ASM(ret, name, ...)		\
-+	ret name(__VA_ARGS__);			\
-+	extern char name##_end[];		\
-+	extern char name##_reloc[]		\
-+
-+DECL_ASM(void, xen_irq_enable_direct, void);
-+DECL_ASM(void, xen_irq_disable_direct, void);
-+DECL_ASM(unsigned long, xen_save_fl_direct, void);
-+DECL_ASM(void, xen_restore_fl_direct, unsigned long);
-+
- #endif /* XEN_OPS_H */
++	MMMM();
+ 	if ((error = arch_prepare_suspend()))
+ 		return error;
+ 
++	MMMM();
+ 	local_irq_disable();
+ 	/* At this point, device_suspend() has been called, but *not*
+ 	 * device_power_down(). We *must* device_power_down() now.
+@@ -284,22 +286,28 @@ int swsusp_suspend(void)
+ 	 * become desynchronized with the actual state of the hardware
+ 	 * at resume time, and evil weirdness ensues.
+ 	 */
++	MMMM();
+ 	if ((error = device_power_down(PMSG_FREEZE))) {
+ 		printk(KERN_ERR "Some devices failed to power down, aborting suspend\n");
+ 		goto Enable_irqs;
+ 	}
+-
++	MMMM();
+ 	save_processor_state();
+ 	if ((error = swsusp_arch_suspend()))
+ 		printk(KERN_ERR "Error %d suspending\n", error);
++	MMMM();
+ 	/* Restore control flow magically appears here */
+ 	restore_processor_state();
++	MMMM();
+ 	/* NOTE:  device_power_up() is just a resume() for devices
+ 	 * that suspended with irqs off ... no overall powerup.
+ 	 */
+ 	device_power_up();
++	MMMM();
+  Enable_irqs:
++	MMMM();
+ 	local_irq_enable();
++	MMMM();
+ 	return error;
+ }
+ 
+_
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
