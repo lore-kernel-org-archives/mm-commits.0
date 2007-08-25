@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + double-hpet-clocksource-hard-freeze.patch added to -mm tree
-Date: Fri, 24 Aug 2007 17:14:20 -0700
-Message-ID: <200708250014.l7P0EKvQ021910@imap1.linux-foundation.org>
+Subject: + cciss-fix-error-reporting-for-sg_io.patch added to -mm tree
+Date: Fri, 24 Aug 2007 17:11:39 -0700
+Message-ID: <200708250013.l7P0BduY021762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38789 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45052 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753224AbXHYAPG (ORCPT
+	by vger.kernel.org with ESMTP id S1755680AbXHYAPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 20:15:06 -0400
+	Fri, 24 Aug 2007 20:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, bob.picco@hp.com, ornati@fastwebnet.it, tglx@linutronix.de, tony.luck@intel.com
+Cc: scameron@quandary.americas.cpqcorp.net, mike.miller@hp.com, steve.cameron@hp.com
 
 
 The patch titled
-     fix "double" hpet clocksource && hard freeze
+     cciss: fix error reporting for SG_IO
 has been added to the -mm tree.  Its filename is
-     double-hpet-clocksource-hard-freeze.patch
+     cciss-fix-error-reporting-for-sg_io.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,189 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix "double" hpet clocksource && hard freeze
-From: john stultz <johnstul@us.ibm.com>
+Subject: cciss: fix error reporting for SG_IO
+From: Steve Cameron <scameron@quandary.americas.cpqcorp.net>
 
-The ia64 hpet clocksource was implemented in generic code, and is not yet
-ready to replace the i386 and x86_64 implementations.  This results in
-multiple hpet clocksources being registered, and if the ia64 one is chosen
-on x86_64 some users have experienced hangs.
+This fixes a problem with the way cciss was filling out the "errors" field
+of the request structure upon completion of requests.  Previously, it just
+put a 1 or a 0 in there and used the negation of this as the uptodate
+parameter to one of the functions in the block layer, being a block device.
+ For the SG_IO ioctl, this was not sufficient, and we noticed that, for
+example, sg_turs from sg3_utils did not correctly detect problems due to
+cciss having set rq->errors incorrectly.
 
-This patch only allows the generic implementation to be used on ia64, until
-the duplicate i386 and x86_64 versions can be merged in and tested.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paolo Ornati <ornati@fastwebnet.it>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Stephen M. Cameron <steve.cameron@hp.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |   10 ++++++++++
- 1 files changed, 10 insertions(+)
+ drivers/block/cciss.c |   79 ++++++++++++++++++++++++++++++----------
+ 1 files changed, 61 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/hpet.c~double-hpet-clocksource-hard-freeze drivers/char/hpet.c
---- a/drivers/char/hpet.c~double-hpet-clocksource-hard-freeze
-+++ a/drivers/char/hpet.c
-@@ -78,7 +78,17 @@ static struct clocksource clocksource_hp
-         .shift          = 10,
-         .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
- };
-+
-+/* XXX - FIXME: i386, x86_64 and ia64 all have separate 
-+ * hpet clocksource implementations. They should be merged 
-+ * and this would be a good place for it.
-+ * Right now this is ia64 only.
-+ */
-+#ifdef CONFIG_IA64
- static struct clocksource *hpet_clocksource;
-+#else /* this isn't generic enough to use for everyone yet */
-+static struct clocksource *hpet_clocksource = (struct clocksource*)0xdead;
-+#endif
+diff -puN drivers/block/cciss.c~cciss-fix-error-reporting-for-sg_io drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-error-reporting-for-sg_io
++++ a/drivers/block/cciss.c
+@@ -2366,30 +2366,55 @@ static inline void resend_cciss_cmd(ctlr
+ 	start_io(h);
+ }
  
- /* A lock for concurrent access by app and isr hpet activity. */
- static DEFINE_SPINLOCK(hpet_lock);
++static inline unsigned int make_status_bytes(unsigned int scsi_status_byte,
++	unsigned int msg_byte, unsigned int host_byte,
++	unsigned int driver_byte)
++{
++	/* inverse of macros in scsi.h */
++	return (scsi_status_byte & 0xff) |
++		((msg_byte & 0xff) << 8) |
++		((host_byte & 0xff) << 16) |
++		((driver_byte & 0xff) << 24);
++}
++
+ static inline int evaluate_target_status(CommandList_struct *cmd)
+ {
+ 	unsigned char sense_key;
+-	int error_count = 1;
++	unsigned char status_byte, msg_byte, host_byte, driver_byte;
++	int error_value;
++
++	/* If we get in here, it means we got "target status", that is, scsi status */
++	status_byte = cmd->err_info->ScsiStatus;
++	driver_byte = DRIVER_OK;
++	msg_byte = cmd->err_info->CommandStatus; /* correct?  seems too device specific */
++
++	if (blk_pc_request(cmd->rq))
++		host_byte = DID_PASSTHROUGH;
++	else
++		host_byte = DID_OK;
++
++	error_value = make_status_bytes(status_byte, msg_byte,
++		host_byte, driver_byte);
+ 
+-	if (cmd->err_info->ScsiStatus != 0x02) { /* not check condition? */
++	if (cmd->err_info->ScsiStatus != SAM_STAT_CHECK_CONDITION) {
+ 		if (!blk_pc_request(cmd->rq))
+ 			printk(KERN_WARNING "cciss: cmd %p "
+ 			       "has SCSI Status 0x%x\n",
+ 			       cmd, cmd->err_info->ScsiStatus);
+-		return error_count;
++		return error_value;
+ 	}
+ 
+ 	/* check the sense key */
+ 	sense_key = 0xf & cmd->err_info->SenseInfo[2];
+ 	/* no status or recovered error */
+-	if ((sense_key == 0x0) || (sense_key == 0x1))
+-		error_count = 0;
++	if (((sense_key == 0x0) || (sense_key == 0x1)) && !blk_pc_request(cmd->rq))
++		error_value = 0;
+ 
+ 	if (!blk_pc_request(cmd->rq)) { /* Not SG_IO or similar? */
+-		if (error_count != 0)
++		if (error_value != 0)
+ 			printk(KERN_WARNING "cciss: cmd %p has CHECK CONDITION"
+ 			       " sense key = 0x%x\n", cmd, sense_key);
+-		return error_count;
++		return error_value;
+ 	}
+ 
+ 	/* SG_IO or similar, copy sense data back */
+@@ -2401,7 +2426,7 @@ static inline int evaluate_target_status
+ 	} else
+ 		cmd->rq->sense_len = 0;
+ 
+-	return error_count;
++	return error_value;
+ }
+ 
+ /* checks the status of the job and calls complete buffers to mark all
+@@ -2417,7 +2442,7 @@ static inline void complete_command(ctlr
+ 	rq->errors = 0;
+ 
+ 	if (timeout)
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(0, 0, 0, DRIVER_TIMEOUT);
+ 
+ 	if (cmd->err_info->CommandStatus == 0)	/* no error has occurred */
+ 		goto after_error_processing;
+@@ -2443,32 +2468,44 @@ static inline void complete_command(ctlr
+ 	case CMD_INVALID:
+ 		printk(KERN_WARNING "cciss: cmd %p is "
+ 		       "reported invalid\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_PROTOCOL_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p has "
+ 		       "protocol error \n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_HARDWARE_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       " hardware error\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_CONNECTION_LOST:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       "connection lost\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_ABORTED:
+ 		printk(KERN_WARNING "cciss: cmd %p was "
+ 		       "aborted\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ABORT);
+ 		break;
+ 	case CMD_ABORT_FAILED:
+ 		printk(KERN_WARNING "cciss: cmd %p reports "
+ 		       "abort failed\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_UNSOLICITED_ABORT:
+ 		printk(KERN_WARNING "cciss%d: unsolicited "
+@@ -2482,17 +2519,23 @@ static inline void complete_command(ctlr
+ 			printk(KERN_WARNING
+ 			       "cciss%d: %p retried too "
+ 			       "many times\n", h->ctlr, cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ABORT);
+ 		break;
+ 	case CMD_TIMEOUT:
+ 		printk(KERN_WARNING "cciss: cmd %p timedout\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING "cciss: cmd %p returned "
+ 		       "unknown status %x\n", cmd,
+ 		       cmd->err_info->CommandStatus);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 	}
+ 
+ after_error_processing:
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from scameron@quandary.americas.cpqcorp.net are
 
-origin.patch
-double-hpet-clocksource-hard-freeze.patch
-git-acpi.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+cciss-fix-error-reporting-for-sg_io.patch
