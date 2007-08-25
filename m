@@ -1,161 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - update-getdelays-to-become-containerstats-aware.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:19:25 -0700
-Message-ID: <200708250519.l7P5JPiN032042@imap1.linux-foundation.org>
+Subject: - update-x86_64-vdso-install-unstripped-copies-on-disk.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:32 -0700
+Message-ID: <200708250519.l7P5JWl1032052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756151AbXHYFdD (ORCPT
+	by vger.kernel.org with ESMTP id S1756151AbXHYFdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:33:03 -0400
+	Sat, 25 Aug 2007 01:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update getdelays to become containerstats aware
+     update x86_64-vdso-install-unstripped-copies-on-disk
 has been removed from the -mm tree.  Its filename was
-     update-getdelays-to-become-containerstats-aware.patch
+     update-x86_64-vdso-install-unstripped-copies-on-disk.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: Update getdelays to become containerstats aware
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: update x86_64-vdso-install-unstripped-copies-on-disk
+From: Roland McGrath <roland@redhat.com>
 
-Update the getdelays utility to become containerstats aware.  A new -C
-option has been added.  It takes in a container path and prints out a
-summary of task states in the container.
+While integrating these with the Fedora kernel build, I worked out a few kinks.
+This patch replaces x86_64-vdso-install-unstripped-copies-on-disk.patch
+and expects x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
+was applied first.
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
+
+This keeps an unstripped copy of the vDSO images built before they are
+stripped and embedded in the kernel.  The unstripped copies get installed
+in $(MODLIB)/vdso/ by "make install" (or you can explicitly use the
+subtarget "make vdso_install").  These files can be useful when they
+contain source-level debugging information.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |   43 ++++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ arch/x86_64/Makefile      |    2 +-
+ arch/x86_64/vdso/Makefile |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~update-getdelays-to-become-containerstats-aware Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~update-getdelays-to-become-containerstats-aware
-+++ a/Documentation/accounting/getdelays.c
-@@ -25,6 +25,7 @@
+diff -puN arch/x86_64/Makefile~update-x86_64-vdso-install-unstripped-copies-on-disk arch/x86_64/Makefile
+--- a/arch/x86_64/Makefile~update-x86_64-vdso-install-unstripped-copies-on-disk
++++ a/arch/x86_64/Makefile
+@@ -110,13 +110,13 @@ fdimage fdimage144 fdimage288 isoimage: 
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(BOOTIMAGE) $@
  
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
-+#include <linux/containerstats.h>
+ install: vdso_install
+-	$(Q)$(MAKE) $(build)=arch/x86_64/vdso $@
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(BOOTIMAGE) $@ 
  
- /*
-  * Generic macros for dealing with netlink sockets. Might be duplicated
-@@ -78,6 +79,7 @@ static void usage(void)
- 	fprintf(stderr, "  -i: print IO accounting (works only with -p)\n");
- 	fprintf(stderr, "  -l: listen forever\n");
- 	fprintf(stderr, "  -v: debug on\n");
-+	fprintf(stderr, "  -C: container path\n");
- }
+ vdso_install:
+ ifeq ($(CONFIG_IA32_EMULATION),y)
+ 	$(Q)$(MAKE) $(build)=arch/x86_64/ia32 $@
+ endif
++	$(Q)$(MAKE) $(build)=arch/x86_64/vdso $@
  
- /*
-@@ -212,6 +214,14 @@ void task_context_switch_counts(struct t
- 	       t->nvcsw, t->nivcsw);
- }
+ archclean:
+ 	$(Q)$(MAKE) $(clean)=$(boot)
+diff -puN arch/x86_64/vdso/Makefile~update-x86_64-vdso-install-unstripped-copies-on-disk arch/x86_64/vdso/Makefile
+--- a/arch/x86_64/vdso/Makefile~update-x86_64-vdso-install-unstripped-copies-on-disk
++++ a/arch/x86_64/vdso/Makefile
+@@ -36,7 +36,7 @@ $(obj)/%.so: OBJCOPYFLAGS := -S
+ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ 	$(call if_changed,objcopy)
  
-+void print_containerstats(struct containerstats *c)
-+{
-+	printf("sleeping %llu, blocked %llu, running %llu, stopped %llu, "
-+		"uninterruptible %llu\n", c->nr_sleeping, c->nr_io_wait,
-+		c->nr_running, c->nr_stopped, c->nr_uninterruptible);
-+}
-+
-+
- void print_ioacct(struct taskstats *t)
- {
- 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
-@@ -239,11 +249,14 @@ int main(int argc, char *argv[])
- 	int maskset = 0;
- 	char *logfile = NULL;
- 	int loop = 0;
-+	int containerset = 0;
-+	char containerpath[1024];
-+	int cfd = 0;
+-CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64
++CFL := $(PROFILING) -mcmodel=small -fPIC $(if $(CONFIG_DEBUG_INFO),-g,-g0) -O2 -fasynchronous-unwind-tables -m64
  
- 	struct msgtemplate msg;
+ $(obj)/vclock_gettime.o: CFLAGS = $(CFL)
+ $(obj)/vgetcpu.o: CFLAGS = $(CFL)
+@@ -53,9 +53,9 @@ $(obj)/vdso-syms.o: $(src)/vdso.lds $(vo
+ 	$(call if_changed,syscall)
  
- 	while (1) {
--		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
-+		c = getopt(argc, argv, "qdiw:r:m:t:p:vlC:");
- 		if (c < 0)
- 			break;
+ quiet_cmd_vdso_install = INSTALL $@
+-      cmd_vdso_install = cp $@.dbg $(MODLIB)/vdso/$@
++      cmd_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/vdso/$@
+ vdso.so:
+ 	@mkdir -p $(MODLIB)/vdso
+ 	$(call cmd,vdso_install)
  
-@@ -260,6 +273,10 @@ int main(int argc, char *argv[])
- 			printf("printing task/process context switch rates\n");
- 			print_task_context_switch_counts = 1;
- 			break;
-+		case 'C':
-+			containerset = 1;
-+			strncpy(containerpath, optarg, strlen(optarg) + 1);
-+			break;
- 		case 'w':
- 			logfile = strdup(optarg);
- 			printf("write to file %s\n", logfile);
-@@ -334,6 +351,11 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	if (tid && containerset) {
-+		fprintf(stderr, "Select either -t or -C, not both\n");
-+		goto err;
-+	}
-+
- 	if (tid) {
- 		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
- 			      cmd_type, &tid, sizeof(__u32));
-@@ -344,6 +366,20 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	if (containerset) {
-+		cfd = open(containerpath, O_RDONLY);
-+		if (cfd < 0) {
-+			perror("error opening container file");
-+			goto err;
-+		}
-+		rc = send_cmd(nl_sd, id, mypid, CONTAINERSTATS_CMD_GET,
-+			      CONTAINERSTATS_CMD_ATTR_FD, &cfd, sizeof(__u32));
-+		if (rc < 0) {
-+			perror("error sending containerstats command");
-+			goto err;
-+		}
-+	}
-+
- 	do {
- 		int i;
- 
-@@ -422,6 +458,9 @@ int main(int argc, char *argv[])
- 				}
- 				break;
- 
-+			case CONTAINERSTATS_TYPE_CONTAINER_STATS:
-+				print_containerstats(NLA_DATA(na));
-+				break;
- 			default:
- 				fprintf(stderr, "Unknown nla_type %d\n",
- 					na->nla_type);
-@@ -443,5 +482,7 @@ err:
- 	close(nl_sd);
- 	if (fd)
- 		close(fd);
-+	if (cfd)
-+		close(cfd);
- 	return 0;
- }
+-install: vdso.so
++vdso_install: vdso.so
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
+setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch
+sigqueue_free-fix-the-race-with-collect_signal.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+pass-g-to-assembler-under-config_debug_info.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+add-mmf_dump_elf_headers.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+pie-executable-randomization-fix-2.patch
+pie-executable-randomization-fix-3.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+fix-tsk-exit_state-usage-resend.patch
