@@ -1,212 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:19:16 -0700
-Message-ID: <200708250519.l7P5JG8H031961@imap1.linux-foundation.org>
+Subject: - statistics-infrastructure-simplify-statistics-debugfs-write-function.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:04 -0700
+Message-ID: <200708250519.l7P5J4YR031939@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48868 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755889AbXHYFcT (ORCPT
+	by vger.kernel.org with ESMTP id S1755913AbXHYFcs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:32:19 -0400
+	Sat, 25 Aug 2007 01:32:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mp3@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timer_stats slimmed down: statistics prereq, labels
+     simplify statistics' debugfs write function
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels.patch
+     statistics-infrastructure-simplify-statistics-debugfs-write-function.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: timer_stats slimmed down: statistics prereq, labels
+Subject: simplify statistics' debugfs write function
 From: Martin Peschke <mp3@de.ibm.com>
 
-This patch allows clients of the statistics infrastructure to be called back
-when an entry of a statistic is printed and if the client might want to add
-some kind of label to the output string.  A line would look like this then:
+The old code was unnecessarily complex and hard to maintain.
 
-<statistic name> <basket> <hits> <label>
+This rewrite disposes of an issue in the old code (probably an
+off-by-one bug), seen with the readahead statistics prototype patch
+reported by Fengguang Wu.
+
+Patch is against 2.6.21-rc3-mm2.
+
+# uname -a
+Linux intel 2.6.21-rc3-mm2 #3 SMP Thu Mar 8 23:28:58 CST 2007 x86_64 GNU/Linux
+# echo state=on > /debug/statistics/readahead/definition
+[  694.286926] Unable to handle kernel paging request at ffff80ffa7457a5a RIP:
+[  694.287378]  [<ffffffff8115228c>] strnchr+0x2c/0x40
+[  694.287946] PGD 0
+[  694.288117] Oops: 0000 [1] SMP
+[  694.288345] last sysfs file: block/hda/dev
+[  694.288624] CPU 0
+[  694.288785] Modules linked in:
+[  694.289026] Pid: 1051, comm: zsh Not tainted 2.6.21-rc3-mm2 #3
+[  694.289367] RIP: 0010:[<ffffffff8115228c>]  [<ffffffff8115228c>] strnchr+0x2c/0x40
+[  694.289835] RSP: 0018:ffff810002669e28  EFLAGS: 00000217
+[  694.290147] RAX: ffff81000260bca8 RBX: ffff81000260bca8 RCX: 000000005aa5a5ae
+[  694.290456] RDX: 000000000000000a RSI: 000000005aa5a5af RDI: ffff80ffa7457a5a
+[  694.290784] RBP: ffff810002669e28 R08: 0000000000000001 R09: 0000000000000000
+[  694.291107] R10: ffff81000260bca8 R11: 0000000000000020 R12: 0000000000000008
+[  694.291452] R13: 00000000a55a5a5a R14: ffff81000260bd18 R15: ffff810002669e68
+[  694.291791] FS:  00002b33b4955e90(0000) GS:ffffffff81420000(0000) knlGS:0000000000000000
+[  694.292156] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  694.292420] CR2: ffff80ffa7457a5a CR3: 00000000026b6000 CR4: 00000000000006e0
+[  694.292768] Process zsh (pid: 1051, threadinfo ffff810002668000, task ffff81000262a100)
+[  694.293123] Stack:  ffff810002669ea8 ffffffff8116561c 0000000000000009 ffff8100026bbe58
+[  694.293576]  ffff810001ee37f8 ffff810002674e60 ffffffff813eb280 0000000000000000
+[  694.293972]  ffff810002669e68 ffff810002669e68 0000000800000000 0000000000000008
+[  694.294341] Call Trace:
+[  694.294495]  [<ffffffff8116561c>] statistic_def_close+0x9c/0x180
+[  694.294793]  [<ffffffff81013582>] __fput+0xd2/0x1b0
+[  694.295026]  [<ffffffff8102fdd4>] fput+0x14/0x20
+[  694.295253]  [<ffffffff81025ca3>] filp_close+0x73/0x90
+[  694.295498]  [<ffffffff8104baf8>] sys_dup2+0x148/0x190
+[  694.295752]  [<ffffffff8106411e>] system_call+0x7e/0x83
 
 Signed-off-by: Martin Peschke <mp3@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/statistic.h |    5 ++
- lib/statistic.c           |   68 +++++++++++++++++++++++++-----------
- 2 files changed, 53 insertions(+), 20 deletions(-)
+ lib/statistic.c |  111 ++++++++++------------------------------------
+ 1 file changed, 26 insertions(+), 85 deletions(-)
 
-diff -puN include/linux/statistic.h~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels include/linux/statistic.h
---- a/include/linux/statistic.h~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels
-+++ a/include/linux/statistic.h
-@@ -55,6 +55,7 @@ struct statistic_info {
- 	int  flags;
- #define STATISTIC_FLAGS_NOINCR	0x01	/* no incremental data */
- #define STATISTIC_FLAGS_NOFLEX	0x02	/* type can't be altered by user */
-+#define STATISTIC_FLAGS_LABEL	0x04	/* client want's to label buckets */
- 	char *defaults;
- };
- 
-@@ -106,6 +107,7 @@ struct statistic {
-  * @info: a struct statistic_info array describing the struct statistic array
-  * @number: number of entries in both arrays
-  * @pull: an optional function called when user reads data from file
-+ * @label: an optional function retrieving a label for each statistics entry
-  * @private: optional data pointer reserved for use by clients
-  *
-  * Exploiters must setup a struct statistic_interface prior to calling
-@@ -122,6 +124,9 @@ struct statistic_interface {
- 	struct statistic_info	*info;
- 	int			 number;
- 	int			(*pull)(struct statistic_interface *interface);
-+	void			(*label)(struct statistic_interface *interface,
-+					 int i, s64 value,
-+					 struct seq_file *seq);
- 	void			*private;
- };
- 
-diff -puN lib/statistic.c~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels lib/statistic.c
---- a/lib/statistic.c~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-labels
+diff -puN lib/statistic.c~statistics-infrastructure-simplify-statistics-debugfs-write-function lib/statistic.c
+--- a/lib/statistic.c~statistics-infrastructure-simplify-statistics-debugfs-write-function
 +++ a/lib/statistic.c
-@@ -95,7 +95,7 @@ struct statistic_discipline {
- 	void (*merge)(struct statistic *stat, void *dst, void *src);
- 	void (*def)(struct statistic *stat, struct seq_file *seq);
- 	void (*data)(struct statistic *stat, struct seq_file *seq,
--		     const char *name);
-+		     struct statistic_interface *interface, int i);
- 	void (*add)(struct statistic *stat, s64 value, u64 incr);
- 	void (*set)(struct statistic *stat, s64 value, u64 total);
- 	char *name;
-@@ -559,13 +559,11 @@ static int statistic_seq_show_def(struct
- static int statistic_seq_show_data(struct seq_file *seq, void *_seq_priv)
- {
- 	struct statistic_seq_private *seq_priv = _seq_priv;
--	struct statistic_interface *interface = seq_priv->interface;
- 	struct statistic *stat = &seq_priv->stat[seq_priv->i];
--	struct statistic_info *info = &interface->info[seq_priv->i];
- 	struct statistic_discipline *disc = &statistic_discs[stat->type];
+@@ -64,8 +64,8 @@
  
- 	if (stat->state >= STATISTIC_STATE_OFF)
--		disc->data(stat, seq, info->name);
-+		disc->data(stat, seq, seq_priv->interface, seq_priv->i);
+ struct statistic_file_private {
+ 	struct list_head read_seg_lh;
+-	struct list_head write_seg_lh;
+-	size_t write_seg_total_size;
++	size_t w_offset;
++	char *w_buf;
+ };
+ 
+ struct statistic_merge_private {
+@@ -576,30 +576,6 @@ static void statistic_parse_line(struct 
+ 	kfree(name);
+ }
+ 
+-static void statistic_parse(struct statistic_interface *interface,
+-			    struct list_head *line_lh, size_t line_size)
+-{
+-	struct sgrb_seg *seg, *tmp;
+-	char *buf;
+-	int offset = 0;
+-
+-	if (unlikely(!line_size))
+-		return;
+-	buf = kmalloc(line_size + 2, GFP_KERNEL);
+-	if (unlikely(!buf))
+-		return;
+-	buf[line_size] = ' ';
+-	buf[line_size + 1] = '\0';
+-	list_for_each_entry_safe(seg, tmp, line_lh, list) {
+-		memcpy(buf + offset, seg->address, seg->size);
+-		offset += seg->size;
+-		list_del(&seg->list);
+-		kfree(seg);
+-	}
+-	statistic_parse_line(interface, buf);
+-	kfree(buf);
+-}
+-
+ /* sequential files comprising user interface */
+ 
+ static int statistic_generic_open(struct inode *inode,
+@@ -612,7 +588,6 @@ static int statistic_generic_open(struct
+ 	if (unlikely(!*private))
+ 		return -ENOMEM;
+ 	INIT_LIST_HEAD(&(*private)->read_seg_lh);
+-	INIT_LIST_HEAD(&(*private)->write_seg_lh);
+ 	file->private_data = *private;
  	return 0;
  }
- 
-@@ -783,9 +781,12 @@ static void statistic_merge_counter(stru
+@@ -622,7 +597,6 @@ static int statistic_generic_close(struc
+ 	struct statistic_file_private *private = file->private_data;
+ 	BUG_ON(!private);
+ 	sgrb_seg_release_all(&private->read_seg_lh);
+-	sgrb_seg_release_all(&private->write_seg_lh);
+ 	kfree(private);
+ 	return 0;
+ }
+@@ -658,72 +632,39 @@ static ssize_t statistic_generic_read(st
+ 	return transfered;
  }
  
- static void statistic_data_counter(struct statistic *stat, struct seq_file *seq,
--				   const char *name)
-+				   struct statistic_interface *interface, int i)
+-static ssize_t statistic_generic_write(struct file *file,
+-			const char __user *buf, size_t len, loff_t *offset)
++static ssize_t statistic_def_write(struct file *file, const char __user *buf,
++				   size_t len, loff_t *offset)
  {
--	seq_printf(seq, "%s %Lu\n", name, *(unsigned long long *)stat->data);
-+	struct statistic_info *info = &interface->info[i];
+ 	struct statistic_file_private *private = file->private_data;
+-	struct sgrb_seg *seg;
+-	size_t seg_residual, seg_transfer;
+-	size_t transfered = 0;
++	char *larger;
+ 
+-	BUG_ON(!private);
+-	if (unlikely(*offset != private->write_seg_total_size))
++	if (unlikely(*offset != private->w_offset))
+ 		return -EPIPE;
+-	while (len) {
+-		seg = sgrb_seg_find(&private->write_seg_lh, 1);
+-		if (unlikely(!seg))
+-			return -ENOMEM;
+-		seg_residual = seg->size - seg->offset;
+-		seg_transfer = min(len, seg_residual);
+-		if (unlikely(copy_from_user(seg->address + seg->offset,
+-					    buf + transfered, seg_transfer)))
+-			return -EFAULT;
+-		private->write_seg_total_size += seg_transfer;
+-		seg->offset += seg_transfer;
+-		transfered += seg_transfer;
+-		*offset += seg_transfer;
+-		len -= seg_transfer;
+-	}
+-	return transfered;
++	if (*offset + len > 16 * PAGE_SIZE)
++		return -ENOMEM;
++	larger = kmalloc(*offset + len, GFP_KERNEL);
++	if (!larger)
++		return -ENOMEM;
++	memcpy(larger, private->w_buf, *offset);
++	if (copy_from_user(larger + *offset, buf, len))
++		return -EFAULT;
++	*offset += len;
++	kfree(private->w_buf);
++	private->w_buf = larger;
++	private->w_offset = *offset;
++	return len;
+ }
+ 
+ static int statistic_def_close(struct inode *inode, struct file *file)
+ {
+ 	struct statistic_interface *interface = inode->i_private;
+ 	struct statistic_file_private *private = file->private_data;
+-	struct sgrb_seg *seg, *seg_nl;
+-	int offset;
+-	LIST_HEAD(line_lh);
+-	char *nl;
+-	size_t line_size = 0;
+-
+-	list_for_each_entry(seg, &private->write_seg_lh, list) {
+-		for (offset = 0; offset < seg->offset; offset += seg_nl->size) {
+-			seg_nl = kmalloc(sizeof(struct sgrb_seg), GFP_KERNEL);
+-			if (unlikely(!seg_nl))
+-				goto out;
+-			seg_nl->address = seg->address + offset;
+-			nl = strnchr(seg_nl->address,
+-				     seg->offset - offset, '\n');
+-			if (nl) {
+-				seg_nl->offset = nl - seg_nl->address;
+-				if (seg_nl->offset)
+-					seg_nl->offset--;
+-			} else
+-				seg_nl->offset = seg->offset - offset;
+-			seg_nl->size = seg_nl->offset + 1;
+-			line_size += seg_nl->size;
+-			list_add_tail(&seg_nl->list, &line_lh);
+-			if (nl) {
+-				statistic_parse(interface, &line_lh, line_size);
+-				line_size = 0;
+-			}
+-		}
+-	}
+-out:
+-	if (!list_empty(&line_lh))
+-		statistic_parse(interface, &line_lh, line_size);
+-	return statistic_generic_close(inode, file);
++	char *p, *q = private->w_buf;
 +
-+	seq_printf(seq, "%s %Lu\n",
-+		   info->name, *(unsigned long long *)stat->data);
++	while ((p = strsep(&q, "\n")))
++		statistic_parse_line(interface, p);
++	kfree(private->w_buf);
++	return 0;
  }
  
- /* code concerned with utilisation indicator statistic */
-@@ -869,8 +870,9 @@ static int statistic_div(signed long lon
- }
- 
- static void statistic_data_util(struct statistic *stat, struct seq_file *seq,
--				const char *name)
-+				struct statistic_interface *interface, int i)
- {
-+	struct statistic_info *info = &interface->info[i];
- 	struct statistic_entry_util *util = stat->data;
- 	unsigned long long mean_w = 0, mean_d = 0, var_w = 0, var_d = 0,
- 			   num = util->num, acc = util->acc, sqr = util->sqr;
-@@ -881,8 +883,12 @@ static void statistic_data_util(struct s
- 	statistic_div(&var_w, &var_d, sqr - mean_w * mean_w, num, 3);
- 	seq_printf(seq, "%s samples %Lu\n%s minimum %Ld\n"
- 		   "%s average %Ld.%03Ld\n%s maximum %Ld\n"
--		   "%s variance %Ld.%03Ld\n", name, num, name, min,
--		   name, mean_w, mean_d, name, max, name, var_w, var_d);
-+		   "%s variance %Ld.%03Ld\n",
-+		   info->name, num,
-+		   info->name, min,
-+		   info->name, mean_w, mean_d,
-+		   info->name, max,
-+		   info->name, var_w, var_d);
- }
- 
- /* code concerned with histogram statistics */
-@@ -977,19 +983,36 @@ static void statistic_merge_histogram(st
- 		dst[i] += src[i];
- }
- 
-+static void _statistic_data_histogram(struct seq_file *seq, const char *prefix,
-+				      signed long long bound,
-+				      unsigned long long hits,
-+				      struct statistic_info *info,
-+				      struct statistic_interface *interface,
-+				      int i)
-+{
-+	seq_printf(seq, "%s %s%Ld %Lu ", info->name, prefix, bound, hits);
-+	if (info->flags & STATISTIC_FLAGS_LABEL)
-+		interface->label(interface, i, bound, seq);
-+	seq_printf(seq, "\n");
-+}
-+
- static void statistic_data_histogram(struct statistic *stat,
--				     struct seq_file *seq, const char *name)
-+				     struct seq_file *seq,
-+				     struct statistic_interface *interface,
-+				     int i)
- {
--	int i;
-+	struct statistic_info *info = &interface->info[i];
-+	int j;
- 	signed long long bound = 0;
- 	unsigned long long hits = 0;
- 
--	for (i = 0; i < (stat->u.histogram.last_index); i++) {
--		bound = statistic_histogram_calc_value(stat, i);
--		hits = ((u64*)stat->data)[i];
--		seq_printf(seq, "%s <=%Ld %Lu\n", name, bound, hits);
-+	for (j = 0; j < (stat->u.histogram.last_index); j++) {
-+		bound = statistic_histogram_calc_value(stat, j);
-+		hits = ((u64*)stat->data)[j];
-+		_statistic_data_histogram(seq, "<=", bound, hits, info,
-+					  interface, i);
- 	}
--	seq_printf(seq, "%s >%Ld %Lu\n", name, bound, hits);
-+	_statistic_data_histogram(seq, ">", bound, hits, info, interface, i);
- }
- 
- static void statistic_def_histogram(struct statistic *stat,
-@@ -1169,17 +1192,22 @@ static void statistic_merge_sparse(struc
- }
- 
- static void statistic_data_sparse(struct statistic *stat, struct seq_file *seq,
--				  const char *name)
-+				  struct statistic_interface *interface, int i)
- {
-+	struct statistic_info *info = &interface->info[i];
- 	struct statistic_sparse_list *slist = stat->data;
- 	struct statistic_entry_sparse *entry;
- 
--	seq_printf(seq, "%s missed 0x%Lu\n", name,
-+	seq_printf(seq, "%s missed 0x%Lu\n", info->name,
- 		   (unsigned long long)slist->hits_missed);
--	list_for_each_entry(entry, &slist->entry_lh, list)
--		seq_printf(seq, "%s 0x%Lx %Lu\n", name,
-+	list_for_each_entry(entry, &slist->entry_lh, list) {
-+		seq_printf(seq, "%s 0x%Lx %Lu ", info->name,
- 			   (signed long long)entry->value,
- 			   (unsigned long long)entry->hits);
-+		if (info->flags & STATISTIC_FLAGS_LABEL)
-+			interface->label(interface, i, entry->value, seq);
-+		seq_printf(seq, "\n");
-+	}
- }
- 
- static void statistic_def_sparse(struct statistic *stat, struct seq_file *seq)
+ static int statistic_def_open(struct inode *inode, struct file *file)
+@@ -771,7 +712,7 @@ static int statistic_data_open(struct in
+ static struct file_operations statistic_def_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.read		= statistic_generic_read,
+-	.write		= statistic_generic_write,
++	.write		= statistic_def_write,
+ 	.open		= statistic_def_open,
+ 	.release	= statistic_def_close,
+ };
 _
 
 Patches currently in -mm which might be from mp3@de.ibm.com are
