@@ -1,81 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - pci-x-pci-express-read-control-interfaces-fix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:07 -0700
-Message-ID: <200708250518.l7P5I7oD031840@imap1.linux-foundation.org>
+Subject: - pci-fix-something-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:18:02 -0700
+Message-ID: <200708250518.l7P5I25J031834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44252 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753304AbXHYFSM (ORCPT
+	by vger.kernel.org with ESMTP id S1753501AbXHYFSM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 25 Aug 2007 01:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, peter.oruba@amd.com, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, jbeulich@novell.com, ktk@enterprise.bidmc.harvard.edu, protasnb@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-x-pci-express-read-control-interfaces cleanups
+     pci-fix-something-fix
 has been removed from the -mm tree.  Its filename was
-     pci-x-pci-express-read-control-interfaces-fix.patch
+     pci-fix-something-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: pci-x-pci-express-read-control-interfaces cleanups
+Subject: pci-fix-something-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove unneeded local
+- coding-style cleanups
 
-- 80-col fix
+- convert to resource_size_t.
 
-Cc: "Peter Oruba" <peter.oruba@amd.com>
+Cc: "Jan Beulich" <jbeulich@novell.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Kristofer T. Karas" <ktk@enterprise.bidmc.harvard.edu>
+Cc: Natalie Protasevich <protasnb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.c    |    6 ++----
- drivers/pci/quirks.c |    4 ++--
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/pci/probe.c |   31 +++++++++++++++++--------------
+ 1 files changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces-fix drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-x-pci-express-read-control-interfaces-fix
-+++ a/drivers/pci/pci.c
-@@ -1383,7 +1383,7 @@ pci_set_consistent_dma_mask(struct pci_d
-  */
- int pcix_get_max_mmrbc(struct pci_dev *dev)
+diff -puN drivers/pci/probe.c~pci-fix-something-fix drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-fix-something-fix
++++ a/drivers/pci/probe.c
+@@ -742,29 +742,32 @@ static void pci_read_irq(struct pci_dev 
+ }
+ 
+ static void change_legacy_io_resource(struct pci_dev * dev, unsigned index,
+-                                      unsigned start, unsigned end)
++				resource_size_t start, resource_size_t end)
  {
--	int ret, err, cap;
-+	int err, cap;
- 	u32 stat;
+-	unsigned base = start & PCI_BASE_ADDRESS_IO_MASK;
+-	unsigned len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
++	resource_size_t base = start & PCI_BASE_ADDRESS_IO_MASK;
++	resource_size_t len = (end | ~PCI_BASE_ADDRESS_IO_MASK) - base + 1;
  
- 	cap = pci_find_capability(dev, PCI_CAP_ID_PCIX);
-@@ -1394,9 +1394,7 @@ int pcix_get_max_mmrbc(struct pci_dev *d
- 	if (err)
- 		return -EINVAL;
- 
--	ret = (stat & PCI_X_STATUS_MAX_READ) >> 12;
--
--	return ret;
-+	return (stat & PCI_X_STATUS_MAX_READ) >> 12;
- }
- EXPORT_SYMBOL(pcix_get_max_mmrbc);
- 
-diff -puN drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces-fix drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-x-pci-express-read-control-interfaces-fix
-+++ a/drivers/pci/quirks.c
-@@ -637,8 +637,8 @@ static void __init quirk_amd_8131_mmrbc(
- 
- 	pci_read_config_byte(dev, PCI_REVISION_ID, &revid);
- 	if (dev->subordinate && revid <= 0x12) {
--		printk(KERN_INFO "AMD8131 rev %x detected, disabling PCI-X MMRBC\n",
--			revid);
-+		printk(KERN_INFO "AMD8131 rev %x detected, disabling PCI-X "
-+				"MMRBC\n", revid);
- 		dev->subordinate->bus_flags |= PCI_BUS_FLAGS_NO_MMRBC;
+ 	if (!(pci_resource_flags(dev, index) & IORESOURCE_IO)) {
+ 		printk(KERN_WARNING "%s: cannot adjust BAR%u (not I/O)\n",
+ 		       pci_name(dev), index);
+ 		return;
  	}
+-	if (pci_resource_len(dev, index) != len)
+-		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %04X)\n",
+-		       pci_name(dev), index, (unsigned)pci_resource_len(dev, index));
+-	else {
+-		printk(KERN_INFO "%s: trying to change BAR%u from %04X to %04X\n",
+-		       pci_name(dev), index,
+-		       (unsigned)pci_resource_start(dev, index), base);
+-		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4, base);
++	if (pci_resource_len(dev, index) != len) {
++		printk(KERN_WARNING "%s: cannot adjust BAR%u (size %Lx)\n",
++			pci_name(dev), index,
++			(unsigned long long)pci_resource_len(dev, index));
++	} else {
++		printk(KERN_INFO "%s: trying to change BAR%u from %Lx to %Lx\n",
++			pci_name(dev), index,
++			(unsigned long long)pci_resource_start(dev, index),
++			(unsigned long long)base);
++		pci_write_config_dword(dev, PCI_BASE_ADDRESS_0 + index * 4,
++					base);
+ 	}
+ 	pci_resource_start(dev, index) = start;
+-	pci_resource_end(dev, index)   = end;
+-	pci_resource_flags(dev, index) =
+-		IORESOURCE_IO | IORESOURCE_PCI_FIXED | PCI_BASE_ADDRESS_SPACE_IO;
++	pci_resource_end(dev, index) = end;
++	pci_resource_flags(dev, index) = IORESOURCE_IO|IORESOURCE_PCI_FIXED|
++					PCI_BASE_ADDRESS_SPACE_IO;
  }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
