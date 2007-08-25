@@ -1,59 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:19:07 -0700
-Message-ID: <200708250519.l7P5J7NT031944@imap1.linux-foundation.org>
+Subject: - statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:11 -0700
+Message-ID: <200708250519.l7P5JBQd031955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56223 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36944 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755836AbXHYFaV (ORCPT
+	by vger.kernel.org with ESMTP id S1755817AbXHYFas (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:30:21 -0400
+	Sat, 25 Aug 2007 01:30:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mp3@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     statistics infrastructure: small cleanup in debugfs write function
+     timer_stats slimmed down: statistics prereq, cleanup
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-small-cleanup-in-debugfs-write-function.patch
+     statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: statistics infrastructure: small cleanup in debugfs write function
+Subject: timer_stats slimmed down: statistics prereq, cleanup
 From: Martin Peschke <mp3@de.ibm.com>
 
-Code looks more sane with this little cleanup, although both memcpy() and
-kfree() are supposed to cope with NULL pointer or zero length respectively.
+Small cleanup
 
 Signed-off-by: Martin Peschke <mp3@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/statistic.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ include/linux/statistic.h |    6 +++---
+ lib/statistic.c           |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/statistic.c~statistics-infrastructure-small-cleanup-in-debugfs-write-function lib/statistic.c
---- a/lib/statistic.c~statistics-infrastructure-small-cleanup-in-debugfs-write-function
+diff -puN include/linux/statistic.h~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup include/linux/statistic.h
+--- a/include/linux/statistic.h~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup
++++ a/include/linux/statistic.h
+@@ -106,7 +106,7 @@ struct statistic {
+  * @info: a struct statistic_info array describing the struct statistic array
+  * @number: number of entries in both arrays
+  * @pull: an optional function called when user reads data from file
+- * @pull_private: optional data pointer passed to pull function
++ * @private: optional data pointer reserved for use by clients
+  *
+  * Exploiters must setup a struct statistic_interface prior to calling
+  * statistic_create().
+@@ -121,8 +121,8 @@ struct statistic_interface {
+ 	struct statistic	*stat;
+ 	struct statistic_info	*info;
+ 	int			 number;
+-	int			(*pull)(void*);
+-	void			*pull_private;
++	int			(*pull)(struct statistic_interface *interface);
++	void			*private;
+ };
+ 
+ #ifdef CONFIG_STATISTICS
+diff -puN lib/statistic.c~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup lib/statistic.c
+--- a/lib/statistic.c~statistics-infrastructure-timer_stats-slimmed-down-statistics-prereq-cleanup
 +++ a/lib/statistic.c
-@@ -631,11 +631,13 @@ static ssize_t statistic_write_def(struc
- 	if (!larger)
- 		return -ENOMEM;
- 	larger[*offset + len] = '\0';
--	memcpy(larger, seq_priv->w_buf, *offset);
-+	if (seq_priv->w_buf) {
-+		memcpy(larger, seq_priv->w_buf, *offset);
-+		kfree(seq_priv->w_buf);
-+	}
- 	if (copy_from_user(larger + *offset, buf, len))
- 		return -EFAULT;
- 	*offset += len;
--	kfree(seq_priv->w_buf);
- 	seq_priv->w_buf = larger;
- 	seq_priv->w_offset = *offset;
- 	return len;
+@@ -663,7 +663,7 @@ static int statistic_open_data(struct in
+ 	int size, i, j, retval = -ENOMEM;
+ 
+ 	if (interface->pull)
+-		interface->pull(interface->pull_private);
++		interface->pull(interface);
+ 
+ 	size = interface->number * sizeof(struct statistic);
+ 	seq_priv = kzalloc(sizeof(struct statistic_seq_private), GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from mp3@de.ibm.com are
