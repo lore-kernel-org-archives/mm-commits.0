@@ -1,146 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - add-for_each_substring-and-match_substring.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:21:43 -0700
-Message-ID: <200708250321.l7P3LhoT027882@imap1.linux-foundation.org>
+Subject: - add-pci_try_set_mwi-prism54pci.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:21:45 -0700
+Message-ID: <200708250321.l7P3LjPK027886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750911AbXHYDVs (ORCPT
+	by vger.kernel.org with ESMTP id S1750911AbXHYDV6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:21:48 -0400
+	Fri, 24 Aug 2007 23:21:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add for_each_substring() and match_substring()
+     add pci_try_set_mwi
 has been removed from the -mm tree.  Its filename was
-     add-for_each_substring-and-match_substring.patch
+     add-pci_try_set_mwi-prism54pci.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: add for_each_substring() and match_substring()
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: add pci_try_set_mwi
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This adds for_each_substring() and match_substring() to lib/parser.c.  Using
-these instead of strsep() and match_token() is more comfortable, less error
-prone and safer.
+As suggested by Andrew, add pci_try_set_mwi(), which does not require
+return-value checking.
 
-strsep() is destructive; it changes the string it is working on. 
-match_token() needs strsep() to chop a large string up into smaller
-\0-terminated pieces.  Callers might need to create a working copy of the
-string to be parsed.
+- add pci_try_set_mwi() without __must_check
+- make it return 0 on success, errno if the "try" failed or error
+- review callers
 
-In contrast, match_substring() contents itself with non-\0-terminated
-substrings provided by for_each_substring().
-
-Converting users of strsep() / match_token() to for_each_substring() /
-match_substring(), e.g.  all the stuff in fs/, should not be difficult.
-
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/parser.h |    7 ++++++
- lib/parser.c           |   45 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 51 insertions(+), 1 deletion(-)
+ drivers/net/wireless/mac80211/p54/prism54pci.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/parser.h~add-for_each_substring-and-match_substring include/linux/parser.h
---- a/include/linux/parser.h~add-for_each_substring-and-match_substring
-+++ a/include/linux/parser.h
-@@ -26,9 +26,16 @@ typedef struct {
- } substring_t;
+diff -puN drivers/net/wireless/mac80211/p54/prism54pci.c~add-pci_try_set_mwi-prism54pci drivers/net/wireless/mac80211/p54/prism54pci.c
+--- a/drivers/net/wireless/mac80211/p54/prism54pci.c~add-pci_try_set_mwi-prism54pci
++++ a/drivers/net/wireless/mac80211/p54/prism54pci.c
+@@ -540,7 +540,7 @@ static int __devinit p54p_probe(struct p
+ 	}
  
- int match_token(char *, match_table_t table, substring_t args[]);
-+int match_substring(substring_t *, match_table_t table, substring_t args[]);
- int match_int(substring_t *, int *result);
- int match_octal(substring_t *, int *result);
- int match_hex(substring_t *, int *result);
- void match_strcpy(char *, const substring_t *);
- char *match_strdup(const substring_t *);
-+char *match_to(const char *cs, const char *ct);
- int match_s64(substring_t *, s64 *result, int);
-+
-+#define for_each_substring(s, start, delim) \
-+	for ((s)->from = start, (s)->to = match_to((s)->from, delim); \
-+	     (s)->to; \
-+	     (s)->from = (s)->to + 1, (s)->to = match_to((s)->from, delim))
-diff -puN lib/parser.c~add-for_each_substring-and-match_substring lib/parser.c
---- a/lib/parser.c~add-for_each_substring-and-match_substring
-+++ a/lib/parser.c
-@@ -27,7 +27,7 @@ static int match_one(char *s, const char
- 	char *meta;
- 	int argc = 0;
+ 	pci_set_master(pdev);
+-	pci_set_mwi(pdev);
++	pci_try_set_mwi(pdev);
  
--	if (!p)
-+	if (!p || !s)
- 		return 1;
- 
- 	while(1) {
-@@ -111,6 +111,36 @@ int match_token(char *s, match_table_t t
- }
- 
- /**
-+ * match_substring: - Find a token (and optional args) in a substring
-+ * @sub: the substring to examine for token/argument pairs
-+ * @table: match_table_t describing the set of allowed option tokens and the
-+ * arguments that may be associated with them. Must be terminated with a
-+ * &struct match_token whose pattern is set to the NULL pointer.
-+ * @args: array of %MAX_OPT_ARGS &substring_t elements. Used to return match
-+ * locations.
-+ *
-+ * Description: Detects which if any of a set of token strings has been passed
-+ * to it. Tokens can include up to MAX_OPT_ARGS instances of basic c-style
-+ * format identifiers which will be taken into account when matching the
-+ * tokens, and whose locations will be returned in the @args array.
-+ */
-+int match_substring(substring_t *sub, match_table_t table, substring_t args[])
-+{
-+	char *s;
-+	int token, i;
-+
-+	memset(args, 0, MAX_OPT_ARGS * sizeof(substring_t));
-+	s = match_strdup(sub);
-+	token = match_token(s, table, args);
-+	for (i = 0; i < MAX_OPT_ARGS; i++) {
-+		args[i].from += sub->from - s;
-+		args[i].to += sub->from - s;
-+	}
-+	kfree(s);
-+	return token;
-+}
-+
-+/**
-  * match_number: scan a number in the given base from a substring_t
-  * @s: substring to be scanned
-  * @result: resulting integer on success
-@@ -237,6 +267,17 @@ char *match_strdup(const substring_t *s)
- 	return p;
- }
- 
-+char *match_to(const char *cs, const char *ct)
-+{
-+	char *delim = strpbrk(cs, ct);
-+	if (delim)
-+		return delim;
-+	else if (*cs != '\0')
-+		return (char *)(cs + strlen(cs));
-+	else
-+		return NULL;
-+}
-+
- EXPORT_SYMBOL(match_token);
- EXPORT_SYMBOL(match_int);
- EXPORT_SYMBOL(match_octal);
-@@ -244,3 +285,5 @@ EXPORT_SYMBOL(match_hex);
- EXPORT_SYMBOL(match_strcpy);
- EXPORT_SYMBOL(match_strdup);
- EXPORT_SYMBOL(match_s64);
-+EXPORT_SYMBOL(match_to);
-+EXPORT_SYMBOL(match_substring);
+ 	pci_write_config_byte(pdev, 0x40, 0);
+ 	pci_write_config_byte(pdev, 0x41, 0);
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+origin.patch
+maintainers-update-dco-info.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+git-mtd.patch
+pci-aer-fix-warnings-when-pcieaer=n.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+profile-likely-unlikely-macros.patch
