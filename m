@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-xen-fix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:27:12 -0700
-Message-ID: <200708250327.l7P3RCSb028134@imap1.linux-foundation.org>
+Subject: - git-net-fix-export.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:27:06 -0700
+Message-ID: <200708250327.l7P3R6ng028125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40586 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbXHYD1P (ORCPT
+	by vger.kernel.org with ESMTP id S1752754AbXHYD1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:27:15 -0400
+	Fri, 24 Aug 2007 23:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net xen fix
+     git-net fix export
 has been removed from the -mm tree.  Its filename was
-     git-net-xen-fix.patch
+     git-net-fix-export.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-net xen fix
+Subject: git-net fix export
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/xen-netfront.c: In function 'xennet_poll':
-drivers/net/xen-netfront.c:854: error: 'budget' redeclared as different kind of symbol
-drivers/net/xen-netfront.c:845: error: previous definition of 'budget' was here
+Must be silly season or something.
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/xen-netfront.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/hrtimer.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/xen-netfront.c~git-net-xen-fix drivers/net/xen-netfront.c
---- a/drivers/net/xen-netfront.c~git-net-xen-fix
-+++ a/drivers/net/xen-netfront.c
-@@ -851,7 +851,7 @@ static int xennet_poll(struct napi_struc
- 	struct xen_netif_rx_response *rx = &rinfo.rx;
- 	struct xen_netif_extra_info *extras = rinfo.extras;
- 	RING_IDX i, rp;
--	int work_done, budget;
-+	int work_done;
- 	struct sk_buff_head rxq;
- 	struct sk_buff_head errq;
- 	struct sk_buff_head tmpq;
+diff -puN kernel/hrtimer.c~git-net-fix-export kernel/hrtimer.c
+--- a/kernel/hrtimer.c~git-net-fix-export
++++ a/kernel/hrtimer.c
+@@ -299,8 +299,7 @@ ktime_t ktime_sub_ns(const ktime_t kt, u
+ 
+ 	return ktime_sub(kt, tmp);
+ }
+-
+-EXPORT_SYMBOL_GPL(ktime_add_ns);
++EXPORT_SYMBOL_GPL(ktime_sub_ns);
+ # endif /* !CONFIG_KTIME_SCALAR */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
