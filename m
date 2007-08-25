@@ -1,52 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-e1000e.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:27:10 -0700
-Message-ID: <200708250327.l7P3RABC028131@imap1.linux-foundation.org>
+Subject: - git-net-forcedeth-build-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:27:08 -0700
+Message-ID: <200708250327.l7P3R8uF028128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52324 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752834AbXHYD1S (ORCPT
+	by vger.kernel.org with ESMTP id S1751690AbXHYD1M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:27:18 -0400
+	Fri, 24 Aug 2007 23:27:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-e1000e
+     git-net: forcedeth build fix
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-e1000e.patch
+     git-net-forcedeth-build-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-net-vs-e1000e
+Subject: git-net: forcedeth build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-the net-2.6 tree destroyed this driver and I can't be assed fixing it.
+drivers/net/forcedeth.c:3017: error: 'RX_WORK_PER_LOOP' undeclared (first use in this function)
 
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/forcedeth.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/Kconfig~git-net-vs-e1000e drivers/net/Kconfig
---- a/drivers/net/Kconfig~git-net-vs-e1000e
-+++ a/drivers/net/Kconfig
-@@ -2058,6 +2058,7 @@ config E1000_DISABLE_PACKET_SPLIT
- config E1000E
- 	tristate "Intel(R) PRO/1000 PCI-Express Gigabit Ethernet support"
- 	depends on PCI
-+	depends on BROKEN
- 	---help---
- 	  This driver supports the PCI-Express Intel(R) PRO/1000 gigabit
- 	  ethernet family of adapters. For PCI or PCI-X e1000 adapters,
+diff -puN drivers/net/forcedeth.c~git-net-forcedeth-build-fix drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~git-net-forcedeth-build-fix
++++ a/drivers/net/forcedeth.c
+@@ -159,6 +159,8 @@
+ #define dprintk(x...)		do { } while (0)
+ #endif
+ 
++#define TX_WORK_PER_LOOP  64
++#define RX_WORK_PER_LOOP  64
+ 
+ /*
+  * Hardware access:
+@@ -3083,8 +3085,6 @@ static irqreturn_t nv_nic_irq(int foo, v
+ 	return IRQ_RETVAL(i);
+ }
+ 
+-#define TX_WORK_PER_LOOP  64
+-#define RX_WORK_PER_LOOP  64
+ /**
+  * All _optimized functions are used to help increase performance
+  * (reduce CPU and increase throughput). They use descripter version 3,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
