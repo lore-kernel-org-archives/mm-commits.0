@@ -1,60 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-forcedeth-build-fix.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:27:08 -0700
-Message-ID: <200708250327.l7P3R8uF028128@imap1.linux-foundation.org>
+Subject: - git-net-xen-fix.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:27:12 -0700
+Message-ID: <200708250327.l7P3RCSb028134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52324 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751690AbXHYD1M (ORCPT
+	by vger.kernel.org with ESMTP id S1752846AbXHYD1P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:27:12 -0400
+	Fri, 24 Aug 2007 23:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: forcedeth build fix
+     git-net xen fix
 has been removed from the -mm tree.  Its filename was
-     git-net-forcedeth-build-fix.patch
+     git-net-xen-fix.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: git-net: forcedeth build fix
+Subject: git-net xen fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/forcedeth.c:3017: error: 'RX_WORK_PER_LOOP' undeclared (first use in this function)
+drivers/net/xen-netfront.c: In function 'xennet_poll':
+drivers/net/xen-netfront.c:854: error: 'budget' redeclared as different kind of symbol
+drivers/net/xen-netfront.c:845: error: previous definition of 'budget' was here
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/xen-netfront.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~git-net-forcedeth-build-fix drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~git-net-forcedeth-build-fix
-+++ a/drivers/net/forcedeth.c
-@@ -159,6 +159,8 @@
- #define dprintk(x...)		do { } while (0)
- #endif
- 
-+#define TX_WORK_PER_LOOP  64
-+#define RX_WORK_PER_LOOP  64
- 
- /*
-  * Hardware access:
-@@ -3083,8 +3085,6 @@ static irqreturn_t nv_nic_irq(int foo, v
- 	return IRQ_RETVAL(i);
- }
- 
--#define TX_WORK_PER_LOOP  64
--#define RX_WORK_PER_LOOP  64
- /**
-  * All _optimized functions are used to help increase performance
-  * (reduce CPU and increase throughput). They use descripter version 3,
+diff -puN drivers/net/xen-netfront.c~git-net-xen-fix drivers/net/xen-netfront.c
+--- a/drivers/net/xen-netfront.c~git-net-xen-fix
++++ a/drivers/net/xen-netfront.c
+@@ -851,7 +851,7 @@ static int xennet_poll(struct napi_struc
+ 	struct xen_netif_rx_response *rx = &rinfo.rx;
+ 	struct xen_netif_extra_info *extras = rinfo.extras;
+ 	RING_IDX i, rp;
+-	int work_done, budget;
++	int work_done;
+ 	struct sk_buff_head rxq;
+ 	struct sk_buff_head errq;
+ 	struct sk_buff_head tmpq;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
