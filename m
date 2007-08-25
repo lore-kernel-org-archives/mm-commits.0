@@ -1,155 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-u16_max-and-u32_max.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:42:01 -0700
-Message-ID: <200708250342.l7P3g1t1028691@imap1.linux-foundation.org>
+Subject: - irda_nl_get_mode-always-results-in-failure.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:42:03 -0700
+Message-ID: <200708250342.l7P3g3Xe028700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733AbXHYDmJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751675AbXHYDmm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:42:09 -0400
+	Fri, 24 Aug 2007 23:42:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce U16_MAX and U32_MAX
+     irda_nl_get_mode: always results in failure
 has been removed from the -mm tree.  Its filename was
-     introduce-u16_max-and-u32_max.patch
+     irda_nl_get_mode-always-results-in-failure.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: Introduce U16_MAX and U32_MAX
-From: Satyam Sharma <satyam@infradead.org>
+Subject: irda_nl_get_mode: always results in failure
+From: Andy Whitcroft <apw@shadowen.org>
 
-... in kernel.h and clean up home-grown macros elsewhere in the tree.
+It seems an extraneous trailing ';' has slipped in to the error handling for a
+name registration failure causing the error path to trigger unconditionally.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netconsole.c    |    7 +++----
- include/linux/kernel.h      |    3 +++
- include/linux/reiserfs_fs.h |    2 --
- net/ipv4/tcp_illinois.c     |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ net/irda/irnetlink.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/netconsole.c~introduce-u16_max-and-u32_max drivers/net/netconsole.c
---- a/drivers/net/netconsole.c~introduce-u16_max-and-u32_max
-+++ a/drivers/net/netconsole.c
-@@ -34,6 +34,7 @@
-  *
-  ****************************************************************/
- 
-+#include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -389,7 +390,6 @@ static ssize_t store_local_port(struct n
- 				size_t count)
- {
- 	long local_port;
--#define __U16_MAX	((__u16) ~0U)
- 
- 	if (nt->enabled) {
- 		printk(KERN_ERR "netconsole: target (%s) is enabled, "
-@@ -398,7 +398,7 @@ static ssize_t store_local_port(struct n
- 		return -EINVAL;
+diff -puN net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure net/irda/irnetlink.c
+--- a/net/irda/irnetlink.c~irda_nl_get_mode-always-results-in-failure
++++ a/net/irda/irnetlink.c
+@@ -106,7 +106,7 @@ static int irda_nl_get_mode(struct sk_bu
  	}
  
--	local_port = strtol10_check_range(buf, 0, __U16_MAX);
-+	local_port = strtol10_check_range(buf, 0, U16_MAX);
- 	if (local_port < 0)
- 		return local_port;
+ 	if(nla_put_string(msg, IRDA_NL_ATTR_IFNAME,
+-			  dev->name));
++			  dev->name))
+ 		goto err_out;
  
-@@ -412,7 +412,6 @@ static ssize_t store_remote_port(struct 
- 				 size_t count)
- {
- 	long remote_port;
--#define __U16_MAX	((__u16) ~0U)
- 
- 	if (nt->enabled) {
- 		printk(KERN_ERR "netconsole: target (%s) is enabled, "
-@@ -421,7 +420,7 @@ static ssize_t store_remote_port(struct 
- 		return -EINVAL;
- 	}
- 
--	remote_port = strtol10_check_range(buf, 0, __U16_MAX);
-+	remote_port = strtol10_check_range(buf, 0, U16_MAX);
- 	if (remote_port < 0)
- 		return remote_port;
- 
-diff -puN include/linux/kernel.h~introduce-u16_max-and-u32_max include/linux/kernel.h
---- a/include/linux/kernel.h~introduce-u16_max-and-u32_max
-+++ a/include/linux/kernel.h
-@@ -30,6 +30,9 @@ extern const char linux_proc_banner[];
- #define LLONG_MIN	(-LLONG_MAX - 1)
- #define ULLONG_MAX	(~0ULL)
- 
-+#define U16_MAX		(~(__u16)0)
-+#define U32_MAX		(~(__u32)0)
-+
- #define STACK_MAGIC	0xdeadbeef
- 
- #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
-diff -puN include/linux/reiserfs_fs.h~introduce-u16_max-and-u32_max include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~introduce-u16_max-and-u32_max
-+++ a/include/linux/reiserfs_fs.h
-@@ -1225,8 +1225,6 @@ struct treepath var = {.path_length = IL
- #define MAX_US_INT 0xffff
- 
- // reiserfs version 2 has max offset 60 bits. Version 1 - 32 bit offset
--#define U32_MAX (~(__u32)0)
--
- static inline loff_t max_reiserfs_offset(struct inode *inode)
- {
- 	if (get_inode_item_key_version(inode) == KEY_FORMAT_3_5)
-diff -puN net/ipv4/tcp_illinois.c~introduce-u16_max-and-u32_max net/ipv4/tcp_illinois.c
---- a/net/ipv4/tcp_illinois.c~introduce-u16_max-and-u32_max
-+++ a/net/ipv4/tcp_illinois.c
-@@ -12,6 +12,7 @@
-  * Copyright (C) 2007 Stephen Hemminger <shemminger@linux-foundation.org>
-  */
- 
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/inet_diag.h>
-@@ -23,7 +24,6 @@
- #define ALPHA_MIN	((3*ALPHA_SCALE)/10)	/* ~0.3 */
- #define ALPHA_MAX	(10*ALPHA_SCALE)	/* 10.0 */
- #define ALPHA_BASE	ALPHA_SCALE		/* 1.0 */
--#define U32_MAX		((u32)~0U)
- #define RTT_MAX		(U32_MAX / ALPHA_MAX)	/* 3.3 secs */
- 
- #define BETA_SHIFT	6
+ 	if(nla_put_u32(msg, IRDA_NL_ATTR_MODE, irlap->mode))
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-git-netdev-all.patch
-git-net.patch
-git-s390.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+mips-irix_getcontext-will-always-fail-efault.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
