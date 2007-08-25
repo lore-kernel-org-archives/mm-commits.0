@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - update-x86_64-mm-install-unstripped-copies-on-disk.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:19:28 -0700
-Message-ID: <200708250519.l7P5JS60032045@imap1.linux-foundation.org>
+Subject: - update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:19:30 -0700
+Message-ID: <200708250519.l7P5JUab032048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57874 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756170AbXHYFdH (ORCPT
+	by vger.kernel.org with ESMTP id S1756189AbXHYFdH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 25 Aug 2007 01:33:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,18 @@ To: roland@redhat.com, ak@suse.de, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     update x86_64-mm-install-unstripped-copies-on-disk
+     update x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk
 has been removed from the -mm tree.  Its filename was
-     update-x86_64-mm-install-unstripped-copies-on-disk.patch
+     update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: update x86_64-mm-install-unstripped-copies-on-disk
+Subject: update x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk
 From: Roland McGrath <roland@redhat.com>
 
 While integrating these with the Fedora kernel build, I worked out a few kinks.
-This patch replaces i386-vdso-install-unstripped-copies-on-disk.patch and
-i386-vdso-install-unstripped-copies-on-disk-fix.patch
+This patch replaces x86_64-ia32-vdso-install-unstripped-copies-on-disk.patch
 
 
 This keeps an unstripped copy of the vDSO images built before they are
@@ -42,55 +41,34 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Makefile        |    6 ++++--
- arch/i386/kernel/Makefile |    6 +++---
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ arch/x86_64/Makefile      |    4 +++-
+ arch/x86_64/ia32/Makefile |    2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/Makefile~update-x86_64-mm-install-unstripped-copies-on-disk arch/i386/Makefile
---- a/arch/i386/Makefile~update-x86_64-mm-install-unstripped-copies-on-disk
-+++ a/arch/i386/Makefile
-@@ -137,9 +137,11 @@ zdisk bzdisk: vmlinux
+diff -puN arch/x86_64/Makefile~update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk arch/x86_64/Makefile
+--- a/arch/x86_64/Makefile~update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk
++++ a/arch/x86_64/Makefile
+@@ -109,8 +109,10 @@ bzdisk: vmlinux
  fdimage fdimage144 fdimage288 isoimage: vmlinux
- 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(KBUILD_IMAGE) $@
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(BOOTIMAGE) $@
  
 -install:
 +install: vdso_install
- 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(KBUILD_IMAGE) install
--	$(Q)$(MAKE) $(build)=arch/i386/kernel $@
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(BOOTIMAGE) $@ 
 +
 +vdso_install:
-+	$(Q)$(MAKE) $(build)=arch/i386/kernel vdso_install
- 
- archclean:
- 	$(Q)$(MAKE) $(clean)=arch/i386/boot
-diff -puN arch/i386/kernel/Makefile~update-x86_64-mm-install-unstripped-copies-on-disk arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~update-x86_64-mm-install-unstripped-copies-on-disk
-+++ a/arch/i386/kernel/Makefile
-@@ -72,7 +72,7 @@ SYSCFLAGS_vsyscall-int80.so.dbg		= $(vsy
- 
- $(obj)/vsyscall-int80.so.dbg $(obj)/vsyscall-sysenter.so.dbg: \
- $(obj)/vsyscall-%.so.dbg: $(src)/vsyscall.lds \
--				  $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
-+		      $(obj)/vsyscall-%.o $(obj)/vsyscall-note.o FORCE
- 	$(call if_changed,syscall)
- 
- $(obj)/%.so: OBJCOPYFLAGS := -S
-@@ -83,13 +83,13 @@ vdsos := vdso-int80.so vdso-sysenter.so
- 
- quiet_cmd_vdso_install = INSTALL $@
-       cmd_vdso_install = cp $(@:vdso-%.so=$(obj)/vsyscall-%.so.dbg) \
--				    $(MODLIB)/vdso/$@
-+			    $(MODLIB)/vdso/$@
- 
- $(vdsos):
+ ifeq ($(CONFIG_IA32_EMULATION),y)
+ 	$(Q)$(MAKE) $(build)=arch/x86_64/ia32 $@
+ endif
+diff -puN arch/x86_64/ia32/Makefile~update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk arch/x86_64/ia32/Makefile
+--- a/arch/x86_64/ia32/Makefile~update-x86_64-mm-x86_64-ia32-vdso-install-unstripped-copies-on-disk
++++ a/arch/x86_64/ia32/Makefile
+@@ -49,4 +49,4 @@ $(vdsos):
  	@mkdir -p $(MODLIB)/vdso
  	$(call cmd,vdso_install)
  
 -install: $(vdsos)
 +vdso_install: $(vdsos)
- 
- # We also create a special relocatable object that should mirror the symbol
- # table and layout of the linked DSO.  With ld -R we can then refer to
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
