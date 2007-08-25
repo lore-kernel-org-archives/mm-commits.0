@@ -1,65 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-fix-and-improve-mips-rel-handling.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:43:08 -0700
-Message-ID: <200708250343.l7P3h8gG028709@imap1.linux-foundation.org>
+Subject: - kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:43:13 -0700
+Message-ID: <200708250343.l7P3hDRa028715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753197AbXHYDnb (ORCPT
+	by vger.kernel.org with ESMTP id S1753316AbXHYDnz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:43:31 -0400
+	Fri, 24 Aug 2007 23:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, ralf@linux-mips.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: fix and improve MIPS REL handling
+     reiser4: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     kbuild-fix-and-improve-mips-rel-handling.patch
+     kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: kbuild: fix and improve MIPS REL handling
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: reiser4: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Add R_MIPS_32 relocation case.
-And there is no need to do sign-extention on calculation of addend.
-
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ fs/reiser4/plugin/file/cryptcompress.h |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN scripts/mod/modpost.c~kbuild-fix-and-improve-mips-rel-handling scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~kbuild-fix-and-improve-mips-rel-handling
-+++ a/scripts/mod/modpost.c
-@@ -951,11 +951,14 @@ static int addend_mips_rel(struct elf_in
- 	inst = TO_NATIVE(*location);
- 	switch (r_typ) {
- 	case R_MIPS_LO16:
--		r->r_addend = ((inst & 0xffff) ^ 0x8000) - 0x8000;
-+		r->r_addend = inst & 0xffff;
- 		break;
- 	case R_MIPS_26:
- 		r->r_addend = (inst & 0x03ffffff) << 2;
- 		break;
-+	case R_MIPS_32:
-+		r->r_addend = inst;
-+		break;
- 	}
+diff -puN fs/reiser4/plugin/file/cryptcompress.h~kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.h
+--- a/fs/reiser4/plugin/file/cryptcompress.h~kmalloc-memset-conversion-to-kzalloc
++++ a/fs/reiser4/plugin/file/cryptcompress.h
+@@ -86,10 +86,9 @@ static inline int alloc_ts(struct tfm_st
+ 	assert("edward-931", stm);
+ 	assert("edward-932", *stm == NULL);
+ 
+-	*stm = kmalloc(sizeof **stm, reiser4_ctx_gfp_mask_get());
+-	if (*stm == NULL)
++	*stm = kzalloc(sizeof(**stm), reiser4_ctx_gfp_mask_get());
++	if (!*stm)
+ 		return -ENOMEM;
+-	memset(*stm, 0, sizeof **stm);
  	return 0;
  }
+ 
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-spi-driver-hotplug-coldplug-fixes-fix.patch
-serial_txx9-cleanup-includes.patch
+request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch
+git-alsa.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
+git-dvb.patch
+drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+git-mmc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+git-scsi-misc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+git-v9fs.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
