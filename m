@@ -1,119 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-use-zero_user_page.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:24:17 -0700
-Message-ID: <200708250324.l7P3OHUG027970@imap1.linux-foundation.org>
+Subject: - ext4-use-simple_prepare_write-to-zero-page-data.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:24:15 -0700
+Message-ID: <200708250324.l7P3OFDJ027967__14503.178644418$1188012280$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46055 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752982AbXHYDYU (ORCPT
+	by vger.kernel.org with ESMTP id S1752915AbXHYDYU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 24 Aug 2007 23:24:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nate.diller@gmail.com, mm-commits@vger.kernel.org
+To: nate.diller@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: use zero_user_page
+     ext4: use simple_prepare_write to zero page data
 has been removed from the -mm tree.  Its filename was
-     ext4-use-zero_user_page.patch
+     ext4-use-simple_prepare_write-to-zero-page-data.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: ext4: use zero_user_page
+Subject: ext4: use simple_prepare_write to zero page data
 From: Nate Diller <nate.diller@gmail.com>
 
-Use zero_user_page() instead of open-coding it.
+It's common for file systems to need to zero data on either side of a
+write, if a page is not Uptodate during prepare_write.  It just so happens
+that simple_prepare_write() in libfs.c does exactly that, so we can avoid
+duplication and just call that function to zero page data.
 
 Signed-off-by: Nate Diller <nate.diller@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c     |   12 ++----------
- fs/ext4/writeback.c |   12 ++----------
- 2 files changed, 4 insertions(+), 20 deletions(-)
+ fs/ext4/writeback.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff -puN fs/ext4/inode.c~ext4-use-zero_user_page fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-use-zero_user_page
-+++ a/fs/ext4/inode.c
-@@ -1791,7 +1791,6 @@ int ext4_block_truncate_page(handle_t *h
- 	struct inode *inode = mapping->host;
- 	struct buffer_head *bh;
- 	int err = 0;
--	void *kaddr;
- 
- 	if ((EXT4_I(inode)->i_flags & EXT4_EXTENTS_FL) &&
- 			test_opt(inode->i_sb, EXTENTS) &&
-@@ -1808,10 +1807,7 @@ int ext4_block_truncate_page(handle_t *h
- 	 */
- 	if (!page_has_buffers(page) && test_opt(inode->i_sb, NOBH) &&
- 	     ext4_should_writeback_data(inode) && PageUptodate(page)) {
--		kaddr = kmap_atomic(page, KM_USER0);
--		memset(kaddr + offset, 0, length);
--		flush_dcache_page(page);
--		kunmap_atomic(kaddr, KM_USER0);
-+		zero_user_page(page, offset, length, KM_USER0);
- 		set_page_dirty(page);
- 		goto unlock;
- 	}
-@@ -1864,11 +1860,7 @@ int ext4_block_truncate_page(handle_t *h
- 			goto unlock;
- 	}
- 
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
--
-+	zero_user_page(page, offset, length, KM_USER0);
- 	BUFFER_TRACE(bh, "zeroed end of block");
- 
- 	err = 0;
-diff -puN fs/ext4/writeback.c~ext4-use-zero_user_page fs/ext4/writeback.c
---- a/fs/ext4/writeback.c~ext4-use-zero_user_page
+diff -puN fs/ext4/writeback.c~ext4-use-simple_prepare_write-to-zero-page-data fs/ext4/writeback.c
+--- a/fs/ext4/writeback.c~ext4-use-simple_prepare_write-to-zero-page-data
 +++ a/fs/ext4/writeback.c
-@@ -971,7 +971,6 @@ int ext4_wb_writepage(struct page *page,
- 	loff_t i_size = i_size_read(inode);
- 	pgoff_t end_index = i_size >> PAGE_CACHE_SHIFT;
- 	unsigned offset;
--	void *kaddr;
- 
- 	wb_debug("writepage %lu from inode %lu\n", page->index, inode->i_ino);
- 
-@@ -1021,10 +1020,7 @@ int ext4_wb_writepage(struct page *page,
- 	 * the  page size, the remaining memory is zeroed when mapped, and
- 	 * writes to that region are not written out to the file."
- 	 */
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, PAGE_CACHE_SIZE - offset);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
-+	zero_user_page(page, offset, PAGE_CACHE_SIZE - offset, KM_USER0);
- 	return ext4_wb_write_single_page(page, wbc);
+@@ -829,21 +829,6 @@ int ext4_wb_writepages(struct address_sp
+ 	return 0;
  }
  
-@@ -1075,7 +1071,6 @@ int ext4_wb_block_truncate_page(handle_t
- 	struct inode *inode = mapping->host;
- 	struct buffer_head bh, *bhw = &bh;
- 	unsigned blocksize, length;
+-static void ext4_wb_clear_page(struct page *page, int from, int to)
+-{
 -	void *kaddr;
- 	int err = 0;
- 
- 	wb_debug("partial truncate from %lu on page %lu from inode %lu\n",
-@@ -1114,10 +1109,7 @@ int ext4_wb_block_truncate_page(handle_t
- 		}
- 	}
- 
--	kaddr = kmap_atomic(page, KM_USER0);
--	memset(kaddr + offset, 0, length);
--	flush_dcache_page(page);
--	kunmap_atomic(kaddr, KM_USER0);
-+	zero_user_page(page, offset, length, KM_USER0);
- 	SetPageUptodate(page);
- 	__set_page_dirty_nobuffers(page);
- 
+-
+-	if (to < PAGE_CACHE_SIZE || from > 0) {
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		if (PAGE_CACHE_SIZE > to)
+-			memset(kaddr + to, 0, PAGE_CACHE_SIZE - to);
+-		if (0 < from)
+-			memset(kaddr, 0, from);
+-		flush_dcache_page(page);
+-		kunmap_atomic(kaddr, KM_USER0);
+-	}
+-}
+-
+ int ext4_wb_prepare_write(struct file *file, struct page *page,
+ 			      unsigned from, unsigned to)
+ {
+@@ -873,7 +858,7 @@ int ext4_wb_prepare_write(struct file *f
+ 			/* this block isn't allocated yet, reserve space */
+ 			wb_debug("reserve space for new block\n");
+ 			page->private = 1;
+-			ext4_wb_clear_page(page, from, to);
++			simple_prepare_write(file, page, from, to);
+ 			ClearPageMappedToDisk(page);
+ 		} else {
+ 			/* block is already mapped, so no need to reserve */
 _
 
 Patches currently in -mm which might be from nate.diller@gmail.com are
