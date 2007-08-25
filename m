@@ -1,181 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:34 -0700
-Message-ID: <200708250518.l7P5IY0C031891@imap1.linux-foundation.org>
+Subject: - revert-acpi-change-for-scsi.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:18:28 -0700
+Message-ID: <200708250518.l7P5IS44031879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754697AbXHYFSk (ORCPT
+	by vger.kernel.org with ESMTP id S1754597AbXHYFSl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:18:40 -0400
+	Sat, 25 Aug 2007 01:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add for_each_substring() and match_substring() - exploitation
+     revert-acpi-change-for-scsi
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation.patch
+     revert-acpi-change-for-scsi.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: add for_each_substring() and match_substring() - exploitation
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: revert-acpi-change-for-scsi
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Simplifying statistics code by using for_each_substring() and
-match_substring() instead of strsep() and match_token()
+sigh
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/statistic.c |   67 +++++++++++++---------------------------------
- 1 files changed, 20 insertions(+), 47 deletions(-)
+ drivers/scsi/lpfc/lpfc_attr.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN lib/statistic.c~statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation lib/statistic.c
---- a/lib/statistic.c~statistics-infrastructure-add-for_each_substring-and-match_substring-exploitation
-+++ a/lib/statistic.c
-@@ -469,18 +469,13 @@ static int statistic_parse_single(struct
- {
- 	struct statistic_discipline *disc = &statistic_discs[type];
- 	int prev_state = stat->state, retval = 0;
--	char *copy;
+diff -puN drivers/scsi/lpfc/lpfc_attr.c~revert-acpi-change-for-scsi drivers/scsi/lpfc/lpfc_attr.c
+--- a/drivers/scsi/lpfc/lpfc_attr.c~revert-acpi-change-for-scsi
++++ a/drivers/scsi/lpfc/lpfc_attr.c
+@@ -1133,8 +1133,7 @@ struct class_device_attribute *lpfc_host
+ };
  
- 	if (info->flags & STATISTIC_FLAGS_NOFLEX && stat->type != type &&
- 	    def != info->defaults)
- 		return -EINVAL;
--	if (disc->parse) {
--		copy = kstrdup(def, GFP_KERNEL);
--		if (unlikely(!copy))
--			return -ENOMEM;
--		retval = disc->parse(stat, info, type, copy);
--		kfree(copy);
--	} else if (type != stat->type)
-+	if (disc->parse)
-+		retval = disc->parse(stat, info, type, def);
-+	else if (type != stat->type)
- 		statistic_transition(stat, info, STATISTIC_STATE_UNCONFIGURED);
- 	if (!retval) {
- 		stat->type = type;
-@@ -500,30 +495,22 @@ static int statistic_parse_match(struct 
- 				 struct statistic_info *info, char *def)
+ static ssize_t
+-sysfs_ctlreg_write(struct kobject *kobj, struct bin_attribute *bin_attr,
+-		   char *buf, loff_t off, size_t count)
++sysfs_ctlreg_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
  {
- 	int type, len;
--	char *p, *copy, *twisted;
--	substring_t args[MAX_OPT_ARGS];
-+	substring_t args[MAX_OPT_ARGS], sub;
- 	struct statistic_discipline *disc;
- 
- 	if (!def)
- 		def = info->defaults;
--	twisted = copy = kstrdup(def, GFP_KERNEL);
--	if (unlikely(!copy))
--		return -ENOMEM;
--	while ((p = strsep(&twisted, " ")) != NULL) {
--		if (!*p)
--			continue;
--		if (match_token(p, statistic_match_type, args) != 1)
-+	for_each_substring(&sub, def, " ") {
-+		if (match_substring(&sub, statistic_match_type, args) != 1)
- 			continue;
--		len = (args[0].to - args[0].from) + 1;
-+		len = (args[0].to - args[0].from);
- 		for (type = 0; type < STAT_NONE; type++) {
- 			disc = &statistic_discs[type];
- 			if (unlikely(strncmp(disc->name, args[0].from, len)))
- 				continue;
--			kfree(copy);
- 			return statistic_parse_single(stat, info, def, type);
- 		}
- 	}
--	kfree(copy);
- 	if (unlikely(stat->type == STAT_NONE))
- 		return -EINVAL;
- 	return statistic_parse_single(stat, info, def, stat->type);
-@@ -543,8 +530,8 @@ static match_table_t statistic_match_com
- static void statistic_parse_line(struct statistic_interface *interface,
- 				 char *def)
- {
--	char *p, *copy, *twisted, *name = NULL;
--	substring_t args[MAX_OPT_ARGS];
-+	char *name = NULL;
-+	substring_t args[MAX_OPT_ARGS], sub;
- 	int token, reset = 0, defaults = 0, i;
- 	int state = STATISTIC_STATE_INVALID;
- 	struct statistic *stat = interface->stat;
-@@ -552,14 +539,8 @@ static void statistic_parse_line(struct 
- 
- 	if (unlikely(!def))
- 		return;
--	twisted = copy = kstrdup(def, GFP_KERNEL);
--	if (unlikely(!copy))
--		return;
--
--	while ((p = strsep(&twisted, " ")) != NULL) {
--		if (!*p)
--			continue;
--		token = match_token(p, statistic_match_common, args);
-+	for_each_substring(&sub, def, " ") {
-+		token = match_substring(&sub, statistic_match_common, args);
- 		switch (token) {
- 		case STATISTIC_STATE_UNCONFIGURED:
- 		case STATISTIC_STATE_RELEASED:
-@@ -591,7 +572,6 @@ static void statistic_parse_line(struct 
- 				statistic_reset(stat, info);
- 		}
- 	}
--	kfree(copy);
- 	kfree(name);
+ 	size_t buf_off;
+ 	struct Scsi_Host *host = class_to_shost(container_of(kobj,
+@@ -1166,8 +1165,7 @@ sysfs_ctlreg_write(struct kobject *kobj,
  }
  
-@@ -1113,16 +1093,13 @@ static int statistic_parse_histogram(str
- 				     struct statistic_info *info,
- 				     int type, char *def)
+ static ssize_t
+-sysfs_ctlreg_read(struct kobject *kobj, struct bin_attribute *bin_attr,
+-		  char *buf, loff_t off, size_t count)
++sysfs_ctlreg_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
  {
--	char *p;
--	substring_t args[MAX_OPT_ARGS];
-+	substring_t args[MAX_OPT_ARGS], sub;
- 	int token, got_entries = 0, got_interval = 0, got_range = 0;
- 	u32 entries, base_interval;
- 	s64 range_min;
- 
--	while ((p = strsep(&def, " ")) != NULL) {
--		if (!*p)
--			continue;
--		token = match_token(p, statistic_match_histogram, args);
-+	for_each_substring(&sub, def, " ") {
-+		token = match_substring(&sub, statistic_match_histogram, args);
- 		switch (token) {
- 		case 1:
- 			match_int(&args[0], &entries);
-@@ -1311,18 +1288,14 @@ static int statistic_parse_sparse(struct
- 				  struct statistic_info *info,
- 				  int type, char *def)
- {
--	char *p;
--	substring_t args[MAX_OPT_ARGS];
-+	substring_t args[MAX_OPT_ARGS], sub;
- 
--	while ((p = strsep(&def, " ")) != NULL) {
--		if (!*p)
-+	for_each_substring(&sub, def, " ") {
-+		if (match_substring(&sub, statistic_match_sparse, args) != 1)
- 			continue;
--		if (match_token(p, statistic_match_sparse, args) == 1) {
--			statistic_transition(stat, info,
--					     STATISTIC_STATE_UNCONFIGURED);
--			match_int(&args[0], &stat->u.sparse.entries_max);
--			return 0;
--		}
-+		statistic_transition(stat, info, STATISTIC_STATE_UNCONFIGURED);
-+		match_int(&args[0], &stat->u.sparse.entries_max);
-+		return 0;
- 	}
- 	return -EINVAL;
+ 	size_t buf_off;
+ 	uint32_t * tmp_ptr;
+@@ -1223,8 +1221,7 @@ sysfs_mbox_idle (struct lpfc_hba * phba)
  }
+ 
+ static ssize_t
+-sysfs_mbox_write(struct kobject *kobj, struct bin_attribute *bin_attr,
+-		 char *buf, loff_t off, size_t count)
++sysfs_mbox_write(struct kobject *kobj, char *buf, loff_t off, size_t count)
+ {
+ 	struct Scsi_Host * host =
+ 		class_to_shost(container_of(kobj, struct class_device, kobj));
+@@ -1276,8 +1273,7 @@ sysfs_mbox_write(struct kobject *kobj, s
+ }
+ 
+ static ssize_t
+-sysfs_mbox_read(struct kobject *kobj, struct bin_attribute *bin_attr,
+-		char *buf, loff_t off, size_t count)
++sysfs_mbox_read(struct kobject *kobj, char *buf, loff_t off, size_t count)
+ {
+ 	struct Scsi_Host *host =
+ 		class_to_shost(container_of(kobj, struct class_device,
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
+process_zones-fix-recovery-code.patch
+remove-bdput-from-do_open-in-fs-block_devc.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+sysfs-crash-debugging.patch
+git-dma.patch
+git-dma-makefile-fix.patch
+disable-ioat.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+infiniband-work-around-gcc-slub-problem.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mmc-fixup.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
