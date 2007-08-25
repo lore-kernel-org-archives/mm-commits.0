@@ -1,797 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-documentation.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:37 -0700
-Message-ID: <200708250518.l7P5IbPR031894@imap1.linux-foundation.org>
+Subject: - pci-device-ensure-sysdata-initialised-v2.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:18:00 -0700
+Message-ID: <200708250518.l7P5I01u031825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59801 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754703AbXHYFSo (ORCPT
+	by vger.kernel.org with ESMTP id S1754709AbXHYFSp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:18:44 -0400
+	Sat, 25 Aug 2007 01:18:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     statistics infrastructure - documentation
+     pci device: ensure sysdata initialised
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-documentation.patch
+     pci-device-ensure-sysdata-initialised-v2.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: statistics infrastructure - documentation
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: pci device: ensure sysdata initialised
+From: Andy Whitcroft <apw@shadowen.org>
 
-Documentation for developers and users
+We have been seeing panics on NUMA systems in pci_call_probe() in
+2.6.19-rc1-mm1 and later.  This is related to the changes introduced in the
+commit below:
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+    [x86, PCI] Switch pci_bus::sysdata from NUMA node integer to a pointer
+    0a247a58fc3e2ecfc17654301033e8b8d08df2a2
+
+In this change the sysdata has changed from directly representing a value
+(the node number in NUMA) to a pointer to a structure.  However, it seems
+that we do not always initialise this sysdata before we probe the device.
+
+Prior to the changes above the node was defaulted to 'NULL' allocating the
+devices to node 0 unconditionally.  This patch adds a default sysdata entry
+(pci_default_sysdata), this is then used where 'NULL' was used previously. 
+pci_default_sysdata defaults the node to unknown (-1).  This is a more
+accurate assignment, mirroring the value returned where no topology support
+is provided and no locality information is available.
+
+There are only two uses of this value in the affected architectures
+(x86, x86_64) and generic code:
+
+1) in x86_64, dma_alloc_pages() looks up the node in order to
+   allocate node local memory.  Here if the node is invalid we
+   will default to the first online node.  Behaviour here should
+   be unchanged.
+2) in generic, pci_call_probe() looks up the node in order to
+   restrict execution of the probe on the card local node, to
+   favor node local allocation.  Where this is unknown previously
+   we would force execution (and thereby allocation) to node 0,
+   this is arguably wrong and using -1 releases this restriction.
+
+In an ideal world we should be supplying a sysdata for the appropriate node
+where it is known.  Where it is not known defaulting to -1 seems a better
+course, and would help us where node 0 is short of memory.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX       |    2 
- Documentation/statistics.txt |  741 +++++++++++++++++++++++++++++++++
- 2 files changed, 743 insertions(+)
+ arch/i386/pci/common.c   |    2 ++
+ arch/i386/pci/fixup.c    |    8 +++++---
+ arch/i386/pci/legacy.c   |    3 ++-
+ arch/i386/pci/numa.c     |    8 +++++---
+ arch/i386/pci/visws.c    |    4 ++--
+ include/asm-i386/pci.h   |    1 +
+ include/asm-x86_64/pci.h |    1 +
+ 7 files changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/00-INDEX~statistics-infrastructure-documentation Documentation/00-INDEX
---- a/Documentation/00-INDEX~statistics-infrastructure-documentation
-+++ a/Documentation/00-INDEX
-@@ -264,6 +264,8 @@ stable_kernel_rules.txt
- 	- rules and procedures for the -stable kernel releases.
- stallion.txt
- 	- info on using the Stallion multiport serial driver.
-+statistics.txt
-+	- info on statistics infrastructure available for drivers and others
- svga.txt
- 	- short guide on selecting video modes at boot via VGA BIOS.
- sx.txt
-diff -puN /dev/null Documentation/statistics.txt
---- /dev/null
-+++ a/Documentation/statistics.txt
-@@ -0,0 +1,741 @@
-+
-+  Statistics infrastructure
-+
-+0. Which problems is it meant to solve?
-+1. Concepts
-+2. Performance
-+3. Modes of data processing
-+4. User interface
-+5. Programming interface
-+6. Possible future enhancements and known bugs
-+7. Contact
-+
-+
-+
-+
-+  0. Which problems is it meant to solve?
-+
-+This common code layer implements statistics in a device driver independent
-+and architecture independent way. It minimizes the effort by providing a simple
-+programming interface. Added benefit is a generic user interface.
-+
-+
-+
-+
-+  1. Concepts
-+
-+	Overview
-+
-+The following figure depicts how the statistics infrastructure
-+fits into the global picture, and how it interacts with both exploiting
-+kernel code as well as users.
-+
-+ USER	       :			KERNEL
-+	       :
-+	  user	       statistics	     programming
-+	  interface    infrastructure	     interface	  exploiter
-+	       :       +------------------+	  :	  +-----------------+
-+	       :       | process data and |	  :	  | collect and     |
-+ "data"        :       | provide output   |	(X, Y)	  | report data     |
-+  <====================| to user	  |<==============| as (X, Y) pairs |
-+ file	       :       |	 ^	  |	  :	  |		    |
-+	       :       |	 ^	  |	  :	  |		    |
-+	       :       |	 ^	  |	  :	  |		    |
-+	       :       |	 ^	  |	  :	  | create/discard  |
-+ "definition"  :       | display settings |	  :	  | statistics,     |
-+  <===================>| and accept	  |<==============| provide default |
-+ file	       :       | changed settings |	  :	  | settings	    |
-+	       :       +------------------+	  :	  +-----------------+
-+	       :				  :
-+
-+Actual semantics of the data that feeds a statistic is unimportant when it
-+comes to data processing. All that matters is how the user wants the data to
-+be presented (counters, histograms, and so on). That's a job that can be
-+be done by a generic layer without intervention by the device driver
-+which is the actual source of statistics data.
-+
-+
-+	The role of the statistics infrastructure
-+
-+It is the statistic infrastructure's task to accept or drop, accumulate,
-+compute and store, as well as display statistics data according to the
-+current settings.
-+
-+
-+	The role of exploiters
-+
-+It is the exploiter's (e.g. device driver's) responsibility to feed the
-+statistics infrastructure with sampled data for the statistics maintained by the
-+statistics infrastructure on behalf of the exploiter.
-+
-+It would be nice of any exploiter to provide a default configuration for each
-+statistic that most likely works best for general purpose use.
-+
-+
-+	The role of users
-+
-+It is the user's freedom to configure how accumulation, computation and
-+display of data are done, according to their needs.
-+
-+
-+	The form of reported data
-+
-+Exploiters report data in the form of (X, Y) value pairs with X being
-+a quantity for the main characteristic of the statistic, like a request size
-+or request latency, and with Y being a qualifier for that characteristic,
-+i.e. the occurrence of a particular X-value.
-+
-+Thus, the Y-part can be seen as an optimisation that allows exploiters
-+to report a bunch of similar measurements in one call (see statistic_add()).
-+For the programmer's convenience, Y can be omitted when it would be always 1
-+(see statistic_inc()).
-+
-+
-+	How data is reported
-+
-+There are two methods how such data can be provided to the statistics
-+infrastructure, a push interface and a pull interface. Each statistic
-+is either a pull-type or push-type statistic as determined by the exploiter.
-+
-+The push-interface is suitable for data feeds that report incremental updates
-+to statistics, and where actual accumulation can be left to the statistics
-+infrastructure. New measurements usually trigger pushing data.
-+(see statistics_add() and statistic_inc())
-+
-+The pull-interface is suitable for data that already comes in an aggregated
-+form, like hardware measurement data or counters already maintained and
-+used by exploiters for other purposes. Reading statistics data from files
-+triggers an optional callback of the exploiter, which can update pull-type
-+statistics then (see statistic_set()).
-+
-+
-+	How data is processed
-+
-+(X, Y) pairs can be processed in different ways by the statistics
-+infrastructure, according to the current settings applicable to a
-+particular statistic.
-+
-+For example, X might be used to distinguish certain buckets (see histogram).
-+Minimum, average and maximum X values might be determined (see utilisation).
-+Y might be summed up (see counter, for example).
-+
-+See below for a reference of processing options.
-+
-+Please note that the statistics infrastructure does not care about the
-+actual semantics of (X, Y), and that it just adheres to abstract rules
-+describing what to do with (X, Y) pairs for certain settings.
-+It is up to the user to interpret processed data, to add semantics
-+back to it, and to choose settings and, therewith, data processing modes
-+according to their needs.
-+
-+
-+	How statistics are organised
-+
-+Statistics are grouped within "interfaces" (debugfs entries) by exploiters,
-+in order to reflect collections of related statistics of an entity,
-+which is also quite efficient with regard to memory use.
-+
-+ statistics infrastructure
-+    |
-+    +----- statistic interface
-+    |	      |
-+    |	      +----- statistic
-+    |	      |        (comprising definition and data)
-+    |	      |
-+    |	      +----- statistic
-+    |	      |
-+    |	      +----- statistic
-+    |	      |
-+    |	      :
-+    |
-+    |
-+    +----- statistic interface
-+    |	      |
-+    |	      +----- statistic
-+    |	      |
-+    :	      :
-+
-+The user interface, the programming interface and the internal data
-+structures are organised like this.
-+
-+
-+	Why debugfs for now
-+
-+While sysfs comes with a refined structure reflecting almost everything
-+in the system, it is (by design) not good at representing large and variable
-+amounts of data, that is, more than one value per file. As for statistics,
-+we could make good use of the former, but not of the latter.
-+
-+For example, the same statistic might work as a single counter, or as a
-+histogram comprising a variable (user-defined) number of buckets, or as an
-+adaptable list of buckets for sparse concrete values, etc. Whatever the result
-+looks like should be left to the individual modes of data processing.
-+In order to reduce all kinds of data processing and their output to a common
-+denominator, an output format along the following lines is suggested and
-+has been implemented:
-+
-+  latency_write <=0 0			\
-+  latency_write <=1 13			|
-+  latency_write <=2 13			|
-+  latency_write <=4 56			|
-+  latency_write <=8 144			|
-+  latency_write <=16 184		| a histogran with
-+  latency_write <=32 181		> 13 buckets
-+  latency_write <=64 74			|
-+  latency_write <=128 271		|
-+  latency_write <=256 0			|
-+  latency_write <=512 33		|
-+  latency_write <=1024 0		|
-+  latency_write >1024 0			/
-+  latency_read <=0 0				\
-+  ...						> another histogram
-+  latency_read >1024 0				/
-+  size_write missed 0x0			\
-+  size_write 0x1000 143			|
-+  size_write 0xc000 42			|
-+  size_write 0x10000 14			| an adaptable list
-+  size_write 0xf000 13			> with a growing number of buckets
-+  size_write 0x1e000 12			| (up to a defined limit only)
-+  size_write 0x14000 12			|
-+  ...					|
-+  size_write 0x9000 1			/
-+  queue_used_depth 970 1 18.122 32		> num min avg max for a queue
-+
-+Such output can grow as needed in debugfs files. It is human-readable and
-+could be parsed and postprocessed by simple scripts that are aware of what the
-+output of the various data processing modes looks like.
-+
-+
-+	State machine
-+
-+Each statistic has a state that should be initialised by exploiters.
-+Users probably want to adjust this state, e.g. enable
-+data gathering. Defined states and transitions are:
-+
-+  state=unconfigured	(mode of data processing has not yet been defined)
-+	A
-+	|
-+	|
-+	V
-+  state=released	(mode of data processing has been defined, but memory
-+	A		 required for data gathering has not yet been allocated
-+	|		 - would be a good default setup provided by exploiters)
-+	|
-+	V
-+  state=off		(all memory required for the defined mode of data
-+	A		 processing has been allocated, but data gathering is
-+	|		 currently disabled - data available to users, though)
-+	|
-+	V
-+  state=on		(data gathering is enabled and being done according to
-+			 the currently defined processing mode - data available
-+			 to users)
-+
-+How to alter states is explained in the user interface section of this document.
-+
-+
-+
-+
-+  2. Performance
-+
-+
-+	Some preliminary numbers
-+
-+FIXME
-+
-+	Per-CPU data
-+
-+Measurements reported by exploiters are accumulated into per-CPU data areas
-+in order to avoid the introduction of serialisation during the
-+execution of statistic_add(). Locking of per-CPU data is done by disabling
-+preemption and interrupts per CPU for the short time of a statistic update.
-+
-+Per-CPU data is not used if a statistic doesn't collect incremental data,
-+i.e. if is only updated using statistic_set().
-+
-+
-+	Path length of statistic_add() & friends
-+
-+Some flexibility and functionality are achieved on the expense of slightly
-+increased path length.
-+
-+A function pointer is used to implement different data processing modes
-+users can choose from.
-+
-+Individual data processing modes might come with their particular knobs,
-+e.g. resolution or precision. That means that the statistics infrastructure
-+has to retrieve some values required for calculation at run time.
-+
-+
-+	Memory footprint
-+
-+Because the statistics code uses per-CPU data, it observes CPU hot-(un)plug
-+events and allocates and releases per-CPU data as sparingly as possible.
-+
-+The differentiation of:
-+
-+- struct statistic (any data required for gathering data for a statistic),
-+- struct statistic_info (description of a class of statistics),
-+- struct statistic_discipline (description of a data processing mode), and
-+- struct statistic_interface (user interface for a collection of statistics)
-+
-+means avoidance of storing redundant data per statistic. Struct statistic
-+can be kept quite small.
-+
-+
-+	Disabling statistics
-+
-+Data gathering can be turned off (by default or by users), which reduces
-+statistic_add() to a check.
-+
-+
-+	Kernel configuration option
-+
-+CONFIG_STATISTICS can be used to include or exclude statistics during the
-+kernel build process.
-+
-+
-+
-+
-+  3. Modes of data processing
-+
-+So far, available are:
-+
-+
-+	type=counter_inc
-+
-+A counter sums up all Y-values of (X, Y) data pairs reported, regardless of the
-+X-part.
-+
-+For example, a (request size, occurrence)-statistic would yield the
-+total of requests observed.
-+
-+
-+	type=counter_prod
-+
-+A counter sums up all X*Y with X and Y belonging to the same (X, Y).
-+
-+For example, a (request size, occurrence)-statistic would yield the
-+total of bytes transfered.
-+
-+
-+	type=utilisation
-+
-+Provides a set of values comprising:
-+- the sum of all Y-values,
-+- the minimum X
-+- the average X
-+- the maximum X
-+
-+This appears to be a useful fill level indicator for queues etc.
-+
-+For example, a (request size, occurrence)-statistic would yield a very
-+basic statement about the traffic pattern, with information about the range
-+of request sizes observed.
-+
-+
-+	type=histogram_lin
-+
-+Comprises a set of counters, with each counter summing up all those Y-values
-+reported for an assigned range or interval of X-values. All intervals of
-+X-values are equal.
-+
-+Additional required parameters include:
-+- entries (number of buckets, at least 2 required)
-+- range_min (first bucket stands for <=range_min)
-+- base_interval (interval size each bucket covers)
-+
-+For example, a (request size, occurrence)-statistic would yield a histogram
-+of observed request sizes, with the same precision for small, medium and
-+large request sizes.
-+
-+
-+	type=histogram_log2
-+
-+Similar to type=histogram_lin, except that the intervals double
-+from bucket to bucket. That is, the histogram loses in precision for
-+larger X-values.
-+
-+
-+	type=sparse
-+
-+This one is similar to other histograms, with the exception that it provides
-+buckets for discrete X-values instead of ranges of X-values. Since it
-+utilises a list instead of an array, it is suited for compiling histogram-like
-+results for rather few, sparse X-values which users want to measure
-+separately.
-+
-+Additional required parameters include:
-+- entries (list is capped at this number of entries)
-+
-+For example, a (request size, occurrence)-statistic would yield the
-+occurrences of all request sizes. Since it records precise sizes,
-+it can also show the odd one out, which might be problematic; who knows...
-+
-+
-+	Other
-+
-+The statistic infrastructure has been designed to make the addition
-+of more ways of data processing easy (see struct statistic_discipline).
-+
-+For example, two more types had been implemented which are not included
-+in the source code:
-+
-+- A "raw" type statistic which provides a record of (X, Y)-pairs.
-+  Nice for verification and debugging purposes.
-+
-+- An enhancement of other basic types, like "counter" or "utilisation"
-+  by the dimension time, which provides a time-tagged history of their
-+  results for successive periods of time.
-+  For example, a (request size, occurrence)-statistic could yield the
-+  transfer rate over time, like bytes per second.
-+
-+
-+
-+
-+  4. User interface
-+
-+	Locating statistics
-+
-+The statistics infrastructure's user interface is in the
-+/sys/kernel/debug/statistics directory, assuming debugfs has been mounted at
-+/sys/kernel/debug.  The "statistics" directory holds interface subdirectories
-+created on the behalf of exploiters, for example:
-+
-+  drwxr-xr-x 2 root root 0 Jul 28 02:16 zfcp-0.0.50d4
-+
-+An interface subdirectory contains two files, a data and a definition file:
-+
-+  -r-------- 1 root root 0 Jul 28 02:16 data
-+  -rw------- 1 root root 0 Jul 28 02:16 definition
-+
-+
-+	The "definition" file
-+
-+The statistics infrastructure processes reported data according to the
-+settings in the definition file, particularly the type attribute. You
-+can change some statistic attributes and thereby change how data is
-+processed.
-+
-+Some of the attributes shown are common to all statistics, others only apply
-+to specific statistic type of data processing (see there for description).
-+Some attributes can be changed by users, others are read-only. All timestamps
-+are in the style of printk-timestamps.
-+
-+
-+	Common statistic attributes
-+
-+  Attribute	Changeable	Comment
-+
-+  name		No		The device driver provides the name that
-+				defines a statistic.
-+
-+  units		No		Units defines what the device driver reports
-+				as (X, Y) pair.
-+
-+  state		Yes		Valid assignments are
-+				on, off, released, unconfigured.
-+				Note: Transition from unconfigured requires
-+				the specification of type and all
-+				additional attributes for that type.
-+
-+  type		Yes		The attribute determines the way sampled data
-+				is processed and displayed. See corresponding
-+				section in this document for valid assignements.
-+
-+  data		No		The age of sampled data, that is, the time
-+				since last reset.
-+
-+  started	No		The last time the statistic was started.
-+				Depends on the state attribute.
-+
-+  stopped	No		The last time the statistic was stopped.
-+				Depends on the state attribute.
-+
-+
-+	Changing statistics
-+
-+Here are some commented examples. This is how we start off:
-+
-+  [scsi-0:0:0:0]# head -n 1 definition
-+  name=issued_write state=off units=bytes/request type=sparse entries=256
-+  data=[7283835.951603] started=[7283835.951604] stopped=[7283856.502492]
-+
-+Let's get rid of any data and setup for this particular statistic:
-+
-+  [scsi-0:0:0:0]# echo name=issued_write state=unconfigured > definition;
-+  head -n 1 definition
-+  name=issued_write state=unconfigured units=bytes/request
-+
-+Redefine the statistic without enabling data gathering:
-+
-+  [scsi-0:0:0:0]# echo name=issued_write type=utilisation > definition;
-+  head -n 1 definition
-+  name=issued_write state=released units=bytes/request type=utilisation
-+
-+Enable data gathering:
-+
-+  [scsi-0:0:0:0]# echo name=issued_write state=on > definition;
-+  head -n 1 definition
-+  name=issued_write state=on units=bytes/request type=utilisation
-+  data=[7284319.773163] started=[7284319.773170] stopped=[7283856.502492]
-+
-+Discard data without changing any settings (note the time stamps):
-+
-+  [scsi-0:0:0:0]# echo name=issued_write data=reset > definition;
-+  head -n 1 definition
-+  name=issued_write state=on units=bytes/request type=utilisation
-+  data=[7284495.638893] started=[7284495.638894] stopped=[7284495.638844]
-+
-+Change statistic back to defaults as provided by device driver:
-+(Note this discards all data.)
-+
-+  [scsi-0:0:0:0]# echo name=issued_write defaults > definition;
-+  head -n 1 definition
-+  name=issued_write state=on units=bytes/request type=sparse entries=256
-+  data=[7284603.624271] started=[7284603.624273] stopped=[7284603.624199]
-+
-+Change a type specific attribute - here, reduce maximum list size:
-+(Note this discards all data.)
-+
-+  [scsi-0:0:0:0]# echo name=issued_write entries=16 > definition;
-+  head -n 1 definition
-+  name=issued_write state=on units=bytes/request type=sparse entries=16
-+  data=[7285008.933757] started=[7285008.933758] stopped=[7285008.933699]
-+
-+Turn data gathering off and release all resources allocated:
-+
-+  [scsi-0:0:0:0]# echo name=issued_write state=released > definition;
-+  head -n 1 definition
-+  name=issued_write state=released units=bytes/request type=sparse entries=256
-+
-+One can either write the entire line describing a statistic, including
-+read-only attributes (which are ignored by the statistics infrastructure, as
-+is any junk). Or one may modify single attributes, assuming this results
-+in a valid configuration.
-+
-+This simplifies the procedures (copy, paste to command line,
-+modify command line, echo attributes from command line into definition file)
-+and (cat to file, modify file content, cat file back into definition file).
-+
-+Some operations can be done in an atomic fashion for all statistics grouped
-+within the scope of an interface. Simply omit the name= attribute:
-+
-+  echo state=on > definition
-+
-+  echo data=reset > definition
-+
-+  echo defaults > definition
-+
-+
-+	Reading statistic output from the "data" file
-+
-+The "data" file contains the output of all statistics available through a
-+particular interface. File content comes in ASCII. Depending on the type of a
-+statistic, the output for a statistic consists of a single line or a bunch
-+of lines. Each line delivers one value or one result of a statistic and
-+consists of several strings separated by spaces. The beginning of each line
-+is tagged with the name of the statistic the line belongs to. The rest of
-+a line is statistic-type specific. The content of a "data" might look like
-+this:
-+
-+  foo 0x1000 4
-+  foo 0x2000 1
-+  foo 0x5000 2
-+  bar 961 1 42.000 128
-+
-+
-+	Output formats of different statistic types
-+
-+  Statistic Type	Output Format				Number of Lines
-+
-+  counter_inc		<name> <total of Y>				1
-+
-+  counter_prod		<name> <total of Xi*Yi>				1
-+
-+  utilisation		<name> <total of Y> <min X> <avg X> <max X>	1
-+
-+  sparse		<name> <Xn> <total of Y for Xn>		<= entries
-+			...
-+
-+  histogram_lin		<name> "<="<Xn> <Y-total for interval>	number of
-+  histogram_log2	...					intervals as
-+			<name> ">"<Xm> <Y-total for interval>	determined by
-+								base_interval,
-+								entries and
-+								range_min
-+
-+For sample output please see above.
-+
-+
-+
-+
-+  5. Programming interface
-+
-+The programming interface can be retrieved from the kernel-doc-style comments
-+available for all interface functions. Programming examples can be found in
-+drivers/scsi and drivers/s390/scsi.
-+
-+
-+	Creating statistics
-+
-+Assuming one wants to embed an array of statistics into a structure
-+representing some entity, the following members need to be added:
-+
-+  struct my_entity {
-+	  ...
-+	  struct statistic_interface	stat_int;
-+	  struct statistic		stat[N];
-+  }
-+
-+stat is an array of N statistics of various sorts.
-+
-+Since one might want to create several instances of struct my_entity
-+each coming with its own set of statistics (stat[N]) setup using the
-+same template, provisions for such a template have been made as part of the
-+programming interface. An array of struct statistic_info complements an
-+array of struct statistic.
-+
-+  struct statistic_info[] {
-+	  { "refund", "cent", "bottle", 0, "type=counter_prod" },
-+	  { "fill_level", "millilitre", "bottle", 1, "type=utilisation" },
-+	  ...
-+  } my_entity_stat_info;
-+
-+An enum that helps addressing individual statistics of an array comes in handy:
-+
-+  enum my_entitiy_stat_num {
-+	  MY_ENTITY_STAT_REFUND,
-+	  MY_ENTITY_STAT_FILL,
-+	  ...
-+	  N
-+  };
-+
-+Now, here is how to tie the knot for statistics and templates:
-+
-+  {
-+	  struct my_entity *one;
-+	  ...
-+
-+	  /* required */
-+	  one->stat_int.stat = one->stat;
-+	  one->stat_int.info = my_entity_stat_info;
-+	  one->stat_int.number = N;
-+
-+	  /* Optional callback triggers update of MY_ENTITY_STAT_FILL
-+	     when user reads statistic data from file */
-+	  one->stat_int.pull = my_entity_pull_fn;
-+	  one->stat_int.pull_private = one;
-+
-+	  retval = statistic_create(&one->stat_int, "bottled_stats");
-+	  /* now we can report statistics data */
-+	  ...
-+  }
-+
-+
-+	Reporting statistics data
-+
-+Add statistic_add*() or statistic_inc*() calls where appropriate for
-+reporting statistics data. Data to be reported through these functions has the
-+form of (X, Y) as explained above:
-+
-+  {
-+	  struct my_entity *one;
-+	  ...
-+
-+	  statistic_add(&one->stat, MY_ENTITY_STAT_REFUND, pennies, bottles);
-+	  ...
-+  }
-+
-+Which is equivalent to:
-+
-+  {
-+	  struct my_entity *one;
-+	  int i;
-+	  ...
-+
-+	  for (i = 0; i < bottles; i++)
-+		  statistic_inc(&one->stat, MY_ENTITY_STAT_REFUND, pennies);
-+	  ...
-+  }
-+
-+Of course, this example is not optimal. It tries to show how statistic_add() and
-+statistic_inc() compare. Sometimes statistic_inc() might be just what you need.
-+
-+If there is a bunch of statistics to be updated in one go, consider these
-+flavours of statistic_add() which require the exploiter to lock per-CPU data
-+in one go for improved performance:
-+
-+  {
-+	  struct my_entity *one;
-+	  unsigned long flags;
-+	  ...
-+
-+	  local_irq_save(flags);
-+	  statistic_inc_nolock(&one->stat, MY_ENTITY_STAT_X, x);
-+	  statistic_inc_nolock(&one->stat, MY_ENTITY_STAT_Y, y);
-+	  statistic_add_nolock(&one->stat, MY_ENTITY_STAT_Z, z, number);
-+	  ...
-+	  local_irq_restore(flags);
-+  }
-+
-+The above examples show statistics that feed on incremental updates that
-+get accumulated by the statistics infrastructure on top of data already
-+gathered by the statistics infrastructure.
-+That is why statistic_add() or statistic_inc() respectively are used.
-+
-+There might be statistics that come as total numbers, e.g. because they feed
-+on counters already maintained by the exploiter or some hardware feature.
-+These numbers can be exported through the statistics infrastructure along
-+with any other statistic. In this case, use statistic_set() to report data.
-+Usually it is sufficient to do so when the user opens the corresponding
-+file to read statistic data. This will trigger the optional callback function
-+to be executed. Place statistic_set() calls there. In the same context calling
-+statistic_add() or statistic_inc() for other statistics that feed on
-+incremental data works as well, in case that's needed:
-+
-+  my_entity_stat_pull_fn(void *__one)
-+  {
-+	  struct my_entity *one = __one;
-+	  ...
-+
-+	  statistic_set(&one->stat, MY_ENTITY_STAT_FILL, one->fill, 1);
-+	  ...
-+  }
-+
-+
-+	Removing statistics
-+
-+The function statistic_remove() cleans up an entire interface with
-+all statistics attached:
-+
-+  {
-+	  struct my_entity *one;
-+	  ...
-+
-+	  /* by this time we must have ceased reporting statistics data */
-+	  retval = statistic_remove(&one->stat_int);
-+	  ...
-+  }
-+
-+
-+	Adding a another data processing mode
-+
-+There is a statistics infrastructure internal programmimg interface that
-+allows to add other data processing modes fairly easily.
-+Please see kernel-doc description of struct statistics_discipline.
-+
-+
-+
-+
-+  6. Possible future enhancements / known bugs
-+
-+There are several possible enhancements and optimizations documented
-+at the head of lib/statistic.c, where I keep track of bugs as well.
-+
-+
-+
-+
-+  7. Contact
-+
-+See MAINTAINERS file.
+diff -puN arch/i386/pci/common.c~pci-device-ensure-sysdata-initialised-v2 arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~pci-device-ensure-sysdata-initialised-v2
++++ a/arch/i386/pci/common.c
+@@ -27,6 +27,8 @@ unsigned long pirq_table_addr;
+ struct pci_bus *pci_root_bus;
+ struct pci_raw_ops *raw_pci_ops;
+ 
++struct pci_sysdata pci_default_sysdata = { .node = -1 };
++
+ static int pci_read(struct pci_bus *bus, unsigned int devfn, int where, int size, u32 *value)
+ {
+ 	return raw_pci_ops->read(pci_domain_nr(bus), bus->number,
+diff -puN arch/i386/pci/fixup.c~pci-device-ensure-sysdata-initialised-v2 arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~pci-device-ensure-sysdata-initialised-v2
++++ a/arch/i386/pci/fixup.c
+@@ -25,9 +25,11 @@ static void __devinit pci_fixup_i450nx(s
+ 		pci_read_config_byte(d, reg++, &subb);
+ 		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
+ 		if (busno)
+-			pci_scan_bus(busno, &pci_root_ops, NULL);	/* Bus A */
++			pci_scan_bus(busno, &pci_root_ops,
++					&pci_default_sysdata);	/* Bus A */
+ 		if (suba < subb)
+-			pci_scan_bus(suba+1, &pci_root_ops, NULL);	/* Bus B */
++			pci_scan_bus(suba+1, &pci_root_ops,
++					&pci_default_sysdata);	/* Bus B */
+ 	}
+ 	pcibios_last_bus = -1;
+ }
+@@ -42,7 +44,7 @@ static void __devinit pci_fixup_i450gx(s
+ 	u8 busno;
+ 	pci_read_config_byte(d, 0x4a, &busno);
+ 	printk(KERN_INFO "PCI: i440KX/GX host bridge %s: secondary bus %02x\n", pci_name(d), busno);
+-	pci_scan_bus(busno, &pci_root_ops, NULL);
++	pci_scan_bus(busno, &pci_root_ops, &pci_default_sysdata);
+ 	pcibios_last_bus = -1;
+ }
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82454GX, pci_fixup_i450gx);
+diff -puN arch/i386/pci/legacy.c~pci-device-ensure-sysdata-initialised-v2 arch/i386/pci/legacy.c
+--- a/arch/i386/pci/legacy.c~pci-device-ensure-sysdata-initialised-v2
++++ a/arch/i386/pci/legacy.c
+@@ -26,7 +26,8 @@ static void __devinit pcibios_fixup_peer
+ 			    l != 0x0000 && l != 0xffff) {
+ 				DBG("Found device at %02x:%02x [%04x]\n", n, devfn, l);
+ 				printk(KERN_INFO "PCI: Discovered peer bus %02x\n", n);
+-				pci_scan_bus(n, &pci_root_ops, NULL);
++				pci_scan_bus(n, &pci_root_ops,
++						&pci_default_sysdata);
+ 				break;
+ 			}
+ 		}
+diff -puN arch/i386/pci/numa.c~pci-device-ensure-sysdata-initialised-v2 arch/i386/pci/numa.c
+--- a/arch/i386/pci/numa.c~pci-device-ensure-sysdata-initialised-v2
++++ a/arch/i386/pci/numa.c
+@@ -97,9 +97,11 @@ static void __devinit pci_fixup_i450nx(s
+ 		pci_read_config_byte(d, reg++, &subb);
+ 		DBG("i450NX PXB %d: %02x/%02x/%02x\n", pxb, busno, suba, subb);
+ 		if (busno)
+-			pci_scan_bus(QUADLOCAL2BUS(quad,busno), &pci_root_ops, NULL);	/* Bus A */
++			pci_scan_bus(QUADLOCAL2BUS(quad,busno), &pci_root_ops,
++					&pci_default_sysdata);	/* Bus A */
+ 		if (suba < subb)
+-			pci_scan_bus(QUADLOCAL2BUS(quad,suba+1), &pci_root_ops, NULL);	/* Bus B */
++			pci_scan_bus(QUADLOCAL2BUS(quad,suba+1), &pci_root_ops,
++					&pci_default_sysdata);	/* Bus B */
+ 	}
+ 	pcibios_last_bus = -1;
+ }
+@@ -124,7 +126,7 @@ static int __init pci_numa_init(void)
+ 			printk("Scanning PCI bus %d for quad %d\n", 
+ 				QUADLOCAL2BUS(quad,0), quad);
+ 			pci_scan_bus(QUADLOCAL2BUS(quad,0), 
+-				&pci_root_ops, NULL);
++				&pci_root_ops, &pci_default_sysdata);
+ 		}
+ 	return 0;
+ }
+diff -puN arch/i386/pci/visws.c~pci-device-ensure-sysdata-initialised-v2 arch/i386/pci/visws.c
+--- a/arch/i386/pci/visws.c~pci-device-ensure-sysdata-initialised-v2
++++ a/arch/i386/pci/visws.c
+@@ -101,8 +101,8 @@ static int __init pcibios_init(void)
+ 		"bridge B (PIIX4) bus: %u\n", pci_bus1, pci_bus0);
+ 
+ 	raw_pci_ops = &pci_direct_conf1;
+-	pci_scan_bus(pci_bus0, &pci_root_ops, NULL);
+-	pci_scan_bus(pci_bus1, &pci_root_ops, NULL);
++	pci_scan_bus(pci_bus0, &pci_root_ops, &pci_default_sysdata);
++	pci_scan_bus(pci_bus1, &pci_root_ops, &pci_default_sysdata);
+ 	pci_fixup_irqs(visws_swizzle, visws_map_irq);
+ 	pcibios_resource_survey();
+ 	return 0;
+diff -puN include/asm-i386/pci.h~pci-device-ensure-sysdata-initialised-v2 include/asm-i386/pci.h
+--- a/include/asm-i386/pci.h~pci-device-ensure-sysdata-initialised-v2
++++ a/include/asm-i386/pci.h
+@@ -8,6 +8,7 @@ struct pci_sysdata {
+ 	int		domain;		/* PCI domain */
+ 	int		node;		/* NUMA node */
+ };
++extern struct pci_sysdata pci_default_sysdata;
+ 
+ #ifdef CONFIG_PCI_DOMAINS
+ static inline int pci_domain_nr(struct pci_bus *bus)
+diff -puN include/asm-x86_64/pci.h~pci-device-ensure-sysdata-initialised-v2 include/asm-x86_64/pci.h
+--- a/include/asm-x86_64/pci.h~pci-device-ensure-sysdata-initialised-v2
++++ a/include/asm-x86_64/pci.h
+@@ -10,6 +10,7 @@ struct pci_sysdata {
+ 	int		node;		/* NUMA node */
+ 	void*		iommu;		/* IOMMU private data */
+ };
++extern struct pci_sysdata pci_default_sysdata;
+ 
+ #ifdef CONFIG_PCI_DOMAINS
+ static inline int pci_domain_nr(struct pci_bus *bus)
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from apw@shadowen.org are
+
+origin.patch
+mips-irix_getcontext-will-always-fail-efault.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+rename-gfp_high_movable-to-gfp_highuser_movable-prefetch.patch
+page-owner-tracking-leak-detector.patch
