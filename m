@@ -1,446 +1,816 @@
 From: akpm@linux-foundation.org
-Subject: - statistics-infrastructure-exploitation-zfcp.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 22:18:40 -0700
-Message-ID: <200708250518.l7P5Ie2w031899@imap1.linux-foundation.org>
+Subject: - remove-pci_dac_dma_-apis.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 22:18:22 -0700
+Message-ID: <200708250518.l7P5IM7O031875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55154 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48928 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754743AbXHYFSr (ORCPT
+	by vger.kernel.org with ESMTP id S1754937AbXHYFSx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 25 Aug 2007 01:18:47 -0400
+	Sat, 25 Aug 2007 01:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mp3@de.ibm.com, aherrman@de.ibm.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, ak@suse.de, davem@davemloft.net, greg@kroah.com, hch@infradead.org, jeff@garzik.org, jesse.barnes@intel.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     statistics infrastructure - exploitation: zfcp
+     remove pci_dac_dma_... APIs
 has been removed from the -mm tree.  Its filename was
-     statistics-infrastructure-exploitation-zfcp.patch
+     remove-pci_dac_dma_-apis.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: statistics infrastructure - exploitation: zfcp
-From: Martin Peschke <mp3@de.ibm.com>
+Subject: remove pci_dac_dma_... APIs
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Instrument the zfcp driver and makes it feed statistics data into the
-statistics infrastructure.
+Based on replies to a respective query, remove the pci_dac_dma_...() APIs
+(except for pci_dac_dma_supported() on Alpha, where this function is used
+in non-DAC PCI DMA code).
 
-Signed-off-by: Martin Peschke <mp3@de.ibm.com>
-Acked-by: Andreas Herrmann <aherrman@de.ibm.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Acked-by: David Miller <davem@davemloft.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/scsi/zfcp_aux.c  |   55 ++++++++++++++++++++++++++++++++
- drivers/s390/scsi/zfcp_ccw.c  |   40 +++++++++++++++++++++++
- drivers/s390/scsi/zfcp_def.h  |   23 +++++++++++++
- drivers/s390/scsi/zfcp_erp.c  |    2 +
- drivers/s390/scsi/zfcp_fsf.c  |   49 +++++++++++++++++++++++++++-
- drivers/s390/scsi/zfcp_fsf.h  |   12 ++++++
- drivers/s390/scsi/zfcp_qdio.c |    4 ++
- 7 files changed, 182 insertions(+), 3 deletions(-)
+ Documentation/DMA-mapping.txt     |  103 ----------------------------
+ arch/alpha/kernel/pci_iommu.c     |   32 +-------
+ arch/mips/pci/Makefile            |    2 
+ arch/mips/pci/pci-dac.c           |   79 ---------------------
+ arch/x86_64/kernel/pci-dma.c      |    3 
+ include/asm-alpha/pci.h           |   24 ------
+ include/asm-arm/pci.h             |    5 -
+ include/asm-cris/pci.h            |   32 --------
+ include/asm-frv/pci.h             |    3 
+ include/asm-i386/pci.h            |   33 --------
+ include/asm-ia64/pci.h            |    8 --
+ include/asm-m68knommu/pci.h       |    6 -
+ include/asm-mips/pci.h            |   14 ---
+ include/asm-parisc/pci.h          |    3 
+ include/asm-powerpc/dma-mapping.h |    1 
+ include/asm-powerpc/pci.h         |   18 ----
+ include/asm-ppc/pci.h             |    6 -
+ include/asm-sh/pci.h              |    5 -
+ include/asm-sh64/pci.h            |    5 -
+ include/asm-sparc/pci.h           |    2 
+ include/asm-sparc64/pci.h         |   43 -----------
+ include/asm-v850/rte_cb.h         |    1 
+ include/asm-x86_64/pci.h          |   40 ----------
+ include/asm-xtensa/pci.h          |    3 
+ 24 files changed, 7 insertions(+), 464 deletions(-)
 
-diff -puN drivers/s390/scsi/zfcp_aux.c~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_aux.c
---- a/drivers/s390/scsi/zfcp_aux.c~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_aux.c
-@@ -803,6 +803,51 @@ zfcp_get_adapter_by_busid(char *bus_id)
- 	return found ? adapter : NULL;
+diff -puN Documentation/DMA-mapping.txt~remove-pci_dac_dma_-apis Documentation/DMA-mapping.txt
+--- a/Documentation/DMA-mapping.txt~remove-pci_dac_dma_-apis
++++ a/Documentation/DMA-mapping.txt
+@@ -664,109 +664,6 @@ It is that simple.
+ Well, not for some odd devices.  See the next section for information
+ about that.
+ 
+-	DAC Addressing for Address Space Hungry Devices
+-
+-There exists a class of devices which do not mesh well with the PCI
+-DMA mapping API.  By definition these "mappings" are a finite
+-resource.  The number of total available mappings per bus is platform
+-specific, but there will always be a reasonable amount.
+-
+-What is "reasonable"?  Reasonable means that networking and block I/O
+-devices need not worry about using too many mappings.
+-
+-As an example of a problematic device, consider compute cluster cards.
+-They can potentially need to access gigabytes of memory at once via
+-DMA.  Dynamic mappings are unsuitable for this kind of access pattern.
+-
+-To this end we've provided a small API by which a device driver
+-may use DAC cycles to directly address all of physical memory.
+-Not all platforms support this, but most do.  It is easy to determine
+-whether the platform will work properly at probe time.
+-
+-First, understand that there may be a SEVERE performance penalty for
+-using these interfaces on some platforms.  Therefore, you MUST only
+-use these interfaces if it is absolutely required.  %99 of devices can
+-use the normal APIs without any problems.
+-
+-Note that for streaming type mappings you must either use these
+-interfaces, or the dynamic mapping interfaces above.  You may not mix
+-usage of both for the same device.  Such an act is illegal and is
+-guaranteed to put a banana in your tailpipe.
+-
+-However, consistent mappings may in fact be used in conjunction with
+-these interfaces.  Remember that, as defined, consistent mappings are
+-always going to be SAC addressable.
+-
+-The first thing your driver needs to do is query the PCI platform
+-layer if it is capable of handling your devices DAC addressing
+-capabilities:
+-
+-	int pci_dac_dma_supported(struct pci_dev *hwdev, u64 mask);
+-
+-You may not use the following interfaces if this routine fails.
+-
+-Next, DMA addresses using this API are kept track of using the
+-dma64_addr_t type.  It is guaranteed to be big enough to hold any
+-DAC address the platform layer will give to you from the following
+-routines.  If you have consistent mappings as well, you still
+-use plain dma_addr_t to keep track of those.
+-
+-All mappings obtained here will be direct.  The mappings are not
+-translated, and this is the purpose of this dialect of the DMA API.
+-
+-All routines work with page/offset pairs.  This is the _ONLY_ way to 
+-portably refer to any piece of memory.  If you have a cpu pointer
+-(which may be validly DMA'd too) you may easily obtain the page
+-and offset using something like this:
+-
+-	struct page *page = virt_to_page(ptr);
+-	unsigned long offset = offset_in_page(ptr);
+-
+-Here are the interfaces:
+-
+-	dma64_addr_t pci_dac_page_to_dma(struct pci_dev *pdev,
+-					 struct page *page,
+-					 unsigned long offset,
+-					 int direction);
+-
+-The DAC address for the tuple PAGE/OFFSET are returned.  The direction
+-argument is the same as for pci_{map,unmap}_single().  The same rules
+-for cpu/device access apply here as for the streaming mapping
+-interfaces.  To reiterate:
+-
+-	The cpu may touch the buffer before pci_dac_page_to_dma.
+-	The device may touch the buffer after pci_dac_page_to_dma
+-	is made, but the cpu may NOT.
+-
+-When the DMA transfer is complete, invoke:
+-
+-	void pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev,
+-					     dma64_addr_t dma_addr,
+-					     size_t len, int direction);
+-
+-This must be done before the CPU looks at the buffer again.
+-This interface behaves identically to pci_dma_sync_{single,sg}_for_cpu().
+-
+-And likewise, if you wish to let the device get back at the buffer after
+-the cpu has read/written it, invoke:
+-
+-	void pci_dac_dma_sync_single_for_device(struct pci_dev *pdev,
+-						dma64_addr_t dma_addr,
+-						size_t len, int direction);
+-
+-before letting the device access the DMA area again.
+-
+-If you need to get back to the PAGE/OFFSET tuple from a dma64_addr_t
+-the following interfaces are provided:
+-
+-	struct page *pci_dac_dma_to_page(struct pci_dev *pdev,
+-					 dma64_addr_t dma_addr);
+-	unsigned long pci_dac_dma_to_offset(struct pci_dev *pdev,
+-					    dma64_addr_t dma_addr);
+-
+-This is possible with the DAC interfaces purely because they are
+-not translated in any way.
+-
+ 		Optimizing Unmap State Space Consumption
+ 
+ On many platforms, pci_unmap_{single,page}() is simply a nop.
+diff -puN arch/alpha/kernel/pci_iommu.c~remove-pci_dac_dma_-apis arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~remove-pci_dac_dma_-apis
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -207,6 +207,10 @@ iommu_arena_free(struct pci_iommu_arena 
+ 		p[i] = 0;
  }
- 
-+static struct statistic_info zfcp_statinfo_u[] = {
-+	[ZFCP_STAT_U_CLW] = {
-+		.name	  = "channel_latency_write",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=17 "
-+			    "base_interval=1000 range_min=0"
-+	},
-+	[ZFCP_STAT_U_CLR] = {
-+		.name	  = "channel_latency_read",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=17 "
-+			    "base_interval=1000 range_min=0"
-+	},
-+	[ZFCP_STAT_U_CLN] = {
-+		.name	  = "channel_latency_nodata",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=17 "
-+			    "base_interval=1000 range_min=0"
-+	},
-+	[ZFCP_STAT_U_FLW] = {
-+		.name	  = "fabric_latency_write",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=13 "
-+			    "base_interval=1000000 range_min=0"
-+	},
-+	[ZFCP_STAT_U_FLR] = {
-+		.name	  = "fabric_latency_read",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=13 "
-+			    "base_interval=1000000 range_min=0"
-+	},
-+	[ZFCP_STAT_U_FLN] = {
-+		.name	  = "fabric_latency_nodata",
-+		.x_unit	  = "nanosec",
-+		.y_unit	  = "request",
-+		.defaults = "type=histogram_log2 entries=13 "
-+			    "base_interval=1000000 range_min=0"
-+	}
-+};
+ 
++/* True if the machine supports DAC addressing, and DEV can
++   make use of it given MASK.  */
++static int pci_dac_dma_supported(struct pci_dev *hwdev, u64 mask);
 +
- /**
-  * zfcp_unit_enqueue - enqueue unit to unit list of a port.
-  * @port: pointer to port where unit is added
-@@ -818,6 +863,7 @@ zfcp_unit_enqueue(struct zfcp_port *port
- 	struct zfcp_unit *unit, *tmp_unit;
- 	unsigned int scsi_lun;
- 	int found;
-+	char name[64];
+ /* Map a single buffer of the indicated size for PCI DMA in streaming
+    mode.  The 32-bit PCI bus mastering address to use is returned.
+    Once the device is given the dma address, the device owns this memory
+@@ -897,7 +901,7 @@ iommu_unbind(struct pci_iommu_arena *are
+ /* True if the machine supports DAC addressing, and DEV can
+    make use of it given MASK.  */
  
- 	/*
- 	 * check that there is no unit with this FCP_LUN already in list
-@@ -852,6 +898,14 @@ zfcp_unit_enqueue(struct zfcp_port *port
- 	/* mark unit unusable as long as sysfs registration is not complete */
- 	atomic_set_mask(ZFCP_STATUS_COMMON_REMOVE, &unit->status);
- 
-+	sprintf(name, "zfcp-%s-0x%016Lx-0x%016Lx",
-+		zfcp_get_busid_by_unit(unit), port->wwpn, fcp_lun);
-+	unit->stat_if.stat = unit->stat;
-+	unit->stat_if.info = zfcp_statinfo_u;
-+	unit->stat_if.number = _ZFCP_STAT_U_NUMBER;
-+	if (statistic_create(&unit->stat_if, name))
-+		printk("statistics are unavailable (%s)\n", name);
-+
- 	if (device_register(&unit->sysfs_device)) {
- 		kfree(unit);
- 		return NULL;
-@@ -898,6 +952,7 @@ zfcp_unit_dequeue(struct zfcp_unit *unit
- 	write_unlock_irq(&zfcp_data.config_lock);
- 	unit->port->units--;
- 	zfcp_port_put(unit->port);
-+	statistic_remove(&unit->stat_if);
- 	zfcp_sysfs_unit_remove_files(&unit->sysfs_device);
- 	device_unregister(&unit->sysfs_device);
- }
-diff -puN drivers/s390/scsi/zfcp_ccw.c~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_ccw.c
---- a/drivers/s390/scsi/zfcp_ccw.c~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_ccw.c
-@@ -132,6 +132,33 @@ zfcp_ccw_remove(struct ccw_device *ccw_d
- 	up(&zfcp_data.config_sema);
- }
- 
-+static struct statistic_info zfcp_statinfo_a[] = {
-+	[ZFCP_STAT_A_QOF] = {
-+		.name	  = "qdio_outb_full",
-+		.x_unit	  = "sbals_left",
-+		.y_unit	  = "",
-+		.defaults = "type=counter_inc"
-+	},
-+	[ZFCP_STAT_A_QO] = {
-+		.name	  = "qdio_outb",
-+		.x_unit	  = "sbals_used",
-+		.y_unit	  = "",
-+		.defaults = "type=utilisation"
-+	},
-+	[ZFCP_STAT_A_QI] = {
-+		.name	  = "qdio_inb",
-+		.x_unit	  = "sbals_used",
-+		.y_unit	  = "",
-+		.defaults = "type=utilisation"
-+	},
-+	[ZFCP_STAT_A_ERP] = {
-+		.name	  = "erp",
-+		.x_unit	  = "",
-+		.y_unit	  = "",
-+		.defaults = "type=counter_inc"
-+	}
-+};
-+
- /**
-  * zfcp_ccw_set_online - set_online function of zfcp driver
-  * @ccw_device: pointer to belonging ccw device
-@@ -145,6 +172,7 @@ static int
- zfcp_ccw_set_online(struct ccw_device *ccw_device)
+-int
++static int
+ pci_dac_dma_supported(struct pci_dev *dev, u64 mask)
  {
- 	struct zfcp_adapter *adapter;
-+	char name[14];
- 	int retval;
+ 	dma64_addr_t dac_offset = alpha_mv.pci_dac_offset;
+@@ -917,32 +921,6 @@ pci_dac_dma_supported(struct pci_dev *de
  
- 	down(&zfcp_data.config_sema);
-@@ -153,6 +181,15 @@ zfcp_ccw_set_online(struct ccw_device *c
- 	retval = zfcp_adapter_debug_register(adapter);
- 	if (retval)
- 		goto out;
-+
-+	sprintf(name, "zfcp-%s", zfcp_get_busid_by_adapter(adapter));
-+	adapter->stat_if.stat = adapter->stat;
-+	adapter->stat_if.info = zfcp_statinfo_a;
-+	adapter->stat_if.number = _ZFCP_STAT_A_NUMBER;
-+	retval = statistic_create(&adapter->stat_if, name);
-+	if (retval)
-+		goto out_stat_create;
-+
- 	retval = zfcp_erp_thread_setup(adapter);
- 	if (retval) {
- 		ZFCP_LOG_INFO("error: start of error recovery thread for "
-@@ -178,6 +215,8 @@ zfcp_ccw_set_online(struct ccw_device *c
-  out_scsi_register:
- 	zfcp_erp_thread_kill(adapter);
-  out_erp_thread:
-+	statistic_remove(&adapter->stat_if);
-+ out_stat_create:
- 	zfcp_adapter_debug_unregister(adapter);
-  out:
- 	up(&zfcp_data.config_sema);
-@@ -201,6 +240,7 @@ zfcp_ccw_set_offline(struct ccw_device *
- 	zfcp_erp_adapter_shutdown(adapter, 0);
- 	zfcp_erp_wait(adapter);
- 	zfcp_erp_thread_kill(adapter);
-+	statistic_remove(&adapter->stat_if);
- 	zfcp_adapter_debug_unregister(adapter);
- 	up(&zfcp_data.config_sema);
- 	return 0;
-diff -puN drivers/s390/scsi/zfcp_def.h~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_def.h
---- a/drivers/s390/scsi/zfcp_def.h~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_def.h
-@@ -33,6 +33,7 @@
- #include <linux/timer.h>
- #include <linux/slab.h>
- #include <linux/mempool.h>
-+#include <linux/statistic.h>
- #include <linux/syscalls.h>
- #include <linux/ioctl.h>
- #include <scsi/scsi.h>
-@@ -867,6 +868,13 @@ struct zfcp_erp_action {
- 	struct timer_list timer;
- };
+ 	return ok;
+ }
+-EXPORT_SYMBOL(pci_dac_dma_supported);
+-
+-dma64_addr_t
+-pci_dac_page_to_dma(struct pci_dev *pdev, struct page *page,
+-		    unsigned long offset, int direction)
+-{
+-	return (alpha_mv.pci_dac_offset
+-		+ __pa(page_address(page)) 
+-		+ (dma64_addr_t) offset);
+-}
+-EXPORT_SYMBOL(pci_dac_page_to_dma);
+-
+-struct page *
+-pci_dac_dma_to_page(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	unsigned long paddr = (dma_addr & PAGE_MASK) - alpha_mv.pci_dac_offset;
+-	return virt_to_page(__va(paddr));
+-}
+-EXPORT_SYMBOL(pci_dac_dma_to_page);
+-
+-unsigned long
+-pci_dac_dma_to_offset(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return (dma_addr & ~PAGE_MASK);
+-}
+-EXPORT_SYMBOL(pci_dac_dma_to_offset);
  
-+enum zfcp_adapter_stats {
-+	ZFCP_STAT_A_QOF,
-+	ZFCP_STAT_A_QO,
-+	ZFCP_STAT_A_QI,
-+	ZFCP_STAT_A_ERP,
-+	_ZFCP_STAT_A_NUMBER,
-+};
+ /* Helper for generic DMA-mapping functions. */
  
- struct zfcp_adapter {
- 	struct list_head	list;              /* list of adapters */
-@@ -882,6 +890,7 @@ struct zfcp_adapter {
- 	u32			adapter_features;  /* FCP channel features */
- 	u32			connection_features; /* host connection features */
-         u32			hardware_version;  /* of FCP channel */
-+	u16			timer_tick_interval; /* for measurement data */
- 	struct Scsi_Host	*scsi_host;	   /* Pointer to mid-layer */
- 	struct list_head	port_list_head;	   /* remote port list */
- 	struct list_head        port_remove_lh;    /* head of ports to be
-@@ -933,6 +942,8 @@ struct zfcp_adapter {
- 	struct fc_host_statistics *fc_stats;
- 	struct fsf_qtcb_bottom_port *stats_reset_data;
- 	unsigned long		stats_reset;
-+	struct statistic_interface stat_if;
-+	struct statistic stat[_ZFCP_STAT_A_NUMBER];
- };
+diff -puN arch/mips/pci/Makefile~remove-pci_dac_dma_-apis arch/mips/pci/Makefile
+--- a/arch/mips/pci/Makefile~remove-pci_dac_dma_-apis
++++ a/arch/mips/pci/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the PCI specific kernel interface routines under Linux.
+ #
+ 
+-obj-y				+= pci.o pci-dac.o
++obj-y				+= pci.o
+ 
+ #
+ # PCI bus host bridge specific code
+diff -puN arch/mips/pci/pci-dac.c~remove-pci_dac_dma_-apis /dev/null
+--- a/arch/mips/pci/pci-dac.c
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+- *
+- * Copyright (C) 2000  Ani Joshi <ajoshi@unixbox.com>
+- * Copyright (C) 2000, 2001, 06  Ralf Baechle <ralf@linux-mips.org>
+- * swiped from i386, and cloned for MIPS by Geert, polished by Ralf.
+- */
+-
+-#include <linux/types.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/mm.h>
+-#include <linux/module.h>
+-#include <linux/string.h>
+-
+-#include <asm/cache.h>
+-#include <asm/io.h>
+-
+-#include <dma-coherence.h>
+-
+-#include <linux/pci.h>
+-
+-dma64_addr_t pci_dac_page_to_dma(struct pci_dev *pdev,
+-	struct page *page, unsigned long offset, int direction)
+-{
+-	struct device *dev = &pdev->dev;
+-
+-	BUG_ON(direction == DMA_NONE);
+-
+-	if (!plat_device_is_coherent(dev)) {
+-		unsigned long addr;
+-
+-		addr = (unsigned long) page_address(page) + offset;
+-		dma_cache_wback_inv(addr, PAGE_SIZE);
+-	}
+-
+-	return plat_map_dma_mem_page(dev, page) + offset;
+-}
+-
+-EXPORT_SYMBOL(pci_dac_page_to_dma);
+-
+-struct page *pci_dac_dma_to_page(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr)
+-{
+-	return pfn_to_page(plat_dma_addr_to_phys(dma_addr) >> PAGE_SHIFT);
+-}
+-
+-EXPORT_SYMBOL(pci_dac_dma_to_page);
+-
+-unsigned long pci_dac_dma_to_offset(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr)
+-{
+-	return dma_addr & ~PAGE_MASK;
+-}
+-
+-EXPORT_SYMBOL(pci_dac_dma_to_offset);
+-
+-void pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	BUG_ON(direction == PCI_DMA_NONE);
+-
+-	if (!plat_device_is_coherent(&pdev->dev))
+-		dma_cache_wback_inv(dma_addr + PAGE_OFFSET, len);
+-}
+-
+-EXPORT_SYMBOL(pci_dac_dma_sync_single_for_cpu);
+-
+-void pci_dac_dma_sync_single_for_device(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	BUG_ON(direction == PCI_DMA_NONE);
+-
+-	if (!plat_device_is_coherent(&pdev->dev))
+-		dma_cache_wback_inv(dma_addr + PAGE_OFFSET, len);
+-}
+-
+-EXPORT_SYMBOL(pci_dac_dma_sync_single_for_device);
+diff -puN arch/x86_64/kernel/pci-dma.c~remove-pci_dac_dma_-apis arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86_64/kernel/pci-dma.c~remove-pci_dac_dma_-apis
++++ a/arch/x86_64/kernel/pci-dma.c
+@@ -22,8 +22,7 @@ EXPORT_SYMBOL(bad_dma_address);
+ int iommu_bio_merge __read_mostly = 0;
+ EXPORT_SYMBOL(iommu_bio_merge);
+ 
+-int iommu_sac_force __read_mostly = 0;
+-EXPORT_SYMBOL(iommu_sac_force);
++static int iommu_sac_force __read_mostly = 0;
+ 
+ int no_iommu __read_mostly;
+ #ifdef CONFIG_IOMMU_DEBUG
+diff -puN include/asm-alpha/pci.h~remove-pci_dac_dma_-apis include/asm-alpha/pci.h
+--- a/include/asm-alpha/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-alpha/pci.h
+@@ -199,30 +199,6 @@ pci_dma_sync_sg_for_device(struct pci_de
+ 
+ extern int pci_dma_supported(struct pci_dev *hwdev, u64 mask);
+ 
+-/* True if the machine supports DAC addressing, and DEV can
+-   make use of it given MASK.  */
+-extern int pci_dac_dma_supported(struct pci_dev *hwdev, u64 mask);
+-
+-/* Convert to/from DAC dma address and struct page.  */
+-extern dma64_addr_t pci_dac_page_to_dma(struct pci_dev *, struct page *,
+-					unsigned long, int);
+-extern struct page *pci_dac_dma_to_page(struct pci_dev *, dma64_addr_t);
+-extern unsigned long pci_dac_dma_to_offset(struct pci_dev *, dma64_addr_t);
+-
+-static inline void
+-pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev, dma64_addr_t dma_addr,
+-				size_t len, int direction)
+-{
+-	/* Nothing to do. */
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_device(struct pci_dev *pdev, dma64_addr_t dma_addr,
+-				   size_t len, int direction)
+-{
+-	/* Nothing to do. */
+-}
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-arm/pci.h~remove-pci_dac_dma_-apis include/asm-arm/pci.h
+--- a/include/asm-arm/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-arm/pci.h
+@@ -26,11 +26,6 @@ static inline void pcibios_penalize_isa_
+ #define PCI_DMA_BUS_IS_PHYS     (0)
  
  /*
-@@ -963,6 +974,16 @@ struct zfcp_port {
- 	u32                    supported_classes;
- };
+- * We don't support DAC DMA cycles.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask)	(0)
+-
+-/*
+  * Whether pci_unmap_{single,page} is a nop depends upon the
+  * configuration.
+  */
+diff -puN include/asm-cris/pci.h~remove-pci_dac_dma_-apis include/asm-cris/pci.h
+--- a/include/asm-cris/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-cris/pci.h
+@@ -52,38 +52,6 @@ struct pci_dev;
+ #define pci_unmap_len(PTR, LEN_NAME)		(0)
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
  
-+enum zfcp_unit_stats {
-+	ZFCP_STAT_U_CLW,
-+	ZFCP_STAT_U_CLR,
-+	ZFCP_STAT_U_CLN,
-+	ZFCP_STAT_U_FLW,
-+	ZFCP_STAT_U_FLR,
-+	ZFCP_STAT_U_FLN,
-+	_ZFCP_STAT_U_NUMBER,
-+};
-+
- /* the struct device sysfs_device must be at the beginning of this structure.
-  * pointer to struct device is used to free unit structure in release function
-  * of the device. don't change!
-@@ -985,6 +1006,8 @@ struct zfcp_unit {
- 						  all scsi_scan_target
- 						  requests have been
- 						  completed. */
-+	struct statistic_interface stat_if;
-+	struct statistic stat[_ZFCP_STAT_U_NUMBER];
- };
+-/* This is always fine. */
+-#define pci_dac_dma_supported(pci_dev, mask)	(1)
+-
+-static inline dma64_addr_t
+-pci_dac_page_to_dma(struct pci_dev *pdev, struct page *page, unsigned long offset, int direction)
+-{
+-	return ((dma64_addr_t) page_to_phys(page) +
+-		(dma64_addr_t) offset);
+-}
+-
+-static inline struct page *
+-pci_dac_dma_to_page(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return pfn_to_page(dma_addr >> PAGE_SHIFT);
+-}
+-
+-static inline unsigned long
+-pci_dac_dma_to_offset(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return (dma_addr & ~PAGE_MASK);
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_device(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-}
+-
+ #define HAVE_PCI_MMAP
+ extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+ 			       enum pci_mmap_state mmap_state, int write_combine);
+diff -puN include/asm-frv/pci.h~remove-pci_dac_dma_-apis include/asm-frv/pci.h
+--- a/include/asm-frv/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-frv/pci.h
+@@ -40,9 +40,6 @@ extern void *pci_alloc_consistent(struct
+ extern void pci_free_consistent(struct pci_dev *hwdev, size_t size,
+ 				void *vaddr, dma_addr_t dma_handle);
  
- /* FSF request */
-diff -puN drivers/s390/scsi/zfcp_erp.c~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_erp.c
---- a/drivers/s390/scsi/zfcp_erp.c~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_erp.c
-@@ -1570,10 +1570,12 @@ zfcp_erp_strategy_check_adapter(struct z
- 	switch (result) {
- 	case ZFCP_ERP_SUCCEEDED :
- 		atomic_set(&adapter->erp_counter, 0);
-+		statistic_inc(adapter->stat, ZFCP_STAT_A_ERP, 1);
- 		zfcp_erp_adapter_unblock(adapter);
- 		break;
- 	case ZFCP_ERP_FAILED :
- 		atomic_inc(&adapter->erp_counter);
-+		statistic_inc(adapter->stat, ZFCP_STAT_A_ERP, -1);
- 		if (atomic_read(&adapter->erp_counter) > ZFCP_MAX_ERPS)
- 			zfcp_erp_adapter_failed(adapter);
- 		break;
-diff -puN drivers/s390/scsi/zfcp_fsf.c~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_fsf.c
---- a/drivers/s390/scsi/zfcp_fsf.c~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_fsf.c
-@@ -2011,6 +2011,7 @@ zfcp_fsf_exchange_config_evaluate(struct
- 	adapter->fsf_lic_version = bottom->lic_version;
- 	adapter->adapter_features = bottom->adapter_features;
- 	adapter->connection_features = bottom->connection_features;
-+	adapter->timer_tick_interval = bottom->timer_tick_interval;
- 	adapter->peer_wwpn = 0;
- 	adapter->peer_wwnn = 0;
- 	adapter->peer_d_id = 0;
-@@ -3959,6 +3960,38 @@ zfcp_fsf_send_fcp_command_handler(struct
- 	return retval;
+-/* This is always fine. */
+-#define pci_dac_dma_supported(pci_dev, mask)	(1)
+-
+ /* Return the index of the PCI controller for device PDEV. */
+ #define pci_controller_num(PDEV)	(0)
+ 
+diff -puN include/asm-i386/pci.h~remove-pci_dac_dma_-apis include/asm-i386/pci.h
+--- a/include/asm-i386/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-i386/pci.h
+@@ -56,39 +56,6 @@ struct pci_dev;
+ #define pci_unmap_len(PTR, LEN_NAME)		(0)
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
+ 
+-/* This is always fine. */
+-#define pci_dac_dma_supported(pci_dev, mask)	(1)
+-
+-static inline dma64_addr_t
+-pci_dac_page_to_dma(struct pci_dev *pdev, struct page *page, unsigned long offset, int direction)
+-{
+-	return ((dma64_addr_t) page_to_phys(page) +
+-		(dma64_addr_t) offset);
+-}
+-
+-static inline struct page *
+-pci_dac_dma_to_page(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return pfn_to_page(dma_addr >> PAGE_SHIFT);
+-}
+-
+-static inline unsigned long
+-pci_dac_dma_to_offset(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return (dma_addr & ~PAGE_MASK);
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_device(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	flush_write_buffers();
+-}
+-
+ #define HAVE_PCI_MMAP
+ extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+ 			       enum pci_mmap_state mmap_state, int write_combine);
+diff -puN include/asm-ia64/pci.h~remove-pci_dac_dma_-apis include/asm-ia64/pci.h
+--- a/include/asm-ia64/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-ia64/pci.h
+@@ -73,14 +73,6 @@ pcibios_penalize_isa_irq (int irq, int a
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)		\
+ 	(((PTR)->LEN_NAME) = (VAL))
+ 
+-/* The ia64 platform always supports 64-bit addressing. */
+-#define pci_dac_dma_supported(pci_dev, mask)		(1)
+-#define pci_dac_page_to_dma(dev,pg,off,dir)		((dma_addr_t) page_to_bus(pg) + (off))
+-#define pci_dac_dma_to_page(dev,dma_addr)		(virt_to_page(bus_to_virt(dma_addr)))
+-#define pci_dac_dma_to_offset(dev,dma_addr)		offset_in_page(dma_addr)
+-#define pci_dac_dma_sync_single_for_cpu(dev,dma_addr,len,dir)	do { } while (0)
+-#define pci_dac_dma_sync_single_for_device(dev,dma_addr,len,dir)	do { mb(); } while (0)
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-m68knommu/pci.h~remove-pci_dac_dma_-apis include/asm-m68knommu/pci.h
+--- a/include/asm-m68knommu/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-m68knommu/pci.h
+@@ -24,12 +24,6 @@ static inline int pci_dma_supported(stru
+ 	return 1;
  }
  
-+#ifdef CONFIG_STATISTICS
-+static void zfcp_fsf_sfc_stat(struct zfcp_fsf_req *fsf_req,
-+			      struct scsi_cmnd *cmd)
-+{
-+	struct zfcp_adapter *adapter = fsf_req->unit->port->adapter;
-+	struct statistic *stat = fsf_req->unit->stat;
-+	struct fsf_measurement_data *data;
-+	s64 channel_latency, fabric_latency;
-+	unsigned long flags;
-+
-+	if (!(adapter->adapter_features & FSF_FEATURE_MEASUREMENT_DATA))
-+		return;
-+
-+	data = &fsf_req->qtcb->prefix.prot_status_qual.measurement_data;
-+	channel_latency = data->channel_latency * adapter->timer_tick_interval;
-+	fabric_latency = data->fabric_latency * adapter->timer_tick_interval;
-+
-+	local_irq_save(flags);
-+	if (cmd->sc_data_direction == DMA_TO_DEVICE) {
-+		_statistic_inc(stat, ZFCP_STAT_U_CLW, channel_latency);
-+		_statistic_inc(stat, ZFCP_STAT_U_FLW, fabric_latency);
-+	} else if (cmd->sc_data_direction == DMA_FROM_DEVICE) {
-+		_statistic_inc(stat, ZFCP_STAT_U_CLR, channel_latency);
-+		_statistic_inc(stat, ZFCP_STAT_U_FLR, fabric_latency);
-+	} else if (cmd->sc_data_direction == DMA_NONE) {
-+		_statistic_inc(stat, ZFCP_STAT_U_CLN, channel_latency);
-+		_statistic_inc(stat, ZFCP_STAT_U_FLN, fabric_latency);
-+	}
-+	local_irq_restore(flags);
-+}
-+#endif
-+
- /*
-  * function:    zfcp_fsf_send_fcp_command_task_handler
-  *
-@@ -4027,6 +4060,11 @@ zfcp_fsf_send_fcp_command_task_handler(s
- 			      fcp_rsp_iu->fcp_sns_len);
- 	}
+-/*
+- * Not supporting more than 32-bit PCI bus addresses now, but
+- * must satisfy references to this function.  Change if needed.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask) (0)
+-
+ #endif /* CONFIG_COMEMPCI */
  
-+	/* we get hba measurement data regardless of the scsi status */
-+#ifdef CONFIG_STATISTICS
-+	zfcp_fsf_sfc_stat(fsf_req, scpnt);
-+#endif
-+
- 	/* check FCP_RSP_INFO */
- 	if (unlikely(fcp_rsp_iu->validity.bits.fcp_rsp_len_valid)) {
- 		ZFCP_LOG_DEBUG("rsp_len is valid\n");
-@@ -4586,10 +4624,14 @@ zfcp_fsf_req_sbal_get(struct zfcp_adapte
- 						       ZFCP_SBAL_TIMEOUT);
- 		if (ret < 0)
- 			return ret;
--		if (!ret)
-+		if (!ret) {
-+			statistic_inc(adapter->stat, ZFCP_STAT_A_QOF, 1);
- 			return -EIO;
--        } else if (!zfcp_fsf_req_sbal_check(lock_flags, req_queue, 1))
-+		}
-+        } else if (!zfcp_fsf_req_sbal_check(lock_flags, req_queue, 1)) {
-+		statistic_inc(adapter->stat, ZFCP_STAT_A_QOF, 1);
-                 return -EIO;
-+	}
+ #endif /* M68KNOMMU_PCI_H */
+diff -puN include/asm-mips/pci.h~remove-pci_dac_dma_-apis include/asm-mips/pci.h
+--- a/include/asm-mips/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-mips/pci.h
+@@ -121,20 +121,6 @@ extern unsigned int PCI_DMA_BUS_IS_PHYS;
  
-         return 0;
+ #endif /* CONFIG_DMA_NEED_PCI_MAP_STATE  */
+ 
+-/* This is always fine. */
+-#define pci_dac_dma_supported(pci_dev, mask)	(1)
+-
+-extern dma64_addr_t pci_dac_page_to_dma(struct pci_dev *pdev,
+-	struct page *page, unsigned long offset, int direction);
+-extern struct page *pci_dac_dma_to_page(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr);
+-extern unsigned long pci_dac_dma_to_offset(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr);
+-extern void pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr, size_t len, int direction);
+-extern void pci_dac_dma_sync_single_for_device(struct pci_dev *pdev,
+-	dma64_addr_t dma_addr, size_t len, int direction);
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-parisc/pci.h~remove-pci_dac_dma_-apis include/asm-parisc/pci.h
+--- a/include/asm-parisc/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-parisc/pci.h
+@@ -238,9 +238,6 @@ extern inline void pcibios_register_hba(
+ #define PCIBIOS_MIN_IO          0x10
+ #define PCIBIOS_MIN_MEM         0x1000 /* NBPG - but pci/setup-res.c dies */
+ 
+-/* Don't support DAC yet. */
+-#define pci_dac_dma_supported(pci_dev, mask)   (0)
+-
+ /* export the pci_ DMA API in terms of the dma_ one */
+ #include <asm-generic/pci-dma-compat.h>
+ 
+diff -puN include/asm-powerpc/dma-mapping.h~remove-pci_dac_dma_-apis include/asm-powerpc/dma-mapping.h
+--- a/include/asm-powerpc/dma-mapping.h~remove-pci_dac_dma_-apis
++++ a/include/asm-powerpc/dma-mapping.h
+@@ -61,7 +61,6 @@ struct dma_mapping_ops {
+ 	void		(*unmap_sg)(struct device *dev, struct scatterlist *sg,
+ 				int nents, enum dma_data_direction direction);
+ 	int		(*dma_supported)(struct device *dev, u64 mask);
+-	int		(*dac_dma_supported)(struct device *dev, u64 mask);
+ 	int		(*set_dma_mask)(struct device *dev, u64 dma_mask);
+ };
+ 
+diff -puN include/asm-powerpc/pci.h~remove-pci_dac_dma_-apis include/asm-powerpc/pci.h
+--- a/include/asm-powerpc/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-powerpc/pci.h
+@@ -74,18 +74,6 @@ static inline int pci_get_legacy_ide_irq
+ extern void set_pci_dma_ops(struct dma_mapping_ops *dma_ops);
+ extern struct dma_mapping_ops *get_pci_dma_ops(void);
+ 
+-/* For DAC DMA, we currently don't support it by default, but
+- * we let 64-bit platforms override this.
+- */
+-static inline int pci_dac_dma_supported(struct pci_dev *hwdev,u64 mask)
+-{
+-	struct dma_mapping_ops *d = get_pci_dma_ops();
+-
+-	if (d && d->dac_dma_supported)
+-		return d->dac_dma_supported(&hwdev->dev, mask);
+-	return 0;
+-}
+-
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+ 					unsigned long *strategy_parameter)
+@@ -122,12 +110,6 @@ static inline void pci_dma_burst_advice(
  }
-@@ -4754,6 +4796,9 @@ static int zfcp_fsf_req_send(struct zfcp
- 	 * position of first one
- 	 */
- 	atomic_sub(fsf_req->sbal_number, &req_queue->free_count);
-+	statistic_inc(adapter->stat, ZFCP_STAT_A_QO,
-+		      QDIO_MAX_BUFFERS_PER_Q -
-+		      atomic_read(&req_queue->free_count));
- 	ZFCP_LOG_TRACE("free_count=%d\n", atomic_read(&req_queue->free_count));
- 	req_queue->free_index += fsf_req->sbal_number;	  /* increase */
- 	req_queue->free_index %= QDIO_MAX_BUFFERS_PER_Q;  /* wrap if needed */
-diff -puN drivers/s390/scsi/zfcp_fsf.h~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_fsf.h
---- a/drivers/s390/scsi/zfcp_fsf.h~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_fsf.h
-@@ -213,6 +213,7 @@
- #define FSF_FEATURE_HBAAPI_MANAGEMENT           0x00000010
- #define FSF_FEATURE_ELS_CT_CHAINED_SBALS        0x00000020
- #define FSF_FEATURE_UPDATE_ALERT		0x00000100
-+#define FSF_FEATURE_MEASUREMENT_DATA		0x00000200
+ #endif
  
- /* host connection features */
- #define FSF_FEATURE_NPIV_MODE			0x00000001
-@@ -322,11 +323,18 @@ struct fsf_link_down_info {
- 	u8 vendor_specific_code;
- } __attribute__ ((packed));
+-/*
+- * At present there are very few 32-bit PPC machines that can have
+- * memory above the 4GB point, and we don't support that.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask)	(0)
+-
+ /* Set the name of the bus as it appears in /proc/bus/pci */
+ static inline int pci_proc_domain(struct pci_bus *bus)
+ {
+diff -puN include/asm-ppc/pci.h~remove-pci_dac_dma_-apis include/asm-ppc/pci.h
+--- a/include/asm-ppc/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-ppc/pci.h
+@@ -102,12 +102,6 @@ static inline void pci_dma_burst_advice(
+ }
+ #endif
  
-+struct fsf_measurement_data {
-+	u32 channel_latency;
-+	u32 fabric_latency;
-+	u8 res1[8];
-+} __attribute__ ((packed));
-+
- union fsf_prot_status_qual {
- 	u64 doubleword[FSF_PROT_STATUS_QUAL_SIZE / sizeof(u64)];
- 	struct fsf_qual_version_error   version_error;
- 	struct fsf_qual_sequence_error  sequence_error;
- 	struct fsf_link_down_info link_down_info;
-+	struct fsf_measurement_data measurement_data;
- } __attribute__ ((packed));
+-/*
+- * At present there are very few 32-bit PPC machines that can have
+- * memory above the 4GB point, and we don't support that.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask)	(0)
+-
+ /* Return the index of the PCI controller for device PDEV. */
+ #define pci_domain_nr(bus) ((struct pci_controller *)(bus)->sysdata)->index
  
- struct fsf_qtcb_prefix {
-@@ -427,7 +435,9 @@ struct fsf_qtcb_bottom_config {
- 	u32 fc_link_speed;
- 	u32 adapter_type;
- 	u32 peer_d_id;
--	u8 res2[12];
-+	u16 status_read_buf_num;
-+	u16 timer_tick_interval;
-+	u8 res2[8];
- 	u32 s_id;
- 	struct fsf_nport_serv_param nport_serv_param;
- 	u8 reserved_nport_serv_param[16];
-diff -puN drivers/s390/scsi/zfcp_qdio.c~statistics-infrastructure-exploitation-zfcp drivers/s390/scsi/zfcp_qdio.c
---- a/drivers/s390/scsi/zfcp_qdio.c~statistics-infrastructure-exploitation-zfcp
-+++ a/drivers/s390/scsi/zfcp_qdio.c
-@@ -419,6 +419,7 @@ zfcp_qdio_response_handler(struct ccw_de
- 	} else {
- 		queue->free_index += count;
- 		queue->free_index %= QDIO_MAX_BUFFERS_PER_Q;
-+		statistic_inc(adapter->stat, ZFCP_STAT_A_QI, count);
- 		atomic_set(&queue->free_count, 0);
- 		ZFCP_LOG_TRACE("%i buffers enqueued to response "
- 			       "queue at position %i\n", count, start);
-@@ -618,6 +619,9 @@ zfcp_qdio_sbals_from_segment(struct zfcp
- 		/* get next free SBALE for new piece */
- 		if (NULL == zfcp_qdio_sbale_next(fsf_req, sbtype)) {
- 			/* no SBALE left, clean up and leave */
-+			statistic_inc(fsf_req->adapter->stat, ZFCP_STAT_A_QOF,
-+				      atomic_read(
-+				 &fsf_req->adapter->request_queue.free_count));
- 			zfcp_qdio_sbals_wipe(fsf_req);
- 			return -EINVAL;
- 		}
+diff -puN include/asm-sh/pci.h~remove-pci_dac_dma_-apis include/asm-sh/pci.h
+--- a/include/asm-sh/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-sh/pci.h
+@@ -110,11 +110,6 @@ static inline void pcibios_penalize_isa_
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
+ #endif
+ 
+-/* Not supporting more than 32-bit PCI bus addresses now, but
+- * must satisfy references to this function.  Change if needed.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask) (0)
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-sh64/pci.h~remove-pci_dac_dma_-apis include/asm-sh64/pci.h
+--- a/include/asm-sh64/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-sh64/pci.h
+@@ -72,11 +72,6 @@ static inline void pcibios_penalize_isa_
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
+ #endif
+ 
+-/* Not supporting more than 32-bit PCI bus addresses now, but
+- * must satisfy references to this function.  Change if needed.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask) (0)
+-
+ /* These macros should be used after a pci_map_sg call has been done
+  * to get bus addresses of each of the SG entries and their lengths.
+  * You should only work with the number of sg entries pci_map_sg
+diff -puN include/asm-sparc/pci.h~remove-pci_dac_dma_-apis include/asm-sparc/pci.h
+--- a/include/asm-sparc/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-sparc/pci.h
+@@ -142,8 +142,6 @@ static inline int pci_dma_supported(stru
+ 	return 1;
+ }
+ 
+-#define pci_dac_dma_supported(dev, mask)	(0)
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-sparc64/pci.h~remove-pci_dac_dma_-apis include/asm-sparc64/pci.h
+--- a/include/asm-sparc64/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-sparc64/pci.h
+@@ -206,49 +206,6 @@ extern int pci_dma_supported(struct pci_
+ #define PCI64_REQUIRED_MASK	(~(dma64_addr_t)0)
+ #define PCI64_ADDR_BASE		0xfffc000000000000UL
+ 
+-/* Usage of the pci_dac_foo interfaces is only valid if this
+- * test passes.
+- */
+-#define pci_dac_dma_supported(pci_dev, mask) \
+-	((((mask) & PCI64_REQUIRED_MASK) == PCI64_REQUIRED_MASK) ? 1 : 0)
+-
+-static inline dma64_addr_t
+-pci_dac_page_to_dma(struct pci_dev *pdev, struct page *page, unsigned long offset, int direction)
+-{
+-	return (PCI64_ADDR_BASE +
+-		__pa(page_address(page)) + offset);
+-}
+-
+-static inline struct page *
+-pci_dac_dma_to_page(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	unsigned long paddr = (dma_addr & PAGE_MASK) - PCI64_ADDR_BASE;
+-
+-	return virt_to_page(__va(paddr));
+-}
+-
+-static inline unsigned long
+-pci_dac_dma_to_offset(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return (dma_addr & ~PAGE_MASK);
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	/* DAC cycle addressing does not make use of the
+-	 * PCI controller's streaming cache, so nothing to do.
+-	 */
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_device(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	/* DAC cycle addressing does not make use of the
+-	 * PCI controller's streaming cache, so nothing to do.
+-	 */
+-}
+-
+ #define PCI_DMA_ERROR_CODE	(~(dma_addr_t)0x0)
+ 
+ static inline int pci_dma_mapping_error(dma_addr_t dma_addr)
+diff -puN include/asm-v850/rte_cb.h~remove-pci_dac_dma_-apis include/asm-v850/rte_cb.h
+--- a/include/asm-v850/rte_cb.h~remove-pci_dac_dma_-apis
++++ a/include/asm-v850/rte_cb.h
+@@ -64,7 +64,6 @@
+ /* As we don't really support PCI DMA to cpu memory, and use bounce-buffers
+    instead, perversely enough, this becomes always true! */
+ # define pci_dma_supported(dev, mask)		1
+-# define pci_dac_dma_supported(dev, mask)	0
+ # define pcibios_assign_all_busses()		1
+ 
+ #endif /* CONFIG_RTE_MB_A_PCI */
+diff -puN include/asm-x86_64/pci.h~remove-pci_dac_dma_-apis include/asm-x86_64/pci.h
+--- a/include/asm-x86_64/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-x86_64/pci.h
+@@ -54,14 +54,6 @@ extern int iommu_setup(char *opt);
+ 
+ #if defined(CONFIG_IOMMU) || defined(CONFIG_CALGARY_IOMMU)
+ 
+-/*
+- * x86-64 always supports DAC, but sometimes it is useful to force
+- * devices through the IOMMU to get automatic sg list merging.
+- * Optional right now.
+- */
+-extern int iommu_sac_force;
+-#define pci_dac_dma_supported(pci_dev, mask)	(!iommu_sac_force)
+-
+ #define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)	\
+ 	dma_addr_t ADDR_NAME;
+ #define DECLARE_PCI_UNMAP_LEN(LEN_NAME)		\
+@@ -78,8 +70,6 @@ extern int iommu_sac_force;
+ #else
+ /* No IOMMU */
+ 
+-#define pci_dac_dma_supported(pci_dev, mask)    1
+-
+ #define DECLARE_PCI_UNMAP_ADDR(ADDR_NAME)
+ #define DECLARE_PCI_UNMAP_LEN(LEN_NAME)
+ #define pci_unmap_addr(PTR, ADDR_NAME)		(0)
+@@ -91,36 +81,6 @@ extern int iommu_sac_force;
+ 
+ #include <asm-generic/pci-dma-compat.h>
+ 
+-static inline dma64_addr_t
+-pci_dac_page_to_dma(struct pci_dev *pdev, struct page *page, unsigned long offset, int direction)
+-{
+-	return ((dma64_addr_t) page_to_phys(page) +
+-		(dma64_addr_t) offset);
+-}
+-
+-static inline struct page *
+-pci_dac_dma_to_page(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return virt_to_page(__va(dma_addr)); 	
+-}
+-
+-static inline unsigned long
+-pci_dac_dma_to_offset(struct pci_dev *pdev, dma64_addr_t dma_addr)
+-{
+-	return (dma_addr & ~PAGE_MASK);
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_cpu(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-}
+-
+-static inline void
+-pci_dac_dma_sync_single_for_device(struct pci_dev *pdev, dma64_addr_t dma_addr, size_t len, int direction)
+-{
+-	flush_write_buffers();
+-}
+-
+ #ifdef CONFIG_PCI
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+diff -puN include/asm-xtensa/pci.h~remove-pci_dac_dma_-apis include/asm-xtensa/pci.h
+--- a/include/asm-xtensa/pci.h~remove-pci_dac_dma_-apis
++++ a/include/asm-xtensa/pci.h
+@@ -64,9 +64,6 @@ struct pci_dev;
+ #define pci_ubnmap_len(PTR, LEN_NAME)		(0)
+ #define pci_unmap_len_set(PTR, LEN_NAME, VAL)	do { } while (0)
+ 
+-/* We cannot access memory above 4GB */
+-#define pci_dac_dma_supported(pci_dev, mask)	(0)
+-
+ /* Map a range of PCI memory or I/O space for a device into user space */
+ int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
+                         enum pci_mmap_state mmap_state, int write_combine);
 _
 
-Patches currently in -mm which might be from mp3@de.ibm.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
+
+origin.patch
+floppy-tolerate-dma-channel-unavailability.patch
+cleanup-floppyh.patch
+pnp-dont-fail-device-init-if-no-dma-channel.patch
