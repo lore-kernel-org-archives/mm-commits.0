@@ -1,363 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-fix-resume-logic-updated-version.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:23:26 -0700
-Message-ID: <200708250323.l7P3NQlO027941@imap1.linux-foundation.org>
+Subject: - fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:24:21 -0700
+Message-ID: <200708250324.l7P3OLiK028044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752935AbXHYDYU (ORCPT
+	by vger.kernel.org with ESMTP id S1753445AbXHYDYZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:24:20 -0400
+	Fri, 24 Aug 2007 23:24:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: fix resume logic
+     fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
 has been removed from the -mm tree.  Its filename was
-     clockevents-fix-resume-logic-updated-version.patch
+     fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: clockevents: fix resume logic
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: fix gregkh-pci-pci-syscallc-switch-to-refcounting-api
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We need to make sure that the clockevent devices are resumed before the
-tick is resumed.  The current resume logic does not guarantee this.
+gcc speaks truth:
 
-Add CLOCK_EVT_MODE_RESUME and call the set mode functions of the clock
-event devices before resuming the tick / oneshot functionality.
+drivers/pci/syscall.c: In function `sys_pciconfig_read':
+drivers/pci/syscall.c:22: warning: 'dev' might be used uninitialized in this function
 
-Fixup the existing users.
+How does this stuff get out the door??
 
-Fix the PIT handling of CLOCK_EVT_SHUTDOWN by disabling the interrupt
-instead of switching to oneshot mode, as this causes slowness on a couple
-of systems.
+The patch also removes some pointless semicolons.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/apic.c      |    3 +
- arch/i386/kernel/hpet.c      |   71 ++-------------------------------
- arch/i386/kernel/i8253.c     |   43 +++++++++++++------
- include/linux/clockchips.h   |    1 
- kernel/time/tick-broadcast.c |    4 +
- kernel/time/tick-common.c    |   16 ++++---
- 6 files changed, 51 insertions(+), 87 deletions(-)
+ drivers/pci/syscall.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/apic.c
---- a/arch/i386/kernel/apic.c~clockevents-fix-resume-logic-updated-version
-+++ a/arch/i386/kernel/apic.c
-@@ -263,6 +263,9 @@ static void lapic_timer_setup(enum clock
- 		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
- 		apic_write_around(APIC_LVTT, v);
+diff -puN drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api drivers/pci/syscall.c
+--- a/drivers/pci/syscall.c~fix-gregkh-pci-pci-syscallc-switch-to-refcounting-api
++++ a/drivers/pci/syscall.c
+@@ -23,11 +23,11 @@ sys_pciconfig_read(unsigned long bus, un
+ 	u8 byte;
+ 	u16 word;
+ 	u32 dword;
+-	long err, cfg_ret;
++	long err;
++	long cfg_ret;
+ 
+-	err = -EPERM;
+ 	if (!capable(CAP_SYS_ADMIN))
+-		goto error;
++		return -EPERM;
+ 
+ 	err = -ENODEV;
+ 	dev = pci_get_bus_and_slot(bus, dfn);
+@@ -66,7 +66,7 @@ sys_pciconfig_read(unsigned long bus, un
+ 	case 4:
+ 		err = put_user(dword, (unsigned int __user *)buf);
  		break;
-+	case CLOCK_EVT_MODE_RESUME:
-+		/* Nothing to do here */
-+		break;
- 	}
- 
- 	local_irq_restore(flags);
-diff -puN arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/hpet.c
---- a/arch/i386/kernel/hpet.c~clockevents-fix-resume-logic-updated-version
-+++ a/arch/i386/kernel/hpet.c
-@@ -187,6 +187,10 @@ static void hpet_set_mode(enum clock_eve
- 		cfg &= ~HPET_TN_ENABLE;
- 		hpet_writel(cfg, HPET_T0_CFG);
- 		break;
-+
-+	case CLOCK_EVT_MODE_RESUME:
-+		hpet_enable_int();
-+		break;
- 	}
- }
- 
-@@ -217,6 +221,7 @@ static struct clocksource clocksource_hp
- 	.mask		= HPET_MASK,
- 	.shift		= HPET_SHIFT,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
-+	.resume		= hpet_start_counter,
- };
- 
- /*
-@@ -313,7 +318,6 @@ int __init hpet_enable(void)
- 
- 	clocksource_register(&clocksource_hpet);
- 
--
- 	if (id & HPET_ID_LEGSUP) {
- 		hpet_enable_int();
- 		hpet_reserve_platform_timers(id);
-@@ -546,68 +550,3 @@ irqreturn_t hpet_rtc_interrupt(int irq, 
- 	return IRQ_HANDLED;
- }
- #endif
--
--
--/*
-- * Suspend/resume part
-- */
--
--#ifdef CONFIG_PM
--
--static int hpet_suspend(struct sys_device *sys_device, pm_message_t state)
--{
--	unsigned long cfg = hpet_readl(HPET_CFG);
--
--	cfg &= ~(HPET_CFG_ENABLE|HPET_CFG_LEGACY);
--	hpet_writel(cfg, HPET_CFG);
--
--	return 0;
--}
--
--static int hpet_resume(struct sys_device *sys_device)
--{
--	unsigned int id;
--
--	hpet_start_counter();
--
--	id = hpet_readl(HPET_ID);
--
--	if (id & HPET_ID_LEGSUP)
--		hpet_enable_int();
--
--	return 0;
--}
--
--static struct sysdev_class hpet_class = {
--	set_kset_name("hpet"),
--	.suspend	= hpet_suspend,
--	.resume		= hpet_resume,
--};
--
--static struct sys_device hpet_device = {
--	.id		= 0,
--	.cls		= &hpet_class,
--};
--
--
--static __init int hpet_register_sysfs(void)
--{
--	int err;
--
--	if (!is_hpet_capable())
--		return 0;
--
--	err = sysdev_class_register(&hpet_class);
--
--	if (!err) {
--		err = sysdev_register(&hpet_device);
--		if (err)
--			sysdev_class_unregister(&hpet_class);
--	}
--
--	return err;
--}
--
--device_initcall(hpet_register_sysfs);
--
--#endif
-diff -puN arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version arch/i386/kernel/i8253.c
---- a/arch/i386/kernel/i8253.c~clockevents-fix-resume-logic-updated-version
-+++ a/arch/i386/kernel/i8253.c
-@@ -3,11 +3,11 @@
-  *
-  */
- #include <linux/clockchips.h>
--#include <linux/spinlock.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
- #include <linux/jiffies.h>
--#include <linux/sysdev.h>
- #include <linux/module.h>
--#include <linux/init.h>
-+#include <linux/spinlock.h>
- 
- #include <asm/smp.h>
- #include <asm/delay.h>
-@@ -26,6 +26,24 @@ EXPORT_SYMBOL(i8253_lock);
-  */
- struct clock_event_device *global_clock_event;
- 
-+/* Status of the PIT interrupt */
-+static int pit_irq_disabled;
-+
-+/*
-+ * Control pit interrupt enable / disable
-+ */
-+static void pit_control_irq(int disable)
-+{
-+	if (pit_irq_disabled == disable)
-+		return;
-+
-+	pit_irq_disabled = disable;
-+	if (disable)
-+		disable_irq(0);
-+	else
-+		enable_irq(0);
-+}
-+
- /*
-  * Initialize the PIT timer.
-  *
-@@ -42,26 +60,23 @@ static void init_pit_timer(enum clock_ev
- 	case CLOCK_EVT_MODE_PERIODIC:
- 		/* binary, mode 2, LSB/MSB, ch 0 */
- 		outb_p(0x34, PIT_MODE);
--		udelay(10);
- 		outb_p(LATCH & 0xff , PIT_CH0);	/* LSB */
--		udelay(10);
- 		outb(LATCH >> 8 , PIT_CH0);	/* MSB */
-+		pit_control_irq(0);
- 		break;
- 
--	/*
--	 * Avoid unnecessary state transitions, as it confuses
--	 * Geode / Cyrix based boxen.
--	 */
- 	case CLOCK_EVT_MODE_SHUTDOWN:
--		if (evt->mode == CLOCK_EVT_MODE_UNUSED)
--			break;
- 	case CLOCK_EVT_MODE_UNUSED:
--		if (evt->mode == CLOCK_EVT_MODE_SHUTDOWN)
--			break;
-+		pit_control_irq(1);
-+		break;
- 	case CLOCK_EVT_MODE_ONESHOT:
- 		/* One shot setup */
- 		outb_p(0x38, PIT_MODE);
--		udelay(10);
-+		pit_control_irq(0);
-+		break;
-+
-+	case CLOCK_EVT_MODE_RESUME:
-+		/* Nothing to do here */
- 		break;
- 	}
- 	spin_unlock_irqrestore(&i8253_lock, flags);
-diff -puN include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-fix-resume-logic-updated-version
-+++ a/include/linux/clockchips.h
-@@ -23,6 +23,7 @@ enum clock_event_mode {
- 	CLOCK_EVT_MODE_SHUTDOWN,
- 	CLOCK_EVT_MODE_PERIODIC,
- 	CLOCK_EVT_MODE_ONESHOT,
-+	CLOCK_EVT_MODE_RESUME,
- };
- 
- /* Clock event notification values */
-diff -puN kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~clockevents-fix-resume-logic-updated-version
-+++ a/kernel/time/tick-broadcast.c
-@@ -292,7 +292,7 @@ void tick_suspend_broadcast(void)
- 	spin_lock_irqsave(&tick_broadcast_lock, flags);
- 
- 	bc = tick_broadcast_device.evtdev;
--	if (bc && tick_broadcast_device.mode == TICKDEV_MODE_PERIODIC)
-+	if (bc)
- 		clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
- 
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
-@@ -309,6 +309,8 @@ int tick_resume_broadcast(void)
- 	bc = tick_broadcast_device.evtdev;
- 
- 	if (bc) {
-+		clockevents_set_mode(bc, CLOCK_EVT_MODE_RESUME);
-+
- 		switch (tick_broadcast_device.mode) {
- 		case TICKDEV_MODE_PERIODIC:
- 			if(!cpus_empty(tick_broadcast_mask))
-diff -puN kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~clockevents-fix-resume-logic-updated-version
-+++ a/kernel/time/tick-common.c
-@@ -318,12 +318,17 @@ static void tick_resume(void)
- {
- 	struct tick_device *td = &__get_cpu_var(tick_cpu_device);
- 	unsigned long flags;
-+	int broadcast = tick_resume_broadcast();
- 
- 	spin_lock_irqsave(&tick_device_lock, flags);
--	if (td->mode == TICKDEV_MODE_PERIODIC)
--		tick_setup_periodic(td->evtdev, 0);
--	else
--		tick_resume_oneshot();
-+	clockevents_set_mode(td->evtdev, CLOCK_EVT_MODE_RESUME);
-+
-+	if (!broadcast) {
-+		if (td->mode == TICKDEV_MODE_PERIODIC)
-+			tick_setup_periodic(td->evtdev, 0);
-+		else
-+			tick_resume_oneshot();
+-	};
 +	}
- 	spin_unlock_irqrestore(&tick_device_lock, flags);
+ 	pci_dev_put(dev);
+ 	return err;
+ 
+@@ -84,7 +84,7 @@ error:
+ 	case 4:
+ 		put_user(-1, (unsigned int __user *)buf);
+ 		break;
+-	};
++	}
+ 	pci_dev_put(dev);
+ 	return err;
  }
- 
-@@ -360,8 +365,7 @@ static int tick_notify(struct notifier_b
- 		break;
- 
- 	case CLOCK_EVT_NOTIFY_RESUME:
--		if (!tick_resume_broadcast())
--			tick_resume();
-+		tick_resume();
- 		break;
- 
+@@ -139,7 +139,7 @@ sys_pciconfig_write(unsigned long bus, u
  	default:
+ 		err = -EINVAL;
+ 		break;
+-	};
++	}
+ 	unlock_kernel();
+ 	pci_dev_put(dev);
+ 	return err;
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-sigqueue_free-fix-the-race-with-collect_signal.patch
-double-hpet-clocksource-hard-freeze.patch
+revert-ecryptfs-fix-lookup-error-for-special-files.patch
+process_zones-fix-recovery-code.patch
+remove-bdput-from-do_open-in-fs-block_devc.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+sysfs-crash-debugging.patch
+git-dma.patch
+git-dma-makefile-fix.patch
+disable-ioat.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+infiniband-work-around-gcc-slub-problem.patch
+adbhid-produce-all-capslock-key-events.patch
+iforce-warning-fix.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mmc-fixup.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
