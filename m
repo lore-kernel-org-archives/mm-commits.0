@@ -1,248 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch removed from -mm tree
-Date: Fri, 24 Aug 2007 20:38:39 -0700
-Message-ID: <200708250338.l7P3cdaK028545@imap1.linux-foundation.org>
+Subject: - introduce-u16_max-and-u32_max.patch removed from -mm tree
+Date: Fri, 24 Aug 2007 20:42:01 -0700
+Message-ID: <200708250342.l7P3g1t1028691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37086 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752429AbXHYDjN (ORCPT
+	by vger.kernel.org with ESMTP id S1751733AbXHYDmJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 24 Aug 2007 23:39:13 -0400
+	Fri, 24 Aug 2007 23:42:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesse.barnes@intel.com, ak@suse.de, jpiszcz@lucidpixels.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386/x86_64: trim memory not covered by WB MTRRs
+     Introduce U16_MAX and U32_MAX
 has been removed from the -mm tree.  Its filename was
-     i386-x86_64-trim-memory-not-covered-by-wb-mtrrs.patch
+     introduce-u16_max-and-u32_max.patch
 
 This patch was dropped because it isn't in the present -mm lineup
 
 ------------------------------------------------------
-Subject: i386/x86_64: trim memory not covered by WB MTRRs
-From: Jesse Barnes <jesse.barnes@intel.com>
+Subject: Introduce U16_MAX and U32_MAX
+From: Satyam Sharma <satyam@infradead.org>
 
-On some machines, buggy BIOSes don't properly setup WB MTRRs to cover all
-available RAM, meaning the last few megs (or even gigs) of memory will be
-marked uncached.  Since Linux tends to allocate from high memory addresses
-first, this causes the machine to be unusably slow as soon as the kernel
-starts really using memory (i.e.  right around init time).
+... in kernel.h and clean up home-grown macros elsewhere in the tree.
 
-This patch works around the problem by scanning the MTRRs at boot and
-figuring out whether the current end_pfn value (setup by early e820 code)
-goes beyond the highest WB MTRR range, and if so, trimming it to match.  A
-fairly obnoxious KERN_WARNING is printed too, letting the user know that
-not all of their memory is available due to a likely BIOS bug.
-
-Something similar could be done on i386 if needed, but the boot ordering
-would be slightly different, since the MTRR code on i386 depends on the
-boot_cpu_data structure being setup.
-
-Signed-off-by: Jesse Barnes <jesse.barnes@intel.com>
-Tested-by: Justin Piszcz <jpiszcz@lucidpixels.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/mtrr/generic.c |    8 ---
- arch/i386/kernel/cpu/mtrr/if.c      |    2 
- arch/i386/kernel/cpu/mtrr/main.c    |   53 +++++++++++++++++++-------
- arch/i386/kernel/cpu/mtrr/mtrr.h    |    1 
- arch/x86_64/kernel/bugs.c           |    1 
- arch/x86_64/kernel/setup.c          |    4 +
- include/asm-x86_64/mtrr.h           |    1 
- 7 files changed, 47 insertions(+), 23 deletions(-)
+ drivers/net/netconsole.c    |    7 +++----
+ include/linux/kernel.h      |    3 +++
+ include/linux/reiserfs_fs.h |    2 --
+ net/ipv4/tcp_illinois.c     |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/mtrr/generic.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/generic.c
---- a/arch/i386/kernel/cpu/mtrr/generic.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/generic.c
-@@ -13,7 +13,7 @@
- #include "mtrr.h"
+diff -puN drivers/net/netconsole.c~introduce-u16_max-and-u32_max drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~introduce-u16_max-and-u32_max
++++ a/drivers/net/netconsole.c
+@@ -34,6 +34,7 @@
+  *
+  ****************************************************************/
  
- struct mtrr_state {
--	struct mtrr_var_range *var_ranges;
-+	struct mtrr_var_range var_ranges[NUM_VAR_RANGES];
- 	mtrr_type fixed_ranges[NUM_FIXED_RANGES];
- 	unsigned char enabled;
- 	unsigned char have_fixed;
-@@ -87,12 +87,6 @@ void __init get_mtrr_state(void)
- 	if (!num_var_ranges)
- 		return;
++#include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -389,7 +390,6 @@ static ssize_t store_local_port(struct n
+ 				size_t count)
+ {
+ 	long local_port;
+-#define __U16_MAX	((__u16) ~0U)
  
--	if (!mtrr_state.var_ranges) {
--		mtrr_state.var_ranges = kmalloc(num_var_ranges * sizeof (struct mtrr_var_range), 
--						GFP_KERNEL);
--		if (!mtrr_state.var_ranges)
--			return;
--	} 
- 	vrs = mtrr_state.var_ranges;
- 
- 	rdmsr(MTRRcap_MSR, lo, dummy);
-diff -puN arch/i386/kernel/cpu/mtrr/if.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/if.c
---- a/arch/i386/kernel/cpu/mtrr/if.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/if.c
-@@ -12,7 +12,7 @@
- #include "mtrr.h"
- 
- /* RED-PEN: this is accessed without any locking */
--extern unsigned int *usage_table;
-+extern unsigned int usage_table[];
- 
- 
- #define FILE_FCOUNT(f) (((struct seq_file *)((f)->private_data))->private)
-diff -puN arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/main.c
---- a/arch/i386/kernel/cpu/mtrr/main.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/main.c
-@@ -38,8 +38,8 @@
- #include <linux/cpu.h>
- #include <linux/mutex.h>
- 
-+#include <asm/e820.h>
- #include <asm/mtrr.h>
--
- #include <asm/uaccess.h>
- #include <asm/processor.h>
- #include <asm/msr.h>
-@@ -47,7 +47,7 @@
- 
- u32 num_var_ranges = 0;
- 
--unsigned int *usage_table;
-+unsigned int usage_table[NUM_VAR_RANGES];
- static DEFINE_MUTEX(mtrr_mutex);
- 
- u64 size_or_mask, size_and_mask;
-@@ -126,11 +126,6 @@ static void __init init_table(void)
+ 	if (nt->enabled) {
+ 		printk(KERN_ERR "netconsole: target (%s) is enabled, "
+@@ -398,7 +398,7 @@ static ssize_t store_local_port(struct n
+ 		return -EINVAL;
  	}
  
- 	max = num_var_ranges;
--	if ((usage_table = kmalloc(max * sizeof *usage_table, GFP_KERNEL))
--	    == NULL) {
--		printk(KERN_ERR "mtrr: could not allocate\n");
--		return;
--	}
- 	for (i = 0; i < max; i++)
- 		usage_table[i] = 1;
- }
-@@ -594,16 +589,11 @@ struct mtrr_value {
- 	unsigned long	lsize;
- };
+-	local_port = strtol10_check_range(buf, 0, __U16_MAX);
++	local_port = strtol10_check_range(buf, 0, U16_MAX);
+ 	if (local_port < 0)
+ 		return local_port;
  
--static struct mtrr_value * mtrr_state;
-+static struct mtrr_value mtrr_state[NUM_VAR_RANGES];
- 
- static int mtrr_save(struct sys_device * sysdev, pm_message_t state)
+@@ -412,7 +412,6 @@ static ssize_t store_remote_port(struct 
+ 				 size_t count)
  {
- 	int i;
--	int size = num_var_ranges * sizeof(struct mtrr_value);
--
--	mtrr_state = kzalloc(size,GFP_ATOMIC);
--	if (!mtrr_state)
--		return -ENOMEM;
+ 	long remote_port;
+-#define __U16_MAX	((__u16) ~0U)
  
- 	for (i = 0; i < num_var_ranges; i++) {
- 		mtrr_if->get(i,
-@@ -625,7 +615,6 @@ static int mtrr_restore(struct sys_devic
- 				 mtrr_state[i].lsize,
- 				 mtrr_state[i].ltype);
+ 	if (nt->enabled) {
+ 		printk(KERN_ERR "netconsole: target (%s) is enabled, "
+@@ -421,7 +420,7 @@ static ssize_t store_remote_port(struct 
+ 		return -EINVAL;
  	}
--	kfree(mtrr_state);
- 	return 0;
- }
  
-@@ -636,6 +625,42 @@ static struct sysdev_driver mtrr_sysdev_
- 	.resume		= mtrr_restore,
- };
+-	remote_port = strtol10_check_range(buf, 0, __U16_MAX);
++	remote_port = strtol10_check_range(buf, 0, U16_MAX);
+ 	if (remote_port < 0)
+ 		return remote_port;
  
-+/**
-+ * mtrr_trim_uncached_memory - trim RAM not covered by MTRRs
-+ *
-+ * Some buggy BIOSes don't setup the MTRRs properly for systems with certain
-+ * memory configurations.  This routine checks to make sure the MTRRs having
-+ * a write back type cover all of the memory the kernel is intending to use.
-+ * If not, it'll trim any memory off the end by adjusting end_pfn, removing
-+ * it from the kernel's allocation pools, warning the user with an obnoxious
-+ * message.
-+ */
-+void __init mtrr_trim_uncached_memory(void)
-+{
-+	unsigned long i, base, size, highest_addr = 0;
-+	mtrr_type type;
+diff -puN include/linux/kernel.h~introduce-u16_max-and-u32_max include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-u16_max-and-u32_max
++++ a/include/linux/kernel.h
+@@ -30,6 +30,9 @@ extern const char linux_proc_banner[];
+ #define LLONG_MIN	(-LLONG_MAX - 1)
+ #define ULLONG_MAX	(~0ULL)
+ 
++#define U16_MAX		(~(__u16)0)
++#define U32_MAX		(~(__u32)0)
 +
-+	/* Find highest cached pfn */
-+	for (i = 0; i < num_var_ranges; i++) {
-+		mtrr_if->get(i, &base, &size, &type);
-+		if (type != MTRR_TYPE_WRBACK)
-+			continue;
-+		base <<= PAGE_SHIFT;
-+		size <<= PAGE_SHIFT;
-+		if (highest_addr < base + size)
-+			highest_addr = base + size;
-+	}
-+
-+	if ((highest_addr >> PAGE_SHIFT) != end_pfn) {
-+		printk(KERN_WARNING "***************\n");
-+		printk(KERN_WARNING "**** WARNING: likely BIOS bug\n");
-+		printk(KERN_WARNING "**** MTRRs don't cover all of "
-+		       "memory, trimmed %ld pages\n", end_pfn -
-+		       (highest_addr >> PAGE_SHIFT));
-+		printk(KERN_WARNING "***************\n");
-+		end_pfn = highest_addr >> PAGE_SHIFT;
-+	}
-+}
+ #define STACK_MAGIC	0xdeadbeef
  
- /**
-  * mtrr_bp_init - initialize mtrrs on the boot CPU
-diff -puN arch/i386/kernel/cpu/mtrr/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/i386/kernel/cpu/mtrr/mtrr.h
---- a/arch/i386/kernel/cpu/mtrr/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/i386/kernel/cpu/mtrr/mtrr.h
-@@ -14,6 +14,7 @@
- #define MTRRphysMask_MSR(reg) (0x200 + 2 * (reg) + 1)
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+diff -puN include/linux/reiserfs_fs.h~introduce-u16_max-and-u32_max include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~introduce-u16_max-and-u32_max
++++ a/include/linux/reiserfs_fs.h
+@@ -1225,8 +1225,6 @@ struct treepath var = {.path_length = IL
+ #define MAX_US_INT 0xffff
  
- #define NUM_FIXED_RANGES 88
-+#define NUM_VAR_RANGES 256
- #define MTRRfix64K_00000_MSR 0x250
- #define MTRRfix16K_80000_MSR 0x258
- #define MTRRfix16K_A0000_MSR 0x259
-diff -puN arch/x86_64/kernel/bugs.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/bugs.c
---- a/arch/x86_64/kernel/bugs.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/x86_64/kernel/bugs.c
-@@ -14,7 +14,6 @@
- void __init check_bugs(void)
+ // reiserfs version 2 has max offset 60 bits. Version 1 - 32 bit offset
+-#define U32_MAX (~(__u32)0)
+-
+ static inline loff_t max_reiserfs_offset(struct inode *inode)
  {
- 	identify_cpu(&boot_cpu_data);
--	mtrr_bp_init();
- #if !defined(CONFIG_SMP)
- 	printk("CPU: ");
- 	print_cpu_info(&boot_cpu_data);
-diff -puN arch/x86_64/kernel/setup.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/arch/x86_64/kernel/setup.c
-@@ -266,6 +266,10 @@ void __init setup_arch(char **cmdline_p)
- 	 * we are rounding upwards:
- 	 */
- 	end_pfn = e820_end_of_ram();
-+	/* Trim memory not covered by WB MTRRs */
-+	mtrr_bp_init();
-+	mtrr_trim_uncached_memory();
-+
- 	num_physpages = end_pfn;
+ 	if (get_inode_item_key_version(inode) == KEY_FORMAT_3_5)
+diff -puN net/ipv4/tcp_illinois.c~introduce-u16_max-and-u32_max net/ipv4/tcp_illinois.c
+--- a/net/ipv4/tcp_illinois.c~introduce-u16_max-and-u32_max
++++ a/net/ipv4/tcp_illinois.c
+@@ -12,6 +12,7 @@
+  * Copyright (C) 2007 Stephen Hemminger <shemminger@linux-foundation.org>
+  */
  
- 	check_efer();
-diff -puN include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs include/asm-x86_64/mtrr.h
---- a/include/asm-x86_64/mtrr.h~i386-x86_64-trim-memory-not-covered-by-wb-mtrrs
-+++ a/include/asm-x86_64/mtrr.h
-@@ -78,6 +78,7 @@ extern int mtrr_add_page (unsigned long 
- 		     unsigned int type, char increment);
- extern int mtrr_del (int reg, unsigned long base, unsigned long size);
- extern int mtrr_del_page (int reg, unsigned long base, unsigned long size);
-+extern void mtrr_trim_uncached_memory(void);
- #  else
- static __inline__ int mtrr_add (unsigned long base, unsigned long size,
- 				unsigned int type, char increment)
++#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/inet_diag.h>
+@@ -23,7 +24,6 @@
+ #define ALPHA_MIN	((3*ALPHA_SCALE)/10)	/* ~0.3 */
+ #define ALPHA_MAX	(10*ALPHA_SCALE)	/* 10.0 */
+ #define ALPHA_BASE	ALPHA_SCALE		/* 1.0 */
+-#define U32_MAX		((u32)~0U)
+ #define RTT_MAX		(U32_MAX / ALPHA_MAX)	/* 3.3 secs */
+ 
+ #define BETA_SHIFT	6
 _
 
-Patches currently in -mm which might be from jesse.barnes@intel.com are
+Patches currently in -mm which might be from satyam@infradead.org are
+
+origin.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-netdev-all.patch
+git-net.patch
+git-s390.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+therm_throtc-fix-section-mismatch.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
