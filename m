@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410fb-make-use-of-default_display-settings.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:34 -0700
-Message-ID: <200708272223.l7RMNYJr031661@imap1.linux-foundation.org>
+Subject: + pm2fb-panning-and-hardware-cursor-fixes.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:54 -0700
+Message-ID: <200708272223.l7RMNs1R031692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757822AbXH0WXh (ORCPT
+	by vger.kernel.org with ESMTP id S1758220AbXH0WX6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:37 -0400
+	Mon, 27 Aug 2007 18:23:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     s3c2410fb: make use of default_display settings
+     pm2fb: panning and hardware cursor fixes
 has been added to the -mm tree.  Its filename is
-     s3c2410fb-make-use-of-default_display-settings.patch
+     pm2fb-panning-and-hardware-cursor-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: s3c2410fb: make use of default_display settings
+Subject: pm2fb: panning and hardware cursor fixes
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch changes mode selection to always prefer default mode if possible
-and always honor type of display set by default mode settings.
-
-This patch is required in case the same display modes were defined for
-different panels (e.g.  STN and TFT).
+This patch:
+- disallows setting of virtual height above 2048 as it does
+  not work for accelerated copyarea and imageblit
+- fixes blinking of pm2v cursor by pushing cursor outside
+  the display (x=2047)
+- fixes hardware cursor position on Permedia 2 chips with
+  panning enabled
+- enables hardware cursor by default
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
+ drivers/video/pm2fb.c |   35 +++++++++++++++++++----------------
+ 1 files changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-make-use-of-default_display-settings drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-make-use-of-default_display-settings
-+++ a/drivers/video/s3c2410fb.c
-@@ -172,19 +172,28 @@ static int s3c2410fb_check_var(struct fb
- 	struct s3c2410fb_info *fbi = info->par;
- 	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
- 	struct s3c2410fb_display *display = NULL;
-+	struct s3c2410fb_display *default_display = mach_info->displays +
-+						    mach_info->default_display;
-+	int type = default_display->type;
- 	unsigned i;
+diff -puN drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes
++++ a/drivers/video/pm2fb.c
+@@ -66,7 +66,7 @@
+ /*
+  * Driver data
+  */
+-static int hwcursor;
++static int hwcursor = 1;
+ static char *mode __devinitdata;
  
- 	dprintk("check_var(var=%p, info=%p)\n", var, info);
+ /*
+@@ -587,6 +587,11 @@ static int pm2fb_check_var(struct fb_var
+ 		return -EINVAL;
+ 	}
  
- 	/* validate x/y resolution */
++	/* permedia cannot blit over 2048 */
++	if (var->yres_virtual > 2047) {
++		var->yres_virtual = 2047;
++	}
++
+ 	if (var->xoffset) {
+ 		DPRINTK("xoffset not supported\n");
+ 		return -EINVAL;
+@@ -1258,12 +1263,21 @@ static int pm2vfb_cursor(struct fb_info 
+ {
+ 	struct pm2fb_par *par = info->par;
+ 	u8 mode = PM2F_CURSORMODE_TYPE_X;
++	int x = cursor->image.dx - info->var.xoffset;
++	int y = cursor->image.dy - info->var.yoffset;
+ 
+ 	if (cursor->enable)
+ 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
+ 
+ 	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_MODE, mode);
+ 
++	if (!cursor->enable)
++		x = 2047;	/* push it outside display */
++	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
++	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
++	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
++	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
++
+ 	/*
+ 	 * If the cursor is not be changed this means either we want the
+ 	 * current cursor state (if enable is set) or we want to query what
+@@ -1272,16 +1286,6 @@ static int pm2vfb_cursor(struct fb_info 
+ 	if (!cursor->set)
+ 		return 0;
+ 
+-	if (cursor->set & FB_CUR_SETPOS) {
+-		int x = cursor->image.dx - info->var.xoffset;
+-		int y = cursor->image.dy - info->var.yoffset;
 -
--	for (i = 0; i < mach_info->num_displays; i++)
--		if (var->yres == mach_info->displays[i].yres &&
--		    var->xres == mach_info->displays[i].xres &&
--		    var->bits_per_pixel == mach_info->displays[i].bpp) {
--			display = mach_info->displays + i;
--			break;
--		}
-+	/* choose default mode if possible */
-+	if (var->yres == default_display->yres &&
-+	    var->xres == default_display->xres &&
-+	    var->bits_per_pixel == default_display->bpp)
-+		display = default_display;
-+	else
-+		for (i = 0; i < mach_info->num_displays; i++)
-+			if (type == mach_info->displays[i].type &&
-+			    var->yres == mach_info->displays[i].yres &&
-+			    var->xres == mach_info->displays[i].xres &&
-+			    var->bits_per_pixel == mach_info->displays[i].bpp) {
-+				display = mach_info->displays + i;
-+				break;
-+			}
+-		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
+-		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
+-		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
+-		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
+-	}
+-
+ 	if (cursor->set & FB_CUR_SETHOT) {
+ 		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HOT,
+ 			     cursor->hot.x & 0x3f);
+@@ -1373,7 +1377,7 @@ static int pm2fb_cursor(struct fb_info *
+ 	if (par->type == PM2_TYPE_PERMEDIA2V)
+ 		return pm2vfb_cursor(info, cursor);
  
- 	if (!display) {
- 		dprintk("wrong resolution or depth %dx%d at %d bpp\n",
+-	mode = 0;
++	mode = 0x40;
+ 	if (cursor->enable)
+ 		 mode = 0x43;
+ 
+@@ -1388,10 +1392,9 @@ static int pm2fb_cursor(struct fb_info *
+ 		return 0;
+ 
+ 	if (cursor->set & FB_CUR_SETPOS) {
+-		int x, y;
++		int x = cursor->image.dx - info->var.xoffset + 63;
++		int y = cursor->image.dy - info->var.yoffset + 63;
+ 
+-		x = cursor->image.dx + 63;
+-		y = cursor->image.dy + 63;
+ 		WAIT_FIFO(par, 4);
+ 		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
+ 		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
+@@ -1838,7 +1841,7 @@ module_param(noaccel, bool, 0);
+ MODULE_PARM_DESC(noaccel, "Disable acceleration");
+ module_param(hwcursor, int, 0644);
+ MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
+-			"(1=enable, 0=disable, default=0)");
++			"(1=enable, 0=disable, default=1)");
+ #ifdef CONFIG_MTRR
+ module_param(nomtrr, bool, 0);
+ MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
