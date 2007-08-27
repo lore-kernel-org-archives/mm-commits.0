@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-containers-setup-v7.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:19:45 -0700
-Message-ID: <200708272119.l7RLJjZK028576@imap1.linux-foundation.org>
+Subject: + cirrusfb-remove-typedefs.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:42 -0700
+Message-ID: <200708272223.l7RMNgbc031671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36329 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764141AbXH0VVk (ORCPT
+	by vger.kernel.org with ESMTP id S1757787AbXH0WXq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:21:40 -0400
+	Mon, 27 Aug 2007 18:23:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     Memory controller: containers setup
+     cirrusfb: remove typedefs
 has been added to the -mm tree.  Its filename is
-     memory-controller-containers-setup-v7.patch
+     cirrusfb-remove-typedefs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,243 +26,186 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memory controller: containers setup
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: cirrusfb: remove typedefs
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Setup the memory container and add basic hooks and controls to integrate
-and work with the container.
+This patch replaces "typedef enum" with "enum type" constructs.  Using the
+typedef is error for the checkpatch.pl script.
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_subsys.h |    6 +
- include/linux/memcontrol.h       |   21 ++++
- init/Kconfig                     |    7 +
- mm/Makefile                      |    1 
- mm/memcontrol.c                  |  127 +++++++++++++++++++++++++++++
- 5 files changed, 162 insertions(+)
+ drivers/video/cirrusfb.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/container_subsys.h~memory-controller-containers-setup-v7 include/linux/container_subsys.h
---- a/include/linux/container_subsys.h~memory-controller-containers-setup-v7
-+++ a/include/linux/container_subsys.h
-@@ -30,3 +30,9 @@ SUBSYS(ns)
- #endif
+diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-typedefs drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-remove-typedefs
++++ a/drivers/video/cirrusfb.c
+@@ -110,7 +110,7 @@
+  */
  
- /* */
-+
-+#ifdef CONFIG_CONTAINER_MEM_CONT
-+SUBSYS(mem_container)
-+#endif
-+
-+/* */
-diff -puN /dev/null include/linux/memcontrol.h
---- /dev/null
-+++ a/include/linux/memcontrol.h
-@@ -0,0 +1,21 @@
-+/* memcontrol.h - Memory Controller
-+ *
-+ * Copyright IBM Corporation, 2007
-+ * Author Balbir Singh <balbir@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _LINUX_MEMCONTROL_H
-+#define _LINUX_MEMCONTROL_H
-+
-+#endif /* _LINUX_MEMCONTROL_H */
-+
-diff -puN init/Kconfig~memory-controller-containers-setup-v7 init/Kconfig
---- a/init/Kconfig~memory-controller-containers-setup-v7
-+++ a/init/Kconfig
-@@ -368,6 +368,13 @@ config SYSFS_DEPRECATED
- 	  If you are using a distro that was released in 2006 or later,
- 	  it should be safe to say N here.
+ /* board types */
+-typedef enum {
++enum cirrus_board {
+ 	BT_NONE = 0,
+ 	BT_SD64,
+ 	BT_PICCOLO,
+@@ -120,12 +120,12 @@ typedef enum {
+ 	BT_ALPINE,	/* GD543x/4x */
+ 	BT_GD5480,
+ 	BT_LAGUNA,	/* GD546x */
+-} cirrusfb_board_t;
++};
  
-+config CONTAINER_MEM_CONT
-+	bool "Memory controller for containers"
-+	depends on CONTAINERS && RESOURCE_COUNTERS
-+	help
-+	  Provides a memory controller that manages both page cache and
-+	  RSS memory.
-+
- config PROC_PID_CPUSET
- 	bool "Include legacy /proc/<pid>/cpuset file"
- 	depends on CPUSETS
-diff -puN mm/Makefile~memory-controller-containers-setup-v7 mm/Makefile
---- a/mm/Makefile~memory-controller-containers-setup-v7
-+++ a/mm/Makefile
-@@ -31,4 +31,5 @@ obj-$(CONFIG_FS_XIP) += filemap_xip.o
- obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_SMP) += allocpercpu.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
-+obj-$(CONFIG_CONTAINER_MEM_CONT) += memcontrol.o
+ /*
+  * per-board-type information, used for enumerating and abstracting
+  * chip-specific information
+- * NOTE: MUST be in the same order as cirrusfb_board_t in order to
++ * NOTE: MUST be in the same order as enum cirrus_board in order to
+  * use direct indexing on this array
+  * NOTE: '__initdata' cannot be used as some of this info
+  * is required at runtime.  Maybe separate into an init-only and
+@@ -361,10 +361,10 @@ struct cirrusfb_regs {
+ };
  
-diff -puN /dev/null mm/memcontrol.c
---- /dev/null
-+++ a/mm/memcontrol.c
-@@ -0,0 +1,127 @@
-+/* memcontrol.c - Memory Controller
-+ *
-+ * Copyright IBM Corporation, 2007
-+ * Author Balbir Singh <balbir@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/res_counter.h>
-+#include <linux/memcontrol.h>
-+#include <linux/container.h>
-+
-+struct container_subsys mem_container_subsys;
-+
-+/*
-+ * The memory controller data structure. The memory controller controls both
-+ * page cache and RSS per container. We would eventually like to provide
-+ * statistics based on the statistics developed by Rik Van Riel for clock-pro,
-+ * to help the administrator determine what knobs to tune.
-+ *
-+ * TODO: Add a water mark for the memory controller. Reclaim will begin when
-+ * we hit the water mark.
-+ */
-+struct mem_container {
-+	struct container_subsys_state css;
-+	/*
-+	 * the counter to account for memory usage
-+	 */
-+	struct res_counter res;
+ #ifdef CIRRUSFB_DEBUG
+-typedef enum {
++enum cirrusfb_dbg_reg_class {
+ 	CRT,
+ 	SEQ
+-} cirrusfb_dbg_reg_class_t;
 +};
-+
-+/*
-+ * A page_container page is associated with every page descriptor. The
-+ * page_container helps us identify information about the container
-+ */
-+struct page_container {
-+	struct list_head lru;		/* per container LRU list */
-+	struct page *page;
-+	struct mem_container *mem_container;
-+};
-+
-+
-+static inline
-+struct mem_container *mem_container_from_cont(struct container *cont)
-+{
-+	return container_of(container_subsys_state(cont,
-+				mem_container_subsys_id), struct mem_container,
-+				css);
-+}
-+
-+static ssize_t mem_container_read(struct container *cont, struct cftype *cft,
-+			struct file *file, char __user *userbuf, size_t nbytes,
-+			loff_t *ppos)
-+{
-+	return res_counter_read(&mem_container_from_cont(cont)->res,
-+				cft->private, userbuf, nbytes, ppos);
-+}
-+
-+static ssize_t mem_container_write(struct container *cont, struct cftype *cft,
-+				struct file *file, const char __user *userbuf,
-+				size_t nbytes, loff_t *ppos)
-+{
-+	return res_counter_write(&mem_container_from_cont(cont)->res,
-+				cft->private, userbuf, nbytes, ppos);
-+}
-+
-+static struct cftype mem_container_files[] = {
-+	{
-+		.name = "usage",
-+		.private = RES_USAGE,
-+		.read = mem_container_read,
-+	},
-+	{
-+		.name = "limit",
-+		.private = RES_LIMIT,
-+		.write = mem_container_write,
-+		.read = mem_container_read,
-+	},
-+	{
-+		.name = "failcnt",
-+		.private = RES_FAILCNT,
-+		.read = mem_container_read,
-+	},
-+};
-+
-+static struct container_subsys_state *
-+mem_container_create(struct container_subsys *ss, struct container *cont)
-+{
-+	struct mem_container *mem;
-+
-+	mem = kzalloc(sizeof(struct mem_container), GFP_KERNEL);
-+	if (!mem)
-+		return -ENOMEM;
-+
-+	res_counter_init(&mem->res);
-+	return &mem->css;
-+}
-+
-+static void mem_container_destroy(struct container_subsys *ss,
-+				struct container *cont)
-+{
-+	kfree(mem_container_from_cont(cont));
-+}
-+
-+static int mem_container_populate(struct container_subsys *ss,
-+				struct container *cont)
-+{
-+	return container_add_files(cont, ss, mem_container_files,
-+					ARRAY_SIZE(mem_container_files));
-+}
-+
-+struct container_subsys mem_container_subsys = {
-+	.name = "memory",
-+	.subsys_id = mem_container_subsys_id,
-+	.create = mem_container_create,
-+	.destroy = mem_container_destroy,
-+	.populate = mem_container_populate,
-+	.early_init = 0,
-+};
+ #endif		/* CIRRUSFB_DEBUG */
+ 
+ /* info about board */
+@@ -375,7 +375,7 @@ struct cirrusfb_info {
+ 	u8 __iomem *regbase;
+ 	u8 __iomem *mem;
+ 	unsigned long size;
+-	cirrusfb_board_t btype;
++	enum cirrus_board btype;
+ 	unsigned char SFR;	/* Shadow of special function register */
+ 
+ 	unsigned long fbmem_phys;
+@@ -571,7 +571,7 @@ static void bestclock(long freq, long *b
+ static void cirrusfb_dump(void);
+ static void cirrusfb_dbg_reg_dump(caddr_t regbase);
+ static void cirrusfb_dbg_print_regs(caddr_t regbase,
+-				    cirrusfb_dbg_reg_class_t reg_class, ...);
++				    enum cirrusfb_dbg_reg_class reg_class, ...);
+ static void cirrusfb_dbg_print_byte(const char *name, unsigned char val);
+ #endif /* CIRRUSFB_DEBUG */
+ 
+@@ -2449,7 +2449,7 @@ static int cirrusfb_register(struct cirr
+ {
+ 	struct fb_info *info;
+ 	int err;
+-	cirrusfb_board_t btype;
++	enum cirrus_board btype;
+ 
+ 	DPRINTK("ENTER\n");
+ 
+@@ -2517,7 +2517,7 @@ static int cirrusfb_pci_register(struct 
+ {
+ 	struct cirrusfb_info *cinfo;
+ 	struct fb_info *info;
+-	cirrusfb_board_t btype;
++	enum cirrus_board btype;
+ 	unsigned long board_addr, board_size;
+ 	int ret;
+ 
+@@ -2537,11 +2537,11 @@ static int cirrusfb_pci_register(struct 
+ 	cinfo = info->par;
+ 	cinfo->info = info;
+ 	cinfo->pdev = pdev;
+-	cinfo->btype = btype = (cirrusfb_board_t) ent->driver_data;
++	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
+ 
+-	DPRINTK(" Found PCI device, base address 0 is 0x%lx, btype set to %d\n",
++	DPRINTK(" Found PCI device, base address 0 is 0x%x, btype set to %d\n",
+ 		pdev->resource[0].start, btype);
+-	DPRINTK(" base address 1 is 0x%lx\n", pdev->resource[1].start);
++	DPRINTK(" base address 1 is 0x%x\n", pdev->resource[1].start);
+ 
+ 	if (isPReP) {
+ 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
+@@ -2647,7 +2647,7 @@ static int cirrusfb_zorro_register(struc
+ {
+ 	struct cirrusfb_info *cinfo;
+ 	struct fb_info *info;
+-	cirrusfb_board_t btype;
++	enum cirrus_board btype;
+ 	struct zorro_dev *z2 = NULL;
+ 	unsigned long board_addr, board_size, size;
+ 	int ret;
+@@ -3353,7 +3353,7 @@ void cirrusfb_dbg_print_byte(const char 
+ 
+ static
+ void cirrusfb_dbg_print_regs(caddr_t regbase,
+-			     cirrusfb_dbg_reg_class_t reg_class, ...)
++			     enum cirrusfb_dbg_reg_class reg_class, ...)
+ {
+ 	va_list list;
+ 	unsigned char val = 0;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
+git-alsa.patch
+git-arm-master.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
