@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-add-documentation.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:19:37 -0700
-Message-ID: <200708272119.l7RLJcxV028560@imap1.linux-foundation.org>
+Subject: + vfb-make-virtual-framebuffer-mmapable.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:56 -0700
+Message-ID: <200708272223.l7RMNuto031695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763522AbXH0VVW (ORCPT
+	by vger.kernel.org with ESMTP id S1758171AbXH0WX7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:21:22 -0400
+	Mon, 27 Aug 2007 18:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: ilya.yanok@gmail.com, adaplas@gmail.com
 
 
 The patch titled
-     Memory controller: add document
+     vfb: make virtual framebuffer mmapable
 has been added to the -mm tree.  Its filename is
-     memory-controller-add-documentation.patch
+     vfb-make-virtual-framebuffer-mmapable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,304 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memory controller: add document
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: vfb: make virtual framebuffer mmapable
+From: Ilya Yanok <ilya.yanok@gmail.com>
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Changed things:
+
+1. vmalloc()/vfree() replaced with rvmalloc()/rvfree() (taken from
+   drivers/media/video/se401.c)
+
+2. mmap method implemented (mostly taken from drivers/media/video/se401.c)
+
+3. smem_start and smem_len fields of struct fb_fix_screeninfo initialized.
+    (smem_start initialized with virtual address, don't know if it is really
+   bad...)
+
+[adaplas: sparse warning fix]
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |  259 +++++++++++++++++++++++++
- 1 files changed, 259 insertions(+)
+ drivers/video/vfb.c |   78 +++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 74 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/controllers/memory.txt
---- /dev/null
-+++ a/Documentation/controllers/memory.txt
-@@ -0,0 +1,259 @@
-+Memory Controller
+diff -puN drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable drivers/video/vfb.c
+--- a/drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable
++++ a/drivers/video/vfb.c
+@@ -37,6 +37,48 @@ static void *videomemory;
+ static u_long videomemorysize = VIDEOMEMSIZE;
+ module_param(videomemorysize, ulong, 0);
+ 
++/**********************************************************************
++ *
++ * Memory management
++ *
++ **********************************************************************/
++static void *rvmalloc(unsigned long size)
++{
++	void *mem;
++	unsigned long adr;
 +
-+Salient features
++	size = PAGE_ALIGN(size);
++	mem = vmalloc_32(size);
++	if (!mem)
++		return NULL;
 +
-+a. Enable control of both RSS (mapped) and Page Cache (unmapped) pages
-+b. The infrastructure allows easy addition of other types of memory to control
-+c. Provides *zero overhead* for non memory controller users
-+d. Provides a double LRU: global memory pressure causes reclaim from the
-+   global LRU; a container on hitting a limit, reclaims from the per
-+   container LRU
++	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
++	adr = (unsigned long) mem;
++	while (size > 0) {
++		SetPageReserved(vmalloc_to_page((void *)adr));
++		adr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
 +
-+NOTE: Page Cache (unmapped) also includes Swap Cache pages as a subset
-+and will not be referred to explicitly in the rest of the documentation.
++	return mem;
++}
 +
-+Benefits and Purpose of the memory controller
++static void rvfree(void *mem, unsigned long size)
++{
++	unsigned long adr;
 +
-+The memory controller isolates the memory behaviour of a group of tasks
-+from the rest of the system. The article on LWN [12] mentions some probable
-+uses of the memory controller. The memory controller can be used to
++	if (!mem)
++		return;
 +
-+a. Isolate an application or a group of applications
-+   Memory hungry applications can be isolated and limited to a smaller
-+   amount of memory.
-+b. Create a container with limited amount of memory, this can be used
-+   as a good alternative to booting with mem=XXXX.
-+c. Virtualization solutions can control the amount of memory they want
-+   to assign to a virtual machine instance.
-+d. A CD/DVD burner could control the amount of memory used by the
-+   rest of the system to ensure that burning does not fail due to lack
-+   of available memory.
-+e. There are several other use cases, find one or use the controller just
-+   for fun (to learn and hack on the VM subsystem).
++	adr = (unsigned long) mem;
++	while ((long) size > 0) {
++		ClearPageReserved(vmalloc_to_page((void *)adr));
++		adr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++	vfree(mem);
++}
 +
-+1. History
+ static struct fb_var_screeninfo vfb_default __initdata = {
+ 	.xres =		640,
+ 	.yres =		480,
+@@ -371,7 +413,33 @@ static int vfb_pan_display(struct fb_var
+ static int vfb_mmap(struct fb_info *info,
+ 		    struct vm_area_struct *vma)
+ {
+-	return -EINVAL;
++	unsigned long start = vma->vm_start;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long page, pos;
 +
-+The memory controller has a long history. A request for comments for the memory
-+controller was posted by Balbir Singh [1]. At the time the RFC was posted
-+there were several implementations for memory control. The goal of the
-+RFC was to build consensus and agreement for the minimal features required
-+for memory control. The first RSS controller was posted by Balbir Singh[2]
-+in Feb 2007. Pavel Emelianov [3][4][5] has since posted three versions of the
-+RSS controller. At OLS, at the resource management BoF, everyone suggested
-+that we handle both page cache and RSS together. Another request was raised
-+to allow user space handling of OOM. The current memory controller is
-+at version 6; it combines both mapped (RSS) and unmapped Page
-+Cache Control [11].
++	if (offset + size > info->fix.smem_len) {
++		return -EINVAL;
++	}
 +
-+2. Memory Control
++	pos = (unsigned long)info->fix.smem_start + offset;
 +
-+Memory is a unique resource in the sense that it is present in a limited
-+amount. If a task requires a lot of CPU processing, the task can spread
-+its processing over a period of hours, days, months or years, but with
-+memory, the same physical memory needs to be reused to accomplish the task.
++	while (size > 0) {
++		page = vmalloc_to_pfn((void *)pos);
++		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
++			return -EAGAIN;
++		}
++		start += PAGE_SIZE;
++		pos += PAGE_SIZE;
++		if (size > PAGE_SIZE)
++			size -= PAGE_SIZE;
++		else
++			size = 0;
++	}
 +
-+The memory controller implementation has been divided into phases. These
-+are:
++	vma->vm_flags |= VM_RESERVED;	/* avoid to swap out this VMA */
++	return 0;
 +
-+1. Memory controller
-+2. mlock(2) controller
-+3. Kernel user memory accounting and slab control
-+4. user mappings length controller
-+
-+The memory controller is the first controller developed.
-+
-+2.1. Design
-+
-+The core of the design is a counter called the res_counter. The res_counter
-+tracks the current memory usage and limit of the group of processes associated
-+with the controller. Each container has a memory controller specific data
-+structure (mem_container) associated with it.
-+
-+2.2. Accounting
-+
-+		+--------------------+
-+		|  mem_container     |
-+		|  (res_counter)     |
-+		+--------------------+
-+		 /            ^      \
-+		/             |       \
-+           +---------------+  |        +---------------+
-+           | mm_struct     |  |....    | mm_struct     |
-+           |               |  |        |               |
-+           +---------------+  |        +---------------+
-+                              |
-+                              + --------------+
-+                                              |
-+           +---------------+           +------+--------+
-+           | page          +---------->  page_container|
-+           |               |           |               |
-+           +---------------+           +---------------+
-+
-+             (Figure 1: Hierarchy of Accounting)
-+
-+
-+Figure 1 shows the important aspects of the controller
-+
-+1. Accounting happens per container
-+2. Each mm_struct knows about which container it belongs to
-+3. Each page has a pointer to the page_container, which in turn knows the
-+   container it belongs to
-+
-+The accounting is done as follows: mem_container_charge() is invoked to setup
-+the necessary data structures and check if the container that is being charged
-+is over its limit. If it is then reclaim is invoked on the container.
-+More details can be found in the reclaim section of this document.
-+If everything goes well, a page meta-data-structure called page_container is
-+allocated and associated with the page.  This routine also adds the page to
-+the per container LRU.
-+
-+2.2.1 Accounting details
-+
-+All mapped pages (RSS) and unmapped user pages (Page Cache) are accounted.
-+RSS pages are accounted at the time of page_add_*_rmap() unless they've already
-+been accounted for earlier. A file page will be accounted for as Page Cache;
-+it's mapped into the page tables of a process, duplicate accounting is carefully
-+avoided. Page Cache pages are accounted at the time of add_to_page_cache().
-+The corresponding routines that remove a page from the page tables or removes
-+a page from Page Cache is used to decrement the accounting counters of the
-+container.
-+
-+2.3 Shared Page Accounting
-+
-+Shared pages are accounted on the basis of the first touch approach. The
-+container that first touches a page is accounted for the page. The principle
-+behind this approach is that a container that aggressively uses a shared
-+page will eventually get charged for it (once it is uncharged from
-+the container that brought it in -- this will happen on memory pressure).
-+
-+2.4 Reclaim
-+
-+Each container maintains a per container LRU that consists of an active
-+and inactive list. When a container goes over its limit, we first try
-+to reclaim memory from the container so as to make space for the new
-+pages that the container has touched. If the reclaim is unsuccessful,
-+an OOM routine is invoked to select and kill the bulkiest task in the
-+container.
-+
-+The reclaim algorithm has not been modified for containers, except that
-+pages that are selected for reclaiming come from the per container LRU
-+list.
-+
-+2. Locking
-+
-+The memory controller uses the following hierarchy
-+
-+1. zone->lru_lock is used for selecting pages to be isolated
-+2. mem->lru_lock protects the per container LRU
-+3. lock_page_container() is used to protect page->page_container
-+
-+3. User Interface
-+
-+0. Configuration
-+
-+a. Enable CONFIG_CONTAINERS
-+b. Enable CONFIG_RESOURCE_COUNTERS
-+c. Enable CONFIG_CONTAINER_MEM_CONT
-+
-+1. Prepare the containers
-+# mkdir -p /containers
-+# mount -t container none /containers -o memory
-+
-+2. Make the new group and move bash into it
-+# mkdir /containers/0
-+# echo $$ >  /containers/0/tasks
-+
-+Since now we're in the 0 container,
-+We can alter the memory limit:
-+# echo -n 6000 > /containers/0/memory.limit
-+
-+We can check the usage:
-+# cat /containers/0/memory.usage
-+25
-+
-+The memory.failcnt field gives the number of times that the container limit was
-+exceeded.
-+
-+4. Testing
-+
-+Balbir posted lmbench, AIM9, LTP and vmmstress results [10] and [11].
-+Apart from that v6 has been tested with several applications and regular
-+daily use. The controller has also been tested on the PPC64, x86_64 and
-+UML platforms.
-+
-+4.1 Troubleshooting
-+
-+Sometimes a user might find that the application under a container is
-+terminated. There are several causes for this:
-+
-+1. The container limit is too low (just too low to do anything useful)
-+2. The user is using anonymous memory and swap is turned off or too low
-+
-+A sync followed by echo 1 > /proc/sys/vm/drop_caches will help get rid of
-+some of the pages cached in the container (page cache pages).
-+
-+4.2 Task migration
-+
-+When a task migrates from one container to another, it's charge is not
-+carried forward. The pages allocated from the original container still
-+remain charged to it, the charge is dropped when the page is freed or
-+reclaimed.
-+
-+4.3 Removing a container
-+
-+A container can be removed by rmdir, but as discussed in sections 4.1 and 4.2, a
-+container might have some charge associated with it, even though all
-+tasks have migrated away from it. If some pages are still left, after following
-+the steps listed in sections 4.1 and 4.2, check the Swap Cache usage in
-+/proc/meminfo to see if the Swap Cache usage is showing up in the
-+containers memory.usage counter. A simple test of swapoff -a and swapon -a
-+should free any pending Swap Cache usage.
-+
-+4.4 Choosing what to account  -- Page Cache (unmapped) vs RSS (mapped)?
-+
-+The type of memory accounted by the container can be limited to just
-+mapped pages by writing "1" to memory.control_type field
-+
-+echo -n 1 > memory.control_type
-+
-+5. TODO
-+
-+1. Add support for accounting huge pages (as a separate controller)
-+2. Improve the user interface to accept/display memory limits in KB or MB
-+   rather than pages (since page sizes can differ across platforms/machines).
-+3. Make container lists per-zone
-+4. Make per-container scanner reclaim not-shared pages first
-+5. Teach controller to account for shared-pages
-+6. Start reclamation when the limit is lowered
-+7. Start reclamation in the background when the limit is
-+   not yet hit but the usage is getting closer
-+8. Create per zone LRU lists per container
-+
-+Summary
-+
-+Overall, the memory controller has been a stable controller and has been
-+commented and discussed quite extensively in the community.
-+
-+References
-+
-+1. Singh, Balbir. RFC: Memory Controller, http://lwn.net/Articles/206697/
-+2. Singh, Balbir. Memory Controller (RSS Control),
-+   http://lwn.net/Articles/222762/
-+3. Emelianov, Pavel. Resource controllers based on process containers
-+   http://lkml.org/lkml/2007/3/6/198
-+4. Emelianov, Pavel. RSS controller based on process containers (v2)
-+   http://lkml.org/lkml/2007/4/9/74
-+5. Emelianov, Pavel. RSS controller based on process containers (v3)
-+   http://lkml.org/lkml/2007/5/30/244
-+6. Menage, Paul. Containers v10, http://lwn.net/Articles/236032/
-+7. Vaidyanathan, Srinivasan, Containers: Pagecache accounting and control
-+   subsystem (v3), http://lwn.net/Articles/235534/
-+8. Singh, Balbir. RSS controller V2 test results (lmbench),
-+   http://lkml.org/lkml/2007/5/17/232
-+9. Singh, Balbir. RSS controller V2 AIM9 results
-+   http://lkml.org/lkml/2007/5/18/1
-+10. Singh, Balbir. Memory controller v6 results,
-+    http://lkml.org/lkml/2007/8/19/36
-+11. Singh, Balbir. Memory controller v6, http://lkml.org/lkml/2007/8/17/69
-+12. Corbet, Jonathan, Controlling memory use in containers,
-+    http://lwn.net/Articles/243795/
+ }
+ 
+ #ifndef MODULE
+@@ -406,7 +474,7 @@ static int __init vfb_probe(struct platf
+ 	/*
+ 	 * For real video cards we use ioremap.
+ 	 */
+-	if (!(videomemory = vmalloc(videomemorysize)))
++	if (!(videomemory = rvmalloc(videomemorysize)))
+ 		return retval;
+ 
+ 	/*
+@@ -429,6 +497,8 @@ static int __init vfb_probe(struct platf
+ 
+ 	if (!retval || (retval == 4))
+ 		info->var = vfb_default;
++	vfb_fix.smem_start = (unsigned long) videomemory;
++	vfb_fix.smem_len = videomemorysize;
+ 	info->fix = vfb_fix;
+ 	info->pseudo_palette = info->par;
+ 	info->par = NULL;
+@@ -452,7 +522,7 @@ err2:
+ err1:
+ 	framebuffer_release(info);
+ err:
+-	vfree(videomemory);
++	rvfree(videomemory, videomemorysize);
+ 	return retval;
+ }
+ 
+@@ -462,7 +532,7 @@ static int vfb_remove(struct platform_de
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
+-		vfree(videomemory);
++		rvfree(videomemory, videomemorysize);
+ 		framebuffer_release(info);
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ilya.yanok@gmail.com are
 
-origin.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
+vfb-make-virtual-framebuffer-mmapable.patch
