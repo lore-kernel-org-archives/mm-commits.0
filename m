@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-hardware-cursor-support-for-the-permedia2.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:52 -0700
-Message-ID: <200708272223.l7RMNqMD031689@imap1.linux-foundation.org>
+Subject: + memory-controller-make-page_referenced-container-aware-v7.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:19:59 -0700
+Message-ID: <200708272119.l7RLJxX1028602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758149AbXH0WX4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752914AbXH0VVp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:56 -0400
+	Mon, 27 Aug 2007 17:21:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     pm2fb: hardware cursor support for the Permedia2
+     Memory controller: make page_referenced() container aware
 has been added to the -mm tree.  Its filename is
-     pm2fb-hardware-cursor-support-for-the-permedia2.patch
+     memory-controller-make-page_referenced-container-aware-v7.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,242 +26,219 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: hardware cursor support for the Permedia2
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: Memory controller: make page_referenced() container aware
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-This patch adds hardware cursor support for the Permedia 2 chip.
+Make page_referenced() container aware.  Without this patch, page_referenced()
+can cause a page to be skipped while reclaiming pages.  This patch ensures
+that other containers do not hold pages in a particular container hostage.  It
+is required to ensure that shared pages are freed from a container when they
+are not actively referenced from the container that brought them in
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c     |  125 ++++++++++++++++++++++++++++++++----
- include/video/permedia2.h |    7 ++
- 2 files changed, 120 insertions(+), 12 deletions(-)
+ include/linux/memcontrol.h |    6 ++++++
+ include/linux/rmap.h       |    5 +++--
+ mm/memcontrol.c            |    5 +++++
+ mm/rmap.c                  |   30 ++++++++++++++++++++++++------
+ mm/vmscan.c                |    4 ++--
+ 5 files changed, 40 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2 drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2
-+++ a/drivers/video/pm2fb.c
-@@ -1257,18 +1257,8 @@ static const u8 cursor_bits_lookup[16] =
- static int pm2vfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+diff -puN include/linux/memcontrol.h~memory-controller-make-page_referenced-container-aware-v7 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-make-page_referenced-container-aware-v7
++++ a/include/linux/memcontrol.h
+@@ -43,6 +43,7 @@ extern unsigned long mem_container_isola
+ 					int active);
+ extern void mem_container_out_of_memory(struct mem_container *mem);
+ extern int mem_container_cache_charge(struct page *page, struct mm_struct *mm);
++extern struct mem_container *mm_container(struct mm_struct *mm);
+ 
+ static inline void mem_container_uncharge_page(struct page *page)
  {
- 	struct pm2fb_par *par = info->par;
--	u8 mode;
--
--	if (!hwcursor)
--		return -EINVAL;	/* just to force soft_cursor() call */
--
--	/* Too large of a cursor or wrong bpp :-( */
--	if (cursor->image.width > 64 ||
--	    cursor->image.height > 64 ||
--	    cursor->image.depth > 1)
--		return -EINVAL;
-+	u8 mode = PM2F_CURSORMODE_TYPE_X;
- 
--	mode = PM2F_CURSORMODE_TYPE_X;
- 	if (cursor->enable)
- 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
- 
-@@ -1369,11 +1359,122 @@ static int pm2vfb_cursor(struct fb_info 
- static int pm2fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- {
- 	struct pm2fb_par *par = info->par;
-+	u8 mode;
-+
-+	if (!hwcursor)
-+		return -EINVAL;	/* just to force soft_cursor() call */
-+
-+	/* Too large of a cursor or wrong bpp :-( */
-+	if (cursor->image.width > 64 ||
-+	    cursor->image.height > 64 ||
-+	    cursor->image.depth > 1)
-+		return -EINVAL;
- 
- 	if (par->type == PM2_TYPE_PERMEDIA2V)
- 		return pm2vfb_cursor(info, cursor);
- 
--	return -ENXIO;
-+	mode = 0;
-+	if (cursor->enable)
-+		 mode = 0x43;
-+
-+	pm2_RDAC_WR(par, PM2I_RD_CURSOR_CONTROL, mode);
-+
-+	/*
-+	 * If the cursor is not be changed this means either we want the
-+	 * current cursor state (if enable is set) or we want to query what
-+	 * we can do with the cursor (if enable is not set)
-+	 */
-+	if (!cursor->set)
-+		return 0;
-+
-+	if (cursor->set & FB_CUR_SETPOS) {
-+		int x, y;
-+
-+		x = cursor->image.dx + 63;
-+		y = cursor->image.dy + 63;
-+		WAIT_FIFO(par, 4);
-+		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
-+		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
-+		pm2_WR(par, PM2R_RD_CURSOR_Y_LSB, y & 0xff);
-+		pm2_WR(par, PM2R_RD_CURSOR_Y_MSB, (y >> 8) & 0x7);
-+	}
-+
-+	if (cursor->set & FB_CUR_SETCMAP) {
-+		u32 fg_idx = cursor->image.fg_color;
-+		u32 bg_idx = cursor->image.bg_color;
-+
-+		WAIT_FIFO(par, 7);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_ADDRESS, 1);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.red[bg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.green[bg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.blue[bg_idx] >> 8);
-+
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.red[fg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.green[fg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.blue[fg_idx] >> 8);
-+	}
-+
-+	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
-+		u8 *bitmap = (u8 *)cursor->image.data;
-+		u8 *mask = (u8 *)cursor->mask;
-+		int i;
-+
-+		WAIT_FIFO(par, 1);
-+		pm2_WR(par, PM2R_RD_PALETTE_WRITE_ADDRESS, 0);
-+
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int j = (cursor->image.width + 7) >> 3;
-+			int k = 8 - j;
-+
-+			WAIT_FIFO(par, 8);
-+			for (; j > 0; j--) {
-+				u8 data = *bitmap ^ *mask;
-+
-+				if (cursor->rop == ROP_COPY)
-+					data = *mask & *bitmap;
-+				/* bitmap data */
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, data);
-+				bitmap++;
-+				mask++;
-+			}
-+			for (; k > 0; k--)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+		for (; i < 64; i++) {
-+			int j = 8;
-+			WAIT_FIFO(par, 8);
-+			while (j-- > 0)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+
-+		mask = (u8 *)cursor->mask;
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int j = (cursor->image.width + 7) >> 3;
-+			int k = 8 - j;
-+
-+			WAIT_FIFO(par, 8);
-+			for (; j > 0; j--) {
-+				/* mask */
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, *mask);
-+				mask++;
-+			}
-+			for (; k > 0; k--)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+		for (; i < 64; i++) {
-+			int j = 8;
-+			WAIT_FIFO(par, 8);
-+			while (j-- > 0)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+	}
-+	return 0;
+@@ -93,6 +94,11 @@ static inline int mem_container_cache_ch
+ 	return 0;
  }
  
- /* ------------ Hardware Independent Functions ------------ */
-diff -puN include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2 include/video/permedia2.h
---- a/include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2
-+++ a/include/video/permedia2.h
-@@ -58,7 +58,14 @@
- #define PM2R_RD_PALETTE_DATA				0x4008
- #define PM2R_RD_PIXEL_MASK				0x4010
- #define PM2R_RD_PALETTE_READ_ADDRESS			0x4018
-+#define PM2R_RD_CURSOR_COLOR_ADDRESS		        0x4020
-+#define PM2R_RD_CURSOR_COLOR_DATA		        0x4028
- #define PM2R_RD_INDEXED_DATA				0x4050
-+#define PM2R_RD_CURSOR_DATA				0x4058
-+#define PM2R_RD_CURSOR_X_LSB				0x4060
-+#define PM2R_RD_CURSOR_X_MSB				0x4068
-+#define PM2R_RD_CURSOR_Y_LSB				0x4070
-+#define PM2R_RD_CURSOR_Y_MSB				0x4078
++static inline struct mem_container *mm_container(struct mm_struct *mm)
++{
++	return NULL;
++}
++
+ #endif /* CONFIG_CONTAINER_MEM_CONT */
  
- #define PM2R_START_X_DOM				0x8000
- #define PM2R_D_X_DOM					0x8008
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN include/linux/rmap.h~memory-controller-make-page_referenced-container-aware-v7 include/linux/rmap.h
+--- a/include/linux/rmap.h~memory-controller-make-page_referenced-container-aware-v7
++++ a/include/linux/rmap.h
+@@ -8,6 +8,7 @@
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+ #include <linux/spinlock.h>
++#include <linux/memcontrol.h>
+ 
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+@@ -86,7 +87,7 @@ static inline void page_dup_rmap(struct 
+ /*
+  * Called from mm/vmscan.c to handle paging out
+  */
+-int page_referenced(struct page *, int is_locked);
++int page_referenced(struct page *, int is_locked, struct mem_container *cnt);
+ int try_to_unmap(struct page *, int ignore_refs);
+ 
+ /*
+@@ -114,7 +115,7 @@ int page_mkclean(struct page *);
+ #define anon_vma_prepare(vma)	(0)
+ #define anon_vma_link(vma)	do {} while (0)
+ 
+-#define page_referenced(page,l) TestClearPageReferenced(page)
++#define page_referenced(page,l,cnt) TestClearPageReferenced(page)
+ #define try_to_unmap(page, refs) SWAP_FAIL
+ 
+ static inline int page_mkclean(struct page *page)
+diff -puN mm/memcontrol.c~memory-controller-make-page_referenced-container-aware-v7 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-make-page_referenced-container-aware-v7
++++ a/mm/memcontrol.c
+@@ -109,6 +109,11 @@ struct mem_container *mem_container_from
+ 				struct mem_container, css);
+ }
+ 
++inline struct mem_container *mm_container(struct mm_struct *mm)
++{
++	return rcu_dereference(mm->mem_container);
++}
++
+ void mm_init_container(struct mm_struct *mm, struct task_struct *p)
+ {
+ 	struct mem_container *mem;
+diff -puN mm/rmap.c~memory-controller-make-page_referenced-container-aware-v7 mm/rmap.c
+--- a/mm/rmap.c~memory-controller-make-page_referenced-container-aware-v7
++++ a/mm/rmap.c
+@@ -299,7 +299,8 @@ out:
+ 	return referenced;
+ }
+ 
+-static int page_referenced_anon(struct page *page)
++static int page_referenced_anon(struct page *page,
++				struct mem_container *mem_cont)
+ {
+ 	unsigned int mapcount;
+ 	struct anon_vma *anon_vma;
+@@ -312,6 +313,13 @@ static int page_referenced_anon(struct p
+ 
+ 	mapcount = page_mapcount(page);
+ 	list_for_each_entry(vma, &anon_vma->head, anon_vma_node) {
++		/*
++		 * If we are reclaiming on behalf of a container, skip
++		 * counting on behalf of references from different
++		 * containers
++		 */
++		if (mem_cont && (mm_container(vma->vm_mm) != mem_cont))
++			continue;
+ 		referenced += page_referenced_one(page, vma, &mapcount);
+ 		if (!mapcount)
+ 			break;
+@@ -332,7 +340,8 @@ static int page_referenced_anon(struct p
+  *
+  * This function is only called from page_referenced for object-based pages.
+  */
+-static int page_referenced_file(struct page *page)
++static int page_referenced_file(struct page *page,
++				struct mem_container *mem_cont)
+ {
+ 	unsigned int mapcount;
+ 	struct address_space *mapping = page->mapping;
+@@ -365,6 +374,13 @@ static int page_referenced_file(struct p
+ 	mapcount = page_mapcount(page);
+ 
+ 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
++		/*
++		 * If we are reclaiming on behalf of a container, skip
++		 * counting on behalf of references from different
++		 * containers
++		 */
++		if (mem_cont && (mm_container(vma->vm_mm) != mem_cont))
++			continue;
+ 		if ((vma->vm_flags & (VM_LOCKED|VM_MAYSHARE))
+ 				  == (VM_LOCKED|VM_MAYSHARE)) {
+ 			referenced++;
+@@ -387,7 +403,8 @@ static int page_referenced_file(struct p
+  * Quick test_and_clear_referenced for all mappings to a page,
+  * returns the number of ptes which referenced the page.
+  */
+-int page_referenced(struct page *page, int is_locked)
++int page_referenced(struct page *page, int is_locked,
++			struct mem_container *mem_cont)
+ {
+ 	int referenced = 0;
+ 
+@@ -399,14 +416,15 @@ int page_referenced(struct page *page, i
+ 
+ 	if (page_mapped(page) && page->mapping) {
+ 		if (PageAnon(page))
+-			referenced += page_referenced_anon(page);
++			referenced += page_referenced_anon(page, mem_cont);
+ 		else if (is_locked)
+-			referenced += page_referenced_file(page);
++			referenced += page_referenced_file(page, mem_cont);
+ 		else if (TestSetPageLocked(page))
+ 			referenced++;
+ 		else {
+ 			if (page->mapping)
+-				referenced += page_referenced_file(page);
++				referenced +=
++					page_referenced_file(page, mem_cont);
+ 			unlock_page(page);
+ 		}
+ 	}
+diff -puN mm/vmscan.c~memory-controller-make-page_referenced-container-aware-v7 mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-make-page_referenced-container-aware-v7
++++ a/mm/vmscan.c
+@@ -504,7 +504,7 @@ static unsigned long shrink_page_list(st
+ 				goto keep_locked;
+ 		}
+ 
+-		referenced = page_referenced(page, 1);
++		referenced = page_referenced(page, 1, sc->mem_container);
+ 		/* In active use or really unfreeable?  Activate it. */
+ 		if (sc->order <= PAGE_ALLOC_COSTLY_ORDER &&
+ 					referenced && page_mapping_inuse(page))
+@@ -1058,7 +1058,7 @@ force_reclaim_mapped:
+ 		if (page_mapped(page)) {
+ 			if (!reclaim_mapped ||
+ 			    (total_swap_pages == 0 && PageAnon(page)) ||
+-			    page_referenced(page, 0)) {
++			    page_referenced(page, 0, sc->mem_container)) {
+ 				list_add(&page->lru, &l_active);
+ 				continue;
+ 			}
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-git-alsa.patch
-git-arm-master.patch
-git-hwmon.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
-tdfxfb-mtrr-support.patch
-tdfxfb-mtrr-support-fix.patch
-tdfxfb-mtrr-support-fix-2.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
-fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
-s3c2410fb-source-code-improvements.patch
-s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
-s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
-s3c2410fb-make-use-of-default_display-settings.patch
-cirrusfb-checkpatchpl-cleanup.patch
-cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
-cirrusfb-remove-typedefs.patch
-cirrusfb-remove-fields-from-cirrusfb_info.patch
-cirrusfb-code-improvements.patch
-cirrusfb-code-improvement-2nd-part.patch
-pm3fb-header-file-cleanup.patch
-pm2fb-hardware-cursor-support-for-the-permedia2.patch
-pm2fb-panning-and-hardware-cursor-fixes.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-containerstats-v3.patch
+add-containerstats-v3-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
