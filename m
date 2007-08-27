@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-code-improvements.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:46 -0700
-Message-ID: <200708272223.l7RMNke0031680@imap1.linux-foundation.org>
+Subject: + pm2fb-hardware-cursor-support-for-the-permedia2.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:52 -0700
+Message-ID: <200708272223.l7RMNqMD031689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758060AbXH0WXu (ORCPT
+	by vger.kernel.org with ESMTP id S1758149AbXH0WX4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:50 -0400
+	Mon, 27 Aug 2007 18:23:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     cirrusfb: code improvements
+     pm2fb: hardware cursor support for the Permedia2
 has been added to the -mm tree.  Its filename is
-     cirrusfb-code-improvements.patch
+     pm2fb-hardware-cursor-support-for-the-permedia2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,435 +26,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cirrusfb: code improvements
+Subject: pm2fb: hardware cursor support for the Permedia2
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch does some "short-range" code improvements like merging identical
-switch clauses, replacing conditional branches with calculation of values,
-merging only once-used functions into place they are called from.
+This patch adds hardware cursor support for the Permedia 2 chip.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |  216 +++++++------------------------------
- 1 files changed, 41 insertions(+), 175 deletions(-)
+ drivers/video/pm2fb.c     |  125 ++++++++++++++++++++++++++++++++----
+ include/video/permedia2.h |    7 ++
+ 2 files changed, 120 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-code-improvements drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-code-improvements
-+++ a/drivers/video/cirrusfb.c
-@@ -647,31 +647,17 @@ static int cirrusfb_check_var(struct fb_
- 	  { -1, -1 } };
- 
- 	switch (var->bits_per_pixel) {
--	case 0 ... 1:
--		var->bits_per_pixel = 1;
-+	case 1:
- 		nom = 4;
- 		den = 8;
- 		break;		/* 8 pixel per byte, only 1/4th of mem usable */
--	case 2 ... 8:
--		var->bits_per_pixel = 8;
--		nom = 1;
-+	case 8:
-+	case 16:
-+	case 24:
-+	case 32:
-+		nom = var->bits_per_pixel / 8;
- 		den = 1;
- 		break;		/* 1 pixel == 1 byte */
--	case 9 ... 16:
--		var->bits_per_pixel = 16;
--		nom = 2;
--		den = 1;
--		break;		/* 2 bytes per pixel */
--	case 17 ... 24:
--		var->bits_per_pixel = 24;
--		nom = 3;
--		den = 1;
--		break;		/* 3 bytes per pixel */
--	case 25 ... 32:
--		var->bits_per_pixel = 32;
--		nom = 4;
--		den = 1;
--		break;		/* 4 bytes per pixel */
- 	default:
- 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
- 			"color depth not supported.\n",
-@@ -732,19 +718,15 @@ static int cirrusfb_check_var(struct fb_
- 	case 1:
- 		var->red.offset = 0;
- 		var->red.length = 1;
--		var->green.offset = 0;
--		var->green.length = 1;
--		var->blue.offset = 0;
--		var->blue.length = 1;
-+		var->green = var->red;
-+		var->blue = var->red;
- 		break;
- 
- 	case 8:
- 		var->red.offset = 0;
- 		var->red.length = 6;
--		var->green.offset = 0;
--		var->green.length = 6;
--		var->blue.offset = 0;
--		var->blue.length = 6;
-+		var->green = var->red;
-+		var->blue = var->red;
- 		break;
- 
- 	case 16:
-@@ -763,20 +745,6 @@ static int cirrusfb_check_var(struct fb_
- 		break;
- 
- 	case 24:
--		if (isPReP) {
--			var->red.offset = 8;
--			var->green.offset = 16;
--			var->blue.offset = 24;
--		} else {
--			var->red.offset = 16;
--			var->green.offset = 8;
--			var->blue.offset = 0;
--		}
--		var->red.length = 8;
--		var->green.length = 8;
--		var->blue.length = 8;
--		break;
--
- 	case 32:
- 		if (isPReP) {
- 			var->red.offset = 8;
-@@ -828,7 +796,7 @@ static int cirrusfb_decode_var(const str
+diff -puN drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2 drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2
++++ a/drivers/video/pm2fb.c
+@@ -1257,18 +1257,8 @@ static const u8 cursor_bits_lookup[16] =
+ static int pm2vfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
  {
- 	long freq;
- 	long maxclock;
--	int maxclockidx = 0;
-+	int maxclockidx = var->bits_per_pixel >> 3;
- 	struct cirrusfb_info *cinfo = info->par;
- 	int xres, hfront, hsync, hback;
- 	int yres, vfront, vsync, vback;
-@@ -837,31 +805,18 @@ static int cirrusfb_decode_var(const str
- 	case 1:
- 		regs->line_length = var->xres_virtual / 8;
- 		regs->visual = FB_VISUAL_MONO10;
--		maxclockidx = 0;
- 		break;
- 
- 	case 8:
- 		regs->line_length = var->xres_virtual;
- 		regs->visual = FB_VISUAL_PSEUDOCOLOR;
--		maxclockidx = 1;
- 		break;
- 
- 	case 16:
--		regs->line_length = var->xres_virtual * 2;
--		regs->visual = FB_VISUAL_DIRECTCOLOR;
--		maxclockidx = 2;
--		break;
+ 	struct pm2fb_par *par = info->par;
+-	u8 mode;
 -
- 	case 24:
--		regs->line_length = var->xres_virtual * 3;
--		regs->visual = FB_VISUAL_DIRECTCOLOR;
--		maxclockidx = 3;
--		break;
+-	if (!hwcursor)
+-		return -EINVAL;	/* just to force soft_cursor() call */
 -
- 	case 32:
--		regs->line_length = var->xres_virtual * 4;
-+		regs->line_length = var->xres_virtual * maxclockidx;
- 		regs->visual = FB_VISUAL_DIRECTCOLOR;
--		maxclockidx = 4;
- 		break;
+-	/* Too large of a cursor or wrong bpp :-( */
+-	if (cursor->image.width > 64 ||
+-	    cursor->image.height > 64 ||
+-	    cursor->image.depth > 1)
+-		return -EINVAL;
++	u8 mode = PM2F_CURSORMODE_TYPE_X;
  
- 	default:
-@@ -874,7 +829,7 @@ static int cirrusfb_decode_var(const str
- 	regs->type = FB_TYPE_PACKED_PIXELS;
+-	mode = PM2F_CURSORMODE_TYPE_X;
+ 	if (cursor->enable)
+ 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
  
- 	/* convert from ps to kHz */
--	freq = 1000000000 / var->pixclock;
-+	freq = PICOS2KHZ(var->pixclock);
- 
- 	DPRINTK("desired pixclock: %ld kHz\n", freq);
- 
-@@ -1213,7 +1168,8 @@ static int cirrusfb_set_par_foo(struct f
- 			break;
- 
- 		case BT_PICCOLO:
--			DPRINTK("(for Piccolo)\n");
-+		case BT_SPECTRUM:
-+			DPRINTK("(for Piccolo/Spectrum)\n");
- 			/* ### ueberall 0x22? */
- 			/* ##vorher 1c MCLK select */
- 			vga_wseq(regbase, CL_SEQR1F, 0x22);
-@@ -1229,15 +1185,6 @@ static int cirrusfb_set_par_foo(struct f
- 			vga_wseq(regbase, CL_SEQRF, 0xd0);
- 			break;
- 
--		case BT_SPECTRUM:
--			DPRINTK("(for Spectrum)\n");
--			/* ### ueberall 0x22? */
--			/* ##vorher 1c MCLK select */
--			vga_wseq(regbase, CL_SEQR1F, 0x22);
--			/* evtl d0? avoid FIFO underruns..? */
--			vga_wseq(regbase, CL_SEQRF, 0xb0);
--			break;
--
- 		case BT_PICASSO4:
- 		case BT_ALPINE:
- 		case BT_GD5480:
-@@ -1306,19 +1253,7 @@ static int cirrusfb_set_par_foo(struct f
- 			break;
- 
- 		case BT_PICCOLO:
--			/* ### vorher 1c MCLK select */
--			vga_wseq(regbase, CL_SEQR1F, 0x22);
--			/* Fast Page-Mode writes */
--			vga_wseq(regbase, CL_SEQRF, 0xb0);
--			break;
--
- 		case BT_PICASSO:
--			/* ### vorher 1c MCLK select */
--			vga_wseq(regbase, CL_SEQR1F, 0x22);
--			/* Fast Page-Mode writes */
--			vga_wseq(regbase, CL_SEQRF, 0xb0);
--			break;
--
- 		case BT_SPECTRUM:
- 			/* ### vorher 1c MCLK select */
- 			vga_wseq(regbase, CL_SEQR1F, 0x22);
-@@ -1385,6 +1320,7 @@ static int cirrusfb_set_par_foo(struct f
- 			break;
- 
- 		case BT_PICCOLO:
-+		case BT_SPECTRUM:
- 			vga_wseq(regbase, CL_SEQR7, 0x87);
- 			/* Fast Page-Mode writes */
- 			vga_wseq(regbase, CL_SEQRF, 0xb0);
-@@ -1400,14 +1336,6 @@ static int cirrusfb_set_par_foo(struct f
- 			vga_wseq(regbase, CL_SEQR1F, 0x22);
- 			break;
- 
--		case BT_SPECTRUM:
--			vga_wseq(regbase, CL_SEQR7, 0x87);
--			/* Fast Page-Mode writes */
--			vga_wseq(regbase, CL_SEQRF, 0xb0);
--			/* MCLK select */
--			vga_wseq(regbase, CL_SEQR1F, 0x22);
--			break;
--
- 		case BT_PICASSO4:
- 			vga_wseq(regbase, CL_SEQR7, 0x27);
- /*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
-@@ -1473,6 +1401,7 @@ static int cirrusfb_set_par_foo(struct f
- 			break;
- 
- 		case BT_PICCOLO:
-+		case BT_SPECTRUM:
- 			vga_wseq(regbase, CL_SEQR7, 0x85);
- 			/* Fast Page-Mode writes */
- 			vga_wseq(regbase, CL_SEQRF, 0xb0);
-@@ -1488,14 +1417,6 @@ static int cirrusfb_set_par_foo(struct f
- 			vga_wseq(regbase, CL_SEQR1F, 0x22);
- 			break;
- 
--		case BT_SPECTRUM:
--			vga_wseq(regbase, CL_SEQR7, 0x85);
--			/* Fast Page-Mode writes */
--			vga_wseq(regbase, CL_SEQRF, 0xb0);
--			/* MCLK select */
--			vga_wseq(regbase, CL_SEQR1F, 0x22);
--			break;
--
- 		case BT_PICASSO4:
- 			vga_wseq(regbase, CL_SEQR7, 0x25);
- /*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
-@@ -1662,18 +1583,7 @@ static int cirrusfb_setcolreg(unsigned r
- 		    (green << info->var.green.offset) |
- 		    (blue << info->var.blue.offset);
- 
--		switch (info->var.bits_per_pixel) {
--		case 8:
--			cinfo->pseudo_palette[regno] = v;
--			break;
--		case 16:
--			cinfo->pseudo_palette[regno] = v;
--			break;
--		case 24:
--		case 32:
--			cinfo->pseudo_palette[regno] = v;
--			break;
--		}
-+		cinfo->pseudo_palette[regno] = v;
- 		return 0;
- 	}
- 
-@@ -1743,12 +1653,8 @@ static int cirrusfb_pan_display(struct f
- 	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp2);
- 
- 	/* construct bit 19 of screen start address */
--	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19) {
--		tmp2 = 0;
--		if (base & 0x80000)
--			tmp2 = 0x80;
--		vga_wcrt(cinfo->regbase, CL_CRT1D, tmp2);
--	}
-+	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
-+		vga_wcrt(cinfo->regbase, CL_CRT1D, (base >> 12) & 0x80);
- 
- 	/* write pixel panning value to AR33; this does not quite work in 8bpp
- 	 *
-@@ -2139,38 +2045,15 @@ static void switch_monitor(struct cirrus
- /* Linux 2.6-style  accelerated functions */
- /******************************************/
- 
--static void cirrusfb_prim_fillrect(struct fb_info *info,
--				   const struct fb_fillrect *region)
--{
--	struct cirrusfb_info *cinfo = info->par;
--	int m; /* bytes per pixel */
--	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
--		cinfo->pseudo_palette[region->color] : region->color;
--
--	if (info->var.bits_per_pixel == 1) {
--		cirrusfb_RectFill(cinfo->regbase,
--				  info->var.bits_per_pixel,
--				  region->dx / 8, region->dy,
--				  region->width / 8, region->height,
--				  color,
--				  cinfo->currentmode.line_length);
--	} else {
--		m = (info->var.bits_per_pixel + 7) / 8;
--		cirrusfb_RectFill(cinfo->regbase,
--				  info->var.bits_per_pixel,
--				  region->dx * m, region->dy,
--				  region->width * m, region->height,
--				  color,
--				  cinfo->currentmode.line_length);
--	}
--	return;
--}
--
- static void cirrusfb_fillrect(struct fb_info *info,
- 			      const struct fb_fillrect *region)
+@@ -1369,11 +1359,122 @@ static int pm2vfb_cursor(struct fb_info 
+ static int pm2fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
  {
- 	struct fb_fillrect modded;
- 	int vxres, vyres;
-+	struct cirrusfb_info *cinfo = info->par;
-+	int m = info->var.bits_per_pixel;
-+	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
-+		cinfo->pseudo_palette[region->color] : region->color;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -2193,30 +2076,12 @@ static void cirrusfb_fillrect(struct fb_
- 	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
--	cirrusfb_prim_fillrect(info, &modded);
--}
--
--static void cirrusfb_prim_copyarea(struct fb_info *info,
--				   const struct fb_copyarea *area)
--{
--	struct cirrusfb_info *cinfo = info->par;
--	int m; /* bytes per pixel */
--
--	if (info->var.bits_per_pixel == 1) {
--		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
--				area->sx / 8, area->sy,
--				area->dx / 8, area->dy,
--				area->width / 8, area->height,
--				cinfo->currentmode.line_length);
--	} else {
--		m = (info->var.bits_per_pixel + 7) / 8;
--		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
--				area->sx * m, area->sy,
--				area->dx * m, area->dy,
--				area->width * m, area->height,
--				cinfo->currentmode.line_length);
--	}
--	return;
-+	cirrusfb_RectFill(cinfo->regbase,
-+			  info->var.bits_per_pixel,
-+			  (region->dx * m) / 8, region->dy,
-+			  (region->width * m) / 8, region->height,
-+			  color,
-+			  cinfo->currentmode.line_length);
- }
- 
- static void cirrusfb_copyarea(struct fb_info *info,
-@@ -2224,13 +2089,8 @@ static void cirrusfb_copyarea(struct fb_
- {
- 	struct fb_copyarea modded;
- 	u32 vxres, vyres;
--
--	modded.sx = area->sx;
--	modded.sy = area->sy;
--	modded.dx = area->dx;
--	modded.dy = area->dy;
--	modded.width  = area->width;
--	modded.height = area->height;
-+	struct cirrusfb_info *cinfo = info->par;
-+	int m = info->var.bits_per_pixel;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -2241,6 +2101,7 @@ static void cirrusfb_copyarea(struct fb_
- 
- 	vxres = info->var.xres_virtual;
- 	vyres = info->var.yres_virtual;
-+	memcpy(&modded, area, sizeof(struct fb_copyarea));
- 
- 	if (!modded.width || !modded.height ||
- 	   modded.sx >= vxres || modded.sy >= vyres ||
-@@ -2256,7 +2117,12 @@ static void cirrusfb_copyarea(struct fb_
- 	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
--	cirrusfb_prim_copyarea(info, &modded);
-+	cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
-+			(area->sx * m) / 8, area->sy,
-+			(area->dx * m) / 8, area->dy,
-+			(area->width * m) / 8, area->height,
-+			cinfo->currentmode.line_length);
+ 	struct pm2fb_par *par = info->par;
++	u8 mode;
 +
++	if (!hwcursor)
++		return -EINVAL;	/* just to force soft_cursor() call */
++
++	/* Too large of a cursor or wrong bpp :-( */
++	if (cursor->image.width > 64 ||
++	    cursor->image.height > 64 ||
++	    cursor->image.depth > 1)
++		return -EINVAL;
+ 
+ 	if (par->type == PM2_TYPE_PERMEDIA2V)
+ 		return pm2vfb_cursor(info, cursor);
+ 
+-	return -ENXIO;
++	mode = 0;
++	if (cursor->enable)
++		 mode = 0x43;
++
++	pm2_RDAC_WR(par, PM2I_RD_CURSOR_CONTROL, mode);
++
++	/*
++	 * If the cursor is not be changed this means either we want the
++	 * current cursor state (if enable is set) or we want to query what
++	 * we can do with the cursor (if enable is not set)
++	 */
++	if (!cursor->set)
++		return 0;
++
++	if (cursor->set & FB_CUR_SETPOS) {
++		int x, y;
++
++		x = cursor->image.dx + 63;
++		y = cursor->image.dy + 63;
++		WAIT_FIFO(par, 4);
++		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
++		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
++		pm2_WR(par, PM2R_RD_CURSOR_Y_LSB, y & 0xff);
++		pm2_WR(par, PM2R_RD_CURSOR_Y_MSB, (y >> 8) & 0x7);
++	}
++
++	if (cursor->set & FB_CUR_SETCMAP) {
++		u32 fg_idx = cursor->image.fg_color;
++		u32 bg_idx = cursor->image.bg_color;
++
++		WAIT_FIFO(par, 7);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_ADDRESS, 1);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.red[bg_idx] >> 8);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.green[bg_idx] >> 8);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.blue[bg_idx] >> 8);
++
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.red[fg_idx] >> 8);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.green[fg_idx] >> 8);
++		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
++			info->cmap.blue[fg_idx] >> 8);
++	}
++
++	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
++		u8 *bitmap = (u8 *)cursor->image.data;
++		u8 *mask = (u8 *)cursor->mask;
++		int i;
++
++		WAIT_FIFO(par, 1);
++		pm2_WR(par, PM2R_RD_PALETTE_WRITE_ADDRESS, 0);
++
++		for (i = 0; i < cursor->image.height; i++) {
++			int j = (cursor->image.width + 7) >> 3;
++			int k = 8 - j;
++
++			WAIT_FIFO(par, 8);
++			for (; j > 0; j--) {
++				u8 data = *bitmap ^ *mask;
++
++				if (cursor->rop == ROP_COPY)
++					data = *mask & *bitmap;
++				/* bitmap data */
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, data);
++				bitmap++;
++				mask++;
++			}
++			for (; k > 0; k--)
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
++		}
++		for (; i < 64; i++) {
++			int j = 8;
++			WAIT_FIFO(par, 8);
++			while (j-- > 0)
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
++		}
++
++		mask = (u8 *)cursor->mask;
++		for (i = 0; i < cursor->image.height; i++) {
++			int j = (cursor->image.width + 7) >> 3;
++			int k = 8 - j;
++
++			WAIT_FIFO(par, 8);
++			for (; j > 0; j--) {
++				/* mask */
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, *mask);
++				mask++;
++			}
++			for (; k > 0; k--)
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
++		}
++		for (; i < 64; i++) {
++			int j = 8;
++			WAIT_FIFO(par, 8);
++			while (j-- > 0)
++				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
++		}
++	}
++	return 0;
  }
  
- static void cirrusfb_imageblit(struct fb_info *info,
-@@ -2366,7 +2232,6 @@ static void cirrusfb_pci_unmap(struct fb
- 	if (release_io_ports)
- 		release_region(0x3C0, 32);
- 	pci_release_regions(pdev);
--	framebuffer_release(info);
- }
- #endif /* CONFIG_PCI */
+ /* ------------ Hardware Independent Functions ------------ */
+diff -puN include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2 include/video/permedia2.h
+--- a/include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2
++++ a/include/video/permedia2.h
+@@ -58,7 +58,14 @@
+ #define PM2R_RD_PALETTE_DATA				0x4008
+ #define PM2R_RD_PIXEL_MASK				0x4010
+ #define PM2R_RD_PALETTE_READ_ADDRESS			0x4018
++#define PM2R_RD_CURSOR_COLOR_ADDRESS		        0x4020
++#define PM2R_RD_CURSOR_COLOR_DATA		        0x4028
+ #define PM2R_RD_INDEXED_DATA				0x4050
++#define PM2R_RD_CURSOR_DATA				0x4058
++#define PM2R_RD_CURSOR_X_LSB				0x4060
++#define PM2R_RD_CURSOR_X_MSB				0x4068
++#define PM2R_RD_CURSOR_Y_LSB				0x4070
++#define PM2R_RD_CURSOR_Y_MSB				0x4078
  
-@@ -2383,7 +2248,6 @@ static void __devexit cirrusfb_zorro_unm
- 		if (zorro_resource_start(cinfo->zdev) > 0x01000000)
- 			iounmap(info->screen_base);
- 	}
--	framebuffer_release(cinfo->info);
- }
- #endif /* CONFIG_ZORRO */
- 
-@@ -2481,6 +2345,7 @@ err_dealloc_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- err_unmap_cirrusfb:
- 	cinfo->unmap(info);
-+	framebuffer_release(info);
- 	return err;
- }
- 
-@@ -2495,6 +2360,7 @@ static void __devexit cirrusfb_cleanup(s
- 	fb_dealloc_cmap(&info->cmap);
- 	printk("Framebuffer unregistered\n");
- 	cinfo->unmap(info);
-+	framebuffer_release(info);
- 
- 	DPRINTK("EXIT\n");
- }
+ #define PM2R_START_X_DOM				0x8000
+ #define PM2R_D_X_DOM					0x8008
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
