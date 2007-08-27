@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfb-make-virtual-framebuffer-mmapable.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:56 -0700
-Message-ID: <200708272223.l7RMNuto031695@imap1.linux-foundation.org>
+Subject: + s3c2410fb-make-use-of-default_display-settings.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:34 -0700
+Message-ID: <200708272223.l7RMNYJr031661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36648 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758171AbXH0WX7 (ORCPT
+	by vger.kernel.org with ESMTP id S1757822AbXH0WXh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:59 -0400
+	Mon, 27 Aug 2007 18:23:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ilya.yanok@gmail.com, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     vfb: make virtual framebuffer mmapable
+     s3c2410fb: make use of default_display settings
 has been added to the -mm tree.  Its filename is
-     vfb-make-virtual-framebuffer-mmapable.patch
+     s3c2410fb-make-use-of-default_display-settings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,153 +26,120 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vfb: make virtual framebuffer mmapable
-From: Ilya Yanok <ilya.yanok@gmail.com>
+Subject: s3c2410fb: make use of default_display settings
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Changed things:
+This patch changes mode selection to always prefer default mode if possible
+and always honor type of display set by default mode settings.
 
-1. vmalloc()/vfree() replaced with rvmalloc()/rvfree() (taken from
-   drivers/media/video/se401.c)
+This patch is required in case the same display modes were defined for
+different panels (e.g.  STN and TFT).
 
-2. mmap method implemented (mostly taken from drivers/media/video/se401.c)
-
-3. smem_start and smem_len fields of struct fb_fix_screeninfo initialized.
-    (smem_start initialized with virtual address, don't know if it is really
-   bad...)
-
-[adaplas: sparse warning fix]
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vfb.c |   78 +++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 74 insertions(+), 4 deletions(-)
+ drivers/video/s3c2410fb.c |   25 +++++++++++++++++--------
+ 1 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable drivers/video/vfb.c
---- a/drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable
-+++ a/drivers/video/vfb.c
-@@ -37,6 +37,48 @@ static void *videomemory;
- static u_long videomemorysize = VIDEOMEMSIZE;
- module_param(videomemorysize, ulong, 0);
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-make-use-of-default_display-settings drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-make-use-of-default_display-settings
++++ a/drivers/video/s3c2410fb.c
+@@ -172,19 +172,28 @@ static int s3c2410fb_check_var(struct fb
+ 	struct s3c2410fb_info *fbi = info->par;
+ 	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
+ 	struct s3c2410fb_display *display = NULL;
++	struct s3c2410fb_display *default_display = mach_info->displays +
++						    mach_info->default_display;
++	int type = default_display->type;
+ 	unsigned i;
  
-+/**********************************************************************
-+ *
-+ * Memory management
-+ *
-+ **********************************************************************/
-+static void *rvmalloc(unsigned long size)
-+{
-+	void *mem;
-+	unsigned long adr;
-+
-+	size = PAGE_ALIGN(size);
-+	mem = vmalloc_32(size);
-+	if (!mem)
-+		return NULL;
-+
-+	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
-+	adr = (unsigned long) mem;
-+	while (size > 0) {
-+		SetPageReserved(vmalloc_to_page((void *)adr));
-+		adr += PAGE_SIZE;
-+		size -= PAGE_SIZE;
-+	}
-+
-+	return mem;
-+}
-+
-+static void rvfree(void *mem, unsigned long size)
-+{
-+	unsigned long adr;
-+
-+	if (!mem)
-+		return;
-+
-+	adr = (unsigned long) mem;
-+	while ((long) size > 0) {
-+		ClearPageReserved(vmalloc_to_page((void *)adr));
-+		adr += PAGE_SIZE;
-+		size -= PAGE_SIZE;
-+	}
-+	vfree(mem);
-+}
-+
- static struct fb_var_screeninfo vfb_default __initdata = {
- 	.xres =		640,
- 	.yres =		480,
-@@ -371,7 +413,33 @@ static int vfb_pan_display(struct fb_var
- static int vfb_mmap(struct fb_info *info,
- 		    struct vm_area_struct *vma)
- {
--	return -EINVAL;
-+	unsigned long start = vma->vm_start;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long page, pos;
-+
-+	if (offset + size > info->fix.smem_len) {
-+		return -EINVAL;
-+	}
-+
-+	pos = (unsigned long)info->fix.smem_start + offset;
-+
-+	while (size > 0) {
-+		page = vmalloc_to_pfn((void *)pos);
-+		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
-+			return -EAGAIN;
-+		}
-+		start += PAGE_SIZE;
-+		pos += PAGE_SIZE;
-+		if (size > PAGE_SIZE)
-+			size -= PAGE_SIZE;
-+		else
-+			size = 0;
-+	}
-+
-+	vma->vm_flags |= VM_RESERVED;	/* avoid to swap out this VMA */
-+	return 0;
-+
- }
+ 	dprintk("check_var(var=%p, info=%p)\n", var, info);
  
- #ifndef MODULE
-@@ -406,7 +474,7 @@ static int __init vfb_probe(struct platf
- 	/*
- 	 * For real video cards we use ioremap.
- 	 */
--	if (!(videomemory = vmalloc(videomemorysize)))
-+	if (!(videomemory = rvmalloc(videomemorysize)))
- 		return retval;
+ 	/* validate x/y resolution */
+-
+-	for (i = 0; i < mach_info->num_displays; i++)
+-		if (var->yres == mach_info->displays[i].yres &&
+-		    var->xres == mach_info->displays[i].xres &&
+-		    var->bits_per_pixel == mach_info->displays[i].bpp) {
+-			display = mach_info->displays + i;
+-			break;
+-		}
++	/* choose default mode if possible */
++	if (var->yres == default_display->yres &&
++	    var->xres == default_display->xres &&
++	    var->bits_per_pixel == default_display->bpp)
++		display = default_display;
++	else
++		for (i = 0; i < mach_info->num_displays; i++)
++			if (type == mach_info->displays[i].type &&
++			    var->yres == mach_info->displays[i].yres &&
++			    var->xres == mach_info->displays[i].xres &&
++			    var->bits_per_pixel == mach_info->displays[i].bpp) {
++				display = mach_info->displays + i;
++				break;
++			}
  
- 	/*
-@@ -429,6 +497,8 @@ static int __init vfb_probe(struct platf
- 
- 	if (!retval || (retval == 4))
- 		info->var = vfb_default;
-+	vfb_fix.smem_start = (unsigned long) videomemory;
-+	vfb_fix.smem_len = videomemorysize;
- 	info->fix = vfb_fix;
- 	info->pseudo_palette = info->par;
- 	info->par = NULL;
-@@ -452,7 +522,7 @@ err2:
- err1:
- 	framebuffer_release(info);
- err:
--	vfree(videomemory);
-+	rvfree(videomemory, videomemorysize);
- 	return retval;
- }
- 
-@@ -462,7 +532,7 @@ static int vfb_remove(struct platform_de
- 
- 	if (info) {
- 		unregister_framebuffer(info);
--		vfree(videomemory);
-+		rvfree(videomemory, videomemorysize);
- 		framebuffer_release(info);
- 	}
- 	return 0;
+ 	if (!display) {
+ 		dprintk("wrong resolution or depth %dx%d at %d bpp\n",
 _
 
-Patches currently in -mm which might be from ilya.yanok@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-vfb-make-virtual-framebuffer-mmapable.patch
+origin.patch
+git-alsa.patch
+git-arm-master.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
