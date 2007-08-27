@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:22:59 -0700
-Message-ID: <200708272122.l7RLMxTN028690@imap1.linux-foundation.org>
+Subject: + fix-export_reportpl.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:27:28 -0700
+Message-ID: <200708272127.l7RLRSqu028900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59071 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58864 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762892AbXH0VXg (ORCPT
+	by vger.kernel.org with ESMTP id S1764795AbXH0V2H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:23:36 -0400
+	Mon, 27 Aug 2007 17:28:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     Redefine {un}register_hotcpu_notifier() !HOTPLUG_CPU stubs
+     fix export_report.pl
 has been added to the -mm tree.  Its filename is
-     redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+     fix-export_reportpl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Redefine {un}register_hotcpu_notifier() !HOTPLUG_CPU stubs
-From: Satyam Sharma <satyam@infradead.org>
+Subject: fix export_report.pl
+From: Adrian Bunk <bunk@kernel.org>
 
-The return of the present "do {} while" based stub definition of
-register_hotcpu_notifier() cannot be checked.  This makes the stub
-asymmetric w.r.t.  the real HOTPLUG_CPU=y implementation that is
-int-returning.  So let us redefine this to be consistent with the full
-version.  Also do the same for unregister_hotcpu_notifier().
+This patch fixes an annoying bug of export_report.pl missing the usages
+of some exports.
 
-We cannot define these as static inline functions due to an existing GCC
-bug (#33172).  So define as macros that return appropriately instead (int
-'0' for the register_hotcpu_notifier case and void for
-unregister_hotcpu_notifier).
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ scripts/export_report.pl |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpu.h~redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs include/linux/cpu.h
---- a/include/linux/cpu.h~redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs
-+++ a/include/linux/cpu.h
-@@ -119,8 +119,9 @@ static inline void cpuhotplug_mutex_unlo
- #define lock_cpu_hotplug()	do { } while (0)
- #define unlock_cpu_hotplug()	do { } while (0)
- #define hotcpu_notifier(fn, pri)	do { (void)(fn); } while (0)
--#define register_hotcpu_notifier(nb)	do { (void)(nb); } while (0)
--#define unregister_hotcpu_notifier(nb)	do { (void)(nb); } while (0)
-+/* These aren't inline functions due to a GCC bug. */
-+#define register_hotcpu_notifier(nb)	({ (void)(nb); 0; })
-+#define unregister_hotcpu_notifier(nb)	({ (void)(nb); })
- 
- /* CPUs don't go offline once they're online w/o CONFIG_HOTPLUG_CPU */
- static inline int cpu_is_offline(int cpu) { return 0; }
+diff -puN scripts/export_report.pl~fix-export_reportpl scripts/export_report.pl
+--- a/scripts/export_report.pl~fix-export_reportpl
++++ a/scripts/export_report.pl
+@@ -112,7 +112,7 @@ foreach my $thismod (@allcfiles) {
+ 			next;
+ 		}
+ 		if ($state eq 2) {
+-			if ( $_ !~ /0x[0-9a-f]{7,8},/ ) {
++			if ( $_ !~ /0x[0-9a-f]+,/ ) {
+ 				next;
+ 			}
+ 			my $sym = (split /([,"])/,)[4];
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-hwmon-coretemp-remove-bogus-__cpuinitdata-etc-cleanup.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-git-netdev-all.patch
-git-net.patch
-git-s390.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+git-acpi.patch
+git-dvb.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfsd.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+fix-export_reportpl.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
