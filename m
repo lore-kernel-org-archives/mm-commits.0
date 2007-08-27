@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-ath5k-remove-some-ieee80211-re-defines.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:56:53 -0700
-Message-ID: <200708272156.l7RLur26030528@imap1.linux-foundation.org>
+Subject: + sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:02:23 -0700
+Message-ID: <200708272202.l7RM2NDJ030785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965483AbXH0V6H (ORCPT
+	by vger.kernel.org with ESMTP id S1750925AbXH0WC0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:58:07 -0400
+	Mon, 27 Aug 2007 18:02:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, linville@tuxdriver.com
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     Net: ath5k, remove some ieee80211 re-defines
+     sysctl: update sysctl_check to handle compiled out code.
 has been added to the -mm tree.  Its filename is
-     net-ath5k-remove-some-ieee80211-re-defines.patch
+     sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,244 +26,148 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Net: ath5k, remove some ieee80211 re-defines
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: sysctl: update sysctl_check to handle compiled out code.
+From: ebiederm@xmission.com (Eric W. Biederman)
 
-ath5k, remove some ieee80211 re-defines
+Currently sysctl_check_table will complain if a strategy routine
+is missing when we have sys_sysctl compiled out, or a proc_handler
+is missing when we have procfs compiled out.  At least some
+of the custom handlers actually expand to NULL when this is the
+case so the warning is actually a problem.
 
-use mac80211 defines directly instead. this means MODULATION_* to
-IEEE80211_RATE_* switch.
+Valdis.Kletnieks@vt.edu writes:
+> As far as "something else wrong", I'm still seeing these in -rc3-mm1
+>
+> [    0.628000] sysctl table check failed: /kernel/ostype .1.1 Missing strategy
+> [ 0.628000] sysctl table check failed: /kernel/osrelease .1.2 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/version .1.4 Missing strategy
+> [ 0.628000] sysctl table check failed: /kernel/hostname .1.7 Missing strategy
+> [ 0.628000] sysctl table check failed: /kernel/domainname .1.8 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/shmmax .1.34 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/shmall .1.41 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/shmmni .1.45 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/msgmax .1.35 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/msgmni .1.42 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/msgmnb .1.36 Missing strategy
+> [    0.628000] sysctl table check failed: /kernel/sem .1.43 Missing strategy
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+So don't worry about missing strategy routines, or missing proc_handler
+routines when they will never be called.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k.h      |   92 +++++++++++++---------------
- drivers/net/wireless/ath5k_base.c |    2 
- drivers/net/wireless/ath5k_hw.c   |    9 +-
- 3 files changed, 50 insertions(+), 53 deletions(-)
+ kernel/sysctl_check.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/net/wireless/ath5k.h~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k.h
---- a/drivers/net/wireless/ath5k.h~net-ath5k-remove-some-ieee80211-re-defines
-+++ a/drivers/net/wireless/ath5k.h
-@@ -82,7 +82,7 @@
- #define AR5K_TUNE_ADDITIONAL_SWBA_BACKOFF	0
- #define AR5K_TUNE_RADAR_ALERT			false
- #define AR5K_TUNE_MIN_TX_FIFO_THRES		1
--#define AR5K_TUNE_MAX_TX_FIFO_THRES		((MAX_PDU_LENGTH / 64) + 1)
-+#define AR5K_TUNE_MAX_TX_FIFO_THRES		((IEEE80211_MAX_LEN / 64) + 1)
- #define AR5K_TUNE_RSSI_THRES			1792
- #define AR5K_TUNE_REGISTER_TIMEOUT		20000
- #define AR5K_TUNE_REGISTER_DWELL_TIME		20000
-@@ -187,18 +187,14 @@ struct ath5k_srev_name {
- 
- #define IEEE80211_MAX_LEN       2500
- 
--#define MAX_PDU_LENGTH		IEEE80211_MAX_LEN
--#define MODULATION_CCK		IEEE80211_RATE_CCK
--#define MODULATION_OFDM		IEEE80211_RATE_OFDM
--#define MODULATION_TURBO	IEEE80211_RATE_TURBO
-+/* TODO Merge this to mac80211 */
- #define MODULATION_XR 		0x00000200 /*XR thingie*/
--#define MODULATION_CCK_SP 	IEEE80211_RATE_CCK_2 /*CCK + Shortpreamble*/
- 
- #define AR5K_SET_SHORT_PREAMBLE 0x04 /* adding this flag to rate_code
- 					enables short preamble, see
- 					ar5212_reg.h */
--#define HAS_SHPREAMBLE(_ix) (rt->rates[_ix].modulation == MODULATION_CCK_SP)
--#define SHPREAMBLE_FLAG(_ix) HAS_SHPREAMBLE(_ix)?AR5K_SET_SHORT_PREAMBLE:0
-+#define HAS_SHPREAMBLE(_ix) (rt->rates[_ix].modulation == IEEE80211_RATE_CCK_2)
-+#define SHPREAMBLE_FLAG(_ix) (HAS_SHPREAMBLE(_ix) ? AR5K_SET_SHORT_PREAMBLE : 0)
- 
- /****************\
-   TX DEFINITIONS
-@@ -598,56 +594,56 @@ struct ath5k_rate_table {
- 	255, 255, 255, 255, 255, 255, 255, 255, 6, 4, 2, 0,	\
- 	7, 5, 3, 1, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	255, 255, 255, 255, 255, 255, 255, 255 }, {		\
--	{ 1, MODULATION_OFDM, 6000, 11, 140, 0 },		\
--	{ 1, MODULATION_OFDM, 9000, 15, 18, 0 },		\
--	{ 1, MODULATION_OFDM, 12000, 10, 152, 2 },		\
--	{ 1, MODULATION_OFDM, 18000, 14, 36, 2 },		\
--	{ 1, MODULATION_OFDM, 24000, 9, 176, 4 },		\
--	{ 1, MODULATION_OFDM, 36000, 13, 72, 4 },		\
--	{ 1, MODULATION_OFDM, 48000, 8, 96, 4 },		\
--	{ 1, MODULATION_OFDM, 54000, 12, 108, 4 } }		\
-+	{ 1, IEEE80211_RATE_OFDM, 6000, 11, 140, 0 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 9000, 15, 18, 0 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 152, 2 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 2 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 176, 4 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 4 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 4 },		\
-+	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 4 } }		\
- }
- 
- #define AR5K_RATES_11B { 4, {						\
- 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	3, 2, 1, 0, 255, 255, 255, 255 }, {				\
--	{ 1, MODULATION_CCK, 1000, 27, 130, 0 },	\
--	{ 1, MODULATION_CCK_SP, 2000, 26, 132, 1 },	\
--	{ 1, MODULATION_CCK_SP, 5500, 25, 139, 1 },	\
--	{ 1, MODULATION_CCK_SP, 11000, 24, 150, 1 } }	\
-+	{ 1, IEEE80211_RATE_CCK, 1000, 27, 130, 0 },	\
-+	{ 1, IEEE80211_RATE_CCK_2, 2000, 26, 132, 1 },	\
-+	{ 1, IEEE80211_RATE_CCK_2, 5500, 25, 139, 1 },	\
-+	{ 1, IEEE80211_RATE_CCK_2, 11000, 24, 150, 1 } }	\
- }
- 
- #define AR5K_RATES_11G { 12, {					\
- 	255, 255, 255, 255, 255, 255, 255, 255, 10, 8, 6, 4,	\
- 	11, 9, 7, 5, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	3, 2, 1, 0, 255, 255, 255, 255 }, {			\
--	{ 1, MODULATION_CCK, 1000, 27, 2, 0 },		\
--	{ 1, MODULATION_CCK_SP, 2000, 26, 4, 1 },		\
--	{ 1, MODULATION_CCK_SP, 5500, 25, 11, 1 },		\
--	{ 1, MODULATION_CCK_SP, 11000, 24, 22, 1 },	\
--	{ 0, MODULATION_OFDM, 6000, 11, 12, 4 },	\
--	{ 0, MODULATION_OFDM, 9000, 15, 18, 4 },	\
--	{ 1, MODULATION_OFDM, 12000, 10, 24, 6 },	\
--	{ 1, MODULATION_OFDM, 18000, 14, 36, 6 },	\
--	{ 1, MODULATION_OFDM, 24000, 9, 48, 8 },	\
--	{ 1, MODULATION_OFDM, 36000, 13, 72, 8 },	\
--	{ 1, MODULATION_OFDM, 48000, 8, 96, 8 },	\
--	{ 1, MODULATION_OFDM, 54000, 12, 108, 8 } }	\
-+	{ 1, IEEE80211_RATE_CCK, 1000, 27, 2, 0 },		\
-+	{ 1, IEEE80211_RATE_CCK_2, 2000, 26, 4, 1 },		\
-+	{ 1, IEEE80211_RATE_CCK_2, 5500, 25, 11, 1 },		\
-+	{ 1, IEEE80211_RATE_CCK_2, 11000, 24, 22, 1 },	\
-+	{ 0, IEEE80211_RATE_OFDM, 6000, 11, 12, 4 },	\
-+	{ 0, IEEE80211_RATE_OFDM, 9000, 15, 18, 4 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 24, 6 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 6 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 48, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 8 } }	\
- }
- 
- #define AR5K_RATES_TURBO { 8, {					\
- 	255, 255, 255, 255, 255, 255, 255, 255, 6, 4, 2, 0,	\
- 	7, 5, 3, 1, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	255, 255, 255, 255, 255, 255, 255, 255 }, {		\
--	{ 1, MODULATION_TURBO, 6000, 11, 140, 0 },	\
--	{ 1, MODULATION_TURBO, 9000, 15, 18, 0 },	\
--	{ 1, MODULATION_TURBO, 12000, 10, 152, 2 },	\
--	{ 1, MODULATION_TURBO, 18000, 14, 36, 2 },	\
--	{ 1, MODULATION_TURBO, 24000, 9, 176, 4 },	\
--	{ 1, MODULATION_TURBO, 36000, 13, 72, 4 },	\
--	{ 1, MODULATION_TURBO, 48000, 8, 96, 4 },	\
--	{ 1, MODULATION_TURBO, 54000, 12, 108, 4 } }	\
-+	{ 1, IEEE80211_RATE_TURBO, 6000, 11, 140, 0 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 9000, 15, 18, 0 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 12000, 10, 152, 2 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 18000, 14, 36, 2 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 24000, 9, 176, 4 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 36000, 13, 72, 4 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 48000, 8, 96, 4 },	\
-+	{ 1, IEEE80211_RATE_TURBO, 54000, 12, 108, 4 } }	\
- }
- 
- #define AR5K_RATES_XR { 12, {					\
-@@ -658,14 +654,14 @@ struct ath5k_rate_table {
- 	{ 1, MODULATION_XR, 1000, 2, 139, 1 },		\
- 	{ 1, MODULATION_XR, 2000, 6, 150, 2 },		\
- 	{ 1, MODULATION_XR, 3000, 1, 150, 3 },		\
--	{ 1, MODULATION_OFDM, 6000, 11, 140, 4 },	\
--	{ 1, MODULATION_OFDM, 9000, 15, 18, 4 },	\
--	{ 1, MODULATION_OFDM, 12000, 10, 152, 6 },	\
--	{ 1, MODULATION_OFDM, 18000, 14, 36, 6 },	\
--	{ 1, MODULATION_OFDM, 24000, 9, 176, 8 },	\
--	{ 1, MODULATION_OFDM, 36000, 13, 72, 8 },	\
--	{ 1, MODULATION_OFDM, 48000, 8, 96, 8 },	\
--	{ 1, MODULATION_OFDM, 54000, 12, 108, 8 } }	\
-+	{ 1, IEEE80211_RATE_OFDM, 6000, 11, 140, 4 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 9000, 15, 18, 4 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 152, 6 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 6 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 176, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 8 },	\
-+	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 8 } }	\
- }
- 
- /*
-diff -puN drivers/net/wireless/ath5k_base.c~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~net-ath5k-remove-some-ieee80211-re-defines
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -1089,7 +1089,7 @@ static void ath_setcurmode(struct ath_so
+diff -puN kernel/sysctl_check.c~sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code
++++ a/kernel/sysctl_check.c
+@@ -1534,14 +1534,18 @@ int sysctl_check_table(struct ctl_table 
+ 						set_fail(&fail, table, "No max");
+ 				}
  			}
- 			sc->hwmap[i].txflags = IEEE80211_RADIOTAP_F_DATAPAD;
- 			if (SHPREAMBLE_FLAG(ix) || rt->rates[ix].modulation ==
--					MODULATION_OFDM)
-+					IEEE80211_RATE_OFDM)
- 				sc->hwmap[i].txflags |=
- 						IEEE80211_RADIOTAP_F_SHORTPRE;
- 			/* receive frames include FCS */
-diff -puN drivers/net/wireless/ath5k_hw.c~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k_hw.c
---- a/drivers/net/wireless/ath5k_hw.c~net-ath5k-remove-some-ieee80211-re-defines
-+++ a/drivers/net/wireless/ath5k_hw.c
-@@ -142,15 +142,16 @@ ath_hal_computetxtime(struct ath_hw *hal
- 	 * Calculate the transmission time by operation (PHY) mode
- 	 */
- 	switch (rate->modulation) {
--	case MODULATION_CCK:
-+	case IEEE80211_RATE_CCK:
- 		/*
- 		 * CCK / DS mode (802.11b)
- 		 */
- 		value = AR5K_CCK_TX_TIME(rate->rate_kbps, frame_length,
--		    (short_preamble && (rate->modulation == MODULATION_CCK_SP)));
-+			short_preamble &&
-+			rate->modulation == IEEE80211_RATE_CCK_2);
- 		break;
- 
--	case MODULATION_OFDM:
-+	case IEEE80211_RATE_OFDM:
- 		/*
- 		 * Orthogonal Frequency Division Multiplexing
- 		 */
-@@ -159,7 +160,7 @@ ath_hal_computetxtime(struct ath_hw *hal
- 		value = AR5K_OFDM_TX_TIME(rate->rate_kbps, frame_length);
- 		break;
- 
--	case MODULATION_TURBO:
-+	case IEEE80211_RATE_TURBO:
- 		/*
- 		 * Orthogonal Frequency Division Multiplexing
- 		 * Atheros "Turbo Mode" (doubled rates)
++#ifdef CONFIG_SYSCTL_SYSCALL
+ 			if (table->ctl_name && !table->strategy)
+ 				set_fail(&fail, table, "Missing strategy");
++#endif
+ #if 0
+ 			if (!table->ctl_name && table->strategy)
+ 				set_fail(&fail, table, "Strategy without ctl_name");
+ #endif
++#ifdef CONFIG_PROC_FS
+ 			if (table->procname && !table->proc_handler)
+ 				set_fail(&fail, table, "No proc_handler");
++#endif
+ #if 0
+ 			if (!table->procname && table->proc_handler)
+ 				set_fail(&fail, table, "proc_handler without procname");
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-git-wireless.patch
-net-ath5k-comment-some-eeprom-registers.patch
-net-ath5k-initial-write-cleanup.patch
-net-ath5k-use-short-preamble-for-some-rates.patch
-net-ath5k-remove-some-ieee80211-re-defines.patch
-net-add-ath5k-wireless-driver-fix.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-char-mxser_new-upgrade-to-110.patch
-char-mxser_new-move-to-pci_vdevice.patch
-char-mxser_new-remove-useless-comments-in-mxser_cards.patch
-mxser-remove-commented-crap.patch
-char-moxa-fix-and-optimise-empty-timer.patch
-char-cyclades-remove-bottom-half-processing.patch
-char-cyclades-make-the-isr-code-readable.patch
-char-cyclades-move-spin_lock-to-one-place.patch
-char-cyclades-fix-some-w-warnings.patch
-char-moxa-cleanup-prints.patch
-char-moxa-function-names-cleanup.patch
-char-moxa-remove-sleep_on.patch
-fs-select-remove-unused-macros.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+dvb_en_50221-convert-to-kthread-api.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-remove-broken-cdrom-binary-sysctls-update.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-parport-remove-binary-paths.patch
+sysctl-simplify-the-pty-sysctl-logic.patch
+sysctl-remove-broken-netfilter-binary-sysctls.patch
+sysctl-remove-the-cad_pid-binary-sysctl-path.patch
+sysctl-properly-register-the-irda-binary-sysctl-numbers.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+sysctl-update-sysctl_check_table.patch
+sysctl-update-sysctl_checks-list-of-binary-paths.patch
+sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
+sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
