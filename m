@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-change-asm-uaccessh-to-linux-uaccessh.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:25 -0700
-Message-ID: <200708272223.l7RMNQpS031649@imap1.linux-foundation.org>
+Subject: + hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:57:35 -0700
+Message-ID: <200708272257.l7RMvZNX000414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36595 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47135 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753688AbXH0WXc (ORCPT
+	by vger.kernel.org with ESMTP id S1750779AbXH0W61 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:32 -0400
+	Mon, 27 Aug 2007 18:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: david@gibson.dropbear.id.au, agl@us.ibm.com, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net
 
 
 The patch titled
-     fbdev: change asm/uaccess.h to linux/uaccess.h
+     hugepage: fix broken check for offset alignment in hugepage mappings
 has been added to the -mm tree.  Its filename is
-     fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+     hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,529 +26,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: change asm/uaccess.h to linux/uaccess.h
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: hugepage: fix broken check for offset alignment in hugepage mappings
+From: David Gibson <david@gibson.dropbear.id.au>
 
-This patch replaces <asm/uaccess.h> with <linux/uaccess.h> after the
-checkpatch.pl hint.  The include of <asm/uaccess.h> is removed if the driver
-does not use it.
+For hugepage mappings, the file offset, like the address and size, needs to
+be aligned to the size of a hugepage.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+In commit 68589bc353037f233fe510ad9ff432338c95db66, the check for this was
+moved into prepare_hugepage_range() along with the address and size checks.
+ But since BenH's rework of the get_unmapped_area() paths leading up to
+commit 4b1d89290b62bb2db476c94c82cf7442aab440c8, prepare_hugepage_range()
+is only called for MAP_FIXED mappings, not for other mappings.  This means
+we're no longer ever checking for an aligned offset - I've confirmed that
+mmap() will (apparently) succeed with a misaligned offset on both powerpc
+and i386 at least.
+
+This patch restores the check, removing it from prepare_hugepage_range()
+and putting it back into hugetlbfs_file_mmap().  I'm putting it there,
+rather than in the get_unmapped_area() path so it only needs to go in one
+place, than separately in the half-dozen or so arch-specific
+implementations of hugetlb_get_unmapped_area().
+
+Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/amifb.c                  |    2 +-
- drivers/video/arcfb.c                  |    2 +-
- drivers/video/atafb.c                  |    2 +-
- drivers/video/aty/aty128fb.c           |    2 +-
- drivers/video/aty/atyfb_base.c         |    2 +-
- drivers/video/aty/mach64_cursor.c      |    1 -
- drivers/video/aty/radeon_base.c        |    2 +-
- drivers/video/backlight/cr_bllcd.c     |    1 -
- drivers/video/backlight/progear_bl.c   |    1 -
- drivers/video/clps711xfb.c             |    2 +-
- drivers/video/console/fbcon.c          |    1 -
- drivers/video/console/softcursor.c     |    1 -
- drivers/video/cyber2000fb.c            |    1 -
- drivers/video/epson1355fb.c            |    2 +-
- drivers/video/fb_defio.c               |    1 -
- drivers/video/fb_sys_fops.c            |    2 +-
- drivers/video/fbcmap.c                 |    3 +--
- drivers/video/hecubafb.c               |    2 +-
- drivers/video/imsttfb.c                |    2 +-
- drivers/video/imxfb.c                  |    1 -
- drivers/video/kyro/fbdev.c             |    2 +-
- drivers/video/matrox/matroxfb_base.c   |    2 +-
- drivers/video/matrox/matroxfb_crtc2.c  |    2 +-
- drivers/video/matrox/matroxfb_g450.c   |    1 -
- drivers/video/matrox/matroxfb_maven.c  |    1 -
- drivers/video/neofb.c                  |    1 -
- drivers/video/pnx4008/pnxrgbfb.c       |    1 -
- drivers/video/ps3fb.c                  |    2 +-
- drivers/video/pvr2fb.c                 |    2 +-
- drivers/video/pxafb.c                  |    1 -
- drivers/video/sa1100fb.c               |    1 -
- drivers/video/savage/savagefb_driver.c |    1 -
- drivers/video/sis/sis_main.c           |    2 +-
- drivers/video/sstfb.c                  |    2 +-
- drivers/video/vermilion/vermilion.c    |    1 -
- drivers/video/vfb.c                    |    1 -
- 36 files changed, 19 insertions(+), 37 deletions(-)
+ arch/i386/mm/hugetlbpage.c    |    2 +-
+ arch/ia64/mm/hugetlbpage.c    |    6 ++----
+ arch/sparc64/mm/hugetlbpage.c |    2 +-
+ fs/hugetlbfs/inode.c          |   15 ++++++++++-----
+ include/linux/hugetlb.h       |   10 +++-------
+ 5 files changed, 17 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/amifb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/amifb.c
---- a/drivers/video/amifb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/amifb.c
-@@ -52,7 +52,7 @@
- #include <linux/init.h>
- #include <linux/ioport.h>
+diff -puN arch/i386/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/i386/mm/hugetlbpage.c
+--- a/arch/i386/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
++++ a/arch/i386/mm/hugetlbpage.c
+@@ -367,7 +367,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 		return -ENOMEM;
  
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <asm/system.h>
- #include <asm/irq.h>
- #include <asm/amigahw.h>
-diff -puN drivers/video/arcfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/arcfb.c
---- a/drivers/video/arcfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/arcfb.c
-@@ -48,7 +48,7 @@
- #include <linux/arcfb.h>
- #include <linux/platform_device.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #define floor8(a) (a&(~0x07))
- #define floorXres(a,xres) (a&(~(xres - 1)))
-diff -puN drivers/video/atafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/atafb.c
---- a/drivers/video/atafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/atafb.c
-@@ -58,7 +58,7 @@
- #include <linux/interrupt.h>
- 
- #include <asm/setup.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <asm/pgtable.h>
- #include <asm/irq.h>
- #include <asm/io.h>
-diff -puN drivers/video/aty/aty128fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/aty/aty128fb.c
---- a/drivers/video/aty/aty128fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/aty/aty128fb.c
-@@ -56,7 +56,7 @@
- #include <linux/vmalloc.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-diff -puN drivers/video/aty/atyfb_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -68,7 +68,7 @@
- #include <linux/backlight.h>
- 
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include <video/mach64.h>
- #include "atyfb.h"
-diff -puN drivers/video/aty/mach64_cursor.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/aty/mach64_cursor.c
---- a/drivers/video/aty/mach64_cursor.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/aty/mach64_cursor.c
-@@ -8,7 +8,6 @@
- #include <linux/string.h>
- 
- #include <asm/io.h>
--#include <asm/uaccess.h>
- 
- #ifdef __sparc__
- #include <asm/fbio.h>
-diff -puN drivers/video/aty/radeon_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/aty/radeon_base.c
-@@ -69,7 +69,7 @@
- #include <linux/device.h>
- 
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #ifdef CONFIG_PPC_OF
- 
-diff -puN drivers/video/backlight/cr_bllcd.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -37,7 +37,6 @@
- #include <linux/backlight.h>
- #include <linux/lcd.h>
- #include <linux/pci.h>
--#include <asm/uaccess.h>
- 
- #define MODULE_NAME "cr_bllcd"
- 
-diff -puN drivers/video/backlight/progear_bl.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/backlight/progear_bl.c
---- a/drivers/video/backlight/progear_bl.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/backlight/progear_bl.c
-@@ -23,7 +23,6 @@
- #include <linux/fb.h>
- #include <linux/backlight.h>
- #include <linux/pci.h>
--#include <asm/uaccess.h>
- 
- #define PMU_LPCR               0xB0
- #define SB_MPS1                0x61
-diff -puN drivers/video/clps711xfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/clps711xfb.c
---- a/drivers/video/clps711xfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/clps711xfb.c
-@@ -29,7 +29,7 @@
- 
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include <asm/hardware/clps7111.h>
- #include <asm/arch/syspld.h>
-diff -puN drivers/video/console/fbcon.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/console/fbcon.c
-@@ -78,7 +78,6 @@
- #include <asm/fb.h>
- #include <asm/irq.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- #ifdef CONFIG_ATARI
- #include <asm/atariints.h>
- #endif
-diff -puN drivers/video/console/softcursor.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/console/softcursor.c
---- a/drivers/video/console/softcursor.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/console/softcursor.c
-@@ -15,7 +15,6 @@
- #include <linux/fb.h>
- #include <linux/slab.h>
- 
--#include <asm/uaccess.h>
- #include <asm/io.h>
- 
- #include "fbcon.h"
-diff -puN drivers/video/cyber2000fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/cyber2000fb.c
---- a/drivers/video/cyber2000fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/cyber2000fb.c
-@@ -50,7 +50,6 @@
- #include <asm/io.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #ifdef __arm__
- #include <asm/mach-types.h>
-diff -puN drivers/video/epson1355fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/epson1355fb.c
---- a/drivers/video/epson1355fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/epson1355fb.c
-@@ -57,7 +57,7 @@
- 
- #include <asm/types.h>
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #include <video/epson1355.h>
- 
-diff -puN drivers/video/fb_defio.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/fb_defio.c
-@@ -19,7 +19,6 @@
- #include <linux/interrupt.h>
- #include <linux/fb.h>
- #include <linux/list.h>
--#include <asm/uaccess.h>
- 
- /* to support deferred IO */
- #include <linux/rmap.h>
-diff -puN drivers/video/fb_sys_fops.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/fb_sys_fops.c
---- a/drivers/video/fb_sys_fops.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/fb_sys_fops.c
-@@ -11,7 +11,7 @@
+ 	if (flags & MAP_FIXED) {
+-		if (prepare_hugepage_range(addr, len, pgoff))
++		if (prepare_hugepage_range(addr, len))
+ 			return -EINVAL;
+ 		return addr;
+ 	}
+diff -puN arch/ia64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -75,10 +75,8 @@ int huge_pmd_unshare(struct mm_struct *m
+  * Don't actually need to do any preparation, but need to make sure
+  * the address is in the right region.
   */
- #include <linux/fb.h>
- #include <linux/module.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+-int prepare_hugepage_range(unsigned long addr, unsigned long len, pgoff_t pgoff)
++int prepare_hugepage_range(unsigned long addr, unsigned long len)
+ {
+-	if (pgoff & (~HPAGE_MASK >> PAGE_SHIFT))
+-		return -EINVAL;
+ 	if (len & ~HPAGE_MASK)
+ 		return -EINVAL;
+ 	if (addr & ~HPAGE_MASK)
+@@ -151,7 +149,7 @@ unsigned long hugetlb_get_unmapped_area(
  
- ssize_t fb_sys_read(struct fb_info *info, char __user *buf, size_t count,
- 		    loff_t *ppos)
-diff -puN drivers/video/fbcmap.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/fbcmap.c
---- a/drivers/video/fbcmap.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/fbcmap.c
-@@ -15,8 +15,7 @@
- #include <linux/module.h>
- #include <linux/fb.h>
- #include <linux/slab.h>
--
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+ 	/* Handle MAP_FIXED */
+ 	if (flags & MAP_FIXED) {
+-		if (prepare_hugepage_range(addr, len, pgoff))
++		if (prepare_hugepage_range(addr, len))
+ 			return -EINVAL;
+ 		return addr;
+ 	}
+diff -puN arch/sparc64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/sparc64/mm/hugetlbpage.c
+--- a/arch/sparc64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
++++ a/arch/sparc64/mm/hugetlbpage.c
+@@ -175,7 +175,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 		return -ENOMEM;
  
- static u16 red2[] __read_mostly = {
-     0x0000, 0xaaaa
-diff -puN drivers/video/hecubafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/hecubafb.c
-@@ -45,7 +45,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/list.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+ 	if (flags & MAP_FIXED) {
+-		if (prepare_hugepage_range(addr, len, pgoff))
++		if (prepare_hugepage_range(addr, len))
+ 			return -EINVAL;
+ 		return addr;
+ 	}
+diff -puN fs/hugetlbfs/inode.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
++++ a/fs/hugetlbfs/inode.c
+@@ -82,14 +82,19 @@ static int hugetlbfs_file_mmap(struct fi
+ 	int ret;
  
- /* Apollo controller specific defines */
- #define APOLLO_START_NEW_IMG	0xA0
-diff -puN drivers/video/imsttfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/imsttfb.c
---- a/drivers/video/imsttfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/imsttfb.c
-@@ -29,7 +29,7 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
+ 	/*
+-	 * vma alignment has already been checked by prepare_hugepage_range.
+-	 * If you add any error returns here, do so after setting VM_HUGETLB,
+-	 * so is_vm_hugetlb_page tests below unmap_region go the right way
+-	 * when do_mmap_pgoff unwinds (may be important on powerpc and ia64).
++	 * vma address alignment (but not the pgoff alignment) has
++	 * already been checked by prepare_hugepage_range.  If you add
++	 * any error returns here, do so after setting VM_HUGETLB, so
++	 * is_vm_hugetlb_page tests below unmap_region go the right
++	 * way when do_mmap_pgoff unwinds (may be important on powerpc
++	 * and ia64).
+ 	 */
+ 	vma->vm_flags |= VM_HUGETLB | VM_RESERVED;
+ 	vma->vm_ops = &hugetlb_vm_ops;
  
- #if defined(CONFIG_PPC)
- #include <linux/nvram.h>
-diff -puN drivers/video/imxfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/imxfb.c
-@@ -34,7 +34,6 @@
++	if (vma->vm_pgoff & ~(HPAGE_MASK >> PAGE_SHIFT))
++		return -EINVAL;
++
+ 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
  
- #include <asm/hardware.h>
- #include <asm/io.h>
--#include <asm/uaccess.h>
- #include <asm/arch/imxfb.h>
+ 	mutex_lock(&inode->i_mutex);
+@@ -132,7 +137,7 @@ hugetlb_get_unmapped_area(struct file *f
+ 		return -ENOMEM;
  
- /*
-diff -puN drivers/video/kyro/fbdev.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/kyro/fbdev.c
---- a/drivers/video/kyro/fbdev.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/kyro/fbdev.c
-@@ -21,7 +21,7 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
- #endif
-diff -puN drivers/video/matrox/matroxfb_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/matrox/matroxfb_base.c
---- a/drivers/video/matrox/matroxfb_base.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/matrox/matroxfb_base.c
-@@ -113,7 +113,7 @@
- #include "matroxfb_g450.h"
- #include <linux/matroxfb.h>
- #include <linux/interrupt.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #ifdef CONFIG_PPC_PMAC
- #include <asm/machdep.h>
-diff -puN drivers/video/matrox/matroxfb_crtc2.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/matrox/matroxfb_crtc2.c
---- a/drivers/video/matrox/matroxfb_crtc2.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/matrox/matroxfb_crtc2.c
-@@ -15,7 +15,7 @@
- #include "matroxfb_misc.h"
- #include "matroxfb_DAC1064.h"
- #include <linux/matroxfb.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- /* **************************************************** */
- 
-diff -puN drivers/video/matrox/matroxfb_g450.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/matrox/matroxfb_g450.c
---- a/drivers/video/matrox/matroxfb_g450.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/matrox/matroxfb_g450.c
-@@ -17,7 +17,6 @@
- #include "matroxfb_DAC1064.h"
- #include "g450_pll.h"
- #include <linux/matroxfb.h>
--#include <asm/uaccess.h>
- #include <asm/div64.h>
- 
- #include "matroxfb_g450.h"
-diff -puN drivers/video/matrox/matroxfb_maven.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/matrox/matroxfb_maven.c
---- a/drivers/video/matrox/matroxfb_maven.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/matrox/matroxfb_maven.c
-@@ -18,7 +18,6 @@
- #include <linux/i2c.h>
- #include <linux/matroxfb.h>
- #include <asm/div64.h>
--#include <asm/uaccess.h>
- 
- #define MAVEN_I2CID	(0x1B)
- 
-diff -puN drivers/video/neofb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/neofb.c
---- a/drivers/video/neofb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/neofb.c
-@@ -72,7 +72,6 @@
- #include <asm/irq.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
-diff -puN drivers/video/pnx4008/pnxrgbfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/pnx4008/pnxrgbfb.c
---- a/drivers/video/pnx4008/pnxrgbfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/pnx4008/pnxrgbfb.c
-@@ -26,7 +26,6 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- 
--#include <asm/uaccess.h>
- #include "sdum.h"
- #include "fbcommon.h"
- 
-diff -puN drivers/video/ps3fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/ps3fb.c
-@@ -34,7 +34,7 @@
- #include <linux/kthread.h>
- #include <linux/freezer.h>
- 
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/fb.h>
- #include <linux/init.h>
- #include <asm/time.h>
-diff -puN drivers/video/pvr2fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/pvr2fb.c
---- a/drivers/video/pvr2fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/pvr2fb.c
-@@ -72,7 +72,7 @@
+ 	if (flags & MAP_FIXED) {
+-		if (prepare_hugepage_range(addr, len, pgoff))
++		if (prepare_hugepage_range(addr, len))
+ 			return -EINVAL;
+ 		return addr;
+ 	}
+diff -puN include/linux/hugetlb.h~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
++++ a/include/linux/hugetlb.h
+@@ -66,11 +66,8 @@ void hugetlb_free_pgd_range(struct mmu_g
+  * If the arch doesn't supply something else, assume that hugepage
+  * size aligned regions are ok without further preparation.
+  */
+-static inline int prepare_hugepage_range(unsigned long addr, unsigned long len,
+-						pgoff_t pgoff)
++static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
+ {
+-	if (pgoff & (~HPAGE_MASK >> PAGE_SHIFT))
+-		return -EINVAL;
+ 	if (len & ~HPAGE_MASK)
+ 		return -EINVAL;
+ 	if (addr & ~HPAGE_MASK)
+@@ -78,8 +75,7 @@ static inline int prepare_hugepage_range
+ 	return 0;
+ }
+ #else
+-int prepare_hugepage_range(unsigned long addr, unsigned long len,
+-						pgoff_t pgoff);
++int prepare_hugepage_range(unsigned long addr, unsigned long len);
  #endif
  
- #ifdef CONFIG_SH_STORE_QUEUES
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <asm/cpu/sq.h>
- #endif
- 
-diff -puN drivers/video/pxafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/pxafb.c
---- a/drivers/video/pxafb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/pxafb.c
-@@ -41,7 +41,6 @@
- #include <asm/hardware.h>
- #include <asm/io.h>
- #include <asm/irq.h>
--#include <asm/uaccess.h>
- #include <asm/div64.h>
- #include <asm/arch/pxa-regs.h>
- #include <asm/arch/bitfield.h>
-diff -puN drivers/video/sa1100fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/sa1100fb.c
---- a/drivers/video/sa1100fb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/sa1100fb.c
-@@ -178,7 +178,6 @@
- #include <asm/hardware.h>
- #include <asm/io.h>
- #include <asm/mach-types.h>
--#include <asm/uaccess.h>
- #include <asm/arch/assabet.h>
- #include <asm/arch/shannon.h>
- 
-diff -puN drivers/video/savage/savagefb_driver.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/savage/savagefb_driver.c
---- a/drivers/video/savage/savagefb_driver.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/savage/savagefb_driver.c
-@@ -57,7 +57,6 @@
- #include <asm/irq.h>
- #include <asm/pgtable.h>
- #include <asm/system.h>
--#include <asm/uaccess.h>
- 
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
-diff -puN drivers/video/sis/sis_main.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/sis/sis_main.c
-@@ -58,7 +58,7 @@
- #include <linux/capability.h>
- #include <linux/fs.h>
- #include <linux/types.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <asm/io.h>
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
-diff -puN drivers/video/sstfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/sstfb.c
---- a/drivers/video/sstfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/sstfb.c
-@@ -88,7 +88,7 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <asm/io.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <video/sstfb.h>
- 
- 
-diff -puN drivers/video/vermilion/vermilion.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/vermilion/vermilion.c
---- a/drivers/video/vermilion/vermilion.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/vermilion/vermilion.c
-@@ -39,7 +39,6 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <linux/mmzone.h>
--#include <asm/uaccess.h>
- 
- /* #define VERMILION_DEBUG */
- 
-diff -puN drivers/video/vfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh drivers/video/vfb.c
---- a/drivers/video/vfb.c~fbdev-change-asm-uaccessh-to-linux-uaccessh
-+++ a/drivers/video/vfb.c
-@@ -21,7 +21,6 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- 
--#include <asm/uaccess.h>
- #include <linux/fb.h>
- #include <linux/init.h>
- 
+ #ifndef ARCH_HAS_SETCLEAR_HUGE_PTE
+@@ -117,7 +113,7 @@ static inline unsigned long hugetlb_tota
+ #define hugetlb_report_meminfo(buf)		0
+ #define hugetlb_report_node_meminfo(n, buf)	0
+ #define follow_huge_pmd(mm, addr, pmd, write)	NULL
+-#define prepare_hugepage_range(addr,len,pgoff)	(-EINVAL)
++#define prepare_hugepage_range(addr,len)	(-EINVAL)
+ #define pmd_huge(x)	0
+ #define is_hugepage_only_range(mm, addr, len)	0
+ #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from david@gibson.dropbear.id.au are
 
 origin.patch
-git-alsa.patch
-git-arm-master.patch
-git-hwmon.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
-tdfxfb-mtrr-support.patch
-tdfxfb-mtrr-support-fix.patch
-tdfxfb-mtrr-support-fix-2.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
-fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
-s3c2410fb-source-code-improvements.patch
-s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
-s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
-s3c2410fb-make-use-of-default_display-settings.patch
-cirrusfb-checkpatchpl-cleanup.patch
-cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
-cirrusfb-remove-typedefs.patch
-cirrusfb-remove-fields-from-cirrusfb_info.patch
-cirrusfb-code-improvements.patch
-cirrusfb-code-improvement-2nd-part.patch
-pm3fb-header-file-cleanup.patch
-pm2fb-hardware-cursor-support-for-the-permedia2.patch
-pm2fb-panning-and-hardware-cursor-fixes.patch
+hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings.patch
+git-powerpc.patch
+hugetlb-allow-extending-ftruncate-on-hugetlbfs.patch
