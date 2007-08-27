@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-ath5k-use-short-preamble-for-some-rates.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:56:50 -0700
-Message-ID: <200708272156.l7RLuoQF030525@imap1.linux-foundation.org>
+Subject: + cirrusfb-checkpatchpl-cleanup-ppc-fix.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:38 -0700
+Message-ID: <200708272223.l7RMNcxZ031667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41511 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765204AbXH0V5b (ORCPT
+	by vger.kernel.org with ESMTP id S1758047AbXH0WXx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:57:31 -0400
+	Mon, 27 Aug 2007 18:23:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, linville@tuxdriver.com
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net, geert@linux-m68k.org
 
 
 The patch titled
-     Net: ath5k, use short preamble for some rates
+     checkpatch.pl cleanup PPC fix
 has been added to the -mm tree.  Its filename is
-     net-ath5k-use-short-preamble-for-some-rates.patch
+     cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Net: ath5k, use short preamble for some rates
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: checkpatch.pl cleanup PPC fix
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-ath5k, use short preamble for some rates
+This patch fixes the error spotted by Geert Uytterhoeven in the "cirrusfb:
+checkpatch.pl cleanup" patch.
 
-2, 5.5 and 11 in b/g are now in short preamble mode
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k.h |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/cirrusfb.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ath5k.h~net-ath5k-use-short-preamble-for-some-rates drivers/net/wireless/ath5k.h
---- a/drivers/net/wireless/ath5k.h~net-ath5k-use-short-preamble-for-some-rates
-+++ a/drivers/net/wireless/ath5k.h
-@@ -613,9 +613,9 @@ struct ath5k_rate_table {
- 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	3, 2, 1, 0, 255, 255, 255, 255 }, {				\
- 	{ 1, MODULATION_CCK, 1000, 27, 130, 0 },	\
--	{ 1, MODULATION_CCK, 2000, 26, 132, 1 },	\
--	{ 1, MODULATION_CCK, 5500, 25, 139, 1 },	\
--	{ 1, MODULATION_CCK, 11000, 24, 150, 1 } }	\
-+	{ 1, MODULATION_CCK_SP, 2000, 26, 132, 1 },	\
-+	{ 1, MODULATION_CCK_SP, 5500, 25, 139, 1 },	\
-+	{ 1, MODULATION_CCK_SP, 11000, 24, 150, 1 } }	\
- }
- 
- #define AR5K_RATES_11G { 12, {					\
-@@ -623,9 +623,9 @@ struct ath5k_rate_table {
- 	11, 9, 7, 5, 255, 255, 255, 255, 255, 255, 255, 255,	\
- 	3, 2, 1, 0, 255, 255, 255, 255 }, {			\
- 	{ 1, MODULATION_CCK, 1000, 27, 2, 0 },		\
--	{ 1, MODULATION_CCK, 2000, 26, 4, 1 },		\
--	{ 1, MODULATION_CCK, 5500, 25, 11, 1 },		\
--	{ 1, MODULATION_CCK, 11000, 24, 22, 1 },	\
-+	{ 1, MODULATION_CCK_SP, 2000, 26, 4, 1 },		\
-+	{ 1, MODULATION_CCK_SP, 5500, 25, 11, 1 },		\
-+	{ 1, MODULATION_CCK_SP, 11000, 24, 22, 1 },	\
- 	{ 0, MODULATION_OFDM, 6000, 11, 12, 4 },	\
- 	{ 0, MODULATION_OFDM, 9000, 15, 18, 4 },	\
- 	{ 1, MODULATION_OFDM, 12000, 10, 24, 6 },	\
+diff -puN drivers/video/cirrusfb.c~cirrusfb-checkpatchpl-cleanup-ppc-fix drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-checkpatchpl-cleanup-ppc-fix
++++ a/drivers/video/cirrusfb.c
+@@ -59,7 +59,7 @@
+ #endif
+ #ifdef CONFIG_PPC_PREP
+ #include <asm/machdep.h>
+-#define isPReP(machine_is(prep))
++#define isPReP machine_is(prep)
+ #else
+ #define isPReP 0
+ #endif
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-git-wireless.patch
-net-ath5k-comment-some-eeprom-registers.patch
-net-ath5k-initial-write-cleanup.patch
-net-ath5k-use-short-preamble-for-some-rates.patch
-net-ath5k-remove-some-ieee80211-re-defines.patch
-net-add-ath5k-wireless-driver-fix.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-char-mxser_new-upgrade-to-110.patch
-char-mxser_new-move-to-pci_vdevice.patch
-char-mxser_new-remove-useless-comments-in-mxser_cards.patch
-mxser-remove-commented-crap.patch
-char-moxa-fix-and-optimise-empty-timer.patch
-char-cyclades-remove-bottom-half-processing.patch
-char-cyclades-make-the-isr-code-readable.patch
-char-cyclades-move-spin_lock-to-one-place.patch
-char-cyclades-fix-some-w-warnings.patch
-char-moxa-cleanup-prints.patch
-char-moxa-function-names-cleanup.patch
-char-moxa-remove-sleep_on.patch
-fs-select-remove-unused-macros.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+git-alsa.patch
+git-arm-master.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
