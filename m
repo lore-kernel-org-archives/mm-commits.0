@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:58:38 -0700
-Message-ID: <200708272158.l7RLwcn2030653@imap1.linux-foundation.org>
+Subject: + net-ath5k-remove-some-ieee80211-re-defines.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:56:53 -0700
+Message-ID: <200708272156.l7RLur26030528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965516AbXH0V6p (ORCPT
+	by vger.kernel.org with ESMTP id S965483AbXH0V6H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:58:45 -0400
+	Mon, 27 Aug 2007 17:58:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     Ata: pata_marvell, use ioread* for iomap-ped memory
+     Net: ath5k, remove some ieee80211 re-defines
 has been added to the -mm tree.  Its filename is
-     ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+     net-ath5k-remove-some-ieee80211-re-defines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,218 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Ata: pata_marvell, use ioread* for iomap-ped memory
+Subject: Net: ath5k, remove some ieee80211 re-defines
 From: Jiri Slaby <jirislaby@gmail.com>
 
-pata_marvell, use ioread* for iomap-ped memory
+ath5k, remove some ieee80211 re-defines
 
-read* on pci_iomapped memory is incorrect, fix it
+use mac80211 defines directly instead. this means MODULATION_* to
+IEEE80211_RATE_* switch.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_marvell.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ath5k.h      |   92 +++++++++++++---------------
+ drivers/net/wireless/ath5k_base.c |    2 
+ drivers/net/wireless/ath5k_hw.c   |    9 +-
+ 3 files changed, 50 insertions(+), 53 deletions(-)
 
-diff -puN drivers/ata/pata_marvell.c~ata-pata_marvell-use-ioread-for-iomap-ped-memory drivers/ata/pata_marvell.c
---- a/drivers/ata/pata_marvell.c~ata-pata_marvell-use-ioread-for-iomap-ped-memory
-+++ a/drivers/ata/pata_marvell.c
-@@ -45,10 +45,10 @@ static int marvell_pre_reset(struct ata_
- 		return -ENOMEM;
- 	printk("BAR5:");
- 	for(i = 0; i <= 0x0F; i++)
--		printk("%02X:%02X ", i, readb(barp + i));
-+		printk("%02X:%02X ", i, ioread8(barp + i));
- 	printk("\n");
+diff -puN drivers/net/wireless/ath5k.h~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k.h
+--- a/drivers/net/wireless/ath5k.h~net-ath5k-remove-some-ieee80211-re-defines
++++ a/drivers/net/wireless/ath5k.h
+@@ -82,7 +82,7 @@
+ #define AR5K_TUNE_ADDITIONAL_SWBA_BACKOFF	0
+ #define AR5K_TUNE_RADAR_ALERT			false
+ #define AR5K_TUNE_MIN_TX_FIFO_THRES		1
+-#define AR5K_TUNE_MAX_TX_FIFO_THRES		((MAX_PDU_LENGTH / 64) + 1)
++#define AR5K_TUNE_MAX_TX_FIFO_THRES		((IEEE80211_MAX_LEN / 64) + 1)
+ #define AR5K_TUNE_RSSI_THRES			1792
+ #define AR5K_TUNE_REGISTER_TIMEOUT		20000
+ #define AR5K_TUNE_REGISTER_DWELL_TIME		20000
+@@ -187,18 +187,14 @@ struct ath5k_srev_name {
  
--	devices = readl(barp + 0x0C);
-+	devices = ioread32(barp + 0x0C);
- 	pci_iounmap(pdev, barp);
+ #define IEEE80211_MAX_LEN       2500
  
- 	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
+-#define MAX_PDU_LENGTH		IEEE80211_MAX_LEN
+-#define MODULATION_CCK		IEEE80211_RATE_CCK
+-#define MODULATION_OFDM		IEEE80211_RATE_OFDM
+-#define MODULATION_TURBO	IEEE80211_RATE_TURBO
++/* TODO Merge this to mac80211 */
+ #define MODULATION_XR 		0x00000200 /*XR thingie*/
+-#define MODULATION_CCK_SP 	IEEE80211_RATE_CCK_2 /*CCK + Shortpreamble*/
+ 
+ #define AR5K_SET_SHORT_PREAMBLE 0x04 /* adding this flag to rate_code
+ 					enables short preamble, see
+ 					ar5212_reg.h */
+-#define HAS_SHPREAMBLE(_ix) (rt->rates[_ix].modulation == MODULATION_CCK_SP)
+-#define SHPREAMBLE_FLAG(_ix) HAS_SHPREAMBLE(_ix)?AR5K_SET_SHORT_PREAMBLE:0
++#define HAS_SHPREAMBLE(_ix) (rt->rates[_ix].modulation == IEEE80211_RATE_CCK_2)
++#define SHPREAMBLE_FLAG(_ix) (HAS_SHPREAMBLE(_ix) ? AR5K_SET_SHORT_PREAMBLE : 0)
+ 
+ /****************\
+   TX DEFINITIONS
+@@ -598,56 +594,56 @@ struct ath5k_rate_table {
+ 	255, 255, 255, 255, 255, 255, 255, 255, 6, 4, 2, 0,	\
+ 	7, 5, 3, 1, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	255, 255, 255, 255, 255, 255, 255, 255 }, {		\
+-	{ 1, MODULATION_OFDM, 6000, 11, 140, 0 },		\
+-	{ 1, MODULATION_OFDM, 9000, 15, 18, 0 },		\
+-	{ 1, MODULATION_OFDM, 12000, 10, 152, 2 },		\
+-	{ 1, MODULATION_OFDM, 18000, 14, 36, 2 },		\
+-	{ 1, MODULATION_OFDM, 24000, 9, 176, 4 },		\
+-	{ 1, MODULATION_OFDM, 36000, 13, 72, 4 },		\
+-	{ 1, MODULATION_OFDM, 48000, 8, 96, 4 },		\
+-	{ 1, MODULATION_OFDM, 54000, 12, 108, 4 } }		\
++	{ 1, IEEE80211_RATE_OFDM, 6000, 11, 140, 0 },		\
++	{ 1, IEEE80211_RATE_OFDM, 9000, 15, 18, 0 },		\
++	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 152, 2 },		\
++	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 2 },		\
++	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 176, 4 },		\
++	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 4 },		\
++	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 4 },		\
++	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 4 } }		\
+ }
+ 
+ #define AR5K_RATES_11B { 4, {						\
+ 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	3, 2, 1, 0, 255, 255, 255, 255 }, {				\
+-	{ 1, MODULATION_CCK, 1000, 27, 130, 0 },	\
+-	{ 1, MODULATION_CCK_SP, 2000, 26, 132, 1 },	\
+-	{ 1, MODULATION_CCK_SP, 5500, 25, 139, 1 },	\
+-	{ 1, MODULATION_CCK_SP, 11000, 24, 150, 1 } }	\
++	{ 1, IEEE80211_RATE_CCK, 1000, 27, 130, 0 },	\
++	{ 1, IEEE80211_RATE_CCK_2, 2000, 26, 132, 1 },	\
++	{ 1, IEEE80211_RATE_CCK_2, 5500, 25, 139, 1 },	\
++	{ 1, IEEE80211_RATE_CCK_2, 11000, 24, 150, 1 } }	\
+ }
+ 
+ #define AR5K_RATES_11G { 12, {					\
+ 	255, 255, 255, 255, 255, 255, 255, 255, 10, 8, 6, 4,	\
+ 	11, 9, 7, 5, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	3, 2, 1, 0, 255, 255, 255, 255 }, {			\
+-	{ 1, MODULATION_CCK, 1000, 27, 2, 0 },		\
+-	{ 1, MODULATION_CCK_SP, 2000, 26, 4, 1 },		\
+-	{ 1, MODULATION_CCK_SP, 5500, 25, 11, 1 },		\
+-	{ 1, MODULATION_CCK_SP, 11000, 24, 22, 1 },	\
+-	{ 0, MODULATION_OFDM, 6000, 11, 12, 4 },	\
+-	{ 0, MODULATION_OFDM, 9000, 15, 18, 4 },	\
+-	{ 1, MODULATION_OFDM, 12000, 10, 24, 6 },	\
+-	{ 1, MODULATION_OFDM, 18000, 14, 36, 6 },	\
+-	{ 1, MODULATION_OFDM, 24000, 9, 48, 8 },	\
+-	{ 1, MODULATION_OFDM, 36000, 13, 72, 8 },	\
+-	{ 1, MODULATION_OFDM, 48000, 8, 96, 8 },	\
+-	{ 1, MODULATION_OFDM, 54000, 12, 108, 8 } }	\
++	{ 1, IEEE80211_RATE_CCK, 1000, 27, 2, 0 },		\
++	{ 1, IEEE80211_RATE_CCK_2, 2000, 26, 4, 1 },		\
++	{ 1, IEEE80211_RATE_CCK_2, 5500, 25, 11, 1 },		\
++	{ 1, IEEE80211_RATE_CCK_2, 11000, 24, 22, 1 },	\
++	{ 0, IEEE80211_RATE_OFDM, 6000, 11, 12, 4 },	\
++	{ 0, IEEE80211_RATE_OFDM, 9000, 15, 18, 4 },	\
++	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 24, 6 },	\
++	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 6 },	\
++	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 48, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 8 } }	\
+ }
+ 
+ #define AR5K_RATES_TURBO { 8, {					\
+ 	255, 255, 255, 255, 255, 255, 255, 255, 6, 4, 2, 0,	\
+ 	7, 5, 3, 1, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	255, 255, 255, 255, 255, 255, 255, 255 }, {		\
+-	{ 1, MODULATION_TURBO, 6000, 11, 140, 0 },	\
+-	{ 1, MODULATION_TURBO, 9000, 15, 18, 0 },	\
+-	{ 1, MODULATION_TURBO, 12000, 10, 152, 2 },	\
+-	{ 1, MODULATION_TURBO, 18000, 14, 36, 2 },	\
+-	{ 1, MODULATION_TURBO, 24000, 9, 176, 4 },	\
+-	{ 1, MODULATION_TURBO, 36000, 13, 72, 4 },	\
+-	{ 1, MODULATION_TURBO, 48000, 8, 96, 4 },	\
+-	{ 1, MODULATION_TURBO, 54000, 12, 108, 4 } }	\
++	{ 1, IEEE80211_RATE_TURBO, 6000, 11, 140, 0 },	\
++	{ 1, IEEE80211_RATE_TURBO, 9000, 15, 18, 0 },	\
++	{ 1, IEEE80211_RATE_TURBO, 12000, 10, 152, 2 },	\
++	{ 1, IEEE80211_RATE_TURBO, 18000, 14, 36, 2 },	\
++	{ 1, IEEE80211_RATE_TURBO, 24000, 9, 176, 4 },	\
++	{ 1, IEEE80211_RATE_TURBO, 36000, 13, 72, 4 },	\
++	{ 1, IEEE80211_RATE_TURBO, 48000, 8, 96, 4 },	\
++	{ 1, IEEE80211_RATE_TURBO, 54000, 12, 108, 4 } }	\
+ }
+ 
+ #define AR5K_RATES_XR { 12, {					\
+@@ -658,14 +654,14 @@ struct ath5k_rate_table {
+ 	{ 1, MODULATION_XR, 1000, 2, 139, 1 },		\
+ 	{ 1, MODULATION_XR, 2000, 6, 150, 2 },		\
+ 	{ 1, MODULATION_XR, 3000, 1, 150, 3 },		\
+-	{ 1, MODULATION_OFDM, 6000, 11, 140, 4 },	\
+-	{ 1, MODULATION_OFDM, 9000, 15, 18, 4 },	\
+-	{ 1, MODULATION_OFDM, 12000, 10, 152, 6 },	\
+-	{ 1, MODULATION_OFDM, 18000, 14, 36, 6 },	\
+-	{ 1, MODULATION_OFDM, 24000, 9, 176, 8 },	\
+-	{ 1, MODULATION_OFDM, 36000, 13, 72, 8 },	\
+-	{ 1, MODULATION_OFDM, 48000, 8, 96, 8 },	\
+-	{ 1, MODULATION_OFDM, 54000, 12, 108, 8 } }	\
++	{ 1, IEEE80211_RATE_OFDM, 6000, 11, 140, 4 },	\
++	{ 1, IEEE80211_RATE_OFDM, 9000, 15, 18, 4 },	\
++	{ 1, IEEE80211_RATE_OFDM, 12000, 10, 152, 6 },	\
++	{ 1, IEEE80211_RATE_OFDM, 18000, 14, 36, 6 },	\
++	{ 1, IEEE80211_RATE_OFDM, 24000, 9, 176, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 36000, 13, 72, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 48000, 8, 96, 8 },	\
++	{ 1, IEEE80211_RATE_OFDM, 54000, 12, 108, 8 } }	\
+ }
+ 
+ /*
+diff -puN drivers/net/wireless/ath5k_base.c~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k_base.c
+--- a/drivers/net/wireless/ath5k_base.c~net-ath5k-remove-some-ieee80211-re-defines
++++ a/drivers/net/wireless/ath5k_base.c
+@@ -1089,7 +1089,7 @@ static void ath_setcurmode(struct ath_so
+ 			}
+ 			sc->hwmap[i].txflags = IEEE80211_RADIOTAP_F_DATAPAD;
+ 			if (SHPREAMBLE_FLAG(ix) || rt->rates[ix].modulation ==
+-					MODULATION_OFDM)
++					IEEE80211_RATE_OFDM)
+ 				sc->hwmap[i].txflags |=
+ 						IEEE80211_RADIOTAP_F_SHORTPRE;
+ 			/* receive frames include FCS */
+diff -puN drivers/net/wireless/ath5k_hw.c~net-ath5k-remove-some-ieee80211-re-defines drivers/net/wireless/ath5k_hw.c
+--- a/drivers/net/wireless/ath5k_hw.c~net-ath5k-remove-some-ieee80211-re-defines
++++ a/drivers/net/wireless/ath5k_hw.c
+@@ -142,15 +142,16 @@ ath_hal_computetxtime(struct ath_hw *hal
+ 	 * Calculate the transmission time by operation (PHY) mode
+ 	 */
+ 	switch (rate->modulation) {
+-	case MODULATION_CCK:
++	case IEEE80211_RATE_CCK:
+ 		/*
+ 		 * CCK / DS mode (802.11b)
+ 		 */
+ 		value = AR5K_CCK_TX_TIME(rate->rate_kbps, frame_length,
+-		    (short_preamble && (rate->modulation == MODULATION_CCK_SP)));
++			short_preamble &&
++			rate->modulation == IEEE80211_RATE_CCK_2);
+ 		break;
+ 
+-	case MODULATION_OFDM:
++	case IEEE80211_RATE_OFDM:
+ 		/*
+ 		 * Orthogonal Frequency Division Multiplexing
+ 		 */
+@@ -159,7 +160,7 @@ ath_hal_computetxtime(struct ath_hw *hal
+ 		value = AR5K_OFDM_TX_TIME(rate->rate_kbps, frame_length);
+ 		break;
+ 
+-	case MODULATION_TURBO:
++	case IEEE80211_RATE_TURBO:
+ 		/*
+ 		 * Orthogonal Frequency Division Multiplexing
+ 		 * Atheros "Turbo Mode" (doubled rates)
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
-maintainers-order-neterion-alphabetically.patch
-ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
 git-wireless.patch
 net-ath5k-comment-some-eeprom-registers.patch
 net-ath5k-initial-write-cleanup.patch
