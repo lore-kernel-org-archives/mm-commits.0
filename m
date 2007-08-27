@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - dmi-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Mon, 27 Aug 2007 14:54:39 -0700
-Message-ID: <200708272154.l7RLsex9030459@imap1.linux-foundation.org>
+Subject: + dmi-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:54:02 -0700
+Message-ID: <200708272154.l7RLs7wF030433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49758 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45008 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965239AbXH0Vyv (ORCPT
+	by vger.kernel.org with ESMTP id S934024AbXH0VyU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:54:51 -0400
+	Mon, 27 Aug 2007 17:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mathieu.desnoyers@polymtl.ca, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
      drivers/firmware/dmi-id.c: fix overflow
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      dmi-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: drivers/firmware/dmi-id.c: fix overflow
