@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-oom-handling-v7.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:19:55 -0700
-Message-ID: <200708272119.l7RLJtut028591@imap1.linux-foundation.org>
+Subject: + memory-controller-accounting-setup-v7.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:19:47 -0700
+Message-ID: <200708272119.l7RLJlhQ028579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56066 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44139 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764245AbXH0VWA (ORCPT
+	by vger.kernel.org with ESMTP id S1762000AbXH0VVT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:22:00 -0400
+	Mon, 27 Aug 2007 17:21:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com
+Cc: xemul@openvz.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com
 
 
 The patch titled
-     Memory controller: OOM handling
+     Memory controller: accounting setup
 has been added to the -mm tree.  Its filename is
-     memory-controller-oom-handling-v7.patch
+     memory-controller-accounting-setup-v7.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,15 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memory controller: OOM handling
+Subject: Memory controller: accounting setup
 From: Pavel Emelianov <xemul@openvz.org>
 
-Out of memory handling for containers over their limit. A task from the
-container over limit is chosen using the existing OOM logic and killed.
-
-TODO:
-1. As discussed in the OLS BOF session, consider implementing a user
-space policy for OOM handling.
+Basic setup routines, the mm_struct has a pointer to the container that
+it belongs to and the the page has a page_container associated with it.
 
 Signed-off-by: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -45,131 +41,268 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Kirill Korotaev <dev@sw.ru>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 
- mm/memcontrol.c            |    1 
- mm/oom_kill.c              |   42 +++++++++++++++++++++++++++++++----
- 3 files changed, 40 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   36 ++++++++++++++++++++++
+ include/linux/mm_types.h   |    6 +++
+ include/linux/sched.h      |    1 
+ kernel/fork.c              |   11 ++++--
+ mm/memcontrol.c            |   57 ++++++++++++++++++++++++++++++++---
+ 5 files changed, 104 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memory-controller-oom-handling-v7 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-oom-handling-v7
+diff -puN include/linux/memcontrol.h~memory-controller-accounting-setup-v7 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-accounting-setup-v7
 +++ a/include/linux/memcontrol.h
-@@ -39,6 +39,7 @@ extern unsigned long mem_container_isola
- 					int mode, struct zone *z,
- 					struct mem_container *mem_cont,
- 					int active);
-+extern void mem_container_out_of_memory(struct mem_container *mem);
+@@ -3,6 +3,9 @@
+  * Copyright IBM Corporation, 2007
+  * Author Balbir Singh <balbir@linux.vnet.ibm.com>
+  *
++ * Copyright 2007 OpenVZ SWsoft Inc
++ * Author: Pavel Emelianov <xemul@openvz.org>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -17,5 +20,38 @@
+ #ifndef _LINUX_MEMCONTROL_H
+ #define _LINUX_MEMCONTROL_H
  
- static inline void mem_container_uncharge_page(struct page *page)
- {
-diff -puN mm/memcontrol.c~memory-controller-oom-handling-v7 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-oom-handling-v7
-+++ a/mm/memcontrol.c
-@@ -322,6 +322,7 @@ int mem_container_charge(struct page *pa
- 		}
++struct mem_container;
++struct page_container;
++
++#ifdef CONFIG_CONTAINER_MEM_CONT
++
++extern void mm_init_container(struct mm_struct *mm, struct task_struct *p);
++extern void mm_free_container(struct mm_struct *mm);
++extern void page_assign_page_container(struct page *page,
++					struct page_container *pc);
++extern struct page_container *page_get_page_container(struct page *page);
++
++#else /* CONFIG_CONTAINER_MEM_CONT */
++static inline void mm_init_container(struct mm_struct *mm,
++					struct task_struct *p)
++{
++}
++
++static inline void mm_free_container(struct mm_struct *mm)
++{
++}
++
++static inline void page_assign_page_container(struct page *page,
++						struct page_container *pc)
++{
++}
++
++static inline struct page_container *page_get_page_container(struct page *page)
++{
++	return NULL;
++}
++
++#endif /* CONFIG_CONTAINER_MEM_CONT */
++
+ #endif /* _LINUX_MEMCONTROL_H */
  
- 		css_put(&mem->css);
-+		mem_container_out_of_memory(mem);
- 		goto free_pc;
- 	}
+diff -puN include/linux/mm_types.h~memory-controller-accounting-setup-v7 include/linux/mm_types.h
+--- a/include/linux/mm_types.h~memory-controller-accounting-setup-v7
++++ a/include/linux/mm_types.h
+@@ -146,6 +146,9 @@ struct vm_area_struct {
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
+ #endif
++#ifdef CONFIG_CONTAINER_MEM_CONT
++	unsigned long page_container;
++#endif
+ };
  
-diff -puN mm/oom_kill.c~memory-controller-oom-handling-v7 mm/oom_kill.c
---- a/mm/oom_kill.c~memory-controller-oom-handling-v7
-+++ a/mm/oom_kill.c
-@@ -25,6 +25,7 @@
- #include <linux/cpuset.h>
- #include <linux/module.h>
- #include <linux/notifier.h>
+ struct mm_struct {
+@@ -214,6 +217,9 @@ struct mm_struct {
+ 	/* aio bits */
+ 	rwlock_t		ioctx_list_lock;
+ 	struct kioctx		*ioctx_list;
++#ifdef CONFIG_CONTAINER_MEM_CONT
++	struct mem_container *mem_container;
++#endif
+ };
+ 
+ #endif /* _LINUX_MM_TYPES_H */
+diff -puN include/linux/sched.h~memory-controller-accounting-setup-v7 include/linux/sched.h
+--- a/include/linux/sched.h~memory-controller-accounting-setup-v7
++++ a/include/linux/sched.h
+@@ -88,6 +88,7 @@ struct sched_param {
+ 
+ #include <asm/processor.h>
+ 
++struct mem_container;
+ struct exec_domain;
+ struct futex_pi_state;
+ struct bio;
+diff -puN kernel/fork.c~memory-controller-accounting-setup-v7 kernel/fork.c
+--- a/kernel/fork.c~memory-controller-accounting-setup-v7
++++ a/kernel/fork.c
+@@ -51,6 +51,7 @@
+ #include <linux/random.h>
+ #include <linux/tty.h>
+ #include <linux/proc_fs.h>
 +#include <linux/memcontrol.h>
  
- int sysctl_panic_on_oom;
- /* #define DEBUG */
-@@ -48,7 +49,8 @@ int sysctl_panic_on_oom;
-  *    of least surprise ... (be careful when you change it)
-  */
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -329,7 +330,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLO
  
--unsigned long badness(struct task_struct *p, unsigned long uptime)
-+unsigned long badness(struct task_struct *p, unsigned long uptime,
-+			struct mem_container *mem)
+ #include <linux/init_task.h>
+ 
+-static struct mm_struct * mm_init(struct mm_struct * mm)
++static struct mm_struct * mm_init(struct mm_struct * mm, struct task_struct *p)
  {
- 	unsigned long points, cpu_time, run_time, s;
- 	struct mm_struct *mm;
-@@ -61,6 +63,13 @@ unsigned long badness(struct task_struct
- 		return 0;
+ 	atomic_set(&mm->mm_users, 1);
+ 	atomic_set(&mm->mm_count, 1);
+@@ -346,11 +347,14 @@ static struct mm_struct * mm_init(struct
+ 	mm->ioctx_list = NULL;
+ 	mm->free_area_cache = TASK_UNMAPPED_BASE;
+ 	mm->cached_hole_size = ~0UL;
++	mm_init_container(mm, p);
+ 
+ 	if (likely(!mm_alloc_pgd(mm))) {
+ 		mm->def_flags = 0;
+ 		return mm;
  	}
- 
-+#ifdef CONFIG_CONTAINER_MEM_CONT
-+	if (mem != NULL && mm->mem_container != mem) {
-+		task_unlock(p);
-+		return 0;
-+	}
-+#endif
 +
- 	/*
- 	 * The memory size of the process is the basis for the badness.
- 	 */
-@@ -198,7 +207,8 @@ static inline int constrained_alloc(stru
-  *
-  * (not docbooked, we don't want this one cluttering up the manual)
-  */
--static struct task_struct *select_bad_process(unsigned long *ppoints)
-+static struct task_struct *select_bad_process(unsigned long *ppoints,
-+						struct mem_container *mem)
++	mm_free_container(mm);
+ 	free_mm(mm);
+ 	return NULL;
+ }
+@@ -365,7 +369,7 @@ struct mm_struct * mm_alloc(void)
+ 	mm = allocate_mm();
+ 	if (mm) {
+ 		memset(mm, 0, sizeof(*mm));
+-		mm = mm_init(mm);
++		mm = mm_init(mm, current);
+ 	}
+ 	return mm;
+ }
+@@ -379,6 +383,7 @@ void fastcall __mmdrop(struct mm_struct 
  {
- 	struct task_struct *g, *p;
- 	struct task_struct *chosen = NULL;
-@@ -252,7 +262,7 @@ static struct task_struct *select_bad_pr
- 		if (p->oomkilladj == OOM_DISABLE)
- 			continue;
+ 	BUG_ON(mm == &init_mm);
+ 	mm_free_pgd(mm);
++	mm_free_container(mm);
+ 	destroy_context(mm);
+ 	free_mm(mm);
+ }
+@@ -499,7 +504,7 @@ static struct mm_struct *dup_mm(struct t
+ 	mm->token_priority = 0;
+ 	mm->last_interval = 0;
  
--		points = badness(p, uptime.tv_sec);
-+		points = badness(p, uptime.tv_sec, mem);
- 		if (points > *ppoints || !chosen) {
- 			chosen = p;
- 			*ppoints = points;
-@@ -364,6 +374,30 @@ static int oom_kill_process(struct task_
- 	return oom_kill_task(p);
+-	if (!mm_init(mm))
++	if (!mm_init(mm, tsk))
+ 		goto fail_nomem;
+ 
+ 	if (init_new_context(tsk, mm))
+diff -puN mm/memcontrol.c~memory-controller-accounting-setup-v7 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-accounting-setup-v7
++++ a/mm/memcontrol.c
+@@ -3,6 +3,9 @@
+  * Copyright IBM Corporation, 2007
+  * Author Balbir Singh <balbir@linux.vnet.ibm.com>
+  *
++ * Copyright 2007 OpenVZ SWsoft Inc
++ * Author: Pavel Emelianov <xemul@openvz.org>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -17,6 +20,7 @@
+ #include <linux/res_counter.h>
+ #include <linux/memcontrol.h>
+ #include <linux/container.h>
++#include <linux/mm.h>
+ 
+ struct container_subsys mem_container_subsys;
+ 
+@@ -35,6 +39,13 @@ struct mem_container {
+ 	 * the counter to account for memory usage
+ 	 */
+ 	struct res_counter res;
++	/*
++	 * Per container active and inactive list, similar to the
++	 * per zone LRU lists.
++	 * TODO: Consider making these lists per zone
++	 */
++	struct list_head active_list;
++	struct list_head inactive_list;
+ };
+ 
+ /*
+@@ -56,6 +67,37 @@ struct mem_container *mem_container_from
+ 				css);
  }
  
-+#ifdef CONFIG_CONTAINER_MEM_CONT
-+void mem_container_out_of_memory(struct mem_container *mem)
++static inline
++struct mem_container *mem_container_from_task(struct task_struct *p)
 +{
-+	unsigned long points = 0;
-+	struct task_struct *p;
-+
-+	container_lock();
-+	rcu_read_lock();
-+retry:
-+	p = select_bad_process(&points, mem);
-+	if (PTR_ERR(p) == -1UL)
-+		goto out;
-+
-+	if (!p)
-+		p = current;
-+
-+	if (oom_kill_process(p, points, "Memory container out of memory"))
-+		goto retry;
-+out:
-+	rcu_read_unlock();
-+	container_unlock();
++	return container_of(task_subsys_state(p, mem_container_subsys_id),
++				struct mem_container, css);
 +}
-+#endif
 +
- static BLOCKING_NOTIFIER_HEAD(oom_notify_list);
++void mm_init_container(struct mm_struct *mm, struct task_struct *p)
++{
++	struct mem_container *mem;
++
++	mem = mem_container_from_task(p);
++	css_get(&mem->css);
++	mm->mem_container = mem;
++}
++
++void mm_free_container(struct mm_struct *mm)
++{
++	css_put(&mm->mem_container->css);
++}
++
++void page_assign_page_container(struct page *page, struct page_container *pc)
++{
++	page->page_container = (unsigned long)pc;
++}
++
++struct page_container *page_get_page_container(struct page *page)
++{
++	return page->page_container;
++}
++
+ static ssize_t mem_container_read(struct container *cont, struct cftype *cft,
+ 			struct file *file, char __user *userbuf, size_t nbytes,
+ 			loff_t *ppos)
+@@ -91,14 +133,21 @@ static struct cftype mem_container_files
+ 	},
+ };
  
- int register_oom_notifier(struct notifier_block *nb)
-@@ -436,7 +470,7 @@ retry:
- 		 * Rambo mode: Shoot down a process and hope it solves whatever
- 		 * issues we may have.
- 		 */
--		p = select_bad_process(&points);
-+		p = select_bad_process(&points, NULL);
++static struct mem_container init_mem_container;
++
+ static struct container_subsys_state *
+ mem_container_create(struct container_subsys *ss, struct container *cont)
+ {
+ 	struct mem_container *mem;
  
- 		if (PTR_ERR(p) == -1UL)
- 			goto out;
+-	mem = kzalloc(sizeof(struct mem_container), GFP_KERNEL);
+-	if (!mem)
+-		return -ENOMEM;
++	if (unlikely((cont->parent) == NULL)) {
++		mem = &init_mem_container;
++		init_mm.mem_container = mem;
++	} else
++		mem = kzalloc(sizeof(struct mem_container), GFP_KERNEL);
++
++	if (mem == NULL)
++		return NULL;
+ 
+ 	res_counter_init(&mem->res);
+ 	return &mem->css;
+@@ -123,5 +172,5 @@ struct container_subsys mem_container_su
+ 	.create = mem_container_create,
+ 	.destroy = mem_container_destroy,
+ 	.populate = mem_container_populate,
+-	.early_init = 0,
++	.early_init = 1,
+ };
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
