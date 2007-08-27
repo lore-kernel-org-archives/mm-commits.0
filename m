@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-code-improvement-2nd-part.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:48 -0700
-Message-ID: <200708272223.l7RMNmSg031683@imap1.linux-foundation.org>
+Subject: + drop-some-headers-from-mmh.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:26:36 -0700
+Message-ID: <200708272126.l7RLQaB4028880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52044 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756751AbXH0WXw (ORCPT
+	by vger.kernel.org with ESMTP id S1754784AbXH0V1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:52 -0400
+	Mon, 27 Aug 2007 17:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     cirrusfb: code improvement 2nd part
+     Drop some headers from mm.h
 has been added to the -mm tree.  Its filename is
-     cirrusfb-code-improvement-2nd-part.patch
+     drop-some-headers-from-mmh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,244 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cirrusfb: code improvement 2nd part
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: Drop some headers from mm.h
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-This patch removes:
-- redundant fields from the cirrusfb_regs structure
-- one redundant header
-- fixes two includes ("" to <>)
+mm.h doesn't use directly anything from mutex.h and backing-dev.h, so
+remove them and add them back to files which need them.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cross-compile tested on many configs and archs.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   45 ++++++++++++-------------------------
- 1 files changed, 15 insertions(+), 30 deletions(-)
+ fs/afs/write.c     |    2 +-
+ include/linux/mm.h |    2 --
+ mm/fremap.c        |    2 +-
+ mm/mmap.c          |    1 +
+ mm/truncate.c      |    1 +
+ 5 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-code-improvement-2nd-part drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-code-improvement-2nd-part
-+++ a/drivers/video/cirrusfb.c
-@@ -45,7 +45,6 @@
- #include <linux/delay.h>
- #include <linux/fb.h>
- #include <linux/init.h>
--#include <linux/selection.h>
- #include <asm/pgtable.h>
- 
- #ifdef CONFIG_ZORRO
-@@ -64,8 +63,8 @@
- #define isPReP 0
- #endif
- 
--#include "video/vga.h"
--#include "video/cirrus.h"
-+#include <video/vga.h>
-+#include <video/cirrus.h>
- 
- /*****************************************************************
-  *
-@@ -99,9 +98,6 @@
- #endif
- 
- #define MB_ (1024 * 1024)
--#define KB_ (1024)
+diff -puN fs/afs/write.c~drop-some-headers-from-mmh fs/afs/write.c
+--- a/fs/afs/write.c~drop-some-headers-from-mmh
++++ a/fs/afs/write.c
+@@ -8,7 +8,7 @@
+  * as published by the Free Software Foundation; either version
+  * 2 of the License, or (at your option) any later version.
+  */
 -
--#define MAX_NUM_BOARDS 7
++#include <linux/backing-dev.h>
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+diff -puN include/linux/mm.h~drop-some-headers-from-mmh include/linux/mm.h
+--- a/include/linux/mm.h~drop-some-headers-from-mmh
++++ a/include/linux/mm.h
+@@ -10,9 +10,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/rbtree.h>
+ #include <linux/prio_tree.h>
+-#include <linux/mutex.h>
+ #include <linux/debug_locks.h>
+-#include <linux/backing-dev.h>
+ #include <linux/mm_types.h>
  
- /*****************************************************************
+ struct mempolicy;
+diff -puN mm/fremap.c~drop-some-headers-from-mmh mm/fremap.c
+--- a/mm/fremap.c~drop-some-headers-from-mmh
++++ a/mm/fremap.c
+@@ -5,7 +5,7 @@
   *
-@@ -331,10 +327,6 @@ static const struct {
- #endif /* CONFIG_ZORRO */
- 
- struct cirrusfb_regs {
--	__u32 line_length;	/* in BYTES! */
--	__u32 visual;
--	__u32 type;
+  * started by Ingo Molnar, Copyright (C) 2002, 2003
+  */
 -
- 	long freq;
- 	long nom;
- 	long den;
-@@ -525,7 +517,7 @@ static struct fb_ops cirrusfb_ops = {
- /*--- Hardware Specific Routines -------------------------------------------*/
- static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
- 				struct cirrusfb_regs *regs,
--				const struct fb_info *info);
-+				struct fb_info *info);
- /*--- Internal routines ----------------------------------------------------*/
- static void init_vgachip(struct fb_info *info);
- static void switch_monitor(struct cirrusfb_info *cinfo, int on);
-@@ -792,7 +784,7 @@ static int cirrusfb_check_var(struct fb_
++#include <linux/backing-dev.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/file.h>
+diff -puN mm/mmap.c~drop-some-headers-from-mmh mm/mmap.c
+--- a/mm/mmap.c~drop-some-headers-from-mmh
++++ a/mm/mmap.c
+@@ -7,6 +7,7 @@
+  */
  
- static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
- 				struct cirrusfb_regs *regs,
--				const struct fb_info *info)
-+				struct fb_info *info)
- {
- 	long freq;
- 	long maxclock;
-@@ -803,20 +795,20 @@ static int cirrusfb_decode_var(const str
+ #include <linux/slab.h>
++#include <linux/backing-dev.h>
+ #include <linux/mm.h>
+ #include <linux/shm.h>
+ #include <linux/mman.h>
+diff -puN mm/truncate.c~drop-some-headers-from-mmh mm/truncate.c
+--- a/mm/truncate.c~drop-some-headers-from-mmh
++++ a/mm/truncate.c
+@@ -8,6 +8,7 @@
+  */
  
- 	switch (var->bits_per_pixel) {
- 	case 1:
--		regs->line_length = var->xres_virtual / 8;
--		regs->visual = FB_VISUAL_MONO10;
-+		info->fix.line_length = var->xres_virtual / 8;
-+		info->fix.visual = FB_VISUAL_MONO10;
- 		break;
- 
- 	case 8:
--		regs->line_length = var->xres_virtual;
--		regs->visual = FB_VISUAL_PSEUDOCOLOR;
-+		info->fix.line_length = var->xres_virtual;
-+		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
- 		break;
- 
- 	case 16:
- 	case 24:
- 	case 32:
--		regs->line_length = var->xres_virtual * maxclockidx;
--		regs->visual = FB_VISUAL_DIRECTCOLOR;
-+		info->fix.line_length = var->xres_virtual * maxclockidx;
-+		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
- 		break;
- 
- 	default:
-@@ -826,7 +818,7 @@ static int cirrusfb_decode_var(const str
- 		break;
- 	}
- 
--	regs->type = FB_TYPE_PACKED_PIXELS;
-+	info->fix.type = FB_TYPE_PACKED_PIXELS;
- 
- 	/* convert from ps to kHz */
- 	freq = PICOS2KHZ(var->pixclock);
-@@ -1539,9 +1531,6 @@ static int cirrusfb_set_par_foo(struct f
- 	DPRINTK("CL_SEQR1: %d\n", tmp);
- 
- 	cinfo->currentmode = regs;
--	info->fix.type = regs.type;
--	info->fix.visual = regs.visual;
--	info->fix.line_length = regs.line_length;
- 
- 	/* pan to requested offset */
- 	cirrusfb_pan_display(var, info);
-@@ -1622,7 +1611,7 @@ static int cirrusfb_pan_display(struct f
- 	xoffset = var->xoffset * info->var.bits_per_pixel / 8;
- 	yoffset = var->yoffset;
- 
--	base = yoffset * cinfo->currentmode.line_length + xoffset;
-+	base = yoffset * info->fix.line_length + xoffset;
- 
- 	if (info->var.bits_per_pixel == 1) {
- 		/* base is already correct */
-@@ -2081,7 +2070,7 @@ static void cirrusfb_fillrect(struct fb_
- 			  (region->dx * m) / 8, region->dy,
- 			  (region->width * m) / 8, region->height,
- 			  color,
--			  cinfo->currentmode.line_length);
-+			  info->fix.line_length);
- }
- 
- static void cirrusfb_copyarea(struct fb_info *info,
-@@ -2121,7 +2110,7 @@ static void cirrusfb_copyarea(struct fb_
- 			(area->sx * m) / 8, area->sy,
- 			(area->dx * m) / 8, area->dy,
- 			(area->width * m) / 8, area->height,
--			cinfo->currentmode.line_length);
-+			info->fix.line_length);
- 
- }
- 
-@@ -2281,13 +2270,10 @@ static int cirrusfb_set_fbinfo(struct fb
- 	info->fix.smem_len   = info->screen_size;
- 	if (var->bits_per_pixel == 1)
- 		info->fix.smem_len /= 4;
--	info->fix.type       = cinfo->currentmode.type;
- 	info->fix.type_aux   = 0;
--	info->fix.visual     = cinfo->currentmode.visual;
- 	info->fix.xpanstep   = 1;
- 	info->fix.ypanstep   = 1;
- 	info->fix.ywrapstep  = 0;
--	info->fix.line_length = cinfo->currentmode.line_length;
- 
- 	/* FIXME: map region at 0xB8000 if available, fill in here */
- 	info->fix.mmio_len   = 0;
-@@ -2446,7 +2432,7 @@ static int cirrusfb_pci_register(struct 
- 	cinfo->unmap = cirrusfb_pci_unmap;
- 
- 	printk(KERN_INFO " RAM (%lu kB) at 0xx%lx, ",
--		info->screen_size / KB_, board_addr);
-+		info->screen_size >> 10, board_addr);
- 	printk(KERN_INFO "Cirrus Logic chipset on PCI bus\n");
- 	pci_set_drvdata(pdev, info);
- 
-@@ -2520,7 +2506,6 @@ static int cirrusfb_zorro_register(struc
- 	}
- 
- 	cinfo = info->par;
--	cinfo->info = info;
- 	cinfo->btype = btype;
- 
- 	assert(z > 0);
+ #include <linux/kernel.h>
++#include <linux/backing-dev.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/module.h>
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-arm-master.patch
-git-hwmon.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
-tdfxfb-mtrr-support.patch
-tdfxfb-mtrr-support-fix.patch
-tdfxfb-mtrr-support-fix-2.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
-fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
-s3c2410fb-source-code-improvements.patch
-s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
-s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
-s3c2410fb-make-use-of-default_display-settings.patch
-cirrusfb-checkpatchpl-cleanup.patch
-cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
-cirrusfb-remove-typedefs.patch
-cirrusfb-remove-fields-from-cirrusfb_info.patch
-cirrusfb-code-improvements.patch
-cirrusfb-code-improvement-2nd-part.patch
-pm3fb-header-file-cleanup.patch
-pm2fb-hardware-cursor-support-for-the-permedia2.patch
-pm2fb-panning-and-hardware-cursor-fixes.patch
+nfs-fix-oops-re-sysctls-and-v4-support.patch
+ifdef-struct-task_structsecurity.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+shrink-struct-task_structoomkilladj.patch
+remove-struct-task_structio_wait.patch
+drop-some-headers-from-mmh.patch
+revert-faster-ext2_clear_inode.patch
