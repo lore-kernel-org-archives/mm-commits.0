@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-order-neterion-alphabetically.patch added to -mm tree
-Date: Mon, 27 Aug 2007 14:57:35 -0700
-Message-ID: <200708272157.l7RLvZsY030540@imap1.linux-foundation.org>
+Subject: + x86-fix-cpu_to_node-references.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:43:55 -0700
+Message-ID: <200708272143.l7RLhuVC029934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965308AbXH0V5l (ORCPT
+	by vger.kernel.org with ESMTP id S933639AbXH0VoB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 17:57:41 -0400
+	Mon, 27 Aug 2007 17:44:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     MAINTAINERS, order NETERION alphabetically
+     x86: fix cpu_to_node references 
 has been added to the -mm tree.  Its filename is
-     maintainers-order-neterion-alphabetically.patch
+     x86-fix-cpu_to_node-references.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MAINTAINERS, order NETERION alphabetically
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: x86: fix cpu_to_node references 
+From: Mike Travis <travis@sgi.com>
 
-MAINTAINERS, order NETERION alphabetically
+In x86_64 and i386 architectures most arrays that are sized using NR_CPUS lay
+in local memory on node 0.  Not only will most (99%?) of the systems not use
+all the slots in these arrays, particularly when NR_CPUS is increased to
+accommodate future very high cpu count systems, but a number of cache lines
+are passed unnecessarily on the system bus when these arrays are referenced by
+cpus on other nodes.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Typically, the values in these arrays are referenced by the cpu accessing it's
+own values, though when passing IPI interrupts, the cpu does access the data
+relevant to the targeted cpu/node.  Of course, if the referencing cpu is not
+on node 0, then the reference will still require cross node exchanges of cache
+lines.  A common use of this is for an interrupt service routine to pass the
+interrupt to other cpus local to that node.
+
+Ideally, all the elements in these arrays should be moved to the per_cpu data
+area.  In some cases (such as x86_cpu_to_apicid) the array is referenced
+before the per_cpu data areas are setup.  In this case, a static array is
+declared in the __initdata area and initialized by the booting cpu (BSP).  The
+values are then moved to the per_cpu area after it is initialized and the
+original static array is freed with the rest of the __initdata.
+
+
+This patch:
+
+Fix four instances where cpu_to_node is referenced by array instead of via the
+cpu_to_node macro.  This is preparation to moving it to the per_cpu data area.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ arch/x86_64/kernel/vsyscall.c |    2 +-
+ arch/x86_64/mm/numa.c         |    4 ++--
+ arch/x86_64/mm/srat.c         |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-order-neterion-alphabetically MAINTAINERS
---- a/MAINTAINERS~maintainers-order-neterion-alphabetically
-+++ a/MAINTAINERS
-@@ -2666,6 +2666,19 @@ M:	shemminger@linux-foundation.org
- L:	netem@lists.linux-foundation.org
- S:	Maintained
+diff -puN arch/x86_64/kernel/vsyscall.c~x86-fix-cpu_to_node-references arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~x86-fix-cpu_to_node-references
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -291,7 +291,7 @@ static void __cpuinit vsyscall_set_cpu(i
+ 	unsigned long *d;
+ 	unsigned long node = 0;
+ #ifdef CONFIG_NUMA
+-	node = cpu_to_node[cpu];
++	node = cpu_to_node(cpu);
+ #endif
+ 	if (cpu_has(&cpu_data[cpu], X86_FEATURE_RDTSCP))
+ 		write_rdtscp_aux((node << 12) | cpu);
+diff -puN arch/x86_64/mm/numa.c~x86-fix-cpu_to_node-references arch/x86_64/mm/numa.c
+--- a/arch/x86_64/mm/numa.c~x86-fix-cpu_to_node-references
++++ a/arch/x86_64/mm/numa.c
+@@ -261,7 +261,7 @@ void __init numa_init_array(void)
+ 	   We round robin the existing nodes. */
+ 	rr = first_node(node_online_map);
+ 	for (i = 0; i < NR_CPUS; i++) {
+-		if (cpu_to_node[i] != NUMA_NO_NODE)
++		if (cpu_to_node(i) != NUMA_NO_NODE)
+ 			continue;
+  		numa_set_node(i, rr);
+ 		rr = next_node(rr, node_online_map);
+@@ -543,7 +543,7 @@ __cpuinit void numa_add_cpu(int cpu)
+ void __cpuinit numa_set_node(int cpu, int node)
+ {
+ 	cpu_pda(cpu)->nodenumber = node;
+-	cpu_to_node[cpu] = node;
++	cpu_to_node(cpu) = node;
+ }
  
-+NETERION (S2IO) Xframe 10GbE DRIVER
-+P:	Ramkrishna Vepa
-+M:	ram.vepa@neterion.com
-+P:	Rastapur Santosh
-+M:	santosh.rastapur@neterion.com
-+P:	Sivakumar Subramani
-+M:	sivakumar.subramani@neterion.com
-+P:	Sreenivasa Honnur
-+M:	sreenivasa.honnur@neterion.com
-+L:	netdev@vger.kernel.org
-+W:	http://trac.neterion.com/cgi-bin/trac.cgi/wiki/TitleIndex?anonymous
-+S:	Supported
-+
- NETFILTER/IPTABLES/IPCHAINS
- P:	Rusty Russell
- P:	Marc Boucher
-@@ -2800,19 +2813,6 @@ M:	adaplas@gmail.com
- L:	linux-fbdev-devel@lists.sourceforge.net (subscribers-only)
- S:	Maintained
+ unsigned long __init numa_free_all_bootmem(void) 
+diff -puN arch/x86_64/mm/srat.c~x86-fix-cpu_to_node-references arch/x86_64/mm/srat.c
+--- a/arch/x86_64/mm/srat.c~x86-fix-cpu_to_node-references
++++ a/arch/x86_64/mm/srat.c
+@@ -431,9 +431,9 @@ int __init acpi_scan_nodes(unsigned long
+ 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
  
--NETERION (S2IO) Xframe 10GbE DRIVER
--P:	Ramkrishna Vepa
--M:	ram.vepa@neterion.com
--P:	Rastapur Santosh
--M:	santosh.rastapur@neterion.com
--P:	Sivakumar Subramani
--M:	sivakumar.subramani@neterion.com
--P:	Sreenivasa Honnur
--M:	sreenivasa.honnur@neterion.com
--L:	netdev@vger.kernel.org
--W:	http://trac.neterion.com/cgi-bin/trac.cgi/wiki/TitleIndex?anonymous
--S:	Supported
--
- OPENCORES I2C BUS DRIVER
- P:	Peter Korsgaard
- M:	jacmet@sunsite.dk
+ 	for (i = 0; i < NR_CPUS; i++) {
+-		if (cpu_to_node[i] == NUMA_NO_NODE)
++		if (cpu_to_node(i) == NUMA_NO_NODE)
+ 			continue;
+-		if (!node_isset(cpu_to_node[i], node_possible_map))
++		if (!node_isset(cpu_to_node(i), node_possible_map))
+ 			numa_set_node(i, NUMA_NO_NODE);
+ 	}
+ 	numa_init_array();
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
-maintainers-order-neterion-alphabetically.patch
-git-wireless.patch
-net-ath5k-comment-some-eeprom-registers.patch
-net-ath5k-initial-write-cleanup.patch
-net-ath5k-use-short-preamble-for-some-rates.patch
-net-ath5k-remove-some-ieee80211-re-defines.patch
-net-add-ath5k-wireless-driver-fix.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-char-mxser_new-upgrade-to-110.patch
-char-mxser_new-move-to-pci_vdevice.patch
-char-mxser_new-remove-useless-comments-in-mxser_cards.patch
-mxser-remove-commented-crap.patch
-char-moxa-fix-and-optimise-empty-timer.patch
-char-cyclades-remove-bottom-half-processing.patch
-char-cyclades-make-the-isr-code-readable.patch
-char-cyclades-move-spin_lock-to-one-place.patch
-char-cyclades-fix-some-w-warnings.patch
-char-moxa-cleanup-prints.patch
-char-moxa-function-names-cleanup.patch
-char-moxa-remove-sleep_on.patch
-fs-select-remove-unused-macros.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-shrink_slab-handle-bad-shrinkers.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
