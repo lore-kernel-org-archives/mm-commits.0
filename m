@@ -1,547 +1,269 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:20 -0700
-Message-ID: <200708272223.l7RMNKw4031623@imap1.linux-foundation.org>
+Subject: + cirrusfb-code-improvement-2nd-part.patch added to -mm tree
+Date: Mon, 27 Aug 2007 15:23:48 -0700
+Message-ID: <200708272223.l7RMNmSg031683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45730 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44346 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757055AbXH0WXd (ORCPT
+	by vger.kernel.org with ESMTP id S1756751AbXH0WXw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:33 -0400
+	Mon, 27 Aug 2007 18:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     fbcon: Convert struct font_desc to use ISO C initializers
+     cirrusfb: code improvement 2nd part
 has been added to the -mm tree.  Its filename is
-     fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+     cirrusfb-code-improvement-2nd-part.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon: Convert struct font_desc to use ISO C initializers
-=46rom: Ralf Baechle <ralf@linux-mips.org>
+Subject: cirrusfb: code improvement 2nd part
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Akpm's patch "newport_con warning fix" got me to look at the console dr=
-ivers
-again and one thing that I noticed was that none of the fonts was using=
- ISO
-initializers for it's fonts.
+This patch removes:
+- redundant fields from the cirrusfb_regs structure
+- one redundant header
+- fixes two includes ("" to <>)
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c     |  146 +++++++++++++++++++++--
- drivers/video/console/font_10x18.c     |   14 +-
- drivers/video/console/font_6x11.c      |   13 +-
- drivers/video/console/font_7x14.c      |   12 -
- drivers/video/console/font_8x16.c      |   12 -
- drivers/video/console/font_8x8.c       |   12 -
- drivers/video/console/font_acorn_8x8.c |   14 +-
- drivers/video/console/font_mini_4x6.c  |   12 -
- drivers/video/console/font_pearl_8x8.c |   12 -
- drivers/video/console/font_sun12x22.c  |   14 +-
- drivers/video/console/font_sun8x16.c   |   14 +-
- 11 files changed, 201 insertions(+), 74 deletions(-)
+ drivers/video/cirrusfb.c |   45 ++++++++++++-------------------------
+ 1 files changed, 15 insertions(+), 30 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_=
-desc-to-use-iso-c-initializers drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_desc=
--to-use-iso-c-initializers
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -25,6 +25,7 @@
-  * Authors:
-  *   Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
-  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
-+ *   Michel D=E4nzer <michel-at-tungstengraphics-dot-com>
-  */
-=20
- #include <linux/module.h>
-@@ -38,6 +39,8 @@
- #include <linux/pci.h>
- #include <asm/uaccess.h>
-=20
-+#define MODULE_NAME "cr_bllcd"
-+
- /* The LVDS- and panel power controls sits on the
-  * GPIO port of the ISA bridge.
-  */
-@@ -51,19 +54,25 @@
- #define CRVML_PANEL_ON      0x00000002
- #define CRVML_BACKLIGHT_OFF 0x00000004
-=20
--/* The PLL Clock register sits on Host bridge */
--#define CRVML_DEVICE_MCH   0x5001
--#define CRVML_REG_MCHBAR   0x44
--#define CRVML_REG_MCHEN    0x54
--#define CRVML_MCHEN_BIT    (1 << 28)
--#define CRVML_MCHMAP_SIZE  4096
--#define CRVML_REG_CLOCK    0xc3c
--#define CRVML_CLOCK_SHIFT  8
--#define CRVML_CLOCK_MASK   0x00000f00
+diff -puN drivers/video/cirrusfb.c~cirrusfb-code-improvement-2nd-part drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-code-improvement-2nd-part
++++ a/drivers/video/cirrusfb.c
+@@ -45,7 +45,6 @@
+ #include <linux/delay.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+-#include <linux/selection.h>
+ #include <asm/pgtable.h>
+ 
+ #ifdef CONFIG_ZORRO
+@@ -64,8 +63,8 @@
+ #define isPReP 0
+ #endif
+ 
+-#include "video/vga.h"
+-#include "video/cirrus.h"
++#include <video/vga.h>
++#include <video/cirrus.h>
+ 
+ /*****************************************************************
+  *
+@@ -99,9 +98,6 @@
+ #endif
+ 
+ #define MB_ (1024 * 1024)
+-#define KB_ (1024)
 -
- static struct pci_dev *lpc_dev;
- static u32 gpio_bar;
-=20
-+#ifdef CONFIG_PM
-+
-+#define NUM_LPC_EXTRA_CONFIG_SPACE 45
-+static int lpc_saved_config_space[NUM_LPC_EXTRA_CONFIG_SPACE];
-+
-+#define CRVML_REG_RCBABAR   0xF0
-+#define CRVML_RCBAEN_BIT    (1 << 0)
-+#define CRVML_RCBAMAP_SIZE  16384
-+static u32 rcba_bar;
-+static void __iomem *rcba_regs_base;
-+
-+#define REGSAVE_SIZE (CRVML_RCBAMAP_SIZE + 4)
-+static u32 *regsave;
-+
-+#endif /* CONFIG_PM */
-+
- struct cr_panel {
- 	struct backlight_device *cr_backlight_device;
- 	struct lcd_device *cr_lcd_device;
-@@ -169,6 +178,94 @@ static struct lcd_ops cr_lcd_ops =3D {
- 	.set_power =3D cr_lcd_set_power,
- };
-=20
-+#ifdef CONFIG_PM
-+
-+static int cr_backlight_suspend(struct platform_device *pdev,
-+				pm_message_t state)
-+{
-+	int i;
-+	int reg;
-+	int saveidx =3D 0;
-+
-+	printk(KERN_DEBUG MODULE_NAME ": suspending to state: %d\n",
-+	       state.event);
-+
-+	regsave =3D kmalloc(REGSAVE_SIZE, GFP_ATOMIC);
-+
-+	if (!regsave) {
-+		printk(KERN_ERR MODULE_NAME
-+		       ": Could not allocate %d bytes for saving registers\n",
-+		       REGSAVE_SIZE);
-+		return -ENOMEM;
-+	}
-+
-+	/* Save registers and config space */
-+
-+	regsave[saveidx++] =3D inl(gpio_bar + CRVML_PANEL_PORT);
-+
-+	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
-+		regsave[saveidx++] =3D ioread32(rcba_regs_base + reg);
-+
-+	pci_save_state(lpc_dev);
-+	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++)
-+		pci_read_config_dword(lpc_dev, (i + 16) * 4,
-+				      &lpc_saved_config_space[i]);
-+	pci_disable_device(lpc_dev);
-+	pci_set_power_state(lpc_dev, pci_choose_state(lpc_dev, state));
-+
-+	pdev->dev.power.power_state =3D state;
-+
-+	return 0;
-+}
-+
-+static int cr_backlight_resume(struct platform_device *pdev)
-+{
-+	int i;
-+	int reg;
-+	int val;
-+	int restoreidx =3D 0;
-+
-+	if (pdev->dev.power.power_state.event =3D=3D PM_EVENT_ON)
-+		return 0;
-+
-+	pci_set_power_state(lpc_dev, PCI_D0);
-+	pci_restore_state(lpc_dev);
-+	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++) {
-+		if (i =3D=3D 0x70 / 4)
-+			continue;
-+
-+		pci_read_config_dword(lpc_dev, (i + 16) * 4, &val);
-+		if (val !=3D lpc_saved_config_space[i]) {
-+			printk(KERN_DEBUG MODULE_NAME ": Writing back config "
-+			       "space on device %s at offset %x (was %x, "
-+			       "writing %x)\n", pci_name(lpc_dev), (i + 16),
-+			       val, lpc_saved_config_space[i]);
-+			pci_write_config_dword(lpc_dev, (i + 16) * 4,
-+					       lpc_saved_config_space[i]);
-+		}
-+	}
-+	if (pci_enable_device(lpc_dev))
-+		return -1;
-+
-+	outl(regsave[restoreidx++], gpio_bar + CRVML_PANEL_PORT);
-+
-+	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
-+		iowrite32(regsave[restoreidx++], rcba_regs_base + reg);
-+
-+	/* Flush posted writes */
-+	ioread32(rcba_regs_base);
-+
-+	kfree(regsave);
-+
-+	pdev->dev.power.power_state =3D PMSG_ON;
-+
-+	printk(KERN_DEBUG MODULE_NAME ": resumed\n");
-+
-+	return 0;
-+}
-+
-+#endif /* CONFIG_PM */
-+
- static int cr_backlight_probe(struct platform_device *pdev)
+-#define MAX_NUM_BOARDS 7
+ 
+ /*****************************************************************
+  *
+@@ -331,10 +327,6 @@ static const struct {
+ #endif /* CONFIG_ZORRO */
+ 
+ struct cirrusfb_regs {
+-	__u32 line_length;	/* in BYTES! */
+-	__u32 visual;
+-	__u32 type;
+-
+ 	long freq;
+ 	long nom;
+ 	long den;
+@@ -525,7 +517,7 @@ static struct fb_ops cirrusfb_ops = {
+ /*--- Hardware Specific Routines -------------------------------------------*/
+ static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
+ 				struct cirrusfb_regs *regs,
+-				const struct fb_info *info);
++				struct fb_info *info);
+ /*--- Internal routines ----------------------------------------------------*/
+ static void init_vgachip(struct fb_info *info);
+ static void switch_monitor(struct cirrusfb_info *cinfo, int on);
+@@ -792,7 +784,7 @@ static int cirrusfb_check_var(struct fb_
+ 
+ static int cirrusfb_decode_var(const struct fb_var_screeninfo *var,
+ 				struct cirrusfb_regs *regs,
+-				const struct fb_info *info)
++				struct fb_info *info)
  {
- 	struct backlight_device *bdp;
-@@ -228,6 +325,26 @@ static int cr_backlight_probe(struct pla
-=20
- 	platform_set_drvdata(pdev, crp);
-=20
-+#ifdef CONFIG_PM
-+	pci_read_config_dword(lpc_dev, CRVML_REG_RCBABAR, &rcba_bar);
-+
-+	if (!(rcba_bar & CRVML_RCBAEN_BIT)) {
-+		printk(KERN_ERR MODULE_NAME
-+		       ": Carillo Ranch LPC device RCBA BAR was not enabled\n");
-+		pci_dev_put(lpc_dev);
-+		return -ENODEV;
-+	}
-+
-+	rcba_regs_base =3D
-+	    ioremap_nocache(rcba_bar, CRVML_RCBAMAP_SIZE);
-+	if (!rcba_regs_base) {
-+		printk(KERN_ERR MODULE_NAME
-+		       ": Could not map Carillo Ranch RCBA BAR\n");
-+		pci_dev_put(lpc_dev);
-+		return -ENODEV;
-+	}
-+#endif /* CONFIG_PM */
-+
- 	return 0;
+ 	long freq;
+ 	long maxclock;
+@@ -803,20 +795,20 @@ static int cirrusfb_decode_var(const str
+ 
+ 	switch (var->bits_per_pixel) {
+ 	case 1:
+-		regs->line_length = var->xres_virtual / 8;
+-		regs->visual = FB_VISUAL_MONO10;
++		info->fix.line_length = var->xres_virtual / 8;
++		info->fix.visual = FB_VISUAL_MONO10;
+ 		break;
+ 
+ 	case 8:
+-		regs->line_length = var->xres_virtual;
+-		regs->visual = FB_VISUAL_PSEUDOCOLOR;
++		info->fix.line_length = var->xres_virtual;
++		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+ 		break;
+ 
+ 	case 16:
+ 	case 24:
+ 	case 32:
+-		regs->line_length = var->xres_virtual * maxclockidx;
+-		regs->visual = FB_VISUAL_DIRECTCOLOR;
++		info->fix.line_length = var->xres_virtual * maxclockidx;
++		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
+ 		break;
+ 
+ 	default:
+@@ -826,7 +818,7 @@ static int cirrusfb_decode_var(const str
+ 		break;
+ 	}
+ 
+-	regs->type = FB_TYPE_PACKED_PIXELS;
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
+ 
+ 	/* convert from ps to kHz */
+ 	freq = PICOS2KHZ(var->pixclock);
+@@ -1539,9 +1531,6 @@ static int cirrusfb_set_par_foo(struct f
+ 	DPRINTK("CL_SEQR1: %d\n", tmp);
+ 
+ 	cinfo->currentmode = regs;
+-	info->fix.type = regs.type;
+-	info->fix.visual = regs.visual;
+-	info->fix.line_length = regs.line_length;
+ 
+ 	/* pan to requested offset */
+ 	cirrusfb_pan_display(var, info);
+@@ -1622,7 +1611,7 @@ static int cirrusfb_pan_display(struct f
+ 	xoffset = var->xoffset * info->var.bits_per_pixel / 8;
+ 	yoffset = var->yoffset;
+ 
+-	base = yoffset * cinfo->currentmode.line_length + xoffset;
++	base = yoffset * info->fix.line_length + xoffset;
+ 
+ 	if (info->var.bits_per_pixel == 1) {
+ 		/* base is already correct */
+@@ -2081,7 +2070,7 @@ static void cirrusfb_fillrect(struct fb_
+ 			  (region->dx * m) / 8, region->dy,
+ 			  (region->width * m) / 8, region->height,
+ 			  color,
+-			  cinfo->currentmode.line_length);
++			  info->fix.line_length);
  }
-=20
-@@ -241,6 +358,11 @@ static int cr_backlight_remove(struct pl
- 	cr_lcd_set_power(crp->cr_lcd_device, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(crp->cr_backlight_device);
- 	lcd_device_unregister(crp->cr_lcd_device);
-+	platform_set_drvdata(pdev, NULL);
-+#ifdef CONFIG_PM
-+	iounmap(rcba_regs_base);
-+#endif
-+	kfree(crp);
- 	pci_dev_put(lpc_dev);
-=20
- 	return 0;
-@@ -252,6 +374,10 @@ static struct platform_driver cr_backlig
- 	.driver =3D {
- 		   .name =3D "cr_backlight",
- 		   },
-+#ifdef CONFIG_PM
-+	.suspend =3D cr_backlight_suspend,
-+	.resume =3D cr_backlight_resume,
-+#endif
- };
-=20
- static struct platform_device *crp;
-diff -puN drivers/video/console/font_10x18.c~fbcon-convert-struct-font_=
-desc-to-use-iso-c-initializers drivers/video/console/font_10x18.c
---- a/drivers/video/console/font_10x18.c~fbcon-convert-struct-font_desc=
--to-use-iso-c-initializers
-+++ a/drivers/video/console/font_10x18.c
-@@ -5133,14 +5133,14 @@ static const unsigned char fontdata_10x1
-=20
-=20
- const struct font_desc font_10x18 =3D {
--	FONT10x18_IDX,
--	"10x18",
--	10,
--	18,
--	fontdata_10x18,
-+	.idx	=3D FONT10x18_IDX,
-+	.name	=3D "10x18",
-+	.width	=3D 10,
-+	.height	=3D 18,
-+	.data	=3D fontdata_10x18,
- #ifdef __sparc__
--	5
-+	.pref	=3D 5,
- #else
--	-1
-+	.pref	=3D -1,
- #endif
- };
-diff -puN drivers/video/console/font_6x11.c~fbcon-convert-struct-font_d=
-esc-to-use-iso-c-initializers drivers/video/console/font_6x11.c
---- a/drivers/video/console/font_6x11.c~fbcon-convert-struct-font_desc-=
-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_6x11.c
-@@ -3342,10 +3342,11 @@ static const unsigned char fontdata_6x11
-=20
-=20
- const struct font_desc font_vga_6x11 =3D {
--	VGA6x11_IDX,
--	"ProFont6x11",
--	6,
--	11,
--	fontdata_6x11,
--	-2000	/* Try avoiding this font if possible unless on MAC */
-+	.idx	=3D VGA6x11_IDX,
-+	.name	=3D "ProFont6x11",
-+	.width	=3D 6,
-+	.height	=3D 11,
-+	.data	=3D fontdata_6x11,
-+	/* Try avoiding this font if possible unless on MAC */
-+	.pref	=3D -2000,
- };
-diff -puN drivers/video/console/font_7x14.c~fbcon-convert-struct-font_d=
-esc-to-use-iso-c-initializers drivers/video/console/font_7x14.c
---- a/drivers/video/console/font_7x14.c~fbcon-convert-struct-font_desc-=
-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_7x14.c
-@@ -4109,10 +4109,10 @@ static const unsigned char fontdata_7x14
-=20
-=20
- const struct font_desc font_7x14 =3D {
--	FONT7x14_IDX,
--	"7x14",
--	7,
--	14,
--	fontdata_7x14,
--	0
-+	.idx	=3D FONT7x14_IDX,
-+	.name	=3D "7x14",
-+	.width	=3D 7,
-+	.height	=3D 14,
-+	.data	=3D fontdata_7x14,
-+	.pref	=3D 0,
- };
-diff -puN drivers/video/console/font_8x16.c~fbcon-convert-struct-font_d=
-esc-to-use-iso-c-initializers drivers/video/console/font_8x16.c
---- a/drivers/video/console/font_8x16.c~fbcon-convert-struct-font_desc-=
-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_8x16.c
-@@ -4622,10 +4622,10 @@ static const unsigned char fontdata_8x16
-=20
-=20
- const struct font_desc font_vga_8x16 =3D {
--	VGA8x16_IDX,
--	"VGA8x16",
--	8,
--	16,
--	fontdata_8x16,
--	0
-+	.idx	=3D VGA8x16_IDX,
-+	.name	=3D "VGA8x16",
-+	.width	=3D 8,
-+	.height	=3D 16,
-+	.data	=3D fontdata_8x16,
-+	.pref	=3D 0,
- };
-diff -puN drivers/video/console/font_8x8.c~fbcon-convert-struct-font_de=
-sc-to-use-iso-c-initializers drivers/video/console/font_8x8.c
---- a/drivers/video/console/font_8x8.c~fbcon-convert-struct-font_desc-t=
-o-use-iso-c-initializers
-+++ a/drivers/video/console/font_8x8.c
-@@ -2574,10 +2574,10 @@ static const unsigned char fontdata_8x8[
-=20
-=20
- const struct font_desc font_vga_8x8 =3D {
--	VGA8x8_IDX,
--	"VGA8x8",
--	8,
--	8,
--	fontdata_8x8,
--	0
-+	.idx	=3D VGA8x8_IDX,
-+	.name	=3D "VGA8x8",
-+	.width	=3D 8,
-+	.height	=3D 8,
-+	.data	=3D fontdata_8x8,
-+	.pref	=3D 0,
- };
-diff -puN drivers/video/console/font_acorn_8x8.c~fbcon-convert-struct-f=
-ont_desc-to-use-iso-c-initializers drivers/video/console/font_acorn_8x8=
-=2Ec
---- a/drivers/video/console/font_acorn_8x8.c~fbcon-convert-struct-font_=
-desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_acorn_8x8.c
-@@ -262,14 +262,14 @@ static const unsigned char acorndata_8x8
- };
-=20
- const struct font_desc font_acorn_8x8 =3D {
--	ACORN8x8_IDX,
--	"Acorn8x8",
--	8,
--	8,
--	acorndata_8x8,
-+	.idx	=3D ACORN8x8_IDX,
-+	.name	=3D "Acorn8x8",
-+	.width	=3D 8,
-+	.height	=3D 8,
-+	.data	=3D acorndata_8x8,
- #ifdef CONFIG_ARCH_ACORN
--	20
-+	.pref	=3D 20,
- #else
--	0
-+	.pref	=3D 0,
- #endif
- };
-diff -puN drivers/video/console/font_mini_4x6.c~fbcon-convert-struct-fo=
-nt_desc-to-use-iso-c-initializers drivers/video/console/font_mini_4x6.c
---- a/drivers/video/console/font_mini_4x6.c~fbcon-convert-struct-font_d=
-esc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_mini_4x6.c
-@@ -2148,11 +2148,11 @@ static const unsigned char fontdata_mini
- };
-=20
- const struct font_desc font_mini_4x6 =3D {
--	MINI4x6_IDX,
--	"MINI4x6",
--	4,
--	6,
--	fontdata_mini_4x6,
--	3
-+	.idx	=3D MINI4x6_IDX,
-+	.name	=3D "MINI4x6",
-+	.width	=3D 4,
-+	.height	=3D 6,
-+	.data	=3D fontdata_mini_4x6,
-+	.pref	=3D 3,
- };
-=20
-diff -puN drivers/video/console/font_pearl_8x8.c~fbcon-convert-struct-f=
-ont_desc-to-use-iso-c-initializers drivers/video/console/font_pearl_8x8=
-=2Ec
---- a/drivers/video/console/font_pearl_8x8.c~fbcon-convert-struct-font_=
-desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_pearl_8x8.c
-@@ -2578,10 +2578,10 @@ static const unsigned char fontdata_pear
- };
-=20
- const struct font_desc font_pearl_8x8 =3D {
--	PEARL8x8_IDX,
--	"PEARL8x8",
--	8,
--	8,
--	fontdata_pearl8x8,
--	2
-+	.idx	=3D PEARL8x8_IDX,
-+	.name	=3D "PEARL8x8",
-+	.width	=3D 8,
-+	.height	=3D 8,
-+	.data	=3D fontdata_pearl8x8,
-+	.pref	=3D 2,
- };
-diff -puN drivers/video/console/font_sun12x22.c~fbcon-convert-struct-fo=
-nt_desc-to-use-iso-c-initializers drivers/video/console/font_sun12x22.c
---- a/drivers/video/console/font_sun12x22.c~fbcon-convert-struct-font_d=
-esc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_sun12x22.c
-@@ -6152,14 +6152,14 @@ static const unsigned char fontdata_sun1
-=20
-=20
- const struct font_desc font_sun_12x22 =3D {
--	SUN12x22_IDX,
--	"SUN12x22",
--	12,
--	22,
--	fontdata_sun12x22,
-+	.idx	=3D SUN12x22_IDX,
-+	.name	=3D "SUN12x22",
-+	.width	=3D 12,
-+	.height	=3D 22,
-+	.data	=3D fontdata_sun12x22,
- #ifdef __sparc__
--	5
-+	.pref	=3D 5,
- #else
--	-1
-+	.pref	=3D -1,
- #endif
- };
-diff -puN drivers/video/console/font_sun8x16.c~fbcon-convert-struct-fon=
-t_desc-to-use-iso-c-initializers drivers/video/console/font_sun8x16.c
---- a/drivers/video/console/font_sun8x16.c~fbcon-convert-struct-font_de=
-sc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_sun8x16.c
-@@ -262,14 +262,14 @@ static const unsigned char fontdata_sun8
- };
-=20
- const struct font_desc font_sun_8x16 =3D {
--	SUN8x16_IDX,
--	"SUN8x16",
--	8,
--	16,
--	fontdata_sun8x16,
-+	.idx	=3D SUN8x16_IDX,
-+	.name	=3D "SUN8x16",
-+	.width	=3D 8,
-+	.height	=3D 16,
-+	.data	=3D fontdata_sun8x16,
- #ifdef __sparc__
--	10
-+	.pref	=3D 10,
- #else
--	-1
-+	.pref	=3D -1,
- #endif
- };
+ 
+ static void cirrusfb_copyarea(struct fb_info *info,
+@@ -2121,7 +2110,7 @@ static void cirrusfb_copyarea(struct fb_
+ 			(area->sx * m) / 8, area->sy,
+ 			(area->dx * m) / 8, area->dy,
+ 			(area->width * m) / 8, area->height,
+-			cinfo->currentmode.line_length);
++			info->fix.line_length);
+ 
+ }
+ 
+@@ -2281,13 +2270,10 @@ static int cirrusfb_set_fbinfo(struct fb
+ 	info->fix.smem_len   = info->screen_size;
+ 	if (var->bits_per_pixel == 1)
+ 		info->fix.smem_len /= 4;
+-	info->fix.type       = cinfo->currentmode.type;
+ 	info->fix.type_aux   = 0;
+-	info->fix.visual     = cinfo->currentmode.visual;
+ 	info->fix.xpanstep   = 1;
+ 	info->fix.ypanstep   = 1;
+ 	info->fix.ywrapstep  = 0;
+-	info->fix.line_length = cinfo->currentmode.line_length;
+ 
+ 	/* FIXME: map region at 0xB8000 if available, fill in here */
+ 	info->fix.mmio_len   = 0;
+@@ -2446,7 +2432,7 @@ static int cirrusfb_pci_register(struct 
+ 	cinfo->unmap = cirrusfb_pci_unmap;
+ 
+ 	printk(KERN_INFO " RAM (%lu kB) at 0xx%lx, ",
+-		info->screen_size / KB_, board_addr);
++		info->screen_size >> 10, board_addr);
+ 	printk(KERN_INFO "Cirrus Logic chipset on PCI bus\n");
+ 	pci_set_drvdata(pdev, info);
+ 
+@@ -2520,7 +2506,6 @@ static int cirrusfb_zorro_register(struc
+ 	}
+ 
+ 	cinfo = info->par;
+-	cinfo->info = info;
+ 	cinfo->btype = btype;
+ 
+ 	assert(z > 0);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-fix-font-dependency-for-sgi-newport-console-driver.patch
-add-maintainers-entry-for-ioc3-serial-driver.patch
-fix-modpost-warning-in-serial-driver.patch
-git-mips.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-mips-qemu-network-work-again.patch
-mips-detect-bcm947xx-cpus.patch
-mips-bcm947xx-support.patch
-rfc-add-bcm947xx-to-kconfig.patch
-mips-add-bcm947xx-to-makefile.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-irix_getcontext-will-always-fail-efault.patch
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlook=
-ed-files.patch
-git-mtd.patch
-git-netdev-all.patch
-dont-use-gfp_dma-for-zone-allocation.patch
-sgiseeq-fix-return-type-of-sgiseeq_remove.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-serio-fix-modpost-warning.patch
-pci-section-warning-fix.patch
-pci-remove-__devinit-from-pcibios_get_irq_routing_table.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-vt-fix-warnings-in-selectionh.patch
-define-global-bit-macro.patch
+git-alsa.patch
+git-arm-master.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
