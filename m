@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm2fb-panning-and-hardware-cursor-fixes.patch added to -mm tree
-Date: Mon, 27 Aug 2007 15:23:54 -0700
-Message-ID: <200708272223.l7RMNs1R031692@imap1.linux-foundation.org>
+Subject: + x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch added to -mm tree
+Date: Mon, 27 Aug 2007 14:43:27 -0700
+Message-ID: <200708272143.l7RLhSMS029911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42697 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34945 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758220AbXH0WX6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758675AbXH0Vns (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 27 Aug 2007 18:23:58 -0400
+	Mon, 27 Aug 2007 17:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
+Cc: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     pm2fb: panning and hardware cursor fixes
+     x86: Convert cpu_core_map to be a per cpu variable 
 has been added to the -mm tree.  Its filename is
-     pm2fb-panning-and-hardware-cursor-fixes.patch
+     x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,177 +26,453 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm2fb: panning and hardware cursor fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: x86: Convert cpu_core_map to be a per cpu variable 
+From: Mike Travis <travis@sgi.com>
 
-This patch:
-- disallows setting of virtual height above 2048 as it does
-  not work for accelerated copyarea and imageblit
-- fixes blinking of pm2v cursor by pushing cursor outside
-  the display (x=2047)
-- fixes hardware cursor position on Permedia 2 chips with
-  panning enabled
-- enables hardware cursor by default
+This is from an earlier message from 'Christoph Lameter':
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+    cpu_core_map is currently an array defined using NR_CPUS. This means that
+    we overallocate since we will rarely really use maximum configured cpu.
+
+    If we put the cpu_core_map into the per cpu area then it will be allocated
+    for each processor as it comes online.
+
+    This means that the core map cannot be accessed until the per cpu area
+    has been allocated. Xen does a weird thing here looping over all processors
+    and zeroing the masks that are not yet allocated and that will be zeroed
+    when they are allocated. I commented the code out.
+
+    Signed-off-by: Christoph Lameter <clameter@sgi.com>
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   35 +++++++++++++++++++----------------
- 1 files changed, 19 insertions(+), 16 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 -
+ arch/i386/kernel/cpu/cpufreq/powernow-k8.c  |   10 ++---
+ arch/i386/kernel/cpu/proc.c                 |    3 +
+ arch/i386/kernel/smpboot.c                  |   34 +++++++++---------
+ arch/i386/xen/smp.c                         |   14 ++++++-
+ arch/x86_64/kernel/mce_amd.c                |    6 +--
+ arch/x86_64/kernel/setup.c                  |    3 +
+ arch/x86_64/kernel/smpboot.c                |   24 ++++++------
+ include/asm-i386/smp.h                      |    2 -
+ include/asm-i386/topology.h                 |    2 -
+ include/asm-x86_64/smp.h                    |    8 +++-
+ include/asm-x86_64/topology.h               |    2 -
+ 12 files changed, 64 insertions(+), 46 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes
-+++ a/drivers/video/pm2fb.c
-@@ -66,7 +66,7 @@
- /*
-  * Driver data
-  */
--static int hwcursor;
-+static int hwcursor = 1;
- static char *mode __devinitdata;
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -595,7 +595,7 @@ static int acpi_cpufreq_cpu_init(struct 
+ 	dmi_check_system(sw_any_bug_dmi_table);
+ 	if (bios_with_sw_any_bug && cpus_weight(policy->cpus) == 1) {
+ 		policy->shared_type = CPUFREQ_SHARED_TYPE_ALL;
+-		policy->cpus = cpu_core_map[cpu];
++		policy->cpus = per_cpu(cpu_core_map, cpu);
+ 	}
+ #endif
  
- /*
-@@ -587,6 +587,11 @@ static int pm2fb_check_var(struct fb_var
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+@@ -57,7 +57,7 @@ static struct powernow_k8_data *powernow
+ static int cpu_family = CPU_OPTERON;
+ 
+ #ifndef CONFIG_SMP
+-static cpumask_t cpu_core_map[1];
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+ #endif
+ 
+ /* Return a frequency in MHz, given an input fid */
+@@ -667,7 +667,7 @@ static int fill_powernow_table(struct po
+ 
+ 	dprintk("cfid 0x%x, cvid 0x%x\n", data->currfid, data->currvid);
+ 	data->powernow_table = powernow_table;
+-	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
++	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
+ 		print_basics(data);
+ 
+ 	for (j = 0; j < data->numps; j++)
+@@ -821,7 +821,7 @@ static int powernow_k8_cpu_init_acpi(str
+ 
+ 	/* fill in data */
+ 	data->numps = data->acpi_data.state_count;
+-	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
++	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
+ 		print_basics(data);
+ 	powernow_k8_acpi_pst_values(data, 0);
+ 
+@@ -1214,7 +1214,7 @@ static int __cpuinit powernowk8_cpu_init
+ 	if (cpu_family == CPU_HW_PSTATE)
+ 		pol->cpus = cpumask_of_cpu(pol->cpu);
+ 	else
+-		pol->cpus = cpu_core_map[pol->cpu];
++		pol->cpus = per_cpu(cpu_core_map, pol->cpu);
+ 	data->available_cores = &(pol->cpus);
+ 
+ 	/* Take a crude guess here.
+@@ -1281,7 +1281,7 @@ static unsigned int powernowk8_get (unsi
+ 	cpumask_t oldmask = current->cpus_allowed;
+ 	unsigned int khz = 0;
+ 
+-	data = powernow_data[first_cpu(cpu_core_map[cpu])];
++	data = powernow_data[first_cpu(per_cpu(cpu_core_map, cpu))];
+ 
+ 	if (!data)
  		return -EINVAL;
+diff -puN arch/i386/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/i386/kernel/cpu/proc.c
+--- a/arch/i386/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/cpu/proc.c
+@@ -122,7 +122,8 @@ static int show_cpuinfo(struct seq_file 
+ #ifdef CONFIG_X86_HT
+ 	if (c->x86_max_cores * smp_num_siblings > 1) {
+ 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
+-		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[n]));
++		seq_printf(m, "siblings\t: %d\n",
++				cpus_weight(per_cpu(cpu_core_map, n)));
+ 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
+ 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
+ 	}
+diff -puN arch/i386/kernel/smpboot.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/smpboot.c
+@@ -74,8 +74,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
+ EXPORT_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+-cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_core_map);
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
++EXPORT_PER_CPU_SYMBOL(cpu_core_map);
+ 
+ /* bitmap of online cpus */
+ cpumask_t cpu_online_map __read_mostly;
+@@ -300,7 +300,7 @@ cpumask_t cpu_coregroup_map(int cpu)
+ 	 * And for power savings, we return cpu_core_map
+ 	 */
+ 	if (sched_mc_power_savings || sched_smt_power_savings)
+-		return cpu_core_map[cpu];
++		return per_cpu(cpu_core_map, cpu);
+ 	else
+ 		return c->llc_shared_map;
+ }
+@@ -321,8 +321,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+ 				cpu_set(i, cpu_sibling_map[cpu]);
+ 				cpu_set(cpu, cpu_sibling_map[i]);
+-				cpu_set(i, cpu_core_map[cpu]);
+-				cpu_set(cpu, cpu_core_map[i]);
++				cpu_set(i, per_cpu(cpu_core_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+ 				cpu_set(cpu, c[i].llc_shared_map);
+ 			}
+@@ -334,7 +334,7 @@ void __cpuinit set_cpu_sibling_map(int c
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		cpu_core_map[cpu] = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -346,8 +346,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+ 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
+-			cpu_set(i, cpu_core_map[cpu]);
+-			cpu_set(cpu, cpu_core_map[i]);
++			cpu_set(i, per_cpu(cpu_core_map, cpu));
++			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+@@ -984,7 +984,7 @@ static void __init smp_boot_cpus(unsigne
+ 					   " Using dummy APIC emulation.\n");
+ 		map_cpu_to_logical_apicid();
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
  	}
  
-+	/* permedia cannot blit over 2048 */
-+	if (var->yres_virtual > 2047) {
-+		var->yres_virtual = 2047;
-+	}
+@@ -1009,7 +1009,7 @@ static void __init smp_boot_cpus(unsigne
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+ 
+@@ -1024,7 +1024,7 @@ static void __init smp_boot_cpus(unsigne
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+ 
+@@ -1107,11 +1107,11 @@ static void __init smp_boot_cpus(unsigne
+ 	 */
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	}
+ 
+ 	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
++	cpu_set(0, per_cpu(cpu_core_map, 0));
+ 
+ 	smpboot_setup_io_apic();
+ 
+@@ -1148,9 +1148,9 @@ void remove_siblinginfo(int cpu)
+ 	int sibling;
+ 	struct cpuinfo_x86 *c = cpu_data;
+ 
+-	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
+-		cpu_clear(cpu, cpu_core_map[sibling]);
+-		/*
++	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
++		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
++		/*/
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+ 		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
+@@ -1160,7 +1160,7 @@ void remove_siblinginfo(int cpu)
+ 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+ 		cpu_clear(cpu, cpu_sibling_map[sibling]);
+ 	cpus_clear(cpu_sibling_map[cpu]);
+-	cpus_clear(cpu_core_map[cpu]);
++	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+ 	cpu_clear(cpu, cpu_sibling_setup_map);
+diff -puN arch/i386/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/i386/xen/smp.c
+--- a/arch/i386/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/i386/xen/smp.c
+@@ -148,7 +148,12 @@ void __init xen_smp_prepare_boot_cpu(voi
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		/*
++		 * cpu_core_map lives in a per cpu area that is cleared
++		 * when the per cpu array is allocated.
++		 *
++		 * cpus_clear(per_cpu(cpu_core_map, cpu));
++		 */
+ 	}
+ 
+ 	xen_setup_vcpu_info_placement();
+@@ -160,7 +165,12 @@ void __init xen_smp_prepare_cpus(unsigne
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		/*
++		 * cpu_core_ map will be zeroed when the per
++		 * cpu area is allocated.
++		 *
++		 * cpus_clear(per_cpu(cpu_core_map, cpu));
++		 */
+ 	}
+ 
+ 	smp_store_cpu_info(0);
+diff -puN arch/x86_64/kernel/mce_amd.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86_64/kernel/mce_amd.c
+--- a/arch/x86_64/kernel/mce_amd.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86_64/kernel/mce_amd.c
+@@ -473,7 +473,7 @@ static __cpuinit int threshold_create_ba
+ 
+ #ifdef CONFIG_SMP
+ 	if (cpu_data[cpu].cpu_core_id && shared_bank[bank]) {	/* symlink */
+-		i = first_cpu(cpu_core_map[cpu]);
++		i = first_cpu(per_cpu(cpu_core_map, cpu));
+ 
+ 		/* first core not up yet */
+ 		if (cpu_data[i].cpu_core_id)
+@@ -493,7 +493,7 @@ static __cpuinit int threshold_create_ba
+ 		if (err)
+ 			goto out;
+ 
+-		b->cpus = cpu_core_map[cpu];
++		b->cpus = per_cpu(cpu_core_map, cpu);
+ 		per_cpu(threshold_banks, cpu)[bank] = b;
+ 		goto out;
+ 	}
+@@ -510,7 +510,7 @@ static __cpuinit int threshold_create_ba
+ #ifndef CONFIG_SMP
+ 	b->cpus = CPU_MASK_ALL;
+ #else
+-	b->cpus = cpu_core_map[cpu];
++	b->cpus = per_cpu(cpu_core_map, cpu);
+ #endif
+ 	err = kobject_register(&b->kobj);
+ 	if (err)
+diff -puN arch/x86_64/kernel/setup.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86_64/kernel/setup.c
+@@ -1107,7 +1107,8 @@ static int show_cpuinfo(struct seq_file 
+ 	if (smp_num_siblings * c->x86_max_cores > 1) {
+ 		int cpu = c - cpu_data;
+ 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
+-		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[cpu]));
++		seq_printf(m, "siblings\t: %d\n",
++			       cpus_weight(per_cpu(cpu_core_map, cpu)));
+ 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
+ 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
+ 	}
+diff -puN arch/x86_64/kernel/smpboot.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -95,8 +95,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
+ EXPORT_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+-cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_core_map);
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
++EXPORT_PER_CPU_SYMBOL(cpu_core_map);
+ 
+ /*
+  * Trampoline 80x86 program as an array.
+@@ -244,7 +244,7 @@ cpumask_t cpu_coregroup_map(int cpu)
+ 	 * And for power savings, we return cpu_core_map
+ 	 */
+ 	if (sched_mc_power_savings || sched_smt_power_savings)
+-		return cpu_core_map[cpu];
++		return per_cpu(cpu_core_map, cpu);
+ 	else
+ 		return c->llc_shared_map;
+ }
+@@ -265,8 +265,8 @@ static inline void set_cpu_sibling_map(i
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+ 				cpu_set(i, cpu_sibling_map[cpu]);
+ 				cpu_set(cpu, cpu_sibling_map[i]);
+-				cpu_set(i, cpu_core_map[cpu]);
+-				cpu_set(cpu, cpu_core_map[i]);
++				cpu_set(i, per_cpu(cpu_core_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+ 				cpu_set(cpu, c[i].llc_shared_map);
+ 			}
+@@ -278,7 +278,7 @@ static inline void set_cpu_sibling_map(i
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		cpu_core_map[cpu] = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -290,8 +290,8 @@ static inline void set_cpu_sibling_map(i
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+ 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
+-			cpu_set(i, cpu_core_map[cpu]);
+-			cpu_set(cpu, cpu_core_map[i]);
++			cpu_set(i, per_cpu(cpu_core_map, cpu));
++			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+@@ -739,7 +739,7 @@ static __init void disable_smp(void)
+ 	else
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
++	cpu_set(0, per_cpu(cpu_core_map, 0));
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -981,8 +981,8 @@ static void remove_siblinginfo(int cpu)
+ 	int sibling;
+ 	struct cpuinfo_x86 *c = cpu_data;
+ 
+-	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
+-		cpu_clear(cpu, cpu_core_map[sibling]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
++		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
+ 		/*
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+@@ -993,7 +993,7 @@ static void remove_siblinginfo(int cpu)
+ 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+ 		cpu_clear(cpu, cpu_sibling_map[sibling]);
+ 	cpus_clear(cpu_sibling_map[cpu]);
+-	cpus_clear(cpu_core_map[cpu]);
++	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+ 	cpu_clear(cpu, cpu_sibling_setup_map);
+diff -puN include/asm-i386/smp.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-i386/smp.h
+--- a/include/asm-i386/smp.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-i386/smp.h
+@@ -31,7 +31,7 @@ extern void smp_alloc_memory(void);
+ extern int pic_mode;
+ extern int smp_num_siblings;
+ extern cpumask_t cpu_sibling_map[];
+-extern cpumask_t cpu_core_map[];
++DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ 
+ extern void (*mtrr_hook) (void);
+ extern void zap_low_mappings (void);
+diff -puN include/asm-i386/topology.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-i386/topology.h
+--- a/include/asm-i386/topology.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-i386/topology.h
+@@ -30,7 +30,7 @@
+ #ifdef CONFIG_X86_HT
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+-#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
++#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ #endif
+ 
+diff -puN include/asm-x86_64/smp.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86_64/smp.h
+@@ -39,7 +39,13 @@ extern int smp_num_siblings;
+ extern void smp_send_reschedule(int cpu);
+ 
+ extern cpumask_t cpu_sibling_map[NR_CPUS];
+-extern cpumask_t cpu_core_map[NR_CPUS];
++/*
++ * cpu_core_map lives in a per cpu area
++ *
++ * extern cpumask_t cpu_core_map[NR_CPUS];
++ */
++DECLARE_PER_CPU(cpumask_t, cpu_core_map);
 +
- 	if (var->xoffset) {
- 		DPRINTK("xoffset not supported\n");
- 		return -EINVAL;
-@@ -1258,12 +1263,21 @@ static int pm2vfb_cursor(struct fb_info 
- {
- 	struct pm2fb_par *par = info->par;
- 	u8 mode = PM2F_CURSORMODE_TYPE_X;
-+	int x = cursor->image.dx - info->var.xoffset;
-+	int y = cursor->image.dy - info->var.yoffset;
+ extern u8 cpu_llc_id[NR_CPUS];
  
- 	if (cursor->enable)
- 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
- 
- 	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_MODE, mode);
- 
-+	if (!cursor->enable)
-+		x = 2047;	/* push it outside display */
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
-+
- 	/*
- 	 * If the cursor is not be changed this means either we want the
- 	 * current cursor state (if enable is set) or we want to query what
-@@ -1272,16 +1286,6 @@ static int pm2vfb_cursor(struct fb_info 
- 	if (!cursor->set)
- 		return 0;
- 
--	if (cursor->set & FB_CUR_SETPOS) {
--		int x = cursor->image.dx - info->var.xoffset;
--		int y = cursor->image.dy - info->var.yoffset;
--
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
--	}
--
- 	if (cursor->set & FB_CUR_SETHOT) {
- 		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HOT,
- 			     cursor->hot.x & 0x3f);
-@@ -1373,7 +1377,7 @@ static int pm2fb_cursor(struct fb_info *
- 	if (par->type == PM2_TYPE_PERMEDIA2V)
- 		return pm2vfb_cursor(info, cursor);
- 
--	mode = 0;
-+	mode = 0x40;
- 	if (cursor->enable)
- 		 mode = 0x43;
- 
-@@ -1388,10 +1392,9 @@ static int pm2fb_cursor(struct fb_info *
- 		return 0;
- 
- 	if (cursor->set & FB_CUR_SETPOS) {
--		int x, y;
-+		int x = cursor->image.dx - info->var.xoffset + 63;
-+		int y = cursor->image.dy - info->var.yoffset + 63;
- 
--		x = cursor->image.dx + 63;
--		y = cursor->image.dy + 63;
- 		WAIT_FIFO(par, 4);
- 		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
- 		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
-@@ -1838,7 +1841,7 @@ module_param(noaccel, bool, 0);
- MODULE_PARM_DESC(noaccel, "Disable acceleration");
- module_param(hwcursor, int, 0644);
- MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
--			"(1=enable, 0=disable, default=0)");
-+			"(1=enable, 0=disable, default=1)");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
+ #define SMP_TRAMPOLINE_BASE 0x6000
+diff -puN include/asm-x86_64/topology.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86_64/topology.h
+@@ -71,7 +71,7 @@ static inline void set_mp_bus_to_node(in
+ #ifdef CONFIG_SMP
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+-#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
++#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
+ #define smt_capable() 			(smp_num_siblings > 1)
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from travis@sgi.com are
 
-origin.patch
-git-alsa.patch
-git-arm-master.patch
-git-hwmon.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-pm2fb-mtrr-support-and-noaccel-option.patch
-pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
-tdfxfb-mtrr-support.patch
-tdfxfb-mtrr-support-fix.patch
-tdfxfb-mtrr-support-fix-2.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
-fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
-s3c2410fb-source-code-improvements.patch
-s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
-s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
-s3c2410fb-make-use-of-default_display-settings.patch
-cirrusfb-checkpatchpl-cleanup.patch
-cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
-cirrusfb-remove-typedefs.patch
-cirrusfb-remove-fields-from-cirrusfb_info.patch
-cirrusfb-code-improvements.patch
-cirrusfb-code-improvement-2nd-part.patch
-pm3fb-header-file-cleanup.patch
-pm2fb-hardware-cursor-support-for-the-permedia2.patch
-pm2fb-panning-and-hardware-cursor-fixes.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
