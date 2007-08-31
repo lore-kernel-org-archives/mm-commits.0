@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-bits_to_type-macro-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:35:07 -0700
-Message-ID: <200708312140.l7VLeRSl027846@imap1.linux-foundation.org>
+Subject: + ocfs2-warning-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:36:31 -0700
+Message-ID: <200708312141.l7VLfpKm027934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38612 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965554AbXHaVk5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751025AbXHaVnJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:40:57 -0400
+	Fri, 31 Aug 2007 17:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com
+Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
 
 
 The patch titled
-     remove-bits_to_type-macro-fix
+     ocfs2 warning fix
 has been added to the -mm tree.  Its filename is
-     remove-bits_to_type-macro-fix.patch
+     ocfs2-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove-bits_to_type-macro-fix
+Subject: ocfs2 warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/ieee1394/nodemgr.c:11:
-include/linux/bitmap.h: In function 'bitmap_zero':
-include/linux/bitmap.h:137: error: implicit declaration of function 'DIV_ROUND_UP'
+fs/ocfs2/alloc.c: In function 'ocfs2_insert_extent':
+fs/ocfs2/alloc.c:3724: warning: 'free_records' may be used uninitialized in this function
 
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bitops.h~remove-bits_to_type-macro-fix include/linux/bitops.h
-diff -puN include/linux/bitmap.h~remove-bits_to_type-macro-fix include/linux/bitmap.h
---- a/include/linux/bitmap.h~remove-bits_to_type-macro-fix
-+++ a/include/linux/bitmap.h
-@@ -6,6 +6,7 @@
- #include <linux/types.h>
- #include <linux/bitops.h>
- #include <linux/string.h>
-+#include <linux/kernel.h>
- 
- /*
-  * bitmaps provide bit arrays that consume one or more unsigned
+diff -puN fs/ocfs2/alloc.c~ocfs2-warning-fix fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-warning-fix
++++ a/fs/ocfs2/alloc.c
+@@ -3721,7 +3721,8 @@ int ocfs2_insert_extent(struct ocfs2_sup
+ 			u8 flags,
+ 			struct ocfs2_alloc_context *meta_ac)
+ {
+-	int status, free_records;
++	int status;
++	int uninitialized_var(free_records);
+ 	struct buffer_head *last_eb_bh = NULL;
+ 	struct ocfs2_insert_type insert = {0, };
+ 	struct ocfs2_extent_rec rec;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +188,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+remove-bits_to_type-macro-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
@@ -195,4 +196,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-remove-bits_to_type-macro-fix.patch
+ocfs2-warning-fix.patch
