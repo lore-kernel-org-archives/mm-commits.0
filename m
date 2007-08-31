@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:23:51 -0700
-Message-ID: <200708312129.l7VLTBsV027451@imap1.linux-foundation.org>
+Subject: + memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:25:41 -0700
+Message-ID: <200708312131.l7VLV26F027568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59399 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932929AbXHaV3c (ORCPT
+	by vger.kernel.org with ESMTP id S966517AbXHaVcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:29:32 -0400
+	Fri, 31 Aug 2007 17:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, cpw@sgi.com, mingo@elte.hu, oleg@tv-sign.ru, pj@sgi.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     hotplug-cpu-migrate-a-task-within-its-cpuset-fix
+     memory-controller-add-per-container-lru-and-reclaim-v7-fix
 has been added to the -mm tree.  Its filename is
-     hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+     memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hotplug-cpu-migrate-a-task-within-its-cpuset-fix
+Subject: memory-controller-add-per-container-lru-and-reclaim-v7-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Cliff Wickman <cpw@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Jackson <pj@sgi.com>
+mm/memcontrol.c: In function 'mem_container_charge':
+mm/memcontrol.c:337: error: implicit declaration of function 'congestion_wait'
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/cpuset.h~hotplug-cpu-migrate-a-task-within-its-cpuset-fix include/linux/cpuset.h
-diff -puN kernel/cpuset.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix kernel/cpuset.c
-diff -puN kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix kernel/sched.c
---- a/kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix
-+++ a/kernel/sched.c
-@@ -5150,7 +5150,7 @@ restart:
- 
- 	/* No more Mr. Nice Guy. */
- 	if (dest_cpu == NR_CPUS) {
--		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked();
-+		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked(p);
- 		/*
- 		 * Try to stay on the same cpuset, where the current cpuset
- 		 * may be a subset of all cpus.
+diff -puN mm/memcontrol.c~memory-controller-add-per-container-lru-and-reclaim-v7-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-add-per-container-lru-and-reclaim-v7-fix
++++ a/mm/memcontrol.c
+@@ -22,6 +22,7 @@
+ #include <linux/container.h>
+ #include <linux/mm.h>
+ #include <linux/page-flags.h>
++#include <linux/backing-dev.h>
+ #include <linux/bit_spinlock.h>
+ #include <linux/rcupdate.h>
+ #include <linux/swap.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,6 +193,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
