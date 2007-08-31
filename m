@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-valueless-definition-of-hard-selected-ramfs-option.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:15:19 -0700
-Message-ID: <200708311815.l7VIFJiU020310@imap1.linux-foundation.org>
+Subject: + introduce-write_begin-write_end-aops-fix2.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:16:27 -0700
+Message-ID: <200708311816.l7VIGRKp020323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965778AbXHaSPX (ORCPT
+	by vger.kernel.org with ESMTP id S965785AbXHaSQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:15:23 -0400
+	Fri, 31 Aug 2007 14:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@mindspring.com, viro@zeniv.linux.org.uk
+Cc: npiggin@suse.de
 
 
 The patch titled
-     Remove valueless definition of hard-selected RAMFS option
+     introduce write_begin write_end aops fix2
 has been added to the -mm tree.  Its filename is
-     remove-valueless-definition-of-hard-selected-ramfs-option.patch
+     introduce-write_begin-write_end-aops-fix2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove valueless definition of hard-selected RAMFS option
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: introduce write_begin write_end aops fix2
+From: Nick Piggin <npiggin@suse.de>
 
-Since CONFIG_RAMFS is currently hard-selected to "y", and since
-Documentation/filesystems/ramfs-rootfs-initramfs.txt reads as follows:
+Callers should do the mark_page_accessed, as it is more flexible and in
+some contexts they don't want to be doing so, eg.  dir-in-pagecache writes
+into buffer cache (although that's debateable, it wouldn't be possible if
+write_end() did the mark_page_accessed()).
 
-"The amount of code required to implement ramfs is tiny, because all the
-work is done by the existing Linux caching infrastructure.  Basically,
-you're mounting the disk cache as a filesystem.  Because of this, ramfs is
-not an optional component removable via menuconfig, since there would be
-negligible space savings."
+Subsequent patches contain fixes either to take mark_page_accessed out of
+their write_end implementation, or in the case of dir-in-pagecache
+filesystems, I had incorrectly added a mark_page_accessed where there was
+previously none (it looks like the logical place to mark the page accessed,
+but changing behaviour is obviously wrong for this bugfix series).
 
-It seems pointless to leave this as a Kconfig entry.
-
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig        |   14 --------------
- fs/Makefile       |    2 +-
- fs/ramfs/Makefile |    2 +-
- 3 files changed, 2 insertions(+), 16 deletions(-)
+ fs/buffer.c  |    1 -
+ mm/filemap.c |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option fs/Kconfig
---- a/fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option
-+++ a/fs/Kconfig
-@@ -999,20 +999,6 @@ config HUGETLBFS
- config HUGETLB_PAGE
- 	def_bool HUGETLBFS
+diff -puN fs/buffer.c~introduce-write_begin-write_end-aops-fix2 fs/buffer.c
+--- a/fs/buffer.c~introduce-write_begin-write_end-aops-fix2
++++ a/fs/buffer.c
+@@ -2052,7 +2052,6 @@ int generic_write_end(struct file *file,
+ 	}
  
--config RAMFS
--	bool
--	default y
--	---help---
--	  Ramfs is a file system which keeps all files in RAM. It allows
--	  read and write access.
--
--	  It is more of an programming example than a useable file system.  If
--	  you need a file system which lives in RAM with limit checking use
--	  tmpfs.
--
--	  To compile this as a module, choose M here: the module will be called
--	  ramfs.
--
- config CONFIGFS_FS
- 	tristate "Userspace-driven configuration filesystem (EXPERIMENTAL)"
- 	depends on SYSFS && EXPERIMENTAL
-diff -puN fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/Makefile
---- a/fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
-+++ a/fs/Makefile
-@@ -72,7 +72,7 @@ obj-$(CONFIG_JBD)		+= jbd/
- obj-$(CONFIG_JBD2)		+= jbd2/
- obj-$(CONFIG_EXT2_FS)		+= ext2/
- obj-$(CONFIG_CRAMFS)		+= cramfs/
--obj-$(CONFIG_RAMFS)		+= ramfs/
-+obj-y				+= ramfs/
- obj-$(CONFIG_HUGETLBFS)		+= hugetlbfs/
- obj-$(CONFIG_CODA_FS)		+= coda/
- obj-$(CONFIG_MINIX_FS)		+= minix/
-diff -puN fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/ramfs/Makefile
---- a/fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
-+++ a/fs/ramfs/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the linux ramfs routines.
- #
+ 	unlock_page(page);
+-	mark_page_accessed(page);
+ 	page_cache_release(page);
  
--obj-$(CONFIG_RAMFS) += ramfs.o
-+obj-y += ramfs.o
+ 	return copied;
+diff -puN mm/filemap.c~introduce-write_begin-write_end-aops-fix2 mm/filemap.c
+--- a/mm/filemap.c~introduce-write_begin-write_end-aops-fix2
++++ a/mm/filemap.c
+@@ -1913,6 +1913,7 @@ int pagecache_write_end(struct file *fil
+ 	int ret;
  
- file-mmu-y := file-nommu.o
- file-mmu-$(CONFIG_MMU) := file-mmu.o
+ 	if (aops->write_end) {
++		mark_page_accessed(page);
+ 		ret = aops->write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 	} else {
+@@ -1922,6 +1923,7 @@ int pagecache_write_end(struct file *fil
+ 		flush_dcache_page(page);
+ 		ret = aops->commit_write(file, page, offset, offset+len);
+ 		unlock_page(page);
++		mark_page_accessed(page);
+ 		page_cache_release(page);
+ 		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
+ 
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-git-kvm.patch
-git-mtd.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-remove-dead-references-to-module_parm-macro.patch
-m68knommu-remove-unused-config-symbol-config_disktel.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-remove-valueless-definition-of-hard-selected-ramfs-option.patch
+remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
+calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+fs-fix-nobh-error-handling.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+introduce-write_begin-write_end-aops-fix2.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext2-convert-to-new-aops-fix.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+make-swappiness-safer-to-use.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+reiser4-fix-for-new-aops-patches.patch
