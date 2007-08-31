@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + minix-convert-to-new-aops-fix2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:13 -0700
-Message-ID: <200708311819.l7VIJDYw020399@imap1.linux-foundation.org>
+Subject: + ufs-convert-to-new-aops-fix2.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:17 -0700
+Message-ID: <200708311819.l7VIJHLk020405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965815AbXHaSTu (ORCPT
+	by vger.kernel.org with ESMTP id S965822AbXHaSTw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:50 -0400
+	Fri, 31 Aug 2007 14:19:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     minix convert to new aops fix2
+     ufs convert to new aops fix2
 has been added to the -mm tree.  Its filename is
-     minix-convert-to-new-aops-fix2.patch
+     ufs-convert-to-new-aops-fix2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,20 +26,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minix convert to new aops fix2
+Subject: ufs convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c |    1 -
+ fs/ufs/dir.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix2 fs/minix/dir.c
---- a/fs/minix/dir.c~minix-convert-to-new-aops-fix2
-+++ a/fs/minix/dir.c
-@@ -65,7 +65,6 @@ static int dir_commit_chunk(struct page 
+diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops-fix2 fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-convert-to-new-aops-fix2
++++ a/fs/ufs/dir.c
+@@ -55,7 +55,6 @@ static int ufs_commit_chunk(struct page 
  		err = write_one_page(page, 1);
  	else
  		unlock_page(page);
