@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bit_spin_lock-use-lock-bitops.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:37:35 -0700
-Message-ID: <200708311837.l7VIbZbk021087@imap1.linux-foundation.org>
+Subject: + alpha-fix-bitops.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:37:23 -0700
+Message-ID: <200708311837.l7VIbNPX021066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965854AbXHaShl (ORCPT
+	by vger.kernel.org with ESMTP id S965879AbXHaShs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:37:41 -0400
+	Fri, 31 Aug 2007 14:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, clameter@sgi.com
+Cc: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     bit_spin_lock: use lock bitops
+     alpha: fix bitops
 has been added to the -mm tree.  Its filename is
-     bit_spin_lock-use-lock-bitops.patch
+     alpha-fix-bitops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bit_spin_lock: use lock bitops
+Subject: alpha: fix bitops
 From: Nick Piggin <npiggin@suse.de>
 
-Convert bit_spin_lock to new locking bitops.  Slub can use the non-atomic
-store version to clear (Christoph?)
+Documentation/atomic_ops.txt defines these primitives must contain a memory
+barrier both before and after their memory operation.  This is consistent with
+the atomic ops implementation on alpha.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bit_spinlock.h |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
+ include/asm-alpha/bitops.h |    9 +++++++++
+ 1 files changed, 9 insertions(+)
 
-diff -puN include/linux/bit_spinlock.h~bit_spin_lock-use-lock-bitops include/linux/bit_spinlock.h
---- a/include/linux/bit_spinlock.h~bit_spin_lock-use-lock-bitops
-+++ a/include/linux/bit_spinlock.h
-@@ -18,7 +18,7 @@ static inline void bit_spin_lock(int bit
- 	 */
- 	preempt_disable();
- #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
--	while (test_and_set_bit(bitnum, addr)) {
-+	while (unlikely(test_and_set_bit_lock(bitnum, addr))) {
- 		while (test_bit(bitnum, addr)) {
- 			preempt_enable();
- 			cpu_relax();
-@@ -36,7 +36,7 @@ static inline int bit_spin_trylock(int b
- {
- 	preempt_disable();
- #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
--	if (test_and_set_bit(bitnum, addr)) {
-+	if (unlikely(test_and_set_bit_lock(bitnum, addr))) {
- 		preempt_enable();
- 		return 0;
- 	}
-@@ -50,10 +50,28 @@ static inline int bit_spin_trylock(int b
-  */
- static inline void bit_spin_unlock(int bitnum, unsigned long *addr)
- {
-+#ifdef CONFIG_DEBUG_SPINLOCK
-+	BUG_ON(!test_bit(bitnum, addr));
+diff -puN include/asm-alpha/bitops.h~alpha-fix-bitops include/asm-alpha/bitops.h
+--- a/include/asm-alpha/bitops.h~alpha-fix-bitops
++++ a/include/asm-alpha/bitops.h
+@@ -117,6 +117,9 @@ test_and_set_bit(unsigned long nr, volat
+ 	int *m = ((int *) addr) + (nr >> 5);
+ 
+ 	__asm__ __volatile__(
++#ifdef CONFIG_SMP
++	"	mb\n"
 +#endif
- #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
-+	clear_bit_unlock(bitnum, addr);
+ 	"1:	ldl_l %0,%4\n"
+ 	"	and %0,%3,%2\n"
+ 	"	bne %2,2f\n"
+@@ -158,6 +161,9 @@ test_and_clear_bit(unsigned long nr, vol
+ 	int *m = ((int *) addr) + (nr >> 5);
+ 
+ 	__asm__ __volatile__(
++#ifdef CONFIG_SMP
++	"	mb\n"
 +#endif
-+	preempt_enable();
-+	__release(bitlock);
-+}
-+
-+/*
-+ *  bit-based spin_unlock()
-+ *  non-atomic version, which can be used eg. if the bit lock itself is
-+ *  protecting the rest of the flags in the word.
-+ */
-+static inline void __bit_spin_unlock(int bitnum, unsigned long *addr)
-+{
-+#ifdef CONFIG_DEBUG_SPINLOCK
- 	BUG_ON(!test_bit(bitnum, addr));
--	smp_mb__before_clear_bit();
--	clear_bit(bitnum, addr);
+ 	"1:	ldl_l %0,%4\n"
+ 	"	and %0,%3,%2\n"
+ 	"	beq %2,2f\n"
+@@ -199,6 +205,9 @@ test_and_change_bit(unsigned long nr, vo
+ 	int *m = ((int *) addr) + (nr >> 5);
+ 
+ 	__asm__ __volatile__(
++#ifdef CONFIG_SMP
++	"	mb\n"
 +#endif
-+#if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
-+	__clear_bit_unlock(bitnum, addr);
- #endif
- 	preempt_enable();
- 	__release(bitlock);
+ 	"1:	ldl_l %0,%4\n"
+ 	"	and %0,%3,%2\n"
+ 	"	xor %0,%3,%0\n"
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
