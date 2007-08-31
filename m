@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:11:49 -0700
-Message-ID: <200708311811.l7VIBnjU020153@imap1.linux-foundation.org>
+Subject: + hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:11:51 -0700
+Message-ID: <200708311811.l7VIBpd7020158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41863 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55905 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965758AbXHaSMR (ORCPT
+	by vger.kernel.org with ESMTP id S965763AbXHaSMR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 31 Aug 2007 14:12:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz
 
 
 The patch titled
-     Hibernation: Pass CR3 in the image header on x86_64
+     Hibernation: Use temporary page tables for kernel text mapping on x86_64
 has been added to the -mm tree.  Its filename is
-     hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
+     hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Hibernation: Pass CR3 in the image header on x86_64
+Subject: Hibernation: Use temporary page tables for kernel text mapping on x86_64
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Since we already pass the address of restore_registers() in the image header,
-we can also pass the value of the CR3 register from before the hibernation in
-the same way.  This will allow us to avoid using init_level4_pgt page tables
-during the restore.
+Use temporary page tables for the kernel text mapping during hibernation
+restore on x86_64.
+
+Without the patch, the original boot kernel's page tables that represent the
+kernel text mapping are used while the core of the image kernel is being
+restored.  However, in principle, if the boot kernel is not identical to the
+image kernel, the location of these page tables in the image kernel need not
+be the same, so we should create a safe copy of the kernel text mapping prior
+to restoring the core of the image kernel.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
@@ -40,88 +45,79 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/suspend.c     |   16 ++++++++++++----
- arch/x86_64/kernel/suspend_asm.S |    8 +++++---
- 2 files changed, 17 insertions(+), 7 deletions(-)
+ arch/x86_64/kernel/suspend.c |   39 +++++++++++++++++++++++++++------
+ 1 files changed, 33 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86_64/kernel/suspend.c~hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2 arch/x86_64/kernel/suspend.c
---- a/arch/x86_64/kernel/suspend.c~hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2
+diff -puN arch/x86_64/kernel/suspend.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86_64/kernel/suspend.c
+--- a/arch/x86_64/kernel/suspend.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
 +++ a/arch/x86_64/kernel/suspend.c
-@@ -151,6 +151,12 @@ extern int restore_image(void);
-  */
- unsigned long restore_jump_address;
- 
-+/*
-+ * Value of the cr3 register from before the hibernation (this value is passed
-+ * in the image header).
-+ */
-+unsigned long restore_cr3;
-+
- pgd_t *temp_level4_pgt;
- 
- void *relocated_restore_code;
-@@ -249,7 +255,8 @@ int pfn_is_nosave(unsigned long pfn)
- 
- struct restore_data_record {
- 	unsigned long jump_address;
--	unsigned long control;
-+	unsigned long cr3;
-+	unsigned long magic;
- };
- 
- #define RESTORE_MAGIC	0x0123456789ABCDEFUL
-@@ -266,7 +273,8 @@ int arch_hibernation_header_save(void *a
- 	if (max_size < sizeof(struct restore_data_record))
- 		return -EOVERFLOW;
- 	rdr->jump_address = restore_jump_address;
--	rdr->control = (restore_jump_address ^ RESTORE_MAGIC);
-+	rdr->cr3 = restore_cr3;
-+	rdr->magic = RESTORE_MAGIC;
+@@ -192,25 +192,42 @@ static int res_phys_pud_init(pud_t *pud,
  	return 0;
  }
  
-@@ -280,7 +288,7 @@ int arch_hibernation_header_restore(void
- 	struct restore_data_record *rdr = addr;
++static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
++{
++	pmd_t *pmd;
++	unsigned long paddr;
++
++	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
++	if (!pmd)
++		return -ENOMEM;
++	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
++	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
++		unsigned long pe;
++
++		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
++		pe &= __supported_pte_mask;
++		set_pmd(pmd, __pmd(pe));
++	}
++
++	return 0;
++}
++
+ static int set_up_temporary_mappings(void)
+ {
+ 	unsigned long start, end, next;
++	pud_t *pud;
+ 	int error;
  
- 	restore_jump_address = rdr->jump_address;
--	return (rdr->control == (restore_jump_address ^ RESTORE_MAGIC)) ?
--			0 : -EINVAL;
-+	restore_cr3 = rdr->cr3;
-+	return (rdr->magic == RESTORE_MAGIC) ? 0 : -EINVAL;
+ 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
+ 	if (!temp_level4_pgt)
+ 		return -ENOMEM;
+ 
+-	/* It is safe to reuse the original kernel mapping */
+-	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
+-		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
+-
+ 	/* Set up the direct mapping from scratch */
+ 	start = (unsigned long)pfn_to_kaddr(0);
+ 	end = (unsigned long)pfn_to_kaddr(end_pfn);
+ 
+ 	for (; start < end; start = next) {
+-		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
++		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
+ 		if (!pud)
+ 			return -ENOMEM;
+ 		next = start + PGDIR_SIZE;
+@@ -221,7 +238,17 @@ static int set_up_temporary_mappings(voi
+ 		set_pgd(temp_level4_pgt + pgd_index(start),
+ 			mk_kernel_pgd(__pa(pud)));
+ 	}
+-	return 0;
++
++	/* Set up the kernel text mapping from scratch */
++	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
++	if (!pud)
++		return -ENOMEM;
++	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
++	if (!error)
++		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
++			__pgd(__pa(pud) | _PAGE_TABLE));
++
++	return error;
  }
- #endif /* CONFIG_HIBERNATION */
-diff -puN arch/x86_64/kernel/suspend_asm.S~hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2 arch/x86_64/kernel/suspend_asm.S
---- a/arch/x86_64/kernel/suspend_asm.S~hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2
-+++ a/arch/x86_64/kernel/suspend_asm.S
-@@ -39,6 +39,9 @@ ENTRY(swsusp_arch_suspend)
- 	/* save the address of restore_registers */
- 	movq	$restore_registers, %rax
- 	movq	%rax, restore_jump_address(%rip)
-+	/* save cr3 */
-+	movq	%cr3, %rax
-+	movq	%rax, restore_cr3(%rip)
  
- 	call swsusp_save
- 	ret
-@@ -60,6 +63,7 @@ ENTRY(restore_image)
- 
- 	/* prepare to jump to the image kernel */
- 	movq	restore_jump_address(%rip), %rax
-+	movq	restore_cr3(%rip), %rbx
- 
- 	/* prepare to copy image data to their original locations */
- 	movq	restore_pblist(%rip), %rdx
-@@ -98,9 +102,7 @@ done:
- 
- ENTRY(restore_registers)
- 	/* go back to the original page tables */
--	movq    $(init_level4_pgt - __START_KERNEL_map), %rax
--	addq    phys_base(%rip), %rax
--	movq    %rax, %cr3
-+	movq    %rbx, %cr3
- 
- 	/* Flush TLB, including "global" things (vmalloc) */
- 	movq	mmu_cr4_features(%rip), %rax
+ int swsusp_arch_resume(void)
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
