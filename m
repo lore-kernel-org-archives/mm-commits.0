@@ -1,79 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - fix-modpost-warning-in-serial-driver.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:10 -0700
-Message-ID: <200708311656.l7VGuAaS017466@imap1.linux-foundation.org>
+Subject: - pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:05 -0700
+Message-ID: <200708311656.l7VGu53E017460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33194 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760489AbXHaQ4X (ORCPT
+	by vger.kernel.org with ESMTP id S1760793AbXHaQ41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:56:23 -0400
+	Fri, 31 Aug 2007 12:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix modpost warning in serial driver
+     PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
 has been removed from the -mm tree.  Its filename was
-     fix-modpost-warning-in-serial-driver.patch
+     pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix modpost warning in serial driver
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: PM: Fix dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This is triggered if PCI && !HOTPLUG.
+Dependencies of CONFIG_SUSPEND and CONFIG_HIBERNATION introduced by commit
+296699de6bdc717189a331ab6bbe90e05c94db06 "Introduce CONFIG_SUSPEND for
+suspend-to-Ram and standby" are incorrect, as they don't cover the facts that
+(1) not all architectures support suspend and (2) SMP hibernation is only
+possible on X86 and PPC64 (if CONFIG_PPC64_SWSUSP is set).
 
-  MODPOST vmlinux.o
-WARNING: vmlinux.o(.data+0xc910): Section mismatch: reference to .init.text:pci_ite887x_init (between 'pci_serial_quirks' and 'serial_pci_tbl')
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/defconfig |    1 
+ include/linux/cpu.h   |    6 ++---
+ kernel/cpu.c          |    4 +--
+ kernel/power/Kconfig  |   41 ++++++++++++++++++++++++++++++----------
+ 4 files changed, 36 insertions(+), 16 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~fix-modpost-warning-in-serial-driver drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~fix-modpost-warning-in-serial-driver
-+++ a/drivers/serial/8250_pci.c
-@@ -610,7 +610,7 @@ static int pci_netmos_init(struct pci_de
- /* enable IO_Space bit */
- #define ITE_887x_POSIO_ENABLE		(1 << 31)
+diff -puN arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x arch/x86_64/defconfig
+--- a/arch/x86_64/defconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
++++ a/arch/x86_64/defconfig
+@@ -201,7 +201,6 @@ CONFIG_PM=y
+ # CONFIG_PM_DEBUG is not set
+ CONFIG_HIBERNATION=y
+ CONFIG_PM_STD_PARTITION=""
+-CONFIG_SUSPEND_SMP=y
  
--static int __devinit pci_ite887x_init(struct pci_dev *dev)
-+static int pci_ite887x_init(struct pci_dev *dev)
- {
- 	/* inta_addr are the configuration addresses of the ITE */
- 	static const short inta_addr[] = { 0x2a0, 0x2c0, 0x220, 0x240, 0x1e0,
+ #
+ # ACPI (Advanced Configuration and Power Interface) Support
+diff -puN include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x include/linux/cpu.h
+--- a/include/linux/cpu.h~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
++++ a/include/linux/cpu.h
+@@ -126,16 +126,16 @@ static inline void cpuhotplug_mutex_unlo
+ static inline int cpu_is_offline(int cpu) { return 0; }
+ #endif		/* CONFIG_HOTPLUG_CPU */
+ 
+-#ifdef CONFIG_SUSPEND_SMP
++#ifdef CONFIG_PM_SLEEP_SMP
+ extern int suspend_cpu_hotplug;
+ 
+ extern int disable_nonboot_cpus(void);
+ extern void enable_nonboot_cpus(void);
+-#else
++#else /* !CONFIG_PM_SLEEP_SMP */
+ #define suspend_cpu_hotplug	0
+ 
+ static inline int disable_nonboot_cpus(void) { return 0; }
+ static inline void enable_nonboot_cpus(void) {}
+-#endif
++#endif /* !CONFIG_PM_SLEEP_SMP */
+ 
+ #endif /* _LINUX_CPU_H_ */
+diff -puN kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x kernel/cpu.c
+--- a/kernel/cpu.c~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
++++ a/kernel/cpu.c
+@@ -273,7 +273,7 @@ int __cpuinit cpu_up(unsigned int cpu)
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_SUSPEND_SMP
++#ifdef CONFIG_PM_SLEEP_SMP
+ static cpumask_t frozen_cpus;
+ 
+ int disable_nonboot_cpus(void)
+@@ -334,4 +334,4 @@ void enable_nonboot_cpus(void)
+ out:
+ 	mutex_unlock(&cpu_add_remove_lock);
+ }
+-#endif
++#endif /* CONFIG_PM_SLEEP_SMP */
+diff -puN kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x kernel/power/Kconfig
+--- a/kernel/power/Kconfig~pm-fix-dependencies-of-config_suspend-and-config_hibernation-updated-3x
++++ a/kernel/power/Kconfig
+@@ -72,15 +72,10 @@ config PM_TRACE
+ 	CAUTION: this option will cause your machine's real-time clock to be
+ 	set to an invalid time after a resume.
+ 
+-config SUSPEND_SMP_POSSIBLE
+-	bool
+-	depends on (X86 && !X86_VOYAGER) || (PPC64 && (PPC_PSERIES || PPC_PMAC))
+-	depends on SMP
+-	default y
+-
+-config SUSPEND_SMP
++config PM_SLEEP_SMP
+ 	bool
+-	depends on SUSPEND_SMP_POSSIBLE && PM_SLEEP
++	depends on SUSPEND_SMP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
++	depends on PM_SLEEP
+ 	select HOTPLUG_CPU
+ 	default y
+ 
+@@ -89,20 +84,46 @@ config PM_SLEEP
+ 	depends on SUSPEND || HIBERNATION
+ 	default y
+ 
++config SUSPEND_UP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) || PPC || ARM || BLACKFIN || MIPS \
++		   || SUPERH || FRV
++	depends on !SMP
++	default y
++
++config SUSPEND_SMP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) \
++		   || (PPC && (PPC_PSERIES || PPC_PMAC)) || ARM
++	depends on SMP
++	default y
++
+ config SUSPEND
+ 	bool "Suspend to RAM and standby"
+ 	depends on PM
+-	depends on !SMP || SUSPEND_SMP_POSSIBLE
++	depends on SUSPEND_UP_POSSIBLE || SUSPEND_SMP_POSSIBLE
+ 	default y
+ 	---help---
+ 	  Allow the system to enter sleep states in which main memory is
+ 	  powered and thus its contents are preserved, such as the
+ 	  suspend-to-RAM state (i.e. the ACPI S3 state).
+ 
++config HIBERNATION_UP_POSSIBLE
++	bool
++	depends on X86 || PPC64_SWSUSP || FRV || PPC32
++	depends on !SMP
++	default y
++
++config HIBERNATION_SMP_POSSIBLE
++	bool
++	depends on (X86 && !X86_VOYAGER) || PPC64_SWSUSP
++	depends on SMP
++	default y
++
+ config HIBERNATION
+ 	bool "Hibernation (aka 'suspend to disk')"
+ 	depends on PM && SWAP
+-	depends on ((X86 || PPC64_SWSUSP || FRV || PPC32) && !SMP) || SUSPEND_SMP_POSSIBLE
++	depends on HIBERNATION_UP_POSSIBLE || HIBERNATION_SMP_POSSIBLE
+ 	---help---
+ 	  Enable the suspend to disk (STD) functionality, which is usually
+ 	  called "hibernation" in user interfaces.  STD checkpoints the
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-mips.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-mips-qemu-network-work-again.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
-git-mtd.patch
-git-netdev-all.patch
-ioc3-program-uart-predividers.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-serio-fix-modpost-warning.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-vt-fix-warnings-in-selectionh.patch
-define-global-bit-macro.patch
+hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
+acpi-clean-up-acpi_enter_sleep_state_prep.patch
+uli526x-add-suspend-and-resume-routines.patch
+make-kernel-power-maincsuspend_enter-static.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+s2ram-kill-old-debugging-junk.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
+shrink_slab-handle-bad-shrinkers.patch
