@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sysv-convert-to-new-aops-fix2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:15 -0700
-Message-ID: <200708311819.l7VIJFSt020402@imap1.linux-foundation.org>
+Subject: + ext4-convert-to-new-aops-fix-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:07 -0700
+Message-ID: <200708311819.l7VIJ7vS020389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59801 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33304 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965814AbXHaSTu (ORCPT
+	by vger.kernel.org with ESMTP id S965813AbXHaSTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:50 -0400
+	Fri, 31 Aug 2007 14:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     sysv convert to new aops fix2
+     ext4 convert to new aops fix fix
 has been added to the -mm tree.  Its filename is
-     sysv-convert-to-new-aops-fix2.patch
+     ext4-convert-to-new-aops-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,27 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysv convert to new aops fix2
+Subject: ext4 convert to new aops fix fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/dir.c |    1 -
- 1 files changed, 1 deletion(-)
+ fs/ext4/inode.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops-fix2 fs/sysv/dir.c
---- a/fs/sysv/dir.c~sysv-convert-to-new-aops-fix2
-+++ a/fs/sysv/dir.c
-@@ -53,7 +53,6 @@ static int dir_commit_chunk(struct page 
- 		err = write_one_page(page, 1);
- 	else
- 		unlock_page(page);
--	mark_page_accessed(page);
- 	return err;
- }
+diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix
++++ a/fs/ext4/inode.c
+@@ -36,7 +36,6 @@
+ #include <linux/mpage.h>
+ #include <linux/uio.h>
+ #include <linux/bio.h>
+-#include <linux/swap.h> /* mark_page_accessed */
+ #include "xattr.h"
+ #include "acl.h"
  
+@@ -1230,8 +1229,6 @@ static int ext4_generic_write_end(struct
+ 
+ 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
+-	mark_page_accessed(page);
+-
+ 	if (pos+copied > inode->i_size) {
+ 		i_size_write(inode, pos+copied);
+ 		mark_inode_dirty(inode);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
