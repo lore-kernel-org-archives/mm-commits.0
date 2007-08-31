@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-the-max-path-calculation-in-radix-treec-update.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:34:38 -0700
-Message-ID: <200708311934.l7VJYcEL023180@imap1.linux-foundation.org>
+Subject: + update-gitignore.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:35:12 -0700
+Message-ID: <200708311935.l7VJZCvD023261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55256 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840AbXHaTfQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753528AbXHaTgA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:35:16 -0400
+	Fri, 31 Aug 2007 15:36:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, npiggin@suse.de
+Cc: bunk@kernel.org, bunk@stusta.de
 
 
 The patch titled
-     fix-the-max-path-calculation-in-radix-treec update
+     update .gitignore
 has been added to the -mm tree.  Its filename is
-     fix-the-max-path-calculation-in-radix-treec-update.patch
+     update-gitignore.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-the-max-path-calculation-in-radix-treec update
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: update .gitignore
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Nick Piggin <npiggin@suse.de>
+Some shipped files were wrongly ignored by git.
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
+ .gitignore |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update lib/radix-tree.c
---- a/lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update
-+++ a/lib/radix-tree.c
-@@ -61,9 +61,13 @@ struct radix_tree_path {
+diff -puN .gitignore~update-gitignore .gitignore
+--- a/.gitignore~update-gitignore
++++ a/.gitignore
+@@ -17,15 +17,21 @@
+ *.lst
+ *.symtypes
  
- #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
- #define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
--					  RADIX_TREE_MAP_SHIFT) + 1)
-+					  RADIX_TREE_MAP_SHIFT))
++# .gitignore files
++!.gitignore
++
+ #
+ # Top-level generic files
+ #
+ tags
+ TAGS
+ vmlinux*
+-!vmlinux.lds.S
++!vmlinux*.lds*
++!vmlinux*.scr
+ System.map
+ Module.symvers
++!.mailmap
++!.mm
  
--static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH] __read_mostly;
-+/*
-+ * The height_to_maxindex array needs to be one deeper than the maximum
-+ * path as height 0 holds only 1 entry.
-+ */
-+static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH + 1] __read_mostly;
- 
- /*
-  * Radix tree node cache.
-@@ -493,7 +497,11 @@ EXPORT_SYMBOL(radix_tree_tag_set);
- void *radix_tree_tag_clear(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag)
- {
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
-+	/*
-+	 * The radix tree path needs to be one longer than the maximum path
-+	 * since the "list" is null terminated.
-+	 */
-+	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
- 	struct radix_tree_node *slot = NULL;
- 	unsigned int height, shift;
- 
-@@ -935,7 +943,11 @@ static inline void radix_tree_shrink(str
-  */
- void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
- {
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
-+	/*
-+	 * The radix tree path needs to be one longer than the maximum path
-+	 * since the "list" is null terminated.
-+	 */
-+	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
- 	struct radix_tree_node *slot = NULL;
- 	struct radix_tree_node *to_free;
- 	unsigned int height, shift;
+ #
+ # Generated include files
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-fix-the-max-path-calculation-in-radix-treec.patch
-fix-the-max-path-calculation-in-radix-treec-update.patch
-aio-account-i-o-wait-time-properly.patch
+origin.patch
+update-gitignore.patch
+arm-extern-inline-static-inline.patch
+ppc-remove-apus-support.patch
+git-dvb.patch
+ivtv-fbc-bugfix.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfsd.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
