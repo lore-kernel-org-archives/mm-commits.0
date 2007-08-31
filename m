@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-warning-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:36:31 -0700
-Message-ID: <200708312141.l7VLfpKm027934@imap1.linux-foundation.org>
+Subject: + git-xfs-build-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:40:34 -0700
+Message-ID: <200708312145.l7VLjs9O028049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42047 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751025AbXHaVnJ (ORCPT
+	by vger.kernel.org with ESMTP id S1755427AbXHaVp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:43:09 -0400
+	Fri, 31 Aug 2007 17:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mark.fasheh@oracle.com
+Cc: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com
 
 
 The patch titled
-     ocfs2 warning fix
+     git-xfs-build-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-warning-fix.patch
+     git-xfs-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ocfs2 warning fix
+Subject: git-xfs-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ocfs2/alloc.c: In function 'ocfs2_insert_extent':
-fs/ocfs2/alloc.c:3724: warning: 'free_records' may be used uninitialized in this function
+fs/xfs/xfs_vfsops.c:2121: error: static declaration of 'xfs_freeze' follows non-static declaration
+fs/xfs/xfs_vfsops.h:24: error: previous declaration of 'xfs_freeze' was here
 
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/xfs/xfs_vfsops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-warning-fix fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-warning-fix
-+++ a/fs/ocfs2/alloc.c
-@@ -3721,7 +3721,8 @@ int ocfs2_insert_extent(struct ocfs2_sup
- 			u8 flags,
- 			struct ocfs2_alloc_context *meta_ac)
+diff -puN fs/xfs/xfs_vfsops.h~git-xfs-build-fix fs/xfs/xfs_vfsops.h
+diff -puN fs/xfs/xfs_vfsops.c~git-xfs-build-fix fs/xfs/xfs_vfsops.c
+--- a/fs/xfs/xfs_vfsops.c~git-xfs-build-fix
++++ a/fs/xfs/xfs_vfsops.c
+@@ -2115,7 +2115,7 @@ xfs_showargs(
+  * need to take care of themetadata. Once that's done write a dummy
+  * record to dirty the log in case of a crash while frozen.
+  */
+-STATIC void
++void
+ xfs_freeze(
+ 	xfs_mount_t	*mp)
  {
--	int status, free_records;
-+	int status;
-+	int uninitialized_var(free_records);
- 	struct buffer_head *last_eb_bh = NULL;
- 	struct ocfs2_insert_type insert = {0, };
- 	struct ocfs2_extent_rec rec;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,6 +92,7 @@ git-net-fixup.patch
 git-backlight.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
+ocfs2-warning-fix.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
@@ -196,4 +198,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-ocfs2-warning-fix.patch
+git-xfs-build-fix.patch
