@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isolate-some-explicit-usage-of-task-tgid-fix-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 13:58:00 -0700
-Message-ID: <200708312103.l7VL3KnS026439@imap1.linux-foundation.org>
+Subject: + hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:23:51 -0700
+Message-ID: <200708312129.l7VLTBsV027451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59399 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964880AbXHaVDt (ORCPT
+	by vger.kernel.org with ESMTP id S932929AbXHaV3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:03:49 -0400
+	Fri, 31 Aug 2007 17:29:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sukadev@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, cpw@sgi.com, mingo@elte.hu, oleg@tv-sign.ru, pj@sgi.com
 
 
 The patch titled
-     isolate-some-explicit-usage-of-task-tgid-fix-fix
+     hotplug-cpu-migrate-a-task-within-its-cpuset-fix
 has been added to the -mm tree.  Its filename is
-     isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+     hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isolate-some-explicit-usage-of-task-tgid-fix-fix
+Subject: hotplug-cpu-migrate-a-task-within-its-cpuset-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    2 +-
+ kernel/sched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix fs/signalfd.c
---- a/fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix
-+++ a/fs/signalfd.c
-@@ -64,7 +64,7 @@ static int signalfd_lock(struct signalfd
- 		return 0;
- 	}
+diff -puN include/linux/cpuset.h~hotplug-cpu-migrate-a-task-within-its-cpuset-fix include/linux/cpuset.h
+diff -puN kernel/cpuset.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix kernel/cpuset.c
+diff -puN kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix kernel/sched.c
+--- a/kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix
++++ a/kernel/sched.c
+@@ -5150,7 +5150,7 @@ restart:
  
--	if (same_thread_group(lk->tsk, current->tgid))
-+	if (same_thread_group(lk->tsk, current))
- 		lk->tsk = current;
- 
- 	return 1;
+ 	/* No more Mr. Nice Guy. */
+ 	if (dest_cpu == NR_CPUS) {
+-		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked();
++		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked(p);
+ 		/*
+ 		 * Try to stay on the same cpuset, where the current cpuset
+ 		 * may be a subset of all cpus.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +75,6 @@ adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility-fix.patch
 console-keyboard-events-and-accessibility-fix-2.patch
 de-dosify-iforce-protocoltxt.patch
-git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
@@ -184,6 +188,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
