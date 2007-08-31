@@ -1,56 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 09:54:41 -0700
-Message-ID: <200708311654.l7VGsfGh017395@imap1.linux-foundation.org>
+Subject: - process_zones-fix-recovery-code.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:55:36 -0700
+Message-ID: <200708311655.l7VGtaLc017418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762025AbXHaQyq (ORCPT
+	by vger.kernel.org with ESMTP id S1757892AbXHaQzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:54:46 -0400
+	Fri, 31 Aug 2007 12:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, shaohua.li@intel.com
+To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
-has been added to the -mm tree.  Its filename is
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+     process_zones(): fix recovery code
+has been removed from the -mm tree.  Its filename was
+     process_zones-fix-recovery-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
+Subject: process_zones(): fix recovery code
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Don't try to free memory which we didn't allocate.
+
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/nodemask.h~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2 include/linux/nodemask.h
-diff -puN mm/page_alloc.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2 mm/page_alloc.c
-diff -puN mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2 mm/mempolicy.c
---- a/mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
-+++ a/mm/mempolicy.c
-@@ -955,7 +955,7 @@ asmlinkage long sys_migrate_pages(pid_t 
- 		goto out;
- 	}
- 
--	if (!nodes_subset(new, node_online_map)) {
-+	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
- 		err = -EINVAL;
- 		goto out;
- 	}
+diff -puN mm/page_alloc.c~process_zones-fix-recovery-code mm/page_alloc.c
+--- a/mm/page_alloc.c~process_zones-fix-recovery-code
++++ a/mm/page_alloc.c
+@@ -2345,6 +2345,8 @@ static int __cpuinit process_zones(int c
+ 	return 0;
+ bad:
+ 	for_each_zone(dzone) {
++		if (!populated_zone(dzone))
++			continue;
+ 		if (dzone == zone)
+ 			break;
+ 		kfree(zone_pcp(dzone, cpu));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
