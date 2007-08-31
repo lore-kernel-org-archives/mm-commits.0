@@ -1,72 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - assign-task_structexit_code-before-taskstats_exit.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:55:53 -0700
-Message-ID: <200708311655.l7VGtrIF017439@imap1.linux-foundation.org>
+Subject: - udf-handle-wrong-superblock-better.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:55:47 -0700
+Message-ID: <200708311655.l7VGtlxh017430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57593 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34507 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759967AbXHaQz7 (ORCPT
+	by vger.kernel.org with ESMTP id S1759852AbXHaQzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:55:59 -0400
+	Fri, 31 Aug 2007 12:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlim@sgi.com, balbir@in.ibm.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Assign task_struct.exit_code before taskstats_exit()
+     UDF: handle wrong superblock better
 has been removed from the -mm tree.  Its filename was
-     assign-task_structexit_code-before-taskstats_exit.patch
+     udf-handle-wrong-superblock-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Assign task_struct.exit_code before taskstats_exit()
-From: Jonathan Lim <jlim@sgi.com>
+Subject: UDF: handle wrong superblock better
+From: Jan Kara <jack@suse.cz>
 
-taskstats.ac_exitcode is assigned to task_struct.exit_code in bacct_add_tsk()
-through the following kernel function calls:
+If UDF superblock is incorrect, we can fail to find a table of free /
+allocated space and consequently Oops.  Handle this situation more
+gracefully by ignoring the broken UDF partition.
 
-  do_exit()
-    taskstats_exit()
-      fill_pid()
-        bacct_add_tsk()
-
-The problem is that in do_exit(), task_struct.exit_code is set to 'code' only
-after taskstats_exit() has been called.  So we need to move the assignment
-before taskstats_exit().
-
-Signed-off-by: Jonathan Lim <jlim@sgi.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/udf/super.c |   26 ++++++++++++++++++++++----
+ 1 file changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~assign-task_structexit_code-before-taskstats_exit kernel/exit.c
---- a/kernel/exit.c~assign-task_structexit_code-before-taskstats_exit
-+++ a/kernel/exit.c
-@@ -975,6 +975,7 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (unlikely(tsk->audit_context))
- 		audit_free(tsk);
+diff -puN fs/udf/super.c~udf-handle-wrong-superblock-better fs/udf/super.c
+--- a/fs/udf/super.c~udf-handle-wrong-superblock-better
++++ a/fs/udf/super.c
+@@ -89,7 +89,7 @@ static int udf_find_fileset(struct super
+ static void udf_load_pvoldesc(struct super_block *, struct buffer_head *);
+ static void udf_load_fileset(struct super_block *, struct buffer_head *,
+ 			     kernel_lb_addr *);
+-static void udf_load_partdesc(struct super_block *, struct buffer_head *);
++static int udf_load_partdesc(struct super_block *, struct buffer_head *);
+ static void udf_open_lvid(struct super_block *);
+ static void udf_close_lvid(struct super_block *);
+ static unsigned int udf_count_free(struct super_block *);
+@@ -877,7 +877,7 @@ static void udf_load_fileset(struct supe
+ 		  root->logicalBlockNum, root->partitionReferenceNum);
+ }
  
-+	tsk->exit_code = code;
- 	taskstats_exit(tsk, group_dead);
+-static void udf_load_partdesc(struct super_block *sb, struct buffer_head *bh)
++static int udf_load_partdesc(struct super_block *sb, struct buffer_head *bh)
+ {
+ 	struct partitionDesc *p;
+ 	int i;
+@@ -912,6 +912,11 @@ static void udf_load_partdesc(struct sup
  
- 	exit_mm(tsk);
-@@ -996,7 +997,6 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (tsk->binfmt)
- 		module_put(tsk->binfmt->module);
+ 					UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table =
+ 						udf_iget(sb, loc);
++					if (!UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table) {
++						udf_debug("cannot load unallocSpaceTable (part %d)\n",
++							i);
++						return 1;
++					}
+ 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_UNALLOC_TABLE;
+ 					udf_debug("unallocSpaceTable (part %d) @ %ld\n",
+ 						  i, UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table->i_ino);
+@@ -938,6 +943,11 @@ static void udf_load_partdesc(struct sup
  
--	tsk->exit_code = code;
- 	proc_exit_connector(tsk);
- 	exit_task_namespaces(tsk);
- 	exit_notify(tsk);
+ 					UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table =
+ 						udf_iget(sb, loc);
++					if (!UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table) {
++						udf_debug("cannot load freedSpaceTable (part %d)\n",
++							i);
++						return 1;
++					}
+ 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_FREED_TABLE;
+ 					udf_debug("freedSpaceTable (part %d) @ %ld\n",
+ 						  i, UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table->i_ino);
+@@ -966,6 +976,7 @@ static void udf_load_partdesc(struct sup
+ 			  le16_to_cpu(p->partitionNumber), i, UDF_SB_PARTTYPE(sb,i),
+ 			  UDF_SB_PARTROOT(sb,i), UDF_SB_PARTLEN(sb,i));
+ 	}
++	return 0;
+ }
+ 
+ static int udf_load_logicalvol(struct super_block *sb, struct buffer_head *bh,
+@@ -1177,12 +1188,19 @@ static int udf_process_sequence(struct s
+ 				udf_load_logicalvol(sb, bh, fileset);
+ 			} else if (i == VDS_POS_PARTITION_DESC) {
+ 				struct buffer_head *bh2 = NULL;
+-				udf_load_partdesc(sb, bh);
++				if (udf_load_partdesc(sb, bh)) {
++					brelse(bh);
++					return 1;
++				}
+ 				for (j = vds[i].block + 1; j <  vds[VDS_POS_TERMINATING_DESC].block; j++) {
+ 					bh2 = udf_read_tagged(sb, j, j, &ident);
+ 					gd = (struct generic_desc *)bh2->b_data;
+ 					if (ident == TAG_IDENT_PD)
+-						udf_load_partdesc(sb, bh2);
++						if (udf_load_partdesc(sb, bh2)) {
++							brelse(bh);
++							brelse(bh2);
++							return 1;
++						}
+ 					brelse(bh2);
+ 				}
+ 			}
 _
 
-Patches currently in -mm which might be from jlim@sgi.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
