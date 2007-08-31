@@ -1,76 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - userns-dont-leak-root-user.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:21 -0700
-Message-ID: <200708311656.l7VGuLWq017478@imap1.linux-foundation.org>
+Subject: - sigqueue_free-fix-the-race-with-collect_signal.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:23 -0700
+Message-ID: <200708311656.l7VGuNmx017481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50169 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965391AbXHaROC (ORCPT
+	by vger.kernel.org with ESMTP id S965401AbXHaRPC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 13:14:02 -0400
+	Fri, 31 Aug 2007 13:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, clg@fr.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, adobriyan@sw.ru, jeremy.katz@windriver.com, mingo@elte.hu, roland@redhat.com, stable@kernel.org, sukadev@us.ibm.com, tglx@linutronix.de, yue.tao@windriver.com, mm-com
 
 
 The patch titled
-     userns: don't leak root user
+     sigqueue_free: fix the race with collect_signal()
 has been removed from the -mm tree.  Its filename was
-     userns-dont-leak-root-user.patch
+     sigqueue_free-fix-the-race-with-collect_signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: userns: don't leak root user
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: sigqueue_free: fix the race with collect_signal()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Spotted by taoyue <yue.tao@windriver.com> and Jeremy Katz <jeremy.katz@windriver.com>.
+
+collect_signal:				sigqueue_free:
+
+	list_del_init(&first->list);
+						if (!list_empty(&q->list)) {
+							// not taken
+						}
+						q->flags &= ~SIGQUEUE_PREALLOC;
+
+	__sigqueue_free(first);			__sigqueue_free(q);
+
+Now, __sigqueue_free() is called twice on the same "struct sigqueue" with the
+obviously bad implications.
+
+In particular, this double free breaks the array_cache->avail logic, so the
+same sigqueue could be "allocated" twice, and the bug can manifest itself via
+the "impossible" BUG_ON(!SIGQUEUE_PREALLOC) in sigqueue_free/send_sigqueue.
+
+Hopefully this can explain these mysterious bug-reports, see
+
+	http://marc.info/?t=118766926500003
+	http://marc.info/?t=118466273000005
+
+Alexey Dobriyan reports this patch makes the difference for the testcase, but
+nobody has an access to the application which opened the problems originally.
+
+Also, this patch removes tasklist lock/unlock, ->siglock is enough.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: taoyue <yue.tao@windriver.com>
+Cc: Jeremy Katz <jeremy.katz@windriver.com>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/signal.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN kernel/user_namespace.c~userns-dont-leak-root-user kernel/user_namespace.c
---- a/kernel/user_namespace.c~userns-dont-leak-root-user
-+++ a/kernel/user_namespace.c
-@@ -81,6 +81,7 @@ void free_user_ns(struct kref *kref)
- 	struct user_namespace *ns;
- 
- 	ns = container_of(kref, struct user_namespace, kref);
-+	free_uid(ns->root_user);
- 	kfree(ns);
+diff -puN kernel/signal.c~sigqueue_free-fix-the-race-with-collect_signal kernel/signal.c
+--- a/kernel/signal.c~sigqueue_free-fix-the-race-with-collect_signal
++++ a/kernel/signal.c
+@@ -1300,20 +1300,19 @@ struct sigqueue *sigqueue_alloc(void)
+ void sigqueue_free(struct sigqueue *q)
+ {
+ 	unsigned long flags;
++	spinlock_t *lock = &current->sighand->siglock;
++
+ 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+ 	/*
+ 	 * If the signal is still pending remove it from the
+-	 * pending queue.
++	 * pending queue. We must hold ->siglock while testing
++	 * q->list to serialize with collect_signal().
+ 	 */
+-	if (unlikely(!list_empty(&q->list))) {
+-		spinlock_t *lock = &current->sighand->siglock;
+-		read_lock(&tasklist_lock);
+-		spin_lock_irqsave(lock, flags);
+-		if (!list_empty(&q->list))
+-			list_del_init(&q->list);
+-		spin_unlock_irqrestore(lock, flags);
+-		read_unlock(&tasklist_lock);
+-	}
++	spin_lock_irqsave(lock, flags);
++	if (!list_empty(&q->list))
++		list_del_init(&q->list);
++	spin_unlock_irqrestore(lock, flags);
++
+ 	q->flags &= ~SIGQUEUE_PREALLOC;
+ 	__sigqueue_free(q);
  }
- 
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-consolidate-ptrace_detach.patch
-git-kbuild.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-single_open-seq_release-leak-diagnostics.patch
+git-dvb.patch
+rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+make-access-to-tasks-nsproxy-lighter.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+proc-export-a-processes-resource-limits-via-proc-pid.patch
+fix-tsk-exit_state-usage-resend.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
