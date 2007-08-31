@@ -1,198 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-x86_64-core-dump-crash.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:55:43 -0700
-Message-ID: <200708311655.l7VGthpa017424@imap1.linux-foundation.org>
+Subject: - fix-font-dependency-for-sgi-newport-console-driver.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:55:51 -0700
+Message-ID: <200708311655.l7VGtpdn017436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759526AbXHaQzt (ORCPT
+	by vger.kernel.org with ESMTP id S1760373AbXHaQ4F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:55:49 -0400
+	Fri, 31 Aug 2007 12:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix x86_64 core dump crash
+     Fix font dependency for SGI Newport console driver
 has been removed from the -mm tree.  Its filename was
-     uml-fix-x86_64-core-dump-crash.patch
+     fix-font-dependency-for-sgi-newport-console-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix x86_64 core dump crash
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Fix font dependency for SGI Newport console driver
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Stop UML crashing when trying to dump a process core on x86_64.  This is the
-minimal fix to stop the crash - more things are broken here, and patches are
-forthcoming.
+We better select a font when the newport driver is a module or the user
+experience might suffer.
 
-The immediate thing to do is define ELF_CORE_COPY_REGS and
-ELF_CORE_COPY_FPREGS.  Defining ELF_CORE_COPY_FPREGS allows dump_fpu to go
-away.  It is defined in terms of save_fp_registers, so that needs to be added.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/sys-x86_64/registers.c |   15 ++++++++
- arch/um/sys-x86_64/ptrace.c             |    6 ---
- include/asm-um/elf-x86_64.h             |   40 ++++++++++++++++++++++
- 3 files changed, 55 insertions(+), 6 deletions(-)
+ drivers/video/console/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-fix-x86_64-core-dump-crash arch/um/os-Linux/sys-x86_64/registers.c
---- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-fix-x86_64-core-dump-crash
-+++ a/arch/um/os-Linux/sys-x86_64/registers.c
-@@ -4,6 +4,7 @@
-  */
+diff -puN drivers/video/console/Kconfig~fix-font-dependency-for-sgi-newport-console-driver drivers/video/console/Kconfig
+--- a/drivers/video/console/Kconfig~fix-font-dependency-for-sgi-newport-console-driver
++++ a/drivers/video/console/Kconfig
+@@ -182,7 +182,7 @@ config FONT_8x8
  
- #include <errno.h>
-+#include <sys/ptrace.h>
- #include <string.h>
- #include "ptrace_user.h"
- #include "uml-config.h"
-@@ -17,6 +18,20 @@
- static unsigned long exec_regs[MAX_REG_NR];
- static unsigned long exec_fp_regs[HOST_FP_SIZE];
- 
-+int save_fp_registers(int pid, unsigned long *fp_regs)
-+{
-+	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
-+		return -errno;
-+	return 0;
-+}
-+
-+int restore_fp_registers(int pid, unsigned long *fp_regs)
-+{
-+	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
-+		return -errno;
-+	return 0;
-+}
-+
- void init_thread_registers(union uml_pt_regs *to)
- {
- 	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
-diff -puN arch/um/sys-x86_64/ptrace.c~uml-fix-x86_64-core-dump-crash arch/um/sys-x86_64/ptrace.c
---- a/arch/um/sys-x86_64/ptrace.c~uml-fix-x86_64-core-dump-crash
-+++ a/arch/um/sys-x86_64/ptrace.c
-@@ -156,12 +156,6 @@ int is_syscall(unsigned long addr)
- 	return(instr == 0x050f);
- }
- 
--int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu )
--{
--	panic("dump_fpu");
--	return(1);
--}
--
- int get_fpregs(unsigned long buf, struct task_struct *child)
- {
- 	panic("get_fpregs");
-diff -puN include/asm-um/elf-x86_64.h~uml-fix-x86_64-core-dump-crash include/asm-um/elf-x86_64.h
---- a/include/asm-um/elf-x86_64.h~uml-fix-x86_64-core-dump-crash
-+++ a/include/asm-um/elf-x86_64.h
-@@ -6,7 +6,9 @@
- #ifndef __UM_ELF_X86_64_H
- #define __UM_ELF_X86_64_H
- 
-+#include <linux/sched.h>
- #include <asm/user.h>
-+#include "skas.h"
- 
- /* x86-64 relocation types, taken from asm-x86_64/elf.h */
- #define R_X86_64_NONE		0	/* No reloc */
-@@ -64,6 +66,44 @@ typedef struct { } elf_fpregset_t;
- 	PT_REGS_R15(regs) = 0; \
- } while (0)
- 
-+#define ELF_CORE_COPY_REGS(pr_reg, regs)		\
-+	(pr_reg)[0] = (regs)->regs.gp[0];			\
-+	(pr_reg)[1] = (regs)->regs.gp[1];			\
-+	(pr_reg)[2] = (regs)->regs.gp[2];			\
-+	(pr_reg)[3] = (regs)->regs.gp[3];			\
-+	(pr_reg)[4] = (regs)->regs.gp[4];			\
-+	(pr_reg)[5] = (regs)->regs.gp[5];			\
-+	(pr_reg)[6] = (regs)->regs.gp[6];			\
-+	(pr_reg)[7] = (regs)->regs.gp[7];			\
-+	(pr_reg)[8] = (regs)->regs.gp[8];			\
-+	(pr_reg)[9] = (regs)->regs.gp[9];			\
-+	(pr_reg)[10] = (regs)->regs.gp[10];			\
-+	(pr_reg)[11] = (regs)->regs.gp[11];			\
-+	(pr_reg)[12] = (regs)->regs.gp[12];			\
-+	(pr_reg)[13] = (regs)->regs.gp[13];			\
-+	(pr_reg)[14] = (regs)->regs.gp[14];			\
-+	(pr_reg)[15] = (regs)->regs.gp[15];			\
-+	(pr_reg)[16] = (regs)->regs.gp[16];			\
-+	(pr_reg)[17] = (regs)->regs.gp[17];			\
-+	(pr_reg)[18] = (regs)->regs.gp[18];			\
-+	(pr_reg)[19] = (regs)->regs.gp[19];			\
-+	(pr_reg)[20] = (regs)->regs.gp[20];			\
-+	(pr_reg)[21] = current->thread.arch.fs;			\
-+	(pr_reg)[22] = 0;					\
-+	(pr_reg)[23] = 0;					\
-+	(pr_reg)[24] = 0;					\
-+	(pr_reg)[25] = 0;					\
-+	(pr_reg)[26] = 0;
-+
-+static inline int elf_core_copy_fpregs(struct task_struct *t,
-+				       elf_fpregset_t *fpu)
-+{
-+	int cpu = current_thread->cpu;
-+	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
-+}
-+
-+#define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
-+
- #ifdef TIF_IA32 /* XXX */
- #error XXX, indeed
-         clear_thread_flag(TIF_IA32);
+ config FONT_8x16
+ 	bool "VGA 8x16 font" if FONTS
+-	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE=y || STI_CONSOLE || USB_SISUSBVGA_CON 
++	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE || STI_CONSOLE || USB_SISUSBVGA_CON
+ 	default y if !SPARC && !FONTS
+ 	help
+ 	  This is the "high resolution" font for the VGA frame buffer (the one
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-use-64-bits-for-block-size-on-x86_64.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
-uml-dont-use-glibc-asm-userh.patch
-uml-floating-point-signal-delivery-fixes.patch
-uml-ptrace-floating-point-fixes.patch
-uml-coredumping-floating-point-fixes.patch
-uml-sysrq-and-mconsole-fixes.patch
-uml-style-fixes-in-fp-code.patch
-uml-eliminate-floating-point-state-from-register-file.patch
+git-mips.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+mips-qemu-network-work-again.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
+git-netdev-all.patch
+ioc3-program-uart-predividers.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+serio-fix-modpost-warning.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+vt-fix-warnings-in-selectionh.patch
+define-global-bit-macro.patch
