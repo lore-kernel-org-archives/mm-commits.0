@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isolate-some-explicit-usage-of-task-tgid-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:21:09 -0700
-Message-ID: <200708311921.l7VJL9VK022721@imap1.linux-foundation.org>
+Subject: + use-task_pid_nr-in-ip_vs_syncc.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:22:31 -0700
+Message-ID: <200708311922.l7VJMVW4022739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58877 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55713 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686AbXHaTVe (ORCPT
+	by vger.kernel.org with ESMTP id S1751749AbXHaTWi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:21:34 -0400
+	Fri, 31 Aug 2007 15:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, sukadev@us.ibm.com
+Cc: xemul@openvz.org
 
 
 The patch titled
-     Use same_thread_group() in signalfd.c
+     Use task_pid_nr() in ip_vs_sync.c
 has been added to the -mm tree.  Its filename is
-     isolate-some-explicit-usage-of-task-tgid-fix.patch
+     use-task_pid_nr-in-ip_vs_syncc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use same_thread_group() in signalfd.c
+Subject: Use task_pid_nr() in ip_vs_sync.c
 From: Pavel Emelyanov <xemul@openvz.org>
 
-This is a lost hunk of previous patch that isolated the explicit usage of
-task->tgid in some places.  The signalfd code uses the tsk->tgid
-comparison.
+The sync_master_pid and sync_backup_pid are set in set_sync_pid() and are
+used later for set/not-set checks and in printk.  So it is safe to use the
+global pid value in this case.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    2 +-
+ net/ipv4/ipvs/ip_vs_sync.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix fs/signalfd.c
---- a/fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix
-+++ a/fs/signalfd.c
-@@ -64,7 +64,7 @@ static int signalfd_lock(struct signalfd
- 		return 0;
- 	}
+diff -puN net/ipv4/ipvs/ip_vs_sync.c~use-task_pid_nr-in-ip_vs_syncc net/ipv4/ipvs/ip_vs_sync.c
+--- a/net/ipv4/ipvs/ip_vs_sync.c~use-task_pid_nr-in-ip_vs_syncc
++++ a/net/ipv4/ipvs/ip_vs_sync.c
+@@ -794,7 +794,7 @@ static int sync_thread(void *startup)
  
--	if (lk->tsk->tgid == current->tgid)
-+	if (same_thread_group(lk->tsk, current->tgid))
- 		lk->tsk = current;
+ 	add_wait_queue(&sync_wait, &wait);
  
- 	return 1;
+-	set_sync_pid(state, current->pid);
++	set_sync_pid(state, task_pid_nr(current));
+ 	complete(tinfo->startup);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -117,4 +116,5 @@ isolate-the-explicit-usage-of-signal-pgrp.patch
 use-helpers-to-obtain-task-pid-in-printks.patch
 use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
 remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
 reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
