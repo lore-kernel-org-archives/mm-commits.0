@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + track-accurate-idle-time-with-tick_schedidle_sleeptime.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:13:32 -0700
-Message-ID: <200708311813.l7VIDW09020186@imap1.linux-foundation.org>
+Subject: + remove-valueless-definition-of-hard-selected-ramfs-option.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:15:19 -0700
+Message-ID: <200708311815.l7VIFJiU020310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49432 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46093 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965769AbXHaSOQ (ORCPT
+	by vger.kernel.org with ESMTP id S965778AbXHaSPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:14:16 -0400
+	Fri, 31 Aug 2007 14:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, mingo@elte.hu, tglx@linutronix.de
+Cc: rpjday@mindspring.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Track accurate idle time with tick_sched.idle_sleeptime
+     Remove valueless definition of hard-selected RAMFS option
 has been added to the -mm tree.  Its filename is
-     track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+     remove-valueless-definition-of-hard-selected-ramfs-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,219 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Track accurate idle time with tick_sched.idle_sleeptime
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: Remove valueless definition of hard-selected RAMFS option
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Current idle time in kstat is based on jiffies and is coarse grained. 
-tick_sched.idle_sleeptime is making some attempt to keep track of idle time
-in a fine grained manner.  But, it is not handling the time spent in
-interrupts fully.
+Since CONFIG_RAMFS is currently hard-selected to "y", and since
+Documentation/filesystems/ramfs-rootfs-initramfs.txt reads as follows:
 
-Make tick_sched.idle_sleeptime accurate with respect to time spent on
-handling interrupts and also add tick_sched.idle_lastupdate, which keeps
-track of last time when idle_sleeptime was updated.
+"The amount of code required to implement ramfs is tiny, because all the
+work is done by the existing Linux caching infrastructure.  Basically,
+you're mounting the disk cache as a filesystem.  Because of this, ramfs is
+not an optional component removable via menuconfig, since there would be
+negligible space savings."
 
-This statistics will be crucial for cpufreq-ondemand governor, which can
-shed some conservative gaurd band that is uses today while setting the
-frequency.  The ondemand changes that uses the exact idle time is coming
-soon.
+It seems pointless to leave this as a Kconfig entry.
 
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h     |    6 +++
- kernel/softirq.c         |    7 +++
- kernel/time/tick-sched.c |   70 +++++++++++++++++++++++++------------
- 3 files changed, 60 insertions(+), 23 deletions(-)
+ fs/Kconfig        |   14 --------------
+ fs/Makefile       |    2 +-
+ fs/ramfs/Makefile |    2 +-
+ 3 files changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime include/linux/tick.h
---- a/include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/include/linux/tick.h
-@@ -51,8 +51,10 @@ struct tick_sched {
- 	unsigned long			idle_jiffies;
- 	unsigned long			idle_calls;
- 	unsigned long			idle_sleeps;
-+	int				idle_active;
- 	ktime_t				idle_entrytime;
- 	ktime_t				idle_sleeptime;
-+	ktime_t				idle_lastupdate;
- 	ktime_t				sleep_length;
- 	unsigned long			last_jiffies;
- 	unsigned long			next_jiffies;
-@@ -103,6 +105,8 @@ extern void tick_nohz_stop_sched_tick(vo
- extern void tick_nohz_restart_sched_tick(void);
- extern void tick_nohz_update_jiffies(void);
- extern ktime_t tick_nohz_get_sleep_length(void);
-+extern void tick_nohz_stop_idle(int cpu);
-+extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
- # else
- static inline void tick_nohz_stop_sched_tick(void) { }
- static inline void tick_nohz_restart_sched_tick(void) { }
-@@ -113,6 +117,8 @@ static inline ktime_t tick_nohz_get_slee
+diff -puN fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option fs/Kconfig
+--- a/fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/Kconfig
+@@ -999,20 +999,6 @@ config HUGETLBFS
+ config HUGETLB_PAGE
+ 	def_bool HUGETLBFS
  
- 	return len;
- }
-+static inline void tick_nohz_stop_idle(int cpu) { }
-+static inline u64 get_cpu_idle_time_us(int cpu, u64 *unused) { return 0; }
- # endif /* !NO_HZ */
- 
- #endif
-diff -puN kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/softirq.c
---- a/kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/kernel/softirq.c
-@@ -278,9 +278,14 @@ asmlinkage void do_softirq(void)
-  */
- void irq_enter(void)
- {
-+#ifdef CONFIG_NO_HZ
-+	int cpu = smp_processor_id();
-+	if (idle_cpu(cpu) && !in_interrupt())
-+		tick_nohz_stop_idle(cpu);
-+#endif
- 	__irq_enter();
- #ifdef CONFIG_NO_HZ
--	if (idle_cpu(smp_processor_id()))
-+	if (idle_cpu(cpu))
- 		tick_nohz_update_jiffies();
- #endif
- }
-diff -puN kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
-+++ a/kernel/time/tick-sched.c
-@@ -141,6 +141,43 @@ void tick_nohz_update_jiffies(void)
- 	local_irq_restore(flags);
- }
- 
-+void tick_nohz_stop_idle(int cpu)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+
-+	if (ts->idle_active) {
-+		ktime_t now, delta;
-+		now = ktime_get();
-+		delta = ktime_sub(now, ts->idle_entrytime);
-+		ts->idle_lastupdate = now;
-+		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
-+		ts->idle_active = 0;
-+	}
-+}
-+
-+static void tick_nohz_start_idle(int cpu)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+	ktime_t now, delta;
-+
-+	now = ktime_get();
-+	if (ts->idle_active) {
-+		delta = ktime_sub(now, ts->idle_entrytime);
-+		ts->idle_lastupdate = now;
-+		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
-+	}
-+	ts->idle_entrytime = now;
-+	ts->idle_active = 1;
-+}
-+
-+u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
-+{
-+	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+
-+	*last_update_time = ktime_to_us(ts->idle_lastupdate);
-+	return ktime_to_us(ts->idle_sleeptime);
-+}
-+
- /**
-  * tick_nohz_stop_sched_tick - stop the idle tick from the idle task
-  *
-@@ -152,13 +189,15 @@ void tick_nohz_stop_sched_tick(void)
- {
- 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies, flags;
- 	struct tick_sched *ts;
--	ktime_t last_update, expires, now, delta;
-+	ktime_t last_update, expires, now;
- 	struct clock_event_device *dev = __get_cpu_var(tick_cpu_device).evtdev;
- 	int cpu;
- 
- 	local_irq_save(flags);
- 
- 	cpu = smp_processor_id();
-+	tick_nohz_start_idle(cpu);
-+
- 	ts = &per_cpu(tick_cpu_sched, cpu);
- 
- 	if (unlikely(ts->nohz_mode == NOHZ_MODE_INACTIVE))
-@@ -178,19 +217,7 @@ void tick_nohz_stop_sched_tick(void)
- 		}
- 	}
- 
--	now = ktime_get();
--	/*
--	 * When called from irq_exit we need to account the idle sleep time
--	 * correctly.
--	 */
--	if (ts->tick_stopped) {
--		delta = ktime_sub(now, ts->idle_entrytime);
--		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
--	}
+-config RAMFS
+-	bool
+-	default y
+-	---help---
+-	  Ramfs is a file system which keeps all files in RAM. It allows
+-	  read and write access.
 -
--	ts->idle_entrytime = now;
- 	ts->idle_calls++;
+-	  It is more of an programming example than a useable file system.  If
+-	  you need a file system which lives in RAM with limit checking use
+-	  tmpfs.
 -
- 	/* Read jiffies and the time when jiffies were updated last */
- 	do {
- 		seq = read_seqbegin(&xtime_lock);
-@@ -320,23 +347,22 @@ void tick_nohz_restart_sched_tick(void)
- 	int cpu = smp_processor_id();
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
- 	unsigned long ticks;
--	ktime_t now, delta;
-+	ktime_t now;
-+
-+	local_irq_disable();
-+	tick_nohz_stop_idle(cpu);
- 
--	if (!ts->tick_stopped)
-+	if (!ts->tick_stopped) {
-+		local_irq_enable();
- 		return;
-+	}
- 
- 	/* Update jiffies first */
--	now = ktime_get();
+-	  To compile this as a module, choose M here: the module will be called
+-	  ramfs.
 -
--	local_irq_disable();
- 	select_nohz_load_balancer(0);
-+	now = ktime_get();
- 	tick_do_update_jiffies64(now);
- 	cpu_clear(cpu, nohz_cpu_mask);
+ config CONFIGFS_FS
+ 	tristate "Userspace-driven configuration filesystem (EXPERIMENTAL)"
+ 	depends on SYSFS && EXPERIMENTAL
+diff -puN fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/Makefile
+--- a/fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/Makefile
+@@ -72,7 +72,7 @@ obj-$(CONFIG_JBD)		+= jbd/
+ obj-$(CONFIG_JBD2)		+= jbd2/
+ obj-$(CONFIG_EXT2_FS)		+= ext2/
+ obj-$(CONFIG_CRAMFS)		+= cramfs/
+-obj-$(CONFIG_RAMFS)		+= ramfs/
++obj-y				+= ramfs/
+ obj-$(CONFIG_HUGETLBFS)		+= hugetlbfs/
+ obj-$(CONFIG_CODA_FS)		+= coda/
+ obj-$(CONFIG_MINIX_FS)		+= minix/
+diff -puN fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/ramfs/Makefile
+--- a/fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/ramfs/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux ramfs routines.
+ #
  
--	/* Account the idle time */
--	delta = ktime_sub(now, ts->idle_entrytime);
--	ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
--
- 	/*
- 	 * We stopped the tick in idle. Update process times would miss the
- 	 * time we slept as update_process_times does only a 1 tick
+-obj-$(CONFIG_RAMFS) += ramfs.o
++obj-y += ramfs.o
+ 
+ file-mmu-y := file-nommu.o
+ file-mmu-$(CONFIG_MMU) := file-mmu.o
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-acpi.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+git-kvm.patch
+git-mtd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+remove-valueless-definition-of-hard-selected-ramfs-option.patch
