@@ -1,91 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Thu, 30 Aug 2007 23:34:32 -0700
-Message-ID: <200708310634.l7V6YW9j027705@imap1.linux-foundation.org>
+Subject: - mousedevcmixdev_open_devices-bugfix.patch removed from -mm tree
+Date: Thu, 30 Aug 2007 23:34:37 -0700
+Message-ID: <200708310634.l7V6YbRx027713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45296 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755598AbXHaGeo (ORCPT
+	by vger.kernel.org with ESMTP id S1757072AbXHaGer (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 02:34:44 -0400
+	Fri, 31 Aug 2007 02:34:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, dtor@mail.ru, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/input/serio/gscps2.c: kmalloc + memset conversion to kzalloc
+     mousedev.c: mixdev_open_devices() bugfix
 has been removed from the -mm tree.  Its filename was
-     drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc.patch
+     mousedevcmixdev_open_devices-bugfix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/input/serio/gscps2.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: mousedev.c: mixdev_open_devices() bugfix
+From: Adrian Bunk <bunk@kernel.org>
 
- drivers/input/serio/gscps2.c | 11696 -> 11607 (-89 bytes)
+Fix an obvious bug in mixdev_open_devices().
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/gscps2.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/input/mousedev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/serio/gscps2.c~drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc drivers/input/serio/gscps2.c
---- a/drivers/input/serio/gscps2.c~drivers-input-serio-gscps2c-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/input/serio/gscps2.c
-@@ -340,8 +340,8 @@ static int __init gscps2_probe(struct pa
- 	if (dev->id.sversion == 0x96)
- 		hpa += GSC_DINO_OFFSET;
+diff -puN drivers/input/mousedev.c~mousedevcmixdev_open_devices-bugfix drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~mousedevcmixdev_open_devices-bugfix
++++ a/drivers/input/mousedev.c
+@@ -461,7 +461,7 @@ static void mixdev_open_devices(void)
  
--	ps2port = kmalloc(sizeof(struct gscps2port), GFP_KERNEL);
--	serio = kmalloc(sizeof(struct serio), GFP_KERNEL);
-+	ps2port = kzalloc(sizeof(struct gscps2port), GFP_KERNEL);
-+	serio = kzalloc(sizeof(struct serio), GFP_KERNEL);
- 	if (!ps2port || !serio) {
- 		ret = -ENOMEM;
- 		goto fail_nomem;
-@@ -349,8 +349,6 @@ static int __init gscps2_probe(struct pa
+ 	list_for_each_entry(mousedev, &mousedev_mix_list, mixdev_node) {
+ 		if (!mousedev->mixdev_open) {
+-			if (mousedev_open_device(mousedev));
++			if (mousedev_open_device(mousedev))
+ 				continue;
  
- 	dev_set_drvdata(&dev->dev, ps2port);
- 
--	memset(ps2port, 0, sizeof(struct gscps2port));
--	memset(serio, 0, sizeof(struct serio));
- 	ps2port->port = serio;
- 	ps2port->padev = dev;
- 	ps2port->addr = ioremap_nocache(hpa, GSC_STATUS + 4);
+ 			mousedev->mixdev_open = 1;
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch
-git-alsa.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
+arm-extern-inline-static-inline.patch
+ppc-remove-apus-support.patch
 git-dvb.patch
-git-mmc.patch
-git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-git-v9fs.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+ivtv-fbc-bugfix.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfsd.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
