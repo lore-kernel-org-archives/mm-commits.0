@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v850-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:53 -0700
-Message-ID: <200708311844.l7VIiriI021348@imap1.linux-foundation.org>
+Subject: + m32r-cleanup-struct-irqaction-initializers.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:44:47 -0700
+Message-ID: <200708311844.l7VIilFN021338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35181 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965933AbXHaSpb (ORCPT
+	by vger.kernel.org with ESMTP id S965932AbXHaSp1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:31 -0400
+	Fri, 31 Aug 2007 14:45:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, miles@gnu.org
+Cc: tglx@linutronix.de, takata@linux-m32r.org
 
 
 The patch titled
-     V850: cleanup struct irqaction initializers
+     M32R: cleanup struct irqaction initializers
 has been added to the -mm tree.  Its filename is
-     v850-cleanup-struct-irqaction-initializers.patch
+     m32r-cleanup-struct-irqaction-initializers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: V850: cleanup struct irqaction initializers
+Subject: M32R: cleanup struct irqaction initializers
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Miles Bader <miles@gnu.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/v850/kernel/fpga85e2c.c |    5 ++++-
- arch/v850/kernel/time.c      |   11 +++++------
- 2 files changed, 9 insertions(+), 7 deletions(-)
+ arch/m32r/kernel/time.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/v850/kernel/fpga85e2c.c~v850-cleanup-struct-irqaction-initializers arch/v850/kernel/fpga85e2c.c
---- a/arch/v850/kernel/fpga85e2c.c~v850-cleanup-struct-irqaction-initializers
-+++ a/arch/v850/kernel/fpga85e2c.c
-@@ -160,5 +160,8 @@ static void make_reg_snap (int irq, void
+diff -puN arch/m32r/kernel/time.c~m32r-cleanup-struct-irqaction-initializers arch/m32r/kernel/time.c
+--- a/arch/m32r/kernel/time.c~m32r-cleanup-struct-irqaction-initializers
++++ a/arch/m32r/kernel/time.c
+@@ -228,8 +228,12 @@ irqreturn_t timer_interrupt(int irq, voi
+ 	return IRQ_HANDLED;
+ }
  
- static int reg_snap_dev_id;
- static struct irqaction reg_snap_action = {
--	make_reg_snap, 0, CPU_MASK_NONE, "reg_snap", &reg_snap_dev_id, 0
-+	.handler = make_reg_snap,
-+	.mask = CPU_MASK_NONE,
-+	.name = "reg_snap",
-+	.dev_id = &reg_snap_dev_id,
- };
-diff -puN arch/v850/kernel/time.c~v850-cleanup-struct-irqaction-initializers arch/v850/kernel/time.c
---- a/arch/v850/kernel/time.c~v850-cleanup-struct-irqaction-initializers
-+++ a/arch/v850/kernel/time.c
-@@ -92,12 +92,11 @@ static irqreturn_t timer_interrupt (int 
- 
- static int timer_dev_id;
- static struct irqaction timer_irqaction = {
--	timer_interrupt,
--	IRQF_DISABLED,
--	CPU_MASK_NONE,
--	"timer",
--	&timer_dev_id,
--	NULL
+-struct irqaction irq0 = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE,
+-			  "MFT2", NULL, NULL };
++struct irqaction irq0 = {
 +	.handler = timer_interrupt,
 +	.flags = IRQF_DISABLED,
 +	.mask = CPU_MASK_NONE,
-+	.name = "timer",
-+	.dev_id = &timer_dev_id,
- };
++	.name = "MFT2",
++};
  
- void time_init (void)
+ void __init time_init(void)
+ {
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
