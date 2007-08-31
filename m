@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-introduce-lock-ops.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:37:06 -0700
-Message-ID: <200708311837.l7VIb63S021063@imap1.linux-foundation.org>
+Subject: + v4l-stk11xx-add-static-to-tables.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:41:46 -0700
+Message-ID: <200708311841.l7VIfkTY021271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965692AbXHaSk5 (ORCPT
+	by vger.kernel.org with ESMTP id S965923AbXHaSl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:40:57 -0400
+	Fri, 31 Aug 2007 14:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, ak@muc.de, benh@kernel.crashing.org, blaisorblade@yahoo.it, bryan.wu@analog.com, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, kkojima@rr.iij4u.or.jp, kyle@mcmartin.ca, lethal@linux-sh.org, paulus@samba.org, ralf@linux-mips.org, rc@rc0.org.uk, rmk@arm.linux.org.uk, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tony.luck@intel.com, uclinux-v850@lsi.nec.co.jp, willy@debian.org, wli@holomorphy.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+Cc: jirislaby@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     bitops: introduce lock ops
+     V4L: stk11xx, add static to tables
 has been added to the -mm tree.  Its filename is
-     bitops-introduce-lock-ops.patch
+     v4l-stk11xx-add-static-to-tables.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,537 +26,766 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bitops: introduce lock ops
-From: Nick Piggin <npiggin@suse.de>
+Subject: V4L: stk11xx, add static to tables
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Introduce test_and_set_bit_lock / clear_bit_unlock bitops with lock semantics.
-Convert all architectures to use the generic implementation.
+Ensure that the compiler will put all the tables in static storage
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-By: David Howells <dhowells@redhat.com>
-
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
-Cc: Miles Bader <uclinux-v850@lsi.nec.co.jp>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/atomic_ops.txt      |   14 ++++++++
- Documentation/memory-barriers.txt |   14 +++++++-
- include/asm-alpha/bitops.h        |    1 
- include/asm-arm/bitops.h          |    1 
- include/asm-avr32/bitops.h        |    1 
- include/asm-blackfin/bitops.h     |    1 
- include/asm-cris/bitops.h         |    1 
- include/asm-frv/bitops.h          |    1 
- include/asm-generic/bitops.h      |    1 
- include/asm-generic/bitops/lock.h |   45 ++++++++++++++++++++++++++++
- include/asm-h8300/bitops.h        |    1 
- include/asm-i386/bitops.h         |    1 
- include/asm-ia64/bitops.h         |    2 +
- include/asm-m32r/bitops.h         |    1 
- include/asm-m68k/bitops.h         |    1 
- include/asm-m68knommu/bitops.h    |    1 
- include/asm-mips/bitops.h         |    1 
- include/asm-parisc/bitops.h       |    1 
- include/asm-powerpc/bitops.h      |    1 
- include/asm-s390/bitops.h         |    1 
- include/asm-sh/bitops.h           |    1 
- include/asm-sh64/bitops.h         |    1 
- include/asm-sparc/bitops.h        |    1 
- include/asm-sparc64/bitops.h      |    1 
- include/asm-v850/bitops.h         |    1 
- include/asm-x86_64/bitops.h       |    1 
- include/asm-xtensa/bitops.h       |    1 
- 27 files changed, 96 insertions(+), 2 deletions(-)
+ drivers/media/video/stk1125.c  |   58 +++++++++++++-------------
+ drivers/media/video/stk1135.c  |   54 ++++++++++++------------
+ drivers/media/video/stkdcnew.c |   68 +++++++++++++++----------------
+ 3 files changed, 90 insertions(+), 90 deletions(-)
 
-diff -puN Documentation/atomic_ops.txt~bitops-introduce-lock-ops Documentation/atomic_ops.txt
---- a/Documentation/atomic_ops.txt~bitops-introduce-lock-ops
-+++ a/Documentation/atomic_ops.txt
-@@ -373,6 +373,20 @@ brothers:
- 	 */
- 	 smp_mb__after_clear_bit();
+diff -puN drivers/media/video/stk1125.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stk1125.c
+--- a/drivers/media/video/stk1125.c~v4l-stk11xx-add-static-to-tables
++++ a/drivers/media/video/stk1125.c
+@@ -26,7 +26,7 @@ static int stk1125_load_microcode(struct
+ 	int retok;
  
-+There are two special bitops with lock barrier semantics (acquire/release,
-+same as spinlocks). These operate in the same way as their non-_lock/unlock
-+postfixed variants, except that they are to provide acquire/release semantics,
-+respectively. This means they can be used for bit_spin_trylock and
-+bit_spin_unlock type operations without specifying any more barriers.
-+
-+	int test_and_set_bit_lock(unsigned long nr, unsigned long *addr);
-+	void clear_bit_unlock(unsigned long nr, unsigned long *addr);
-+	void __clear_bit_unlock(unsigned long nr, unsigned long *addr);
-+
-+The __clear_bit_unlock version is non-atomic, however it still implements
-+unlock barrier semantics. This can be useful if the lock itself is protecting
-+the other bits in the word.
-+
- Finally, there are non-atomic versions of the bitmask operations
- provided.  They are used in contexts where some other higher-level SMP
- locking scheme is being used to protect the bitmask, and thus less
-diff -puN Documentation/memory-barriers.txt~bitops-introduce-lock-ops Documentation/memory-barriers.txt
---- a/Documentation/memory-barriers.txt~bitops-introduce-lock-ops
-+++ a/Documentation/memory-barriers.txt
-@@ -1479,7 +1479,8 @@ kernel.
+ 	/* From 80x60 to 640x480 */
+-	const u8 values_1_204[] = {
++	static const u8 values_1_204[] = {
+ 		0x12, 0x11, 0x3b, 0x6a, 0x13, 0x10, 0x00, 0x01, 0x02, 0x13,
+ 		0x39, 0x38, 0x37, 0x35, 0x0e, 0x12, 0x04, 0x0c, 0x0d, 0x17,
+ 		0x18, 0x32, 0x19, 0x1a, 0x03, 0x1b, 0x16, 0x33, 0x34, 0x41,
+@@ -34,7 +34,7 @@ static int stk1125_load_microcode(struct
+ 		0x95, 0x40, 0x29, 0x0f, 0xa5, 0x1e, 0xa9, 0xaa, 0xab, 0x90,
+ 		0x91, 0x9f, 0xa0, 0x24, 0x25, 0x26, 0x14, 0x2a, 0x2b
+ 	};
+-	const u8 values_1_205[] = {
++	static const u8 values_1_205[] = {
+ 		0x45, 0x80, 0x01, 0x7d, 0x80, 0x00, 0x00, 0x80, 0x80, 0x80,
+ 		0x50, 0x93, 0x00, 0x81, 0x20, 0x45, 0x00, 0x00, 0x00, 0x24,
+ 		0xc4, 0xb6, 0x00, 0x3c, 0x36, 0x00, 0x07, 0xe2, 0xbf, 0x00,
+@@ -44,7 +44,7 @@ static int stk1125_load_microcode(struct
+ 	};
  
- Any atomic operation that modifies some state in memory and returns information
- about the state (old or new) implies an SMP-conditional general memory barrier
--(smp_mb()) on each side of the actual operation.  These include:
-+(smp_mb()) on each side of the actual operation (with the exception of
-+explicit lock operations, described later).  These include:
+ 	/* From 800x600 to 1280x1024 */
+-	const u8 values_2_204[] = {
++	static const u8 values_2_204[] = {
+ 		0x12, 0x11, 0x3b, 0x6a, 0x13, 0x10, 0x00, 0x01, 0x02, 0x13,
+ 		0x39, 0x38, 0x37, 0x35, 0x0e, 0x12, 0x04, 0x0c, 0x0d, 0x17,
+ 		0x18, 0x32, 0x19, 0x1a, 0x03, 0x1b, 0x16, 0x33, 0x34, 0x41,
+@@ -52,7 +52,7 @@ static int stk1125_load_microcode(struct
+ 		0x95, 0x40, 0x29, 0x0f, 0xa5, 0x1e, 0xa9, 0xaa, 0xab, 0x90,
+ 		0x91, 0x9f, 0xa0, 0x24, 0x25, 0x26, 0x14, 0x2a, 0x2b
+ 	};
+-	const u8 values_2_205[] = {
++	static const u8 values_2_205[] = {
+ 		0x05, 0x80, 0x01, 0x7d, 0x80, 0x00, 0x00, 0x80, 0x80, 0x80,
+ 		0x50, 0x93, 0x00, 0x81, 0x20, 0x05, 0x00, 0x00, 0x00, 0x1b,
+ 		0xbb, 0xa4, 0x01, 0x81, 0x12, 0x00, 0x07, 0xe2, 0xbf, 0x00,
+@@ -119,43 +119,43 @@ static int stk1125_dev_configure(struct 
+ 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
+ 		10,   11 */
  
- 	xchg();
- 	cmpxchg();
-@@ -1536,10 +1537,19 @@ If they're used for constructing a lock 
- do need memory barriers as a lock primitive generally has to do things in a
- specific order.
+-	const u8 vals_001B[] = {
++	static const u8 vals_001B[] = {
+ 		0x0e, 0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e,
+ 		0x0e, 0x0e
+ 	};
+-	const u8 vals_001C[] = {
++	static const u8 vals_001C[] = {
+ 		0x06, 0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46,
+ 		0x46, 0x0e
+ 	};
+-	const u8 vals_0202[] = {
++	static const u8 vals_0202[] = {
+ 		0x1e, 0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+ 		0x1e, 0x1e
+ 	};
+-	const u8 vals_0110[] = {
++	static const u8 vals_0110[] = {
+ 		0x07, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x3e, 0x00, 0x00, 0x00,
+ 		0x00, 0x00
+ 	};
+-	const u8 vals_0112[] = {
++	static const u8 vals_0112[] = {
+ 		0x07, 0x00, 0x00, 0x00, 0x00, 0x09, 0x09, 0x00, 0x00, 0x00,
+ 		0x00, 0x00
+ 	};
+-	const u8 vals_0114[] = {
++	static const u8 vals_0114[] = {
+ 		0x87, 0x80, 0x80, 0x80, 0x80, 0xbe, 0xbe, 0x80, 0x80, 0x80,
+ 		0x80, 0x00
+ 	};
+-	const u8 vals_0115[] = {
++	static const u8 vals_0115[] = {
+ 		0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+ 		0x02, 0x05
+ 	};
+-	const u8 vals_0116[] = {
++	static const u8 vals_0116[] = {
+ 		0xe7, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe9, 0xe0, 0xe0, 0xe0,
+ 		0xe0, 0x00
+ 	};
+-	const u8 vals_0117[] = {
++	static const u8 vals_0117[] = {
+ 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+ 		0x01, 0x04
+ 	};
+-	const u8 vals_0100[] = {
++	static const u8 vals_0100[] = {
+ 		0x20, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
+ 		0x21, 0x21
+ 	};
+@@ -190,7 +190,7 @@ static int stk1125_dev_configure(struct 
  
--
- Basically, each usage case has to be carefully considered as to whether memory
- barriers are needed or not.
+ 	switch (step) {
+ 	case 0: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x40, 2 }, { 0x0204, 0x41, 2 },
+ 			{ 0x0205, 0x01, 2 }, { 0x0204, 0x1c, 2 },
+ 			{ 0x0205, 0x02, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -200,7 +200,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 1: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+ 		};
+@@ -209,7 +209,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 2: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -219,7 +219,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 3: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -229,7 +229,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 4: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
+@@ -240,7 +240,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 5: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -250,7 +250,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 6: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -260,7 +260,7 @@ static int stk1125_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 7: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -294,7 +294,7 @@ static int stk1125_dev_configure(struct 
  
-+The following operations are special locking primitives:
-+
-+	test_and_set_bit_lock();
-+	clear_bit_unlock();
-+	__clear_bit_unlock();
-+
-+These implement LOCK-class and UNLOCK-class operations. These should be used in
-+preference to other operations when implementing locking primitives, because
-+their implementations can be optimised on many architectures.
-+
- [!] Note that special memory barrier primitives are available for these
- situations because on some CPUs the atomic instructions used imply full memory
- barriers, and so barrier instructions are superfluous in conjunction with them,
-diff -puN include/asm-alpha/bitops.h~bitops-introduce-lock-ops include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-alpha/bitops.h
-@@ -367,6 +367,7 @@ static inline unsigned int hweight8(unsi
- #else
- #include <asm-generic/bitops/hweight.h>
- #endif
-+#include <asm-generic/bitops/lock.h>
+ 	case 10:
+ 	case 11: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0106, 0x00, 2 }, { 0x02ff, 0x00, 1 },
+ 			{ 0x02ff, 0x00, 2 }, { 0x0204, 0x2a, 2 },
+ 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x01, 2 },
+@@ -322,7 +322,7 @@ err:
  
- #endif /* __KERNEL__ */
- 
-diff -puN include/asm-arm/bitops.h~bitops-introduce-lock-ops include/asm-arm/bitops.h
---- a/include/asm-arm/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-arm/bitops.h
-@@ -286,6 +286,7 @@ static inline int constant_fls(int x)
- 
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- /*
-  * Ext2 is defined to use little-endian byte ordering.
-diff -puN include/asm-avr32/bitops.h~bitops-introduce-lock-ops include/asm-avr32/bitops.h
---- a/include/asm-avr32/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-avr32/bitops.h
-@@ -288,6 +288,7 @@ static inline int ffs(unsigned long word
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
-diff -puN include/asm-blackfin/bitops.h~bitops-introduce-lock-ops include/asm-blackfin/bitops.h
---- a/include/asm-blackfin/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-blackfin/bitops.h
-@@ -199,6 +199,7 @@ static __inline__ int __test_bit(int nr,
- 
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
-diff -puN include/asm-cris/bitops.h~bitops-introduce-lock-ops include/asm-cris/bitops.h
---- a/include/asm-cris/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-cris/bitops.h
-@@ -154,6 +154,7 @@ static inline int test_and_change_bit(in
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/find.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
-diff -puN include/asm-frv/bitops.h~bitops-introduce-lock-ops include/asm-frv/bitops.h
---- a/include/asm-frv/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-frv/bitops.h
-@@ -302,6 +302,7 @@ int __ilog2_u64(u64 n)
- 
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #include <asm-generic/bitops/ext2-non-atomic.h>
- 
-diff -puN include/asm-generic/bitops.h~bitops-introduce-lock-ops include/asm-generic/bitops.h
---- a/include/asm-generic/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-generic/bitops.h
-@@ -22,6 +22,7 @@
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/ffs.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
-diff -puN /dev/null include/asm-generic/bitops/lock.h
---- /dev/null
-+++ a/include/asm-generic/bitops/lock.h
-@@ -0,0 +1,45 @@
-+#ifndef _ASM_GENERIC_BITOPS_LOCK_H_
-+#define _ASM_GENERIC_BITOPS_LOCK_H_
-+
-+/**
-+ * test_and_set_bit_lock - Set a bit and return its old value, for lock
-+ * @nr: Bit to set
-+ * @addr: Address to count from
-+ *
-+ * This operation is atomic and provides acquire barrier semantics.
-+ * It can be used to implement bit locks.
-+ */
-+#define test_and_set_bit_lock(nr, addr)	test_and_set_bit(nr, addr)
-+
-+/**
-+ * clear_bit_unlock - Clear a bit in memory, for unlock
-+ * @nr: the bit to set
-+ * @addr: the address to start counting from
-+ *
-+ * This operation is atomic and provides release barrier semantics.
-+ */
-+#define clear_bit_unlock(nr, addr)	\
-+do {					\
-+	smp_mb__before_clear_bit();	\
-+	clear_bit(nr, addr);		\
-+} while (0)
-+
-+/**
-+ * __clear_bit_unlock - Clear a bit in memory, for unlock
-+ * @nr: the bit to set
-+ * @addr: the address to start counting from
-+ *
-+ * This operation is like clear_bit_unlock, however it is not atomic.
-+ * It does provide release barrier semantics so it can be used to unlock
-+ * a bit lock, however it would only be used if no other CPU can modify
-+ * any bits in the memory until the lock is released (a good example is
-+ * if the bit lock itself protects access to the other bits in the word).
-+ */
-+#define __clear_bit_unlock(nr, addr)	\
-+do {					\
-+	smp_mb();			\
-+	__clear_bit(nr, addr);		\
-+} while (0)
-+
-+#endif /* _ASM_GENERIC_BITOPS_LOCK_H_ */
-+
-diff -puN include/asm-h8300/bitops.h~bitops-introduce-lock-ops include/asm-h8300/bitops.h
---- a/include/asm-h8300/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-h8300/bitops.h
-@@ -194,6 +194,7 @@ static __inline__ unsigned long __ffs(un
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN include/asm-i386/bitops.h~bitops-introduce-lock-ops include/asm-i386/bitops.h
---- a/include/asm-i386/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-i386/bitops.h
-@@ -402,6 +402,7 @@ static inline int fls(int x)
- }
- 
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN include/asm-ia64/bitops.h~bitops-introduce-lock-ops include/asm-ia64/bitops.h
---- a/include/asm-ia64/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-ia64/bitops.h
-@@ -371,6 +371,8 @@ hweight64 (unsigned long x)
- #define hweight16(x)	(unsigned int) hweight64((x) & 0xfffful)
- #define hweight8(x)	(unsigned int) hweight64((x) & 0xfful)
- 
-+#include <asm-generic/bitops/lock.h>
-+
- #endif /* __KERNEL__ */
- 
- #include <asm-generic/bitops/find.h>
-diff -puN include/asm-m32r/bitops.h~bitops-introduce-lock-ops include/asm-m32r/bitops.h
---- a/include/asm-m32r/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-m32r/bitops.h
-@@ -255,6 +255,7 @@ static __inline__ int test_and_change_bi
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/ffs.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN include/asm-m68k/bitops.h~bitops-introduce-lock-ops include/asm-m68k/bitops.h
---- a/include/asm-m68k/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-m68k/bitops.h
-@@ -314,6 +314,7 @@ static inline int fls(int x)
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- /* Bitmap functions for the minix filesystem */
- 
-diff -puN include/asm-m68knommu/bitops.h~bitops-introduce-lock-ops include/asm-m68knommu/bitops.h
---- a/include/asm-m68knommu/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-m68knommu/bitops.h
-@@ -160,6 +160,7 @@ static __inline__ int __test_bit(int nr,
- 
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- 
- static __inline__ int ext2_set_bit(int nr, volatile void * addr)
+ static int stk1125_cam_asleep(struct stk11xx *dev)
  {
-diff -puN include/asm-mips/bitops.h~bitops-introduce-lock-ops include/asm-mips/bitops.h
---- a/include/asm-mips/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-mips/bitops.h
-@@ -556,6 +556,7 @@ static inline int ffs(int word)
+-	const struct stk11xx_table table[] = {
++	static const struct stk11xx_table table[] = {
+ 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
+ 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x4c, 2 },
+@@ -412,7 +412,7 @@ static int stk1125_cam_init(struct stk11
+ {
+ 	int ret;
  
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
-diff -puN include/asm-parisc/bitops.h~bitops-introduce-lock-ops include/asm-parisc/bitops.h
---- a/include/asm-parisc/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-parisc/bitops.h
-@@ -208,6 +208,7 @@ static __inline__ int fls(int x)
+-	const struct stk11xx_table table[] = {
++	static const struct stk11xx_table table[] = {
+ 		{ 0x02ff, 0x00, 1 }, { 0x02ff, 0x00, 2 }, { 0x0204, 0x2a, 2 },
+ 		{ 0x0205, 0x00, 2 }, { 0x0200, 0x01, 2 }, {    500, 0x00, 3 },
+ 		{ 0x02ff, 0x00, 2 }, { 0x02ff, 0x00, 1 }, { 0x02ff, 0x00, 2 },
+@@ -500,7 +500,7 @@ static int stk1125_dev_init(struct stk11
+ 	int ret;
+ 	u8 value;
  
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
+-	const struct stk11xx_table table_1[] = {
++	static const struct stk11xx_table table_1[] = {
+ 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x68, 2 }, { 0x0003, 0x80, 2 },
+ 		{ 0x0002, 0x6f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
+ 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
+@@ -515,7 +515,7 @@ static int stk1125_dev_init(struct stk11
+ 		{ 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_2[] = {
++	static const struct stk11xx_table table_2[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -531,7 +531,7 @@ static int stk1125_dev_init(struct stk11
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_3[] = {
++	static const struct stk11xx_table table_3[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -549,7 +549,7 @@ static int stk1125_dev_init(struct stk11
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_4[] = {
++	static const struct stk11xx_table table_4[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
+diff -puN drivers/media/video/stk1135.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stk1135.c
+--- a/drivers/media/video/stk1135.c~v4l-stk11xx-add-static-to-tables
++++ a/drivers/media/video/stk1135.c
+@@ -24,7 +24,7 @@ static int stk1135_load_microcode(struct
+ 	unsigned int i;
+ 	int retok;
  
- #endif /* __KERNEL__ */
-diff -puN include/asm-powerpc/bitops.h~bitops-introduce-lock-ops include/asm-powerpc/bitops.h
---- a/include/asm-powerpc/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-powerpc/bitops.h
-@@ -266,6 +266,7 @@ static __inline__ int fls(unsigned int x
- #include <asm-generic/bitops/fls64.h>
+-	const u8 values_204[] = {
++	static const u8 values_204[] = {
+ 		0x17, 0x19, 0xb4, 0xa6, 0x12, 0x13, 0x1e, 0x21, 0x24, 0x32,
+ 		0x36, 0x39, 0x4d, 0x53, 0x5d, 0x5f, 0x60, 0x61, 0x62, 0x63,
+ 		0x64, 0x65, 0x66, 0x82, 0x83, 0x85, 0x86, 0x89, 0x97, 0x98,
+@@ -38,7 +38,7 @@ static int stk1135_load_microcode(struct
+ 		0x4e, 0x4f, 0x49, 0x4a, 0x4b, 0x4c, 0x46, 0x06, 0x07, 0xb9,
+ 		0xba, 0xbb, 0xbc, 0x61, 0x62, 0x65, 0x66
+ 	};
+-	const u8 values_205[] = {
++	static const u8 values_205[] = {
+ 		0x41, 0x41, 0x03, 0x06, 0x06, 0x08, 0x06, 0x00, 0x02, 0x69,
+ 		0x35, 0x60, 0xfe, 0x1c, 0x04, 0x08, 0x08, 0x08, 0x08, 0x00,
+ 		0x00, 0x10, 0x14, 0x01, 0x80, 0x0c, 0xb6, 0x00, 0x25, 0x25,
+@@ -87,35 +87,35 @@ static int stk1135_dev_configure(struct 
+ 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
+ 		10,   11,   12,   13 */
  
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
+-	const u8 vals_001B[] = {
++	static const u8 vals_001B[] = {
+ 		0x0e, 0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x07,
+ 		0x07, 0x07, 0x07, 0x07
+ 	};
+-	const u8 vals_001C[] = {
++	static const u8 vals_001C[] = {
+ 		0x06, 0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x06, 0x06,
+ 		0x06, 0x06, 0x06, 0x06
+ 	};
+-	const u8 vals_0202[] = {
++	static const u8 vals_0202[] = {
+ 		0x1e, 0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+ 		0x1e, 0x1e, 0x1e, 0x1e
+ 	};
+-	const u8 vals_0110[] = {
++	static const u8 vals_0110[] = {
+ 		0x07, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x3e, 0x00, 0x04, 0x00,
+ 		0x00, 0x00, 0x00, 0x00
+ 	};
+-	const u8 vals_0112[] = {
++	static const u8 vals_0112[] = {
+ 		0x07, 0x00, 0x00, 0x00, 0x00, 0x09, 0x09, 0x00, 0x04, 0x00,
+ 		0x00, 0x00, 0x00, 0x00
+ 	};
+-	const u8 vals_0114[] = {
++	static const u8 vals_0114[] = {
+ 		0x87, 0x80, 0x80, 0x80, 0x80, 0xbe, 0xbe, 0x80, 0x84, 0x80,
+ 		0x80, 0x80, 0x80, 0x80
+ 	};
+-	const u8 vals_0116[] = {
++	static const u8 vals_0116[] = {
+ 		0xe7, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe9, 0xe0, 0xe4, 0xe0,
+ 		0xe0, 0xe0, 0xe0, 0xe0
+ 	};
+-	const u8 vals_0100[] = {
++	static const u8 vals_0100[] = {
+ 		0x20, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x23, 0x20,
+ 		0x20, 0x20, 0x20, 0x20
+ 	};
+@@ -149,7 +149,7 @@ static int stk1135_dev_configure(struct 
  
- #define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
- unsigned long find_next_zero_bit(const unsigned long *addr,
-diff -puN include/asm-s390/bitops.h~bitops-introduce-lock-ops include/asm-s390/bitops.h
---- a/include/asm-s390/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-s390/bitops.h
-@@ -746,6 +746,7 @@ static inline int sched_find_first_bit(u
- #include <asm-generic/bitops/fls64.h>
+ 	switch (step) {
+ 	case 0: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x40, 2 }, { 0x0204, 0x41, 2 },
+ 			{ 0x0205, 0x01, 2 }, { 0x0204, 0x1c, 2 },
+ 			{ 0x0205, 0x02, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -159,7 +159,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 1: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+ 		};
+@@ -168,7 +168,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 2: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -178,7 +178,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 3: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -188,7 +188,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 4: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
+@@ -199,7 +199,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 5: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -209,7 +209,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 6: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -219,7 +219,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 7: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -229,7 +229,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 8: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x80, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x0a, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -239,7 +239,7 @@ static int stk1135_dev_configure(struct 
+ 		break;
+ 	}
+ 	case 9: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xdc, 2 }, { 0x0204, 0x15, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 },
+ 			{    500, 0x00, 3 }, { 0x02ff, 0x00, 1 },
+@@ -304,7 +304,7 @@ err:
  
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
+ static int stk1135_cam_asleep(struct stk11xx *dev)
+ {
+-	const struct stk11xx_table table[] = {
++	static const struct stk11xx_table table[] = {
+ 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
+ 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x49, 2 },
+@@ -318,11 +318,11 @@ static int stk1135_cam_setting(struct st
+ {
+ 	unsigned int i;
  
- /*
-  * ATTENTION: intel byte ordering convention for ext2 and minix !!
-diff -puN include/asm-sh/bitops.h~bitops-introduce-lock-ops include/asm-sh/bitops.h
---- a/include/asm-sh/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-sh/bitops.h
-@@ -137,6 +137,7 @@ static inline unsigned long __ffs(unsign
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/ffs.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
-diff -puN include/asm-sh64/bitops.h~bitops-introduce-lock-ops include/asm-sh64/bitops.h
---- a/include/asm-sh64/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-sh64/bitops.h
-@@ -136,6 +136,7 @@ static __inline__ unsigned long ffz(unsi
- #include <asm-generic/bitops/__ffs.h>
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/ffs.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
-diff -puN include/asm-sparc/bitops.h~bitops-introduce-lock-ops include/asm-sparc/bitops.h
---- a/include/asm-sparc/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-sparc/bitops.h
-@@ -96,6 +96,7 @@ static inline void change_bit(unsigned l
- #include <asm-generic/bitops/fls.h>
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
-diff -puN include/asm-sparc64/bitops.h~bitops-introduce-lock-ops include/asm-sparc64/bitops.h
---- a/include/asm-sparc64/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-sparc64/bitops.h
-@@ -81,6 +81,7 @@ static inline unsigned int hweight8(unsi
- #include <asm-generic/bitops/hweight.h>
+-	const u8 values_204[] = {
++	static const u8 values_204[] = {
+ 		0xb3, 0x73, 0x46, 0x06, 0x07, 0xb9, 0xba, 0xbb, 0xbc, 0x61,
+ 		0x62, 0x65, 0x66
+ 	};
+-	const u8 values_205[] = {
++	static const u8 values_205[] = {
+ 		0x76, 0x76, 0x20, 0x01, 0xf3, 0x04, 0xe4, 0x09, 0xc8, 0x08,
+ 		0x08, 0x10, 0x14
+ 	};
+@@ -415,7 +415,7 @@ static int stk1135_dev_init(struct stk11
+ 	int ret;
+ 	u8 value;
  
- #endif
-+#include <asm-generic/bitops/lock.h>
- #endif /* __KERNEL__ */
+-	const struct stk11xx_table table_1[] = {
++	static const struct stk11xx_table table_1[] = {
+ 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x68, 2 }, { 0x0003, 0x80, 2 },
+ 		{ 0x0002, 0x6f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
+ 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
+@@ -430,7 +430,7 @@ static int stk1135_dev_init(struct stk11
+ 		{ 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_2[] = {
++	static const struct stk11xx_table table_2[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -446,7 +446,7 @@ static int stk1135_dev_init(struct stk11
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_3[] = {
++	static const struct stk11xx_table table_3[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -464,7 +464,7 @@ static int stk1135_dev_init(struct stk11
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_4[] = {
++	static const struct stk11xx_table table_4[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
+diff -puN drivers/media/video/stkdcnew.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stkdcnew.c
+--- a/drivers/media/video/stkdcnew.c~v4l-stk11xx-add-static-to-tables
++++ a/drivers/media/video/stkdcnew.c
+@@ -27,7 +27,7 @@ static int stkdcnew_load_microcode(struc
+ 	unsigned int i;
+ 	int retok;
  
- #include <asm-generic/bitops/find.h>
-diff -puN include/asm-v850/bitops.h~bitops-introduce-lock-ops include/asm-v850/bitops.h
---- a/include/asm-v850/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-v850/bitops.h
-@@ -145,6 +145,7 @@ static inline int __test_bit (int nr, co
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
+-	const u8 values_204[] = {
++	static const u8 values_204[] = {
+ 		0xf0, 0xf1, 0x0d, 0xf1, 0x0d, 0xf1, 0xf0, 0xf1, 0x35, 0xf1,
+ 		0xf0, 0xf1, 0x06, 0xf1, 0xf0, 0xf1, 0xdd, 0xf1, 0xf0, 0xf1,
+ 		0x1f, 0xf1, 0x20, 0xf1, 0x21, 0xf1, 0x22, 0xf1, 0x23, 0xf1,
+@@ -58,7 +58,7 @@ static int stkdcnew_load_microcode(struc
+ 		0x64, 0xf1, 0xf0, 0xf1, 0x5b, 0xf1, 0xf0, 0xf1, 0x36, 0xf1,
+ 		0x37, 0xf1, 0xf0, 0xf1, 0x08, 0xf1
+ 	};
+-	const u8 values_205[] = {
++	static const u8 values_205[] = {
+ 		0x00, 0x00, 0x00, 0x0b, 0x00, 0x08, 0x00, 0x00, 0x00, 0x22,
+ 		0x00, 0x01, 0x70, 0x0e, 0x00, 0x02, 0x18, 0xe0, 0x00, 0x02,
+ 		0x01, 0x80, 0xc8, 0x14, 0x80, 0x80, 0xa0, 0x78, 0xa0, 0x78,
+@@ -124,43 +124,43 @@ static int stkdcnew_dev_configure(struct
  
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #define ext2_set_bit_atomic(l,n,a)      test_and_set_bit(n,a)
-diff -puN include/asm-x86_64/bitops.h~bitops-introduce-lock-ops include/asm-x86_64/bitops.h
---- a/include/asm-x86_64/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-x86_64/bitops.h
-@@ -408,6 +408,7 @@ static __inline__ int fls(int x)
- #define ARCH_HAS_FAST_MULTIPLIER 1
+ 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
+ 		10,   11,   12,   13,   14,   15,   16 */
+-	const u8 vals_001B[] = {
++	static const u8 vals_001B[] = {
+ 		0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x07,
+ 		0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07
+ 	};
+-	const u8 vals_001C[] = {
++	static const u8 vals_001C[] = {
+ 		0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x06,
+ 		0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06
+ 	};
+-	const u8 vals_0202[] = {
++	static const u8 vals_0202[] = {
+ 		0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
+ 		0x1e, 0x0a, 0x1e, 0x1f, 0x1f, 0x1f, 0x1f
+ 	};
+-	const u8 vals_0110[] = {
++	static const u8 vals_0110[] = {
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x00, 0x00, 0x00, 0x00,
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+ 	};
+-	const u8 vals_0112[] = {
++	static const u8 vals_0112[] = {
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00,
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+ 	};
+-	const u8 vals_0114[] = {
++	static const u8 vals_0114[] = {
+ 		0x80, 0x80, 0x80, 0x80, 0x00, 0xbe, 0x80, 0x80, 0x00, 0x80,
+ 		0x80, 0x80, 0x00, 0x80, 0x80, 0x80, 0x80
+ 	};
+-	const u8 vals_0115[] = {
++	static const u8 vals_0115[] = {
+ 		0x02, 0x02, 0x02, 0x02, 0x05, 0x02, 0x02, 0x02, 0x00, 0x02,
+ 		0x02, 0x02, 0x05, 0x02, 0x02, 0x02, 0x02
+ 	};
+-	const u8 vals_0116[] = {
++	static const u8 vals_0116[] = {
+ 		0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe0, 0xe0, 0x00, 0xe0,
+ 		0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0
+ 	};
+-	const u8 vals_0117[] = {
++	static const u8 vals_0117[] = {
+ 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01,
+ 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01
+ 	};
+-	const u8 vals_0100[] = {
++	static const u8 vals_0100[] = {
+ 		0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x20,
+ 		0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
+ 	};
+@@ -190,7 +190,7 @@ static int stkdcnew_dev_configure(struct
  
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
+ 	switch (step) {
+ 	case 0: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+ 		};
+@@ -199,7 +199,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 1: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -209,7 +209,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 2: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
+ 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -219,7 +219,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 3: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
+@@ -230,7 +230,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 4: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -240,7 +240,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 5: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -250,7 +250,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 6: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xB7, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -259,7 +259,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 7: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
+ 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
+@@ -269,7 +269,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 8: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0x60, 2 }, { 0x02ff, 0x00, 1 },
+ 			{ 0x02ff, 0x00, 2 }, { 0x0203, 0x60, 2 },
+ 			{ 0x0204, 0xff, 2 }, { 0x0205, 0x01, 2 },
+@@ -298,7 +298,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 9: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xdc, 2 }, { 0x0204, 0x15, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 }, { }
+ 		};
+@@ -307,7 +307,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 10: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xec, 2 }, { 0x0204, 0x15, 2 },
+ 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 }, { }
+ 		};
+@@ -316,7 +316,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 11: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xba, 2 }, { 0x0208, 0x00, 2 },
+ 			{ 0x0200, 0x20, 2 }, {    500, 0x00, 3 },
+ 			{ 0x0209, 0x00, 1 }, { 0x02ff, 0x00, 2 }, { }
+@@ -326,7 +326,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 12: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xba, 2 }, { 0x0204, 0xf0, 2 },
+ 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x05, 2 },
+ 			{    500, 0x00, 3 }, { 0x0204, 0xf1, 2 },
+@@ -346,7 +346,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 13: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xba, 2 }, { 0x02ff, 0x00, 1 },
+ 			{ 0x02ff, 0x00, 2 }, { 0x0203, 0xba, 2 },
+ 			{ 0x0208, 0x00, 2 }, { 0x0200, 0x20, 2 },
+@@ -362,7 +362,7 @@ static int stkdcnew_dev_configure(struct
+ 		break;
+ 	}
+ 	case 14: {
+-		const struct stk11xx_table table[] = {
++		static const struct stk11xx_table table[] = {
+ 			{ 0x0203, 0xba, 2 }, { 0x0204, 0x01, 2 },
+ 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x05, 2 },
+ 			{    500, 0x00, 3 }, { 0x0204, 0xf1, 2 },
+@@ -409,7 +409,7 @@ end:
  
- #endif /* __KERNEL__ */
+ static int stkdcnew_cam_asleep(struct stk11xx *dev)
+ {
+-	const struct stk11xx_table table[] = {
++	static const struct stk11xx_table table[] = {
+ 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
+ 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x49, 2 },
+@@ -451,11 +451,11 @@ static int stkdcnew_cam_setting(struct s
+ 	unsigned int i;
+ 	int ret;
  
-diff -puN include/asm-xtensa/bitops.h~bitops-introduce-lock-ops include/asm-xtensa/bitops.h
---- a/include/asm-xtensa/bitops.h~bitops-introduce-lock-ops
-+++ a/include/asm-xtensa/bitops.h
-@@ -108,6 +108,7 @@ static inline int fls (unsigned int x)
- #endif
+-	const u8 values_204[] = {
++	static const u8 values_204[] = {
+ 		0xf0, 0xf1, 0x2e, 0xf1, 0xf0, 0xf1, 0x5b, 0xf1, 0xf0, 0xf1,
+ 		0x36, 0xf1, 0x37, 0xf1, 0xf0, 0xf1, 0x08, 0xf1
+ 	};
+-	const u8 values_205[] = {
++	static const u8 values_205[] = {
+ 		0x00, 0x02, 0x0c, 0x3c, 0x00, 0x02, 0x00, 0x03, 0x00, 0x02,
+ 		0x78, 0x10, 0x83, 0x04, 0x00, 0x00, 0x00, 0x21
+ 	};
+@@ -534,7 +534,7 @@ static int stkdcnew_dev_init(struct stk1
+ 	int value;*/
+ 	int ret;
  
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/minix.h>
- 
+-/*	const struct stk11xx_table table_1[] = {
++/*	static const struct stk11xx_table table_1[] = {
+ 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x78, 2 }, { 0x0003, 0x80, 2 },
+ 		{ 0x0002, 0x7f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
+ 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
+@@ -549,7 +549,7 @@ static int stkdcnew_dev_init(struct stk1
+ 		{ 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_2[] = {
++	static const struct stk11xx_table table_2[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -565,7 +565,7 @@ static int stkdcnew_dev_init(struct stk1
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x7d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};
+-	const struct stk11xx_table table_3[] = {
++	static const struct stk11xx_table table_3[] = {
+ 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
+ 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
+@@ -583,7 +583,7 @@ static int stkdcnew_dev_init(struct stk1
+ 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x7d, 2 }, { 0x0000, 0x24, 2 },
+ 		{ }
+ 	};*/
+-	const struct stk11xx_table table_4[] = {
++	static const struct stk11xx_table table_4[] = {
+ /*		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
+ 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
+ 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-remove-zero_page.patch
-mm-use-lockless-radix-tree-probe.patch
-mm-improve-find_lock_page.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-radix-tree-use-indirect-bit.patch
-calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
-fs-fix-nobh-error-handling.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-introduce-write_begin-write_end-aops-fix2.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-implement-simple-fs-aops-fix.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix.patch
-ext2-convert-to-new-aops-fix2.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext3-convert-to-new-aops-fix-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops-fix-fix.patch
-xfs-convert-to-new-aops.patch
-gfs2-convert-to-new-aops-fix.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-convert-to-new-aops-fix2.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
-ufs-convert-to-new-aops-fix2.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops-fix2.patch
-minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
-minix-convert-to-new-aops-fix2.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-make-swappiness-safer-to-use.patch
-fs-reiserfs-cleanups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+origin.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+git-net.patch
+git-wireless.patch
+net-add-ath5k-wireless-driver-fix.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+char-mxser_new-upgrade-to-110.patch
+char-mxser_new-move-to-pci_vdevice.patch
+char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+mxser-remove-commented-crap.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+char-cyclades-remove-bottom-half-processing.patch
+char-cyclades-make-the-isr-code-readable.patch
+char-cyclades-move-spin_lock-to-one-place.patch
+char-cyclades-fix-some-w-warnings.patch
+char-moxa-cleanup-prints.patch
+char-moxa-function-names-cleanup.patch
+char-moxa-remove-sleep_on.patch
+fs-select-remove-unused-macros.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+shrink_slab-handle-bad-shrinkers.patch
