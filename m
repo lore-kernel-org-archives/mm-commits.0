@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-fix-e752x-correct-return-code.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:58:46 -0700
-Message-ID: <200708311858.l7VIwkx9021873@imap1.linux-foundation.org>
+Subject: + capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:00:52 -0700
+Message-ID: <200708311900.l7VJ0vUb022017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965980AbXHaS6x (ORCPT
+	by vger.kernel.org with ESMTP id S965734AbXHaTBl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:58:53 -0400
+	Fri, 31 Aug 2007 15:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aris@ruivo.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mark.gross@intel.com
+Cc: serge@hallyn.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     drivers/edac: fix e752x correct return code
+     capabilities: reset current->pdeath_signal when increasing capabilities
 has been added to the -mm tree.  Its filename is
-     drivers-edac-fix-e752x-correct-return-code.patch
+     capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/edac: fix e752x correct return code
-From: Aristeu Rozanski <aris@ruivo.org>
+Subject: capabilities: reset current->pdeath_signal when increasing capabilities
+From: "Serge E. Hallyn" <serge@hallyn.com>
 
-This patch changes the error code when dev0:fun1 was hidden by BIOS to one
-more appropriate.
+If running a program which has file capabilities which are not a subset of
+the capabilities of the current task, reset pdeath_signal = 0 to prevent
+the task parent from (deliberately) signaling a more privileged app.
 
-Signed-off-by: Aristeu Rozanski <aris@ruivo.org>
-Signed-off-by: Mark Gross <mark.gross@intel.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ security/commoncap.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-correct-return-code drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~drivers-edac-fix-e752x-correct-return-code
-+++ a/drivers/edac/e752x_edac.c
-@@ -967,7 +967,7 @@ static int e752x_probe1(struct pci_dev *
- 	if (!force_function_unhide && !(stat8 & (1 << 5))) {
- 		printk(KERN_INFO "Contact your BIOS vendor to see if the "
- 			"E752x error registers can be safely un-hidden\n");
--		return -ENOMEM;
-+		return -ENODEV;
- 	}
- 	stat8 |= (1 << 5);
- 	pci_write_config_byte(pdev, E752X_DEVPRES1, stat8);
+diff -puN security/commoncap.c~capabilities-reset-current-pdeath_signal-when-increasing-capabilities security/commoncap.c
+--- a/security/commoncap.c~capabilities-reset-current-pdeath_signal-when-increasing-capabilities
++++ a/security/commoncap.c
+@@ -267,6 +267,7 @@ void cap_bprm_apply_creds (struct linux_
+ 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
+ 	    !cap_issubset (new_permitted, current->cap_permitted)) {
+ 		set_dumpable(current->mm, suid_dumpable);
++		current->pdeath_signal = 0;
+ 
+ 		if (unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
+ 			if (!capable(CAP_SETUID)) {
 _
 
-Patches currently in -mm which might be from aris@ruivo.org are
+Patches currently in -mm which might be from serge@hallyn.com are
 
-drivers-edac-fix-e752x-correct-return-code.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
+ifdef-struct-task_structsecurity.patch
+capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
