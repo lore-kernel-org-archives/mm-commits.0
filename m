@@ -1,176 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - mips-detect-bcm947xx-cpus.patch removed from -mm tree
-Date: Thu, 30 Aug 2007 23:34:48 -0700
-Message-ID: <200708310634.l7V6Ymhv027729@imap1.linux-foundation.org>
+Subject: - net-ath5k-use-short-preamble-for-some-rates.patch removed from -mm tree
+Date: Thu, 30 Aug 2007 23:35:01 -0700
+Message-ID: <200708310635.l7V6Z1Zn027744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762349AbXHaGgS (ORCPT
+	by vger.kernel.org with ESMTP id S1759115AbXHaGgx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 02:36:18 -0400
+	Fri, 31 Aug 2007 02:36:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aurelien@aurel32.net, jolt@tuxbox.org, mb@bu3sch.de, nbd@openwrt.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MIPS: Detect BCM947xx CPUs
+     Net: ath5k, use short preamble for some rates
 has been removed from the -mm tree.  Its filename was
-     mips-detect-bcm947xx-cpus.patch
+     net-ath5k-use-short-preamble-for-some-rates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MIPS: Detect BCM947xx CPUs
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: Net: ath5k, use short preamble for some rates
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Add a few constants for BCM947xx CPUs and detect them in cpu-probe.c and
-tlbex.c.  Note that the BCM4710 does not support the wait instruction, this is
-not a mistake in the code.
+ath5k, use short preamble for some rates
 
-This part is not dependent of other patches (though useless without them), and
-could already be merged in the current linux-mips git tree.
+2, 5.5 and 11 in b/g are now in short preamble mode
 
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Felix Fietkau <nbd@openwrt.org>
-Cc: Florian Schirmer <jolt@tuxbox.org>
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/cpu-probe.c |   20 ++++++++++++++++++++
- arch/mips/kernel/proc.c      |    2 ++
- arch/mips/mm/tlbex.c         |    2 ++
- include/asm-mips/bootinfo.h  |    6 ++++++
- include/asm-mips/cpu.h       |   12 ++++++++++--
- 5 files changed, 40 insertions(+), 2 deletions(-)
+ drivers/net/wireless/ath5k.h |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/mips/kernel/cpu-probe.c~mips-detect-bcm947xx-cpus arch/mips/kernel/cpu-probe.c
---- a/arch/mips/kernel/cpu-probe.c~mips-detect-bcm947xx-cpus
-+++ a/arch/mips/kernel/cpu-probe.c
-@@ -159,6 +159,7 @@ static inline void check_wait(void)
- 	case CPU_5KC:
- 	case CPU_25KF:
- 	case CPU_PR4450:
-+	case CPU_BCM3302:
- 		cpu_wait = r4k_wait;
- 		break;
- 
-@@ -786,6 +787,22 @@ static inline void cpu_probe_philips(str
+diff -puN drivers/net/wireless/ath5k.h~net-ath5k-use-short-preamble-for-some-rates drivers/net/wireless/ath5k.h
+--- a/drivers/net/wireless/ath5k.h~net-ath5k-use-short-preamble-for-some-rates
++++ a/drivers/net/wireless/ath5k.h
+@@ -613,9 +613,9 @@ struct ath5k_rate_table {
+ 	255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	3, 2, 1, 0, 255, 255, 255, 255 }, {				\
+ 	{ 1, MODULATION_CCK, 1000, 27, 130, 0 },	\
+-	{ 1, MODULATION_CCK, 2000, 26, 132, 1 },	\
+-	{ 1, MODULATION_CCK, 5500, 25, 139, 1 },	\
+-	{ 1, MODULATION_CCK, 11000, 24, 150, 1 } }	\
++	{ 1, MODULATION_CCK_SP, 2000, 26, 132, 1 },	\
++	{ 1, MODULATION_CCK_SP, 5500, 25, 139, 1 },	\
++	{ 1, MODULATION_CCK_SP, 11000, 24, 150, 1 } }	\
  }
  
- 
-+static inline void cpu_probe_broadcom(struct cpuinfo_mips *c)
-+{
-+	decode_configs(c);
-+	switch (c->processor_id & 0xff00) {
-+	case PRID_IMP_BCM3302:
-+		c->cputype = CPU_BCM3302;
-+		break;
-+	case PRID_IMP_BCM4710:
-+		c->cputype = CPU_BCM4710;
-+		break;
-+	default:
-+		c->cputype = CPU_UNKNOWN;
-+		break;
-+	}
-+}
-+
- __init void cpu_probe(void)
- {
- 	struct cpuinfo_mips *c = &current_cpu_data;
-@@ -808,6 +825,9 @@ __init void cpu_probe(void)
- 	case PRID_COMP_SIBYTE:
- 		cpu_probe_sibyte(c);
- 		break;
-+	case PRID_COMP_BROADCOM:
-+		cpu_probe_broadcom(c);
-+		break;
- 	case PRID_COMP_SANDCRAFT:
- 		cpu_probe_sandcraft(c);
- 		break;
-diff -puN arch/mips/kernel/proc.c~mips-detect-bcm947xx-cpus arch/mips/kernel/proc.c
---- a/arch/mips/kernel/proc.c~mips-detect-bcm947xx-cpus
-+++ a/arch/mips/kernel/proc.c
-@@ -82,6 +82,8 @@ static const char *cpu_name[] = {
- 	[CPU_VR4181]	= "NEC VR4181",
- 	[CPU_VR4181A]	= "NEC VR4181A",
- 	[CPU_SR71000]	= "Sandcraft SR71000",
-+	[CPU_BCM3302]	= "Broadcom BCM3302",
-+	[CPU_BCM4710]	= "Broadcom BCM4710",
- 	[CPU_PR4450]	= "Philips PR4450",
- 	[CPU_LOONGSON2]	= "ICT Loongson-2",
- };
-diff -puN arch/mips/mm/tlbex.c~mips-detect-bcm947xx-cpus arch/mips/mm/tlbex.c
---- a/arch/mips/mm/tlbex.c~mips-detect-bcm947xx-cpus
-+++ a/arch/mips/mm/tlbex.c
-@@ -893,6 +893,8 @@ static __init void build_tlb_write_entry
- 	case CPU_4KSC:
- 	case CPU_20KC:
- 	case CPU_25KF:
-+	case CPU_BCM3302:
-+	case CPU_BCM4710:
- 	case CPU_LOONGSON2:
- 		tlbw(p);
- 		break;
-diff -puN include/asm-mips/bootinfo.h~mips-detect-bcm947xx-cpus include/asm-mips/bootinfo.h
---- a/include/asm-mips/bootinfo.h~mips-detect-bcm947xx-cpus
-+++ a/include/asm-mips/bootinfo.h
-@@ -208,6 +208,12 @@
- #define MACH_GROUP_WINDRIVER   28	/* Windriver boards */
- #define MACH_WRPPMC             1
- 
-+/*
-+ * Valid machtype for group Broadcom
-+ */
-+#define MACH_GROUP_BRCM		23	/* Broadcom			*/
-+#define  MACH_BCM947XX		1	/* Broadcom BCM947xx		*/
-+
- #define CL_SIZE			COMMAND_LINE_SIZE
- 
- const char *get_system_type(void);
-diff -puN include/asm-mips/cpu.h~mips-detect-bcm947xx-cpus include/asm-mips/cpu.h
---- a/include/asm-mips/cpu.h~mips-detect-bcm947xx-cpus
-+++ a/include/asm-mips/cpu.h
-@@ -106,6 +106,13 @@
- #define PRID_IMP_SR71000        0x0400
- 
- /*
-+ * These are the PRID's for when 23:16 == PRID_COMP_BROADCOM
-+ */
-+
-+#define PRID_IMP_BCM4710	0x4000
-+#define PRID_IMP_BCM3302	0x9000
-+
-+/*
-  * Definitions for 7:0 on legacy processors
-  */
- 
-@@ -217,8 +224,9 @@
- #define CPU_R14000		64
- #define CPU_LOONGSON1           65
- #define CPU_LOONGSON2           66
--
--#define CPU_LAST		66
-+#define CPU_BCM3302		67
-+#define CPU_BCM4710		68
-+#define CPU_LAST		68
- 
- /*
-  * ISA Level encodings
+ #define AR5K_RATES_11G { 12, {					\
+@@ -623,9 +623,9 @@ struct ath5k_rate_table {
+ 	11, 9, 7, 5, 255, 255, 255, 255, 255, 255, 255, 255,	\
+ 	3, 2, 1, 0, 255, 255, 255, 255 }, {			\
+ 	{ 1, MODULATION_CCK, 1000, 27, 2, 0 },		\
+-	{ 1, MODULATION_CCK, 2000, 26, 4, 1 },		\
+-	{ 1, MODULATION_CCK, 5500, 25, 11, 1 },		\
+-	{ 1, MODULATION_CCK, 11000, 24, 22, 1 },	\
++	{ 1, MODULATION_CCK_SP, 2000, 26, 4, 1 },		\
++	{ 1, MODULATION_CCK_SP, 5500, 25, 11, 1 },		\
++	{ 1, MODULATION_CCK_SP, 11000, 24, 22, 1 },	\
+ 	{ 0, MODULATION_OFDM, 6000, 11, 12, 4 },	\
+ 	{ 0, MODULATION_OFDM, 9000, 15, 18, 4 },	\
+ 	{ 1, MODULATION_OFDM, 12000, 10, 24, 6 },	\
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-git-kvm.patch
-git-mips.patch
-mips-bcm947xx-support.patch
-mips-add-bcm947xx-to-makefile.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
+maintainers-order-neterion-alphabetically.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+git-net.patch
 git-wireless.patch
-move-mm_struct-and-vm_area_struct-fix.patch
+net-add-ath5k-wireless-driver-fix.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+char-mxser_new-upgrade-to-110.patch
+char-mxser_new-move-to-pci_vdevice.patch
+char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+mxser-remove-commented-crap.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+char-cyclades-remove-bottom-half-processing.patch
+char-cyclades-make-the-isr-code-readable.patch
+char-cyclades-move-spin_lock-to-one-place.patch
+char-cyclades-fix-some-w-warnings.patch
+char-moxa-cleanup-prints.patch
+char-moxa-function-names-cleanup.patch
+char-moxa-remove-sleep_on.patch
+fs-select-remove-unused-macros.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+shrink_slab-handle-bad-shrinkers.patch
