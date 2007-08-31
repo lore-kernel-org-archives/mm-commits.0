@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:11:44 -0700
-Message-ID: <200708311811.l7VIBiq1020147@imap1.linux-foundation.org>
+Subject: + track-accurate-idle-time-with-tick_schedidle_sleeptime.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:13:32 -0700
+Message-ID: <200708311813.l7VIDW09020186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47825 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49432 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965671AbXHaSMR (ORCPT
+	by vger.kernel.org with ESMTP id S965769AbXHaSOQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:12:17 -0400
+	Fri, 31 Aug 2007 14:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz
+Cc: venkatesh.pallipadi@intel.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Hibernation: Arbitrary boot kernel support - generic code
+     Track accurate idle time with tick_sched.idle_sleeptime
 has been added to the -mm tree.  Its filename is
-     hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
+     track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,183 +26,219 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Hibernation: Arbitrary boot kernel support - generic code
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Track accurate idle time with tick_sched.idle_sleeptime
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-Add the bits needed for supporting arbitrary boot kernels to the common
-hibernation code.
+Current idle time in kstat is based on jiffies and is coarse grained. 
+tick_sched.idle_sleeptime is making some attempt to keep track of idle time
+in a fine grained manner.  But, it is not handling the time spent in
+interrupts fully.
 
-To support arbitrary boot kernels, make it possible to replace the 'struct
-new_utsname' and the kernel version in the hibernation image header by some
-architecture specific data that will be used to verify if the image is valid
-and to restore the image.
+Make tick_sched.idle_sleeptime accurate with respect to time spent on
+handling interrupts and also add tick_sched.idle_lastupdate, which keeps
+track of last time when idle_sleeptime was updated.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Andi Kleen <ak@suse.de>
+This statistics will be crucial for cpufreq-ondemand governor, which can
+shed some conservative gaurd band that is uses today while setting the
+frequency.  The ondemand changes that uses the exact idle time is coming
+soon.
+
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/power.h    |   20 +++++++++++++-
- kernel/power/snapshot.c |   53 +++++++++++++++++++++++++-------------
- 2 files changed, 54 insertions(+), 19 deletions(-)
+ include/linux/tick.h     |    6 +++
+ kernel/softirq.c         |    7 +++
+ kernel/time/tick-sched.c |   70 +++++++++++++++++++++++++------------
+ 3 files changed, 60 insertions(+), 23 deletions(-)
 
-diff -puN kernel/power/power.h~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2 kernel/power/power.h
---- a/kernel/power/power.h~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2
-+++ a/kernel/power/power.h
-@@ -11,14 +11,32 @@ struct swsusp_info {
- 	unsigned long		size;
- } __attribute__((aligned(PAGE_SIZE)));
+diff -puN include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime include/linux/tick.h
+--- a/include/linux/tick.h~track-accurate-idle-time-with-tick_schedidle_sleeptime
++++ a/include/linux/tick.h
+@@ -51,8 +51,10 @@ struct tick_sched {
+ 	unsigned long			idle_jiffies;
+ 	unsigned long			idle_calls;
+ 	unsigned long			idle_sleeps;
++	int				idle_active;
+ 	ktime_t				idle_entrytime;
+ 	ktime_t				idle_sleeptime;
++	ktime_t				idle_lastupdate;
+ 	ktime_t				sleep_length;
+ 	unsigned long			last_jiffies;
+ 	unsigned long			next_jiffies;
+@@ -103,6 +105,8 @@ extern void tick_nohz_stop_sched_tick(vo
+ extern void tick_nohz_restart_sched_tick(void);
+ extern void tick_nohz_update_jiffies(void);
+ extern ktime_t tick_nohz_get_sleep_length(void);
++extern void tick_nohz_stop_idle(int cpu);
++extern u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time);
+ # else
+ static inline void tick_nohz_stop_sched_tick(void) { }
+ static inline void tick_nohz_restart_sched_tick(void) { }
+@@ -113,6 +117,8 @@ static inline ktime_t tick_nohz_get_slee
  
-+#ifdef CONFIG_HIBERNATION
-+#ifdef CONFIG_ARCH_HIBERNATION_HEADER
-+/* Maximum size of architecture specific data in a hibernation header */
-+#define MAX_ARCH_HEADER_SIZE	(sizeof(struct new_utsname) + 4)
+ 	return len;
+ }
++static inline void tick_nohz_stop_idle(int cpu) { }
++static inline u64 get_cpu_idle_time_us(int cpu, u64 *unused) { return 0; }
+ # endif /* !NO_HZ */
  
-+extern int arch_hibernation_header_save(void *addr, unsigned int max_size);
-+extern int arch_hibernation_header_restore(void *addr);
-+
-+static inline int init_header_complete(struct swsusp_info *info)
-+{
-+	return arch_hibernation_header_save(info, MAX_ARCH_HEADER_SIZE);
-+}
-+
-+static inline char *check_image_kernel(struct swsusp_info *info)
-+{
-+	return arch_hibernation_header_restore(info) ?
-+			"architecture specific data" : NULL;
-+}
-+#endif /* CONFIG_ARCH_HIBERNATION_HEADER */
- 
--#ifdef CONFIG_HIBERNATION
- /*
-  * Keep some memory free so that I/O operations can succeed without paging
-  * [Might this be more than 4 MB?]
+ #endif
+diff -puN kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/softirq.c
+--- a/kernel/softirq.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
++++ a/kernel/softirq.c
+@@ -278,9 +278,14 @@ asmlinkage void do_softirq(void)
   */
- #define PAGES_FOR_IO	((4096 * 1024) >> PAGE_SHIFT)
-+
- /*
-  * Keep 1 MB of memory free so that device drivers can allocate some pages in
-  * their .suspend() routines without breaking the suspend to disk.
-diff -puN kernel/power/snapshot.c~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2 kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2
-+++ a/kernel/power/snapshot.c
-@@ -1239,17 +1239,39 @@ asmlinkage int swsusp_save(void)
- 	return 0;
- }
- 
--static void init_header(struct swsusp_info *info)
-+#ifndef CONFIG_ARCH_HIBERNATION_HEADER
-+static int init_header_complete(struct swsusp_info *info)
+ void irq_enter(void)
  {
--	memset(info, 0, sizeof(struct swsusp_info));
-+	memcpy(&info->uts, init_utsname(), sizeof(struct new_utsname));
- 	info->version_code = LINUX_VERSION_CODE;
-+	return 0;
-+}
-+
-+static char *check_image_kernel(struct swsusp_info *info)
-+{
-+	if (info->version_code != LINUX_VERSION_CODE)
-+		return "kernel version";
-+	if (strcmp(info->uts.sysname,init_utsname()->sysname))
-+		return "system type";
-+	if (strcmp(info->uts.release,init_utsname()->release))
-+		return "kernel release";
-+	if (strcmp(info->uts.version,init_utsname()->version))
-+		return "version";
-+	if (strcmp(info->uts.machine,init_utsname()->machine))
-+		return "machine";
-+	return NULL;
-+}
-+#endif /* CONFIG_ARCH_HIBERNATION_HEADER */
-+
-+static int init_header(struct swsusp_info *info)
-+{
-+	memset(info, 0, sizeof(struct swsusp_info));
- 	info->num_physpages = num_physpages;
--	memcpy(&info->uts, init_utsname(), sizeof(struct new_utsname));
--	info->cpus = num_online_cpus();
- 	info->image_pages = nr_copy_pages;
- 	info->pages = nr_copy_pages + nr_meta_pages + 1;
- 	info->size = info->pages;
- 	info->size <<= PAGE_SHIFT;
-+	return init_header_complete(info);
++#ifdef CONFIG_NO_HZ
++	int cpu = smp_processor_id();
++	if (idle_cpu(cpu) && !in_interrupt())
++		tick_nohz_stop_idle(cpu);
++#endif
+ 	__irq_enter();
+ #ifdef CONFIG_NO_HZ
+-	if (idle_cpu(smp_processor_id()))
++	if (idle_cpu(cpu))
+ 		tick_nohz_update_jiffies();
+ #endif
+ }
+diff -puN kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime
++++ a/kernel/time/tick-sched.c
+@@ -141,6 +141,43 @@ void tick_nohz_update_jiffies(void)
+ 	local_irq_restore(flags);
  }
  
++void tick_nohz_stop_idle(int cpu)
++{
++	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
++
++	if (ts->idle_active) {
++		ktime_t now, delta;
++		now = ktime_get();
++		delta = ktime_sub(now, ts->idle_entrytime);
++		ts->idle_lastupdate = now;
++		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
++		ts->idle_active = 0;
++	}
++}
++
++static void tick_nohz_start_idle(int cpu)
++{
++	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
++	ktime_t now, delta;
++
++	now = ktime_get();
++	if (ts->idle_active) {
++		delta = ktime_sub(now, ts->idle_entrytime);
++		ts->idle_lastupdate = now;
++		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
++	}
++	ts->idle_entrytime = now;
++	ts->idle_active = 1;
++}
++
++u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
++{
++	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
++
++	*last_update_time = ktime_to_us(ts->idle_lastupdate);
++	return ktime_to_us(ts->idle_sleeptime);
++}
++
  /**
-@@ -1303,7 +1325,11 @@ int snapshot_read_next(struct snapshot_h
- 			return -ENOMEM;
- 	}
- 	if (!handle->offset) {
--		init_header((struct swsusp_info *)buffer);
-+		int error;
-+
-+		error = init_header((struct swsusp_info *)buffer);
-+		if (error)
-+			return error;
- 		handle->buffer = buffer;
- 		memory_bm_position_reset(&orig_bm);
- 		memory_bm_position_reset(&copy_bm);
-@@ -1394,22 +1420,13 @@ duplicate_memory_bitmap(struct memory_bi
- 	}
- }
- 
--static inline int check_header(struct swsusp_info *info)
-+static int check_header(struct swsusp_info *info)
+  * tick_nohz_stop_sched_tick - stop the idle tick from the idle task
+  *
+@@ -152,13 +189,15 @@ void tick_nohz_stop_sched_tick(void)
  {
--	char *reason = NULL;
-+	char *reason;
+ 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies, flags;
+ 	struct tick_sched *ts;
+-	ktime_t last_update, expires, now, delta;
++	ktime_t last_update, expires, now;
+ 	struct clock_event_device *dev = __get_cpu_var(tick_cpu_device).evtdev;
+ 	int cpu;
  
--	if (info->version_code != LINUX_VERSION_CODE)
--		reason = "kernel version";
--	if (info->num_physpages != num_physpages)
-+	reason = check_image_kernel(info);
-+	if (!reason && info->num_physpages != num_physpages)
- 		reason = "memory size";
--	if (strcmp(info->uts.sysname,init_utsname()->sysname))
--		reason = "system type";
--	if (strcmp(info->uts.release,init_utsname()->release))
--		reason = "kernel release";
--	if (strcmp(info->uts.version,init_utsname()->version))
--		reason = "version";
--	if (strcmp(info->uts.machine,init_utsname()->machine))
--		reason = "machine";
- 	if (reason) {
- 		printk(KERN_ERR "swsusp: Resume mismatch: %s\n", reason);
- 		return -EPERM;
+ 	local_irq_save(flags);
+ 
+ 	cpu = smp_processor_id();
++	tick_nohz_start_idle(cpu);
++
+ 	ts = &per_cpu(tick_cpu_sched, cpu);
+ 
+ 	if (unlikely(ts->nohz_mode == NOHZ_MODE_INACTIVE))
+@@ -178,19 +217,7 @@ void tick_nohz_stop_sched_tick(void)
+ 		}
+ 	}
+ 
+-	now = ktime_get();
+-	/*
+-	 * When called from irq_exit we need to account the idle sleep time
+-	 * correctly.
+-	 */
+-	if (ts->tick_stopped) {
+-		delta = ktime_sub(now, ts->idle_entrytime);
+-		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
+-	}
+-
+-	ts->idle_entrytime = now;
+ 	ts->idle_calls++;
+-
+ 	/* Read jiffies and the time when jiffies were updated last */
+ 	do {
+ 		seq = read_seqbegin(&xtime_lock);
+@@ -320,23 +347,22 @@ void tick_nohz_restart_sched_tick(void)
+ 	int cpu = smp_processor_id();
+ 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
+ 	unsigned long ticks;
+-	ktime_t now, delta;
++	ktime_t now;
++
++	local_irq_disable();
++	tick_nohz_stop_idle(cpu);
+ 
+-	if (!ts->tick_stopped)
++	if (!ts->tick_stopped) {
++		local_irq_enable();
+ 		return;
++	}
+ 
+ 	/* Update jiffies first */
+-	now = ktime_get();
+-
+-	local_irq_disable();
+ 	select_nohz_load_balancer(0);
++	now = ktime_get();
+ 	tick_do_update_jiffies64(now);
+ 	cpu_clear(cpu, nohz_cpu_mask);
+ 
+-	/* Account the idle time */
+-	delta = ktime_sub(now, ts->idle_entrytime);
+-	ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
+-
+ 	/*
+ 	 * We stopped the tick in idle. Update process times would miss the
+ 	 * time we slept as update_process_times does only a 1 tick
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-origin.patch
-hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
-acpi-clean-up-acpi_enter_sleep_state_prep.patch
-uli526x-add-suspend-and-resume-routines.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-acpi.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+hpet-force-enable-on-ich34.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
