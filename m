@@ -1,105 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:18 -0700
-Message-ID: <200708311656.l7VGuIsF017475@imap1.linux-foundation.org>
+Subject: - fix-modpost-warning-in-serial-driver.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:10 -0700
+Message-ID: <200708311656.l7VGuAaS017466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56794 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33194 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760793AbXHaQ4a (ORCPT
+	by vger.kernel.org with ESMTP id S1760489AbXHaQ4X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:56:30 -0400
+	Fri, 31 Aug 2007 12:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jarkao2@o2.pl, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     request_irq: fix DEBUG_SHIRQ handling
+     Fix modpost warning in serial driver
 has been removed from the -mm tree.  Its filename was
-     request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state.patch
+     fix-modpost-warning-in-serial-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: request_irq: fix DEBUG_SHIRQ handling
-From: Jarek Poplawski <jarkao2@o2.pl>
+Subject: Fix modpost warning in serial driver
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Mariusz Kozlowski reported lockdep's warning:
+This is triggered if PCI && !HOTPLUG.
 
-> =================================
-> [ INFO: inconsistent lock state ]
-> 2.6.23-rc2-mm1 #7
-> ---------------------------------
-> inconsistent {in-hardirq-W} -> {hardirq-on-W} usage.
-> ifconfig/5492 [HC0[0]:SC0[0]:HE1:SE1] takes:
->  (&tp->lock){+...}, at: [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
-> {in-hardirq-W} state was registered at:
->   [<c0138eeb>] __lock_acquire+0x949/0x11ac
->   [<c01397e7>] lock_acquire+0x99/0xb2
->   [<c0452ff3>] _spin_lock+0x35/0x42
->   [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
->   [<c0147a5d>] handle_IRQ_event+0x28/0x59
->   [<c01493ca>] handle_level_irq+0xad/0x10b
->   [<c0105a13>] do_IRQ+0x93/0xd0
->   [<c010441e>] common_interrupt+0x2e/0x34
-...
-> other info that might help us debug this:
-> 1 lock held by ifconfig/5492:
->  #0:  (rtnl_mutex){--..}, at: [<c0451778>] mutex_lock+0x1c/0x1f
->
-> stack backtrace:
-...
->  [<c0452ff3>] _spin_lock+0x35/0x42
->  [<de8706e0>] rtl8139_interrupt+0x27/0x46b [8139too]
->  [<c01480fd>] free_irq+0x11b/0x146
->  [<de871d59>] rtl8139_close+0x8a/0x14a [8139too]
->  [<c03bde63>] dev_close+0x57/0x74
-...
+  MODPOST vmlinux.o
+WARNING: vmlinux.o(.data+0xc910): Section mismatch: reference to .init.text:pci_ite887x_init (between 'pci_serial_quirks' and 'serial_pci_tbl')
 
-This shows that a driver's irq handler was running both in hard interrupt
-and process contexts with irqs enabled. The latter was done during
-free_irq() call and was possible only with CONFIG_DEBUG_SHIRQ enabled.
-This was fixed by another patch.
-
-But similar problem is possible with request_irq(): any locks taken from
-irq handler could be vulnerable - especially with soft interrupts. This
-patch fixes it by disabling local interrupts during handler's run. (It
-seems, disabling softirqs should be enough, but it needs more checking
-on possible races or other special cases).
-
-Reported-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Signed-off-by: Jarek Poplawski <jarkao2@o2.pl>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/serial/8250_pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/manage.c~request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state kernel/irq/manage.c
---- a/kernel/irq/manage.c~request_irq-fix-debug_shirq-handling-re-2623-rc2-mm1-rtl8139-inconsistent-lock-state
-+++ a/kernel/irq/manage.c
-@@ -547,14 +547,11 @@ int request_irq(unsigned int irq, irq_ha
- 		 * We do this before actually registering it, to make sure that
- 		 * a 'real' IRQ doesn't run in parallel with our fake
- 		 */
--		if (irqflags & IRQF_DISABLED) {
--			unsigned long flags;
-+		unsigned long flags;
+diff -puN drivers/serial/8250_pci.c~fix-modpost-warning-in-serial-driver drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~fix-modpost-warning-in-serial-driver
++++ a/drivers/serial/8250_pci.c
+@@ -610,7 +610,7 @@ static int pci_netmos_init(struct pci_de
+ /* enable IO_Space bit */
+ #define ITE_887x_POSIO_ENABLE		(1 << 31)
  
--			local_irq_save(flags);
--			handler(irq, dev_id);
--			local_irq_restore(flags);
--		} else
--			handler(irq, dev_id);
-+		local_irq_save(flags);
-+		handler(irq, dev_id);
-+		local_irq_restore(flags);
- 	}
- #endif
- 
+-static int __devinit pci_ite887x_init(struct pci_dev *dev)
++static int pci_ite887x_init(struct pci_dev *dev)
+ {
+ 	/* inta_addr are the configuration addresses of the ITE */
+ 	static const short inta_addr[] = { 0x2a0, 0x2c0, 0x220, 0x240, 0x1e0,
 _
 
-Patches currently in -mm which might be from jarkao2@o2.pl are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
+git-mips.patch
+tty-add-the-new-ioctls-and-definitionto-the-mips.patch
+mips-qemu-network-work-again.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
+git-netdev-all.patch
+ioc3-program-uart-predividers.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+serio-fix-modpost-warning.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+vt-fix-warnings-in-selectionh.patch
+define-global-bit-macro.patch
