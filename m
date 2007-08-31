@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:55 -0700
-Message-ID: <200708311844.l7VIit5a021351@imap1.linux-foundation.org>
+Subject: + wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:49:23 -0700
+Message-ID: <200708311849.l7VInNA8021537@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49315 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965941AbXHaSpd (ORCPT
+	by vger.kernel.org with ESMTP id S965977AbXHaStt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:33 -0400
+	Fri, 31 Aug 2007 14:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     X86_64: cleanup struct irqaction initializers
+     wait_task_stopped/continued: remove unneeded p->signal != NULL check
 has been added to the -mm tree.  Its filename is
-     x86_64-cleanup-struct-irqaction-initializers.patch
+     wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: X86_64: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: wait_task_stopped/continued: remove unneeded p->signal != NULL check
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+The child was found on ->children list under tasklist_lock, it must have a
+valid ->signal. __exit_signal() both removes the task from parent->children
+and clears ->signal "atomically" under write_lock(tasklist).
+
+Remove unneeded checks.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/i8259.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ kernel/exit.c |    5 +----
+ 1 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/i8259.c~x86_64-cleanup-struct-irqaction-initializers arch/x86_64/kernel/i8259.c
---- a/arch/x86_64/kernel/i8259.c~x86_64-cleanup-struct-irqaction-initializers
-+++ a/arch/x86_64/kernel/i8259.c
-@@ -395,7 +395,11 @@ device_initcall(i8259A_init_sysfs);
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
+diff -puN kernel/exit.c~wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check kernel/exit.c
+--- a/kernel/exit.c~wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check
++++ a/kernel/exit.c
+@@ -1325,7 +1325,7 @@ static int wait_task_stopped(struct task
+ 	if (!p->exit_code)
+ 		return 0;
+ 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
+-	    p->signal && p->signal->group_stop_count > 0)
++	    p->signal->group_stop_count > 0)
+ 		/*
+ 		 * A group stop is in progress and this is the group leader.
+ 		 * We won't report until all threads have stopped.
+@@ -1439,9 +1439,6 @@ static int wait_task_continued(struct ta
+ 	pid_t pid;
+ 	uid_t uid;
  
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
-+	.handler = no_action,
-+	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
-+};
- DEFINE_PER_CPU(vector_irq_t, vector_irq) = {
- 	[0 ... IRQ0_VECTOR - 1] = -1,
- 	[IRQ0_VECTOR] = 0,
+-	if (unlikely(!p->signal))
+-		return 0;
+-
+ 	if (!(p->signal->flags & SIGNAL_STOP_CONTINUED))
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-git-acpi.patch
-git-mips.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-arm-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-frv-cleanup-struct-irqaction-initializers.patch
-i386-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-sh-cleanup-struct-irqaction-initializers.patch
-sh64-cleanup-struct-irqaction-initializers.patch
-v850-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+git-dvb.patch
+rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+make-access-to-tasks-nsproxy-lighter.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+proc-export-a-processes-resource-limits-via-proc-pid.patch
+fix-tsk-exit_state-usage-resend.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
