@@ -1,110 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - double-hpet-clocksource-hard-freeze.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 01:47:23 -0700
-Message-ID: <200708310847.l7V8lN1A032359@imap1.linux-foundation.org>
+Subject: - mips-add-bcm947xx-to-makefile.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 08:25:48 -0700
+Message-ID: <200708311525.l7VFPmSN014215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49428 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755277AbXHaIsL (ORCPT
+	by vger.kernel.org with ESMTP id S1757270AbXHaP1d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 04:48:11 -0400
+	Fri, 31 Aug 2007 11:27:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, bob.picco@hp.com, ornati@fastwebnet.it, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: aurelien@aurel32.net, jolt@tuxbox.org, mb@bu3sch.de, nbd@openwrt.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "double" hpet clocksource && hard freeze
+     MIPS: Add BCM947xx to Makefile
 has been removed from the -mm tree.  Its filename was
-     double-hpet-clocksource-hard-freeze.patch
+     mips-add-bcm947xx-to-makefile.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix "double" hpet clocksource && hard freeze
-From: john stultz <johnstul@us.ibm.com>
+Subject: MIPS: Add BCM947xx to Makefile
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-The ia64 hpet clocksource was implemented in generic code, and is not yet
-ready to replace the i386 and x86_64 implementations.  This results in
-multiple hpet clocksources being registered, and if the ia64 one is chosen
-on x86_64 some users have experienced hangs.
+Add BCM947xx to arch/mips/Makefile.
 
-This patch only allows the generic implementation to be used on ia64, until
-the duplicate i386 and x86_64 versions can be merged in and tested.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paolo Ornati <ornati@fastwebnet.it>
-Cc: Bob Picco <bob.picco@hp.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Felix Fietkau <nbd@openwrt.org>
+Cc: Florian Schirmer <jolt@tuxbox.org>
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/mips/Makefile |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/hpet.c~double-hpet-clocksource-hard-freeze drivers/char/hpet.c
---- a/drivers/char/hpet.c~double-hpet-clocksource-hard-freeze
-+++ a/drivers/char/hpet.c
-@@ -78,7 +78,17 @@ static struct clocksource clocksource_hp
-         .shift          = 10,
-         .flags          = CLOCK_SOURCE_IS_CONTINUOUS,
- };
-+
-+/* XXX - FIXME: i386, x86_64 and ia64 all have separate
-+ * hpet clocksource implementations. They should be merged
-+ * and this would be a good place for it.
-+ * Right now this is ia64 only.
-+ */
-+#ifdef CONFIG_IA64
- static struct clocksource *hpet_clocksource;
-+#else /* this isn't generic enough to use for everyone yet */
-+static struct clocksource *hpet_clocksource = (struct clocksource*)0xdead;
-+#endif
+diff -puN arch/mips/Makefile~mips-add-bcm947xx-to-makefile arch/mips/Makefile
+--- a/arch/mips/Makefile~mips-add-bcm947xx-to-makefile
++++ a/arch/mips/Makefile
+@@ -528,6 +528,13 @@ libs-$(CONFIG_SIBYTE_BIGSUR)	+= arch/mip
+ load-$(CONFIG_SIBYTE_BIGSUR)	:= 0xffffffff80100000
  
- /* A lock for concurrent access by app and isr hpet activity. */
- static DEFINE_SPINLOCK(hpet_lock);
+ #
++# Broadcom BCM947XX boards
++#
++core-$(CONFIG_BCM947XX)		+= arch/mips/bcm947xx/
++cflags-$(CONFIG_BCM947XX)	+= -Iinclude/asm-mips/mach-bcm947xx
++load-$(CONFIG_BCM947XX)		:= 0xffffffff80001000
++
++#
+ # SNI RM
+ #
+ core-$(CONFIG_SNI_RM)		+= arch/mips/sni/
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-double-hpet-clocksource-hard-freeze.patch
-git-acpi.patch
-git-ia64.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+git-kvm.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+git-wireless.patch
+move-mm_struct-and-vm_area_struct-fix.patch
