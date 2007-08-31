@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:28:02 -0700
-Message-ID: <200708312133.l7VLXMVA027599@imap1.linux-foundation.org>
+Subject: + remove-bits_to_type-macro-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:35:07 -0700
+Message-ID: <200708312140.l7VLeRSl027846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38940 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38612 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965553AbXHaVdx (ORCPT
+	by vger.kernel.org with ESMTP id S965554AbXHaVk5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:33:53 -0400
+	Fri, 31 Aug 2007 17:40:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com
 
 
 The patch titled
-     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     remove-bits_to_type-macro-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     remove-bits_to_type-macro-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: remove-bits_to_type-macro-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/firewire/fw-device.c: In function 'fw_unit_uevent':
-drivers/firewire/fw-device.c:138: warning: unused variable 'i'
-drivers/firewire/fw-device.c:137: warning: unused variable 'length'
+In file included from drivers/ieee1394/nodemgr.c:11:
+include/linux/bitmap.h: In function 'bitmap_zero':
+include/linux/bitmap.h:137: error: implicit declaration of function 'DIV_ROUND_UP'
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/fw-device.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/bitmap.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/firewire/fw-device.c
---- a/drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/firewire/fw-device.c
-@@ -134,8 +134,6 @@ fw_unit_uevent(struct device *dev, struc
- {
- 	struct fw_unit *unit = fw_unit(dev);
- 	char modalias[64];
--	int length = 0;
--	int i = 0;
+diff -puN include/linux/bitops.h~remove-bits_to_type-macro-fix include/linux/bitops.h
+diff -puN include/linux/bitmap.h~remove-bits_to_type-macro-fix include/linux/bitmap.h
+--- a/include/linux/bitmap.h~remove-bits_to_type-macro-fix
++++ a/include/linux/bitmap.h
+@@ -6,6 +6,7 @@
+ #include <linux/types.h>
+ #include <linux/bitops.h>
+ #include <linux/string.h>
++#include <linux/kernel.h>
  
- 	get_modalias(unit, modalias, sizeof(modalias));
- 
+ /*
+  * bitmaps provide bit arrays that consume one or more unsigned
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -196,3 +195,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+remove-bits_to_type-macro-fix.patch
