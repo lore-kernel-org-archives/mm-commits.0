@@ -1,287 +1,291 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:06:54 -0700
-Message-ID: <200708311906.l7VJ6xgf022207@imap1.linux-foundation.org>
+Subject: + sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:08:29 -0700
+Message-ID: <200708311908.l7VJ8TbQ022231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932654AbXHaTHJ (ORCPT
+	by vger.kernel.org with ESMTP id S932719AbXHaTIc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:07:09 -0400
+	Fri, 31 Aug 2007 15:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, adaplas@gmail.com
+Cc: ebiederm@xmission.com
 
 
 The patch titled
-     fbcon: Convert struct font_desc to use ISO C initializers (update)
+     sysctl: deprecate sys_sysctl in a user space visible fashion.
 has been added to the -mm tree.  Its filename is
-     fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.pa=
-tch
+     sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbcon: Convert struct font_desc to use ISO C initializers (upd=
-ate)
-=46rom: Ralf Baechle <ralf@linux-mips.org>
+Subject: sysctl: deprecate sys_sysctl in a user space visible fashion.
+From: ebiederm@xmission.com (Eric W. Biederman)
 
-Akpm's patch "newport_con warning fix" got me to look at the console
-drivers again and one thing that I noticed was that none of the fonts
-was using ISO initializers for it's fonts.
+After adding checking to register_sysctl_table and finding a whole new set
+of bugs.  Missed by countless code reviews and testers I have finally lost
+patience with the binary sysctl interface.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+The binary sysctl interface has been sort of deprecated for years and
+finding a user space program that uses the syscall is more difficult then
+finding a needle in a haystack.  Problems continue to crop up, with the in
+kernel implementation.  So since supporting something that no one uses is
+silly, deprecate sys_sysctl with a sufficient grace period and notice that
+the handful of user space applications that care can be fixed or replaced.
+
+The /proc/sys sysctl interface that people use will continue to be
+supported indefinitely.
+
+This patch moves the tested warning about sysctls from the path where
+sys_sysctl to a separate path called from both implementations of
+sys_sysctl, and it adds a proper entry into
+Documentation/feature-removal-schedule.
+
+Allowing us to revisit this in a couple years time and actually kill
+sys_sysctl.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |  146 +--------------------------
- 1 files changed, 10 insertions(+), 136 deletions(-)
+ Documentation/feature-removal-schedule.txt |   35 ++++++++++
+ kernel/sysctl.c                            |   62 +++++++++++--------
+ 2 files changed, 74 insertions(+), 23 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_=
-desc-to-use-iso-c-initializers-update drivers/video/backlight/cr_bllcd.=
-c
---- a/drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_desc=
--to-use-iso-c-initializers-update
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -25,7 +25,6 @@
-  * Authors:
-  *   Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
-  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
-- *   Michel D=E4nzer <michel-at-tungstengraphics-dot-com>
-  */
-=20
- #include <linux/module.h>
-@@ -39,8 +38,6 @@
- #include <linux/pci.h>
- #include <asm/uaccess.h>
-=20
--#define MODULE_NAME "cr_bllcd"
--
- /* The LVDS- and panel power controls sits on the
-  * GPIO port of the ISA bridge.
-  */
-@@ -54,25 +51,19 @@
- #define CRVML_PANEL_ON      0x00000002
- #define CRVML_BACKLIGHT_OFF 0x00000004
-=20
-+/* The PLL Clock register sits on Host bridge */
-+#define CRVML_DEVICE_MCH   0x5001
-+#define CRVML_REG_MCHBAR   0x44
-+#define CRVML_REG_MCHEN    0x54
-+#define CRVML_MCHEN_BIT    (1 << 28)
-+#define CRVML_MCHMAP_SIZE  4096
-+#define CRVML_REG_CLOCK    0xc3c
-+#define CRVML_CLOCK_SHIFT  8
-+#define CRVML_CLOCK_MASK   0x00000f00
+diff -puN Documentation/feature-removal-schedule.txt~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion
++++ a/Documentation/feature-removal-schedule.txt
+@@ -65,6 +65,41 @@ Who:	Mauro Carvalho Chehab <mchehab@brtu
+ 
+ ---------------------------
+ 
++What:	sys_sysctl
++When:	September 2010
++Option: CONFIG_SYSCTL_SYSCALL
++Why:	The same information is available in a more convenient from
++	/proc/sys, and none of the sysctl variables appear to be
++	important performance wise.
 +
- static struct pci_dev *lpc_dev;
- static u32 gpio_bar;
-=20
--#ifdef CONFIG_PM
--
--#define NUM_LPC_EXTRA_CONFIG_SPACE 45
--static int lpc_saved_config_space[NUM_LPC_EXTRA_CONFIG_SPACE];
--
--#define CRVML_REG_RCBABAR   0xF0
--#define CRVML_RCBAEN_BIT    (1 << 0)
--#define CRVML_RCBAMAP_SIZE  16384
--static u32 rcba_bar;
--static void __iomem *rcba_regs_base;
--
--#define REGSAVE_SIZE (CRVML_RCBAMAP_SIZE + 4)
--static u32 *regsave;
--
--#endif /* CONFIG_PM */
--
- struct cr_panel {
- 	struct backlight_device *cr_backlight_device;
- 	struct lcd_device *cr_lcd_device;
-@@ -178,94 +169,6 @@ static struct lcd_ops cr_lcd_ops =3D {
- 	.set_power =3D cr_lcd_set_power,
- };
-=20
--#ifdef CONFIG_PM
--
--static int cr_backlight_suspend(struct platform_device *pdev,
--				pm_message_t state)
--{
--	int i;
--	int reg;
--	int saveidx =3D 0;
--
--	printk(KERN_DEBUG MODULE_NAME ": suspending to state: %d\n",
--	       state.event);
--
--	regsave =3D kmalloc(REGSAVE_SIZE, GFP_ATOMIC);
--
--	if (!regsave) {
--		printk(KERN_ERR MODULE_NAME
--		       ": Could not allocate %d bytes for saving registers\n",
--		       REGSAVE_SIZE);
--		return -ENOMEM;
--	}
--
--	/* Save registers and config space */
--
--	regsave[saveidx++] =3D inl(gpio_bar + CRVML_PANEL_PORT);
--
--	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
--		regsave[saveidx++] =3D ioread32(rcba_regs_base + reg);
--
--	pci_save_state(lpc_dev);
--	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++)
--		pci_read_config_dword(lpc_dev, (i + 16) * 4,
--				      &lpc_saved_config_space[i]);
--	pci_disable_device(lpc_dev);
--	pci_set_power_state(lpc_dev, pci_choose_state(lpc_dev, state));
--
--	pdev->dev.power.power_state =3D state;
--
--	return 0;
--}
--
--static int cr_backlight_resume(struct platform_device *pdev)
--{
--	int i;
--	int reg;
--	int val;
--	int restoreidx =3D 0;
--
--	if (pdev->dev.power.power_state.event =3D=3D PM_EVENT_ON)
--		return 0;
--
--	pci_set_power_state(lpc_dev, PCI_D0);
--	pci_restore_state(lpc_dev);
--	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++) {
--		if (i =3D=3D 0x70 / 4)
--			continue;
--
--		pci_read_config_dword(lpc_dev, (i + 16) * 4, &val);
--		if (val !=3D lpc_saved_config_space[i]) {
--			printk(KERN_DEBUG MODULE_NAME ": Writing back config "
--			       "space on device %s at offset %x (was %x, "
--			       "writing %x)\n", pci_name(lpc_dev), (i + 16),
--			       val, lpc_saved_config_space[i]);
--			pci_write_config_dword(lpc_dev, (i + 16) * 4,
--					       lpc_saved_config_space[i]);
--		}
--	}
--	if (pci_enable_device(lpc_dev))
--		return -1;
--
--	outl(regsave[restoreidx++], gpio_bar + CRVML_PANEL_PORT);
--
--	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
--		iowrite32(regsave[restoreidx++], rcba_regs_base + reg);
--
--	/* Flush posted writes */
--	ioread32(rcba_regs_base);
--
--	kfree(regsave);
--
--	pdev->dev.power.power_state =3D PMSG_ON;
--
--	printk(KERN_DEBUG MODULE_NAME ": resumed\n");
--
--	return 0;
--}
--
--#endif /* CONFIG_PM */
--
- static int cr_backlight_probe(struct platform_device *pdev)
- {
- 	struct backlight_device *bdp;
-@@ -325,26 +228,6 @@ static int cr_backlight_probe(struct pla
-=20
- 	platform_set_drvdata(pdev, crp);
-=20
--#ifdef CONFIG_PM
--	pci_read_config_dword(lpc_dev, CRVML_REG_RCBABAR, &rcba_bar);
--
--	if (!(rcba_bar & CRVML_RCBAEN_BIT)) {
--		printk(KERN_ERR MODULE_NAME
--		       ": Carillo Ranch LPC device RCBA BAR was not enabled\n");
--		pci_dev_put(lpc_dev);
--		return -ENODEV;
--	}
--
--	rcba_regs_base =3D
--	    ioremap_nocache(rcba_bar, CRVML_RCBAMAP_SIZE);
--	if (!rcba_regs_base) {
--		printk(KERN_ERR MODULE_NAME
--		       ": Could not map Carillo Ranch RCBA BAR\n");
--		pci_dev_put(lpc_dev);
--		return -ENODEV;
--	}
--#endif /* CONFIG_PM */
--
- 	return 0;
++	Binary sysctls are a long standing source of subtle kernel
++	bugs and security issues.
++
++	When I looked several months ago all I could find after
++	searching several distributions were 5 user space programs and
++	glibc (which falls back to /proc/sys) using this syscall.
++
++	The man page for sysctl(2) documents it as unusable for user
++	space programs.
++
++	sysctl(2) is not generally ABI compatible to a 32bit user
++	space application on a 64bit and a 32bit kernel.
++
++	For the last several months the policy has been no new binary
++	sysctls and no one has put forward an argument to use them.
++
++	Binary sysctls issues seem to keep happening appearing so
++	properly deprecating them (with a warning to user space) and a
++	2 year grace warning period will mean eventually we can kill
++	them and end the pain.
++
++	In the mean time individual binary sysctls can be dealt with
++	in a piecewise fashion.
++
++Who:	Eric Biederman <ebiederm@xmission.com>
++
++---------------------------
++
+ What:  a.out interpreter support for ELF executables
+ When:  2.6.25
+ Files: fs/binfmt_elf.c
+diff -puN kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion
++++ a/kernel/sysctl.c
+@@ -1320,6 +1320,33 @@ struct ctl_table_header *sysctl_head_nex
+ 	return NULL;
  }
-=20
-@@ -358,11 +241,6 @@ static int cr_backlight_remove(struct pl
- 	cr_lcd_set_power(crp->cr_lcd_device, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(crp->cr_backlight_device);
- 	lcd_device_unregister(crp->cr_lcd_device);
--	platform_set_drvdata(pdev, NULL);
--#ifdef CONFIG_PM
--	iounmap(rcba_regs_base);
--#endif
--	kfree(crp);
- 	pci_dev_put(lpc_dev);
-=20
- 	return 0;
-@@ -374,10 +252,6 @@ static struct platform_driver cr_backlig
- 	.driver =3D {
- 		   .name =3D "cr_backlight",
- 		   },
--#ifdef CONFIG_PM
--	.suspend =3D cr_backlight_suspend,
--	.resume =3D cr_backlight_resume,
--#endif
- };
-=20
- static struct platform_device *crp;
+ 
++static int deprecated_sysctl_warning(struct __sysctl_args *args)
++{
++	static int msg_count;
++	int name[CTL_MAXNAME];
++	int i;
++
++	/* Read in the sysctl name for better debug message logging */
++	for (i = 0; i < args->nlen; i++)
++		if (get_user(name[i], args->name + i))
++			return -EFAULT;
++
++	/* Ignore accesses to kernel.version */
++	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
++		return 0;
++
++	if (msg_count < 5) {
++		msg_count++;
++		printk(KERN_INFO
++			"warning: process `%s' used the deprecated sysctl "
++			"system call with ", current->comm);
++		for (i = 0; i < args->nlen; i++)
++			printk("%d.", name[i]);
++		printk("\n");
++	}
++	return 0;
++}
++
+ #ifdef CONFIG_SYSCTL_SYSCALL
+ int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
+ 	       void __user *newval, size_t newlen)
+@@ -1355,10 +1382,15 @@ asmlinkage long sys_sysctl(struct __sysc
+ 	if (copy_from_user(&tmp, args, sizeof(tmp)))
+ 		return -EFAULT;
+ 
++	error = deprecated_sysctl_warning(&tmp);
++	if (error)
++		goto out;
++
+ 	lock_kernel();
+ 	error = do_sysctl(tmp.name, tmp.nlen, tmp.oldval, tmp.oldlenp,
+ 			  tmp.newval, tmp.newlen);
+ 	unlock_kernel();
++out:
+ 	return error;
+ }
+ #endif /* CONFIG_SYSCTL_SYSCALL */
+@@ -2548,35 +2580,19 @@ int sysctl_ms_jiffies(struct ctl_table *
+ 
+ asmlinkage long sys_sysctl(struct __sysctl_args __user *args)
+ {
+-	static int msg_count;
+ 	struct __sysctl_args tmp;
+-	int name[CTL_MAXNAME];
+-	int i;
++	int error;
+ 
+-	/* Read in the sysctl name for better debug message logging */
+ 	if (copy_from_user(&tmp, args, sizeof(tmp)))
+ 		return -EFAULT;
+-	if (tmp.nlen <= 0 || tmp.nlen >= CTL_MAXNAME)
+-		return -ENOTDIR;
+-	for (i = 0; i < tmp.nlen; i++)
+-		if (get_user(name[i], tmp.name + i))
+-			return -EFAULT;
+ 
+-	/* Ignore accesses to kernel.version */
+-	if ((tmp.nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
+-		goto out;
++	error = deprecated_sysctl_warning(&tmp);
+ 
+-	if (msg_count < 5) {
+-		msg_count++;
+-		printk(KERN_INFO
+-			"warning: process `%s' used the removed sysctl "
+-			"system call with ", current->comm);
+-		for (i = 0; i < tmp.nlen; i++)
+-			printk("%d.", name[i]);
+-		printk("\n");
+-	}
+-out:
+-	return -ENOSYS;
++	/* If no error reading the parameters then just -ENOSYS ... */
++	if (!error)
++		error = -ENOSYS;
++
++	return error;
+ }
+ 
+ int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
-origin.patch
-git-mips.patch
-tty-add-the-new-ioctls-and-definitionto-the-mips.patch
-mips-qemu-network-work-again.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlook=
-ed-files.patch
-git-mtd.patch
-git-netdev-all.patch
-ioc3-program-uart-predividers.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-serio-fix-modpost-warning.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
+dvb_en_50221-convert-to-kthread-api.patch
+clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-remove-broken-cdrom-binary-sysctls-update.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-parport-remove-binary-paths.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-simplify-the-pty-sysctl-logic.patch
+sysctl-remove-broken-netfilter-binary-sysctls.patch
+sysctl-remove-the-cad_pid-binary-sysctl-path.patch
+sysctl-properly-register-the-irda-binary-sysctl-numbers.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+sysctl-update-sysctl_check_table.patch
+sysctl-update-sysctl_checks-list-of-binary-paths.patch
+sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
+sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch
+sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
