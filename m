@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-convert-to-new-aops-fix-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:05 -0700
-Message-ID: <200708311819.l7VIJ5rl020386@imap1.linux-foundation.org>
+Subject: + affs-convert-to-new-aops-fix-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:01 -0700
+Message-ID: <200708311819.l7VIJ1Ng020374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41317 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965803AbXHaSTg (ORCPT
+	by vger.kernel.org with ESMTP id S965780AbXHaSTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:36 -0400
+	Fri, 31 Aug 2007 14:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     ext3 convert to new aops fix fix
+     affs convert to new aops fix fix
 has been added to the -mm tree.  Its filename is
-     ext3-convert-to-new-aops-fix-fix.patch
+     affs-convert-to-new-aops-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3 convert to new aops fix fix
+Subject: affs convert to new aops fix fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    3 ---
- 1 files changed, 3 deletions(-)
+ fs/affs/file.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix
-+++ a/fs/ext3/inode.c
-@@ -36,7 +36,6 @@
- #include <linux/mpage.h>
- #include <linux/uio.h>
- #include <linux/bio.h>
+diff -puN fs/affs/file.c~affs-convert-to-new-aops-fix-fix fs/affs/file.c
+--- a/fs/affs/file.c~affs-convert-to-new-aops-fix-fix
++++ a/fs/affs/file.c
+@@ -13,7 +13,6 @@
+  */
+ 
+ #include "affs.h"
 -#include <linux/swap.h> /* mark_page_accessed */
- #include "xattr.h"
- #include "acl.h"
  
-@@ -1232,8 +1231,6 @@ static int ext3_generic_write_end(struct
+ #if PAGE_SIZE < 4096
+ #error PAGE_SIZE must be at least 4096
+@@ -769,7 +768,6 @@ done:
+ 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
  
- 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
- 
+ 	unlock_page(page);
 -	mark_page_accessed(page);
--
- 	if (pos+copied > inode->i_size) {
- 		i_size_write(inode, pos+copied);
- 		mark_inode_dirty(inode);
+ 	page_cache_release(page);
+ 
+ 	return written;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
