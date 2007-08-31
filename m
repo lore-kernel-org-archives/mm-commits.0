@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sh-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:49 -0700
-Message-ID: <200708311844.l7VIin70021342@imap1.linux-foundation.org>
+Subject: + cris-cleanup-struct-irqaction-initializers.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:44:41 -0700
+Message-ID: <200708311844.l7VIifrJ021329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48356 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965931AbXHaSpX (ORCPT
+	by vger.kernel.org with ESMTP id S965906AbXHaSpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:23 -0400
+	Fri, 31 Aug 2007 14:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, lethal@linux-sh.org
+Cc: tglx@linutronix.de, starvik@axis.com
 
 
 The patch titled
-     SH: cleanup struct irqaction initializers
+     CRIS: cleanup struct irqaction initializers
 has been added to the -mm tree.  Its filename is
-     sh-cleanup-struct-irqaction-initializers.patch
+     cris-cleanup-struct-irqaction-initializers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SH: cleanup struct irqaction initializers
+Subject: CRIS: cleanup struct irqaction initializers
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/se/7343/irq.c           |    7 +++++--
- arch/sh/cchips/hd6446x/hd64461.c       |    7 ++++++-
- arch/sh/cchips/hd6446x/hd64465/setup.c |    7 ++++++-
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ arch/cris/arch-v10/kernel/time.c |    8 ++++++--
+ arch/cris/arch-v32/kernel/smp.c  |    8 ++++++--
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN arch/sh/boards/se/7343/irq.c~sh-cleanup-struct-irqaction-initializers arch/sh/boards/se/7343/irq.c
---- a/arch/sh/boards/se/7343/irq.c~sh-cleanup-struct-irqaction-initializers
-+++ a/arch/sh/boards/se/7343/irq.c
-@@ -99,8 +99,11 @@ shmse_irq_demux(int irq)
-  *
-  * We configure IRQ5 as a cascade IRQ.
+diff -puN arch/cris/arch-v10/kernel/time.c~cris-cleanup-struct-irqaction-initializers arch/cris/arch-v10/kernel/time.c
+--- a/arch/cris/arch-v10/kernel/time.c~cris-cleanup-struct-irqaction-initializers
++++ a/arch/cris/arch-v10/kernel/time.c
+@@ -254,8 +254,12 @@ timer_interrupt(int irq, void *dev_id, s
+  * it needs to be IRQF_DISABLED to make the jiffies update work properly
   */
--static struct irqaction irq5 = { no_action, 0, CPU_MASK_NONE, "IRQ5-cascade",
--				NULL, NULL};
-+static struct irqaction irq5 = {
-+	.handler = no_action,
+ 
+-static struct irqaction irq2  = { timer_interrupt, IRQF_SHARED | IRQF_DISABLED,
+-				  CPU_MASK_NONE, "timer", NULL, NULL};
++static struct irqaction irq2  = {
++	.handler = timer_interrupt,
++	.flags = IRQF_SHARED | IRQF_DISABLED,
 +	.mask = CPU_MASK_NONE,
-+	.name = "IRQ5-cascade",
++	.name = "timer",
 +};
  
- static struct ipr_data se7343_irq5_ipr_map[] = {
- 	{ IRQ5_IRQ, IRQ5_IPR_ADDR+2, IRQ5_IPR_POS, IRQ5_PRIORITY },
-diff -puN arch/sh/cchips/hd6446x/hd64461.c~sh-cleanup-struct-irqaction-initializers arch/sh/cchips/hd6446x/hd64461.c
---- a/arch/sh/cchips/hd6446x/hd64461.c~sh-cleanup-struct-irqaction-initializers
-+++ a/arch/sh/cchips/hd6446x/hd64461.c
-@@ -124,7 +124,12 @@ int hd64461_irq_demux(int irq)
- 	return __irq_demux(irq);
- }
+ void __init
+ time_init(void)
+diff -puN arch/cris/arch-v32/kernel/smp.c~cris-cleanup-struct-irqaction-initializers arch/cris/arch-v32/kernel/smp.c
+--- a/arch/cris/arch-v32/kernel/smp.c~cris-cleanup-struct-irqaction-initializers
++++ a/arch/cris/arch-v32/kernel/smp.c
+@@ -63,8 +63,12 @@ static unsigned long irq_regs[NR_CPUS] =
  
--static struct irqaction irq0 = { hd64461_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "HD64461", NULL, NULL };
-+static struct irqaction irq0 = {
-+	.handler = hd64461_interrupt,
+ static irqreturn_t crisv32_ipi_interrupt(int irq, void *dev_id, struct pt_regs *regs);
+ static int send_ipi(int vector, int wait, cpumask_t cpu_mask);
+-static struct irqaction irq_ipi  = { crisv32_ipi_interrupt, IRQF_DISABLED,
+-                                     CPU_MASK_NONE, "ipi", NULL, NULL};
++static struct irqaction irq_ipi  = {
++	.handler = crisv32_ipi_interrupt,
 +	.flags = IRQF_DISABLED,
 +	.mask = CPU_MASK_NONE,
-+	.name = "HD64461",
++	.name = "ipi",
 +};
  
- int __init setup_hd64461(void)
- {
-diff -puN arch/sh/cchips/hd6446x/hd64465/setup.c~sh-cleanup-struct-irqaction-initializers arch/sh/cchips/hd6446x/hd64465/setup.c
---- a/arch/sh/cchips/hd6446x/hd64465/setup.c~sh-cleanup-struct-irqaction-initializers
-+++ a/arch/sh/cchips/hd6446x/hd64465/setup.c
-@@ -147,7 +147,12 @@ int hd64465_irq_demux(int irq)
- 	return irq;
- }
- 
--static struct irqaction irq0  = { hd64465_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "HD64465", NULL, NULL};
-+static struct irqaction irq0  = {
-+	.handler = hd64465_interrupt,
-+	.flags = IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "HD64465",
-+};
- 
- 
- static int __init setup_hd64465(void)
+ extern void cris_mmu_init(void);
+ extern void cris_timer_init(void);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
