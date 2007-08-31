@@ -1,142 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:02 -0700
-Message-ID: <200708311656.l7VGu2mO017457@imap1.linux-foundation.org>
+Subject: - revert-ecryptfs-fix-lookup-error-for-special-files.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:51 -0700
+Message-ID: <200708311656.l7VGupWZ017517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49041 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760799AbXHaQ4k (ORCPT
+	by vger.kernel.org with ESMTP id S1758948AbXHaRID (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 12:56:40 -0400
+	Fri, 31 Aug 2007 13:08:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, qrczak@knm.org.pl, roland@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     setpgid(child) fails if the child was forked by sub-thread
+     revert "eCryptfs: fix lookup error for special files"
 has been removed from the -mm tree.  Its filename was
-     setpgidchild-fails-if-the-child-was-forked-by-sub-thread.patch
+     revert-ecryptfs-fix-lookup-error-for-special-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: setpgid(child) fails if the child was forked by sub-thread
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: revert "eCryptfs: fix lookup error for special files"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Spotted by Marcin Kowalczyk <qrczak@knm.org.pl>.
+This patch got appied twice.
 
-sys_setpgid(child) fails if the child was forked by sub-thread.
-
-Fix the "is it our child" check. The previous commit
-ee0acf90d320c29916ba8c5c1b2e908d81f5057d was not complete.
-
-(this patch asks for the new same_thread_group() helper, but mainline doesn't
- have it yet).
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
-Cc: <stable@kernel.org>
-Tested-by: "Marcin 'Qrczak' Kowalczyk" <qrczak@knm.org.pl>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ecryptfs/inode.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/sys.c~setpgidchild-fails-if-the-child-was-forked-by-sub-thread kernel/sys.c
---- a/kernel/sys.c~setpgidchild-fails-if-the-child-was-forked-by-sub-thread
-+++ a/kernel/sys.c
-@@ -1442,7 +1442,6 @@ asmlinkage long sys_times(struct tms __u
-  * Auch. Had to add the 'did_exec' flag to conform completely to POSIX.
-  * LBT 04.03.94
-  */
--
- asmlinkage long sys_setpgid(pid_t pid, pid_t pgid)
- {
- 	struct task_struct *p;
-@@ -1470,7 +1469,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 	if (!thread_group_leader(p))
+diff -puN fs/ecryptfs/inode.c~revert-ecryptfs-fix-lookup-error-for-special-files fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~revert-ecryptfs-fix-lookup-error-for-special-files
++++ a/fs/ecryptfs/inode.c
+@@ -357,10 +357,6 @@ static struct dentry *ecryptfs_lookup(st
+ 		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
  		goto out;
- 
--	if (p->real_parent == group_leader) {
-+	if (p->real_parent->tgid == group_leader->tgid) {
- 		err = -EPERM;
- 		if (task_session(p) != task_session(group_leader))
- 			goto out;
+ 	}
+-	if (special_file(lower_inode->i_mode)) {
+-		ecryptfs_printk(KERN_DEBUG, "Is a special file; returning\n");
+-		goto out;
+-	}
+ 	if (!nd) {
+ 		ecryptfs_printk(KERN_DEBUG, "We have a NULL nd, just leave"
+ 				"as we *think* we are about to unlink\n");
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
+git-dvb-fixup-2.patch
+infiniband-work-around-gcc-slub-problem.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+de-dosify-iforce-protocoltxt.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-build-fix.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-wireless-printk-fixes.patch
+net-add-ath5k-wireless-driver-fix.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+git-xfs.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
 do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
-make-access-to-tasks-nsproxy-lighter.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
 pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
