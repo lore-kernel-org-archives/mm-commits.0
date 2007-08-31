@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:52:59 -0700
-Message-ID: <200708312158.l7VLwJZ2028493@imap1.linux-foundation.org>
+Subject: + net-atm-lecc-printk-warning-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:54:32 -0700
+Message-ID: <200708312159.l7VLxqel028550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56553 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752462AbXHaV6a (ORCPT
+	by vger.kernel.org with ESMTP id S1753084AbXHaV74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:58:30 -0400
+	Fri, 31 Aug 2007 17:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, menage@google.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     task-containersv11-shared-container-subsystem-group-arrays-include-fix
+     net/atm/lec.c printk warning fix
 has been added to the -mm tree.  Its filename is
-     task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+     net-atm-lecc-printk-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: task-containersv11-shared-container-subsystem-group-arrays-include-fix
+Subject: net/atm/lec.c printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/container.c: In function 'container_new_inode':
-kernel/container.c:573: error: variable 'container_backing_dev_info' has initializer but incomplete type
-kernel/container.c:574: error: unknown field 'capabilities' specified in initializer
-kernel/container.c:574: error: 'BDI_CAP_NO_ACCT_DIRTY' undeclared (first use in this function)
-kernel/container.c:574: error: (Each undeclared identifier is reported only once)
+net/atm/lec.c: In function 'lec_start_xmit':
+net/atm/lec.c:371: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
 
-
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/atm/lec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays-include-fix kernel/container.c
---- a/kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays-include-fix
-+++ a/kernel/container.c
-@@ -36,6 +36,7 @@
- #include <linux/proc_fs.h>
- #include <linux/rcupdate.h>
- #include <linux/sched.h>
-+#include <linux/backing-dev.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/magic.h>
+diff -puN net/atm/lec.c~net-atm-lecc-printk-warning-fix net/atm/lec.c
+--- a/net/atm/lec.c~net-atm-lecc-printk-warning-fix
++++ a/net/atm/lec.c
+@@ -367,7 +367,7 @@ static int lec_start_xmit(struct sk_buff
+ #endif
+ 	entry = NULL;
+ 	vcc = lec_arp_resolve(priv, dst, is_rdesc, &entry);
+-	pr_debug("%s:vcc:%p vcc_flags:%x, entry:%p\n", dev->name,
++	pr_debug("%s:vcc:%p vcc_flags:%lx, entry:%p\n", dev->name,
+ 		vcc, vcc ? vcc->flags : 0, entry);
+ 	if (!vcc || !test_bit(ATM_VF_READY, &vcc->flags)) {
+ 		if (entry && (entry->tx_wait.qlen < LEC_UNRES_QUE_LEN)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -202,3 +198,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+net-atm-lecc-printk-warning-fix.patch
