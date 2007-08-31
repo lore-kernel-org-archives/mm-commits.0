@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + local_t-documentation-update-2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:19:21 -0700
-Message-ID: <200708311919.l7VJJLLj022599@imap1.linux-foundation.org>
+Subject: + isolate-some-explicit-usage-of-task-tgid-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:21:09 -0700
+Message-ID: <200708311921.l7VJL9VK022721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45310 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58877 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965088AbXHaTTf (ORCPT
+	by vger.kernel.org with ESMTP id S1751686AbXHaTVe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:19:35 -0400
+	Fri, 31 Aug 2007 15:21:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org
+Cc: xemul@openvz.org, sukadev@us.ibm.com
 
 
 The patch titled
-     local_t Documentation update 2
+     Use same_thread_group() in signalfd.c
 has been added to the -mm tree.  Its filename is
-     local_t-documentation-update-2.patch
+     isolate-some-explicit-usage-of-task-tgid-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: local_t Documentation update 2
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Use same_thread_group() in signalfd.c
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Grant Grundler was asking for more detail about correct usage of local
-atomic operations and suggested adding the resulting summary to
-local_ops.txt.
+This is a lost hunk of previous patch that isolated the explicit usage of
+task->tgid in some places.  The signalfd code uses the tsk->tgid
+comparison.
 
-"Please add a bit more detail.  If DaveM is correct (he normally is), then
-there must be limits on how the local_t can be used in the kernel process
-and interrupt contexts.  I'd like those rules spelled out very clearly
-since it's easy to get wrong and tracking down such a bug is quite
-painful."
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/local_ops.txt |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+)
+ fs/signalfd.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/local_ops.txt~local_t-documentation-update-2 Documentation/local_ops.txt
---- a/Documentation/local_ops.txt~local_t-documentation-update-2
-+++ a/Documentation/local_ops.txt
-@@ -45,6 +45,29 @@ long fails. The definition looks like :
- typedef struct { atomic_long_t a; } local_t;
+diff -puN fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix fs/signalfd.c
+--- a/fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix
++++ a/fs/signalfd.c
+@@ -64,7 +64,7 @@ static int signalfd_lock(struct signalfd
+ 		return 0;
+ 	}
  
+-	if (lk->tsk->tgid == current->tgid)
++	if (same_thread_group(lk->tsk, current->tgid))
+ 		lk->tsk = current;
  
-+* Rules to follow when using local atomic operations
-+
-+- Variables touched by local ops must be per cpu variables.
-+- _Only_ the CPU owner of these variables must write to them.
-+- This CPU can use local ops from any context (process, irq, softirq, nmi, ...)
-+  to update its local_t variables.
-+- Preemption (or interrupts) must be disabled when using local ops in
-+  process context to   make sure the process won't be migrated to a
-+  different CPU between getting the per-cpu variable and doing the
-+  actual local op.
-+- When using local ops in interrupt context, no special care must be
-+  taken on a mainline kernel, since they will run on the local CPU with
-+  preemption already disabled. I suggest, however, to explicitly
-+  disable preemption anyway to make sure it will still work correctly on
-+  -rt kernels.
-+- Reading the local cpu variable will provide the current copy of the
-+  variable.
-+- Reads of these variables can be done from any CPU, because updates to
-+  "long", aligned, variables are always atomic. Since no memory
-+  synchronization is done by the writer CPU, an outdated copy of the
-+  variable can be read when reading some _other_ cpu's variables.
-+
-+
- * How to use local atomic operations
- 
- #include <linux/percpu.h>
+ 	return 1;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-git-mips.patch
-fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
-local_t-documentation-update-2.patch
-local_t-update-documentation.patch
+origin.patch
+git-net.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+isolate-some-explicit-usage-of-task-tgid-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
