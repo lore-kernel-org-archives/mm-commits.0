@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-lock-bitops.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:37:27 -0700
-Message-ID: <200708311837.l7VIbR0M021072@imap1.linux-foundation.org>
+Subject: + alpha-lock-bitops.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:37:25 -0700
+Message-ID: <200708311837.l7VIbP3K021069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52628 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43990 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965619AbXHaShc (ORCPT
+	by vger.kernel.org with ESMTP id S965885AbXHaSht (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:37:32 -0400
+	Fri, 31 Aug 2007 14:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, tony.luck@intel.com
+Cc: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     ia64: lock bitops
+     alpha: lock bitops
 has been added to the -mm tree.  Its filename is
-     ia64-lock-bitops.patch
+     alpha-lock-bitops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: lock bitops
+Subject: alpha: lock bitops
 From: Nick Piggin <npiggin@suse.de>
 
-Convert ia64 to new bitops.
+Alpha can avoid one mb when acquiring a lock with test_and_set_bit_lock.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/bitops.h |   43 ++++++++++++++++++++++++++++++++++--
- 1 files changed, 41 insertions(+), 2 deletions(-)
+ include/asm-alpha/bitops.h |   42 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-ia64/bitops.h~ia64-lock-bitops include/asm-ia64/bitops.h
---- a/include/asm-ia64/bitops.h~ia64-lock-bitops
-+++ a/include/asm-ia64/bitops.h
-@@ -94,6 +94,38 @@ clear_bit (int nr, volatile void *addr)
+diff -puN include/asm-alpha/bitops.h~alpha-lock-bitops include/asm-alpha/bitops.h
+--- a/include/asm-alpha/bitops.h~alpha-lock-bitops
++++ a/include/asm-alpha/bitops.h
+@@ -69,6 +69,13 @@ clear_bit(unsigned long nr, volatile voi
+ 	:"Ir" (1UL << (nr & 31)), "m" (*m));
  }
  
- /**
-+ * clear_bit_unlock - Clears a bit in memory with release
-+ * @nr: Bit to clear
-+ * @addr: Address to start counting from
-+ *
-+ * clear_bit_unlock() is atomic and may not be reordered.  It does
-+ * contain a memory barrier suitable for unlock type operations.
-+ */
-+static __inline__ void
-+clear_bit_unlock (int nr, volatile void *addr)
++static inline void
++clear_bit_unlock(unsigned long nr, volatile void * addr)
 +{
-+	__u32 mask, old, new;
-+	volatile __u32 *m;
-+	CMPXCHG_BUGCHECK_DECL
-+
-+	m = (volatile __u32 *) addr + (nr >> 5);
-+	mask = ~(1 << (nr & 31));
-+	do {
-+		CMPXCHG_BUGCHECK(m);
-+		old = *m;
-+		new = old & mask;
-+	} while (cmpxchg_rel(m, old, new) != old);
++	smp_mb();
++	clear_bit(nr, addr);
 +}
 +
-+/**
-+ * __clear_bit_unlock - Non-atomically clear a bit with release
-+ *
-+ * This is like clear_bit_unlock, but the implementation may use a non-atomic
-+ * store (this one uses an atomic, however).
-+ */
-+#define __clear_bit_unlock clear_bit_unlock
-+
-+/**
-  * __clear_bit - Clears a bit in memory (non-atomic version)
+ /*
+  * WARNING: non atomic version.
   */
- static __inline__ void
-@@ -170,6 +202,15 @@ test_and_set_bit (int nr, volatile void 
+@@ -81,6 +88,13 @@ __clear_bit(unsigned long nr, volatile v
  }
  
- /**
-+ * test_and_set_bit_lock - Set a bit and return its old value for lock
-+ * @nr: Bit to set
-+ * @addr: Address to count from
-+ *
-+ * This is the same as test_and_set_bit on ia64
-+ */
-+#define test_and_set_bit_lock test_and_set_bit
+ static inline void
++__clear_bit_unlock(unsigned long nr, volatile void * addr)
++{
++	smp_mb();
++	__clear_bit(nr, addr);
++}
 +
-+/**
-  * __test_and_set_bit - Set a bit and return its old value
-  * @nr: Bit to set
-  * @addr: Address to count from
-@@ -371,8 +412,6 @@ hweight64 (unsigned long x)
- #define hweight16(x)	(unsigned int) hweight64((x) & 0xfffful)
- #define hweight8(x)	(unsigned int) hweight64((x) & 0xfful)
++static inline void
+ change_bit(unsigned long nr, volatile void * addr)
+ {
+ 	unsigned long temp;
+@@ -139,6 +153,33 @@ test_and_set_bit(unsigned long nr, volat
+ 	return oldbit != 0;
+ }
  
++static inline int
++test_and_set_bit_lock(unsigned long nr, volatile void *addr)
++{
++	unsigned long oldbit;
++	unsigned long temp;
++	int *m = ((int *) addr) + (nr >> 5);
++
++	__asm__ __volatile__(
++	"1:	ldl_l %0,%4\n"
++	"	and %0,%3,%2\n"
++	"	bne %2,2f\n"
++	"	xor %0,%3,%0\n"
++	"	stl_c %0,%1\n"
++	"	beq %0,3f\n"
++	"2:\n"
++#ifdef CONFIG_SMP
++	"	mb\n"
++#endif
++	".subsection 2\n"
++	"3:	br 1b\n"
++	".previous"
++	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
++	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
++
++	return oldbit != 0;
++}
++
+ /*
+  * WARNING: non atomic version.
+  */
+@@ -376,7 +417,6 @@ static inline unsigned int hweight8(unsi
+ #else
+ #include <asm-generic/bitops/hweight.h>
+ #endif
 -#include <asm-generic/bitops/lock.h>
--
+ 
  #endif /* __KERNEL__ */
  
- #include <asm-generic/bitops/find.h>
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
