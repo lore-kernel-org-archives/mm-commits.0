@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-lock-bitops.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:37:25 -0700
-Message-ID: <200708311837.l7VIbP3K021069@imap1.linux-foundation.org>
+Subject: + powerpc-lock-bitops.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:37:33 -0700
+Message-ID: <200708311837.l7VIbXT5021084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47087 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965885AbXHaSht (ORCPT
+	by vger.kernel.org with ESMTP id S965751AbXHaShk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:37:49 -0400
+	Fri, 31 Aug 2007 14:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: npiggin@suse.de, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     alpha: lock bitops
+     powerpc: lock bitops
 has been added to the -mm tree.  Its filename is
-     alpha-lock-bitops.patch
+     powerpc-lock-bitops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,93 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha: lock bitops
+Subject: powerpc: lock bitops
 From: Nick Piggin <npiggin@suse.de>
 
-Alpha can avoid one mb when acquiring a lock with test_and_set_bit_lock.
+Add non-trivial lock bitops implementation for powerpc.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/bitops.h |   42 ++++++++++++++++++++++++++++++++++-
- 1 files changed, 41 insertions(+), 1 deletion(-)
+ include/asm-powerpc/bitops.h |   46 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 45 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/bitops.h~alpha-lock-bitops include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~alpha-lock-bitops
-+++ a/include/asm-alpha/bitops.h
-@@ -69,6 +69,13 @@ clear_bit(unsigned long nr, volatile voi
- 	:"Ir" (1UL << (nr & 31)), "m" (*m));
+diff -puN include/asm-powerpc/bitops.h~powerpc-lock-bitops include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~powerpc-lock-bitops
++++ a/include/asm-powerpc/bitops.h
+@@ -86,6 +86,24 @@ static __inline__ void clear_bit(int nr,
+ 	: "cc" );
  }
  
-+static inline void
-+clear_bit_unlock(unsigned long nr, volatile void * addr)
++static __inline__ void clear_bit_unlock(int nr, volatile unsigned long *addr)
 +{
-+	smp_mb();
-+	clear_bit(nr, addr);
++	unsigned long old;
++	unsigned long mask = BITOP_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++
++	__asm__ __volatile__(
++	LWSYNC_ON_SMP
++"1:"	PPC_LLARX "%0,0,%3	# clear_bit_unlock\n"
++	"andc	%0,%0,%2\n"
++	PPC405_ERR77(0,%3)
++	PPC_STLCX "%0,0,%3\n"
++	"bne-	1b"
++	: "=&r" (old), "+m" (*p)
++	: "r" (mask), "r" (p)
++	: "cc", "memory");
 +}
 +
- /*
-  * WARNING: non atomic version.
-  */
-@@ -81,6 +88,13 @@ __clear_bit(unsigned long nr, volatile v
+ static __inline__ void change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	unsigned long old;
+@@ -125,6 +143,27 @@ static __inline__ int test_and_set_bit(u
+ 	return (old & mask) != 0;
  }
  
- static inline void
-+__clear_bit_unlock(unsigned long nr, volatile void * addr)
++static __inline__ int test_and_set_bit_lock(unsigned long nr,
++				       volatile unsigned long *addr)
 +{
-+	smp_mb();
++	unsigned long old, t;
++	unsigned long mask = BITOP_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++
++	__asm__ __volatile__(
++"1:"	PPC_LLARX "%0,0,%3		# test_and_set_bit_lock\n"
++	"or	%1,%0,%2 \n"
++	PPC405_ERR77(0,%3)
++	PPC_STLCX "%1,0,%3 \n"
++	"bne-	1b"
++	ISYNC_ON_SMP
++	: "=&r" (old), "=&r" (t)
++	: "r" (mask), "r" (p)
++	: "cc", "memory");
++
++	return (old & mask) != 0;
++}
++
+ static __inline__ int test_and_clear_bit(unsigned long nr,
+ 					 volatile unsigned long *addr)
+ {
+@@ -185,6 +224,12 @@ static __inline__ void set_bits(unsigned
+ 
+ #include <asm-generic/bitops/non-atomic.h>
+ 
++static __inline__ void __clear_bit_unlock(int nr, volatile unsigned long *addr)
++{
++	__asm__ __volatile__(LWSYNC_ON_SMP ::: "memory");
 +	__clear_bit(nr, addr);
 +}
 +
-+static inline void
- change_bit(unsigned long nr, volatile void * addr)
- {
- 	unsigned long temp;
-@@ -139,6 +153,33 @@ test_and_set_bit(unsigned long nr, volat
- 	return oldbit != 0;
- }
- 
-+static inline int
-+test_and_set_bit_lock(unsigned long nr, volatile void *addr)
-+{
-+	unsigned long oldbit;
-+	unsigned long temp;
-+	int *m = ((int *) addr) + (nr >> 5);
-+
-+	__asm__ __volatile__(
-+	"1:	ldl_l %0,%4\n"
-+	"	and %0,%3,%2\n"
-+	"	bne %2,2f\n"
-+	"	xor %0,%3,%0\n"
-+	"	stl_c %0,%1\n"
-+	"	beq %0,3f\n"
-+	"2:\n"
-+#ifdef CONFIG_SMP
-+	"	mb\n"
-+#endif
-+	".subsection 2\n"
-+	"3:	br 1b\n"
-+	".previous"
-+	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-+	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
-+
-+	return oldbit != 0;
-+}
-+
  /*
-  * WARNING: non atomic version.
-  */
-@@ -376,7 +417,6 @@ static inline unsigned int hweight8(unsi
- #else
+  * Return the zero-based bit position (LE, not IBM bit numbering) of
+  * the most significant 1-bit in a double word.
+@@ -266,7 +311,6 @@ static __inline__ int fls(unsigned int x
+ #include <asm-generic/bitops/fls64.h>
+ 
  #include <asm-generic/bitops/hweight.h>
- #endif
 -#include <asm-generic/bitops/lock.h>
  
- #endif /* __KERNEL__ */
- 
+ #define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
+ unsigned long find_next_zero_bit(const unsigned long *addr,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
