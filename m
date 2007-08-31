@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-cs5535audio-drop-unused-bus-master-stuff.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:39:11 -0700
-Message-ID: <200708311939.l7VJdBmW023342@imap1.linux-foundation.org>
+Subject: + memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:49:13 -0700
+Message-ID: <200708311949.l7VJnDWP023698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751979AbXHaTj4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751305AbXHaTuA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:39:56 -0400
+	Fri, 31 Aug 2007 15:50:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, jayakumar.alsa@gmail.com, jordan.crouse@amd.com, perex@suse.cz, tiwai@suse.de
+Cc: y-goto@jp.fujitsu.com, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie
 
 
 The patch titled
-     ALSA: cs5535audio: drop unused bus master stuff
+     Tiny update for hot-add with sparsemem-vmemmap
 has been added to the -mm tree.  Its filename is
-     alsa-cs5535audio-drop-unused-bus-master-stuff.patch
+     memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,138 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA: cs5535audio: drop unused bus master stuff
-From: Andres Salomon <dilinger@queued.net>
+Subject: Tiny update for hot-add with sparsemem-vmemmap
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-We really only care about the first two bus masters (playback and capture). 
-There's no need to have unused BM code lying around, so let's get rid of it.
+This is tiny update for Mel-san's comment about
+memory hotplug with sparse-vmemmap.
 
-If for some reason we trigger an IRQ for some BM that we're not using..  well,
-that warrants spitting out an error message (imo).
+  - Add __meminit to sparse_mem_map_populate()
+  - Add a comment.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
-Acked-by: Jaya Kumar <jayakumar.alsa@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/cs5535audio.c |   24 ++------------------
- sound/pci/cs5535audio/cs5535audio.h |   31 --------------------------
- 2 files changed, 4 insertions(+), 51 deletions(-)
+ mm/sparse-vmemmap.c |    2 +-
+ mm/sparse.c         |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/pci/cs5535audio/cs5535audio.c~alsa-cs5535audio-drop-unused-bus-master-stuff sound/pci/cs5535audio/cs5535audio.c
---- a/sound/pci/cs5535audio/cs5535audio.c~alsa-cs5535audio-drop-unused-bus-master-stuff
-+++ a/sound/pci/cs5535audio/cs5535audio.c
-@@ -206,7 +206,6 @@ static void process_bm1_irq(struct cs553
- static irqreturn_t snd_cs5535audio_interrupt(int irq, void *dev_id)
+diff -puN mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update
++++ a/mm/sparse-vmemmap.c
+@@ -137,7 +137,7 @@ int __meminit vmemmap_populate_basepages
+ 	return 0;
+ }
+ 
+-struct page *sparse_mem_map_populate(unsigned long pnum, int nid)
++struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
  {
- 	u16 acc_irq_stat;
--	u8 bm_stat;
- 	unsigned char count;
- 	struct cs5535audio *cs5535au = dev_id;
- 
-@@ -217,7 +216,7 @@ static irqreturn_t snd_cs5535audio_inter
- 
- 	if (!acc_irq_stat)
- 		return IRQ_NONE;
--	for (count = 0; count < 10; count++) {
-+	for (count = 0; count < 4; count++) {
- 		if (acc_irq_stat & (1 << count)) {
- 			switch (count) {
- 			case IRQ_STS:
-@@ -232,26 +231,9 @@ static irqreturn_t snd_cs5535audio_inter
- 			case BM1_IRQ_STS:
- 				process_bm1_irq(cs5535au);
- 				break;
--			case BM2_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM2_STATUS);
--				break;
--			case BM3_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM3_STATUS);
--				break;
--			case BM4_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM4_STATUS);
--				break;
--			case BM5_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM5_STATUS);
--				break;
--			case BM6_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM6_STATUS);
--				break;
--			case BM7_IRQ_STS:
--				bm_stat = cs_readb(cs5535au, ACC_BM7_STATUS);
--				break;
- 			default:
--				snd_printk(KERN_ERR "Unexpected irq src\n");
-+				snd_printk(KERN_ERR "Unexpected irq src: "
-+						"0x%x\n", acc_irq_stat);
- 				break;
- 			}
- 		}
-diff -puN sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-drop-unused-bus-master-stuff sound/pci/cs5535audio/cs5535audio.h
---- a/sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-drop-unused-bus-master-stuff
-+++ a/sound/pci/cs5535audio/cs5535audio.h
-@@ -16,48 +16,19 @@
- #define ACC_IRQ_STATUS			0x12
- #define ACC_BM0_CMD			0x20
- #define ACC_BM1_CMD			0x28
--#define ACC_BM2_CMD			0x30
--#define ACC_BM3_CMD			0x38
--#define ACC_BM4_CMD			0x40
--#define ACC_BM5_CMD			0x48
--#define ACC_BM6_CMD			0x50
--#define ACC_BM7_CMD			0x58
- #define ACC_BM0_PRD			0x24
- #define ACC_BM1_PRD			0x2C
--#define ACC_BM2_PRD			0x34
--#define ACC_BM3_PRD			0x3C
--#define ACC_BM4_PRD			0x44
--#define ACC_BM5_PRD			0x4C
--#define ACC_BM6_PRD			0x54
--#define ACC_BM7_PRD			0x5C
- #define ACC_BM0_STATUS			0x21
- #define ACC_BM1_STATUS			0x29
--#define ACC_BM2_STATUS			0x31
--#define ACC_BM3_STATUS			0x39
--#define ACC_BM4_STATUS			0x41
--#define ACC_BM5_STATUS			0x49
--#define ACC_BM6_STATUS			0x51
--#define ACC_BM7_STATUS			0x59
- #define ACC_BM0_PNTR			0x60
- #define ACC_BM1_PNTR			0x64
--#define ACC_BM2_PNTR			0x68
--#define ACC_BM3_PNTR			0x6C
--#define ACC_BM4_PNTR			0x70
--#define ACC_BM5_PNTR			0x74
--#define ACC_BM6_PNTR			0x78
--#define ACC_BM7_PNTR			0x7C
-+
- /* acc_codec bar0 reg bits */
- /* ACC_IRQ_STATUS */
- #define IRQ_STS 			0
- #define WU_IRQ_STS 			1
- #define BM0_IRQ_STS 			2
- #define BM1_IRQ_STS 			3
--#define BM2_IRQ_STS 			4
--#define BM3_IRQ_STS 			5
--#define BM4_IRQ_STS 			6
--#define BM5_IRQ_STS		 	7
--#define BM6_IRQ_STS 			8
--#define BM7_IRQ_STS 			9
- /* ACC_BMX_STATUS */
- #define EOP				(1<<0)
- #define BM_EOP_ERR			(1<<1)
+ 	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
+ 	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
+diff -puN mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update mm/sparse.c
+--- a/mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update
++++ a/mm/sparse.c
+@@ -326,6 +326,7 @@ void __init sparse_init(void)
+ static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
+ 						 unsigned long nr_pages)
+ {
++	/* This will make the necessary allocations eventually. */
+ 	return sparse_mem_map_populate(pnum, nid);
+ }
+ static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-alsa-cs5535audio-correctly-set-dma-substream.patch
-alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch
-alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch
-alsa-cs5535audio-fix-acc_bm_cmd-register-handling.patch
-alsa-cs5535audio-drop-unused-bus-master-stuff.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+move-free-pages-between-lists-on-steal.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
