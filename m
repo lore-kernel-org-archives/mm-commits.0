@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + intel_cacheinfo-misc-section-annotation-fixes-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 13:50:18 -0700
-Message-ID: <200708312055.l7VKteTu026147@imap1.linux-foundation.org>
+Subject: + isolate-some-explicit-usage-of-task-tgid-fix-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 13:58:00 -0700
+Message-ID: <200708312103.l7VL3KnS026439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36386 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47544 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932572AbXHaU43 (ORCPT
+	by vger.kernel.org with ESMTP id S964880AbXHaVDt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 16:56:29 -0400
+	Fri, 31 Aug 2007 17:03:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, satyam@infradead.org, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, sukadev@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     intel_cacheinfo-misc-section-annotation-fixes-fix
+     isolate-some-explicit-usage-of-task-tgid-fix-fix
 has been added to the -mm tree.  Its filename is
-     intel_cacheinfo-misc-section-annotation-fixes-fix.patch
+     isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: intel_cacheinfo-misc-section-annotation-fixes-fix
+Subject: isolate-some-explicit-usage-of-task-tgid-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/cpu/intel_cacheinfo.c:181: error: types causes a section type conflict
-arch/i386/kernel/cpu/intel_cacheinfo.c:180: error: levels causes a section type conflict
-arch/i386/kernel/cpu/intel_cacheinfo.c:173: error: assocs causes a section type conflict
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Satyam Sharma <satyam@infradead.org>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/intel_cacheinfo.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/signalfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix arch/i386/kernel/cpu/intel_cacheinfo.c
---- a/arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix
-+++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
-@@ -170,15 +170,15 @@ union l3_cache {
- 	unsigned val;
- };
+diff -puN fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix fs/signalfd.c
+--- a/fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix
++++ a/fs/signalfd.c
+@@ -64,7 +64,7 @@ static int signalfd_lock(struct signalfd
+ 		return 0;
+ 	}
  
--static const unsigned short assocs[] __cpuinitdata = {
-+static unsigned short assocs[] __cpuinitdata = {
- 	[1] = 1, [2] = 2, [4] = 4, [6] = 8,
- 	[8] = 16, [0xa] = 32, [0xb] = 48,
- 	[0xc] = 64,
- 	[0xf] = 0xffff // ??
- };
+-	if (same_thread_group(lk->tsk, current->tgid))
++	if (same_thread_group(lk->tsk, current))
+ 		lk->tsk = current;
  
--static const unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
--static const unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
-+static unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
-+static unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
- 
- static void __cpuinit amd_cpuid4(int leaf, union _cpuid4_leaf_eax *eax,
- 		       union _cpuid4_leaf_ebx *ebx,
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -198,6 +183,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
