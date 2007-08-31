@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch added to -mm tree
-Date: Fri, 31 Aug 2007 13:26:25 -0700
-Message-ID: <200708312026.l7VKQSBM025097@imap1.linux-foundation.org>
+Subject: + h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch added to -mm tree
+Date: Fri, 31 Aug 2007 13:27:54 -0700
+Message-ID: <200708312027.l7VKRslu025120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759450AbXHaU2E (ORCPT
+	by vger.kernel.org with ESMTP id S1760438AbXHaU2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 16:28:04 -0400
+	Fri, 31 Aug 2007 16:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, ak@suse.de, benh@kernel.crashing.org, johnstul@us.ibm.com, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com
+Cc: rpjday@mindspring.com, satyam@infradead.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Fix discrepancy between VDSO based gettimeofday() and sys_gettimeofday().
+     H8/300: Fix misnamed "CONFIG_BLKDEV_RESERVE_ADDRESS" Kconfig variable
 has been added to the -mm tree.  Its filename is
-     fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+     h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix discrepancy between VDSO based gettimeofday() and sys_gettimeofday().
-From: Tony Breeds <tony@bakeyournoodle.com>
+Subject: H8/300: Fix misnamed "CONFIG_BLKDEV_RESERVE_ADDRESS" Kconfig variable
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-On platforms that copy sys_tz into the vdso (currently only x86_64, soon to
-include powerpc), it is possible for the vdso to get out of sync if a user
-calls (admittedly unusual) settimeofday(NULL, ptr).
-
-This patch adds a hook for architectures that set
-CONFIG_GENERIC_TIME_VSYSCALL to ensure when sys_tz is updated they can also
-updatee their copy in the vdso.
-
-Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Acked-by: Satyam Sharma <satyam@infradead.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/time.c       |    5 +++++
- arch/x86_64/kernel/vsyscall.c |   11 ++++++++++-
- include/linux/clocksource.h   |    5 +++++
- kernel/time.c                 |    2 ++
- 4 files changed, 22 insertions(+), 1 deletion(-)
+ arch/h8300/Kconfig.debug |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/time.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday arch/ia64/kernel/time.c
---- a/arch/ia64/kernel/time.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday
-+++ a/arch/ia64/kernel/time.c
-@@ -371,6 +371,11 @@ ia64_setup_printk_clock(void)
- 		ia64_printk_clock = ia64_itc_printk_clock;
- }
+diff -puN arch/h8300/Kconfig.debug~h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable arch/h8300/Kconfig.debug
+--- a/arch/h8300/Kconfig.debug~h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable
++++ a/arch/h8300/Kconfig.debug
+@@ -59,7 +59,7 @@ config BLKDEV_RESERVE
+ 	help
+ 	  Reserved BLKDEV area.
  
-+/* IA64 doesn't cache the timezone */
-+void update_vsyscall_tz(void)
-+{
-+}
-+
- void update_vsyscall(struct timespec *wall, struct clocksource *c)
- {
-         unsigned long flags;
-diff -puN arch/x86_64/kernel/vsyscall.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -66,6 +66,16 @@ struct vsyscall_gtod_data __vsyscall_gto
- 	.sysctl_enabled = 1,
- };
- 
-+void update_vsyscall_tz(void)
-+{
-+	unsigned long flags;
-+
-+	write_seqlock_irqsave(&vsyscall_gtod_data.lock, flags);
-+	/* sys_tz has changed */
-+	vsyscall_gtod_data.sys_tz = sys_tz;
-+	write_sequnlock_irqrestore(&vsyscall_gtod_data.lock, flags);
-+}
-+
- void update_vsyscall(struct timespec *wall_time, struct clocksource *clock)
- {
- 	unsigned long flags;
-@@ -79,7 +89,6 @@ void update_vsyscall(struct timespec *wa
- 	vsyscall_gtod_data.clock.shift = clock->shift;
- 	vsyscall_gtod_data.wall_time_sec = wall_time->tv_sec;
- 	vsyscall_gtod_data.wall_time_nsec = wall_time->tv_nsec;
--	vsyscall_gtod_data.sys_tz = sys_tz;
- 	vsyscall_gtod_data.wall_time_nsec = wall_time->tv_nsec;
- 	vsyscall_gtod_data.wall_to_monotonic = wall_to_monotonic;
- 	write_sequnlock_irqrestore(&vsyscall_gtod_data.lock, flags);
-diff -puN include/linux/clocksource.h~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday include/linux/clocksource.h
---- a/include/linux/clocksource.h~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday
-+++ a/include/linux/clocksource.h
-@@ -222,10 +222,15 @@ extern void clocksource_touch_watchdog(v
- 
- #ifdef CONFIG_GENERIC_TIME_VSYSCALL
- extern void update_vsyscall(struct timespec *ts, struct clocksource *c);
-+extern void update_vsyscall_tz(void);
- #else
- static inline void update_vsyscall(struct timespec *ts, struct clocksource *c)
- {
- }
-+
-+static inline void update_vsyscall_tz(void)
-+{
-+}
- #endif
- 
- #endif /* _LINUX_CLOCKSOURCE_H */
-diff -puN kernel/time.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday kernel/time.c
---- a/kernel/time.c~fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday
-+++ a/kernel/time.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/timex.h>
- #include <linux/capability.h>
-+#include <linux/clocksource.h>
- #include <linux/errno.h>
- #include <linux/syscalls.h>
- #include <linux/security.h>
-@@ -162,6 +163,7 @@ int do_sys_settimeofday(struct timespec 
- 	if (tz) {
- 		/* SMP safe, global irq locking makes it work. */
- 		sys_tz = *tz;
-+		update_vsyscall_tz();
- 		if (firsttime) {
- 			firsttime = 0;
- 			if (!tv)
+-config CONFIG_BLKDEV_RESERVE_ADDRESS
++config BLKDEV_RESERVE_ADDRESS
+ 	hex 'start address'
+ 	depends on BLKDEV_RESERVE
+ 	help
 _
 
-Patches currently in -mm which might be from tony@bakeyournoodle.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-mkmakefile-include-arch-on-o=-builds.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
+git-kvm.patch
+git-mtd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+remove-dead-references-to-module_parm-macro.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+remove-valueless-definition-of-hard-selected-ramfs-option.patch
+remove-final-traces-of-long-deprecated-ramdisk-kernel.patch
+add-a-rounddown_pow_of_two-routine-to-log2h.patch
