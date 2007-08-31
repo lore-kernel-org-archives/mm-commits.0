@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:34 -0700
-Message-ID: <200708311844.l7VIid8Q021326@imap1.linux-foundation.org>
+Subject: + sh64-cleanup-struct-irqaction-initializers.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:44:51 -0700
+Message-ID: <200708311844.l7VIipxJ021345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965925AbXHaSpS (ORCPT
+	by vger.kernel.org with ESMTP id S965915AbXHaSpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:18 -0400
+	Fri, 31 Aug 2007 14:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, rmk@arm.linux.org.uk
+Cc: tglx@linutronix.de, lethal@linux-sh.org
 
 
 The patch titled
-     ARM: cleanup struct irqaction initializers
+     SH64: cleanup struct irqaction initializers
 has been added to the -mm tree.  Its filename is
-     arm-cleanup-struct-irqaction-initializers.patch
+     sh64-cleanup-struct-irqaction-initializers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ARM: cleanup struct irqaction initializers
+Subject: SH64: cleanup struct irqaction initializers
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-clps7500/core.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ arch/sh64/kernel/time.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-clps7500/core.c~arm-cleanup-struct-irqaction-initializers arch/arm/mach-clps7500/core.c
---- a/arch/arm/mach-clps7500/core.c~arm-cleanup-struct-irqaction-initializers
-+++ a/arch/arm/mach-clps7500/core.c
-@@ -193,7 +193,11 @@ static struct irq_chip clps7500_no_chip 
- 	.unmask	= cl7500_no_action,
- };
+diff -puN arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers arch/sh64/kernel/time.c
+--- a/arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers
++++ a/arch/sh64/kernel/time.c
+@@ -476,8 +476,18 @@ static irqreturn_t sh64_rtc_interrupt(in
+ 	return IRQ_HANDLED;
+ }
  
--static struct irqaction irq_isa = { no_action, 0, CPU_MASK_NONE, "isa", NULL, NULL };
-+static struct irqaction irq_isa = {
-+	.handler = no_action,
+-static struct irqaction irq0  = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL};
+-static struct irqaction irq1  = { sh64_rtc_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "rtc", NULL, NULL};
++static struct irqaction irq0  = {
++	.handler = timer_interrupt,
++	.flags = IRQF_DISABLED,
 +	.mask = CPU_MASK_NONE,
-+	.name = "isa",
++	.name = "timer",
++};
++static struct irqaction irq1  = {
++	.handler = sh64_rtc_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "rtc",
 +};
  
- static void __init clps7500_init_irq(void)
+ void __init time_init(void)
  {
 _
 
