@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-resource-counters-v7-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:27:03 -0700
-Message-ID: <200708311827.l7VIR8nk020732@imap1.linux-foundation.org>
+Subject: + implement-simple-fs-aops-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:21 -0700
+Message-ID: <200708311819.l7VIJLo9020411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932834AbXHaS1a (ORCPT
+	by vger.kernel.org with ESMTP id S932913AbXHaS16 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:27:30 -0400
+	Fri, 31 Aug 2007 14:27:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, balbir@linux.vnet.ibm.com, xemul@openvz.org
+Cc: npiggin@suse.de
 
 
 The patch titled
-     memory-controller-resource-counters-v7 fix
+     implement simple fs aops fix
 has been added to the -mm tree.  Its filename is
-     memory-controller-resource-counters-v7-fix.patch
+     implement-simple-fs-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-controller-resource-counters-v7 fix
-From: David Rientjes <rientjes@google.com>
+Subject: implement simple fs aops fix
+From: Nick Piggin <npiggin@suse.de>
 
-There's a gotcha in res_counter_charge_locked() because of C99 6.3.1.8(1)
-since both counter->limit and 'val' are of unsigned long type, the result
-of the subtraction will be the same; no promotion is required.  So if
-'val' is greater than counter->limit, it will always be larger than
-counter->usage and the conditional will fail.  Simply casting this to
-signed doesn't work since counter->usage is also unsigned and thus the
-result of the subtraction will be promoted to unsigned since the ranks are
-the same.
-
-Even though the only (current) use of res_counter_charge() is with a 'val'
-actual of 1, this still fails if you set counter->limit to 0.  No chance
-of overflow unless you're running on a machine with 4KB pages and 16TB of
-memory.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN kernel/res_counter.c~memory-controller-resource-counters-v7-fix kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-resource-counters-v7-fix
-+++ a/kernel/res_counter.c
-@@ -21,7 +21,7 @@ void res_counter_init(struct res_counter
+diff -puN mm/shmem.c~implement-simple-fs-aops-fix mm/shmem.c
+--- a/mm/shmem.c~implement-simple-fs-aops-fix
++++ a/mm/shmem.c
+@@ -1476,7 +1476,6 @@ shmem_write_end(struct file *file, struc
+ 	struct inode *inode = mapping->host;
  
- int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
- {
--	if (counter->usage > (counter->limit - val)) {
-+	if (counter->usage + val > counter->limit) {
- 		counter->failcnt++;
- 		return -ENOMEM;
- 	}
+ 	set_page_dirty(page);
+-	mark_page_accessed(page);
+ 	page_cache_release(page);
+ 
+ 	if (pos+copied > inode->i_size)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
+remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
+calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+fs-fix-nobh-error-handling.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+introduce-write_begin-write_end-aops-fix2.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext2-convert-to-new-aops-fix.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+ocfs2-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix-fix.patch
+ext2-convert-to-new-aops-fix2.patch
+ext3-convert-to-new-aops-fix-fix.patch
+ext4-convert-to-new-aops-fix-fix.patch
+gfs2-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix-fix.patch
+minix-convert-to-new-aops-fix2.patch
+sysv-convert-to-new-aops-fix2.patch
+ufs-convert-to-new-aops-fix2.patch
+reiserfs-convert-to-new-aops-fix2.patch
+implement-simple-fs-aops-fix.patch
+fs-remove-some-aop_truncated_page.patch
+make-swappiness-safer-to-use.patch
+fs-reiserfs-cleanups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+reiser4-fix-for-new-aops-patches.patch
