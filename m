@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-powerpc-fixup.patch added to -mm tree
-Date: Fri, 31 Aug 2007 13:33:26 -0700
-Message-ID: <200708312033.l7VKXQSZ025307@imap1.linux-foundation.org>
+Subject: + intel_cacheinfo-misc-section-annotation-fixes-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 13:50:18 -0700
+Message-ID: <200708312055.l7VKteTu026147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36386 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759431AbXHaUeB (ORCPT
+	by vger.kernel.org with ESMTP id S932572AbXHaU43 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 16:34:01 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7VKXQHq021691
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2007 13:33:27 -0700
+	Fri, 31 Aug 2007 16:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, ak@suse.de, satyam@infradead.org, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     git-powerpc-fixup
+     intel_cacheinfo-misc-section-annotation-fixes-fix
 has been added to the -mm tree.  Its filename is
-     git-powerpc-fixup.patch
+     intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,75 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-powerpc-fixup
+Subject: intel_cacheinfo-misc-section-annotation-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+arch/i386/kernel/cpu/intel_cacheinfo.c:181: error: types causes a section type conflict
+arch/i386/kernel/cpu/intel_cacheinfo.c:180: error: levels causes a section type conflict
+arch/i386/kernel/cpu/intel_cacheinfo.c:173: error: assocs causes a section type conflict
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Satyam Sharma <satyam@infradead.org>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/ebony_defconfig |   18 ------------------
- 1 files changed, 18 deletions(-)
+ arch/i386/kernel/cpu/intel_cacheinfo.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/configs/ebony_defconfig~git-powerpc-fixup arch/powerpc/configs/ebony_defconfig
---- a/arch/powerpc/configs/ebony_defconfig~git-powerpc-fixup
-+++ a/arch/powerpc/configs/ebony_defconfig
-@@ -1,12 +1,7 @@
- #
- # Automatically generated make config: don't edit
--<<<<<<< HEAD/arch/powerpc/configs/ebony_defconfig
--# Linux kernel version: 2.6.23-rc4
--# Thu Aug 30 16:34:11 2007
--=======
- # Linux kernel version: 2.6.23-rc1-powerpc-ebony-mtd
- # Mon Jul 30 15:47:59 2007
-->>>>>>> /arch/powerpc/configs/ebony_defconfig
- #
- # CONFIG_PPC64 is not set
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix arch/i386/kernel/cpu/intel_cacheinfo.c
+--- a/arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix
++++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
+@@ -170,15 +170,15 @@ union l3_cache {
+ 	unsigned val;
+ };
  
-@@ -318,10 +313,6 @@ CONFIG_FW_LOADER=y
- # CONFIG_SYS_HYPERVISOR is not set
- CONFIG_CONNECTOR=y
- CONFIG_PROC_EVENTS=y
--<<<<<<< HEAD/arch/powerpc/configs/ebony_defconfig
--# CONFIG_MTD is not set
--CONFIG_OF_DEVICE=y
--=======
- CONFIG_MTD=y
- # CONFIG_MTD_DEBUG is not set
- # CONFIG_MTD_CONCAT is not set
-@@ -397,7 +388,6 @@ CONFIG_MTD_PHYSMAP_OF=y
- #
- # CONFIG_MTD_UBI is not set
- CONFIG_OF_DEVICE=y
-->>>>>>> /arch/powerpc/configs/ebony_defconfig
- # CONFIG_PARPORT is not set
- CONFIG_BLK_DEV=y
- # CONFIG_BLK_DEV_FD is not set
-@@ -609,15 +599,11 @@ CONFIG_USB_ARCH_HAS_EHCI=y
- # CONFIG_MMC is not set
- # CONFIG_NEW_LEDS is not set
- # CONFIG_INFINIBAND is not set
--<<<<<<< HEAD/arch/powerpc/configs/ebony_defconfig
--# CONFIG_EDAC is not set
--=======
- # CONFIG_EDAC is not set
+-static const unsigned short assocs[] __cpuinitdata = {
++static unsigned short assocs[] __cpuinitdata = {
+ 	[1] = 1, [2] = 2, [4] = 4, [6] = 8,
+ 	[8] = 16, [0xa] = 32, [0xb] = 48,
+ 	[0xc] = 64,
+ 	[0xf] = 0xffff // ??
+ };
  
- #
- # Real Time Clock
- #
-->>>>>>> /arch/powerpc/configs/ebony_defconfig
- # CONFIG_RTC_CLASS is not set
+-static const unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
+-static const unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
++static unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
++static unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
  
- #
-@@ -855,8 +841,4 @@ CONFIG_CRYPTO_DES=y
- # CONFIG_CRYPTO_CRC32C is not set
- # CONFIG_CRYPTO_CAMELLIA is not set
- # CONFIG_CRYPTO_TEST is not set
--<<<<<<< HEAD/arch/powerpc/configs/ebony_defconfig
--# CONFIG_CRYPTO_HW is not set
--=======
- CONFIG_CRYPTO_HW=y
-->>>>>>> /arch/powerpc/configs/ebony_defconfig
+ static void __cpuinit amd_cpuid4(int leaf, union _cpuid4_leaf_eax *eax,
+ 		       union _cpuid4_leaf_ebx *ebx,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +75,7 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-powerpc-fixup.patch
 revert-gregkh-driver-block-device.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 git-dvb.patch
@@ -155,6 +121,7 @@ git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.
 git-wireless-printk-fixes.patch
 net-add-ath5k-wireless-driver-fix.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
+intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 git-xfs.patch
@@ -237,4 +204,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-powerpc-fixup.patch
