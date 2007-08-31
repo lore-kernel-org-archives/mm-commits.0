@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-write_begin-write_end-aops-fix2.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:16:27 -0700
-Message-ID: <200708311816.l7VIGRKp020323@imap1.linux-foundation.org>
+Subject: + ext3-convert-to-new-aops-fix-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:05 -0700
+Message-ID: <200708311819.l7VIJ5rl020386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35147 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965785AbXHaSQc (ORCPT
+	by vger.kernel.org with ESMTP id S965803AbXHaSTg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:16:32 -0400
+	Fri, 31 Aug 2007 14:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     introduce write_begin write_end aops fix2
+     ext3 convert to new aops fix fix
 has been added to the -mm tree.  Its filename is
-     introduce-write_begin-write_end-aops-fix2.patch
+     ext3-convert-to-new-aops-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: introduce write_begin write_end aops fix2
+Subject: ext3 convert to new aops fix fix
 From: Nick Piggin <npiggin@suse.de>
-
-Callers should do the mark_page_accessed, as it is more flexible and in
-some contexts they don't want to be doing so, eg.  dir-in-pagecache writes
-into buffer cache (although that's debateable, it wouldn't be possible if
-write_end() did the mark_page_accessed()).
-
-Subsequent patches contain fixes either to take mark_page_accessed out of
-their write_end implementation, or in the case of dir-in-pagecache
-filesystems, I had incorrectly added a mark_page_accessed where there was
-previously none (it looks like the logical place to mark the page accessed,
-but changing behaviour is obviously wrong for this bugfix series).
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c  |    1 -
- mm/filemap.c |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/ext3/inode.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN fs/buffer.c~introduce-write_begin-write_end-aops-fix2 fs/buffer.c
---- a/fs/buffer.c~introduce-write_begin-write_end-aops-fix2
-+++ a/fs/buffer.c
-@@ -2052,7 +2052,6 @@ int generic_write_end(struct file *file,
- 	}
+diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix
++++ a/fs/ext3/inode.c
+@@ -36,7 +36,6 @@
+ #include <linux/mpage.h>
+ #include <linux/uio.h>
+ #include <linux/bio.h>
+-#include <linux/swap.h> /* mark_page_accessed */
+ #include "xattr.h"
+ #include "acl.h"
  
- 	unlock_page(page);
+@@ -1232,8 +1231,6 @@ static int ext3_generic_write_end(struct
+ 
+ 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
 -	mark_page_accessed(page);
- 	page_cache_release(page);
- 
- 	return copied;
-diff -puN mm/filemap.c~introduce-write_begin-write_end-aops-fix2 mm/filemap.c
---- a/mm/filemap.c~introduce-write_begin-write_end-aops-fix2
-+++ a/mm/filemap.c
-@@ -1913,6 +1913,7 @@ int pagecache_write_end(struct file *fil
- 	int ret;
- 
- 	if (aops->write_end) {
-+		mark_page_accessed(page);
- 		ret = aops->write_end(file, mapping, pos, len, copied,
- 							page, fsdata);
- 	} else {
-@@ -1922,6 +1923,7 @@ int pagecache_write_end(struct file *fil
- 		flush_dcache_page(page);
- 		ret = aops->commit_write(file, page, offset, offset+len);
- 		unlock_page(page);
-+		mark_page_accessed(page);
- 		page_cache_release(page);
- 		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
- 
+-
+ 	if (pos+copied > inode->i_size) {
+ 		i_size_write(inode, pos+copied);
+ 		mark_inode_dirty(inode);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -144,6 +122,17 @@ fs-adfs-convert-to-new-aops.patch
 fs-affs-convert-to-new-aops.patch
 affs-convert-to-new-aops-fix.patch
 ocfs2-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix-fix.patch
+ext2-convert-to-new-aops-fix2.patch
+ext3-convert-to-new-aops-fix-fix.patch
+ext4-convert-to-new-aops-fix-fix.patch
+gfs2-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix-fix.patch
+minix-convert-to-new-aops-fix2.patch
+sysv-convert-to-new-aops-fix2.patch
+ufs-convert-to-new-aops-fix2.patch
+reiserfs-convert-to-new-aops-fix2.patch
+implement-simple-fs-aops-fix.patch
 fs-remove-some-aop_truncated_page.patch
 make-swappiness-safer-to-use.patch
 fs-reiserfs-cleanups.patch
