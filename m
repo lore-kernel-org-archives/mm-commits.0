@@ -1,179 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - sigqueue_free-fix-the-race-with-collect_signal.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:23 -0700
-Message-ID: <200708311656.l7VGuNmx017481@imap1.linux-foundation.org>
+Subject: + drivers-block-ccissc-fix-check-after-use.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:06:32 -0700
+Message-ID: <200708311806.l7VI6XDZ019959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50169 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50430 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965401AbXHaRPC (ORCPT
+	by vger.kernel.org with ESMTP id S965544AbXHaSHA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 13:15:02 -0400
+	Fri, 31 Aug 2007 14:07:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, adobriyan@sw.ru, jeremy.katz@windriver.com, mingo@elte.hu, roland@redhat.com, stable@kernel.org, sukadev@us.ibm.com, tglx@linutronix.de, yue.tao@windriver.com, mm-com
+To: mm-commits@vger.kernel.org
+Cc: bunk@kernel.org, bunk@stusta.de, mike.miller@hp.com
 
 
 The patch titled
-     sigqueue_free: fix the race with collect_signal()
-has been removed from the -mm tree.  Its filename was
-     sigqueue_free-fix-the-race-with-collect_signal.patch
+     drivers/block/cciss.c: fix check-after-use
+has been added to the -mm tree.  Its filename is
+     drivers-block-ccissc-fix-check-after-use.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sigqueue_free: fix the race with collect_signal()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: drivers/block/cciss.c: fix check-after-use
+From: Adrian Bunk <bunk@kernel.org>
 
-Spotted by taoyue <yue.tao@windriver.com> and Jeremy Katz <jeremy.katz@windriver.com>.
+The Coverity checker spotted that we have already oops'ed if "disk"
+was NULL.
 
-collect_signal:				sigqueue_free:
+Since "disk" being NULL seems impossible at this point this patch
+removes the NULL check.
 
-	list_del_init(&first->list);
-						if (!list_empty(&q->list)) {
-							// not taken
-						}
-						q->flags &= ~SIGQUEUE_PREALLOC;
-
-	__sigqueue_free(first);			__sigqueue_free(q);
-
-Now, __sigqueue_free() is called twice on the same "struct sigqueue" with the
-obviously bad implications.
-
-In particular, this double free breaks the array_cache->avail logic, so the
-same sigqueue could be "allocated" twice, and the bug can manifest itself via
-the "impossible" BUG_ON(!SIGQUEUE_PREALLOC) in sigqueue_free/send_sigqueue.
-
-Hopefully this can explain these mysterious bug-reports, see
-
-	http://marc.info/?t=118766926500003
-	http://marc.info/?t=118466273000005
-
-Alexey Dobriyan reports this patch makes the difference for the testcase, but
-nobody has an access to the application which opened the problems originally.
-
-Also, this patch removes tasklist lock/unlock, ->siglock is enough.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: taoyue <yue.tao@windriver.com>
-Cc: Jeremy Katz <jeremy.katz@windriver.com>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/block/cciss.c |   56 +++++++++++++++++++---------------------
+ 1 files changed, 27 insertions(+), 29 deletions(-)
 
-diff -puN kernel/signal.c~sigqueue_free-fix-the-race-with-collect_signal kernel/signal.c
---- a/kernel/signal.c~sigqueue_free-fix-the-race-with-collect_signal
-+++ a/kernel/signal.c
-@@ -1300,20 +1300,19 @@ struct sigqueue *sigqueue_alloc(void)
- void sigqueue_free(struct sigqueue *q)
- {
- 	unsigned long flags;
-+	spinlock_t *lock = &current->sighand->siglock;
-+
- 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
- 	/*
- 	 * If the signal is still pending remove it from the
--	 * pending queue.
-+	 * pending queue. We must hold ->siglock while testing
-+	 * q->list to serialize with collect_signal().
+diff -puN drivers/block/cciss.c~drivers-block-ccissc-fix-check-after-use drivers/block/cciss.c
+--- a/drivers/block/cciss.c~drivers-block-ccissc-fix-check-after-use
++++ a/drivers/block/cciss.c
+@@ -1583,38 +1583,36 @@ static int deregister_disk(struct gendis
+ 	 * allows us to delete disk zero but keep the controller registered.
  	 */
--	if (unlikely(!list_empty(&q->list))) {
--		spinlock_t *lock = &current->sighand->siglock;
--		read_lock(&tasklist_lock);
--		spin_lock_irqsave(lock, flags);
--		if (!list_empty(&q->list))
--			list_del_init(&q->list);
--		spin_unlock_irqrestore(lock, flags);
--		read_unlock(&tasklist_lock);
--	}
-+	spin_lock_irqsave(lock, flags);
-+	if (!list_empty(&q->list))
-+		list_del_init(&q->list);
-+	spin_unlock_irqrestore(lock, flags);
-+
- 	q->flags &= ~SIGQUEUE_PREALLOC;
- 	__sigqueue_free(q);
- }
+ 	if (h->gendisk[0] != disk) {
+-		if (disk) {
+-			struct request_queue *q = disk->queue;
+-			if (disk->flags & GENHD_FL_UP)
+-				del_gendisk(disk);
+-			if (q) {
+-				blk_cleanup_queue(q);
+-				/* Set drv->queue to NULL so that we do not try
+-				 * to call blk_start_queue on this queue in the
+-				 * interrupt handler
+-				 */
+-				drv->queue = NULL;
+-			}
+-			/* If clear_all is set then we are deleting the logical
+-			 * drive, not just refreshing its info.  For drives
+-			 * other than disk 0 we will call put_disk.  We do not
+-			 * do this for disk 0 as we need it to be able to
+-			 * configure the controller.
++		struct request_queue *q = disk->queue;
++		if (disk->flags & GENHD_FL_UP)
++			del_gendisk(disk);
++		if (q) {
++			blk_cleanup_queue(q);
++			/* Set drv->queue to NULL so that we do not try
++			 * to call blk_start_queue on this queue in the
++			 * interrupt handler
++			 */
++			drv->queue = NULL;
++		}
++		/* If clear_all is set then we are deleting the logical
++		 * drive, not just refreshing its info.  For drives
++		 * other than disk 0 we will call put_disk.  We do not
++		 * do this for disk 0 as we need it to be able to
++		 * configure the controller.
++		*/
++		if (clear_all){
++			/* This isn't pretty, but we need to find the
++			 * disk in our array and NULL our the pointer.
++			 * This is so that we will call alloc_disk if
++			 * this index is used again later.
+ 			*/
+-			if (clear_all){
+-				/* This isn't pretty, but we need to find the
+-				 * disk in our array and NULL our the pointer.
+-				 * This is so that we will call alloc_disk if
+-				 * this index is used again later.
+-				*/
+-				for (i=0; i < CISS_MAX_LUN; i++){
+-					if(h->gendisk[i] == disk){
+-						h->gendisk[i] = NULL;
+-						break;
+-					}
++			for (i=0; i < CISS_MAX_LUN; i++){
++				if(h->gendisk[i] == disk){
++					h->gendisk[i] = NULL;
++					break;
+ 				}
+-				put_disk(disk);
+ 			}
++			put_disk(disk);
+ 		}
+ 	} else {
+ 		set_capacity(disk, 0);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+drivers-block-ccissc-fix-check-after-use.patch
+arm-extern-inline-static-inline.patch
+ppc-remove-apus-support.patch
 git-dvb.patch
-rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-pi-futex-set-pf_exiting-without-taking-pi_lock.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
-make-access-to-tasks-nsproxy-lighter.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+ivtv-fbc-bugfix.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfsd.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
