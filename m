@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-remove-smcf010-quirk.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:25:13 -0700
-Message-ID: <200708311925.l7VJPDlB022872@imap1.linux-foundation.org>
+Subject: + i-oat-new-device-ids.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:27:58 -0700
+Message-ID: <200708311927.l7VJRwYO022907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751993AbXHaTZU (ORCPT
+	by vger.kernel.org with ESMTP id S1750846AbXHaT2D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:25:20 -0400
+	Fri, 31 Aug 2007 15:28:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, arvidjaar@mail.ru, michal.k.k.piotrowski@gmail.com
+Cc: shannon.nelson@intel.com, davem@davemloft.net
 
 
 The patch titled
-     PNP: remove SMCf010 quirk
+     I/OAT: New device ids
 has been added to the -mm tree.  Its filename is
-     pnp-remove-smcf010-quirk.patch
+     i-oat-new-device-ids.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,150 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: remove SMCf010 quirk
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: I/OAT: New device ids
+From: Shannon Nelson <shannon.nelson@intel.com>
 
-If the quirk enables the SIR part of the SMCf010 device, the 8250 driver
-may claim it as a legacy ttyS device, which makes the legacy probe in the
-smsc-ircc2 driver fail.
+Add device ids for new revs of the Intel I/OAT DMA engine
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |  103 -----------------------------------------
- 1 files changed, 103 deletions(-)
+ drivers/dma/ioatdma.c   |    5 +++--
+ include/linux/pci_ids.h |    2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-remove-smcf010-quirk drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-remove-smcf010-quirk
-+++ a/drivers/pnp/quirks.c
-@@ -107,108 +107,6 @@ static void quirk_sb16audio_resources(st
- 		       "pnp: SB audio device quirk - increasing port range\n");
- }
+diff -puN drivers/dma/ioatdma.c~i-oat-new-device-ids drivers/dma/ioatdma.c
+--- a/drivers/dma/ioatdma.c~i-oat-new-device-ids
++++ a/drivers/dma/ioatdma.c
+@@ -506,8 +506,9 @@ static enum dma_status ioat_dma_is_compl
  
--static int quirk_smc_fir_enabled(struct pnp_dev *dev)
--{
--	unsigned long firbase;
--	u8 bank, high, low, chip;
--
--	if (!pnp_port_valid(dev, 1))
--		return 0;
--
--	firbase = pnp_port_start(dev, 1);
--
--	/* Select register bank 3 */
--	bank = inb(firbase + 7);
--	bank &= 0xf0;
--	bank |= 3;
--	outb(bank, firbase + 7);
--
--	high = inb(firbase + 0);
--	low = inb(firbase + 1);
--	chip = inb(firbase + 2);
--
--	/* This corresponds to the check in smsc_ircc_present() */
--	if (high == 0x10 && low == 0xb8 && (chip == 0xf1 || chip == 0xf2))
--		return 1;
--
--	return 0;
--}
--
--static void quirk_smc_enable(struct pnp_dev *dev)
--{
--	struct resource fir, sir, irq;
--
--	pnp_activate_dev(dev);
--	if (quirk_smc_fir_enabled(dev))
--		return;
--
--	/*
--	 * Sometimes the BIOS claims the device is enabled, but it reports
--	 * the wrong FIR resources or doesn't properly configure ISA or LPC
--	 * bridges on the way to the device.
--	 *
--	 * HP nc6000 and nc8000/nw8000 laptops have known problems like
--	 * this.  Fortunately, they do fix things up if we auto-configure
--	 * the device using its _PRS and _SRS methods.
--	 */
--	dev_err(&dev->dev, "%s not responding at SIR 0x%lx, FIR 0x%lx; "
--		"auto-configuring\n", dev->id->id,
--		(unsigned long)pnp_port_start(dev, 0),
--		(unsigned long)pnp_port_start(dev, 1));
--
--	pnp_disable_dev(dev);
--	pnp_init_resource_table(&dev->res);
--	pnp_auto_config_dev(dev);
--	pnp_activate_dev(dev);
--	if (quirk_smc_fir_enabled(dev)) {
--		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
--			(unsigned long)pnp_port_start(dev, 0),
--			(unsigned long)pnp_port_start(dev, 1));
--		return;
--	}
--
--	/*
--	 * The Toshiba Portege 4000 _CRS reports the FIR region first,
--	 * followed by the SIR region.  The BIOS will configure the bridge,
--	 * but only if we call _SRS with SIR first, then FIR.  It also
--	 * reports the IRQ as active high, when it is really active low.
--	 */
--	dev_err(&dev->dev, "not responding at SIR 0x%lx, FIR 0x%lx; "
--		"swapping SIR/FIR and reconfiguring\n",
--		(unsigned long)pnp_port_start(dev, 0),
--		(unsigned long)pnp_port_start(dev, 1));
--
--	/*
--	 * Clear IORESOURCE_AUTO so pnp_activate_dev() doesn't reassign
--	 * these resources any more.
--	 */
--	fir = dev->res.port_resource[0];
--	sir = dev->res.port_resource[1];
--	fir.flags &= ~IORESOURCE_AUTO;
--	sir.flags &= ~IORESOURCE_AUTO;
--
--	irq = dev->res.irq_resource[0];
--	irq.flags &= ~IORESOURCE_AUTO;
--	irq.flags &= ~IORESOURCE_BITS;
--	irq.flags |= IORESOURCE_IRQ_LOWEDGE;
--
--	pnp_disable_dev(dev);
--	dev->res.port_resource[0] = sir;
--	dev->res.port_resource[1] = fir;
--	dev->res.irq_resource[0] = irq;
--	pnp_activate_dev(dev);
--
--	if (quirk_smc_fir_enabled(dev)) {
--		dev_err(&dev->dev, "responds at SIR 0x%lx, FIR 0x%lx\n",
--			(unsigned long)pnp_port_start(dev, 0),
--			(unsigned long)pnp_port_start(dev, 1));
--		return;
--	}
--
--	dev_err(&dev->dev, "giving up; try \"smsc-ircc2.nopnp\" and "
--		"email bjorn.helgaas@hp.com\n");
--}
--
- /*
-  *  PnP Quirks
-  *  Cards or devices that need some tweaking due to incomplete resource info
-@@ -229,7 +127,6 @@ static struct pnp_fixup pnp_fixups[] = {
- 	{"CTL0043", quirk_sb16audio_resources},
- 	{"CTL0044", quirk_sb16audio_resources},
- 	{"CTL0045", quirk_sb16audio_resources},
--	{"SMCf010", quirk_smc_enable},
- 	{""}
+ static struct pci_device_id ioat_pci_tbl[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_UNISYS,
+-		     PCI_DEVICE_ID_UNISYS_DMA_DIRECTOR) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB)  },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_SCNB) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_UNISYS, PCI_DEVICE_ID_UNISYS_DMA_DIRECTOR) },
+ 	{ 0, }
  };
  
+diff -puN include/linux/pci_ids.h~i-oat-new-device-ids include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~i-oat-new-device-ids
++++ a/include/linux/pci_ids.h
+@@ -2298,6 +2298,8 @@
+ #define PCI_DEVICE_ID_INTEL_MCH_PC	0x3599
+ #define PCI_DEVICE_ID_INTEL_MCH_PC1	0x359a
+ #define PCI_DEVICE_ID_INTEL_E7525_MCH	0x359e
++#define PCI_DEVICE_ID_INTEL_IOAT_CNB	0x360b
++#define PCI_DEVICE_ID_INTEL_IOAT_SCNB	0x65ff
+ #define PCI_DEVICE_ID_INTEL_82371SB_0	0x7000
+ #define PCI_DEVICE_ID_INTEL_82371SB_1	0x7010
+ #define PCI_DEVICE_ID_INTEL_82371SB_2	0x7020
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from shannon.nelson@intel.com are
 
-pnp-remove-smcf010-quirk.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-move-free-pages-between-lists-on-steal.patch
-convert-ill-defined-log2-to-ilog2.patch
-tpm_tis-fix-interrupt-probing.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+i-oat-new-device-ids.patch
+i-oat-rename-the-source-file.patch
+i-oat-code-cleanup-from-checkpatch-output.patch
+i-oat-split-pci-startup-from-dma-handling-code.patch
+i-oat-add-support-for-msi-and-msi-x.patch
+dca-add-direct-cache-access-driver.patch
+i-oat-add-dca-services.patch
+remove-unsafe-from-module-struct.patch
