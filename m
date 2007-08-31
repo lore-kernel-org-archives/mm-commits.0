@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-xfs-build-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:40:34 -0700
-Message-ID: <200708312145.l7VLjs9O028049@imap1.linux-foundation.org>
+Subject: + task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:52:59 -0700
+Message-ID: <200708312158.l7VLwJZ2028493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42047 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755427AbXHaVp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752462AbXHaV6a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:45:59 -0400
+	Fri, 31 Aug 2007 17:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, menage@google.com
 
 
 The patch titled
-     git-xfs-build-fix
+     task-containersv11-shared-container-subsystem-group-arrays-include-fix
 has been added to the -mm tree.  Its filename is
-     git-xfs-build-fix.patch
+     task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-xfs-build-fix
+Subject: task-containersv11-shared-container-subsystem-group-arrays-include-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/xfs/xfs_vfsops.c:2121: error: static declaration of 'xfs_freeze' follows non-static declaration
-fs/xfs/xfs_vfsops.h:24: error: previous declaration of 'xfs_freeze' was here
+kernel/container.c: In function 'container_new_inode':
+kernel/container.c:573: error: variable 'container_backing_dev_info' has initializer but incomplete type
+kernel/container.c:574: error: unknown field 'capabilities' specified in initializer
+kernel/container.c:574: error: 'BDI_CAP_NO_ACCT_DIRTY' undeclared (first use in this function)
+kernel/container.c:574: error: (Each undeclared identifier is reported only once)
 
-Cc: David Chinner <dgc@sgi.com>
-Cc: Timothy Shimmin <tes@sgi.com>
+
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_vfsops.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/container.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/xfs/xfs_vfsops.h~git-xfs-build-fix fs/xfs/xfs_vfsops.h
-diff -puN fs/xfs/xfs_vfsops.c~git-xfs-build-fix fs/xfs/xfs_vfsops.c
---- a/fs/xfs/xfs_vfsops.c~git-xfs-build-fix
-+++ a/fs/xfs/xfs_vfsops.c
-@@ -2115,7 +2115,7 @@ xfs_showargs(
-  * need to take care of themetadata. Once that's done write a dummy
-  * record to dirty the log in case of a crash while frozen.
-  */
--STATIC void
-+void
- xfs_freeze(
- 	xfs_mount_t	*mp)
- {
+diff -puN kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays-include-fix kernel/container.c
+--- a/kernel/container.c~task-containersv11-shared-container-subsystem-group-arrays-include-fix
++++ a/kernel/container.c
+@@ -36,6 +36,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched.h>
++#include <linux/backing-dev.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/magic.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +117,7 @@ intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 git-xfs.patch
+git-xfs-build-fix.patch
 git-xtensa.patch
 git-kgdb-fixup.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
@@ -178,6 +181,7 @@ intel-iommu-iommu-floppy-workaround.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
 task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
 add-containerstats-v3-fix.patch
 pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
 pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
@@ -198,4 +202,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-xfs-build-fix.patch
