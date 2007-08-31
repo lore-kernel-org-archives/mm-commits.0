@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:39:05 -0700
-Message-ID: <200708311939.l7VJd5Kq023333@imap1.linux-foundation.org>
+Subject: + md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:39:43 -0700
+Message-ID: <200708311939.l7VJdhPb023364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751941AbXHaTjt (ORCPT
+	by vger.kernel.org with ESMTP id S1751979AbXHaTjw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:39:49 -0400
+	Fri, 31 Aug 2007 15:39:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, jayakumar.alsa@gmail.com, jordan.crouse@amd.com, perex@suse.cz, tiwai@suse.de
+Cc: neilb@suse.de, dan.j.williams@intel.com
 
 
 The patch titled
-     ALSA: cs5535audio: fix PRD register save/restore power management race
+     md: fix some bugs with growing raid5/raid6 arrays.
 has been added to the -mm tree.  Its filename is
-     alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch
+     md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,113 +26,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ALSA: cs5535audio: fix PRD register save/restore power management race
-From: Andres Salomon <dilinger@queued.net>
+Subject: md: fix some bugs with growing raid5/raid6 arrays.
+From: NeilBrown <neilb@suse.de>
 
-In the suspend path, we currently save the PRD registers and then disable DMA.
- This is racy; the sound hardware might update the PRD register as it finishes
-processing some DMA pages between when we've saved the PRD registers and when
-DMA actually gets disabled.  Furthermore, we actively check whether or not DMA
-is enabled before saving PRD registers; there's no reason to do that, as the
-PRD registers should not update when we twiddle the ACC_BM[x]_CMD register(s).
- Worst case, we save the PRD registers twice; even powering down the ACC
-shouldn't mess with the PRD registers (according to the 5536 data sheet,
-section 5.3.7.4, power-down procedure).  This patch reworks all that to first
-disable DMA, and then save PRD registers.
+The recent changed to raid5 to allow offload of parity calculation etc
+introduced some bugs in the code for growing (i.e.  adding a disk to) raid5
+and raid6.  This fixes them
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
-Acked-by: Jaya Kumar <jayakumar.alsa@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/cs5535audio.h     |    1 -
- sound/pci/cs5535audio/cs5535audio_pcm.c |    2 --
- sound/pci/cs5535audio/cs5535audio_pm.c  |   14 +++++++-------
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ drivers/md/raid5.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio.h
---- a/sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
-+++ a/sound/pci/cs5535audio/cs5535audio.h
-@@ -106,7 +106,6 @@ struct cs5535audio_dma {
- 	struct snd_pcm_substream *substream;
- 	unsigned int buf_addr, buf_bytes;
- 	unsigned int period_bytes, periods;
--	int suspended;
- 	u32 saved_prd;
- };
+diff -puN drivers/md/raid5.c~md-fix-some-bugs-with-growing-raid5-raid6-arrays drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-some-bugs-with-growing-raid5-raid6-arrays
++++ a/drivers/md/raid5.c
+@@ -2541,7 +2541,7 @@ static void handle_stripe_expansion(raid
+ 	struct dma_async_tx_descriptor *tx = NULL;
+ 	clear_bit(STRIPE_EXPAND_SOURCE, &sh->state);
+ 	for (i = 0; i < sh->disks; i++)
+-		if (i != sh->pd_idx && (r6s && i != r6s->qd_idx)) {
++		if (i != sh->pd_idx && (!r6s || i != r6s->qd_idx)) {
+ 			int dd_idx, pd_idx, j;
+ 			struct stripe_head *sh2;
  
-diff -puN sound/pci/cs5535audio/cs5535audio_pcm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio_pcm.c
---- a/sound/pci/cs5535audio/cs5535audio_pcm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
-+++ a/sound/pci/cs5535audio/cs5535audio_pcm.c
-@@ -297,14 +297,12 @@ static int snd_cs5535audio_trigger(struc
- 		break;
- 	case SNDRV_PCM_TRIGGER_RESUME:
- 		dma->ops->enable_dma(cs5535au);
--		dma->suspended = 0;
- 		break;
- 	case SNDRV_PCM_TRIGGER_STOP:
- 		dma->ops->disable_dma(cs5535au);
- 		break;
- 	case SNDRV_PCM_TRIGGER_SUSPEND:
- 		dma->ops->disable_dma(cs5535au);
--		dma->suspended = 1;
- 		break;
- 	default:
- 		snd_printk(KERN_ERR "unhandled trigger\n");
-diff -puN sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio_pm.c
---- a/sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
-+++ a/sound/pci/cs5535audio/cs5535audio_pm.c
-@@ -64,13 +64,13 @@ int snd_cs5535audio_suspend(struct pci_d
- 	int i;
+@@ -2574,7 +2574,8 @@ static void handle_stripe_expansion(raid
+ 			set_bit(R5_UPTODATE, &sh2->dev[dd_idx].flags);
+ 			for (j = 0; j < conf->raid_disks; j++)
+ 				if (j != sh2->pd_idx &&
+-				    (r6s && j != r6s->qd_idx) &&
++				    (!r6s || j != raid6_next_disk(sh2->pd_idx,
++								 sh2->disks)) &&
+ 				    !test_bit(R5_Expanded, &sh2->dev[j].flags))
+ 					break;
+ 			if (j == conf->raid_disks) {
+@@ -2583,12 +2584,12 @@ static void handle_stripe_expansion(raid
+ 			}
+ 			release_stripe(sh2);
  
- 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
-+	snd_pcm_suspend_all(cs5535au->pcm);
-+	snd_ac97_suspend(cs5535au->ac97);
- 	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
- 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
--		if (dma && dma->substream && !dma->suspended) 
-+		if (dma && dma->substream)
- 			dma->saved_prd = dma->ops->read_prd(cs5535au);
- 	}
--	snd_pcm_suspend_all(cs5535au->pcm);
--	snd_ac97_suspend(cs5535au->ac97);
- 	/* save important regs, then disable aclink in hw */
- 	snd_cs5535audio_stop_hardware(cs5535au);
- 
-@@ -112,17 +112,17 @@ int snd_cs5535audio_resume(struct pci_de
- 	if (!timeout)
- 		snd_printk(KERN_ERR "Failure getting AC Link ready\n");
- 
--	/* we depend on ac97 to perform the codec power up */
--	snd_ac97_resume(cs5535au->ac97);
- 	/* set up rate regs, dma. actual initiation is done in trig */
- 	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
- 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
--		if (dma && dma->substream && dma->suspended) {
-+		if (dma && dma->substream) {
- 			dma->substream->ops->prepare(dma->substream);
- 			dma->ops->setup_prd(cs5535au, dma->saved_prd);
+-			/* done submitting copies, wait for them to complete */
+-			if (i + 1 >= sh->disks) {
+-				async_tx_ack(tx);
+-				dma_wait_for_async_tx(tx);
+-			}
  		}
- 	}
--		
-+
-+	/* we depend on ac97 to perform the codec power up */
-+	snd_ac97_resume(cs5535au->ac97);
- 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
++	/* done submitting copies, wait for them to complete */
++	if (tx) {
++		async_tx_ack(tx);
++		dma_wait_for_async_tx(tx);
++	}
+ }
  
- 	return 0;
+ /*
+@@ -2855,7 +2856,7 @@ static void handle_stripe5(struct stripe
+ 		sh->disks = conf->raid_disks;
+ 		sh->pd_idx = stripe_to_pdidx(sh->sector, conf,
+ 			conf->raid_disks);
+-		s.locked += handle_write_operations5(sh, 0, 1);
++		s.locked += handle_write_operations5(sh, 1, 1);
+ 	} else if (s.expanded &&
+ 		!test_bit(STRIPE_OP_POSTXOR, &sh->ops.pending)) {
+ 		clear_bit(STRIPE_EXPAND_READY, &sh->state);
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from neilb@suse.de are
 
-alsa-cs5535audio-correctly-set-dma-substream.patch
-alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch
-alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch
-alsa-cs5535audio-fix-acc_bm_cmd-register-handling.patch
-alsa-cs5535audio-drop-unused-bus-master-stuff.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch
+git-md-accel.patch
+git-nfsd.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
