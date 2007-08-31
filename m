@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + affs-convert-to-new-aops-fix-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:01 -0700
-Message-ID: <200708311819.l7VIJ1Ng020374@imap1.linux-foundation.org>
+Subject: + ext2-convert-to-new-aops-fix2.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:03 -0700
+Message-ID: <200708311819.l7VIJ3v3020382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41317 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965780AbXHaSTf (ORCPT
+	by vger.kernel.org with ESMTP id S965804AbXHaSTg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:35 -0400
+	Fri, 31 Aug 2007 14:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     affs convert to new aops fix fix
+     ext2 convert to new aops fix2
 has been added to the -mm tree.  Its filename is
-     affs-convert-to-new-aops-fix-fix.patch
+     ext2-convert-to-new-aops-fix2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: affs convert to new aops fix fix
+Subject: ext2 convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    2 --
- 1 files changed, 2 deletions(-)
+ fs/ext2/dir.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/affs/file.c~affs-convert-to-new-aops-fix-fix fs/affs/file.c
---- a/fs/affs/file.c~affs-convert-to-new-aops-fix-fix
-+++ a/fs/affs/file.c
-@@ -13,7 +13,6 @@
-  */
- 
- #include "affs.h"
--#include <linux/swap.h> /* mark_page_accessed */
- 
- #if PAGE_SIZE < 4096
- #error PAGE_SIZE must be at least 4096
-@@ -769,7 +768,6 @@ done:
- 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
- 
- 	unlock_page(page);
+diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops-fix2 fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-convert-to-new-aops-fix2
++++ a/fs/ext2/dir.c
+@@ -81,7 +81,6 @@ static int ext2_commit_chunk(struct page
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
 -	mark_page_accessed(page);
- 	page_cache_release(page);
  
- 	return written;
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
