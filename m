@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 14:25:41 -0700
-Message-ID: <200708312131.l7VLV26F027568@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Fri, 31 Aug 2007 14:28:02 -0700
+Message-ID: <200708312133.l7VLXMVA027599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38940 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966517AbXHaVcp (ORCPT
+	by vger.kernel.org with ESMTP id S965553AbXHaVdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 17:32:45 -0400
+	Fri, 31 Aug 2007 17:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     memory-controller-add-per-container-lru-and-reclaim-v7-fix
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been added to the -mm tree.  Its filename is
-     memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+     fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-controller-add-per-container-lru-and-reclaim-v7-fix
+Subject: fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/memcontrol.c: In function 'mem_container_charge':
-mm/memcontrol.c:337: error: implicit declaration of function 'congestion_wait'
+drivers/firewire/fw-device.c: In function 'fw_unit_uevent':
+drivers/firewire/fw-device.c:138: warning: unused variable 'i'
+drivers/firewire/fw-device.c:137: warning: unused variable 'length'
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/firewire/fw-device.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-controller-add-per-container-lru-and-reclaim-v7-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-add-per-container-lru-and-reclaim-v7-fix
-+++ a/mm/memcontrol.c
-@@ -22,6 +22,7 @@
- #include <linux/container.h>
- #include <linux/mm.h>
- #include <linux/page-flags.h>
-+#include <linux/backing-dev.h>
- #include <linux/bit_spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/swap.h>
+diff -puN drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/firewire/fw-device.c
+--- a/drivers/firewire/fw-device.c~fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/firewire/fw-device.c
+@@ -134,8 +134,6 @@ fw_unit_uevent(struct device *dev, struc
+ {
+ 	struct fw_unit *unit = fw_unit(dev);
+ 	char modalias[64];
+-	int length = 0;
+-	int i = 0;
+ 
+ 	get_modalias(unit, modalias, sizeof(modalias));
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +67,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-powerpc-fixup.patch
 revert-gregkh-driver-block-device.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 infiniband-work-around-gcc-slub-problem.patch
