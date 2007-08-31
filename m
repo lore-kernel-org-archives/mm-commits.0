@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hostfs-convert-to-new-aops-fix-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:11 -0700
-Message-ID: <200708311819.l7VIJB1P020396@imap1.linux-foundation.org>
+Subject: + gfs2-convert-to-new-aops-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:09 -0700
+Message-ID: <200708311819.l7VIJ9b8020392@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36303 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60015 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965805AbXHaSTs (ORCPT
+	by vger.kernel.org with ESMTP id S965822AbXHaSTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:48 -0400
+	Fri, 31 Aug 2007 14:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     hostfs convert to new aops fix fix
+     gfs2 convert to new aops fix
 has been added to the -mm tree.  Its filename is
-     hostfs-convert-to-new-aops-fix-fix.patch
+     gfs2-convert-to-new-aops-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hostfs convert to new aops fix fix
+Subject: gfs2 convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    2 --
- 1 files changed, 2 deletions(-)
+ fs/gfs2/ops_address.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix-fix fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix-fix
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -16,7 +16,6 @@
- #include <linux/list.h>
- #include <linux/statfs.h>
- #include <linux/kdev_t.h>
--#include <linux/swap.h> /* mark_page_accessed */
- #include <asm/uaccess.h>
- #include "hostfs.h"
- #include "kern_util.h"
-@@ -501,7 +500,6 @@ int hostfs_write_end(struct file *file, 
- 	if (err > 0 && (pos > inode->i_size))
- 		inode->i_size = pos;
+diff -puN fs/gfs2/ops_address.c~gfs2-convert-to-new-aops-fix fs/gfs2/ops_address.c
+--- a/fs/gfs2/ops_address.c~gfs2-convert-to-new-aops-fix
++++ a/fs/gfs2/ops_address.c
+@@ -520,7 +520,6 @@ static int gfs2_stuffed_write_end(struct
+ 	if (!PageUptodate(page))
+ 		SetPageUptodate(page);
  	unlock_page(page);
 -	mark_page_accessed(page);
  	page_cache_release(page);
  
- 	return err;
+ 	if (inode->i_size < to) {
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
