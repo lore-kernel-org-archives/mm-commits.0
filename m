@@ -1,85 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - mousedevcmixdev_open_devices-bugfix.patch removed from -mm tree
-Date: Thu, 30 Aug 2007 23:34:37 -0700
-Message-ID: <200708310634.l7V6YbRx027713@imap1.linux-foundation.org>
+Subject: - scripts-ver_linux-correct-printing-of-binutils-version.patch removed from -mm tree
+Date: Thu, 30 Aug 2007 23:34:44 -0700
+Message-ID: <200708310634.l7V6Yiue027723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757072AbXHaGer (ORCPT
+	by vger.kernel.org with ESMTP id S1756354AbXHaGer (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 31 Aug 2007 02:34:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mousedev.c: mixdev_open_devices() bugfix
+     scripts/ver_linux: correct printing of binutils version
 has been removed from the -mm tree.  Its filename was
-     mousedevcmixdev_open_devices-bugfix.patch
+     scripts-ver_linux-correct-printing-of-binutils-version.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mousedev.c: mixdev_open_devices() bugfix
-From: Adrian Bunk <bunk@kernel.org>
+Subject: scripts/ver_linux: correct printing of binutils version
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Fix an obvious bug in mixdev_open_devices().
+Currently scripts/ver_linux prints "Binutils" or other random information
+for the version number in the "binutils" output line on some distributions.
+This patch corrects that.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mousedev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/ver_linux |    4 +---
+ 1 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/input/mousedev.c~mousedevcmixdev_open_devices-bugfix drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~mousedevcmixdev_open_devices-bugfix
-+++ a/drivers/input/mousedev.c
-@@ -461,7 +461,7 @@ static void mixdev_open_devices(void)
+diff -puN scripts/ver_linux~scripts-ver_linux-correct-printing-of-binutils-version scripts/ver_linux
+--- a/scripts/ver_linux~scripts-ver_linux-correct-printing-of-binutils-version
++++ a/scripts/ver_linux
+@@ -21,9 +21,7 @@ gcc --version 2>&1| grep gcc | awk \
+ make --version 2>&1 | awk -F, '{print $1}' | awk \
+       '/GNU Make/{print "Gnu make              ",$NF}'
  
- 	list_for_each_entry(mousedev, &mousedev_mix_list, mixdev_node) {
- 		if (!mousedev->mixdev_open) {
--			if (mousedev_open_device(mousedev));
-+			if (mousedev_open_device(mousedev))
- 				continue;
+-ld -v | awk -F\) '{print $1}' | awk \
+-'/BFD/{print "binutils              ",$NF} \
+-/^GNU/{print "binutils              ",$4}'
++echo "binutils               $(ld -v | egrep -o '[0-9]+\.[0-9\.]+')"
  
- 			mousedev->mixdev_open = 1;
+ echo -n "util-linux             "
+ fdformat --version | awk '{print $NF}' | sed -e s/^util-linux-// -e s/\)$//
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-arm-extern-inline-static-inline.patch
-ppc-remove-apus-support.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-powerpc.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-ivtv-fbc-bugfix.patch
+git-gfs2-nmw.patch
+git-ia64.patch
 git-kbuild.patch
-pass-g-to-assembler-under-config_debug_info-fix.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
-git-nfsd.patch
-git-wireless.patch
-fix-x86_64-mm-unwinder.patch
-i386-visws-extern-inline-static-inline.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-scsi-misc.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
