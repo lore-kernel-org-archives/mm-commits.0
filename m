@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + export-reciprocal_value-for-modules.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:30:14 -0700
-Message-ID: <200708311930.l7VJUEQv023093@imap1.linux-foundation.org>
+Subject: + sky2-avoid-divide-in-receive-path.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:30:18 -0700
+Message-ID: <200708311930.l7VJUITn023099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58849 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751608AbXHaTaZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751793AbXHaTaU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:30:25 -0400
+	Fri, 31 Aug 2007 15:30:20 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7VJUElw018157
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7VJUIaA018171
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2007 12:30:16 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2007 12:30:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: shemminger@linux-foundation.org
 
 
 The patch titled
-     export reciprocal_value for modules
+     sky2: avoid divide in receive path
 has been added to the -mm tree.  Its filename is
-     export-reciprocal_value-for-modules.patch
+     sky2-avoid-divide-in-receive-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,33 +30,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: export reciprocal_value for modules
+Subject: sky2: avoid divide in receive path
 From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Need this in later sky2 code.
+Avoid divide (modulus) in receive buffer handling path.
 
 Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/reciprocal_div.c |    2 ++
- 1 files changed, 2 insertions(+)
+ drivers/net/sky2.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/reciprocal_div.c~export-reciprocal_value-for-modules lib/reciprocal_div.c
---- a/lib/reciprocal_div.c~export-reciprocal_value-for-modules
-+++ a/lib/reciprocal_div.c
-@@ -1,5 +1,6 @@
- #include <asm/div64.h>
- #include <linux/reciprocal_div.h>
-+#include <linux/module.h>
+diff -puN drivers/net/sky2.c~sky2-avoid-divide-in-receive-path drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-avoid-divide-in-receive-path
++++ a/drivers/net/sky2.c
+@@ -2140,7 +2140,8 @@ static struct sk_buff *sky2_receive(stru
+ 		printk(KERN_DEBUG PFX "%s: rx slot %u status 0x%x len %d\n",
+ 		       dev->name, sky2->rx_next, status, length);
  
- u32 reciprocal_value(u32 k)
- {
-@@ -7,3 +8,4 @@ u32 reciprocal_value(u32 k)
- 	do_div(val, k);
- 	return (u32)val;
- }
-+EXPORT_SYMBOL(reciprocal_value);
+-	sky2->rx_next = (sky2->rx_next + 1) % sky2->rx_pending;
++	if (++sky2->rx_next >= sky2->rx_pending)
++		sky2->rx_next = 0;
+ 	prefetch(sky2->rx_ring + sky2->rx_next);
+ 
+ 	if (status & GMR_FS_ANY_ERR)
 _
 
 Patches currently in -mm which might be from shemminger@linux-foundation.org are
