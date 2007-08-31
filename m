@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-convert-to-new-aops-fix-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:19:07 -0700
-Message-ID: <200708311819.l7VIJ7vS020389@imap1.linux-foundation.org>
+Subject: + minix-convert-to-new-aops-fix2.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:19:13 -0700
+Message-ID: <200708311819.l7VIJDYw020399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33304 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965813AbXHaSTt (ORCPT
+	by vger.kernel.org with ESMTP id S965815AbXHaSTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:19:49 -0400
+	Fri, 31 Aug 2007 14:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     ext4 convert to new aops fix fix
+     minix convert to new aops fix2
 has been added to the -mm tree.  Its filename is
-     ext4-convert-to-new-aops-fix-fix.patch
+     minix-convert-to-new-aops-fix2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4 convert to new aops fix fix
+Subject: minix convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |    3 ---
- 1 files changed, 3 deletions(-)
+ fs/minix/dir.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix
-+++ a/fs/ext4/inode.c
-@@ -36,7 +36,6 @@
- #include <linux/mpage.h>
- #include <linux/uio.h>
- #include <linux/bio.h>
--#include <linux/swap.h> /* mark_page_accessed */
- #include "xattr.h"
- #include "acl.h"
- 
-@@ -1230,8 +1229,6 @@ static int ext4_generic_write_end(struct
- 
- 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
- 
+diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix2 fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-convert-to-new-aops-fix2
++++ a/fs/minix/dir.c
+@@ -65,7 +65,6 @@ static int dir_commit_chunk(struct page 
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
 -	mark_page_accessed(page);
--
- 	if (pos+copied > inode->i_size) {
- 		i_size_write(inode, pos+copied);
- 		mark_inode_dirty(inode);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
