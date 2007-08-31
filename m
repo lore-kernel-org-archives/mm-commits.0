@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:45 -0700
-Message-ID: <200708311844.l7VIij1e021335@imap1.linux-foundation.org>
+Subject: + sh-cleanup-struct-irqaction-initializers.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:44:49 -0700
+Message-ID: <200708311844.l7VIin70021342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36147 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965924AbXHaSpU (ORCPT
+	by vger.kernel.org with ESMTP id S965931AbXHaSpX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:20 -0400
+	Fri, 31 Aug 2007 14:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, ak@suse.de
+Cc: tglx@linutronix.de, lethal@linux-sh.org
 
 
 The patch titled
-     i386: cleanup struct irqaction initializers
+     SH: cleanup struct irqaction initializers
 has been added to the -mm tree.  Its filename is
-     i386-cleanup-struct-irqaction-initializers.patch
+     sh-cleanup-struct-irqaction-initializers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: cleanup struct irqaction initializers
+Subject: SH: cleanup struct irqaction initializers
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/i8259.c       |    6 +++++-
- arch/i386/mach-default/setup.c |    6 +++++-
- arch/i386/mach-voyager/setup.c |    6 +++++-
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ arch/sh/boards/se/7343/irq.c           |    7 +++++--
+ arch/sh/cchips/hd6446x/hd64461.c       |    7 ++++++-
+ arch/sh/cchips/hd6446x/hd64465/setup.c |    7 ++++++-
+ 3 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN arch/i386/kernel/i8259.c~i386-cleanup-struct-irqaction-initializers arch/i386/kernel/i8259.c
---- a/arch/i386/kernel/i8259.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/i386/kernel/i8259.c
-@@ -350,7 +350,11 @@ static irqreturn_t math_error_irq(int cp
-  * New motherboards sometimes make IRQ 13 be a PCI interrupt,
-  * so allow interrupt sharing.
+diff -puN arch/sh/boards/se/7343/irq.c~sh-cleanup-struct-irqaction-initializers arch/sh/boards/se/7343/irq.c
+--- a/arch/sh/boards/se/7343/irq.c~sh-cleanup-struct-irqaction-initializers
++++ a/arch/sh/boards/se/7343/irq.c
+@@ -99,8 +99,11 @@ shmse_irq_demux(int irq)
+  *
+  * We configure IRQ5 as a cascade IRQ.
   */
--static struct irqaction fpu_irq = { math_error_irq, 0, CPU_MASK_NONE, "fpu", NULL, NULL };
-+static struct irqaction fpu_irq = {
-+	.handler = math_error_irq,
-+	.mask = CPU_MASK_NONE,
-+	.name = "fpu",
-+};
- 
- void __init init_ISA_irqs (void)
- {
-diff -puN arch/i386/mach-default/setup.c~i386-cleanup-struct-irqaction-initializers arch/i386/mach-default/setup.c
---- a/arch/i386/mach-default/setup.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/i386/mach-default/setup.c
-@@ -35,7 +35,11 @@ void __init pre_intr_init_hook(void)
- /*
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
+-static struct irqaction irq5 = { no_action, 0, CPU_MASK_NONE, "IRQ5-cascade",
+-				NULL, NULL};
++static struct irqaction irq5 = {
 +	.handler = no_action,
 +	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
++	.name = "IRQ5-cascade",
 +};
  
- /**
-  * intr_init_hook - post gate setup interrupt initialisation
-diff -puN arch/i386/mach-voyager/setup.c~i386-cleanup-struct-irqaction-initializers arch/i386/mach-voyager/setup.c
---- a/arch/i386/mach-voyager/setup.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/i386/mach-voyager/setup.c
-@@ -18,7 +18,11 @@ void __init pre_intr_init_hook(void)
- /*
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
-+	.handler = no_action,
+ static struct ipr_data se7343_irq5_ipr_map[] = {
+ 	{ IRQ5_IRQ, IRQ5_IPR_ADDR+2, IRQ5_IPR_POS, IRQ5_PRIORITY },
+diff -puN arch/sh/cchips/hd6446x/hd64461.c~sh-cleanup-struct-irqaction-initializers arch/sh/cchips/hd6446x/hd64461.c
+--- a/arch/sh/cchips/hd6446x/hd64461.c~sh-cleanup-struct-irqaction-initializers
++++ a/arch/sh/cchips/hd6446x/hd64461.c
+@@ -124,7 +124,12 @@ int hd64461_irq_demux(int irq)
+ 	return __irq_demux(irq);
+ }
+ 
+-static struct irqaction irq0 = { hd64461_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "HD64461", NULL, NULL };
++static struct irqaction irq0 = {
++	.handler = hd64461_interrupt,
++	.flags = IRQF_DISABLED,
 +	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
++	.name = "HD64461",
 +};
  
- void __init intr_init_hook(void)
+ int __init setup_hd64461(void)
  {
+diff -puN arch/sh/cchips/hd6446x/hd64465/setup.c~sh-cleanup-struct-irqaction-initializers arch/sh/cchips/hd6446x/hd64465/setup.c
+--- a/arch/sh/cchips/hd6446x/hd64465/setup.c~sh-cleanup-struct-irqaction-initializers
++++ a/arch/sh/cchips/hd6446x/hd64465/setup.c
+@@ -147,7 +147,12 @@ int hd64465_irq_demux(int irq)
+ 	return irq;
+ }
+ 
+-static struct irqaction irq0  = { hd64465_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "HD64465", NULL, NULL};
++static struct irqaction irq0  = {
++	.handler = hd64465_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "HD64465",
++};
+ 
+ 
+ static int __init setup_hd64465(void)
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
