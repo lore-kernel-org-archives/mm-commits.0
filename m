@@ -1,252 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - sn-add-support-for-cpu-disable.patch removed from -mm tree
-Date: Thu, 30 Aug 2007 23:34:25 -0700
-Message-ID: <200708310634.l7V6YPUM027690@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-drivers-input.patch removed from -mm tree
+Date: Thu, 30 Aug 2007 23:34:28 -0700
+Message-ID: <200708310634.l7V6YSD4027693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40217 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753500AbXHaGeb (ORCPT
+	by vger.kernel.org with ESMTP id S1754586AbXHaGeh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 02:34:31 -0400
+	Fri, 31 Aug 2007 02:34:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpk@sgi.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SN: add support for CPU disable
+     Clean up duplicate includes in drivers/input/
 has been removed from the -mm tree.  Its filename was
-     sn-add-support-for-cpu-disable.patch
+     clean-up-duplicate-includes-in-drivers-input.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SN: add support for CPU disable
-From: John Keller <jpk@sgi.com>
+Subject: Clean up duplicate includes in drivers/input/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Add additional support for CPU disable on SN platforms.  Correctly setup
-the smp_affinity mask for I/O error IRQs.  Restrict the use of the feature
-to Altix 4000 and 450 systems running with a CPU disable capable PROM, and
-do not allow disabling of CPU 0.
+This patch cleans up duplicate includes in
+	drivers/input/
 
-Signed-off-by: John Keller <jpk@sgi.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/smpboot.c              |    6 +++++
- arch/ia64/sn/kernel/huberror.c          |   14 +++++++++---
- arch/ia64/sn/kernel/irq.c               |   15 +++++++++++++
- arch/ia64/sn/kernel/sn2/sn2_smp.c       |   24 ++++++++++++++++++++++
- arch/ia64/sn/pci/pcibr/pcibr_provider.c |    1 
- arch/ia64/sn/pci/tioca_provider.c       |    2 +
- arch/ia64/sn/pci/tioce_provider.c       |    1 
- include/asm-ia64/sn/arch.h              |    1 
- include/asm-ia64/sn/intr.h              |    1 
- include/asm-ia64/sn/sn_feature_sets.h   |    1 
- 10 files changed, 62 insertions(+), 4 deletions(-)
+ drivers/input/keyboard/gpio_keys.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN arch/ia64/kernel/smpboot.c~sn-add-support-for-cpu-disable arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -58,6 +58,7 @@
- #include <asm/system.h>
- #include <asm/tlbflush.h>
- #include <asm/unistd.h>
-+#include <asm/sn/arch.h>
+diff -puN drivers/input/keyboard/gpio_keys.c~clean-up-duplicate-includes-in-drivers-input drivers/input/keyboard/gpio_keys.c
+--- a/drivers/input/keyboard/gpio_keys.c~clean-up-duplicate-includes-in-drivers-input
++++ a/drivers/input/keyboard/gpio_keys.c
+@@ -22,7 +22,6 @@
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+-#include <linux/irq.h>
+ #include <linux/gpio_keys.h>
  
- #define SMP_DEBUG 0
- 
-@@ -730,6 +731,11 @@ int __cpu_disable(void)
- 		return (-EBUSY);
- 	}
- 
-+	if (ia64_platform_is("sn2")) {
-+		if (!sn_cpu_disable_allowed(cpu))
-+			return -EBUSY;
-+	}
-+
- 	cpu_clear(cpu, cpu_online_map);
- 
- 	if (migrate_platform_irqs(cpu)) {
-diff -puN arch/ia64/sn/kernel/huberror.c~sn-add-support-for-cpu-disable arch/ia64/sn/kernel/huberror.c
---- a/arch/ia64/sn/kernel/huberror.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/kernel/huberror.c
-@@ -185,11 +185,14 @@ void hubiio_crb_error_handler(struct hub
-  */
- void hub_error_init(struct hubdev_info *hubdev_info)
- {
-+
- 	if (request_irq(SGI_II_ERROR, hub_eint_handler, IRQF_SHARED,
--			"SN_hub_error", (void *)hubdev_info))
-+			"SN_hub_error", (void *)hubdev_info)) {
- 		printk("hub_error_init: Failed to request_irq for 0x%p\n",
- 		    hubdev_info);
--	return;
-+		return;
-+	}
-+	sn_set_err_irq_affinity(SGI_II_ERROR);
- }
- 
- 
-@@ -202,11 +205,14 @@ void hub_error_init(struct hubdev_info *
-  */
- void ice_error_init(struct hubdev_info *hubdev_info)
- {
-+
-         if (request_irq
-             (SGI_TIO_ERROR, (void *)hub_eint_handler, IRQF_SHARED, "SN_TIO_error",
--             (void *)hubdev_info))
-+             (void *)hubdev_info)) {
-                 printk("ice_error_init: request_irq() error hubdev_info 0x%p\n",
-                        hubdev_info);
--        return;
-+		return;
-+	}
-+	sn_set_err_irq_affinity(SGI_TIO_ERROR);
- }
- 
-diff -puN arch/ia64/sn/kernel/irq.c~sn-add-support-for-cpu-disable arch/ia64/sn/kernel/irq.c
---- a/arch/ia64/sn/kernel/irq.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/kernel/irq.c
-@@ -19,6 +19,7 @@
- #include <asm/sn/pcidev.h>
- #include <asm/sn/shub_mmr.h>
- #include <asm/sn/sn_sal.h>
-+#include <asm/sn/sn_feature_sets.h>
- 
- static void force_interrupt(int irq);
- static void register_intr_pda(struct sn_irq_info *sn_irq_info);
-@@ -233,6 +234,20 @@ static void sn_set_affinity_irq(unsigned
- 		(void)sn_retarget_vector(sn_irq_info, nasid, slice);
- }
- 
-+#ifdef CONFIG_SMP
-+void sn_set_err_irq_affinity(unsigned int irq)
-+{
-+        /*
-+         * On systems which support CPU disabling (SHub2), all error interrupts
-+         * are targetted at the boot CPU.
-+         */
-+        if (is_shub2() && sn_prom_feature_available(PRF_CPU_DISABLE_SUPPORT))
-+                set_irq_affinity_info(irq, cpu_physical_id(0), 0);
-+}
-+#else
-+void sn_set_err_irq_affinity(unsigned int irq) { }
-+#endif
-+
- static void
- sn_mask_irq(unsigned int irq)
- {
-diff -puN arch/ia64/sn/kernel/sn2/sn2_smp.c~sn-add-support-for-cpu-disable arch/ia64/sn/kernel/sn2/sn2_smp.c
---- a/arch/ia64/sn/kernel/sn2/sn2_smp.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/kernel/sn2/sn2_smp.c
-@@ -40,6 +40,7 @@
- #include <asm/sn/shub_mmr.h>
- #include <asm/sn/nodepda.h>
- #include <asm/sn/rw_mmr.h>
-+#include <asm/sn/sn_feature_sets.h>
- 
- DEFINE_PER_CPU(struct ptc_stats, ptcstats);
- DECLARE_PER_CPU(struct ptc_stats, ptcstats);
-@@ -429,6 +430,29 @@ void sn2_send_IPI(int cpuid, int vector,
- 	sn_send_IPI_phys(nasid, physid, vector, delivery_mode);
- }
- 
-+#ifdef CONFIG_HOTPLUG_CPU
-+/**
-+ * sn_cpu_disable_allowed - Determine if a CPU can be disabled.
-+ * @cpu - CPU that is requested to be disabled.
-+ *
-+ * CPU disable is only allowed on SHub2 systems running with a PROM
-+ * that supports CPU disable. It is not permitted to disable the boot processor.
-+ */
-+bool sn_cpu_disable_allowed(int cpu)
-+{
-+	if (is_shub2() && sn_prom_feature_available(PRF_CPU_DISABLE_SUPPORT)) {
-+		if (cpu != 0)
-+			return true;
-+		else
-+			printk("Disabling the boot processor is not allowed.\n");
-+
-+	} else
-+		printk("CPU disable is not supported on this system.\n");
-+
-+	return false;
-+}
-+#endif /* CONFIG_HOTPLUG_CPU */
-+
- #ifdef CONFIG_PROC_FS
- 
- #define PTC_BASENAME	"sgi_sn/ptc_statistics"
-diff -puN arch/ia64/sn/pci/pcibr/pcibr_provider.c~sn-add-support-for-cpu-disable arch/ia64/sn/pci/pcibr/pcibr_provider.c
---- a/arch/ia64/sn/pci/pcibr/pcibr_provider.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/pci/pcibr/pcibr_provider.c
-@@ -145,6 +145,7 @@ pcibr_bus_fixup(struct pcibus_bussoft *p
- 		printk(KERN_WARNING
- 		       "pcibr cannot allocate interrupt for error handler\n");
- 	}
-+	sn_set_err_irq_affinity(SGI_PCIASIC_ERROR);
- 
- 	/* 
- 	 * Update the Bridge with the "kernel" pagesize 
-diff -puN arch/ia64/sn/pci/tioca_provider.c~sn-add-support-for-cpu-disable arch/ia64/sn/pci/tioca_provider.c
---- a/arch/ia64/sn/pci/tioca_provider.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/pci/tioca_provider.c
-@@ -654,6 +654,8 @@ tioca_bus_fixup(struct pcibus_bussoft *p
- 		       __FUNCTION__, SGI_TIOCA_ERROR,
- 		       (int)tioca_common->ca_common.bs_persist_busnum);
- 
-+	sn_set_err_irq_affinity(SGI_TIOCA_ERROR);
-+
- 	/* Setup locality information */
- 	controller->node = tioca_kern->ca_closest_node;
- 	return tioca_common;
-diff -puN arch/ia64/sn/pci/tioce_provider.c~sn-add-support-for-cpu-disable arch/ia64/sn/pci/tioce_provider.c
---- a/arch/ia64/sn/pci/tioce_provider.c~sn-add-support-for-cpu-disable
-+++ a/arch/ia64/sn/pci/tioce_provider.c
-@@ -1034,6 +1034,7 @@ tioce_bus_fixup(struct pcibus_bussoft *p
- 		       tioce_common->ce_pcibus.bs_persist_segment,
- 		       tioce_common->ce_pcibus.bs_persist_busnum);
- 
-+	sn_set_err_irq_affinity(SGI_PCIASIC_ERROR);
- 	return tioce_common;
- }
- 
-diff -puN include/asm-ia64/sn/arch.h~sn-add-support-for-cpu-disable include/asm-ia64/sn/arch.h
---- a/include/asm-ia64/sn/arch.h~sn-add-support-for-cpu-disable
-+++ a/include/asm-ia64/sn/arch.h
-@@ -81,5 +81,6 @@ extern u8 sn_sharing_domain_size;
- extern u8 sn_region_size;
- 
- extern void sn_flush_all_caches(long addr, long bytes);
-+extern bool sn_cpu_disable_allowed(int cpu);
- 
- #endif /* _ASM_IA64_SN_ARCH_H */
-diff -puN include/asm-ia64/sn/intr.h~sn-add-support-for-cpu-disable include/asm-ia64/sn/intr.h
---- a/include/asm-ia64/sn/intr.h~sn-add-support-for-cpu-disable
-+++ a/include/asm-ia64/sn/intr.h
-@@ -60,6 +60,7 @@ extern u64 sn_intr_alloc(nasid_t, int,
- 			      int, nasid_t, int);
- extern void sn_intr_free(nasid_t, int, struct sn_irq_info *);
- extern struct sn_irq_info *sn_retarget_vector(struct sn_irq_info *, nasid_t, int);
-+extern void sn_set_err_irq_affinity(unsigned int);
- extern struct list_head **sn_irq_lh;
- 
- #define CPU_VECTOR_TO_IRQ(cpuid,vector) (vector)
-diff -puN include/asm-ia64/sn/sn_feature_sets.h~sn-add-support-for-cpu-disable include/asm-ia64/sn/sn_feature_sets.h
---- a/include/asm-ia64/sn/sn_feature_sets.h~sn-add-support-for-cpu-disable
-+++ a/include/asm-ia64/sn/sn_feature_sets.h
-@@ -31,6 +31,7 @@ extern int sn_prom_feature_available(int
- #define PRF_PAL_CACHE_FLUSH_SAFE	0
- #define PRF_DEVICE_FLUSH_LIST		1
- #define PRF_HOTPLUG_SUPPORT		2
-+#define PRF_CPU_DISABLE_SUPPORT		3
- 
- /* --------------------- OS Features -------------------------------*/
- 
+ #include <asm/gpio.h>
 _
 
-Patches currently in -mm which might be from jpk@sgi.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
+origin.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-powerpc.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
 git-ia64.patch
+git-kbuild.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-scsi-misc.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
