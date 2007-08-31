@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi_mpc83xx-hang-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:57:21 -0700
-Message-ID: <200708311857.l7VIvLm2021829@imap1.linux-foundation.org>
+Subject: + drivers-edac-fix-printk-level-down-to-debug-from-emerg.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:58:25 -0700
+Message-ID: <200708311858.l7VIwPLV021850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40435 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965955AbXHaS5m (ORCPT
+	by vger.kernel.org with ESMTP id S965971AbXHaS63 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:57:42 -0400
+	Fri, 31 Aug 2007 14:58:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jan@gaisler.com, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, galak@kernel.crashing.org
+Cc: dougthompson@xmission.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     spi_mpc83xx: hang fix
+     drivers/edac: fix printk level down to debug from emerg
 has been added to the -mm tree.  Its filename is
-     spi_mpc83xx-hang-fix.patch
+     drivers-edac-fix-printk-level-down-to-debug-from-emerg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: hang fix
-From: Jan Andersson <jan@gaisler.com>
+Subject: drivers/edac: fix printk level down to debug from emerg
+From: Doug Thompson <dougthompson@xmission.com>
 
-When the spi_mpc83xx driver receives a tx_buf pointer which is NULL, it
-only writes one zero filled word to the transmit register.  If the driver
-expects to receive more than one word it will wait forever for a second
-receive interrupt.  With this patch the controller will shift out zeroes
-until all words have been received.
+When EDAC is configured for EDAC DEBUGGING, the debug printk output level
+was set TOO high (EMERG). This patch brings it down to a DEBUG level
 
-Signed-off-by: Jan Andersson <jan@gaisler.com>
-Tested-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/edac/edac_core.h |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -384,11 +384,8 @@ irqreturn_t mpc83xx_spi_irq(s32 irq, voi
+diff -puN drivers/edac/edac_core.h~drivers-edac-fix-printk-level-down-to-debug-from-emerg drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~drivers-edac-fix-printk-level-down-to-debug-from-emerg
++++ a/drivers/edac/edac_core.h
+@@ -75,7 +75,7 @@ extern int edac_debug_level;
+ #define edac_debug_printk(level, fmt, arg...)                            \
+ 	do {                                                             \
+ 		if (level <= edac_debug_level)                           \
+-			edac_printk(KERN_EMERG, EDAC_DEBUG, fmt, ##arg); \
++			edac_printk(KERN_DEBUG, EDAC_DEBUG, fmt, ##arg); \
+ 	} while(0)
  
- 	mpc83xx_spi->count -= 1;
- 	if (mpc83xx_spi->count) {
--		if (mpc83xx_spi->tx) {
--			u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
--			mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit,
--					      word);
--		}
-+		u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
-+		mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
- 	} else {
- 		complete(&mpc83xx_spi->done);
- 	}
+ #define debugf0( ... ) edac_debug_printk(0, __VA_ARGS__ )
 _
 
-Patches currently in -mm which might be from jan@gaisler.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
-spi_mpc83xx-hang-fix.patch
+drivers-edac-fix-printk-level-down-to-debug-from-emerg.patch
+drivers-edac-fix-e752x-correct-return-code.patch
