@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + sky2-118.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:30:20 -0700
-Message-ID: <200708311930.l7VJUKir023102@imap1.linux-foundation.org>
+Subject: + ktime_sub_ns-analog-of-ktime_add_ns.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:30:12 -0700
+Message-ID: <200708311930.l7VJUC1E023090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35594 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751833AbXHaTac (ORCPT
+	by vger.kernel.org with ESMTP id S1751545AbXHaTaO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:30:32 -0400
+	Fri, 31 Aug 2007 15:30:14 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7VJULIk018176
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l7VJUC9H018151
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2007 12:30:22 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2007 12:30:13 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: shemminger@linux-foundation.org
 
 
 The patch titled
-     sky2: 1.18
+     ktime_sub_ns: analog of ktime_add_ns
 has been added to the -mm tree.  Its filename is
-     sky2-118.patch
+     ktime_sub_ns-analog-of-ktime_add_ns.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,28 +30,84 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sky2: 1.18
+Subject: ktime_sub_ns: analog of ktime_add_ns
 From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Since there is new functionality (timestamping), increase the version.
+Add macro/function to subtract constant nanoseconds.
 
 Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sky2.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/ktime.h |   16 ++++++++++++++++
+ kernel/hrtimer.c      |   24 ++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
 
-diff -puN drivers/net/sky2.c~sky2-118 drivers/net/sky2.c
---- a/drivers/net/sky2.c~sky2-118
-+++ a/drivers/net/sky2.c
-@@ -53,7 +53,7 @@
- #include "sky2.h"
+diff -puN include/linux/ktime.h~ktime_sub_ns-analog-of-ktime_add_ns include/linux/ktime.h
+--- a/include/linux/ktime.h~ktime_sub_ns-analog-of-ktime_add_ns
++++ a/include/linux/ktime.h
+@@ -102,6 +102,13 @@ static inline ktime_t ktime_set(const lo
+ #define ktime_add_ns(kt, nsval) \
+ 		({ (ktime_t){ .tv64 = (kt).tv64 + (nsval) }; })
  
- #define DRV_NAME		"sky2"
--#define DRV_VERSION		"1.17"
-+#define DRV_VERSION		"1.18"
- #define PFX			DRV_NAME " "
++/*
++ * Subtract a ktime_t variable and a scalar nanosecond value.
++ * res = kt - nsval:
++ */
++#define ktime_sub_ns(kt, nsval) \
++		({ (ktime_t){ .tv64 = (kt).tv64 - (nsval) }; })
++
+ /* convert a timespec to ktime_t format: */
+ static inline ktime_t timespec_to_ktime(struct timespec ts)
+ {
+@@ -200,6 +207,15 @@ static inline ktime_t ktime_add(const kt
+ extern ktime_t ktime_add_ns(const ktime_t kt, u64 nsec);
+ 
+ /**
++ * ktime_sub_ns - Subtract a scalar nanoseconds value to a ktime_t variable
++ * @kt:	        minuend
++ * @nsec:	subtrahend in nanoseconds
++ *
++ * Returns the difference of @kt and @nsec in ktime_t format
++ */
++extern ktime_t ktime_sub_ns(const ktime_t kt, u64 nsec);
++
++/**
+  * timespec_to_ktime - convert a timespec to ktime_t format
+  * @ts:		the timespec variable to convert
+  *
+diff -puN kernel/hrtimer.c~ktime_sub_ns-analog-of-ktime_add_ns kernel/hrtimer.c
+--- a/kernel/hrtimer.c~ktime_sub_ns-analog-of-ktime_add_ns
++++ a/kernel/hrtimer.c
+@@ -277,6 +277,30 @@ ktime_t ktime_add_ns(const ktime_t kt, u
+ }
+ 
+ EXPORT_SYMBOL_GPL(ktime_add_ns);
++
++/**
++ * ktime_sub_ns - Subract a scalar nanoseconds value to a ktime_t variable
++ * @kt:		minuend
++ * @nsec:	subtrahend in nanoseconds
++ *
++ * Returns the difference of kt and nsec in ktime_t format
++ */
++ktime_t ktime_sub_ns(const ktime_t kt, u64 nsec)
++{
++	ktime_t tmp;
++
++	if (likely(nsec < NSEC_PER_SEC)) {
++		tmp.tv64 = nsec;
++	} else {
++		unsigned long rem = do_div(nsec, NSEC_PER_SEC);
++
++		tmp = ktime_set((long)nsec, rem);
++	}
++
++	return ktime_sub(kt, tmp);
++}
++
++EXPORT_SYMBOL_GPL(ktime_add_ns);
+ # endif /* !CONFIG_KTIME_SCALAR */
  
  /*
 _
