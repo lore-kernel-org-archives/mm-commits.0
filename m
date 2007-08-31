@@ -1,187 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:31 -0700
-Message-ID: <200708311656.l7VGuV0v017493@imap1.linux-foundation.org>
+Subject: - jdelvare-i2c-i2c-piix4-fix-ati-pci-ids.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:27 -0700
+Message-ID: <200708311656.l7VGuRQ9017487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932625AbXHaRIj (ORCPT
+	by vger.kernel.org with ESMTP id S932325AbXHaRIi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 13:08:39 -0400
+	Fri, 31 Aug 2007 13:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@gibson.dropbear.id.au, agl@us.ibm.com, ak@suse.de, benh@kernel.crashing.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: shane.huang@amd.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugepage: fix broken check for offset alignment in hugepage mappings
+     i2c-piix4: Fix SB700 PCI device ID
 has been removed from the -mm tree.  Its filename was
-     hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings.patch
+     jdelvare-i2c-i2c-piix4-fix-ati-pci-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugepage: fix broken check for offset alignment in hugepage mappings
-From: David Gibson <david@gibson.dropbear.id.au>
+Subject: i2c-piix4: Fix SB700 PCI device ID
+From: Shane Huang <shane.huang@amd.com>
+Subject: i2c-piix4: Fix SB700 PCI device ID
 
-For hugepage mappings, the file offset, like the address and size, needs to
-be aligned to the size of a hugepage.
+We find that SB700 and SB800 use the same SMBus device ID as SB600,
+which is 0x4385, instead of the already submitted 0x4395.
 
-In commit 68589bc353037f233fe510ad9ff432338c95db66, the check for this was
-moved into prepare_hugepage_range() along with the address and size checks.
- But since BenH's rework of the get_unmapped_area() paths leading up to
-commit 4b1d89290b62bb2db476c94c82cf7442aab440c8, prepare_hugepage_range()
-is only called for MAP_FIXED mappings, not for other mappings.  This means
-we're no longer ever checking for an aligned offset - I've confirmed that
-mmap() will (apparently) succeed with a misaligned offset on both powerpc
-and i386 at least.
+Besides removing the wrong SB700 device ID, add SB800 support
+to kernel, by renaming the PCI_DEVICE_ID_ATI_IXP600_SMBUS
+into PCI_DEVICE_ID_ATI_SBX00_SMBUS.
 
-This patch restores the check, removing it from prepare_hugepage_range()
-and putting it back into hugetlbfs_file_mmap().  I'm putting it there,
-rather than in the get_unmapped_area() path so it only needs to go in one
-place, than separately in the half-dozen or so arch-specific
-implementations of hugetlb_get_unmapped_area().
-
-Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Shane Huang <shane.huang@amd.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
+ Documentation/i2c/busses/i2c-piix4 |    2 +-
+ drivers/i2c/busses/Kconfig         |    1 +
+ drivers/i2c/busses/i2c-piix4.c     |    6 ++----
+ include/linux/pci_ids.h            |    3 +--
+ 4 files changed, 5 insertions(+), 7 deletions(-)
 
- arch/i386/mm/hugetlbpage.c    |    2 +-
- arch/ia64/mm/hugetlbpage.c    |    6 ++----
- arch/sparc64/mm/hugetlbpage.c |    2 +-
- fs/hugetlbfs/inode.c          |   15 ++++++++++-----
- include/linux/hugetlb.h       |   10 +++-------
- 5 files changed, 17 insertions(+), 18 deletions(-)
+--- linux-2.6.23-rc3.orig/Documentation/i2c/busses/i2c-piix4	2007-08-23 19:41:25.000000000 +0200
++++ linux-2.6.23-rc3/Documentation/i2c/busses/i2c-piix4	2007-08-25 10:52:17.000000000 +0200
+@@ -6,7 +6,7 @@ Supported adapters:
+     Datasheet: Publicly available at the Intel website
+   * ServerWorks OSB4, CSB5, CSB6 and HT-1000 southbridges
+     Datasheet: Only available via NDA from ServerWorks
+-  * ATI IXP200, IXP300, IXP400, SB600 and SB700 southbridges
++  * ATI IXP200, IXP300, IXP400, SB600, SB700 and SB800 southbridges
+     Datasheet: Not publicly available
+   * Standard Microsystems (SMSC) SLC90E66 (Victory66) southbridge
+     Datasheet: Publicly available at the SMSC website http://www.smsc.com
+--- linux-2.6.23-rc3.orig/drivers/i2c/busses/i2c-piix4.c	2007-08-23 19:41:25.000000000 +0200
++++ linux-2.6.23-rc3/drivers/i2c/busses/i2c-piix4.c	2007-08-25 10:52:17.000000000 +0200
+@@ -23,7 +23,7 @@
+    Supports:
+ 	Intel PIIX4, 440MX
+ 	Serverworks OSB4, CSB5, CSB6, HT-1000
+-	ATI IXP200, IXP300, IXP400, SB600, SB700
++	ATI IXP200, IXP300, IXP400, SB600, SB700, SB800
+ 	SMSC Victory66
+ 
+    Note: we assume there can only be one device, with one SMBus interface.
+@@ -397,9 +397,7 @@ static struct pci_device_id piix4_ids[] 
+ 	  .driver_data = 0 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP400_SMBUS),
+ 	  .driver_data = 0 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP600_SMBUS),
+-	  .driver_data = 0 },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_IXP700_SMBUS),
++	{ PCI_DEVICE(PCI_VENDOR_ID_ATI, PCI_DEVICE_ID_ATI_SBX00_SMBUS),
+ 	  .driver_data = 0 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_SERVERWORKS, PCI_DEVICE_ID_SERVERWORKS_OSB4),
+ 	  .driver_data = 0 },
+--- linux-2.6.23-rc3.orig/drivers/i2c/busses/Kconfig	2007-08-23 19:41:25.000000000 +0200
++++ linux-2.6.23-rc3/drivers/i2c/busses/Kconfig	2007-08-25 10:52:17.000000000 +0200
+@@ -208,6 +208,7 @@ config I2C_PIIX4
+ 	    ATI IXP400
+ 	    ATI SB600
+ 	    ATI SB700
++	    ATI SB800
+ 	    Serverworks OSB4
+ 	    Serverworks CSB5
+ 	    Serverworks CSB6
+--- linux-2.6.23-rc3.orig/include/linux/pci_ids.h	2007-08-25 10:52:03.000000000 +0200
++++ linux-2.6.23-rc3/include/linux/pci_ids.h	2007-08-25 10:52:17.000000000 +0200
+@@ -374,10 +374,9 @@
+ #define PCI_DEVICE_ID_ATI_IXP400_SATA   0x4379
+ #define PCI_DEVICE_ID_ATI_IXP400_SATA2	0x437a
+ #define PCI_DEVICE_ID_ATI_IXP600_SATA	0x4380
+-#define PCI_DEVICE_ID_ATI_IXP600_SMBUS	0x4385
++#define PCI_DEVICE_ID_ATI_SBX00_SMBUS	0x4385
+ #define PCI_DEVICE_ID_ATI_IXP600_IDE	0x438c
+ #define PCI_DEVICE_ID_ATI_IXP700_SATA	0x4390
+-#define PCI_DEVICE_ID_ATI_IXP700_SMBUS	0x4395
+ #define PCI_DEVICE_ID_ATI_IXP700_IDE	0x439c
+ 
+ #define PCI_VENDOR_ID_VLSI		0x1004
 
-diff -puN arch/i386/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/i386/mm/hugetlbpage.c
---- a/arch/i386/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
-+++ a/arch/i386/mm/hugetlbpage.c
-@@ -367,7 +367,7 @@ hugetlb_get_unmapped_area(struct file *f
- 		return -ENOMEM;
- 
- 	if (flags & MAP_FIXED) {
--		if (prepare_hugepage_range(addr, len, pgoff))
-+		if (prepare_hugepage_range(addr, len))
- 			return -EINVAL;
- 		return addr;
- 	}
-diff -puN arch/ia64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -75,10 +75,8 @@ int huge_pmd_unshare(struct mm_struct *m
-  * Don't actually need to do any preparation, but need to make sure
-  * the address is in the right region.
-  */
--int prepare_hugepage_range(unsigned long addr, unsigned long len, pgoff_t pgoff)
-+int prepare_hugepage_range(unsigned long addr, unsigned long len)
- {
--	if (pgoff & (~HPAGE_MASK >> PAGE_SHIFT))
--		return -EINVAL;
- 	if (len & ~HPAGE_MASK)
- 		return -EINVAL;
- 	if (addr & ~HPAGE_MASK)
-@@ -151,7 +149,7 @@ unsigned long hugetlb_get_unmapped_area(
- 
- 	/* Handle MAP_FIXED */
- 	if (flags & MAP_FIXED) {
--		if (prepare_hugepage_range(addr, len, pgoff))
-+		if (prepare_hugepage_range(addr, len))
- 			return -EINVAL;
- 		return addr;
- 	}
-diff -puN arch/sparc64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings arch/sparc64/mm/hugetlbpage.c
---- a/arch/sparc64/mm/hugetlbpage.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
-+++ a/arch/sparc64/mm/hugetlbpage.c
-@@ -175,7 +175,7 @@ hugetlb_get_unmapped_area(struct file *f
- 		return -ENOMEM;
- 
- 	if (flags & MAP_FIXED) {
--		if (prepare_hugepage_range(addr, len, pgoff))
-+		if (prepare_hugepage_range(addr, len))
- 			return -EINVAL;
- 		return addr;
- 	}
-diff -puN fs/hugetlbfs/inode.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
-+++ a/fs/hugetlbfs/inode.c
-@@ -82,14 +82,19 @@ static int hugetlbfs_file_mmap(struct fi
- 	int ret;
- 
- 	/*
--	 * vma alignment has already been checked by prepare_hugepage_range.
--	 * If you add any error returns here, do so after setting VM_HUGETLB,
--	 * so is_vm_hugetlb_page tests below unmap_region go the right way
--	 * when do_mmap_pgoff unwinds (may be important on powerpc and ia64).
-+	 * vma address alignment (but not the pgoff alignment) has
-+	 * already been checked by prepare_hugepage_range.  If you add
-+	 * any error returns here, do so after setting VM_HUGETLB, so
-+	 * is_vm_hugetlb_page tests below unmap_region go the right
-+	 * way when do_mmap_pgoff unwinds (may be important on powerpc
-+	 * and ia64).
- 	 */
- 	vma->vm_flags |= VM_HUGETLB | VM_RESERVED;
- 	vma->vm_ops = &hugetlb_vm_ops;
- 
-+	if (vma->vm_pgoff & ~(HPAGE_MASK >> PAGE_SHIFT))
-+		return -EINVAL;
-+
- 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
- 
- 	mutex_lock(&inode->i_mutex);
-@@ -132,7 +137,7 @@ hugetlb_get_unmapped_area(struct file *f
- 		return -ENOMEM;
- 
- 	if (flags & MAP_FIXED) {
--		if (prepare_hugepage_range(addr, len, pgoff))
-+		if (prepare_hugepage_range(addr, len))
- 			return -EINVAL;
- 		return addr;
- 	}
-diff -puN include/linux/hugetlb.h~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugepage-fix-broken-check-for-offset-alignment-in-hugepage-mappings
-+++ a/include/linux/hugetlb.h
-@@ -66,11 +66,8 @@ void hugetlb_free_pgd_range(struct mmu_g
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-  */
--static inline int prepare_hugepage_range(unsigned long addr, unsigned long len,
--						pgoff_t pgoff)
-+static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
- {
--	if (pgoff & (~HPAGE_MASK >> PAGE_SHIFT))
--		return -EINVAL;
- 	if (len & ~HPAGE_MASK)
- 		return -EINVAL;
- 	if (addr & ~HPAGE_MASK)
-@@ -78,8 +75,7 @@ static inline int prepare_hugepage_range
- 	return 0;
- }
- #else
--int prepare_hugepage_range(unsigned long addr, unsigned long len,
--						pgoff_t pgoff);
-+int prepare_hugepage_range(unsigned long addr, unsigned long len);
- #endif
- 
- #ifndef ARCH_HAS_SETCLEAR_HUGE_PTE
-@@ -117,7 +113,7 @@ static inline unsigned long hugetlb_tota
- #define hugetlb_report_meminfo(buf)		0
- #define hugetlb_report_node_meminfo(n, buf)	0
- #define follow_huge_pmd(mm, addr, pmd, write)	NULL
--#define prepare_hugepage_range(addr,len,pgoff)	(-EINVAL)
-+#define prepare_hugepage_range(addr,len)	(-EINVAL)
- #define pmd_huge(x)	0
- #define is_hugepage_only_range(mm, addr, len)	0
- #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
-_
-
-Patches currently in -mm which might be from david@gibson.dropbear.id.au are
+Patches currently in -mm which might be from shane.huang@amd.com are
 
 origin.patch
-git-powerpc.patch
-ppc-remove-apus-support.patch
-hugetlb-allow-extending-ftruncate-on-hugetlbfs.patch
