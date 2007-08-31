@@ -1,66 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - libata-spot-bridge-chips.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:41 -0700
-Message-ID: <200708311656.l7VGufAf017505@imap1.linux-foundation.org>
+Subject: - pata_marvell-add-more-identifiers.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:37 -0700
+Message-ID: <200708311656.l7VGubMU017499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41202 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758443AbXHaRIS (ORCPT
+	by vger.kernel.org with ESMTP id S932325AbXHaRI2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 13:08:18 -0400
+	Fri, 31 Aug 2007 13:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: spot bridge chips
+     pata_marvell: Add more identifiers
 has been removed from the -mm tree.  Its filename was
-     libata-spot-bridge-chips.patch
+     pata_marvell-add-more-identifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: spot bridge chips
+Subject: pata_marvell: Add more identifiers
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-If we have a PATA cable with a SATA drive on it then we've found a bridge and
-we can flip the cable type.  This fixes some cable detect problems with SATA
-bridges on chipsets and misdetected cable types.
-
-In theory cable detection and mode limiting is needed if you put a SATA/PATA
-bridge on a 40 wire cable, but I see no way to deal with that other than to
-point out its not a good idea anyway.
+This replaces the patch which incorrectly removed the 6145
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   11 +++++++++++
- 1 files changed, 11 insertions(+)
+ drivers/ata/pata_marvell.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~libata-spot-bridge-chips drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-spot-bridge-chips
-+++ a/drivers/ata/libata-core.c
-@@ -2182,6 +2182,17 @@ int ata_bus_probe(struct ata_port *ap)
- 	if (ap->ops->cable_detect)
- 		ap->cbl = ap->ops->cable_detect(ap);
+diff -puN drivers/ata/pata_marvell.c~pata_marvell-add-more-identifiers drivers/ata/pata_marvell.c
+--- a/drivers/ata/pata_marvell.c~pata_marvell-add-more-identifiers
++++ a/drivers/ata/pata_marvell.c
+@@ -190,6 +190,8 @@ static int marvell_init_one (struct pci_
  
-+	/* We may have SATA bridge glue hiding here irrespective of the
-+	   reported cable types and sensed types */
-+	ata_link_for_each_dev(dev, &ap->link) {
-+		if (!ata_dev_enabled(dev))
-+			continue;
-+		/* SATA drives indicate we have a bridge. We don't know which
-+		   end of the link the bridge is which is a problem */
-+		if (ata_id_is_sata(dev->id))
-+			ap->cbl = ATA_CBL_SATA;
-+	}
-+
- 	/* After the identify sequence we can now set up the devices. We do
- 	   this in the normal order so that the user doesn't get confused */
- 
+ static const struct pci_device_id marvell_pci_tbl[] = {
+ 	{ PCI_DEVICE(0x11AB, 0x6101), },
++	{ PCI_DEVICE(0x11AB, 0x6121), },
++	{ PCI_DEVICE(0x11AB, 0x6123), },
+ 	{ PCI_DEVICE(0x11AB, 0x6145), },
+ 	{ }	/* terminate list */
+ };
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
