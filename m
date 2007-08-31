@@ -1,164 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - libata-strict-checking-for-identify-reporting.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 09:56:45 -0700
-Message-ID: <200708311656.l7VGujJI017511@imap1.linux-foundation.org>
+Subject: - libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch removed from -mm tree
+Date: Fri, 31 Aug 2007 09:56:43 -0700
+Message-ID: <200708311656.l7VGuhP5017508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44695 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43671 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758967AbXHaRIV (ORCPT
+	by vger.kernel.org with ESMTP id S1758967AbXHaRIS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 13:08:21 -0400
+	Fri, 31 Aug 2007 13:08:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: strict checking for identify reporting
+     libata: allow for original IDE drives that don't support geometry setting
 has been removed from the -mm tree.  Its filename was
-     libata-strict-checking-for-identify-reporting.patch
+     libata-allow-for-original-ide-drives-that-dont-support-geometry-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: strict checking for identify reporting
+Subject: libata: allow for original IDE drives that don't support geometry setting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ATA specifications require checks on certain flags before assuming the
-validity of other data.  Go through the methods and correct those needing
-extra checks.  Also note limits on ata_id_major_version with respect to ATA-1
-and ATA-2.  Correct the 32bit PIO check.
-
-Wants to sit in -mm for a bit in case of a screwup on my part that I didn't
-hit on the test drives and also in case someone, somewhere has a drive that
-gets it wrong.
+This is mandatory for all early ATA devices but may fail on IDE.  As we try to
+set the geometry to the geometry we already have a failure of this request is
+harmless.  We can't skip the request as its mandatory during setup and some
+older ATA drives pee themselves if you don't do it.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ata.h |   96 +++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 85 insertions(+), 11 deletions(-)
+ drivers/ata/libata-core.c |    7 +++++++
+ 1 files changed, 7 insertions(+)
 
-diff -puN include/linux/ata.h~libata-strict-checking-for-identify-reporting include/linux/ata.h
---- a/include/linux/ata.h~libata-strict-checking-for-identify-reporting
-+++ a/include/linux/ata.h
-@@ -334,22 +334,12 @@ struct ata_taskfile {
- };
- 
- #define ata_id_is_ata(id)	(((id)[0] & (1 << 15)) == 0)
--#define ata_id_rahead_enabled(id) ((id)[85] & (1 << 6))
--#define ata_id_wcache_enabled(id) ((id)[85] & (1 << 5))
--#define ata_id_hpa_enabled(id)	((id)[85] & (1 << 10))
--#define ata_id_has_fua(id)	((id)[84] & (1 << 6))
--#define ata_id_has_flush(id)	((id)[83] & (1 << 12))
--#define ata_id_has_flush_ext(id) ((id)[83] & (1 << 13))
--#define ata_id_has_lba48(id)	((id)[83] & (1 << 10))
--#define ata_id_has_hpa(id)	((id)[82] & (1 << 10))
--#define ata_id_has_wcache(id)	((id)[82] & (1 << 5))
--#define ata_id_has_pm(id)	((id)[82] & (1 << 3))
- #define ata_id_has_lba(id)	((id)[49] & (1 << 9))
- #define ata_id_has_dma(id)	((id)[49] & (1 << 8))
- #define ata_id_has_ncq(id)	((id)[76] & (1 << 8))
- #define ata_id_queue_depth(id)	(((id)[75] & 0x1f) + 1)
- #define ata_id_removeable(id)	((id)[0] & (1 << 7))
--#define ata_id_has_dword_io(id)	((id)[50] & (1 << 0))
-+#define ata_id_has_dword_io(id)	((id)[48] & (1 << 0))
- #define ata_id_has_AN(id)	\
- 	( (((id)[76] != 0x0000) && ((id)[76] != 0xffff)) && \
- 	  ((id)[78] & (1 << 5)) )
-@@ -365,6 +355,90 @@ struct ata_taskfile {
- 
- #define ata_id_cdb_intr(id)	(((id)[0] & 0x60) == 0x20)
- 
-+static inline int ata_id_has_fua(const u16 *id)
-+{
-+	if ((id[84] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[84] & (1 << 6);
-+}
-+
-+static inline int ata_id_has_flush(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 12);
-+}
-+
-+static inline int ata_id_has_flush_ext(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 13);
-+}
-+
-+static inline int ata_id_has_lba48(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[83] & (1 << 10);
-+}
-+
-+static inline int ata_id_hpa_enabled(const u16 *id)
-+{
-+	/* Yes children, word 83 valid bits cover word 82 data */
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	/* And 87 covers 85-87 */
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	/* Check command sets enabled as well as supported */
-+	if ((id[85] & ( 1 << 10)) == 0)
-+		return 0;
-+	return id[82] & (1 << 10);
-+}
-+
-+static inline int ata_id_has_wcache(const u16 *id)
-+{
-+	/* Yes children, word 83 valid bits cover word 82 data */
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[82] & (1 << 5);
-+}
-+
-+static inline int ata_id_has_pm(const u16 *id)
-+{
-+	if ((id[83] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[82] & (1 << 3);
-+}
-+
-+static inline int ata_id_rahead_enabled(const u16 *id)
-+{
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[85] & (1 << 6);
-+}
-+
-+static inline int ata_id_wcache_enabled(const u16 *id)
-+{
-+	if ((id[87] & 0xC000) != 0x4000)
-+		return 0;
-+	return id[85] & (1 << 5);
-+}
-+
-+/**
-+ *	ata_id_major_version	-	get ATA level of drive
-+ *	@id: Identify data
+diff -puN drivers/ata/libata-core.c~libata-allow-for-original-ide-drives-that-dont-support-geometry-setting drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-allow-for-original-ide-drives-that-dont-support-geometry-setting
++++ a/drivers/ata/libata-core.c
+@@ -4090,6 +4090,8 @@ static unsigned int ata_dev_set_AN(struc
+  *	@heads: Number of heads (taskfile parameter)
+  *	@sectors: Number of sectors (taskfile parameter)
+  *
++ *	FIXME: Although mandatory on ATA1-4 it is not on original IDE
 + *
-+ *	Caveats:
-+ *		ATA-1 considers identify optional
-+ *		ATA-2 introduces mandatory identify
-+ *		ATA-3 introduces word 80 and accurate reporting
-+ *
-+ *	The practical impact of this is that ata_id_major_version cannot
-+ *	reliably report on drives below ATA3.
-+ */
-+
- static inline unsigned int ata_id_major_version(const u16 *id)
- {
- 	unsigned int mver;
+  *	LOCKING:
+  *	Kernel thread context (may sleep)
+  *
+@@ -4117,6 +4119,11 @@ static unsigned int ata_dev_init_params(
+ 	tf.device |= (heads - 1) & 0x0f; /* max head = num. of heads - 1 */
+ 
+ 	err_mask = ata_exec_internal(dev, &tf, NULL, DMA_NONE, NULL, 0);
++	/* A clean abort indicates an original or just out of spec drive
++	   and we should continue as we issue the setup based on the
++	   drive reported working geometry */
++	if (err_mask == AC_ERR_DEV && (tf.feature & ATA_ABORTED))
++		err_mask &= ~AC_ERR_DEV;
+ 
+ 	DPRINTK("EXIT, err_mask=%x\n", err_mask);
+ 	return err_mask;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
