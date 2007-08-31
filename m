@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:39:43 -0700
-Message-ID: <200708311939.l7VJdhPb023364@imap1.linux-foundation.org>
+Subject: + alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:39:07 -0700
+Message-ID: <200708311939.l7VJd7jB023336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34103 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751979AbXHaTjw (ORCPT
+	by vger.kernel.org with ESMTP id S1751948AbXHaTju (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:39:52 -0400
+	Fri, 31 Aug 2007 15:39:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, dan.j.williams@intel.com
+Cc: dilinger@queued.net, dilinger@debian.org, jayakumar.alsa@gmail.com, jordan.crouse@amd.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     md: fix some bugs with growing raid5/raid6 arrays.
+     ALSA: cs5535audio: update PCI device handling in suspend/resume
 has been added to the -mm tree.  Its filename is
-     md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch
+     alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,79 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: fix some bugs with growing raid5/raid6 arrays.
-From: NeilBrown <neilb@suse.de>
+Subject: ALSA: cs5535audio: update PCI device handling in suspend/resume
+From: Andres Salomon <dilinger@queued.net>
 
-The recent changed to raid5 to allow offload of parity calculation etc
-introduced some bugs in the code for growing (i.e.  adding a disk to) raid5
-and raid6.  This fixes them
+Save the PCI state before disabling the device, and add some error checking.
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Acked-by: Jordan Crouse <jordan.crouse@amd.com>
+Acked-by: Jaya Kumar <jayakumar.alsa@gmail.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
+ sound/pci/cs5535audio/cs5535audio_pm.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/raid5.c~md-fix-some-bugs-with-growing-raid5-raid6-arrays drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-fix-some-bugs-with-growing-raid5-raid6-arrays
-+++ a/drivers/md/raid5.c
-@@ -2541,7 +2541,7 @@ static void handle_stripe_expansion(raid
- 	struct dma_async_tx_descriptor *tx = NULL;
- 	clear_bit(STRIPE_EXPAND_SOURCE, &sh->state);
- 	for (i = 0; i < sh->disks; i++)
--		if (i != sh->pd_idx && (r6s && i != r6s->qd_idx)) {
-+		if (i != sh->pd_idx && (!r6s || i != r6s->qd_idx)) {
- 			int dd_idx, pd_idx, j;
- 			struct stripe_head *sh2;
+diff -puN sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-update-pci-device-handling-in-suspend-resume sound/pci/cs5535audio/cs5535audio_pm.c
+--- a/sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-update-pci-device-handling-in-suspend-resume
++++ a/sound/pci/cs5535audio/cs5535audio_pm.c
+@@ -74,8 +74,11 @@ int snd_cs5535audio_suspend(struct pci_d
+ 	/* save important regs, then disable aclink in hw */
+ 	snd_cs5535audio_stop_hardware(cs5535au);
  
-@@ -2574,7 +2574,8 @@ static void handle_stripe_expansion(raid
- 			set_bit(R5_UPTODATE, &sh2->dev[dd_idx].flags);
- 			for (j = 0; j < conf->raid_disks; j++)
- 				if (j != sh2->pd_idx &&
--				    (r6s && j != r6s->qd_idx) &&
-+				    (!r6s || j != raid6_next_disk(sh2->pd_idx,
-+								 sh2->disks)) &&
- 				    !test_bit(R5_Expanded, &sh2->dev[j].flags))
- 					break;
- 			if (j == conf->raid_disks) {
-@@ -2583,12 +2584,12 @@ static void handle_stripe_expansion(raid
- 			}
- 			release_stripe(sh2);
- 
--			/* done submitting copies, wait for them to complete */
--			if (i + 1 >= sh->disks) {
--				async_tx_ack(tx);
--				dma_wait_for_async_tx(tx);
--			}
- 		}
-+	/* done submitting copies, wait for them to complete */
-+	if (tx) {
-+		async_tx_ack(tx);
-+		dma_wait_for_async_tx(tx);
++	if (pci_save_state(pci)) {
++		printk(KERN_ERR "cs5535audio: pci_save_state failed!\n");
++		return -EIO;
 +	}
+ 	pci_disable_device(pci);
+-	pci_save_state(pci);
+ 	pci_set_power_state(pci, pci_choose_state(pci, state));
+ 	return 0;
  }
+@@ -89,7 +92,12 @@ int snd_cs5535audio_resume(struct pci_de
+ 	int i;
  
- /*
-@@ -2855,7 +2856,7 @@ static void handle_stripe5(struct stripe
- 		sh->disks = conf->raid_disks;
- 		sh->pd_idx = stripe_to_pdidx(sh->sector, conf,
- 			conf->raid_disks);
--		s.locked += handle_write_operations5(sh, 0, 1);
-+		s.locked += handle_write_operations5(sh, 1, 1);
- 	} else if (s.expanded &&
- 		!test_bit(STRIPE_OP_POSTXOR, &sh->ops.pending)) {
- 		clear_bit(STRIPE_EXPAND_READY, &sh->state);
+ 	pci_set_power_state(pci, PCI_D0);
+-	pci_restore_state(pci);
++	if (pci_restore_state(pci) < 0) {
++		printk(KERN_ERR "cs5535audio: pci_restore_state failed, "
++		       "disabling device\n");
++		snd_card_disconnect(card);
++		return -EIO;
++	}
+ 	if (pci_enable_device(pci) < 0) {
+ 		printk(KERN_ERR "cs5535audio: pci_enable_device failed, "
+ 		       "disabling device\n");
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-md-fix-some-bugs-with-growing-raid5-raid6-arrays.patch
-git-md-accel.patch
-git-nfsd.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-fs-nfsd-exportc-make-3-functions-static.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+alsa-cs5535audio-correctly-set-dma-substream.patch
+alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch
+alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch
+alsa-cs5535audio-fix-acc_bm_cmd-register-handling.patch
+alsa-cs5535audio-drop-unused-bus-master-stuff.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
