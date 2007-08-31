@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mntput-called-before-dput-in-afs.patch added to -mm tree
-Date: Fri, 31 Aug 2007 12:52:50 -0700
-Message-ID: <200708311952.l7VJqov7023828@imap1.linux-foundation.org>
+Subject: + fix-dac960-driver-on-machines-which-dont-support-64-bit-dma.patch added to -mm tree
+Date: Fri, 31 Aug 2007 12:56:43 -0700
+Message-ID: <200708311956.l7VJuh3p023970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60139 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750928AbXHaTxU (ORCPT
+	by vger.kernel.org with ESMTP id S1751554AbXHaT5K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 15:53:20 -0400
+	Fri, 31 Aug 2007 15:57:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agruen@suse.de, dhowells@redhat.com, stable@kernel.org
+Cc: matthew@wil.cx, alex@nibbles.it, dac@conglom-o.org, jeff@garzik.org, polynomial-c@gmx.de, stable@kernel.org
 
 
 The patch titled
-     afs: mntput called before dput
+     Fix DAC960 driver on machines which don't support 64-bit DMA
 has been added to the -mm tree.  Its filename is
-     mntput-called-before-dput-in-afs.patch
+     fix-dac960-driver-on-machines-which-dont-support-64-bit-dma.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: afs: mntput called before dput
-From: Andreas Gruenbacher <agruen@suse.de>
+Subject: Fix DAC960 driver on machines which don't support 64-bit DMA
+From: Matthew Wilcox <matthew@wil.cx>
 
-dput must be called before mntput here.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8942
 
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Acked-By: David Howells <dhowells@redhat.com>
+Use PCI_DMA_* constants instead of own private definitions Fall back to
+32-bit DMA mask if a 64-bit one fails
+
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Tested-by: Lars <polynomial-c@gmx.de>
+Cc: Alessandro Polverini <alex@nibbles.it>
+Cc: <dac@conglom-o.org>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/mntpt.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/DAC960.c |   17 ++++++++++-------
+ drivers/block/DAC960.h |    7 -------
+ 2 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN fs/afs/mntpt.c~mntput-called-before-dput-in-afs fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~mntput-called-before-dput-in-afs
-+++ a/fs/afs/mntpt.c
-@@ -235,8 +235,8 @@ static void *afs_mntpt_follow_link(struc
- 	err = do_add_mount(newmnt, nd, MNT_SHRINKABLE, &afs_vfsmounts);
- 	switch (err) {
- 	case 0:
--		mntput(nd->mnt);
- 		dput(nd->dentry);
-+		mntput(nd->mnt);
- 		nd->mnt = newmnt;
- 		nd->dentry = dget(newmnt->mnt_root);
- 		schedule_delayed_work(&afs_mntpt_expiry_timer,
+diff -puN drivers/block/DAC960.c~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma drivers/block/DAC960.c
+--- a/drivers/block/DAC960.c~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma
++++ a/drivers/block/DAC960.c
+@@ -17,8 +17,8 @@
+ */
+ 
+ 
+-#define DAC960_DriverVersion			"2.5.48"
+-#define DAC960_DriverDate			"14 May 2006"
++#define DAC960_DriverVersion			"2.5.49"
++#define DAC960_DriverDate			"21 Aug 2007"
+ 
+ 
+ #include <linux/module.h>
+@@ -1165,9 +1165,9 @@ static bool DAC960_V1_EnableMemoryMailbo
+   int i;
+ 
+   
+-  if (pci_set_dma_mask(Controller->PCIDevice, DAC690_V1_PciDmaMask))
++  if (pci_set_dma_mask(Controller->PCIDevice, DMA_32BIT_MASK))
+ 	return DAC960_Failure(Controller, "DMA mask out of range");
+-  Controller->BounceBufferLimit = DAC690_V1_PciDmaMask;
++  Controller->BounceBufferLimit = DMA_32BIT_MASK;
+ 
+   if ((hw_type == DAC960_PD_Controller) || (hw_type == DAC960_P_Controller)) {
+     CommandMailboxesSize =  0;
+@@ -1368,9 +1368,12 @@ static bool DAC960_V2_EnableMemoryMailbo
+   dma_addr_t	CommandMailboxDMA;
+   DAC960_V2_CommandStatus_T CommandStatus;
+ 
+-  if (pci_set_dma_mask(Controller->PCIDevice, DAC690_V2_PciDmaMask))
+-	return DAC960_Failure(Controller, "DMA mask out of range");
+-  Controller->BounceBufferLimit = DAC690_V2_PciDmaMask;
++	if (!pci_set_dma_mask(Controller->PCIDevice, DMA_64BIT_MASK))
++		Controller->BounceBufferLimit = DMA_64BIT_MASK;
++	else if (!pci_set_dma_mask(Controller->PCIDevice, DMA_32BIT_MASK))
++		Controller->BounceBufferLimit = DMA_32BIT_MASK;
++	else
++		return DAC960_Failure(Controller, "DMA mask out of range");
+ 
+   /* This is a temporary dma mapping, used only in the scope of this function */
+   CommandMailbox = pci_alloc_consistent(PCI_Device,
+diff -puN drivers/block/DAC960.h~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma drivers/block/DAC960.h
+--- a/drivers/block/DAC960.h~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma
++++ a/drivers/block/DAC960.h
+@@ -61,13 +61,6 @@
+ #define DAC960_V2_MaxPhysicalDevices		272
+ 
+ /*
+-  Define the pci dma mask supported by DAC960 V1 and V2 Firmware Controlers
+- */
+-
+-#define DAC690_V1_PciDmaMask	0xffffffff
+-#define DAC690_V2_PciDmaMask	0xffffffffffffffffULL
+-
+-/*
+   Define a 32/64 bit I/O Address data type.
+ */
+ 
 _
 
-Patches currently in -mm which might be from agruen@suse.de are
+Patches currently in -mm which might be from matthew@wil.cx are
 
-mntput-called-before-dput-in-afs.patch
-faster-ext2_clear_inode.patch
-revert-faster-ext2_clear_inode.patch
+origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma.patch
+git-scsi-misc.patch
+drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch
+make-sure-nobodys-leaking-resources.patch
