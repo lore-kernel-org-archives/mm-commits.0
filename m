@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-cleanup-struct-irqaction-initializers.patch added to -mm tree
-Date: Fri, 31 Aug 2007 11:44:47 -0700
-Message-ID: <200708311844.l7VIilFN021338@imap1.linux-foundation.org>
+Subject: + x86_64-cleanup-struct-irqaction-initializers.patch added to -mm tree
+Date: Fri, 31 Aug 2007 11:44:55 -0700
+Message-ID: <200708311844.l7VIit5a021351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965932AbXHaSp1 (ORCPT
+	by vger.kernel.org with ESMTP id S965941AbXHaSpd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 14:45:27 -0400
+	Fri, 31 Aug 2007 14:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, takata@linux-m32r.org
+Cc: tglx@linutronix.de, ak@suse.de
 
 
 The patch titled
-     M32R: cleanup struct irqaction initializers
+     X86_64: cleanup struct irqaction initializers
 has been added to the -mm tree.  Its filename is
-     m32r-cleanup-struct-irqaction-initializers.patch
+     x86_64-cleanup-struct-irqaction-initializers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: M32R: cleanup struct irqaction initializers
+Subject: X86_64: cleanup struct irqaction initializers
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/time.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/i8259.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/time.c~m32r-cleanup-struct-irqaction-initializers arch/m32r/kernel/time.c
---- a/arch/m32r/kernel/time.c~m32r-cleanup-struct-irqaction-initializers
-+++ a/arch/m32r/kernel/time.c
-@@ -228,8 +228,12 @@ irqreturn_t timer_interrupt(int irq, voi
- 	return IRQ_HANDLED;
- }
+diff -puN arch/x86_64/kernel/i8259.c~x86_64-cleanup-struct-irqaction-initializers arch/x86_64/kernel/i8259.c
+--- a/arch/x86_64/kernel/i8259.c~x86_64-cleanup-struct-irqaction-initializers
++++ a/arch/x86_64/kernel/i8259.c
+@@ -395,7 +395,11 @@ device_initcall(i8259A_init_sysfs);
+  * IRQ2 is cascade interrupt to second interrupt controller
+  */
  
--struct irqaction irq0 = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE,
--			  "MFT2", NULL, NULL };
-+struct irqaction irq0 = {
-+	.handler = timer_interrupt,
-+	.flags = IRQF_DISABLED,
+-static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
++static struct irqaction irq2 = {
++	.handler = no_action,
 +	.mask = CPU_MASK_NONE,
-+	.name = "MFT2",
++	.name = "cascade",
 +};
- 
- void __init time_init(void)
- {
+ DEFINE_PER_CPU(vector_irq_t, vector_irq) = {
+ 	[0 ... IRQ0_VECTOR - 1] = -1,
+ 	[IRQ0_VECTOR] = 0,
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
