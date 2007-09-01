@@ -1,83 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch removed from -mm tree
-Date: Fri, 31 Aug 2007 19:36:25 -0700
-Message-ID: <200709010236.l812aPoL005702@imap1.linux-foundation.org>
+Subject: + 9p-is-bust.patch added to -mm tree
+Date: Fri, 31 Aug 2007 19:29:12 -0700
+Message-ID: <200709010234.l812YXHs005610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32965 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53880 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbXIACgd (ORCPT
+	by vger.kernel.org with ESMTP id S1751273AbXIACiK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 22:36:33 -0400
+	Fri, 31 Aug 2007 22:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, thomas.jarosch@intra2net.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     alloc_pages(): permit get_zeroed_page(GFP_ATOMIC) from interrupt context
-has been removed from the -mm tree.  Its filename was
-     alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
+     9p-is-bust
+has been added to the -mm tree.  Its filename is
+     9p-is-bust.patch
 
-This patch was dropped because it causes mysterious slab oopses!
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: alloc_pages(): permit get_zeroed_page(GFP_ATOMIC) from interrupt context
+Subject: 9p-is-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
-See http://bugzilla.kernel.org/show_bug.cgi?id=8928
+x86_64 allmodconfig:
 
-I think it makes sense to permit a non-BUGging get_zeroed_page(GFP_ATOMIC)
-from interrupt context.
+ERROR: "lguest_bind_dma" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "register_lguest_driver" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "lguest_send_dma" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "lguest_devices" [net/9p/9pnet_lg.ko] undefined!
 
-We could fix this in several places, but I do think we want to keep the sanity
-checks in kmap_atomic() even for non-highmem pages, so that people who are
-testing new code on non-highmem machines get their bugs detected earlier.
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context mm/page_alloc.c
---- a/mm/page_alloc.c~alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context
-+++ a/mm/page_alloc.c
-@@ -284,13 +284,25 @@ static inline void prep_zero_page(struct
- 	int i;
- 
- 	VM_BUG_ON((gfp_flags & (__GFP_WAIT | __GFP_HIGHMEM)) == __GFP_HIGHMEM);
--	/*
--	 * clear_highpage() will use KM_USER0, so it's a bug to use __GFP_ZERO
--	 * and __GFP_HIGHMEM from hard or soft interrupt context.
--	 */
--	VM_BUG_ON((gfp_flags & __GFP_HIGHMEM) && in_interrupt());
--	for (i = 0; i < (1 << order); i++)
--		clear_highpage(page + i);
-+	if (gfp_flags & __GFP_HIGHMEM) {
-+		/*
-+		 * clear_highpage() will use KM_USER0, so it's a bug to use
-+		 * __GFP_ZERO and __GFP_HIGHMEM from hard or soft interrupt
-+		 * context.
-+		 */
-+		VM_BUG_ON(in_interrupt());
-+		for (i = 0; i < (1 << order); i++)
-+			clear_highpage(page + i);
-+	} else {
-+		/*
-+		 * Go direct to clear_page(), because the caller might be
-+		 * performing a non-highmem GFP_ZERO allocation from interrupt
-+		 * context.  kmap_atomic() will go BUG when that happens, but it
-+		 * is a legitimate thing to do
-+		 */
-+		for (i = 0; i < (1 << order); i++)
-+			clear_page(page + i);
-+	}
- }
- 
- /*
+diff -puN fs/Kconfig~9p-is-bust fs/Kconfig
+--- a/fs/Kconfig~9p-is-bust
++++ a/fs/Kconfig
+@@ -2103,6 +2103,7 @@ config AFS_DEBUG
+ config 9P_FS
+ 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
+ 	depends on INET && NET_9P && EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  If you say Y here, you will get experimental support for
+ 	  Plan 9 resource sharing via the 9P2000 protocol.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,7 +111,6 @@ git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 9p-build-fix.patch
-9p-is-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
@@ -230,3 +208,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+9p-is-bust.patch
