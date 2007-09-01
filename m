@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-is-bust.patch added to -mm tree
-Date: Fri, 31 Aug 2007 19:29:12 -0700
-Message-ID: <200709010234.l812YXHs005610@imap1.linux-foundation.org>
+Subject: + x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch added to -mm tree
+Date: Fri, 31 Aug 2007 19:50:59 -0700
+Message-ID: <200709010250.l812oxf4006103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53880 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751273AbXIACiK (ORCPT
+	by vger.kernel.org with ESMTP id S1750840AbXIACvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 22:38:10 -0400
+	Fri, 31 Aug 2007 22:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, travis@sgi.com
 
 
 The patch titled
-     9p-is-bust
+     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
 has been added to the -mm tree.  Its filename is
-     9p-is-bust.patch
+     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 9p-is-bust
+Subject: x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
+ia64 build breakage
 
-ERROR: "lguest_bind_dma" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "register_lguest_driver" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "lguest_send_dma" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "lguest_devices" [net/9p/9pnet_lg.ko] undefined!
-
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
+ arch/ia64/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~9p-is-bust fs/Kconfig
---- a/fs/Kconfig~9p-is-bust
-+++ a/fs/Kconfig
-@@ -2103,6 +2103,7 @@ config AFS_DEBUG
- config 9P_FS
- 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
- 	depends on INET && NET_9P && EXPERIMENTAL
+diff -puN arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64 arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
++++ a/arch/ia64/Kconfig
+@@ -303,6 +303,7 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
+ config SCHED_SMT
+ 	bool "SMT scheduler support"
+ 	depends on SMP
 +	depends on BROKEN
  	help
- 	  If you say Y here, you will get experimental support for
- 	  Plan 9 resource sharing via the 9P2000 protocol.
+ 	  Improves the CPU scheduler's decision making when dealing with
+ 	  Intel IA64 chips with MultiThreading at a cost of slightly increased
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +106,7 @@ git-unionfs-build-fix.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 9p-build-fix.patch
+9p-is-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
@@ -121,6 +117,7 @@ intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 hpet-force-enable-on-vt8235-37-chipsets-fix.patch
+x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 git-xfs.patch
 git-xfs-build-fix.patch
 git-xtensa.patch
@@ -131,7 +128,6 @@ sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-alloc_pages-permit-get_zeroed_pagegfp_atomic-from-interrupt-context.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 git-nfs-vs-nfs-convert-to-new-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
@@ -208,4 +204,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-9p-is-bust.patch
