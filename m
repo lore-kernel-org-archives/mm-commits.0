@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch added to -mm tree
-Date: Fri, 31 Aug 2007 19:50:59 -0700
-Message-ID: <200709010250.l812oxf4006103@imap1.linux-foundation.org>
+Subject: + 9p-is-still-bust.patch added to -mm tree
+Date: Fri, 31 Aug 2007 19:55:29 -0700
+Message-ID: <200709010300.l8130oi8006412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58001 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840AbXIACvF (ORCPT
+	by vger.kernel.org with ESMTP id S1751552AbXIADE1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 22:51:05 -0400
+	Fri, 31 Aug 2007 23:04:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, travis@sgi.com
+Cc: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
+     9p-is-still-bust
 has been added to the -mm tree.  Its filename is
-     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
+     9p-is-still-bust.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
+Subject: 9p-is-still-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64 build breakage
+bad lguest symbols on ia64.
 
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 +
+ net/9p/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
-+++ a/arch/ia64/Kconfig
-@@ -303,6 +303,7 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
- config SCHED_SMT
- 	bool "SMT scheduler support"
- 	depends on SMP
+diff -puN net/9p/Kconfig~9p-is-still-bust net/9p/Kconfig
+--- a/net/9p/Kconfig~9p-is-still-bust
++++ a/net/9p/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig NET_9P
+ 	depends on NET && EXPERIMENTAL
 +	depends on BROKEN
+ 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
  	help
- 	  Improves the CPU scheduler's decision making when dealing with
- 	  Intel IA64 chips with MultiThreading at a cost of slightly increased
+ 	  If you say Y here, you will get experimental support for
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +106,7 @@ git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 9p-build-fix.patch
 9p-is-bust.patch
+9p-is-still-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
