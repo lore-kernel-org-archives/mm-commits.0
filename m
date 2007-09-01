@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hpet-force-enable-on-vt8235-37-chipsets-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2007 19:16:02 -0700
-Message-ID: <200709010221.l812LOuq005263@imap1.linux-foundation.org>
+Subject: + 9p-build-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2007 19:26:23 -0700
+Message-ID: <200709010231.l812Via8005558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36007 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991AbXIACWj (ORCPT
+	by vger.kernel.org with ESMTP id S1751035AbXIACf1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 22:22:39 -0400
+	Fri, 31 Aug 2007 22:35:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, us15@os.inf.tu-dresden.de, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, rusty@rustcorp.com.au
 
 
 The patch titled
-     hpet-force-enable-on-vt8235-37-chipsets-fix
+     9p build fix
 has been added to the -mm tree.  Its filename is
-     hpet-force-enable-on-vt8235-37-chipsets-fix.patch
+     9p-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hpet-force-enable-on-vt8235-37-chipsets-fix
+Subject: 9p build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/../../i386/kernel/quirks.c: In function 'vt8237_force_enable_hpet':
-arch/x86_64/kernel/../../i386/kernel/quirks.c:279: warning: 'val' is used uninitialized in this function
+Only i386 can do this.
 
-Cc: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/9p/trans_lg.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix
-+++ a/arch/i386/kernel/quirks.c
-@@ -266,7 +266,7 @@ static void vt8237_force_hpet_resume(voi
+diff -puN net/9p/trans_lg.c~9p-build-fix net/9p/trans_lg.c
+--- a/net/9p/trans_lg.c~9p-build-fix
++++ a/net/9p/trans_lg.c
+@@ -254,10 +254,12 @@ static struct p9_trans *p9_lg_create(con
+ 	struct p9_trans *trans;
+ 	struct lg_chan *chan = channels; /* don't bother w/match now */
  
- static void vt8237_force_enable_hpet(struct pci_dev *dev)
- {
--	u32 val;
-+	u32 uninitialized_var(val);
++#ifdef CONFIG_X86_32
+ 	if (strcmp(paravirt_ops.name, "lguest") != 0) {
+ 		printk(KERN_ERR "9p: not running on lguest, no lg possible\n");
+ 		return ERR_PTR(-ENODEV);
+ 	}
++#endif
  
- 	if (hpet_address || force_hpet_address)
- 		return;
+ 	trans = kmalloc(sizeof(struct p9_trans), GFP_KERNEL);
+ 	if (!trans) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -208,3 +207,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+9p-build-fix.patch
