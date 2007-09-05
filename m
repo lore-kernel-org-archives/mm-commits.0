@@ -1,24 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-is-still-bust.patch added to -mm tree
-Date: Fri, 31 Aug 2007 19:55:29 -0700
-Message-ID: <200709010300.l8130oi8006412@imap1.linux-foundation.org>
+Subject: + memory-controller-memory-accounting-v7-fix.patch added to -mm tree
+Date: Wed, 05 Sep 2007 08:13:14 -0700
+Message-ID: <200709051513.l85FDn5T011150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36634 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751552AbXIADE1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2007 23:04:27 -0400
+	by vger.kernel.org with ESMTP id S1756865AbXIEPOb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Sep 2007 11:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
+Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     9p-is-still-bust
+     memory-controller-memory-accounting-v7-fix
 has been added to the -mm tree.  Its filename is
-     9p-is-still-bust.patch
+     memory-controller-memory-accounting-v7-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 9p-is-still-bust
+Subject: memory-controller-memory-accounting-v7-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-bad lguest symbols on ia64.
-
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN net/9p/Kconfig~9p-is-still-bust net/9p/Kconfig
---- a/net/9p/Kconfig~9p-is-still-bust
-+++ a/net/9p/Kconfig
-@@ -4,6 +4,7 @@
+diff -puN mm/memory.c~memory-controller-memory-accounting-v7-fix mm/memory.c
+--- a/mm/memory.c~memory-controller-memory-accounting-v7-fix
++++ a/mm/memory.c
+@@ -1135,7 +1135,7 @@ static int insert_page(struct mm_struct 
+ {
+ 	int retval;
+ 	pte_t *pte;
+-	spinlock_t *ptl;  
++	spinlock_t *ptl;
  
- menuconfig NET_9P
- 	depends on NET && EXPERIMENTAL
-+	depends on BROKEN
- 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
- 	help
- 	  If you say Y here, you will get experimental support for
+ 	retval = mem_container_charge(page, mm);
+ 	if (retval)
+@@ -1160,6 +1160,7 @@ static int insert_page(struct mm_struct 
+ 	set_pte_at(mm, addr, pte, mk_pte(page, prot));
+ 
+ 	retval = 0;
++	pte_unmap_unlock(pte, ptl);
+ 	return retval;
+ out_unlock:
+ 	pte_unmap_unlock(pte, ptl);
+@@ -2184,8 +2185,8 @@ static int do_anonymous_page(struct mm_s
+ 	if (!page)
+ 		goto oom;
+ 
+-		if (mem_container_charge(page, mm))
+-			goto oom_free_page;
++	if (mem_container_charge(page, mm))
++		goto oom_free_page;
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -195,6 +211,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 remove-bits_to_type-macro-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
