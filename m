@@ -1,175 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-intel_cacheinfo-adjustments.patch added to -mm tree
-Date: Thu, 06 Sep 2007 17:46:20 -0700
-Message-ID: <200709070046.l870kKpc016299@imap1.linux-foundation.org>
+Subject: - git-unionfs-build-fix.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:42:51 -0700
+Message-ID: <200709070042.l870gpf6016071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37846 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932685AbXIGAqm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:46:42 -0400
+	by vger.kernel.org with ESMTP id S964857AbXIGAsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com
+To: akpm@linux-foundation.org, jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-intel_cacheinfo-adjustments
-has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-intel_cacheinfo-adjustments.patch
+     git-unionfs-build-fix
+has been removed from the -mm tree.  Its filename was
+     git-unionfs-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-intel_cacheinfo-adjustments
+Subject: git-unionfs-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid destroying
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-
-Cc: Jan Beulich <jbeulich@novell.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/intel_cacheinfo.c |   43 ++++++++++++-----------
- 1 file changed, 24 insertions(+), 19 deletions(-)
+ include/linux/mm.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~revert-x86_64-mm-intel_cacheinfo-adjustments arch/i386/kernel/cpu/intel_cacheinfo.c
---- a/arch/i386/kernel/cpu/intel_cacheinfo.c~revert-x86_64-mm-intel_cacheinfo-adjustments
-+++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
-@@ -457,7 +457,8 @@ static struct _cpuid4_info *cpuid4_info[
- static void __cpuinit cache_shared_cpu_map_setup(unsigned int cpu, int index)
- {
- 	struct _cpuid4_info	*this_leaf, *sibling_leaf;
--	unsigned int num_threads_sharing, index_msb, i;
-+	unsigned long num_threads_sharing;
-+	int index_msb, i;
- 	struct cpuinfo_x86 *c = cpu_data;
+diff -puN include/linux/mm.h~git-unionfs-build-fix include/linux/mm.h
+--- a/include/linux/mm.h~git-unionfs-build-fix
++++ a/include/linux/mm.h
+@@ -20,6 +20,7 @@ struct anon_vma;
+ struct file_ra_state;
+ struct user_struct;
+ struct writeback_control;
++struct super_block;
  
- 	this_leaf = CPUID4_INFO_IDX(cpu, index);
-@@ -483,7 +484,7 @@ static void __cpuinit cache_shared_cpu_m
- static void __cpuinit cache_remove_shared_cpu_map(unsigned int cpu, int index)
- {
- 	struct _cpuid4_info	*this_leaf, *sibling_leaf;
--	unsigned int sibling;
-+	int sibling;
- 
- 	this_leaf = CPUID4_INFO_IDX(cpu, index);
- 	for_each_cpu_mask(sibling, this_leaf->shared_cpu_map) {
-@@ -505,7 +506,7 @@ static void free_cache_attributes(unsign
- static int __cpuinit detect_cache_attributes(unsigned int cpu)
- {
- 	struct _cpuid4_info	*this_leaf;
--	unsigned int		j;
-+	unsigned long 		j;
- 	int 			retval;
- 	cpumask_t		oldmask;
- 
-@@ -523,6 +524,7 @@ static int __cpuinit detect_cache_attrib
- 		goto out;
- 
- 	/* Do cpuid and store the results */
-+	retval = 0;
- 	for (j = 0; j < num_cache_leaves; j++) {
- 		this_leaf = CPUID4_INFO_IDX(cpu, j);
- 		retval = cpuid4_cache_lookup(j, this_leaf);
-@@ -562,7 +564,7 @@ static struct _index_kobject *index_kobj
- static ssize_t show_##file_name						\
- 			(struct _cpuid4_info *this_leaf, char *buf)	\
- {									\
--	return sprintf(buf, "%u\n", this_leaf->object + (val));		\
-+	return sprintf (buf, "%lu\n", (unsigned long)this_leaf->object + val); \
- }
- 
- show_one_plus(level, eax.split.level, 0);
-@@ -573,7 +575,7 @@ show_one_plus(number_of_sets, ecx.split.
- 
- static ssize_t show_size(struct _cpuid4_info *this_leaf, char *buf)
- {
--	return sprintf(buf, "%luK\n", this_leaf->size / 1024);
-+	return sprintf (buf, "%luK\n", this_leaf->size / 1024);
- }
- 
- static ssize_t show_shared_cpu_map(struct _cpuid4_info *this_leaf, char *buf)
-@@ -678,11 +680,13 @@ static void cpuid4_cache_sysfs_exit(unsi
- 
- static int __cpuinit cpuid4_cache_sysfs_init(unsigned int cpu)
- {
--	int retval;
- 
--	retval = detect_cache_attributes(cpu);
--	if (retval < 0)
--		return retval;
-+	if (num_cache_leaves == 0)
-+		return -ENOENT;
-+
-+	detect_cache_attributes(cpu);
-+	if (cpuid4_info[cpu] == NULL)
-+		return -ENOENT;
- 
- 	/* Allocate all required memory */
- 	cache_kobject[cpu] = kzalloc(sizeof(struct kobject), GFP_KERNEL);
-@@ -704,9 +708,10 @@ err_out:
- /* Add/Remove cache interface for CPU device */
- static int __cpuinit cache_add_dev(struct sys_device * sys_dev)
- {
--	unsigned int i, cpu = sys_dev->id;
-+	unsigned int cpu = sys_dev->id;
-+	unsigned long i, j;
- 	struct _index_kobject *this_object;
--	int retval;
-+	int retval = 0;
- 
- 	retval = cpuid4_cache_sysfs_init(cpu);
- 	if (unlikely(retval < 0))
-@@ -722,13 +727,14 @@ static int __cpuinit cache_add_dev(struc
- 		this_object->cpu = cpu;
- 		this_object->index = i;
- 		this_object->kobj.parent = cache_kobject[cpu];
--		kobject_set_name(&(this_object->kobj), "index%u", i);
-+		kobject_set_name(&(this_object->kobj), "index%1lu", i);
- 		this_object->kobj.ktype = &ktype_cache;
- 		retval = kobject_register(&(this_object->kobj));
- 		if (unlikely(retval)) {
--			while (i--)
-+			for (j = 0; j < i; j++) {
- 				kobject_unregister(
--					&(INDEX_KOBJECT_PTR(cpu,i)->kobj));
-+					&(INDEX_KOBJECT_PTR(cpu,j)->kobj));
-+			}
- 			kobject_unregister(cache_kobject[cpu]);
- 			cpuid4_cache_sysfs_exit(cpu);
- 			break;
-@@ -739,10 +745,9 @@ static int __cpuinit cache_add_dev(struc
- 
- static void __cpuinit cache_remove_dev(struct sys_device * sys_dev)
- {
--	unsigned int i, cpu = sys_dev->id;
-+	unsigned int cpu = sys_dev->id;
-+	unsigned long i;
- 
--	if (unlikely(cpuid4_info[cpu] == NULL))
--		return;
- 	for (i = 0; i < num_cache_leaves; i++) {
- 		cache_remove_shared_cpu_map(cpu, i);
- 		kobject_unregister(&(INDEX_KOBJECT_PTR(cpu,i)->kobj));
-@@ -777,9 +782,9 @@ static struct notifier_block __cpuinitda
-     .notifier_call = cacheinfo_cpu_callback,
- };
- 
--static int __init cache_sysfs_init(void)
-+static int __cpuinit cache_sysfs_init(void)
- {
--	unsigned int i;
-+	int i;
- 
- 	if (num_cache_leaves == 0)
- 		return 0;
+ #ifndef CONFIG_DISCONTIGMEM          /* Don't use mapnrs, do it properly */
+ extern unsigned long max_mapnr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
