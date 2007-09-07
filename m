@@ -1,177 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - git-kgdb-fixup.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:24:36 -0700
-Message-ID: <200709070024.l870Oa5B015471@imap1.linux-foundation.org>
+Subject: + use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch added to -mm tree
+Date: Thu, 06 Sep 2007 17:41:50 -0700
+Message-ID: <200709070041.l870foTZ016002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44696 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36742 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932658AbXIGAYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:24:40 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l870ObqD025402
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 6 Sep 2007 17:24:38 -0700
+	by vger.kernel.org with ESMTP id S964819AbXIGAl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, airlied@linux.ie, xemul@openvz.org
 
 
 The patch titled
-     git-kgdb-fixup
-has been removed from the -mm tree.  Its filename was
-     git-kgdb-fixup.patch
+     use-helpers-to-obtain-task-pid-in-printks-drm-fix
+has been added to the -mm tree.  Its filename is
+     use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb-fixup
+Subject: use-helpers-to-obtain-task-pid-in-printks-drm-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+git-drm went and changed lots of stuff.
+
+I hope those git-drm changes will be going into 2.6.24?
+
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile   |    2 +-
- arch/i386/kernel/Makefile        |    1 +
- arch/mips/sibyte/bcm1480/irq.c   |    6 ------
- arch/mips/sibyte/sb1250/irq.c    |    6 ------
- arch/mips/tx4927/common/Makefile |    3 ---
- include/asm-i386/kdebug.h        |    1 +
- include/asm-x86_64/kdebug.h      |    1 +
- 7 files changed, 4 insertions(+), 16 deletions(-)
+ drivers/char/drm/drm_drv.c  |    2 +-
+ drivers/char/drm/drm_fops.c |    5 +++--
+ drivers/char/drm/drm_lock.c |    6 +++---
+ drivers/char/drm/i810_dma.c |    2 +-
+ drivers/char/drm/i830_dma.c |    2 +-
+ 5 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/DocBook/Makefile~git-kgdb-fixup Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~git-kgdb-fixup
-+++ a/Documentation/DocBook/Makefile
-@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
- 	    procfs-guide.xml writing_usb_driver.xml \
- 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
- 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
--	    genericirq.xml s390-drivers.xml
-+	    genericirq.xml s390-drivers.xml kgdb.xml
+diff -puN drivers/char/drm/drm_drv.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix drivers/char/drm/drm_drv.c
+--- a/drivers/char/drm/drm_drv.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix
++++ a/drivers/char/drm/drm_drv.c
+@@ -463,7 +463,7 @@ int drm_ioctl(struct inode *inode, struc
+ 	++file_priv->ioctl_count;
  
- ###
- # The build process is as follows (targets):
-diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup arch/i386/kernel/Makefile
---- a/arch/i386/kernel/Makefile~git-kgdb-fixup
-+++ a/arch/i386/kernel/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_APM)		+= apm.o
- obj-$(CONFIG_X86_SMP)		+= smp.o smpboot.o tsc_sync.o
- obj-$(CONFIG_SMP)		+= smpcommon.o
- obj-$(CONFIG_X86_TRAMPOLINE)	+= trampoline.o
-+obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
- obj-$(CONFIG_X86_MPPARSE)	+= mpparse.o
- obj-$(CONFIG_X86_LOCAL_APIC)	+= apic.o nmi.o
- obj-$(CONFIG_X86_IO_APIC)	+= io_apic.o
-diff -puN include/asm-i386/kdebug.h~git-kgdb-fixup include/asm-i386/kdebug.h
---- a/include/asm-i386/kdebug.h~git-kgdb-fixup
-+++ a/include/asm-i386/kdebug.h
-@@ -22,6 +22,7 @@ enum die_val {
- 	DIE_GPF,
- 	DIE_CALL,
- 	DIE_NMI_IPI,
-+	DIE_PAGE_FAULT_NO_CONTEXT,
- };
+ 	DRM_DEBUG("pid=%d, cmd=0x%02x, nr=0x%02x, dev 0x%lx, auth=%d\n",
+-		  current->pid, cmd, nr,
++		  task_pid_nr(current), cmd, nr,
+ 		  (long)old_encode_dev(file_priv->head->device),
+ 		  file_priv->authenticated);
  
- #endif
-diff -puN include/asm-x86_64/kdebug.h~git-kgdb-fixup include/asm-x86_64/kdebug.h
---- a/include/asm-x86_64/kdebug.h~git-kgdb-fixup
-+++ a/include/asm-x86_64/kdebug.h
-@@ -17,6 +17,7 @@ enum die_val {
- 	DIE_GPF,
- 	DIE_CALL,
- 	DIE_NMI_IPI,
-+	DIE_PAGE_FAULT_NO_CONTEXT,
- };
+diff -puN drivers/char/drm/drm_fops.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix drivers/char/drm/drm_fops.c
+--- a/drivers/char/drm/drm_fops.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix
++++ a/drivers/char/drm/drm_fops.c
+@@ -244,7 +244,7 @@ static int drm_open_helper(struct inode 
+ 	filp->private_data = priv;
+ 	priv->filp = filp;
+ 	priv->uid = current->euid;
+-	priv->pid = current->pid;
++	priv->pid = task_pid_nr(current);
+ 	priv->minor = minor;
+ 	priv->head = drm_heads[minor];
+ 	priv->ioctl_count = 0;
+@@ -339,7 +339,8 @@ int drm_release(struct inode *inode, str
+ 	 */
  
- extern void printk_address(unsigned long address);
-diff -puN arch/mips/sibyte/bcm1480/irq.c~git-kgdb-fixup arch/mips/sibyte/bcm1480/irq.c
---- a/arch/mips/sibyte/bcm1480/irq.c~git-kgdb-fixup
-+++ a/arch/mips/sibyte/bcm1480/irq.c
-@@ -57,7 +57,6 @@ static void bcm1480_set_affinity(unsigne
- extern unsigned long ht_eoi_space;
- #endif
+ 	DRM_DEBUG("pid = %d, device = 0x%lx, open_count = %d\n",
+-		  current->pid, (long)old_encode_dev(file_priv->head->device),
++		  task_pid_nr(current),
++		  (long)old_encode_dev(file_priv->head->device),
+ 		  dev->open_count);
  
--<<<<<<< HEAD/arch/mips/sibyte/bcm1480/irq.c
- #ifdef CONFIG_KGDB
- #include <asm/gdb-stub.h>
- extern void breakpoint(void);
-@@ -82,8 +81,6 @@ extern char sb1250_duart_present[];
- #endif
- #endif
+ 	if (dev->driver->reclaim_buffers_locked && dev->lock.hw_lock) {
+diff -puN drivers/char/drm/drm_lock.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix drivers/char/drm/drm_lock.c
+--- a/drivers/char/drm/drm_lock.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix
++++ a/drivers/char/drm/drm_lock.c
+@@ -58,12 +58,12 @@ int drm_lock(struct drm_device *dev, voi
  
--=======
-->>>>>>> /arch/mips/sibyte/bcm1480/irq.c
- static struct irq_chip bcm1480_irq_type = {
- 	.name = "BCM1480-IMR",
- 	.ack = ack_bcm1480_irq,
-@@ -400,7 +397,6 @@ void __init arch_init_irq(void)
- 	/* Enable necessary IPs, disable the rest */
- 	change_c0_status(ST0_IM, imask);
- 
--<<<<<<< HEAD/arch/mips/sibyte/bcm1480/irq.c
- #ifdef CONFIG_KGDB
- 	if (kgdb_flag) {
- 		kgdb_irq = K_BCM1480_INT_UART_0 + kgdb_port;
-@@ -426,8 +422,6 @@ void __init arch_init_irq(void)
- 		breakpoint();
+ 	if (lock->context == DRM_KERNEL_CONTEXT) {
+ 		DRM_ERROR("Process %d using kernel context %d\n",
+-			  current->pid, lock->context);
++			  task_pid_nr(current), lock->context);
+ 		return -EINVAL;
  	}
- #endif
--=======
-->>>>>>> /arch/mips/sibyte/bcm1480/irq.c
- }
  
- extern void bcm1480_timer_interrupt(void);
-diff -puN arch/mips/sibyte/sb1250/irq.c~git-kgdb-fixup arch/mips/sibyte/sb1250/irq.c
---- a/arch/mips/sibyte/sb1250/irq.c~git-kgdb-fixup
-+++ a/arch/mips/sibyte/sb1250/irq.c
-@@ -57,7 +57,6 @@ static void sb1250_set_affinity(unsigned
- extern unsigned long ldt_eoi_space;
- #endif
+ 	DRM_DEBUG("%d (pid %d) requests lock (0x%08x), flags = 0x%08x\n",
+-		  lock->context, current->pid,
++		  lock->context, task_pid_nr(current),
+ 		  dev->lock.hw_lock->lock, lock->flags);
  
--<<<<<<< HEAD/arch/mips/sibyte/sb1250/irq.c
- #ifdef CONFIG_KGDB
- static int kgdb_irq;
+ 	if (drm_core_check_feature(dev, DRIVER_DMA_QUEUE))
+@@ -153,7 +153,7 @@ int drm_unlock(struct drm_device *dev, v
  
-@@ -68,8 +67,6 @@ extern char sb1250_duart_present[];
- #endif
- #endif
- 
--=======
-->>>>>>> /arch/mips/sibyte/sb1250/irq.c
- static struct irq_chip sb1250_irq_type = {
- 	.name = "SB1250-IMR",
- 	.ack = ack_sb1250_irq,
-@@ -363,7 +360,6 @@ void __init arch_init_irq(void)
- #endif
- 	/* Enable necessary IPs, disable the rest */
- 	change_c0_status(ST0_IM, imask);
--<<<<<<< HEAD/arch/mips/sibyte/sb1250/irq.c
- 
- #ifdef CONFIG_KGDB
- 	if (kgdb_flag) {
-@@ -384,8 +380,6 @@ void __init arch_init_irq(void)
- 		sb1250_unmask_irq(0, kgdb_irq);
+ 	if (lock->context == DRM_KERNEL_CONTEXT) {
+ 		DRM_ERROR("Process %d using kernel context %d\n",
+-			  current->pid, lock->context);
++			  task_pid_nr(current), lock->context);
+ 		return -EINVAL;
  	}
- #endif
--=======
-->>>>>>> /arch/mips/sibyte/sb1250/irq.c
- }
  
- extern void sb1250_timer_interrupt(void);
-diff -puN arch/mips/tx4927/common/Makefile~git-kgdb-fixup arch/mips/tx4927/common/Makefile
---- a/arch/mips/tx4927/common/Makefile~git-kgdb-fixup
-+++ a/arch/mips/tx4927/common/Makefile
-@@ -9,9 +9,6 @@
- obj-y	+= tx4927_prom.o tx4927_setup.o tx4927_irq.o
+diff -puN drivers/char/drm/i810_dma.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix drivers/char/drm/i810_dma.c
+--- a/drivers/char/drm/i810_dma.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix
++++ a/drivers/char/drm/i810_dma.c
+@@ -1024,7 +1024,7 @@ static int i810_getbuf(struct drm_device
+ 	retcode = i810_dma_get_buffer(dev, d, file_priv);
  
- obj-$(CONFIG_TOSHIBA_FPCIB0)	   += smsc_fdc37m81x.o
--<<<<<<< HEAD/arch/mips/tx4927/common/Makefile
- obj-$(CONFIG_KGDB)                 += tx4927_dbgio.o
+ 	DRM_DEBUG("i810_dma: %d returning %d, granted = %d\n",
+-		  current->pid, retcode, d->granted);
++		  task_pid_nr(current), retcode, d->granted);
  
- EXTRA_CFLAGS += -Werror
--=======
-->>>>>>> /arch/mips/tx4927/common/Makefile
+ 	sarea_priv->last_dispatch = (int)hw_status[5];
+ 
+diff -puN drivers/char/drm/i830_dma.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix drivers/char/drm/i830_dma.c
+--- a/drivers/char/drm/i830_dma.c~use-helpers-to-obtain-task-pid-in-printks-drm-fix
++++ a/drivers/char/drm/i830_dma.c
+@@ -1409,7 +1409,7 @@ static int i830_getbuf(struct drm_device
+ 	retcode = i830_dma_get_buffer(dev, d, file_priv);
+ 
+ 	DRM_DEBUG("i830_dma: %d returning %d, granted = %d\n",
+-		  current->pid, retcode, d->granted);
++		  task_pid_nr(current), retcode, d->granted);
+ 
+ 	sarea_priv->last_dispatch = (int)hw_status[5];
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -227,6 +184,7 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-intel_cacheinfo-adjustments.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
@@ -235,7 +193,6 @@ hpet-force-enable-on-vt8235-37-chipsets-fix.patch
 x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 git-xfs.patch
 git-xtensa.patch
-git-kgdb-fixup.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
@@ -312,6 +269,7 @@ isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
