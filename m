@@ -1,30 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-is-still-bust.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:13:39 -0700
-Message-ID: <200709070013.l870Dd13015050@imap1.linux-foundation.org>
+Subject: - 9p-is-bust.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:13:35 -0700
+Message-ID: <200709070013.l870DZSD015047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964777AbXIGANp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:13:45 -0400
+	by vger.kernel.org with ESMTP id S932706AbXIGANm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9p-is-still-bust
+     9p-is-bust
 has been removed from the -mm tree.  Its filename was
-     9p-is-still-bust.patch
+     9p-is-bust.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: 9p-is-still-bust
+Subject: 9p-is-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
-bad lguest symbols on ia64.
+x86_64 allmodconfig:
+
+ERROR: "lguest_bind_dma" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "register_lguest_driver" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "lguest_send_dma" [net/9p/9pnet_lg.ko] undefined!
+ERROR: "lguest_devices" [net/9p/9pnet_lg.ko] undefined!
 
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Cc: Ron Minnich <rminnich@sandia.gov>
@@ -32,20 +37,20 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/Kconfig |    1 +
+ fs/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN net/9p/Kconfig~9p-is-still-bust net/9p/Kconfig
---- a/net/9p/Kconfig~9p-is-still-bust
-+++ a/net/9p/Kconfig
-@@ -4,6 +4,7 @@
- 
- menuconfig NET_9P
- 	depends on NET && EXPERIMENTAL
-+	depends on BROKEN
+diff -puN fs/Kconfig~9p-is-bust fs/Kconfig
+--- a/fs/Kconfig~9p-is-bust
++++ a/fs/Kconfig
+@@ -2097,6 +2097,7 @@ config AFS_DEBUG
+ config 9P_FS
  	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
+ 	depends on INET && NET_9P && EXPERIMENTAL
++	depends on BROKEN
  	help
  	  If you say Y here, you will get experimental support for
+ 	  Plan 9 resource sharing via the 9P2000 protocol.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +102,7 @@ git-block-fix-headers_check.patch
 git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+9p-is-bust.patch
 9p-is-still-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
