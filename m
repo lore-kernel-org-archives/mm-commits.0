@@ -1,57 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-build-fix.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:13:16 -0700
-Message-ID: <200709070013.l870DGcs015044@imap1.linux-foundation.org>
+Subject: - 9p-is-still-bust.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:13:39 -0700
+Message-ID: <200709070013.l870Dd13015050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38772 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37343 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932695AbXIGANa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:13:30 -0400
+	by vger.kernel.org with ESMTP id S964777AbXIGANp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9p build fix
+     9p-is-still-bust
 has been removed from the -mm tree.  Its filename was
-     9p-build-fix.patch
+     9p-is-still-bust.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: 9p build fix
+Subject: 9p-is-still-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Only i386 can do this.
+bad lguest symbols on ia64.
 
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Cc: Ron Minnich <rminnich@sandia.gov>
 Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_lg.c |    2 ++
- 1 file changed, 2 insertions(+)
+ net/9p/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/9p/trans_lg.c~9p-build-fix net/9p/trans_lg.c
---- a/net/9p/trans_lg.c~9p-build-fix
-+++ a/net/9p/trans_lg.c
-@@ -254,10 +254,12 @@ static struct p9_trans *p9_lg_create(con
- 	struct p9_trans *trans;
- 	struct lg_chan *chan = channels; /* don't bother w/match now */
+diff -puN net/9p/Kconfig~9p-is-still-bust net/9p/Kconfig
+--- a/net/9p/Kconfig~9p-is-still-bust
++++ a/net/9p/Kconfig
+@@ -4,6 +4,7 @@
  
-+#ifdef CONFIG_X86_32
- 	if (strcmp(paravirt_ops.name, "lguest") != 0) {
- 		printk(KERN_ERR "9p: not running on lguest, no lg possible\n");
- 		return ERR_PTR(-ENODEV);
- 	}
-+#endif
- 
- 	trans = kmalloc(sizeof(struct p9_trans), GFP_KERNEL);
- 	if (!trans) {
+ menuconfig NET_9P
+ 	depends on NET && EXPERIMENTAL
++	depends on BROKEN
+ 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
+ 	help
+ 	  If you say Y here, you will get experimental support for
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,8 +97,6 @@ git-block-fix-headers_check.patch
 git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-9p-build-fix.patch
-9p-is-bust.patch
 9p-is-still-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
