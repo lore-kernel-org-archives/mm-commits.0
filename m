@@ -1,32 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-cs5535audio-fix-acc_bm_cmd-register-handling.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:42:12 -0700
-Message-ID: <200709070042.l870gCZk016023@imap1.linux-foundation.org>
+Subject: - alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:42:08 -0700
+Message-ID: <200709070042.l870g87B016017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54521 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38059 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964849AbXIGAmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:42:54 -0400
+	by vger.kernel.org with ESMTP id S964844AbXIGAmv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dilinger@queued.net, dilinger@debian.org, jayakumar.alsa@gmail.com, jordan.crouse@amd.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: cs5535audio: fix ACC_BM[x]_CMD register handling
+     ALSA: cs5535audio: fix PRD register save/restore power management race
 has been removed from the -mm tree.  Its filename was
-     alsa-cs5535audio-fix-acc_bm_cmd-register-handling.patch
+     alsa-cs5535audio-fix-prd-register-save-restore-power-management-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALSA: cs5535audio: fix ACC_BM[x]_CMD register handling
+Subject: ALSA: cs5535audio: fix PRD register save/restore power management race
 From: Andres Salomon <dilinger@queued.net>
 
-ACcording to 6.3.2.7 of the cs5535/cs5536 data sheets, the ACC_BM[x]_CMD
-registers are only 8 bits wide.  This driver treats them as 32 bits wide, and
-also has bits in the wrong place.  Simple fix to the definitions.
+In the suspend path, we currently save the PRD registers and then disable DMA.
+ This is racy; the sound hardware might update the PRD register as it finishes
+processing some DMA pages between when we've saved the PRD registers and when
+DMA actually gets disabled.  Furthermore, we actively check whether or not DMA
+is enabled before saving PRD registers; there's no reason to do that, as the
+PRD registers should not update when we twiddle the ACC_BM[x]_CMD register(s).
+ Worst case, we save the PRD registers twice; even powering down the ACC
+shouldn't mess with the PRD registers (according to the 5536 data sheet,
+section 5.3.7.4, power-down procedure).  This patch reworks all that to first
+disable DMA, and then save PRD registers.
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Acked-by: Jordan Crouse <jordan.crouse@amd.com>
@@ -36,29 +43,82 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/cs5535audio.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ sound/pci/cs5535audio/cs5535audio.h     |    1 -
+ sound/pci/cs5535audio/cs5535audio_pcm.c |    2 --
+ sound/pci/cs5535audio/cs5535audio_pm.c  |   14 +++++++-------
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-acc_bm_cmd-register-handling sound/pci/cs5535audio/cs5535audio.h
---- a/sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-acc_bm_cmd-register-handling
+diff -puN sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio.h
+--- a/sound/pci/cs5535audio/cs5535audio.h~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
 +++ a/sound/pci/cs5535audio/cs5535audio.h
-@@ -62,11 +62,11 @@
- #define EOP				(1<<0)
- #define BM_EOP_ERR			(1<<1)
- /* ACC_BMX_CTL */
--#define BM_CTL_EN			0x00000001
--#define BM_CTL_PAUSE			0x00000011
--#define BM_CTL_DIS			0x00000000
--#define BM_CTL_BYTE_ORD_LE		0x00000000
--#define BM_CTL_BYTE_ORD_BE		0x00000100
-+#define BM_CTL_EN			0x01
-+#define BM_CTL_PAUSE			0x03
-+#define BM_CTL_DIS			0x00
-+#define BM_CTL_BYTE_ORD_LE		0x00
-+#define BM_CTL_BYTE_ORD_BE		0x04
- /* cs5535 specific ac97 codec register defines */
- #define CMD_MASK			0xFF00FFFF
- #define CMD_NEW				0x00010000
+@@ -106,7 +106,6 @@ struct cs5535audio_dma {
+ 	struct snd_pcm_substream *substream;
+ 	unsigned int buf_addr, buf_bytes;
+ 	unsigned int period_bytes, periods;
+-	int suspended;
+ 	u32 saved_prd;
+ };
+ 
+diff -puN sound/pci/cs5535audio/cs5535audio_pcm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio_pcm.c
+--- a/sound/pci/cs5535audio/cs5535audio_pcm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
++++ a/sound/pci/cs5535audio/cs5535audio_pcm.c
+@@ -297,14 +297,12 @@ static int snd_cs5535audio_trigger(struc
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 		dma->ops->enable_dma(cs5535au);
+-		dma->suspended = 0;
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_STOP:
+ 		dma->ops->disable_dma(cs5535au);
+ 		break;
+ 	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 		dma->ops->disable_dma(cs5535au);
+-		dma->suspended = 1;
+ 		break;
+ 	default:
+ 		snd_printk(KERN_ERR "unhandled trigger\n");
+diff -puN sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race sound/pci/cs5535audio/cs5535audio_pm.c
+--- a/sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-fix-prd-register-save-restore-power-management-race
++++ a/sound/pci/cs5535audio/cs5535audio_pm.c
+@@ -64,13 +64,13 @@ int snd_cs5535audio_suspend(struct pci_d
+ 	int i;
+ 
+ 	snd_power_change_state(card, SNDRV_CTL_POWER_D3hot);
++	snd_pcm_suspend_all(cs5535au->pcm);
++	snd_ac97_suspend(cs5535au->ac97);
+ 	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
+ 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
+-		if (dma && dma->substream && !dma->suspended) 
++		if (dma && dma->substream)
+ 			dma->saved_prd = dma->ops->read_prd(cs5535au);
+ 	}
+-	snd_pcm_suspend_all(cs5535au->pcm);
+-	snd_ac97_suspend(cs5535au->ac97);
+ 	/* save important regs, then disable aclink in hw */
+ 	snd_cs5535audio_stop_hardware(cs5535au);
+ 
+@@ -112,17 +112,17 @@ int snd_cs5535audio_resume(struct pci_de
+ 	if (!timeout)
+ 		snd_printk(KERN_ERR "Failure getting AC Link ready\n");
+ 
+-	/* we depend on ac97 to perform the codec power up */
+-	snd_ac97_resume(cs5535au->ac97);
+ 	/* set up rate regs, dma. actual initiation is done in trig */
+ 	for (i = 0; i < NUM_CS5535AUDIO_DMAS; i++) {
+ 		struct cs5535audio_dma *dma = &cs5535au->dmas[i];
+-		if (dma && dma->substream && dma->suspended) {
++		if (dma && dma->substream) {
+ 			dma->substream->ops->prepare(dma->substream);
+ 			dma->ops->setup_prd(cs5535au, dma->saved_prd);
+ 		}
+ 	}
+-		
++
++	/* we depend on ac97 to perform the codec power up */
++	snd_ac97_resume(cs5535au->ac97);
+ 	snd_power_change_state(card, SNDRV_CTL_POWER_D0);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
