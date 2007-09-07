@@ -1,56 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-is-bust.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:13:35 -0700
-Message-ID: <200709070013.l870DZSD015047@imap1.linux-foundation.org>
+Subject: - git-kgdb-fixup.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:24:36 -0700
+Message-ID: <200709070024.l870Oa5B015471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48405 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932706AbXIGANm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:13:42 -0400
+	by vger.kernel.org with ESMTP id S932658AbXIGAYk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:24:40 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l870ObqD025402
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 6 Sep 2007 17:24:38 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9p-is-bust
+     git-kgdb-fixup
 has been removed from the -mm tree.  Its filename was
-     9p-is-bust.patch
+     git-kgdb-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: 9p-is-bust
+Subject: git-kgdb-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
-
-ERROR: "lguest_bind_dma" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "register_lguest_driver" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "lguest_send_dma" [net/9p/9pnet_lg.ko] undefined!
-ERROR: "lguest_devices" [net/9p/9pnet_lg.ko] undefined!
-
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/DocBook/Makefile   |    2 +-
+ arch/i386/kernel/Makefile        |    1 +
+ arch/mips/sibyte/bcm1480/irq.c   |    6 ------
+ arch/mips/sibyte/sb1250/irq.c    |    6 ------
+ arch/mips/tx4927/common/Makefile |    3 ---
+ include/asm-i386/kdebug.h        |    1 +
+ include/asm-x86_64/kdebug.h      |    1 +
+ 7 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN fs/Kconfig~9p-is-bust fs/Kconfig
---- a/fs/Kconfig~9p-is-bust
-+++ a/fs/Kconfig
-@@ -2097,6 +2097,7 @@ config AFS_DEBUG
- config 9P_FS
- 	tristate "Plan 9 Resource Sharing Support (9P2000) (Experimental)"
- 	depends on INET && NET_9P && EXPERIMENTAL
-+	depends on BROKEN
- 	help
- 	  If you say Y here, you will get experimental support for
- 	  Plan 9 resource sharing via the 9P2000 protocol.
+diff -puN Documentation/DocBook/Makefile~git-kgdb-fixup Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~git-kgdb-fixup
++++ a/Documentation/DocBook/Makefile
+@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
+ 	    procfs-guide.xml writing_usb_driver.xml \
+ 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
+ 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
+-	    genericirq.xml s390-drivers.xml
++	    genericirq.xml s390-drivers.xml kgdb.xml
+ 
+ ###
+ # The build process is as follows (targets):
+diff -puN arch/i386/kernel/Makefile~git-kgdb-fixup arch/i386/kernel/Makefile
+--- a/arch/i386/kernel/Makefile~git-kgdb-fixup
++++ a/arch/i386/kernel/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_APM)		+= apm.o
+ obj-$(CONFIG_X86_SMP)		+= smp.o smpboot.o tsc_sync.o
+ obj-$(CONFIG_SMP)		+= smpcommon.o
+ obj-$(CONFIG_X86_TRAMPOLINE)	+= trampoline.o
++obj-$(CONFIG_KGDB)		+= kgdb.o kgdb-jmp.o
+ obj-$(CONFIG_X86_MPPARSE)	+= mpparse.o
+ obj-$(CONFIG_X86_LOCAL_APIC)	+= apic.o nmi.o
+ obj-$(CONFIG_X86_IO_APIC)	+= io_apic.o
+diff -puN include/asm-i386/kdebug.h~git-kgdb-fixup include/asm-i386/kdebug.h
+--- a/include/asm-i386/kdebug.h~git-kgdb-fixup
++++ a/include/asm-i386/kdebug.h
+@@ -22,6 +22,7 @@ enum die_val {
+ 	DIE_GPF,
+ 	DIE_CALL,
+ 	DIE_NMI_IPI,
++	DIE_PAGE_FAULT_NO_CONTEXT,
+ };
+ 
+ #endif
+diff -puN include/asm-x86_64/kdebug.h~git-kgdb-fixup include/asm-x86_64/kdebug.h
+--- a/include/asm-x86_64/kdebug.h~git-kgdb-fixup
++++ a/include/asm-x86_64/kdebug.h
+@@ -17,6 +17,7 @@ enum die_val {
+ 	DIE_GPF,
+ 	DIE_CALL,
+ 	DIE_NMI_IPI,
++	DIE_PAGE_FAULT_NO_CONTEXT,
+ };
+ 
+ extern void printk_address(unsigned long address);
+diff -puN arch/mips/sibyte/bcm1480/irq.c~git-kgdb-fixup arch/mips/sibyte/bcm1480/irq.c
+--- a/arch/mips/sibyte/bcm1480/irq.c~git-kgdb-fixup
++++ a/arch/mips/sibyte/bcm1480/irq.c
+@@ -57,7 +57,6 @@ static void bcm1480_set_affinity(unsigne
+ extern unsigned long ht_eoi_space;
+ #endif
+ 
+-<<<<<<< HEAD/arch/mips/sibyte/bcm1480/irq.c
+ #ifdef CONFIG_KGDB
+ #include <asm/gdb-stub.h>
+ extern void breakpoint(void);
+@@ -82,8 +81,6 @@ extern char sb1250_duart_present[];
+ #endif
+ #endif
+ 
+-=======
+->>>>>>> /arch/mips/sibyte/bcm1480/irq.c
+ static struct irq_chip bcm1480_irq_type = {
+ 	.name = "BCM1480-IMR",
+ 	.ack = ack_bcm1480_irq,
+@@ -400,7 +397,6 @@ void __init arch_init_irq(void)
+ 	/* Enable necessary IPs, disable the rest */
+ 	change_c0_status(ST0_IM, imask);
+ 
+-<<<<<<< HEAD/arch/mips/sibyte/bcm1480/irq.c
+ #ifdef CONFIG_KGDB
+ 	if (kgdb_flag) {
+ 		kgdb_irq = K_BCM1480_INT_UART_0 + kgdb_port;
+@@ -426,8 +422,6 @@ void __init arch_init_irq(void)
+ 		breakpoint();
+ 	}
+ #endif
+-=======
+->>>>>>> /arch/mips/sibyte/bcm1480/irq.c
+ }
+ 
+ extern void bcm1480_timer_interrupt(void);
+diff -puN arch/mips/sibyte/sb1250/irq.c~git-kgdb-fixup arch/mips/sibyte/sb1250/irq.c
+--- a/arch/mips/sibyte/sb1250/irq.c~git-kgdb-fixup
++++ a/arch/mips/sibyte/sb1250/irq.c
+@@ -57,7 +57,6 @@ static void sb1250_set_affinity(unsigned
+ extern unsigned long ldt_eoi_space;
+ #endif
+ 
+-<<<<<<< HEAD/arch/mips/sibyte/sb1250/irq.c
+ #ifdef CONFIG_KGDB
+ static int kgdb_irq;
+ 
+@@ -68,8 +67,6 @@ extern char sb1250_duart_present[];
+ #endif
+ #endif
+ 
+-=======
+->>>>>>> /arch/mips/sibyte/sb1250/irq.c
+ static struct irq_chip sb1250_irq_type = {
+ 	.name = "SB1250-IMR",
+ 	.ack = ack_sb1250_irq,
+@@ -363,7 +360,6 @@ void __init arch_init_irq(void)
+ #endif
+ 	/* Enable necessary IPs, disable the rest */
+ 	change_c0_status(ST0_IM, imask);
+-<<<<<<< HEAD/arch/mips/sibyte/sb1250/irq.c
+ 
+ #ifdef CONFIG_KGDB
+ 	if (kgdb_flag) {
+@@ -384,8 +380,6 @@ void __init arch_init_irq(void)
+ 		sb1250_unmask_irq(0, kgdb_irq);
+ 	}
+ #endif
+-=======
+->>>>>>> /arch/mips/sibyte/sb1250/irq.c
+ }
+ 
+ extern void sb1250_timer_interrupt(void);
+diff -puN arch/mips/tx4927/common/Makefile~git-kgdb-fixup arch/mips/tx4927/common/Makefile
+--- a/arch/mips/tx4927/common/Makefile~git-kgdb-fixup
++++ a/arch/mips/tx4927/common/Makefile
+@@ -9,9 +9,6 @@
+ obj-y	+= tx4927_prom.o tx4927_setup.o tx4927_irq.o
+ 
+ obj-$(CONFIG_TOSHIBA_FPCIB0)	   += smsc_fdc37m81x.o
+-<<<<<<< HEAD/arch/mips/tx4927/common/Makefile
+ obj-$(CONFIG_KGDB)                 += tx4927_dbgio.o
+ 
+ EXTRA_CFLAGS += -Werror
+-=======
+->>>>>>> /arch/mips/tx4927/common/Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,12 +223,9 @@ git-block-fix-headers_check.patch
 git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-9p-is-bust.patch
-9p-is-still-bust.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-wireless-printk-fixes.patch
 net-add-ath5k-wireless-driver-fix.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
 intel_cacheinfo-misc-section-annotation-fixes-fix.patch
@@ -116,7 +234,6 @@ ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 hpet-force-enable-on-vt8235-37-chipsets-fix.patch
 x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 git-xfs.patch
-git-xfs-build-fix.patch
 git-xtensa.patch
 git-kgdb-fixup.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
