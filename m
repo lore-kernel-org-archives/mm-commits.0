@@ -1,47 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-unionfs-build-fix.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:42:51 -0700
-Message-ID: <200709070042.l870gpf6016071@imap1.linux-foundation.org>
+Subject: - git-xfs-build-fix.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:42:58 -0700
+Message-ID: <200709070042.l870gwwQ016077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45927 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964857AbXIGAsI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:48:08 -0400
+	by vger.kernel.org with ESMTP id S964855AbXIGAsF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:48:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-unionfs-build-fix
+     git-xfs-build-fix
 has been removed from the -mm tree.  Its filename was
-     git-unionfs-build-fix.patch
+     git-xfs-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-unionfs-build-fix
+Subject: git-xfs-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+fs/xfs/xfs_vfsops.c:2121: error: static declaration of 'xfs_freeze' follows non-static declaration
+fs/xfs/xfs_vfsops.h:24: error: previous declaration of 'xfs_freeze' was here
+
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/xfs/xfs_vfsops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~git-unionfs-build-fix include/linux/mm.h
---- a/include/linux/mm.h~git-unionfs-build-fix
-+++ a/include/linux/mm.h
-@@ -20,6 +20,7 @@ struct anon_vma;
- struct file_ra_state;
- struct user_struct;
- struct writeback_control;
-+struct super_block;
- 
- #ifndef CONFIG_DISCONTIGMEM          /* Don't use mapnrs, do it properly */
- extern unsigned long max_mapnr;
+diff -puN fs/xfs/xfs_vfsops.h~git-xfs-build-fix fs/xfs/xfs_vfsops.h
+diff -puN fs/xfs/xfs_vfsops.c~git-xfs-build-fix fs/xfs/xfs_vfsops.c
+--- a/fs/xfs/xfs_vfsops.c~git-xfs-build-fix
++++ a/fs/xfs/xfs_vfsops.c
+@@ -2115,7 +2115,7 @@ xfs_showargs(
+  * need to take care of themetadata. Once that's done write a dummy
+  * record to dirty the log in case of a crash while frozen.
+  */
+-STATIC void
++void
+ xfs_freeze(
+ 	xfs_mount_t	*mp)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
