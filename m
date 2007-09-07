@@ -1,76 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch removed from -mm tree
-Date: Thu, 06 Sep 2007 17:42:10 -0700
-Message-ID: <200709070042.l870gAvm016020@imap1.linux-foundation.org>
+Subject: - uli526x-add-suspend-and-resume-routines.patch removed from -mm tree
+Date: Thu, 06 Sep 2007 17:42:25 -0700
+Message-ID: <200709070042.l870gPvX016038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46147 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46394 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964848AbXIGAmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:42:52 -0400
+	by vger.kernel.org with ESMTP id S964852AbXIGAm5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2007 20:42:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, dilinger@debian.org, jayakumar.alsa@gmail.com, jordan.crouse@amd.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, grundler@parisc-linux.org, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALSA: cs5535audio: update PCI device handling in suspend/resume
+     uli526x: add suspend and resume routines
 has been removed from the -mm tree.  Its filename was
-     alsa-cs5535audio-update-pci-device-handling-in-suspend-resume.patch
+     uli526x-add-suspend-and-resume-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ALSA: cs5535audio: update PCI device handling in suspend/resume
-From: Andres Salomon <dilinger@queued.net>
+Subject: uli526x: add suspend and resume routines
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Save the PCI state before disabling the device, and add some error checking.
+Add suspend/resume support to the uli526x network driver (tested on x86_64,
+with "Ethernet controller: ALi Corporation M5263 Ethernet Controller, rev 40").
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
-Acked-by: Jaya Kumar <jayakumar.alsa@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+This patch is based on the suspend/resume code in the tg3 driver.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/cs5535audio/cs5535audio_pm.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/net/tulip/uli526x.c |  109 ++++++++++++++++++++++++++++++++--
+ 1 files changed, 103 insertions(+), 6 deletions(-)
 
-diff -puN sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-update-pci-device-handling-in-suspend-resume sound/pci/cs5535audio/cs5535audio_pm.c
---- a/sound/pci/cs5535audio/cs5535audio_pm.c~alsa-cs5535audio-update-pci-device-handling-in-suspend-resume
-+++ a/sound/pci/cs5535audio/cs5535audio_pm.c
-@@ -74,8 +74,11 @@ int snd_cs5535audio_suspend(struct pci_d
- 	/* save important regs, then disable aclink in hw */
- 	snd_cs5535audio_stop_hardware(cs5535au);
+diff -puN drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines drivers/net/tulip/uli526x.c
+--- a/drivers/net/tulip/uli526x.c~uli526x-add-suspend-and-resume-routines
++++ a/drivers/net/tulip/uli526x.c
+@@ -1110,19 +1110,15 @@ static void uli526x_timer(unsigned long 
  
-+	if (pci_save_state(pci)) {
-+		printk(KERN_ERR "cs5535audio: pci_save_state failed!\n");
-+		return -EIO;
-+	}
- 	pci_disable_device(pci);
--	pci_save_state(pci);
- 	pci_set_power_state(pci, pci_choose_state(pci, state));
- 	return 0;
+ 
+ /*
+- *	Dynamic reset the ULI526X board
+  *	Stop ULI526X board
+  *	Free Tx/Rx allocated memory
+- *	Reset ULI526X board
+- *	Re-initialize ULI526X board
++ *	Init system variable
+  */
+ 
+-static void uli526x_dynamic_reset(struct net_device *dev)
++static void uli526x_reset_prepare(struct net_device *dev)
+ {
+ 	struct uli526x_board_info *db = netdev_priv(dev);
+ 
+-	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
+-
+ 	/* Sopt MAC controller */
+ 	db->cr6_data &= ~(CR6_RXSC | CR6_TXSC);	/* Disable Tx/Rx */
+ 	update_cr6(db->cr6_data, dev->base_addr);
+@@ -1141,6 +1137,22 @@ static void uli526x_dynamic_reset(struct
+ 	db->link_failed = 1;
+ 	db->init=1;
+ 	db->wait_reset = 0;
++}
++
++
++/*
++ *	Dynamic reset the ULI526X board
++ *	Stop ULI526X board
++ *	Free Tx/Rx allocated memory
++ *	Reset ULI526X board
++ *	Re-initialize ULI526X board
++ */
++
++static void uli526x_dynamic_reset(struct net_device *dev)
++{
++	ULI526X_DBUG(0, "uli526x_dynamic_reset()", 0);
++
++	uli526x_reset_prepare(dev);
+ 
+ 	/* Re-initialize ULI526X board */
+ 	uli526x_init(dev);
+@@ -1150,6 +1162,89 @@ static void uli526x_dynamic_reset(struct
  }
-@@ -89,7 +92,12 @@ int snd_cs5535audio_resume(struct pci_de
- 	int i;
  
- 	pci_set_power_state(pci, PCI_D0);
--	pci_restore_state(pci);
-+	if (pci_restore_state(pci) < 0) {
-+		printk(KERN_ERR "cs5535audio: pci_restore_state failed, "
-+		       "disabling device\n");
-+		snd_card_disconnect(card);
-+		return -EIO;
+ 
++#ifdef CONFIG_PM_SLEEP
++
++/*
++ *	Suspend the interface.
++ */
++
++static int uli526x_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	pci_power_t power_state;
++	int err;
++
++	ULI526X_DBUG(0, "uli526x_suspend", 0);
++
++	if (!(dev && netdev_priv(dev)))
++		return 0;
++
++	pci_save_state(pdev);
++
++	if (!netif_running(dev))
++		return 0;
++
++	netif_device_detach(dev);
++	uli526x_reset_prepare(dev);
++
++	power_state = pci_choose_state(pdev, state);
++	pci_enable_wake(pdev, power_state, 0);
++	err = pci_set_power_state(pdev, power_state);
++	if (err) {
++		netif_device_attach(dev);
++		/* Re-initialize ULI526X board */
++		uli526x_init(dev);
++		/* Restart upper layer interface */
++		netif_wake_queue(dev);
 +	}
- 	if (pci_enable_device(pci) < 0) {
- 		printk(KERN_ERR "cs5535audio: pci_enable_device failed, "
- 		       "disabling device\n");
++
++	return err;
++}
++
++/*
++ *	Resume the interface.
++ */
++
++static int uli526x_resume(struct pci_dev *pdev)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	struct uli526x_board_info *db = netdev_priv(dev);
++	int err;
++
++	ULI526X_DBUG(0, "uli526x_resume", 0);
++
++	if (!(dev && db))
++		return 0;
++
++	pci_restore_state(pdev);
++
++	if (!netif_running(dev))
++		return 0;
++
++	err = pci_set_power_state(pdev, PCI_D0);
++	if (err) {
++		printk(KERN_WARNING "%s: Could not put device into D0\n",
++			dev->name);
++		return err;
++	}
++
++	netif_device_attach(dev);
++	/* Re-initialize ULI526X board */
++	uli526x_init(dev);
++	/* Restart upper layer interface */
++	netif_wake_queue(dev);
++
++	return 0;
++}
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define uli526x_suspend	NULL
++#define uli526x_resume	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
++
+ /*
+  *	free all allocated rx buffer
+  */
+@@ -1689,6 +1784,8 @@ static struct pci_driver uli526x_driver 
+ 	.id_table	= uli526x_pci_tbl,
+ 	.probe		= uli526x_init_one,
+ 	.remove		= __devexit_p(uli526x_remove_one),
++	.suspend	= uli526x_suspend,
++	.resume		= uli526x_resume,
+ };
+ 
+ MODULE_AUTHOR("Peer Chen, peer.chen@uli.com.tw");
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
+hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
+acpi-clean-up-acpi_enter_sleep_state_prep.patch
+git-netdev-all.patch
+make-kernel-power-maincsuspend_enter-static.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+s2ram-kill-old-debugging-junk.patch
+hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
+hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
+hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
+hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
+shrink_slab-handle-bad-shrinkers.patch
