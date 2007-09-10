@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-serial_core_console-driver-dependencies.patch added to -mm tree
-Date: Mon, 10 Sep 2007 01:40:23 -0700
-Message-ID: <200709100840.l8A8eNvN015745@imap1.linux-foundation.org>
+Subject: + i2c-i801-smbus-patch-for-intel-tolapai.patch added to -mm tree
+Date: Mon, 10 Sep 2007 02:41:15 -0700
+Message-ID: <200709100941.l8A9fFDV017706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59181 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755820AbXIJIkp (ORCPT
+	by vger.kernel.org with ESMTP id S1753448AbXIJJl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 04:40:45 -0400
+	Mon, 10 Sep 2007 05:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, bryan.wu@analog.com, rmk@arm.linux.org.uk
+Cc: jason.d.gaston@intel.com, khali@linux-fr.org
 
 
 The patch titled
-     fix SERIAL_CORE_CONSOLE driver dependencies
+     i2c-i801: SMBus patch for Intel Tolapai
 has been added to the -mm tree.  Its filename is
-     fix-serial_core_console-driver-dependencies.patch
+     i2c-i801-smbus-patch-for-intel-tolapai.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix SERIAL_CORE_CONSOLE driver dependencies
-From: Adrian Bunk <bunk@kernel.org>
+Subject: i2c-i801: SMBus patch for Intel Tolapai
+From: Jason Gaston <jason.d.gaston@intel.com>
 
-SERIAL_BFIN=m or SERIAL_MUX=m shouldn't allow SERIAL_CORE_CONSOLE=y.
+Add the Intel Tolapai LPC and SMBus Controller DID's.
 
-Additionally, this patch fixes whitespace instead of tabs at the
-SERIAL_MUX_CONSOLE option.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Jason Gaston <jason.d.gaston@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/Kconfig    |    1 +
+ drivers/i2c/busses/i2c-i801.c |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/serial/Kconfig~fix-serial_core_console-driver-dependencies drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~fix-serial_core_console-driver-dependencies
-+++ a/drivers/serial/Kconfig
-@@ -611,7 +611,7 @@ config SERIAL_BFIN
+diff -puN drivers/i2c/busses/Kconfig~i2c-i801-smbus-patch-for-intel-tolapai drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig~i2c-i801-smbus-patch-for-intel-tolapai
++++ a/drivers/i2c/busses/Kconfig
+@@ -169,6 +169,7 @@ config I2C_I801
+ 	    ESB2
+ 	    ICH8
+ 	    ICH9
++	    Tolapai
  
- config SERIAL_BFIN_CONSOLE
- 	bool "Console on Blackfin serial port"
--	depends on SERIAL_BFIN
-+	depends on SERIAL_BFIN=y
- 	select SERIAL_CORE_CONSOLE
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-i801.
+diff -puN drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai
++++ a/drivers/i2c/busses/i2c-i801.c
+@@ -34,6 +34,7 @@
+     ESB2		269B
+     ICH8		283E
+     ICH9		2930
++    Tolapai		5032
+     This driver supports several versions of Intel's I/O Controller Hubs (ICH).
+     For SMBus support, they are similar to the PIIX4 and are part
+     of Intel's '810' and other chipsets.
+@@ -543,6 +544,7 @@ static struct pci_device_id i801_ids[] =
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_17) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_5) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH9_6) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_Tolapai_1) },
+ 	{ 0, }
+ };
  
- choice
-@@ -832,10 +832,10 @@ config SERIAL_MUX
- 	    4. Change the kernel command console parameter to: console=ttyB0
- 
- config SERIAL_MUX_CONSOLE
--        bool "Support for console on serial MUX"
--        depends on SERIAL_MUX
-+	bool "Support for console on serial MUX"
-+	depends on SERIAL_MUX=y
- 	select SERIAL_CORE_CONSOLE
--        default y
-+	default y
- 
- config PDC_CONSOLE
- 	bool "PDC software console support"
+@@ -563,6 +565,7 @@ static int __devinit i801_probe(struct p
+ 	case PCI_DEVICE_ID_INTEL_ESB2_17:
+ 	case PCI_DEVICE_ID_INTEL_ICH8_5:
+ 	case PCI_DEVICE_ID_INTEL_ICH9_6:
++	case PCI_DEVICE_ID_INTEL_Tolapai_1:
+ 		isich4 = 1;
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jason.d.gaston@intel.com are
 
-update-gitignore.patch
-arm-extern-inline-static-inline.patch
-ppc-remove-apus-support.patch
-git-dvb.patch
-git-kbuild.patch
-pass-g-to-assembler-under-config_debug_info-fix.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-git-m32r.patch
-drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
-git-nfsd.patch
-drivers-scsi-immc-fix-check-after-use.patch
-git-wireless.patch
-fix-x86_64-mm-unwinder.patch
-i386-visws-extern-inline-static-inline.patch
-fix-serial_core_console-driver-dependencies.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
+i2c-i801-documentation-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+ata_piix-ide-mode-sata-patch-for-intel-tolapai.patch
+ahci-raid-mode-sata-patch-for-intel-tolapai.patch
