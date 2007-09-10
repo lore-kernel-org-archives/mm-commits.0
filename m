@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch added to -mm tree
-Date: Mon, 10 Sep 2007 12:46:04 -0700
-Message-ID: <200709101946.l8AJk4Oj007610@imap1.linux-foundation.org>
+Subject: + config_zone_movable-config-zone-movable.patch added to -mm tree
+Date: Mon, 10 Sep 2007 12:46:06 -0700
+Message-ID: <200709101946.l8AJk6Tm007613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54864 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759199AbXIJTqN (ORCPT
+	by vger.kernel.org with ESMTP id S1760976AbXIJTqQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 15:46:13 -0400
+	Mon, 10 Sep 2007 15:46:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, mel@csn.ul.ie
 
 
 The patch titled
-     CONFIG_ZONE_MOVABLE: zone ifdef cleanup by renumbering
+     CONFIG_ZONE_MOVABLE: config zone movable
 has been added to the -mm tree.  Its filename is
-     config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
+     config_zone_movable-config-zone-movable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CONFIG_ZONE_MOVABLE: zone ifdef cleanup by renumbering
+Subject: CONFIG_ZONE_MOVABLE: config zone movable
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Two patches to make ZONE_MOVABLE configurable.
+Makes ZONE_MOVABLE as configurable
 
-This patch defines zone_idx for not-configured-zones.  like
-
-	enum_zone_type {
-		(ZONE_DMA configured)
-		(ZONE_DMA32 configured)
-		ZONE_NORMAL
-		(ZONE_HIGHMEM configured)
-		ZONE_MOVABLE
-		MAX_NR_ZONES,
-		(ZONE_DMA not-configured)
-		(ZONE_DMA32 not-configured)
-		(ZONE_HIGHMEM not-configured)
-	};
-
-By this, we can determine zone is configured or not by
-
-	zone_idx < MAX_NR_ZONES.
-
-We can avoid #ifdef for CONFIG_ZONE_xxx to some extent.
-
-This patch also replaces CONFIG_ZONE_DMA_FLAG by is_configured_zone(ZONE_DMA).
-
-Changelog: v2 -> v3
-	- updated against 2.6.23-rc3-mm1.
-Changelog: v1 -> v2
-	- rebased to 2.6.23-rc1
-	- Removed MAX_POSSIBLE_ZONES
-	- Added comments
+Based on "zone_ifdef_cleanup_by_renumbering.patch"
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -66,348 +39,163 @@ Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   18 +++-----
- include/linux/mmzone.h |   79 ++++++++++++++++++++++++---------------
- include/linux/vmstat.h |   24 +++++------
- mm/Kconfig             |    5 --
- mm/page-writeback.c    |    7 +--
- mm/page_alloc.c        |   37 +++++++-----------
- mm/slab.c              |    4 -
- 7 files changed, 89 insertions(+), 85 deletions(-)
+ include/linux/gfp.h    |    3 ++-
+ include/linux/mmzone.h |   15 +++++++++++----
+ include/linux/vmstat.h |   13 +++++++++++--
+ mm/Kconfig             |   12 ++++++++++++
+ mm/page_alloc.c        |    6 ++++++
+ mm/vmstat.c            |    8 +++++++-
+ 6 files changed, 49 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/gfp.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/gfp.h
---- a/include/linux/gfp.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
+diff -puN include/linux/gfp.h~config_zone_movable-config-zone-movable include/linux/gfp.h
+--- a/include/linux/gfp.h~config_zone_movable-config-zone-movable
 +++ a/include/linux/gfp.h
-@@ -121,26 +121,22 @@ static inline enum zone_type gfp_zone(gf
- {
- 	int base = 0;
- 
--#ifdef CONFIG_NUMA
- 	if (flags & __GFP_THISNODE)
- 		base = MAX_NR_ZONES;
--#endif
- 
--#ifdef CONFIG_ZONE_DMA
--	if (flags & __GFP_DMA)
-+	if (is_configured_zone(ZONE_DMA) && (flags & __GFP_DMA))
- 		return base + ZONE_DMA;
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	if (flags & __GFP_DMA32)
-+
-+	if (is_configured_zone(ZONE_DMA32) && (flags & __GFP_DMA32))
+@@ -130,7 +130,8 @@ static inline enum zone_type gfp_zone(gf
+ 	if (is_configured_zone(ZONE_DMA32) && (flags & __GFP_DMA32))
  		return base + ZONE_DMA32;
--#endif
-+
- 	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
+ 
+-	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
++	if (is_configured_zone(ZONE_MOVABLE) &&
++	    (flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
  			(__GFP_HIGHMEM | __GFP_MOVABLE))
  		return base + ZONE_MOVABLE;
--#ifdef CONFIG_HIGHMEM
--	if (flags & __GFP_HIGHMEM)
-+
-+	if (is_configured_zone(ZONE_HIGHMEM) && (flags & __GFP_HIGHMEM))
- 		return base + ZONE_HIGHMEM;
--#endif
-+
- 	return base + ZONE_NORMAL;
- }
  
-diff -puN include/linux/mmzone.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/mmzone.h
---- a/include/linux/mmzone.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
+diff -puN include/linux/mmzone.h~config_zone_movable-config-zone-movable include/linux/mmzone.h
+--- a/include/linux/mmzone.h~config_zone_movable-config-zone-movable
 +++ a/include/linux/mmzone.h
-@@ -178,10 +178,36 @@ enum zone_type {
+@@ -177,7 +177,9 @@ enum zone_type {
+ 	 */
  	ZONE_HIGHMEM,
  #endif
++#ifdef CONFIG_ZONE_MOVABLE
  	ZONE_MOVABLE,
--	MAX_NR_ZONES
-+	MAX_NR_ZONES,
-+#ifndef CONFIG_ZONE_DMA
-+	ZONE_DMA,
 +#endif
-+#ifndef CONFIG_ZONE_DMA32
-+	ZONE_DMA32,
-+#endif
-+#ifndef CONFIG_HIGHMEM
-+	ZONE_HIGHMEM,
+ 	MAX_NR_ZONES,
+ #ifndef CONFIG_ZONE_DMA
+ 	ZONE_DMA,
+@@ -188,6 +190,9 @@ enum zone_type {
+ #ifndef CONFIG_HIGHMEM
+ 	ZONE_HIGHMEM,
+ #endif
++#ifndef CONFIG_ZONE_MOVABLE
++	ZONE_MOVABLE,
 +#endif
  };
  
  /*
-+ * Test zone type is configured or not.
-+ * You can use this function for avoiding #ifdef.
-+ *
-+ * #ifdef CONFIG_ZONE_DMA
-+ *	do_something...
-+ * #endif
-+ * can be written as
-+ * if (is_configured_zone(ZONE_DMA)) {
-+ *	do_something..
-+ * }
-+ */
-+static inline int is_configured_zone(enum zone_type zoneidx)
-+{
-+	return (zoneidx < MAX_NR_ZONES);
-+}
-+
-+/*
-  * When a memory allocation must conform to specific limitations (such
-  * as being suitable for DMA) the caller will pass in hints to the
-  * allocator in the gfp_mask, in the zone modifier bits.  These bits
-@@ -573,28 +599,35 @@ static inline int populated_zone(struct 
+@@ -612,11 +617,13 @@ static inline int zone_idx_is(enum zone_
  
- extern int movable_zone;
- 
--static inline int zone_movable_is_highmem(void)
-+/*
-+ * Check zone is configured && specified "idx" is equal to target zone type.
-+ * Zone's index is calucalted by above zone_idx().
-+ */
-+static inline int zone_idx_is(enum zone_type idx, enum zone_type target)
+ static inline int zone_movable_is_highmem(void)
  {
--#if defined(CONFIG_HIGHMEM) && defined(CONFIG_ARCH_POPULATES_NODE_MAP)
--	return movable_zone == ZONE_HIGHMEM;
--#else
-+	if (is_configured_zone(target) && (idx == target))
-+		return 1;
+-#if CONFIG_ARCH_POPULATES_NODE_MAP
+-	if (is_configured_zone(ZONE_HIGHMEM))
+-		return movable_zone == ZONE_HIGHMEM;
+-#endif
++#ifdef CONFIG_ARCH_POPULATES_NODE_MAP
++	return is_configured_zone(ZONE_HIGHMEM) &&
++	       is_configured_zone(ZONE_MOVABLE) &&
++		(movable_zone == ZONE_HIGHMEM);
++#else
  	return 0;
-+}
-+
-+static inline int zone_movable_is_highmem(void)
-+{
-+#if CONFIG_ARCH_POPULATES_NODE_MAP
-+	if (is_configured_zone(ZONE_HIGHMEM))
-+		return movable_zone == ZONE_HIGHMEM;
- #endif
-+	return 0;
++#endif
  }
  
  static inline int is_highmem_idx(enum zone_type idx)
- {
--#ifdef CONFIG_HIGHMEM
--	return (idx == ZONE_HIGHMEM ||
--		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
--#else
--	return 0;
--#endif
-+	return (zone_idx_is(idx, ZONE_HIGHMEM) ||
-+	       (zone_idx_is(idx, ZONE_MOVABLE) && zone_movable_is_highmem()));
- }
- 
- static inline int is_normal_idx(enum zone_type idx)
- {
--	return (idx == ZONE_NORMAL);
-+	return zone_idx_is(idx, ZONE_NORMAL);
- }
- 
- /**
-@@ -605,36 +638,22 @@ static inline int is_normal_idx(enum zon
-  */
- static inline int is_highmem(struct zone *zone)
- {
--#ifdef CONFIG_HIGHMEM
--	int zone_idx = zone - zone->zone_pgdat->node_zones;
--	return zone_idx == ZONE_HIGHMEM ||
--		(zone_idx == ZONE_MOVABLE && zone_movable_is_highmem());
--#else
--	return 0;
--#endif
-+	return is_highmem_idx(zone_idx(zone));
- }
- 
- static inline int is_normal(struct zone *zone)
- {
--	return zone == zone->zone_pgdat->node_zones + ZONE_NORMAL;
-+	return zone_idx_is(zone_idx(zone), ZONE_NORMAL);
- }
- 
- static inline int is_dma32(struct zone *zone)
- {
--#ifdef CONFIG_ZONE_DMA32
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA32;
--#else
--	return 0;
--#endif
-+	return zone_idx_is(zone_idx(zone), ZONE_DMA32);
- }
- 
- static inline int is_dma(struct zone *zone)
- {
--#ifdef CONFIG_ZONE_DMA
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA;
--#else
--	return 0;
--#endif
-+	return zone_idx_is(zone_idx(zone), ZONE_DMA);
- }
- 
- /* These two functions are used to setup the per zone pages min values */
-diff -puN include/linux/vmstat.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/vmstat.h
---- a/include/linux/vmstat.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
+diff -puN include/linux/vmstat.h~config_zone_movable-config-zone-movable include/linux/vmstat.h
+--- a/include/linux/vmstat.h~config_zone_movable-config-zone-movable
 +++ a/include/linux/vmstat.h
-@@ -159,19 +159,19 @@ static inline unsigned long node_page_st
- 				 enum zone_stat_item item)
- {
- 	struct zone *zones = NODE_DATA(node)->node_zones;
-+	unsigned long val = zone_page_state(&zones[ZONE_NORMAL],item);
+@@ -25,7 +25,14 @@
+ #define HIGHMEM_ZONE(xx)
+ #endif
  
--	return
--#ifdef CONFIG_ZONE_DMA
--		zone_page_state(&zones[ZONE_DMA], item) +
--#endif
--#ifdef CONFIG_ZONE_DMA32
--		zone_page_state(&zones[ZONE_DMA32], item) +
--#endif
--#ifdef CONFIG_HIGHMEM
--		zone_page_state(&zones[ZONE_HIGHMEM], item) +
--#endif
--		zone_page_state(&zones[ZONE_NORMAL], item) +
--		zone_page_state(&zones[ZONE_MOVABLE], item);
-+	if (is_configured_zone(ZONE_DMA))
-+		val += zone_page_state(&zones[ZONE_DMA], item);
+-#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
++#ifdef CONFIG_ZONE_MOVABLE
++#define MOVABLE_ZONE(xx) , xx##_MOVABLE
++#else
++#define MOVABLE_ZONE(xx)
++#endif
 +
-+	if (is_configured_zone(ZONE_DMA32))
-+		val += zone_page_state(&zones[ZONE_DMA32], item);
 +
-+	if (is_configured_zone(ZONE_HIGHMEM))
-+		val += zone_page_state(&zones[ZONE_HIGHMEM], item);
++#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) MOVABLE_ZONE(xx)
+ 
+ enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
+ 		FOR_ALL_ZONES(PGALLOC),
+@@ -170,7 +177,9 @@ static inline unsigned long node_page_st
+ 	if (is_configured_zone(ZONE_HIGHMEM))
+ 		val += zone_page_state(&zones[ZONE_HIGHMEM], item);
+ 
+-	val += zone_page_state(&zones[ZONE_MOVABLE], item);
++	if (is_configured_zone(ZONE_MOVABLE))
++		val += zone_page_state(&zones[ZONE_MOVABLE], item);
 +
-+	val += zone_page_state(&zones[ZONE_MOVABLE], item);
-+	return val;
+ 	return val;
  }
  
- extern void zone_statistics(struct zonelist *, struct zone *);
-diff -puN mm/Kconfig~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/Kconfig
---- a/mm/Kconfig~config_zone_movable-zone-ifdef-cleanup-by-renumbering
+diff -puN mm/Kconfig~config_zone_movable-config-zone-movable mm/Kconfig
+--- a/mm/Kconfig~config_zone_movable-config-zone-movable
 +++ a/mm/Kconfig
-@@ -176,11 +176,6 @@ config RESOURCES_64BIT
- 	help
- 	  This option allows memory and IO resources to be 64 bit.
+@@ -125,6 +125,18 @@ config SPARSEMEM_VMEMMAP
+ 	depends on SPARSEMEM
+ 	default y if (SPARSEMEM_VMEMMAP_ENABLE)
  
--config ZONE_DMA_FLAG
--	int
--	default "0" if !ZONE_DMA
--	default "1"
--
- config BOUNCE
- 	def_bool y
- 	depends on BLOCK && MMU && (ZONE_DMA || HIGHMEM)
-diff -puN mm/page-writeback.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/page-writeback.c
---- a/mm/page-writeback.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/page-writeback.c
-@@ -122,10 +122,12 @@ static void background_writeout(unsigned
- 
- static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
--#ifdef CONFIG_HIGHMEM
- 	int node;
- 	unsigned long x = 0;
- 
-+	if (!is_configured_zone(ZONE_HIGHMEM))
-+		return 0;
 +
- 	for_each_node_state(node, N_HIGH_MEMORY) {
- 		struct zone *z =
- 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
-@@ -141,9 +143,6 @@ static unsigned long highmem_dirtyable_m
- 	 * that this does not occur.
- 	 */
- 	return min(x, total);
--#else
--	return 0;
--#endif
- }
- 
- static unsigned long determine_dirtyable_memory(void)
-diff -puN mm/page_alloc.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/page_alloc.c
---- a/mm/page_alloc.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
++config ZONE_MOVABLE
++	bool	"Zone for movable pages"
++	depends on ARCH_POPULATES_NODE_MAP
++	help
++	  Allows creating a zone type only for movable pages, e.g. page cache
++	  and anonymous memory. Because movable pages are easily reclaimed
++	  and page migration technique can move them, your chance for allocating
++	  contiguous memory such as huge pages will be better than other zones.
++	  To use this zone, please see "kernelcore=" or "movablecore=" in
++	  Documentation/kernel-parameters.txt
++
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+diff -puN mm/page_alloc.c~config_zone_movable-config-zone-movable mm/page_alloc.c
+--- a/mm/page_alloc.c~config_zone_movable-config-zone-movable
 +++ a/mm/page_alloc.c
-@@ -100,18 +100,12 @@ int sysctl_lowmem_reserve_ratio[MAX_NR_Z
- 
- EXPORT_SYMBOL(totalram_pages);
- 
--static char * const zone_names[MAX_NR_ZONES] = {
--#ifdef CONFIG_ZONE_DMA
--	 "DMA",
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	 "DMA32",
--#endif
--	 "Normal",
--#ifdef CONFIG_HIGHMEM
--	 "HighMem",
--#endif
--	 "Movable",
-+static char * const zone_names[] = {
-+	[ZONE_DMA] = "DMA",
-+	[ZONE_DMA32] = "DMA32",
-+	[ZONE_NORMAL] = "Normal",
-+	[ZONE_HIGHMEM] = "HighMem",
-+	[ZONE_MOVABLE] =  "Movable",
+@@ -95,7 +95,9 @@ int sysctl_lowmem_reserve_ratio[MAX_NR_Z
+ #ifdef CONFIG_HIGHMEM
+ 	 32,
+ #endif
++#ifdef CONFIG_ZONE_MOVABLE
+ 	 32,
++#endif
  };
  
- int min_free_kbytes = 1024;
-@@ -1785,14 +1779,15 @@ void si_meminfo_node(struct sysinfo *val
+ EXPORT_SYMBOL(totalram_pages);
+@@ -3908,6 +3910,10 @@ static int __init cmdline_parse_core(cha
+ 	if (!p)
+ 		return -EINVAL;
  
- 	val->totalram = pgdat->node_present_pages;
- 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
--#ifdef CONFIG_HIGHMEM
--	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
--	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
-+	if (is_configured_zone(ZONE_HIGHMEM)) {
-+		val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
-+		val->freehigh =
-+			zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
- 			NR_FREE_PAGES);
--#else
--	val->totalhigh = 0;
--	val->freehigh = 0;
--#endif
-+	} else {
-+		val->totalhigh = 0;
-+		val->freehigh = 0;
++	if (!is_configured_zone(ZONE_MOVABLE)) {
++		printk ("ZONE_MOVABLE is not configured, %s is ignored.\n",p);
++		return 0;
 +	}
- 	val->mem_unit = PAGE_SIZE;
- }
+ 	coremem = memparse(p, &p);
+ 	*core = coremem >> PAGE_SHIFT;
+ 
+diff -puN mm/vmstat.c~config_zone_movable-config-zone-movable mm/vmstat.c
+--- a/mm/vmstat.c~config_zone_movable-config-zone-movable
++++ a/mm/vmstat.c
+@@ -585,8 +585,14 @@ const struct seq_operations pagetypeinfo
+ #define TEXT_FOR_HIGHMEM(xx)
  #endif
-@@ -3814,15 +3809,15 @@ restart:
- /* Any regular memory on that node ? */
- static void check_for_regular_memory(pg_data_t *pgdat)
- {
--#ifdef CONFIG_HIGHMEM
- 	enum zone_type zone_type;
-+	if (!is_configured_zone(ZONE_HIGHMEM))
-+		return;
  
- 	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
- 		struct zone *zone = &pgdat->node_zones[zone_type];
- 		if (zone->present_pages)
- 			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
- 	}
--#endif
- }
++#ifdef CONFIG_ZONE_MOVABLE
++#define TEXT_FOR_MOVABLE(xx) xx "_movable",
++#else
++#define TEXT_FOR_MOVABLE(xx)
++#endif
++
+ #define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
+-					TEXT_FOR_HIGHMEM(xx) xx "_movable",
++					TEXT_FOR_HIGHMEM(xx) xx TEXT_FOR_MOVABLE(xx)
  
- /**
-diff -puN mm/slab.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/slab.c
---- a/mm/slab.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/slab.c
-@@ -2342,7 +2342,7 @@ kmem_cache_create (const char *name, siz
- 	cachep->slab_size = slab_size;
- 	cachep->flags = flags;
- 	cachep->gfpflags = 0;
--	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
-+	if (is_configured_zone(ZONE_DMA) && (flags & SLAB_CACHE_DMA))
- 		cachep->gfpflags |= GFP_DMA;
- 	cachep->buffer_size = size;
- 	cachep->reciprocal_buffer_size = reciprocal_value(size);
-@@ -2663,7 +2663,7 @@ static void cache_init_objs(struct kmem_
- 
- static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
- {
--	if (CONFIG_ZONE_DMA_FLAG) {
-+	if (is_configured_zone(ZONE_DMA)) {
- 		if (flags & GFP_DMA)
- 			BUG_ON(!(cachep->gfpflags & GFP_DMA));
- 		else
+ static const char * const vmstat_text[] = {
+ 	/* Zoned VM counters */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
