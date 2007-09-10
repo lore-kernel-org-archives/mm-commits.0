@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wake-up-from-a-serial-port.patch added to -mm tree
-Date: Mon, 10 Sep 2007 01:31:30 -0700
-Message-ID: <200709100831.l8A8VUH6015446@imap1.linux-foundation.org>
+Subject: + documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch added to -mm tree
+Date: Mon, 10 Sep 2007 01:48:03 -0700
+Message-ID: <200709100848.l8A8m3Iw015942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47999 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755559AbXIJIcU (ORCPT
+	by vger.kernel.org with ESMTP id S1755890AbXIJIsS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 04:32:20 -0400
+	Mon, 10 Sep 2007 04:48:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk
+Cc: crquan@gmail.com, rdunlap@xenotime.net, rob@landley.net
 
 
 The patch titled
-     wake up from a serial port
+     Documentation: add entries to filesystems/00-INDEX for several untracked files
 has been added to the -mm tree.  Its filename is
-     wake-up-from-a-serial-port.patch
+     documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wake up from a serial port
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Documentation: add entries to filesystems/00-INDEX for several untracked files
+From: Denis Cheng <crquan@gmail.com>
 
-Enable wakeup from serial ports, make it run-time configurable over sysfs,
-e.g.,
-
-echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/power/wakeup
-
-Requires
-
-# CONFIG_SYSFS_DEPRECATED is not set
-
-Linkstation / kurobox systems from Buffalo Tech.  have an AVR controller
-connected to host's UART.  The AVR controls power, buttons, fan, LEDs,
-sensors...  So, practically the only way to wake the system up is to press a
-button, which sends a byte from the AVR to the CPU.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c        |   30 ++++++++++++++++++++++++++----
- drivers/serial/serial_core.c |    9 ++++++++-
- 2 files changed, 34 insertions(+), 5 deletions(-)
+ Documentation/filesystems/00-INDEX |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/serial/8250.c~wake-up-from-a-serial-port drivers/serial/8250.c
---- a/drivers/serial/8250.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/8250.c
-@@ -129,6 +129,7 @@ struct uart_8250_port {
- 	unsigned char		mcr;
- 	unsigned char		mcr_mask;	/* mask of user bits */
- 	unsigned char		mcr_force;	/* mask of forced bits */
-+	char			suspended;
- 
- 	/*
- 	 * Some bits in registers are cleared on a read, so they must
-@@ -2701,6 +2702,14 @@ static int __devexit serial8250_remove(s
- 	return 0;
- }
- 
-+static int serial8250_match_port(struct device *dev, void *data)
-+{
-+	struct uart_port *port = data;
-+	dev_t devt = MKDEV(serial8250_reg.major, serial8250_reg.minor) + port->line;
-+
-+	return dev->devt == devt; /* Actually, only one tty per port */
-+}
-+
- static int serial8250_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	int i;
-@@ -2708,8 +2717,16 @@ static int serial8250_suspend(struct pla
- 	for (i = 0; i < UART_NR; i++) {
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
--		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			uart_suspend_port(&serial8250_reg, &up->port);
-+		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev) {
-+			struct device *tty_dev = device_find_child(up->port.dev, &up->port,
-+								   serial8250_match_port);
-+			if (device_may_wakeup(tty_dev))
-+				enable_irq_wake(up->port.irq);
-+			else {
-+				uart_suspend_port(&serial8250_reg, &up->port);
-+				up->suspended = 1;
-+			}
-+		}
- 	}
- 
- 	return 0;
-@@ -2722,8 +2739,13 @@ static int serial8250_resume(struct plat
- 	for (i = 0; i < UART_NR; i++) {
- 		struct uart_8250_port *up = &serial8250_ports[i];
- 
--		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			serial8250_resume_port(i);
-+		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev) {
-+			if (up->suspended) {
-+				serial8250_resume_port(i);
-+				up->suspended = 0;
-+			} else
-+				disable_irq_wake(up->port.irq);
-+		}
- 	}
- 
- 	return 0;
-diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/serial_core.c
-@@ -2271,6 +2271,7 @@ int uart_add_one_port(struct uart_driver
- {
- 	struct uart_state *state;
- 	int ret = 0;
-+	struct device *tty_dev;
- 
- 	BUG_ON(in_interrupt());
- 
-@@ -2306,7 +2307,13 @@ int uart_add_one_port(struct uart_driver
- 	 * Register the port whether it's detected or not.  This allows
- 	 * setserial to be used to alter this ports parameters.
- 	 */
--	tty_register_device(drv->tty_driver, port->line, port->dev);
-+	tty_dev = tty_register_device(drv->tty_driver, port->line, port->dev);
-+	if (likely(!IS_ERR(tty_dev))) {
-+		device_can_wakeup(tty_dev) = 1;
-+		device_set_wakeup_enable(tty_dev, 0);
-+	} else
-+		printk(KERN_ERR "Cannot register tty device on line %d\n",
-+		       port->line);
- 
- 	/*
- 	 * If this driver supports console, and it hasn't been
+diff -puN Documentation/filesystems/00-INDEX~documentation-add-entries-to-filesystems-00-index-for-several-untracked-files Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~documentation-add-entries-to-filesystems-00-index-for-several-untracked-files
++++ a/Documentation/filesystems/00-INDEX
+@@ -44,10 +44,16 @@ files.txt
+ 	- info on file management in the Linux kernel.
+ fuse.txt
+ 	- info on the Filesystem in User SpacE including mount options.
++gfs2.txt
++	- info on the Global File System 2.
+ hfs.txt
+ 	- info on the Macintosh HFS Filesystem for Linux.
++hfsplus.txt
++	- info on the Macintosh HFSPlus Filesystem for Linux.
+ hpfs.txt
+ 	- info and mount options for the OS/2 HPFS.
++inotify.txt
++	- info on the powerful yet simple file change notification system.
+ isofs.txt
+ 	- info and mount options for the ISO 9660 (CDROM) filesystem.
+ jfs.txt
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-git-powerpc.patch
-wake-up-from-a-serial-port.patch
+git-gfs2-nmw.patch
+git-netdev-all.patch
+git-net.patch
+nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch
+nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch
+fs-use-kmem_cache_zalloc-instead.patch
+fs-remove-the-unused-mempages-parameter.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
