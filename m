@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + handle-recursive-calls-to-bust_spinlocks.patch added to -mm tree
-Date: Mon, 10 Sep 2007 01:50:42 -0700
-Message-ID: <200709100850.l8A8ogkR016068@imap1.linux-foundation.org>
+Subject: + au88x0_synthc-bugfix.patch added to -mm tree
+Date: Mon, 10 Sep 2007 01:43:41 -0700
+Message-ID: <200709100843.l8A8hf16015784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755923AbXIJIvB (ORCPT
+	by vger.kernel.org with ESMTP id S1755827AbXIJIoH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 04:51:01 -0400
+	Mon, 10 Sep 2007 04:44:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com
+Cc: bunk@kernel.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     handle recursive calls to bust_spinlocks()
+     au88x0_synth.c bugfix
 has been added to the -mm tree.  Its filename is
-     handle-recursive-calls-to-bust_spinlocks.patch
+     au88x0_synthc-bugfix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: handle recursive calls to bust_spinlocks()
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: au88x0_synth.c bugfix
+From: Adrian Bunk <bunk@kernel.org>
 
-Various architectures may call bust_spinlocks() recursively; the function
-itself, however, doesn't appear to be meant to be called in this manner. 
-Nevertheless, this doesn't appear to be a problem as long as
-bust_spinlocks(0) doesn't get called twice in a row (otherwise,
-unblank_screen() may enter the scheduler).  However, at least on i386 die()
-has been capable of returning (and on other architectures this should
-really be that way, too) when notify_die() returns NOTIFY_STOP.
+This patch fixes the code in vortex_wt_SetFrequency() to what seems to
+have been intended.
 
-Short of getting a reply to a respective query, this patch makes
-bust_spinlocks() increment/decrement oops_in_progress, and wake klogd only
-when the count drops back to zero.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bust_spinlocks.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ sound/pci/au88x0/au88x0_synth.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/bust_spinlocks.c~handle-recursive-calls-to-bust_spinlocks lib/bust_spinlocks.c
---- a/lib/bust_spinlocks.c~handle-recursive-calls-to-bust_spinlocks
-+++ a/lib/bust_spinlocks.c
-@@ -17,13 +17,13 @@
- void __attribute__((weak)) bust_spinlocks(int yes)
- {
- 	if (yes) {
--		oops_in_progress = 1;
-+		++oops_in_progress;
- 	} else {
- #ifdef CONFIG_VT
- 		unblank_screen();
- #endif
--		oops_in_progress = 0;
--		wake_up_klogd();
-+		if (--oops_in_progress == 0)
-+			wake_up_klogd();
- 	}
- }
- 
+diff -puN sound/pci/au88x0/au88x0_synth.c~au88x0_synthc-bugfix sound/pci/au88x0/au88x0_synth.c
+--- a/sound/pci/au88x0/au88x0_synth.c~au88x0_synthc-bugfix
++++ a/sound/pci/au88x0/au88x0_synth.c
+@@ -370,8 +370,8 @@ static void vortex_wt_SetFrequency(vorte
+ 			while ((edx & 0x80000000) == 0) {
+ 				edx <<= 1;
+ 				eax--;
+-				if (eax == 0) ;
+-				break;
++				if (eax == 0)
++					break;
+ 			}
+ 			if (eax)
+ 				edx <<= 1;
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-revert-x86_64-mm-intel_cacheinfo-adjustments.patch
+update-gitignore.patch
+au88x0_synthc-bugfix.patch
+arm-extern-inline-static-inline.patch
+ppc-remove-apus-support.patch
+git-dvb.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+git-m32r.patch
+drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfsd.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-wireless.patch
 fix-x86_64-mm-unwinder.patch
-floppy-tolerate-dma-channel-unavailability.patch
-cleanup-floppyh.patch
-handle-recursive-calls-to-bust_spinlocks.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-cpuid-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+i386-visws-extern-inline-static-inline.patch
+fix-serial_core_console-driver-dependencies.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
