@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host.patch added to -mm tree
-Date: Mon, 10 Sep 2007 02:17:54 -0700
-Message-ID: <200709100917.l8A9Hs35016885@imap1.linux-foundation.org>
+Subject: + bug-in-at91-mci-suspend-routines.patch added to -mm tree
+Date: Mon, 10 Sep 2007 02:27:38 -0700
+Message-ID: <200709100927.l8A9RcGF017227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34171 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751666AbXIJJSZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751207AbXIJJ2a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 05:18:25 -0400
+	Mon, 10 Sep 2007 05:28:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ed.lin@promise.com, James.Bottomley@steeleye.com, jeff@garzik.org, jens.axboe@oracle.com
+Cc: anti.sullin@artecdesign.ee, akpm@linux-foundation.org, drzeus@drzeus.cx, nicolas.ferre@rfo.atmel.com
 
 
 The patch titled
-     scsi: use lock per host instead of per device for shared queue tag host
+     bug in AT91 MCI suspend routines
 has been added to the -mm tree.  Its filename is
-     scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host.patch
+     bug-in-at91-mci-suspend-routines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scsi: use lock per host instead of per device for shared queue tag host
-From: "Ed Lin" <ed.lin@promise.com>
+Subject: bug in AT91 MCI suspend routines
+From: Anti Sullin <anti.sullin@artecdesign.ee>
 
-The block layer uses lock to protect request queue.  Every scsi device has
-a unique request queue, and queue lock is the default lock in struct
-request_queue.  This is good for normal cases.  But for a host with shared
-queue tag (e.g.  stex controllers), a queue lock per device means the
-shared queue tag is not protected when multiple devices are accessed at a
-same time.  This patch is a simple fix for this situation by introducing a
-host queue lock to protect shared queue tag.  Without this patch we will
-see various kernel panics (including the BUG() and kernel errors in
-blk_queue_start_tag and blk_queue_end_tag of ll_rw_blk.c) when accessing
-another in smp kernels).
+This patch fixes a bug in AT91 mmc host driver, that enables the wakeup
+from suspend on card detection pin even if the card detect pin is not
+available (==0).  If not card detection pin is defined, IRQ0 == FIQ gets
+enabled and if some activity is present on that pin, the system gets a FIQ
+request, that causes a crash.
 
-Signed-off-by: Ed Lin <ed.lin@promise.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Original patch from Anti Sullin reviewed by Andrew Victor and
+Marc Pignat ; thank you to all of you.
+
+Signed-off-by: Anti Sullin <anti.sullin@artecdesign.ee>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_lib.c  |    2 +-
- drivers/scsi/stex.c      |    2 ++
- include/scsi/scsi_host.h |    3 +++
- 3 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/mmc/host/at91_mci.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/scsi_lib.c~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host
-+++ a/drivers/scsi/scsi_lib.c
-@@ -1670,7 +1670,7 @@ struct request_queue *__scsi_alloc_queue
- {
- 	struct request_queue *q;
+diff -puN drivers/mmc/host/at91_mci.c~bug-in-at91-mci-suspend-routines drivers/mmc/host/at91_mci.c
+--- a/drivers/mmc/host/at91_mci.c~bug-in-at91-mci-suspend-routines
++++ a/drivers/mmc/host/at91_mci.c
+@@ -947,7 +947,7 @@ static int __exit at91_mci_remove(struct
  
--	q = blk_init_queue(request_fn, NULL);
-+	q = blk_init_queue(request_fn, shost->req_q_lock);
- 	if (!q)
- 		return NULL;
+ 	host = mmc_priv(mmc);
  
-diff -puN drivers/scsi/stex.c~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host drivers/scsi/stex.c
---- a/drivers/scsi/stex.c~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host
-+++ a/drivers/scsi/stex.c
-@@ -1234,6 +1234,8 @@ stex_probe(struct pci_dev *pdev, const s
- 	if (err)
- 		goto out_free_irq;
+-	if (host->present != -1) {
++	if (host->board->det_pin) {
+ 		device_init_wakeup(&pdev->dev, 0);
+ 		free_irq(host->board->det_pin, host);
+ 		cancel_delayed_work(&host->mmc->detect);
+@@ -978,7 +978,7 @@ static int at91_mci_suspend(struct platf
+ 	struct at91mci_host *host = mmc_priv(mmc);
+ 	int ret = 0;
  
-+	spin_lock_init(&host->__req_q_lock);
-+	host->req_q_lock = &host->__req_q_lock;
- 	err = scsi_init_shared_tag_map(host, host->can_queue);
- 	if (err) {
- 		printk(KERN_ERR DRV_NAME "(%s): init shared queue failed\n",
-diff -puN include/scsi/scsi_host.h~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host include/scsi/scsi_host.h
---- a/include/scsi/scsi_host.h~scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host
-+++ a/include/scsi/scsi_host.h
-@@ -503,6 +503,9 @@ struct Scsi_Host {
- 	spinlock_t		default_lock;
- 	spinlock_t		*host_lock;
+-	if (device_may_wakeup(&pdev->dev))
++	if (host->board->det_pin && device_may_wakeup(&pdev->dev))
+ 		enable_irq_wake(host->board->det_pin);
  
-+	spinlock_t		__req_q_lock;
-+	spinlock_t		*req_q_lock;/* protect shared block queue tag */
-+
- 	struct mutex		scan_mutex;/* serialize scanning activity */
+ 	if (mmc)
+@@ -993,7 +993,7 @@ static int at91_mci_resume(struct platfo
+ 	struct at91mci_host *host = mmc_priv(mmc);
+ 	int ret = 0;
  
- 	struct list_head	eh_cmd_q;
+-	if (device_may_wakeup(&pdev->dev))
++	if (host->board->det_pin && device_may_wakeup(&pdev->dev))
+ 		disable_irq_wake(host->board->det_pin);
+ 
+ 	if (mmc)
 _
 
-Patches currently in -mm which might be from ed.lin@promise.com are
+Patches currently in -mm which might be from anti.sullin@artecdesign.ee are
 
-scsi-use-lock-per-host-instead-of-per-device-for-shared-queue-tag-host.patch
+bug-in-at91-mci-suspend-routines.patch
