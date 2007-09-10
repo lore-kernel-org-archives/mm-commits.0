@@ -1,229 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: + slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch added to -mm tree
-Date: Mon, 10 Sep 2007 12:13:33 -0700
-Message-ID: <200709101913.l8AJDX5P006193@imap1.linux-foundation.org>
+Subject: - fix-futex-compat-bug.patch removed from -mm tree
+Date: Mon, 10 Sep 2007 12:29:15 -0700
+Message-ID: <200709101929.l8AJTFmS006821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756622AbXIJTNu (ORCPT
+	by vger.kernel.org with ESMTP id S1757297AbXIJTaA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 15:13:50 -0400
+	Mon, 10 Sep 2007 15:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cebbert@redhat.com, clameter@sgi.com
+To: davem@davemloft.net, arnd@arndb.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
-has been added to the -mm tree.  Its filename is
-     slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch
+     Fix futex compat bug
+has been removed from the -mm tree.  Its filename was
+     fix-futex-compat-bug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix futex compat bug
+From: David Miller <davem@davemloft.net>
 
-- coding-style tweak.  (could be neater using strstr() in there?)
+The futex list traversal on the compat side appears to have
+a bug.
 
-- add missing `inline' (for consistency - gcc would have done trt there
-  anyway)
+It's loop termination condition compares:
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
+	while (compat_ptr(uentry) != &head->list)
+
+But that can't be right because "uentry" has the special
+"pi" indicator bit still potentially set at bit 0.  This
+is cleared by fetch_robust_entry() into the "entry"
+return value.
+
+What this seems to mean is that the list won't terminate
+when list iteration gets back to the the head.  And we'll
+also process the list head like a normal entry, which could
+cause all kinds of problems.
+
+So we should check for equality with "entry".  That pointer
+is of the non-compat type so we have to do a little casting
+to keep the compiler and sparse happy.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/futex_compat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-accurately-compare-debug-flags-during-slab-cache-merge-fix mm/slub.c
---- a/mm/slub.c~slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
-+++ a/mm/slub.c
-@@ -1006,7 +1006,7 @@ static unsigned long kmem_cache_flags(un
- 		BUG_ON(flags & (SLAB_RED_ZONE | SLAB_POISON |
- 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
- 		BUG_ON(ctor);
--	} else
-+	} else {
- 		/*
- 		 * Enable debugging if selected on the kernel commandline.
- 		 */
-@@ -1014,6 +1014,7 @@ static unsigned long kmem_cache_flags(un
- 		    strncmp(slub_debug_slabs, name,
- 		    	strlen(slub_debug_slabs)) == 0))
- 				flags |= slub_debug;
-+	}
+diff -puN kernel/futex_compat.c~fix-futex-compat-bug kernel/futex_compat.c
+--- a/kernel/futex_compat.c~fix-futex-compat-bug
++++ a/kernel/futex_compat.c
+@@ -64,7 +64,7 @@ void compat_exit_robust_list(struct task
+ 	if (upending)
+ 		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
  
- 	return flags;
- }
-@@ -1032,7 +1033,7 @@ static inline int slab_pad_check(struct 
- static inline int check_object(struct kmem_cache *s, struct page *page,
- 			void *object, int active) { return 1; }
- static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
--static unsigned long kmem_cache_flags(unsigned long objsize,
-+static inline unsigned long kmem_cache_flags(unsigned long objsize,
- 	unsigned long flags, const char *name,
- 	void (*ctor)(void *, struct kmem_cache *, unsigned long))
- {
+-	while (compat_ptr(uentry) != &head->list) {
++	while (entry != (struct robust_list *) &head->list) {
+ 		/*
+ 		 * A pending lock might already be on the list, so
+ 		 * dont process it twice:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+origin.patch
+fix-futex-compat-bug.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+git-powerpc.patch
 infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-input-limit-memory-allocated-by-uinput-ff-drivers-fix.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
 git-net.patch
-git-net-fixup.patch
 net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-revert-gregkh-pci-pci-disable-decode-of-io-memory-during-bar-sizing.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
+e1000e-incorporate-napi_struct-changes-from-net-2624git.patch
 git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-intel_cacheinfo-adjustments.patch
-x86_64-get-mp_bus_to_node-as-early-v3.patch
-intel_cacheinfo-misc-section-annotation-fixes-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-hpet-force-enable-on-vt8235-37-chipsets-fix.patch
-x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
-git-xfs.patch
-git-xtensa.patch
-i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
-atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
-bug-in-at91-mci-suspend-routines.patch
-revert-highmem-catch-illegal-nesting.patch
-slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
+git-block.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+i386-optimize-memset-of-6-and-8-bytes.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+sparc64-sparsemem_vmemmap-support.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+i-oat-new-device-ids.patch
+i-oat-rename-the-source-file.patch
+i-oat-code-cleanup-from-checkpatch-output.patch
+i-oat-split-pci-startup-from-dma-handling-code.patch
+i-oat-add-support-for-msi-and-msi-x.patch
+dca-add-direct-cache-access-driver.patch
+i-oat-add-dca-services.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
 intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-broken-netfilter-binary-sysctls.patch
+sysctl-update-sysctl_checks-list-of-binary-paths.patch
+bitops-introduce-lock-ops.patch
