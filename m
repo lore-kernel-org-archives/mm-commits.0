@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bug-in-at91-mci-suspend-routines.patch added to -mm tree
-Date: Mon, 10 Sep 2007 02:27:38 -0700
-Message-ID: <200709100927.l8A9RcGF017227@imap1.linux-foundation.org>
+Subject: + ahci-raid-mode-sata-patch-for-intel-tolapai.patch added to -mm tree
+Date: Mon, 10 Sep 2007 02:51:25 -0700
+Message-ID: <200709100951.l8A9pPlf018127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751207AbXIJJ2a (ORCPT
+	by vger.kernel.org with ESMTP id S1755728AbXIJJva (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 05:28:30 -0400
+	Mon, 10 Sep 2007 05:51:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anti.sullin@artecdesign.ee, akpm@linux-foundation.org, drzeus@drzeus.cx, nicolas.ferre@rfo.atmel.com
+Cc: jason.d.gaston@intel.com
 
 
 The patch titled
-     bug in AT91 MCI suspend routines
+     ahci: RAID mode SATA patch for Intel Tolapai
 has been added to the -mm tree.  Its filename is
-     bug-in-at91-mci-suspend-routines.patch
+     ahci-raid-mode-sata-patch-for-intel-tolapai.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bug in AT91 MCI suspend routines
-From: Anti Sullin <anti.sullin@artecdesign.ee>
+Subject: ahci: RAID mode SATA patch for Intel Tolapai
+From: Jason Gaston <jason.d.gaston@intel.com>
 
-This patch fixes a bug in AT91 mmc host driver, that enables the wakeup
-from suspend on card detection pin even if the card detect pin is not
-available (==0).  If not card detection pin is defined, IRQ0 == FIQ gets
-enabled and if some activity is present on that pin, the system gets a FIQ
-request, that causes a crash.
+This patch adds the Intel Tolapai RAID controller DID's for SATA support.
 
-Original patch from Anti Sullin reviewed by Andrew Victor and
-Marc Pignat ; thank you to all of you.
-
-Signed-off-by: Anti Sullin <anti.sullin@artecdesign.ee>
-Signed-off-by: Nicolas Ferre <nicolas.ferre@rfo.atmel.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jason Gaston <jason.d.gaston@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/ahci.c      |    2 ++
+ drivers/ata/ahci.c.orig |   15 ++++++---------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/mmc/host/at91_mci.c~bug-in-at91-mci-suspend-routines drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~bug-in-at91-mci-suspend-routines
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -947,7 +947,7 @@ static int __exit at91_mci_remove(struct
+diff -puN drivers/ata/ahci.c~ahci-raid-mode-sata-patch-for-intel-tolapai drivers/ata/ahci.c
+--- a/drivers/ata/ahci.c~ahci-raid-mode-sata-patch-for-intel-tolapai
++++ a/drivers/ata/ahci.c
+@@ -409,6 +409,8 @@ static const struct pci_device_id ahci_p
+ 	{ PCI_VDEVICE(INTEL, 0x292f), board_ahci_pi }, /* ICH9M */
+ 	{ PCI_VDEVICE(INTEL, 0x294d), board_ahci_pi }, /* ICH9 */
+ 	{ PCI_VDEVICE(INTEL, 0x294e), board_ahci_pi }, /* ICH9M */
++	{ PCI_VDEVICE(INTEL, 0x502a), board_ahci }, /* Tolapai */
++	{ PCI_VDEVICE(INTEL, 0x502b), board_ahci }, /* Tolapai */
  
- 	host = mmc_priv(mmc);
+ 	/* JMicron 360/1/3/5/6, match class to avoid IDE function */
+ 	{ PCI_VENDOR_ID_JMICRON, PCI_ANY_ID, PCI_ANY_ID, PCI_ANY_ID,
+diff -puN drivers/ata/ahci.c.orig~ahci-raid-mode-sata-patch-for-intel-tolapai drivers/ata/ahci.c.orig
+--- a/drivers/ata/ahci.c.orig~ahci-raid-mode-sata-patch-for-intel-tolapai
++++ a/drivers/ata/ahci.c.orig
+@@ -1084,15 +1084,8 @@ static int ahci_do_softreset(struct ata_
+ 	tf.ctl &= ~ATA_SRST;
+ 	ahci_exec_polled_cmd(ap, pmp, &tf, 0, 0, 0);
  
--	if (host->present != -1) {
-+	if (host->board->det_pin) {
- 		device_init_wakeup(&pdev->dev, 0);
- 		free_irq(host->board->det_pin, host);
- 		cancel_delayed_work(&host->mmc->detect);
-@@ -978,7 +978,7 @@ static int at91_mci_suspend(struct platf
- 	struct at91mci_host *host = mmc_priv(mmc);
- 	int ret = 0;
+-	/* spec mandates ">= 2ms" before checking status.
+-	 * We wait 150ms, because that was the magic delay used for
+-	 * ATAPI devices in Hale Landis's ATADRVR, for the period of time
+-	 * between when the ATA command register is written, and then
+-	 * status is checked.  Because waiting for "a while" before
+-	 * checking status is fine, post SRST, we perform this magic
+-	 * delay here as well.
+-	 */
+-	msleep(150);
++	/* wait a while before checking status */
++	ata_wait_after_reset(ap, deadline);
  
--	if (device_may_wakeup(&pdev->dev))
-+	if (host->board->det_pin && device_may_wakeup(&pdev->dev))
- 		enable_irq_wake(host->board->det_pin);
+ 	rc = ata_wait_ready(ap, deadline);
+ 	/* link occupied, -ENODEV too is an error */
+@@ -1885,6 +1878,10 @@ static int ahci_init_one(struct pci_dev 
+ 		struct ata_port *ap = host->ports[i];
+ 		void __iomem *port_mmio = ahci_port_base(ap);
  
- 	if (mmc)
-@@ -993,7 +993,7 @@ static int at91_mci_resume(struct platfo
- 	struct at91mci_host *host = mmc_priv(mmc);
- 	int ret = 0;
- 
--	if (device_may_wakeup(&pdev->dev))
-+	if (host->board->det_pin && device_may_wakeup(&pdev->dev))
- 		disable_irq_wake(host->board->det_pin);
- 
- 	if (mmc)
++		ata_port_pbar_desc(ap, AHCI_PCI_BAR, -1, "abar");
++		ata_port_pbar_desc(ap, AHCI_PCI_BAR,
++				   0x100 + ap->port_no * 0x80, "port");
++
+ 		/* standard SATA port setup */
+ 		if (hpriv->port_map & (1 << i))
+ 			ap->ioaddr.cmd_addr = port_mmio;
 _
 
-Patches currently in -mm which might be from anti.sullin@artecdesign.ee are
+Patches currently in -mm which might be from jason.d.gaston@intel.com are
 
-bug-in-at91-mci-suspend-routines.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
+i2c-i801-documentation-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+ahci-raid-mode-sata-patch-for-intel-tolapai.patch
