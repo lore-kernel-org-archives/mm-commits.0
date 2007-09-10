@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitmaph-remove-dead-artifacts.patch added to -mm tree
-Date: Mon, 10 Sep 2007 01:42:44 -0700
-Message-ID: <200709100842.l8A8gi2s015775@imap1.linux-foundation.org>
+Subject: + omap1-leds-innovatorc-remove-dead-code.patch added to -mm tree
+Date: Mon, 10 Sep 2007 01:44:44 -0700
+Message-ID: <200709100844.l8A8iiG3015885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755839AbXIJInH (ORCPT
+	by vger.kernel.org with ESMTP id S1754240AbXIJIpF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 04:43:07 -0400
+	Mon, 10 Sep 2007 04:45:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, neilb@suse.de
+Cc: bunk@kernel.org, rmk@arm.linux.org.uk, tony@atomide.com
 
 
 The patch titled
-     bitmap.h: remove dead artifacts
+     omap1/leds-innovator.c: remove dead code
 has been added to the -mm tree.  Its filename is
-     bitmaph-remove-dead-artifacts.patch
+     omap1-leds-innovatorc-remove-dead-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bitmap.h: remove dead artifacts
+Subject: omap1/leds-innovator.c: remove dead code
 From: Adrian Bunk <bunk@kernel.org>
 
-bitmap_active() no longer exists and BITMAP_ACTIVE is no longer used.
-
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/raid/bitmap.h |    2 --
- 1 file changed, 2 deletions(-)
+ arch/arm/mach-omap1/leds-innovator.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/raid/bitmap.h~bitmaph-remove-dead-artifacts include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~bitmaph-remove-dead-artifacts
-+++ a/include/linux/raid/bitmap.h
-@@ -138,7 +138,6 @@ typedef __u16 bitmap_counter_t;
+diff -puN arch/arm/mach-omap1/leds-innovator.c~omap1-leds-innovatorc-remove-dead-code arch/arm/mach-omap1/leds-innovator.c
+--- a/arch/arm/mach-omap1/leds-innovator.c~omap1-leds-innovatorc-remove-dead-code
++++ a/arch/arm/mach-omap1/leds-innovator.c
+@@ -95,8 +95,5 @@ void innovator_leds_event(led_event_t ev
+ 		break;
+ 	}
  
- /* use these for bitmap->flags and bitmap->sb->state bit-fields */
- enum bitmap_state {
--	BITMAP_ACTIVE = 0x001, /* the bitmap is in use */
- 	BITMAP_STALE  = 0x002,  /* the bitmap file is out of date or had -EIO */
- 	BITMAP_WRITE_ERROR = 0x004, /* A write error has occurred */
- 	BITMAP_HOSTENDIAN = 0x8000,
-@@ -258,7 +257,6 @@ struct bitmap {
- int  bitmap_create(mddev_t *mddev);
- void bitmap_flush(mddev_t *mddev);
- void bitmap_destroy(mddev_t *mddev);
--int  bitmap_active(struct bitmap *bitmap);
- 
- char *file_path(struct file *file, char *buf, int count);
- void bitmap_print_sb(struct bitmap *bitmap);
+-	if (led_state & LED_STATE_ENABLED)
+-		;
+-
+ 	local_irq_restore(flags);
+ }
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
 
 update-gitignore.patch
+au88x0_synthc-bugfix.patch
 arm-extern-inline-static-inline.patch
 ppc-remove-apus-support.patch
 git-dvb.patch
@@ -92,6 +85,7 @@ n_hdlcc-fix-check-after-use.patch
 kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
 make-kernel-profilectime_hook-static.patch
 drivers-block-ccissc-fix-check-after-use.patch
+omap1-leds-innovatorc-remove-dead-code.patch
 remove-fs-ext2-balloccreserve_blocks.patch
 pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
 bitmaph-remove-dead-artifacts.patch
