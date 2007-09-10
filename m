@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch added to -mm tree
-Date: Mon, 10 Sep 2007 01:05:30 -0700
-Message-ID: <200709100805.l8A85U3h014648@imap1.linux-foundation.org>
+Subject: + rtc-v3020-fixes.patch added to -mm tree
+Date: Mon, 10 Sep 2007 01:00:48 -0700
+Message-ID: <200709100800.l8A80mVt014491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49016 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52805 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755474AbXIJIFf (ORCPT
+	by vger.kernel.org with ESMTP id S1755306AbXIJIBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 04:05:35 -0400
+	Mon, 10 Sep 2007 04:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: postfailathushmaildotcom@yahoo.com, alan@lxorguk.ukuu.org.uk, htejun@gmail.com
+Cc: mike@compulab.co.il, a.zummo@towertech.it, david-b@pacbell.net, raph@8d.com
 
 
 The patch titled
-     drivers/ata/pata_ixp4xx_cf.c: ioremap return code check
+     RTC v3020 fixes
 has been added to the -mm tree.  Its filename is
-     drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+     rtc-v3020-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_ixp4xx_cf.c: ioremap return code check
-From: Scott Thompson <postfailathushmaildotcom@yahoo.com>
+Subject: RTC v3020 fixes
+From: Mike Rapoport <mike@compulab.co.il>
 
-Add missing ioremap return checks.
+Fix off-by-one in month calculations
+Add delay for bus accesses to satisfy Tw > 500ns
 
-Signed-off-by: Scott Thompson <postfail <at> hushmail.com>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Acked-by: Raphael Assenat <raph@8d.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_ixp4xx_cf.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/rtc/rtc-v3020.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_ixp4xx_cf.c~drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check drivers/ata/pata_ixp4xx_cf.c
---- a/drivers/ata/pata_ixp4xx_cf.c~drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check
-+++ a/drivers/ata/pata_ixp4xx_cf.c
-@@ -195,6 +195,9 @@ static __devinit int ixp4xx_pata_probe(s
- 	data->cs0 = devm_ioremap(&pdev->dev, cs0->start, 0x1000);
- 	data->cs1 = devm_ioremap(&pdev->dev, cs1->start, 0x1000);
+diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-fixes drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-v3020-fixes
++++ a/drivers/rtc/rtc-v3020.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc-v3020.h>
++#include <linux/delay.h>
  
-+	if (!data->cs0 || !data->cs1)
-+		return -ENOMEM;
-+
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq)
- 		set_irq_type(irq, IRQT_RISING);
+ #include <asm/io.h>
+ 
+@@ -47,6 +48,7 @@ static void v3020_set_reg(struct v3020 *
+ 	for (i = 0; i < 4; i++) {
+ 		writel((tmp & 1) << chip->leftshift, chip->ioaddress);
+ 		tmp >>= 1;
++		udelay(1);
+ 	}
+ 
+ 	/* Commands dont have data */
+@@ -54,6 +56,7 @@ static void v3020_set_reg(struct v3020 *
+ 		for (i = 0; i < 8; i++) {
+ 			writel((data & 1) << chip->leftshift, chip->ioaddress);
+ 			data >>= 1;
++			udelay(1);
+ 		}
+ 	}
+ }
+@@ -66,12 +69,14 @@ static unsigned char v3020_get_reg(struc
+ 	for (i = 0; i < 4; i++) {
+ 		writel((address & 1) << chip->leftshift, chip->ioaddress);
+ 		address >>= 1;
++		udelay(1);
+ 	}
+ 
+ 	for (i = 0; i < 8; i++) {
+ 		data >>= 1;
+ 		if (readl(chip->ioaddress) & (1 << chip->leftshift))
+ 			data |= 0x80;
++		udelay(1);
+ 	}
+ 
+ 	return data;
+@@ -95,7 +100,7 @@ static int v3020_read_time(struct device
+ 	tmp = v3020_get_reg(chip, V3020_MONTH_DAY);
+ 	dt->tm_mday	= BCD2BIN(tmp);
+ 	tmp = v3020_get_reg(chip, V3020_MONTH);
+-	dt->tm_mon	= BCD2BIN(tmp);
++	dt->tm_mon    = BCD2BIN(tmp) - 1;
+ 	tmp = v3020_get_reg(chip, V3020_WEEK_DAY);
+ 	dt->tm_wday	= BCD2BIN(tmp);
+ 	tmp = v3020_get_reg(chip, V3020_YEAR);
+@@ -135,7 +140,7 @@ static int v3020_set_time(struct device 
+ 	v3020_set_reg(chip, V3020_MINUTES, 	BIN2BCD(dt->tm_min));
+ 	v3020_set_reg(chip, V3020_HOURS, 	BIN2BCD(dt->tm_hour));
+ 	v3020_set_reg(chip, V3020_MONTH_DAY,	BIN2BCD(dt->tm_mday));
+-	v3020_set_reg(chip, V3020_MONTH, 	BIN2BCD(dt->tm_mon));
++	v3020_set_reg(chip, V3020_MONTH,     BIN2BCD(dt->tm_mon + 1));
+ 	v3020_set_reg(chip, V3020_WEEK_DAY, 	BIN2BCD(dt->tm_wday));
+ 	v3020_set_reg(chip, V3020_YEAR, 	BIN2BCD(dt->tm_year % 100));
+ 
 _
 
-Patches currently in -mm which might be from postfailathushmaildotcom@yahoo.com are
+Patches currently in -mm which might be from mike@compulab.co.il are
 
-drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+rtc-v3020-fixes.patch
+make-power-supply-class-available-for-arm-architecture.patch
