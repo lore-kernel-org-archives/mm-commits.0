@@ -1,65 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - input-limit-memory-allocated-by-uinput-ff-drivers-fix.patch removed from -mm tree
-Date: Mon, 10 Sep 2007 12:32:31 -0700
-Message-ID: <200709101932.l8AJWVah006976@imap1.linux-foundation.org>
+Subject: + revert-highmem-catch-illegal-nesting.patch added to -mm tree
+Date: Mon, 10 Sep 2007 12:00:18 -0700
+Message-ID: <200709101900.l8AJ0Id2005691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49145 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757645AbXIJTc7 (ORCPT
+	by vger.kernel.org with ESMTP id S1760351AbXIJTAe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 15:32:59 -0400
+	Mon, 10 Sep 2007 15:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cebbert@redhat.com, clameter@sgi.com, dtor@mail.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu
 
 
 The patch titled
-     input-limit-memory-allocated-by-uinput-ff-drivers-fix
-has been removed from the -mm tree.  Its filename was
-     input-limit-memory-allocated-by-uinput-ff-drivers-fix.patch
+     revert "highmem: catch illegal nesting"
+has been added to the -mm tree.  Its filename is
+     revert-highmem-catch-illegal-nesting.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: input-limit-memory-allocated-by-uinput-ff-drivers-fix
+Subject: revert "highmem: catch illegal nesting"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- use appropriate type
+Revert
 
-- unbreak coding style
+	commit 656dad312fb41ed95ef08325e9df9bece3aacbbb
+	Author: Ingo Molnar <mingo@elte.hu>
+	Date:   Sat Feb 10 01:46:36 2007 -0800
+
+	[PATCH] highmem: catch illegal nesting
+
+	Catch illegally nested kmap_atomic()s even if the page that is mapped by
+	the 'inner' instance is from lowmem.
+
+	This avoids spuriously zapped kmap-atomic ptes and turns hard to find
+	crashes into clear asserts at the bug site.
+
+Problem is, a get_zeroed_page(GFP_KERNEL) from interrupt context will trigger
+this check if non-irq code on this CPU holds a KM_USER0 mapping.  But that
+get_zeroed_page() will never be altering the kmap slot anyway due to the
+GFP_KERNEL.
 
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc :Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/ff-core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/i386/mm/highmem.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/input/ff-core.c~input-limit-memory-allocated-by-uinput-ff-drivers-fix drivers/input/ff-core.c
---- a/drivers/input/ff-core.c~input-limit-memory-allocated-by-uinput-ff-drivers-fix
-+++ a/drivers/input/ff-core.c
-@@ -306,7 +306,7 @@ int input_ff_create(struct input_dev *de
- {
- 	struct ff_device *ff;
- 	int i;
--	int needed_mem;
-+	size_t needed_mem;
+diff -puN arch/i386/mm/highmem.c~revert-highmem-catch-illegal-nesting arch/i386/mm/highmem.c
+--- a/arch/i386/mm/highmem.c~revert-highmem-catch-illegal-nesting
++++ a/arch/i386/mm/highmem.c
+@@ -34,17 +34,16 @@ void *kmap_atomic_prot(struct page *page
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+ 	pagefault_disable();
  
- 	if (!max_effects) {
- 		printk(KERN_ERR
-@@ -314,7 +314,8 @@ int input_ff_create(struct input_dev *de
- 		return -EINVAL;
- 	}
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	BUG_ON(!pte_none(*(kmap_pte-idx)));
+-
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
  
--	needed_mem = sizeof(struct ff_device) + max_effects * sizeof(struct file *);
-+	needed_mem = sizeof(struct ff_device) +
-+			max_effects * sizeof(struct file *);
- 	if (needed_mem > 256 * 1024)
- 		return -ENOMEM;
++	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
++	BUG_ON(!pte_none(*(kmap_pte-idx)))
+ 	set_pte(kmap_pte-idx, mk_pte(page, prot));
+ 	arch_flush_lazy_mmu_mode();
  
+-	return (void*) vaddr;
++	return (void *)vaddr;
+ }
+ 
+ void *kmap_atomic(struct page *page, enum km_type type)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,7 +152,6 @@ i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
 atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
 bug-in-at91-mci-suspend-routines.patch
 revert-highmem-catch-illegal-nesting.patch
-slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
