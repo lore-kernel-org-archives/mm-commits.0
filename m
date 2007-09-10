@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-futex-compat-bug.patch added to -mm tree
-Date: Mon, 10 Sep 2007 00:58:44 -0700
-Message-ID: <200709100758.l8A7wiSZ014334@imap1.linux-foundation.org>
+Subject: + rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch added to -mm tree
+Date: Mon, 10 Sep 2007 00:43:02 -0700
+Message-ID: <200709100743.l8A7h2XL013870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43338 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755033AbXIJH7f (ORCPT
+	by vger.kernel.org with ESMTP id S1752794AbXIJHnX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 03:59:35 -0400
+	Mon, 10 Sep 2007 03:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, akpm@linux-foundation.org, arnd@arndb.de, mingo@elte.hu, tglx@linutronix.de
+Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     Fix futex compat bug
+     rtc: make rtc-ds1742 driver hotplug-aware
 has been added to the -mm tree.  Its filename is
-     fix-futex-compat-bug.patch
+     rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,102 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix futex compat bug
-From: David Miller <davem@davemloft.net>
+Subject: rtc: make rtc-ds1742 driver hotplug-aware
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-The futex list traversal on the compat side appears to have
-a bug.
+The rtc-ds1742 platform driver name doesn't match its module name,
+which might prevents it from properly hotplugging.  There is only two
+in-tree user of its driver, which are fixed by this patch too.
 
-It's loop termination condition compares:
-
-	while (compat_ptr(uentry) != &head->list)
-
-But that can't be right because "uentry" has the special
-"pi" indicator bit still potentially set at bit 0.  This
-is cleared by fetch_robust_entry() into the "entry"
-return value.
-
-What this seems to mean is that the list won't terminate
-when list iteration gets back to the the head.  And we'll
-also process the list head like a normal entry, which could
-cause all kinds of problems.
-
-So we should check for equality with "entry".  That pointer
-is of the non-compat type so we have to do a little casting
-to keep the compiler and sparse happy.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/jmr3927/rbhma3100/setup.c                        |    2 +-
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
+ drivers/rtc/rtc-ds1742.c                                   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/futex_compat.c~fix-futex-compat-bug kernel/futex_compat.c
---- a/kernel/futex_compat.c~fix-futex-compat-bug
-+++ a/kernel/futex_compat.c
-@@ -64,7 +64,7 @@ void compat_exit_robust_list(struct task
- 	if (upending)
- 		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
- 
--	while (compat_ptr(uentry) != &head->list) {
-+	while (entry != (struct robust_list *) &head->list) {
- 		/*
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
+diff -puN arch/mips/jmr3927/rbhma3100/setup.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2 arch/mips/jmr3927/rbhma3100/setup.c
+--- a/arch/mips/jmr3927/rbhma3100/setup.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2
++++ a/arch/mips/jmr3927/rbhma3100/setup.c
+@@ -427,7 +427,7 @@ static int __init jmr3927_rtc_init(void)
+ 		.flags	= IORESOURCE_MEM,
+ 	};
+ 	struct platform_device *dev;
+-	dev = platform_device_register_simple("ds1742", -1, &res, 1);
++	dev = platform_device_register_simple("rtc-ds1742", -1, &res, 1);
+ 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
+ }
+ device_initcall(jmr3927_rtc_init);
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2 arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+@@ -969,7 +969,7 @@ static int __init toshiba_rbtx4927_rtc_i
+ 		.flags	= IORESOURCE_MEM,
+ 	};
+ 	struct platform_device *dev =
+-		platform_device_register_simple("ds1742", -1, &res, 1);
++		platform_device_register_simple("rtc-ds1742", -1, &res, 1);
+ 	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
+ }
+ device_initcall(toshiba_rbtx4927_rtc_init);
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2 drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-make-rtc-ds1742-driver-hotplug-aware-take-2
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -251,7 +251,7 @@ static struct platform_driver ds1742_rtc
+ 	.probe		= ds1742_rtc_probe,
+ 	.remove		= __devexit_p(ds1742_rtc_remove),
+ 	.driver		= {
+-		.name	= "ds1742",
++		.name	= "rtc-ds1742",
+ 		.owner	= THIS_MODULE,
+ 	},
+ };
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-origin.patch
-fix-futex-compat-bug.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-powerpc.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-net.patch
-net-atm-lecc-printk-warning-fix.patch
-e1000e-incorporate-napi_struct-changes-from-net-2624git.patch
-git-scsi-misc.patch
-git-block.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-i386-optimize-memset-of-6-and-8-bytes.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-sparc64-sparsemem_vmemmap-support.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-i-oat-new-device-ids.patch
-i-oat-rename-the-source-file.patch
-i-oat-code-cleanup-from-checkpatch-output.patch
-i-oat-split-pci-startup-from-dma-handling-code.patch
-i-oat-add-support-for-msi-and-msi-x.patch
-dca-add-direct-cache-access-driver.patch
-i-oat-add-dca-services.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-broken-netfilter-binary-sysctls.patch
-sysctl-update-sysctl_checks-list-of-binary-paths.patch
-bitops-introduce-lock-ops.patch
+git-mips.patch
+serial_txx9-cleanup-includes.patch
+rtc-make-rtc-ds1553-driver-hotplug-aware-take-3.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
