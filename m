@@ -1,78 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - via82cxxx-pata_via-add-support-for-via-vx800-series.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 13:20:41 -0700
-Message-ID: <200709112020.l8BKKfUJ027726@imap1.linux-foundation.org>
+Subject: - fix-boot-time-hang-on-g31-g33-pc.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 13:20:55 -0700
+Message-ID: <200709112020.l8BKKt2U027742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40956 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967385AbXIKUVW (ORCPT
+	by vger.kernel.org with ESMTP id S933761AbXIKUVf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 16:21:22 -0400
+	Tue, 11 Sep 2007 16:21:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, josephchan@via.com.tw, mm-commits@vger.kernel.org
+To: matthew@wil.cx, greg@kroah.com, grundler@parisc-linux.org, hancockr@shaw.ca, ink@jurassic.park.msu.ru, jesse.barnes@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via82cxxx/pata_via: Add support for VIA VX800 series
+     Fix boot-time hang on G31/G33 PC
 has been removed from the -mm tree.  Its filename was
-     via82cxxx-pata_via-add-support-for-via-vx800-series.patch
+     fix-boot-time-hang-on-g31-g33-pc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: via82cxxx/pata_via: Add support for VIA VX800 series
-From: <JosephChan@via.com.tw>
+Subject: Fix boot-time hang on G31/G33 PC
+From: Matthew Wilcox <matthew@wil.cx>
 
-Add IDE support for VIA's VX800 series in both drivers/ide/pci/via82cxxx.c
-and drivers/ata/pata_via.c
+This patch, loosely based on a patch from Robert Hancock, which was in turn
+based on a patch from Jesse Barnes, fixes a boot-time hang on my shiny new
+PC.  The 'conflict' mentioned in the patch in my case happens to be between
+mmconfig and the graphics card, but it could easily be between any pair of
+devices if they are left enabled by the BIOS and mappen in the wrong place.
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Jeff Garzik <jeff@garzik.org>
-Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+Acked-by: Robert Hancock <hancockr@shaw.ca>
+Acked-by: Jesse Barnes <jesse.barnes@intel.com>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c      |    1 +
- drivers/ide/pci/via82cxxx.c |    1 +
- include/linux/pci_ids.h     |    1 +
- 3 files changed, 3 insertions(+)
+ drivers/pci/probe.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/drivers/ata/pata_via.c
-@@ -97,6 +97,7 @@ static const struct via_isa_bridge {
- 	u8 rev_max;
- 	u16 flags;
- } via_isa_bridges[] = {
-+	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
-diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -74,6 +74,7 @@ static struct via_isa_bridge {
- 	u8 udma_mask;
- 	u8 flags;
- } via_isa_bridges[] = {
-+	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "vt6410",	PCI_DEVICE_ID_VIA_6410,     0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
-diff -puN include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/include/linux/pci_ids.h
-@@ -1343,6 +1343,7 @@
- #define PCI_DEVICE_ID_VIA_8231_4	0x8235
- #define PCI_DEVICE_ID_VIA_8365_1	0x8305
- #define PCI_DEVICE_ID_VIA_CX700		0x8324
-+#define PCI_DEVICE_ID_VIA_VX800		0x8353
- #define PCI_DEVICE_ID_VIA_8371_1	0x8391
- #define PCI_DEVICE_ID_VIA_82C598_1	0x8598
- #define PCI_DEVICE_ID_VIA_838X_1	0xB188
+diff -puN drivers/pci/probe.c~fix-boot-time-hang-on-g31-g33-pc drivers/pci/probe.c
+--- a/drivers/pci/probe.c~fix-boot-time-hang-on-g31-g33-pc
++++ a/drivers/pci/probe.c
+@@ -180,11 +180,26 @@ static inline int is_64bit_memory(u32 ma
+ 	return 0;
+ }
+ 
++/*
++ * Sizing PCI BARs requires us to disable decoding, otherwise we may run
++ * into conflicts with other devices while trying to size the BAR.  Normally
++ * this isn't a problem, but it happens on some machines normally, and can
++ * happen on others during PCI device hotplug.  Don't disable BARs for host
++ * bridges, though.  Some of them do silly things like disable accesses to
++ * RAM from the CPU
++ */
+ static void pci_read_bases(struct pci_dev *dev, unsigned int howmany, int rom)
+ {
+ 	unsigned int pos, reg, next;
+ 	u32 l, sz;
+ 	struct resource *res;
++	u16 orig_cmd;
++
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST) {
++		pci_read_config_word(dev, PCI_COMMAND, &orig_cmd);
++		pci_write_config_word(dev, PCI_COMMAND,
++			orig_cmd & ~(PCI_COMMAND_MEMORY | PCI_COMMAND_IO));
++	}
+ 
+ 	for(pos=0; pos<howmany; pos = next) {
+ 		u64 l64;
+@@ -283,6 +298,9 @@ static void pci_read_bases(struct pci_de
+ 			}
+ 		}
+ 	}
++
++	if ((dev->class >> 8) != PCI_CLASS_BRIDGE_HOST)
++		pci_write_config_word(dev, PCI_COMMAND, orig_cmd);
+ }
+ 
+ void pci_read_bridge_bases(struct pci_bus *child)
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from matthew@wil.cx are
+
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma.patch
+ptr_align.patch
+git-scsi-misc.patch
+drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch
+make-sure-nobodys-leaking-resources.patch
