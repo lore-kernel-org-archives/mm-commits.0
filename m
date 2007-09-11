@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + futex_compat-update-to-match-native-version.patch added to -mm tree
-Date: Tue, 11 Sep 2007 00:46:22 -0700
-Message-ID: <200709110746.l8B7kQBo032355@imap1.linux-foundation.org>
+Subject: + futex_compat-fix-list-traversal-bugs.patch added to -mm tree
+Date: Tue, 11 Sep 2007 00:48:29 -0700
+Message-ID: <200709110748.l8B7mTJZ032455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56450 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762140AbXIKHrb (ORCPT
+	by vger.kernel.org with ESMTP id S1758832AbXIKHtL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 03:47:31 -0400
+	Tue, 11 Sep 2007 03:49:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: arnd@arndb.de, davem@davemloft.net, mingo@elte.hu, stable@kernel.org, tglx@l
 
 
 The patch titled
-     futex_compat: update to match native version
+     futex_compat: fix list traversal bugs
 has been added to the -mm tree.  Its filename is
-     futex_compat-update-to-match-native-version.patch
+     futex_compat-fix-list-traversal-bugs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: futex_compat: update to match native version
+Subject: futex_compat: fix list traversal bugs
 From: Arnd Bergmann <arnd@arndb.de>
 
-A few changes have gone into the futex code but not into the futex_compat
-code, the most significant one being a fix for FUTEX_WAKE_OP in commit
-f54f098612d7f86463b5fb4763d03533d634de73.
+The futex list traversal on the compat side appears to have
+a bug.
 
-This brings both versions in sync again.
+It's loop termination condition compares:
+
+        while (compat_ptr(uentry) != &head->list)
+
+But that can't be right because "uentry" has the special
+"pi" indicator bit still potentially set at bit 0.  This
+is cleared by fetch_robust_entry() into the "entry"
+return value.
+
+What this seems to mean is that the list won't terminate
+when list iteration gets back to the the head.  And we'll
+also process the list head like a normal entry, which could
+cause all kinds of problems.
+
+So we should check for equality with "entry".  That pointer
+is of the non-compat type so we have to do a little casting
+to keep the compiler and sparse happy.
+
+The same problem can in theory occur with the 'pending'
+variable, although that has not been reported from users
+so far.
+
+Based on the original patch from David Miller.
 
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -43,49 +64,25 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ kernel/futex_compat.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/futex_compat.c~futex_compat-update-to-match-native-version kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex_compat-update-to-match-native-version
+diff -puN kernel/futex_compat.c~futex_compat-fix-list-traversal-bugs kernel/futex_compat.c
+--- a/kernel/futex_compat.c~futex_compat-fix-list-traversal-bugs
 +++ a/kernel/futex_compat.c
-@@ -62,8 +62,10 @@ void compat_exit_robust_list(struct task
- 	 */
- 	if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
+@@ -61,10 +61,10 @@ void compat_exit_robust_list(struct task
+ 	if (fetch_robust_entry(&upending, &pending,
+ 			       &head->list_op_pending, &pip))
  		return;
-+
- 	if (pending)
--		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
-+		handle_futex_death((void __user *)pending + futex_offset,
-+				   curr, pip);
+-	if (upending)
++	if (pending)
+ 		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
  
- 	while (entry != &head->list) {
+-	while (compat_ptr(uentry) != &head->list) {
++	while (entry != (struct robust_list __user *) &head->list) {
  		/*
-@@ -142,7 +144,7 @@ asmlinkage long compat_sys_futex(u32 __u
- {
- 	struct timespec ts;
- 	ktime_t t, *tp = NULL;
--	int val2 = 0;
-+	u32 val2 = 0;
- 	int cmd = op & FUTEX_CMD_MASK;
- 
- 	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI)) {
-@@ -156,8 +158,13 @@ asmlinkage long compat_sys_futex(u32 __u
- 			t = ktime_add(ktime_get(), t);
- 		tp = &t;
- 	}
--	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE)
--		val2 = (int) (unsigned long) utime;
-+	/*
-+	 * requeue parameter in 'utime' if cmd == FUTEX_REQUEUE.
-+	 * number of waiters to wake in 'utime' if cmd == FUTEX_WAKE_OP.
-+	 */
-+	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE ||
-+	    cmd == FUTEX_WAKE_OP)
-+		val2 = (u32) (unsigned long) utime;
- 
- 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
- }
+ 		 * A pending lock might already be on the list, so
+ 		 * dont process it twice:
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
