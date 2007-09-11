@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + via82cxxx-pata_via-add-support-for-via-vx800-series.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:27:15 -0700
-Message-ID: <200709110527.l8B5RFrN027318@imap1.linux-foundation.org>
+Subject: + ps3-ignore-storage-devices-that-are-still-being.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:29:15 -0700
+Message-ID: <200709110529.l8B5TFSk027357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750818AbXIKF10 (ORCPT
+	by vger.kernel.org with ESMTP id S1751461AbXIKF3b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:27:26 -0400
+	Tue, 11 Sep 2007 01:29:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, josephchan@via.com.tw
+Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, paulus@samba.org
 
 
 The patch titled
-     via82cxxx/pata_via: Add support for VIA VX800 series
+     PS3: ignore storage devices that are still being probed
 has been added to the -mm tree.  Its filename is
-     via82cxxx-pata_via-add-support-for-via-vx800-series.patch
+     ps3-ignore-storage-devices-that-are-still-being.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: via82cxxx/pata_via: Add support for VIA VX800 series
-From: <JosephChan@via.com.tw>
+Subject: PS3: ignore storage devices that are still being probed
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Add IDE support for VIA's VX800 series in both drivers/ide/pci/via82cxxx.c
-and drivers/ata/pata_via.c
+A storage device may show up in the repository before the hypervisor has
+finished probing:
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Jeff Garzik <jeff@garzik.org>
-Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Tejun Heo <htejun@gmail.com>
+  - If its type is not yet known, it shows up as PS3_DEV_TYPE_STOR_DUMMY,
+  - If its regions are being probed, it shows up as having zero regions.
+
+If any of these happen, consider the device not yet present.  The storage
+probe thread will retry later.
+
+This fixes the timing-dependent problem where a kernel booted from FLASH ROM
+sometimes cannot find the hard disk.
+
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c      |    1 +
- drivers/ide/pci/via82cxxx.c |    1 +
- include/linux/pci_ids.h     |    1 +
- 3 files changed, 3 insertions(+)
+ arch/powerpc/platforms/ps3/platform.h   |    1 
+ arch/powerpc/platforms/ps3/repository.c |   29 ++++++++++++++++++++++
+ 2 files changed, 30 insertions(+)
 
-diff -puN drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/drivers/ata/pata_via.c
-@@ -97,6 +97,7 @@ static const struct via_isa_bridge {
- 	u8 rev_max;
- 	u16 flags;
- } via_isa_bridges[] = {
-+	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
-diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -74,6 +74,7 @@ static struct via_isa_bridge {
- 	u8 udma_mask;
- 	u8 flags;
- } via_isa_bridges[] = {
-+	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
- 	{ "vt6410",	PCI_DEVICE_ID_VIA_6410,     0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
-diff -puN include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series
-+++ a/include/linux/pci_ids.h
-@@ -1343,6 +1343,7 @@
- #define PCI_DEVICE_ID_VIA_8231_4	0x8235
- #define PCI_DEVICE_ID_VIA_8365_1	0x8305
- #define PCI_DEVICE_ID_VIA_CX700		0x8324
-+#define PCI_DEVICE_ID_VIA_VX800		0x8353
- #define PCI_DEVICE_ID_VIA_8371_1	0x8391
- #define PCI_DEVICE_ID_VIA_82C598_1	0x8598
- #define PCI_DEVICE_ID_VIA_838X_1	0xB188
+diff -puN arch/powerpc/platforms/ps3/platform.h~ps3-ignore-storage-devices-that-are-still-being arch/powerpc/platforms/ps3/platform.h
+--- a/arch/powerpc/platforms/ps3/platform.h~ps3-ignore-storage-devices-that-are-still-being
++++ a/arch/powerpc/platforms/ps3/platform.h
+@@ -83,6 +83,7 @@ enum ps3_dev_type {
+ 	PS3_DEV_TYPE_STOR_ROM = TYPE_ROM,	/* 5 */
+ 	PS3_DEV_TYPE_SB_GPIO = 6,
+ 	PS3_DEV_TYPE_STOR_FLASH = TYPE_RBC,	/* 14 */
++	PS3_DEV_TYPE_STOR_DUMMY = 32,
+ 	PS3_DEV_TYPE_NOACCESS = 255,
+ };
+ 
+diff -puN arch/powerpc/platforms/ps3/repository.c~ps3-ignore-storage-devices-that-are-still-being arch/powerpc/platforms/ps3/repository.c
+--- a/arch/powerpc/platforms/ps3/repository.c~ps3-ignore-storage-devices-that-are-still-being
++++ a/arch/powerpc/platforms/ps3/repository.c
+@@ -349,6 +349,35 @@ int ps3_repository_find_device(struct ps
+ 		return result;
+ 	}
+ 
++	if (tmp.bus_type == PS3_BUS_TYPE_STORAGE) {
++		/*
++		 * A storage device may show up in the repository before the
++		 * hypervisor has finished probing its type and regions
++		 */
++		unsigned int num_regions;
++
++		if (tmp.dev_type == PS3_DEV_TYPE_STOR_DUMMY) {
++			pr_debug("%s:%u storage device not ready\n", __func__,
++				 __LINE__);
++			return -ENODEV;
++		}
++
++		result = ps3_repository_read_stor_dev_num_regions(tmp.bus_index,
++								  tmp.dev_index,
++								  &num_regions);
++		if (result) {
++			pr_debug("%s:%d read_stor_dev_num_regions failed\n",
++				 __func__, __LINE__);
++			return result;
++		}
++
++		if (!num_regions) {
++			pr_debug("%s:%u storage device has no regions yet\n",
++				 __func__, __LINE__);
++			return -ENODEV;
++		}
++	}
++
+ 	result = ps3_repository_read_dev_id(tmp.bus_index, tmp.dev_index,
+ 		&tmp.dev_id);
+ 
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-via82cxxx-pata_via-add-support-for-via-vx800-series.patch
+git-scsi-misc.patch
+ps3-ignore-storage-devices-that-are-still-being.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
