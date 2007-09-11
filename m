@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch added to -mm tree
-Date: Mon, 10 Sep 2007 21:50:40 -0700
-Message-ID: <200709110450.l8B4oejo026034@imap1.linux-foundation.org>
+Subject: + arm-unbalanced-parenthesis-fix.patch added to -mm tree
+Date: Mon, 10 Sep 2007 21:53:02 -0700
+Message-ID: <200709110453.l8B4r2Uh026145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47439 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37616 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753882AbXIKEvS (ORCPT
+	by vger.kernel.org with ESMTP id S1753953AbXIKExY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 00:51:18 -0400
+	Tue, 11 Sep 2007 00:53:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, akpm@linux-foundation.org, duaneg@dghda.com, tytso@mit.edu
+Cc: m.kozlowski@tuxland.pl, rmk@arm.linux.org.uk
 
 
 The patch titled
-     dir_index: error out instead of BUG on corrupt dx dirs
+     arm: unbalanced parenthesis fix
 has been added to the -mm tree.  Its filename is
-     dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
+     arm-unbalanced-parenthesis-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,154 +26,68 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dir_index: error out instead of BUG on corrupt dx dirs
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: arm: unbalanced parenthesis fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Convert asserts (BUGs) in dx_probe from bad on-disk data to recoverable
-errors with helpful warnings.  With help catching other asserts from Duane
-Griffin <duaneg@dghda.com>
+Fix unbalanced parenthesis.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Acked-by: Duane Griffin <duaneg@dghda.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   34 ++++++++++++++++++++++++++++++----
- fs/ext4/namei.c |   34 ++++++++++++++++++++++++++++++----
- 2 files changed, 60 insertions(+), 8 deletions(-)
+ include/asm-arm/arch-sa1100/SA-1101.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext3/namei.c
---- a/fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
-+++ a/fs/ext3/namei.c
-@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
+diff -puN include/asm-arm/arch-sa1100/SA-1101.h~arm-unbalanced-parenthesis-fix include/asm-arm/arch-sa1100/SA-1101.h
+--- a/include/asm-arm/arch-sa1100/SA-1101.h~arm-unbalanced-parenthesis-fix
++++ a/include/asm-arm/arch-sa1100/SA-1101.h
+@@ -106,7 +106,7 @@
+ #define SMCR_ColAdrBits( x )		  /* col. addr bits 8..11 */ \
+ 	(( (x) - 8 ) << FShft (SMCR_DCAC))
+ #define SMCR_RowAdrBits( x )		  /* row addr bits 9..12 */\
+-	(( (x) - 9 ) << FShft (SMCR_DRAC)
++	(( (x) - 9 ) << FShft (SMCR_DRAC))
  
- 	entries = (struct dx_entry *) (((char *)&root->info) +
- 				       root->info.info_length);
--	assert(dx_get_limit(entries) == dx_root_limit(dir,
--						      root->info.info_length));
-+
-+	if (dx_get_limit(entries) != dx_root_limit(dir,
-+						   root->info.info_length)) {
-+		ext3_warning(dir->i_sb, __FUNCTION__,
-+			     "dx entry: limit != root limit");
-+		brelse(bh);
-+		*err = ERR_BAD_DX_DIR;
-+		goto fail;
-+	}
-+
- 	dxtrace (printk("Look up %x", hash));
- 	while (1)
- 	{
- 		count = dx_get_count(entries);
--		assert (count && count <= dx_get_limit(entries));
-+		if (!count || count > dx_get_limit(entries)) {
-+			ext3_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: no count or count > limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
-+
- 		p = entries + 1;
- 		q = entries + count - 1;
- 		while (p <= q)
-@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
- 		if (!(bh = ext3_bread (NULL,dir, dx_get_block(at), 0, err)))
- 			goto fail2;
- 		at = entries = ((struct dx_node *) bh->b_data)->entries;
--		assert (dx_get_limit(entries) == dx_node_limit (dir));
-+		if (dx_get_limit(entries) != dx_node_limit (dir)) {
-+			ext3_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: limit != node limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
- 		frame++;
-+		frame->bh = NULL;
- 	}
- fail2:
- 	while (frame >= frame_in) {
-@@ -432,6 +454,10 @@ fail2:
- 		frame--;
- 	}
- fail:
-+	if (*err == ERR_BAD_DX_DIR)
-+		ext3_warning(dir->i_sb, __FUNCTION__,
-+			     "Corrupt dir inode %ld, running e2fsck is "
-+			     "recommended.", dir->i_ino);
- 	return NULL;
- }
+ #define SNPR_VFBstart	  Fld(12,0)	/* Video frame buffer addr */
+ #define SNPR_VFBsize	  Fld(11,12)	/* Video frame buffer size */
+@@ -394,7 +394,7 @@
+ #define VgaStatus      (*((volatile Word *) SA1101_p2v (_VgaStatus)))
+ #define VgaInterruptMask (*((volatile Word *) SA1101_p2v (_VgaInterruptMask)))
+ #define VgaPalette     (*((volatile Word *) SA1101_p2v (_VgaPalette)))
+-#define DacControl     (*((volatile Word *) SA1101_p2v (_DacControl))
++#define DacControl     (*((volatile Word *) SA1101_p2v (_DacControl)))
+ #define VgaTest        (*((volatile Word *) SA1101_p2v (_VgaTest)))
  
-diff -puN fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext4/namei.c
---- a/fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
-+++ a/fs/ext4/namei.c
-@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
- 
- 	entries = (struct dx_entry *) (((char *)&root->info) +
- 				       root->info.info_length);
--	assert(dx_get_limit(entries) == dx_root_limit(dir,
--						      root->info.info_length));
-+
-+	if (dx_get_limit(entries) != dx_root_limit(dir,
-+						   root->info.info_length)) {
-+		ext4_warning(dir->i_sb, __FUNCTION__,
-+			     "dx entry: limit != root limit");
-+		brelse(bh);
-+		*err = ERR_BAD_DX_DIR;
-+		goto fail;
-+	}
-+
- 	dxtrace (printk("Look up %x", hash));
- 	while (1)
- 	{
- 		count = dx_get_count(entries);
--		assert (count && count <= dx_get_limit(entries));
-+		if (!count || count > dx_get_limit(entries)) {
-+			ext4_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: no count or count > limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
-+
- 		p = entries + 1;
- 		q = entries + count - 1;
- 		while (p <= q)
-@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
- 		if (!(bh = ext4_bread (NULL,dir, dx_get_block(at), 0, err)))
- 			goto fail2;
- 		at = entries = ((struct dx_node *) bh->b_data)->entries;
--		assert (dx_get_limit(entries) == dx_node_limit (dir));
-+		if (dx_get_limit(entries) != dx_node_limit (dir)) {
-+			ext4_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: limit != node limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
- 		frame++;
-+		frame->bh = NULL;
- 	}
- fail2:
- 	while (frame >= frame_in) {
-@@ -432,6 +454,10 @@ fail2:
- 		frame--;
- 	}
- fail:
-+	if (*err == ERR_BAD_DX_DIR)
-+		ext4_warning(dir->i_sb, __FUNCTION__,
-+			     "Corrupt dir inode %ld, running e2fsck is "
-+			     "recommended.", dir->i_ino);
- 	return NULL;
- }
- 
+ #define VideoControl_VgaEn    0x00000000
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
-limit-minixfs-printks-on-corrupted-dir-i_size.patch
-dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
+git-alsa.patch
+arm-unbalanced-parenthesis-fix.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
+git-dvb.patch
+git-mmc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+git-scsi-misc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+git-v9fs.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
