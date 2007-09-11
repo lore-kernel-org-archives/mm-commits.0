@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-build-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2007 16:31:50 -0700
-Message-ID: <200709112337.l8BNbODk002984@imap1.linux-foundation.org>
+Subject: + git-backlight-dependency-fix.patch added to -mm tree
+Date: Tue, 11 Sep 2007 16:54:31 -0700
+Message-ID: <200709120000.l8C0055U003842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753388AbXIKXhe (ORCPT
+	by vger.kernel.org with ESMTP id S932880AbXILAAR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 19:37:34 -0400
+	Tue, 11 Sep 2007 20:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
 
 
 The patch titled
-     git-dvb build fix
+     git-backlight dependency fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-build-fix.patch
+     git-backlight-dependency-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb build fix
+Subject: git-backlight dependency fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/cx88/cx88-alsa.c:88: error: static declaration of 'snd_ctl_boolean_mono_info' follows non-static declaration
-include/sound/control.h:168: error: previous declaration of 'snd_ctl_boolean_mono_info' was here
+drivers/video/backlight/corgi_bl.c:21:30: error: asm/arch/sharpsl.h: No such file or directory
+drivers/video/backlight/corgi_bl.c:22:37: error: asm/hardware/sharpsl_pm.h: No such file or directory
+drivers/video/backlight/corgi_bl.c: In function 'corgibl_send_intensity':
+drivers/video/backlight/corgi_bl.c:51: error: 'sharpsl_battery_kick' undeclared (first use in this function)
+drivers/video/backlight/corgi_bl.c:51: error: (Each undeclared identifier is reported only once
+drivers/video/backlight/corgi_bl.c:51: error: for each function it appears in.)
+drivers/video/backlight/corgi_bl.c:51: warning: type defaults to 'int' in declaration of 'type name'
+drivers/video/backlight/corgi_bl.c:51: warning: assignment makes pointer from integer without a cast
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-alsa.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix drivers/media/video/cx88/cx88-alsa.c
---- a/drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix
-+++ a/drivers/media/video/cx88/cx88-alsa.c
-@@ -83,7 +83,7 @@ typedef struct cx88_audio_dev snd_cx88_c
- 
- 
- 
--static int snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
-+static int cx88_snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
- 			      struct snd_ctl_elem_info *uinfo)
- {
- 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
-@@ -658,7 +658,7 @@ static int snd_cx88_switch_put(struct sn
- static struct snd_kcontrol_new snd_cx88_dac_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 	.name = "Playback Switch",
--	.info = snd_ctl_boolean_mono_info,
-+	.info = cx88_snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
- 	.private_value = (1<<8),
-@@ -667,7 +667,7 @@ static struct snd_kcontrol_new snd_cx88_
- static struct snd_kcontrol_new snd_cx88_source_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 	.name = "Capture Switch",
--	.info = snd_ctl_boolean_mono_info,
-+	.info = cx88_snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
- 	.private_value = (1<<6),
+diff -puN drivers/video/backlight/Kconfig~git-backlight-dependency-fix drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~git-backlight-dependency-fix
++++ a/drivers/video/backlight/Kconfig
+@@ -53,6 +53,7 @@ config BACKLIGHT_CLASS_DEVICE
+ config BACKLIGHT_CORGI
+ 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
+ 	depends on BACKLIGHT_CLASS_DEVICE
++	depends on ARM
+ 	default n
+ 	help
+ 	  Say y to enable the generic platform backlight driver previously
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -229,3 +216,4 @@ profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
 git-dvb-build-fix.patch
+git-backlight-dependency-fix.patch
