@@ -1,194 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-lock-problem-in-generic-phy-code.patch added to -mm tree
-Date: Mon, 10 Sep 2007 21:48:28 -0700
-Message-ID: <200709110448.l8B4mVOi025962@imap1.linux-foundation.org>
+Subject: + dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch added to -mm tree
+Date: Mon, 10 Sep 2007 21:50:40 -0700
+Message-ID: <200709110450.l8B4oejo026034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51244 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbXIKEtW (ORCPT
+	by vger.kernel.org with ESMTP id S1753882AbXIKEvS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 00:49:22 -0400
+	Tue, 11 Sep 2007 00:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hjk@linutronix.de, jeff@garzik.org
+Cc: sandeen@redhat.com, akpm@linux-foundation.org, duaneg@dghda.com, tytso@mit.edu
 
 
 The patch titled
-     Fix a lock problem in generic phy code
+     dir_index: error out instead of BUG on corrupt dx dirs
 has been added to the -mm tree.  Its filename is
-     fix-a-lock-problem-in-generic-phy-code.patch
+     dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix a lock problem in generic phy code
-=46rom: Hans J. Koch <hjk@linutronix.de>
+Subject: dir_index: error out instead of BUG on corrupt dx dirs
+From: Eric Sandeen <sandeen@redhat.com>
 
-I already sent this patch on August, 31. I never got an answer, so here=
- it
-is again.
+Convert asserts (BUGs) in dx_probe from bad on-disk data to recoverable
+errors with helpful warnings.  With help catching other asserts from Duane
+Griffin <duaneg@dghda.com>
 
-Lock debugging finds a problem in phy.c and phy_device.c:
-
-[ =A0 =A03.420000] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[ =A0 =A03.420000] [ INFO: inconsistent lock state ]
-[ =A0 =A03.420000] 2.6.23-rc3-mm1 #21
-[ =A0 =A03.420000] ---------------------------------
-[ =A0 =A03.420000] inconsistent {softirq-on-W} -> {in-softirq-W} usage.
-[ =A0 =A03.420000] swapper/1 [HC0[0]:SC1[1]:HE1:SE0] takes:
-[ =A0 =A03.420000] =A0(&dev->lock){-+..}, at: [<c017da1c>] phy_timer+0x=
-1c/0x4c8
-[ =A0 =A03.420000] {softirq-on-W} state was registered at:
-[ =A0 =A03.420000] =A0 [<c006021c>] lock_acquire+0x94/0xac
-[ =A0 =A03.420000] =A0 [<c026423c>] _spin_lock+0x40/0x50
-[ =A0 =A03.420000] =A0 [<c017e2b4>] phy_probe+0x40/0x88
-[ =A0 =A03.420000] =A0 [<c017e60c>] phy_attach+0xc8/0xfc
-[ =A0 =A03.420000] =A0 [<c017e6c4>] phy_connect+0x1c/0x58
-[ =A0 =A03.420000] =A0 [<c017fc44>] macb_probe+0x4fc/0x5bc
-[ =A0 =A03.420000] =A0 [<c0177b44>] platform_drv_probe+0x20/0x24
-[ =A0 =A03.420000] =A0 [<c0176210>] driver_probe_device+0xb0/0x1bc
-[ =A0 =A03.420000] =A0 [<c01764dc>] __driver_attach+0xe4/0xe8
-[ =A0 =A03.420000] =A0 [<c017550c>] bus_for_each_dev+0x54/0x80
-[ =A0 =A03.420000] =A0 [<c0176074>] driver_attach+0x20/0x28
-[ =A0 =A03.420000] =A0 [<c01758d4>] bus_add_driver+0x84/0x1e0
-[ =A0 =A03.420000] =A0 [<c0176708>] driver_register+0x54/0x90
-[ =A0 =A03.420000] =A0 [<c0177de0>] platform_driver_register+0x6c/0x88
-[ =A0 =A03.420000] =A0 [<c00167ec>] macb_init+0x14/0x1c
-[ =A0 =A03.420000] =A0 [<c00087e4>] kernel_init+0x9c/0x2b4
-[ =A0 =A03.420000] =A0 [<c0040338>] do_exit+0x0/0x8e8
-[ =A0 =A03.420000] irq event stamp: 115025
-[ =A0 =A03.420000] hardirqs last =A0enabled at (115025): [<c0264958>] _=
-spin_unlock_irq+0x30/0x60
-[ =A0 =A03.420000] hardirqs last disabled at (115024): [<c02642c8>] _sp=
-in_lock_irq+0x28/0x60
-[ =A0 =A03.420000] softirqs last =A0enabled at (114999): [<c0042910>] _=
-_do_softirq+0xfc/0x12c
-[ =A0 =A03.420000] softirqs last disabled at (115022): [<c0042ee8>] irq=
-_exit+0x68/0x7c
-[ =A0 =A03.420000]
-[ =A0 =A03.420000] other info that might help us debug this:
-[ =A0 =A03.420000] no locks held by swapper/1.
-[ =A0 =A03.420000]
-[ =A0 =A03.420000] stack backtrace:
-[ =A0 =A03.420000] [<c0028af4>] (dump_stack+0x0/0x14) from [<c005d8e4>]=
- (print_usage_bug+0x120/0x150)
-[ =A0 =A03.420000] [<c005d7c4>] (print_usage_bug+0x0/0x150) from [<c005=
-e5e8>] (mark_lock+0x574/0x6bc)
-[ =A0 =A03.420000] [<c005e074>] (mark_lock+0x0/0x6bc) from [<c005f4c0>]=
- (__lock_acquire+0x4d0/0x1198)
-[ =A0 =A03.420000] [<c005eff0>] (__lock_acquire+0x0/0x1198) from [<c006=
-021c>] (lock_acquire+0x94/0xac)
-[ =A0 =A03.420000] [<c0060188>] (lock_acquire+0x0/0xac) from [<c026423c=
->] (_spin_lock+0x40/0x50)
-[ =A0 =A03.420000] [<c02641fc>] (_spin_lock+0x0/0x50) from [<c017da1c>]=
- (phy_timer+0x1c/0x4c8)
-[ =A0 =A03.420000] =A0r5:c098a800 r4:00000104
-[ =A0 =A03.420000] [<c017da00>] (phy_timer+0x0/0x4c8) from [<c0046ee4>]=
- (run_timer_softirq+0x1a0/0x218)
-[ =A0 =A03.420000] =A0r7:c081ddd0 r6:c0331e80 r5:c098aa50 r4:00000104
-[ =A0 =A03.420000] [<c0046d44>] (run_timer_softirq+0x0/0x218) from [<c0=
-0428a8>] (__do_softirq+0x94/0x12c)
-[ =A0 =A03.420000] [<c0042814>] (__do_softirq+0x0/0x12c) from [<c0042ee=
-8>] (irq_exit+0x68/0x7c)
-[ =A0 =A03.420000] [<c0042e80>] (irq_exit+0x0/0x7c) from [<c0023060>] (=
-__exception_text_start+0x60/0x74)
-[ =A0 =A03.420000] =A0r4:00000001
-[ =A0 =A03.420000] [<c0023000>] (__exception_text_start+0x0/0x74) from =
-[<c0023b28>] (__irq_svc+0x48/0x74)
-[ =A0 =A03.420000] Exception stack(0xc081de70 to 0xc081deb8)
-[ =A0 =A03.420000] de60: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 c030b2a8 c081a800 60000013 c081c000
-[ =A0 =A03.420000] de80: c032db40 c081dee0 c032d758 c081dece 00000012 c=
-030b398 00000034 c081df2c
-[ =A0 =A03.420000] dea0: c081deb8 c081deb8 c003d6f0 c003d6f8 60000013 f=
-fffffff
-[ =A0 =A03.420000] =A0r7:00000003 r6:00000001 r5:fefff000 r4:ffffffff
-[ =A0 =A03.420000] [<c003d494>] (vprintk+0x0/0x474) from [<c003d930>] (=
-printk+0x28/0x30)
-[ =A0 =A03.420000] [<c003d908>] (printk+0x0/0x30) from [<c01d3558>] (so=
-ck_register+0x64/0x84)
-[ =A0 =A03.420000] =A0r3:00000001 r2:00000002 r1:00000001 r0:c02e4c88
-[ =A0 =A03.420000] [<c01d34f4>] (sock_register+0x0/0x84) from [<c001b7b=
-c>] (af_unix_init+0x40/0x88)
-[ =A0 =A03.420000] =A0r5:00000000 r4:00000000
-[ =A0 =A03.420000] [<c001b77c>] (af_unix_init+0x0/0x88) from [<c00087e4=
->] (kernel_init+0x9c/0x2b4)
-[ =A0 =A03.420000] =A0r4:00000000
-[ =A0 =A03.420000] [<c0008748>] (kernel_init+0x0/0x2b4) from [<c0040338=
->] (do_exit+0x0/0x8e8)
-
-The following patch fixes it. Tested on an AT91SAM9263-EK board, kernel=
- 2.6.23-rc4 and -rc3-mm1.
-
-Signed-off-by: Hans J. Koch <hjk@linutronix.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Duane Griffin <duaneg@dghda.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/phy.c        |    4 ++--
- drivers/net/phy/phy_device.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ext3/namei.c |   34 ++++++++++++++++++++++++++++++----
+ fs/ext4/namei.c |   34 ++++++++++++++++++++++++++++++----
+ 2 files changed, 60 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code =
-drivers/net/phy/phy.c
---- a/drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code
-+++ a/drivers/net/phy/phy.c
-@@ -755,7 +755,7 @@ out_unlock:
-  */
- void phy_start(struct phy_device *phydev)
- {
--	spin_lock(&phydev->lock);
-+	spin_lock_bh(&phydev->lock);
-=20
- 	switch (phydev->state) {
- 		case PHY_STARTING:
-@@ -769,7 +769,7 @@ void phy_start(struct phy_device *phydev
- 		default:
- 			break;
+diff -puN fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext3/namei.c
+--- a/fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
++++ a/fs/ext3/namei.c
+@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
+ 
+ 	entries = (struct dx_entry *) (((char *)&root->info) +
+ 				       root->info.info_length);
+-	assert(dx_get_limit(entries) == dx_root_limit(dir,
+-						      root->info.info_length));
++
++	if (dx_get_limit(entries) != dx_root_limit(dir,
++						   root->info.info_length)) {
++		ext3_warning(dir->i_sb, __FUNCTION__,
++			     "dx entry: limit != root limit");
++		brelse(bh);
++		*err = ERR_BAD_DX_DIR;
++		goto fail;
++	}
++
+ 	dxtrace (printk("Look up %x", hash));
+ 	while (1)
+ 	{
+ 		count = dx_get_count(entries);
+-		assert (count && count <= dx_get_limit(entries));
++		if (!count || count > dx_get_limit(entries)) {
++			ext3_warning(dir->i_sb, __FUNCTION__,
++				     "dx entry: no count or count > limit");
++			brelse(bh);
++			*err = ERR_BAD_DX_DIR;
++			goto fail2;
++		}
++
+ 		p = entries + 1;
+ 		q = entries + count - 1;
+ 		while (p <= q)
+@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
+ 		if (!(bh = ext3_bread (NULL,dir, dx_get_block(at), 0, err)))
+ 			goto fail2;
+ 		at = entries = ((struct dx_node *) bh->b_data)->entries;
+-		assert (dx_get_limit(entries) == dx_node_limit (dir));
++		if (dx_get_limit(entries) != dx_node_limit (dir)) {
++			ext3_warning(dir->i_sb, __FUNCTION__,
++				     "dx entry: limit != node limit");
++			brelse(bh);
++			*err = ERR_BAD_DX_DIR;
++			goto fail2;
++		}
+ 		frame++;
++		frame->bh = NULL;
  	}
--	spin_unlock(&phydev->lock);
-+	spin_unlock_bh(&phydev->lock);
+ fail2:
+ 	while (frame >= frame_in) {
+@@ -432,6 +454,10 @@ fail2:
+ 		frame--;
+ 	}
+ fail:
++	if (*err == ERR_BAD_DX_DIR)
++		ext3_warning(dir->i_sb, __FUNCTION__,
++			     "Corrupt dir inode %ld, running e2fsck is "
++			     "recommended.", dir->i_ino);
+ 	return NULL;
  }
- EXPORT_SYMBOL(phy_stop);
- EXPORT_SYMBOL(phy_start);
-diff -puN drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-ph=
-y-code drivers/net/phy/phy_device.c
---- a/drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-phy-co=
-de
-+++ a/drivers/net/phy/phy_device.c
-@@ -644,7 +644,7 @@ static int phy_probe(struct device *dev)
- 	if (!(phydrv->flags & PHY_HAS_INTERRUPT))
- 		phydev->irq =3D PHY_POLL;
-=20
--	spin_lock(&phydev->lock);
-+	spin_lock_bh(&phydev->lock);
-=20
- 	/* Start out supporting everything. Eventually,
- 	 * a controller will attach, and may modify one
-@@ -658,7 +658,7 @@ static int phy_probe(struct device *dev)
- 	if (phydev->drv->probe)
- 		err =3D phydev->drv->probe(phydev);
-=20
--	spin_unlock(&phydev->lock);
-+	spin_unlock_bh(&phydev->lock);
-=20
- 	return err;
-=20
+ 
+diff -puN fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext4/namei.c
+--- a/fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
++++ a/fs/ext4/namei.c
+@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
+ 
+ 	entries = (struct dx_entry *) (((char *)&root->info) +
+ 				       root->info.info_length);
+-	assert(dx_get_limit(entries) == dx_root_limit(dir,
+-						      root->info.info_length));
++
++	if (dx_get_limit(entries) != dx_root_limit(dir,
++						   root->info.info_length)) {
++		ext4_warning(dir->i_sb, __FUNCTION__,
++			     "dx entry: limit != root limit");
++		brelse(bh);
++		*err = ERR_BAD_DX_DIR;
++		goto fail;
++	}
++
+ 	dxtrace (printk("Look up %x", hash));
+ 	while (1)
+ 	{
+ 		count = dx_get_count(entries);
+-		assert (count && count <= dx_get_limit(entries));
++		if (!count || count > dx_get_limit(entries)) {
++			ext4_warning(dir->i_sb, __FUNCTION__,
++				     "dx entry: no count or count > limit");
++			brelse(bh);
++			*err = ERR_BAD_DX_DIR;
++			goto fail2;
++		}
++
+ 		p = entries + 1;
+ 		q = entries + count - 1;
+ 		while (p <= q)
+@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
+ 		if (!(bh = ext4_bread (NULL,dir, dx_get_block(at), 0, err)))
+ 			goto fail2;
+ 		at = entries = ((struct dx_node *) bh->b_data)->entries;
+-		assert (dx_get_limit(entries) == dx_node_limit (dir));
++		if (dx_get_limit(entries) != dx_node_limit (dir)) {
++			ext4_warning(dir->i_sb, __FUNCTION__,
++				     "dx entry: limit != node limit");
++			brelse(bh);
++			*err = ERR_BAD_DX_DIR;
++			goto fail2;
++		}
+ 		frame++;
++		frame->bh = NULL;
+ 	}
+ fail2:
+ 	while (frame >= frame_in) {
+@@ -432,6 +454,10 @@ fail2:
+ 		frame--;
+ 	}
+ fail:
++	if (*err == ERR_BAD_DX_DIR)
++		ext4_warning(dir->i_sb, __FUNCTION__,
++			     "Corrupt dir inode %ld, running e2fsck is "
++			     "recommended.", dir->i_ino);
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from hjk@linutronix.de are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-git-hwmon.patch
-fix-a-lock-problem-in-generic-phy-code.patch
-pxafb-add-support-for-other-palette-formats.patch
+remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
+limit-minixfs-printks-on-corrupted-dir-i_size.patch
+dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
