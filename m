@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:16:39 -0700
-Message-ID: <200709110516.l8B5GdqT026905@imap1.linux-foundation.org>
+Subject: + sky2-restore-multicast-list-on-resume-and-other-ops.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:17:36 -0700
+Message-ID: <200709110517.l8B5HaEd026988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40355 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757590AbXIKFRn (ORCPT
+	by vger.kernel.org with ESMTP id S1757595AbXIKFR5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:17:43 -0400
+	Tue, 11 Sep 2007 01:17:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, ak@suse.de, jan.kratochvil@redhat.com, oleg@tv-sign.ru
+Cc: shemminger@linux-foundation.org, jeff@garzik.org, timo@tiwe.de
 
 
 The patch titled
-     Fix spurious syscall tracing after PTRACE_DETACH + PTRACE_ATTACH
+     sky2: restore multicast list on resume and other ops
 has been added to the -mm tree.  Its filename is
-     fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach.patch
+     sky2-restore-multicast-list-on-resume-and-other-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix spurious syscall tracing after PTRACE_DETACH + PTRACE_ATTACH
-From: Roland McGrath <roland@redhat.com>
+Subject: sky2: restore multicast list on resume and other ops
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-There is a test case in https://bugzilla.redhat.com/show_bug.cgi?id=276861
-to demonstrate this bug.
+Need to restore multicast settings on resume and after 'ethtool -r'.
 
-When PTRACE_SYSCALL was used and then PTRACE_DETACH is used, the
-TIF_SYSCALL_TRACE flag is left set on the formerly-traced task.  This means
-that when a new tracer comes along and does PTRACE_ATTACH, it's possible he
-gets a syscall tracing stop even though he's never used PTRACE_SYSCALL. 
-This happens if the task was in the middle of a system call when the second
-PTRACE_ATTACH was done.  The symptom is an unexpected SIGTRAP when the
-tracer thinks that only SIGSTOP should have been provoked by his ptrace
-calls so far.
-
-A few machines already fixed this in ptrace_disable (i386, ia64, m68k). 
-But all other machines do not, and still have this bug.  On x86_64, this
-constitutes a regression in IA32 compatibility support.
-
-Since all machines now use TIF_SYSCALL_TRACE for this, I put the clearing
-of TIF_SYSCALL_TRACE in the generic ptrace_detach code rather than adding
-it to every other machine's ptrace_disable.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: <jan.kratochvil@redhat.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Timo Weingrtner <timo@tiwe.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/ptrace.c |    1 -
- arch/ia64/kernel/ptrace.c |    1 -
- arch/m68k/kernel/ptrace.c |    1 -
- kernel/ptrace.c           |    1 +
- 4 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/sky2.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach arch/i386/kernel/ptrace.c
---- a/arch/i386/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach
-+++ a/arch/i386/kernel/ptrace.c
-@@ -274,7 +274,6 @@ static void clear_singlestep(struct task
- void ptrace_disable(struct task_struct *child)
- { 
- 	clear_singlestep(child);
--	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- 	clear_tsk_thread_flag(child, TIF_SYSCALL_EMU);
- }
+diff -puN drivers/net/sky2.c~sky2-restore-multicast-list-on-resume-and-other-ops drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-restore-multicast-list-on-resume-and-other-ops
++++ a/drivers/net/sky2.c
+@@ -154,6 +154,8 @@ static const char *yukon2_name[] = {
+ 	"FE+",		/* 0xb8 */
+ };
  
-diff -puN arch/ia64/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach arch/ia64/kernel/ptrace.c
---- a/arch/ia64/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach
-+++ a/arch/ia64/kernel/ptrace.c
-@@ -1577,7 +1577,6 @@ sys_ptrace (long request, pid_t pid, uns
- 
- 	      case PTRACE_DETACH:
- 		/* detach a process that was attached. */
--		clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- 		ret = ptrace_detach(child, data);
- 		goto out_tsk;
- 
-diff -puN arch/m68k/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach arch/m68k/kernel/ptrace.c
---- a/arch/m68k/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach
-+++ a/arch/m68k/kernel/ptrace.c
-@@ -116,7 +116,6 @@ static inline void singlestep_disable(st
- void ptrace_disable(struct task_struct *child)
++static void sky2_set_multicast(struct net_device *dev);
++
+ /* Access to external PHY */
+ static int gm_phy_write(struct sky2_hw *hw, unsigned port, u16 reg, u16 val)
  {
- 	singlestep_disable(child);
--	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+@@ -2943,8 +2945,10 @@ static int sky2_set_settings(struct net_
+ 	sky2->autoneg = ecmd->autoneg;
+ 	sky2->advertising = ecmd->advertising;
+ 
+-	if (netif_running(dev))
++	if (netif_running(dev)) {
+ 		sky2_phy_reinit(sky2);
++		sky2_set_multicast(dev);
++	}
+ 
+ 	return 0;
  }
+@@ -3037,6 +3041,7 @@ static int sky2_nway_reset(struct net_de
+ 		return -EINVAL;
  
- long arch_ptrace(struct task_struct *child, long request, long addr, long data)
-diff -puN kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach kernel/ptrace.c
---- a/kernel/ptrace.c~fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach
-+++ a/kernel/ptrace.c
-@@ -233,6 +233,7 @@ int ptrace_detach(struct task_struct *ch
+ 	sky2_phy_reinit(sky2);
++	sky2_set_multicast(dev);
  
- 	/* Architecture-specific hardware disable .. */
- 	ptrace_disable(child);
-+	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ 	return 0;
+ }
+@@ -4207,6 +4212,8 @@ static int sky2_resume(struct pci_dev *p
+ 				dev_close(dev);
+ 				goto out;
+ 			}
++
++			sky2_set_multicast(dev);
+ 		}
+ 	}
  
- 	write_lock_irq(&tasklist_lock);
- 	/* protect against de_thread()->release_task() */
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-powerpc-vdso-install-unstripped-copies-on-disk-update.patch
-pass-g-to-assembler-under-config_debug_info.patch
-pass-g-to-assembler-under-config_debug_info-fix.patch
-fix-spurious-syscall-tracing-after-ptrace_detach-ptrace_attach.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
-add-mmf_dump_elf_headers.patch
-pie-executable-randomization.patch
-pie-executable-randomization-fix.patch
-pie-executable-randomization-fix-2.patch
-pie-executable-randomization-fix-3.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-fix-tsk-exit_state-usage-resend.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+git-netdev-all.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+ktime_sub_ns-analog-of-ktime_add_ns.patch
+export-reciprocal_value-for-modules.patch
+sky2-avoid-divide-in-receive-path.patch
+sky2-118.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+sky2-restore-multicast-list-on-resume-and-other-ops.patch
+git-net.patch
+i386-optimize-memset-of-6-and-8-bytes.patch
