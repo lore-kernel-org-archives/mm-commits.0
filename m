@@ -1,69 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-get-mp_bus_to_node-as-early-v3-update.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 14:23:04 -0700
-Message-ID: <200709112123.l8BLN5ph030127@imap1.linux-foundation.org>
+Subject: - slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 14:32:27 -0700
+Message-ID: <200709112132.l8BLWRmM030512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42626 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760390AbXIKVYX (ORCPT
+	by vger.kernel.org with ESMTP id S1765341AbXIKVcu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 17:24:23 -0400
+	Tue, 11 Sep 2007 17:32:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cebbert@redhat.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-get-mp_bus_to_node-as-early-v3 update
+     slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+     slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch
 
-This patch was dropped because it was folded into x86_64-get-mp_bus_to_node-as-early-v3.patch
+This patch was dropped because it was folded into slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
 
 ------------------------------------------------------
-Subject: x86_64-get-mp_bus_to_node-as-early-v3 update
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It seem the one in -mm missed changes to irq.c
+- coding-style tweak.  (could be neater using strstr() in there?)
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+- add missing `inline' (for consistency - gcc would have done trt there
+  anyway)
+
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Chuck Ebbert <cebbert@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/irq.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ mm/slub.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update arch/i386/pci/irq.c
---- a/arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update
-+++ a/arch/i386/pci/irq.c
-@@ -136,9 +136,11 @@ static void __init pirq_peer_trick(void)
- 		busmap[e->bus] = 1;
- 	}
- 	for(i = 1; i < 256; i++) {
-+		int node;
- 		if (!busmap[i] || pci_find_bus(0, i))
- 			continue;
--		if (pci_scan_bus_with_sysdata(i))
-+		node = get_mp_bus_to_node(i);
-+		if (pci_scan_bus_on_node(i, &pci_root_ops, node))
- 			printk(KERN_INFO "PCI: Discovered primary peer "
- 			       "bus %02x [IRQ]\n", i);
- 	}
+diff -puN mm/slub.c~slub-accurately-compare-debug-flags-during-slab-cache-merge-fix mm/slub.c
+--- a/mm/slub.c~slub-accurately-compare-debug-flags-during-slab-cache-merge-fix
++++ a/mm/slub.c
+@@ -1006,7 +1006,7 @@ static unsigned long kmem_cache_flags(un
+ 		BUG_ON(flags & (SLAB_RED_ZONE | SLAB_POISON |
+ 				SLAB_STORE_USER | SLAB_DESTROY_BY_RCU));
+ 		BUG_ON(ctor);
+-	} else
++	} else {
+ 		/*
+ 		 * Enable debugging if selected on the kernel commandline.
+ 		 */
+@@ -1014,6 +1014,7 @@ static unsigned long kmem_cache_flags(un
+ 		    strncmp(slub_debug_slabs, name,
+ 		    	strlen(slub_debug_slabs)) == 0))
+ 				flags |= slub_debug;
++	}
+ 
+ 	return flags;
+ }
+@@ -1032,7 +1033,7 @@ static inline int slab_pad_check(struct 
+ static inline int check_object(struct kmem_cache *s, struct page *page,
+ 			void *object, int active) { return 1; }
+ static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
+-static unsigned long kmem_cache_flags(unsigned long objsize,
++static inline unsigned long kmem_cache_flags(unsigned long objsize,
+ 	unsigned long flags, const char *name,
+ 	void (*ctor)(void *, struct kmem_cache *, unsigned long))
+ {
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-serial-keep-the-dtr-setting-for-serial-console.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
+bug-in-at91-mci-suspend-routines.patch
+leases-can-be-hidden-by-flocks.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-intel_cacheinfo-adjustments.patch
 x86_64-get-mp_bus_to_node-as-early-v3.patch
-x86_64-get-mp_bus_to_node-as-early-v3-update.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-make-io-apic-not-connected-pin-print-complete.patch
-x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
+intel_cacheinfo-misc-section-annotation-fixes-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+hpet-force-enable-on-vt8235-37-chipsets-fix.patch
+x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
+git-xfs.patch
+git-xtensa.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+revert-highmem-catch-illegal-nesting.patch
+slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
+slub-accurately-compare-debug-flags-during-slab-cache-merge-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
