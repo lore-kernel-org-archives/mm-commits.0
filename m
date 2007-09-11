@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + voyager-include-asm-smph-to-fix-compile-error.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:35:28 -0700
-Message-ID: <200709110535.l8B5ZScx027559@imap1.linux-foundation.org>
+Subject: + fix-bios-e820-end-address.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:36:42 -0700
+Message-ID: <200709110536.l8B5agrS027569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283AbXIKFfj (ORCPT
+	by vger.kernel.org with ESMTP id S1753283AbXIKFgt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:35:39 -0400
+	Tue, 11 Sep 2007 01:36:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tklauser@distanz.ch, James.Bottomley@steeleye.com, ak@suse.de
+Cc: anil.s.keshavamurthy@intel.com, ak@suse.de, suresh.b.siddha@intel.com
 
 
 The patch titled
-     voyager: #include <asm/smp.h> to fix compile error
+     Fix BIOS-e820 end address
 has been added to the -mm tree.  Its filename is
-     voyager-include-asm-smph-to-fix-compile-error.patch
+     fix-bios-e820-end-address.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: voyager: #include <asm/smp.h> to fix compile error
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: Fix BIOS-e820 end address
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Include smp.h to fix the following error when compiling with
-CONFIG_X86_VOYAGER=y and CONFIG_SMP not set (found using 'make
-randconfig').
+--snip of boot message--
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000007fe8cc00 (usable)
+----end snip---
 
-arch/i386/mach-voyager/setup.c: In function 'time_init_hook':
-arch/i386/mach-voyager/setup.c:52: error: implicit declaration of function 'safe_smp_processor_id'
+As you see from above the address 0000000000100000 is both
+shown as reserved and usable which is confusing.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+This patch fixes the BIOS-e820 end address.
+
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-voyager/setup.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/e820.c   |    2 +-
+ arch/x86_64/kernel/e820.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error arch/i386/mach-voyager/setup.c
---- a/arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error
-+++ a/arch/i386/mach-voyager/setup.c
-@@ -9,6 +9,7 @@
- #include <asm/e820.h>
- #include <asm/io.h>
- #include <asm/setup.h>
-+#include <asm/smp.h>
- 
- void __init pre_intr_init_hook(void)
- {
+diff -puN arch/i386/kernel/e820.c~fix-bios-e820-end-address arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~fix-bios-e820-end-address
++++ a/arch/i386/kernel/e820.c
+@@ -753,7 +753,7 @@ void __init print_memory_map(char *who)
+ 	for (i = 0; i < e820.nr_map; i++) {
+ 		printk(" %s: %016Lx - %016Lx ", who,
+ 			e820.map[i].addr,
+-			e820.map[i].addr + e820.map[i].size);
++			e820.map[i].addr + e820.map[i].size - 1);
+ 		switch (e820.map[i].type) {
+ 		case E820_RAM:	printk("(usable)\n");
+ 				break;
+diff -puN arch/x86_64/kernel/e820.c~fix-bios-e820-end-address arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~fix-bios-e820-end-address
++++ a/arch/x86_64/kernel/e820.c
+@@ -368,7 +368,7 @@ void __init e820_print_map(char *who)
+ 	for (i = 0; i < e820.nr_map; i++) {
+ 		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
+ 			(unsigned long long) e820.map[i].addr,
+-			(unsigned long long) (e820.map[i].addr + e820.map[i].size));
++			(unsigned long long) (e820.map[i].addr + e820.map[i].size - 1));
+ 		switch (e820.map[i].type) {
+ 		case E820_RAM:	printk("(usable)\n");
+ 				break;
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
-voyager-include-asm-smph-to-fix-compile-error.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+fix-bios-e820-end-address.patch
+kprobes-support-kretprobe-blacklist.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
+intel-iommu-optimize-sg-map-unmap-calls.patch
