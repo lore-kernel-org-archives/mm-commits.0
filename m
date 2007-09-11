@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ps3-ignore-storage-devices-that-are-still-being.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:29:15 -0700
-Message-ID: <200709110529.l8B5TFSk027357@imap1.linux-foundation.org>
+Subject: + net-myri10ge-force-select-inet_lro.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:33:37 -0700
+Message-ID: <200709110533.l8B5Xb9h027496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51107 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751461AbXIKF3b (ORCPT
+	by vger.kernel.org with ESMTP id S1753283AbXIKFd5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:29:31 -0400
+	Tue, 11 Sep 2007 01:33:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, benh@kernel.crashing.org, geoffrey.levand@am.sony.com, paulus@samba.org
+Cc: dwalker@mvista.com, brice@myri.com, davem@davemloft.net
 
 
 The patch titled
-     PS3: ignore storage devices that are still being probed
+     net: myri10ge: force select inet_lro
 has been added to the -mm tree.  Its filename is
-     ps3-ignore-storage-devices-that-are-still-being.patch
+     net-myri10ge-force-select-inet_lro.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,87 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PS3: ignore storage devices that are still being probed
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: net: myri10ge: force select inet_lro
+From: Daniel Walker <dwalker@mvista.com>
 
-A storage device may show up in the repository before the hypervisor has
-finished probing:
+This driver uses the inet_lro facilities , but it doesn't force it to be
+enabled ..  Someone would have to know to enable inet_lro if they select
+the driver ..
 
-  - If its type is not yet known, it shows up as PS3_DEV_TYPE_STOR_DUMMY,
-  - If its regions are being probed, it shows up as having zero regions.
+Instead, just force INET_LRO if this driver is selected..
 
-If any of these happen, consider the device not yet present.  The storage
-probe thread will retry later.
-
-This fixes the timing-dependent problem where a kernel booted from FLASH ROM
-sometimes cannot find the hard disk.
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Acked-by: Geoff Levand <geoffrey.levand@am.sony.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Brice Goglin <brice@myri.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/ps3/platform.h   |    1 
- arch/powerpc/platforms/ps3/repository.c |   29 ++++++++++++++++++++++
- 2 files changed, 30 insertions(+)
+ drivers/net/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/ps3/platform.h~ps3-ignore-storage-devices-that-are-still-being arch/powerpc/platforms/ps3/platform.h
---- a/arch/powerpc/platforms/ps3/platform.h~ps3-ignore-storage-devices-that-are-still-being
-+++ a/arch/powerpc/platforms/ps3/platform.h
-@@ -83,6 +83,7 @@ enum ps3_dev_type {
- 	PS3_DEV_TYPE_STOR_ROM = TYPE_ROM,	/* 5 */
- 	PS3_DEV_TYPE_SB_GPIO = 6,
- 	PS3_DEV_TYPE_STOR_FLASH = TYPE_RBC,	/* 14 */
-+	PS3_DEV_TYPE_STOR_DUMMY = 32,
- 	PS3_DEV_TYPE_NOACCESS = 255,
- };
- 
-diff -puN arch/powerpc/platforms/ps3/repository.c~ps3-ignore-storage-devices-that-are-still-being arch/powerpc/platforms/ps3/repository.c
---- a/arch/powerpc/platforms/ps3/repository.c~ps3-ignore-storage-devices-that-are-still-being
-+++ a/arch/powerpc/platforms/ps3/repository.c
-@@ -349,6 +349,35 @@ int ps3_repository_find_device(struct ps
- 		return result;
- 	}
- 
-+	if (tmp.bus_type == PS3_BUS_TYPE_STORAGE) {
-+		/*
-+		 * A storage device may show up in the repository before the
-+		 * hypervisor has finished probing its type and regions
-+		 */
-+		unsigned int num_regions;
-+
-+		if (tmp.dev_type == PS3_DEV_TYPE_STOR_DUMMY) {
-+			pr_debug("%s:%u storage device not ready\n", __func__,
-+				 __LINE__);
-+			return -ENODEV;
-+		}
-+
-+		result = ps3_repository_read_stor_dev_num_regions(tmp.bus_index,
-+								  tmp.dev_index,
-+								  &num_regions);
-+		if (result) {
-+			pr_debug("%s:%d read_stor_dev_num_regions failed\n",
-+				 __func__, __LINE__);
-+			return result;
-+		}
-+
-+		if (!num_regions) {
-+			pr_debug("%s:%u storage device has no regions yet\n",
-+				 __func__, __LINE__);
-+			return -ENODEV;
-+		}
-+	}
-+
- 	result = ps3_repository_read_dev_id(tmp.bus_index, tmp.dev_index,
- 		&tmp.dev_id);
+diff -puN drivers/net/Kconfig~net-myri10ge-force-select-inet_lro drivers/net/Kconfig
+--- a/drivers/net/Kconfig~net-myri10ge-force-select-inet_lro
++++ a/drivers/net/Kconfig
+@@ -2084,6 +2084,7 @@ source "drivers/net/ixp2000/Kconfig"
+ config MYRI_SBUS
+ 	tristate "MyriCOM Gigabit Ethernet support"
+ 	depends on SBUS
++	select INET_LRO
+ 	help
+ 	  This driver supports MyriCOM Sbus gigabit Ethernet cards.
  
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-git-scsi-misc.patch
-ps3-ignore-storage-devices-that-are-still-being.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+net-myri10ge-force-select-inet_lro.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-process-accounting.patch
+whitespace-fixes-cpuset.patch
+whitespace-fixes-relayfs.patch
+whitespace-fixes-audit-filtering.patch
+whitespace-fixes-dma-channel-allocator.patch
+whitespace-fixes-fork.patch
+whitespace-fixes-module-loading.patch
+whitespace-fixes-panic-handling.patch
+whitespace-fixes-capability-syscalls.patch
+whitespace-fixes-syscall-auditing.patch
+whitespace-fixes-compat-syscalls.patch
+whitespace-fixes-system-auditing.patch
+whitespace-fixes-execution-domains.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+whitespace-fixes-task-exit-handling.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
