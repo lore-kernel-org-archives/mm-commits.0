@@ -1,84 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - usb-mass-storage-limit-rockchip-rock-mp3-device-071b3203-max-i-o-to-64-sectors-per-command.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 13:20:58 -0700
-Message-ID: <200709112020.l8BKKwGM027747@imap1.linux-foundation.org>
+Subject: - mips-qemu-network-work-again.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 13:20:48 -0700
+Message-ID: <200709112020.l8BKKmla027734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59735 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55008 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967103AbXIKUVk (ORCPT
+	by vger.kernel.org with ESMTP id S966656AbXIKUVp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 16:21:40 -0400
+	Tue, 11 Sep 2007 16:21:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: massimiliano.ghilardi@gmail.com, greg@kroah.com, mdharm-usb@one-eyed-alien.net, mm-commits@vger.kernel.org
+To: kyungmin.park@samsung.com, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB Mass Storage: limit "Rockchip ROCK MP3" device (071b:3203) max I/O to 64 sectors per command
+     mips: qemu network work again
 has been removed from the -mm tree.  Its filename was
-     usb-mass-storage-limit-rockchip-rock-mp3-device-071b3203-max-i-o-to-64-sectors-per-command.patch
+     mips-qemu-network-work-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB Mass Storage: limit "Rockchip ROCK MP3" device (071b:3203) max I/O to 64 sectors per command
-From: Massimiliano Ghilardi <massimiliano.ghilardi@gmail.com>
+Subject: mips: qemu network work again
+From: "Kyungmin Park" <kyungmin.park@samsung.com>
 
-The MP3/MP4/AVI player "Rockchip ROCK MP3" is seen as a USB disk, but fails
-if more than 128 sectors (64kB) are sent or requested in a single read or write
-command, and disconnects from the USB bus.
+After kernel 2.6.21, the qemu of mips with nfsroot is not working.
 
-Typical kernel log showing the problem is:
+There are too much WATCHDOG timeout.
 
-usb 3-1: reset high speed USB device using ehci_hcd and address 6
-usb 3-1: reset high speed USB device using ehci_hcd and address 6
-sd 14:0:0:0: [sdb] Result: hostbyte=0x07 driverbyte=0x00
-end_request: I/O error, dev sdb, sector 32
-sd 14:0:0:0: [sdb] Result: hostbyte=0x07 driverbyte=0x00
-end_request: I/O error, dev sdb, sector 32
-usb 3-1: USB disconnect, address 6
+I try to find what makes it not working and I found it.  After Ingo
+Monlar's patch "[PATCH] genirq: do not mask interrupts by default" [1],
+it's not working.  To solve this, we also have to register the IRQ disable
+field in MIPS, as x86 does.
 
-This patch works around the device limitation by adding "Rockchip ROCK MP3"
-to unusual USB devices list and limiting data transfers to 64 sectors (32kB)
-per command.
-Tested on 2.6.23-rc5 (amd64).
+1. http://www.uwsg.iu.edu/hypermail/linux/kernel/0701.3/1892.html
 
-Signed-off-by: Massimiliano Ghilardi <massimiliano.ghilardi@gmail.com>
-Cc: Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/unusual_devs.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/mips/kernel/i8259.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/usb/storage/unusual_devs.h~usb-mass-storage-limit-rockchip-rock-mp3-device-071b3203-max-i-o-to-64-sectors-per-command drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-mass-storage-limit-rockchip-rock-mp3-device-071b3203-max-i-o-to-64-sectors-per-command
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -920,6 +920,22 @@ UNUSUAL_DEV(  0x071b, 0x3203, 0x0100, 0x
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_MAX_SECTORS_64),
- 
-+/* Reported by Massimiliano Ghilardi <massimiliano.ghilardi@gmail.com>
-+ * This USB MP3/AVI player device fails and disconnects if more than 128 sectors (64kB)
-+ * are read/written in a single command, and may be present at least in the following products:
-+ *
-+ * "Magnex Digital Video Panel DVP 1800"
-+ * "MP4 AIGO 4GB SLOT SD"
-+ * "Teclast TL-C260 MP3"
-+ * "i.Meizu PMP MP3/MP4"
-+ * "Speed MV8 MP4 Audio Player"
-+ */
-+UNUSUAL_DEV(  0x071b, 0x3203, 0x0100, 0x0100,
-+		"RockChip",
-+		"ROCK MP3",
-+		US_SC_DEVICE, US_PR_DEVICE, NULL,
-+		US_FL_MAX_SECTORS_64),
-+
- /* Reported by Olivier Blondeau <zeitoun@gmail.com> */
- UNUSUAL_DEV(  0x0727, 0x0306, 0x0100, 0x0100,
- 		"ATMEL",
+diff -puN arch/mips/kernel/i8259.c~mips-qemu-network-work-again arch/mips/kernel/i8259.c
+--- a/arch/mips/kernel/i8259.c~mips-qemu-network-work-again
++++ a/arch/mips/kernel/i8259.c
+@@ -36,6 +36,7 @@ void mask_and_ack_8259A(unsigned int);
+ static struct irq_chip i8259A_chip = {
+ 	.name		= "XT-PIC",
+ 	.mask		= disable_8259A_irq,
++	.disable	= disable_8259A_irq,
+ 	.unmask		= enable_8259A_irq,
+ 	.mask_ack	= mask_and_ack_8259A,
+ #ifdef CONFIG_MIPS_MT_SMTC_IRQAFF
 _
 
-Patches currently in -mm which might be from massimiliano.ghilardi@gmail.com are
+Patches currently in -mm which might be from kyungmin.park@samsung.com are
+
+git-mtd.patch
+omap2-mcspi-code-cleanup.patch
