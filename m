@@ -1,213 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - hpet-force-enable-on-vt8235-37-chipsets-fix.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 15:58:11 -0700
-Message-ID: <200709112258.l8BMwBU9001544@imap1.linux-foundation.org>
+Subject: - hpet-force-enable-on-vt8235-37-chipsets.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 15:58:24 -0700
+Message-ID: <200709112258.l8BMwOIx001551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36530 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760197AbXIKW7K (ORCPT
+	by vger.kernel.org with ESMTP id S1760239AbXIKW7X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 18:59:10 -0400
+	Tue, 11 Sep 2007 18:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, us15@os.inf.tu-dresden.de, venkatesh.pallipadi@intel.com, mm-commits@vge
+To: us15@os.inf.tu-dresden.de, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpet-force-enable-on-vt8235-37-chipsets-fix
+     Force enable HPET on VT8235/8237 chipsets
 has been removed from the -mm tree.  Its filename was
-     hpet-force-enable-on-vt8235-37-chipsets-fix.patch
+     hpet-force-enable-on-vt8235-37-chipsets.patch
 
-This patch was dropped because it was folded into hpet-force-enable-on-vt8235-37-chipsets.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: hpet-force-enable-on-vt8235-37-chipsets-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Force enable HPET on VT8235/8237 chipsets
+From: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>
 
-arch/x86_64/kernel/../../i386/kernel/quirks.c: In function 'vt8237_force_enable_hpet':
-arch/x86_64/kernel/../../i386/kernel/quirks.c:279: warning: 'val' is used uninitialized in this function
+This patch adds quirks to force enable HPET on Via VT8235 and VT8237 chipse=
+ts.  The datasheet for 8237 documents HPET functionality (although wrongly)
+wher= eas HPET is undocumented for 8235.
 
-Cc: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
+Tested on A7V880 (8237) and K7VT4A+ (8235) boards.
+
+Signed-off-by: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |   68 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 67 insertions(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix
+diff -puN arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets
 +++ a/arch/i386/kernel/quirks.c
-@@ -266,7 +266,7 @@ static void vt8237_force_hpet_resume(voi
+@@ -56,7 +56,8 @@ unsigned long force_hpet_address;
+ static enum {
+ 	NONE_FORCE_HPET_RESUME,
+ 	OLD_ICH_FORCE_HPET_RESUME,
+-	ICH_FORCE_HPET_RESUME
++	ICH_FORCE_HPET_RESUME,
++	VT8237_FORCE_HPET_RESUME
+ } force_hpet_resume_type;
  
- static void vt8237_force_enable_hpet(struct pci_dev *dev)
- {
--	u32 val;
+ static void __iomem *rcba_base;
+@@ -245,6 +246,68 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801EB_12,
+                          old_ich_force_enable_hpet);
+ 
++
++static void vt8237_force_hpet_resume(void)
++{
++	u32 val;
++
++	if (!force_hpet_address || !cached_dev)
++		return;
++
++	val = 0xfed00000 | 0x80;
++	pci_write_config_dword(cached_dev, 0x68, val);
++
++	pci_read_config_dword(cached_dev, 0x68, &val);
++	if (val & 0x80)
++		printk(KERN_DEBUG "Force enabled HPET at resume\n");
++	else
++		BUG();
++}
++
++static void vt8237_force_enable_hpet(struct pci_dev *dev)
++{
 +	u32 uninitialized_var(val);
++
++	if (hpet_address || force_hpet_address)
++		return;
++
++	pci_read_config_dword(dev, 0x68, &val);
++	/*
++	 * Bit 7 is HPET enable bit.
++	 * Bit 31:10 is HPET base address (contrary to what datasheet claims)
++	 */
++	if (val & 0x80) {
++		force_hpet_address = (val & ~0x3ff);
++		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		return;
++	}
++
++	/*
++	 * HPET is disabled. Trying enabling at FED00000 and check
++	 * whether it sticks
++	 */
++	val = 0xfed00000 | 0x80;
++	pci_write_config_dword(dev, 0x68, val);
++
++	pci_read_config_dword(dev, 0x68, &val);
++	if (val & 0x80) {
++		force_hpet_address = (val & ~0x3ff);
++		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
++			       force_hpet_address);
++		cached_dev = dev;
++		force_hpet_resume_type = VT8237_FORCE_HPET_RESUME;
++		return;
++	}
++
++	printk(KERN_DEBUG "Failed to force enable HPET\n");
++}
++
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8235,
++			 vt8237_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8237,
++			 vt8237_force_enable_hpet);
++
+ void force_hpet_resume(void)
+ {
+ 	switch (force_hpet_resume_type) {
+@@ -254,6 +317,9 @@ void force_hpet_resume(void)
+ 	    case OLD_ICH_FORCE_HPET_RESUME:
+ 		return old_ich_force_hpet_resume();
  
- 	if (hpet_address || force_hpet_address)
- 		return;
++	    case VT8237_FORCE_HPET_RESUME:
++		return vt8237_force_hpet_resume();
++
+ 	    default:
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from us15@os.inf.tu-dresden.de are
 
-bug-in-at91-mci-suspend-routines.patch
-leases-can-be-hidden-by-flocks.patch
-revert-highmem-catch-illegal-nesting.patch
-slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-net-fixup.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-intel_cacheinfo-adjustments.patch
-intel_cacheinfo-misc-section-annotation-fixes-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+hpet-force-enable-on-ich34.patch
 hpet-force-enable-on-vt8235-37-chipsets.patch
-hpet-force-enable-on-vt8235-37-chipsets-fix.patch
-x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
-git-xfs.patch
-git-xtensa.patch
-i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
-atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
