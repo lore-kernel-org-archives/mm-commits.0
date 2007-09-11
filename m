@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-select-on-proc-files-without-poll.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:19:20 -0700
-Message-ID: <200709110519.l8B5JKew027039@imap1.linux-foundation.org>
+Subject: + via82cxxx-pata_via-add-support-for-via-vx800-series.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:27:15 -0700
+Message-ID: <200709110527.l8B5RFrN027318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41008 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758770AbXIKFTk (ORCPT
+	by vger.kernel.org with ESMTP id S1750818AbXIKF10 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:19:40 -0400
+	Tue, 11 Sep 2007 01:27:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ebiederm@xmission.com, oleg@tv-sign.ru, vahakang@cs.helsinki.fi
+Cc: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, josephchan@via.com.tw
 
 
 The patch titled
-     Fix select on /proc files without ->poll
+     via82cxxx/pata_via: Add support for VIA VX800 series
 has been added to the -mm tree.  Its filename is
-     fix-select-on-proc-files-without-poll.patch
+     via82cxxx-pata_via-add-support-for-via-vx800-series.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix select on /proc files without ->poll
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: via82cxxx/pata_via: Add support for VIA VX800 series
+From: <JosephChan@via.com.tw>
 
-T Taneli Vahakangas <vahakang@cs.helsinki.fi> reported that
-commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba aka
-"Fix rmmod/read/write races in /proc entries"
-broke SBCL + SLIME combo.
+Add IDE support for VIA's VX800 series in both drivers/ide/pci/via82cxxx.c
+and drivers/ata/pata_via.c
 
-Old code in do_select() used DEFAULT_POLLMASK, if couldn't find ->poll
-handler. New code makes ->poll always there and returns 0 by default,
-which is not correct. Return DEFAULT_POLLMASK instead.
-
-Steps to reproduce:
-
-	install emacs, SBCL, SLIME
-	emacs
-	M-x slime	in *inferior-lisp* buffer
-	[watch it doing "Connecting to Swank on port X.."]
-
-Please, apply before 2.6.23.
-
-P.S.: why SBCL can't just read(2) /proc/cpuinfo is a mystery.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: T Taneli Vahakangas <vahakang@cs.helsinki.fi>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Cc: Jeff Garzik <jeff@garzik.org>
+Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c      |    3 ++-
- fs/select.c          |    2 --
- include/linux/poll.h |    2 ++
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/ata/pata_via.c      |    1 +
+ drivers/ide/pci/via82cxxx.c |    1 +
+ include/linux/pci_ids.h     |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN fs/proc/inode.c~fix-select-on-proc-files-without-poll fs/proc/inode.c
---- a/fs/proc/inode.c~fix-select-on-proc-files-without-poll
-+++ a/fs/proc/inode.c
-@@ -11,6 +11,7 @@
- #include <linux/string.h>
- #include <linux/stat.h>
- #include <linux/completion.h>
-+#include <linux/poll.h>
- #include <linux/file.h>
- #include <linux/limits.h>
- #include <linux/init.h>
-@@ -232,7 +233,7 @@ static ssize_t proc_reg_write(struct fil
- static unsigned int proc_reg_poll(struct file *file, struct poll_table_struct *pts)
- {
- 	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
--	unsigned int rv = 0;
-+	unsigned int rv = DEFAULT_POLLMASK;
- 	unsigned int (*poll)(struct file *, struct poll_table_struct *);
- 
- 	spin_lock(&pde->pde_unload_lock);
-diff -puN fs/select.c~fix-select-on-proc-files-without-poll fs/select.c
---- a/fs/select.c~fix-select-on-proc-files-without-poll
-+++ a/fs/select.c
-@@ -26,8 +26,6 @@
- 
- #include <asm/uaccess.h>
- 
--#define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
--
- struct poll_table_page {
- 	struct poll_table_page * next;
- 	struct poll_table_entry * entry;
-diff -puN include/linux/poll.h~fix-select-on-proc-files-without-poll include/linux/poll.h
---- a/include/linux/poll.h~fix-select-on-proc-files-without-poll
-+++ a/include/linux/poll.h
-@@ -21,6 +21,8 @@
- #define WQUEUES_STACK_ALLOC	(MAX_STACK_ALLOC - FRONTEND_STACK_ALLOC)
- #define N_INLINE_POLL_ENTRIES	(WQUEUES_STACK_ALLOC / sizeof(struct poll_table_entry))
- 
-+#define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
-+
- struct poll_table_struct;
- 
- /* 
+diff -puN drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ata/pata_via.c
+@@ -97,6 +97,7 @@ static const struct via_isa_bridge {
+ 	u8 rev_max;
+ 	u16 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ide/pci/via82cxxx.c
+--- a/drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ide/pci/via82cxxx.c
+@@ -74,6 +74,7 @@ static struct via_isa_bridge {
+ 	u8 udma_mask;
+ 	u8 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt6410",	PCI_DEVICE_ID_VIA_6410,     0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+diff -puN include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/include/linux/pci_ids.h
+@@ -1343,6 +1343,7 @@
+ #define PCI_DEVICE_ID_VIA_8231_4	0x8235
+ #define PCI_DEVICE_ID_VIA_8365_1	0x8305
+ #define PCI_DEVICE_ID_VIA_CX700		0x8324
++#define PCI_DEVICE_ID_VIA_VX800		0x8353
+ #define PCI_DEVICE_ID_VIA_8371_1	0x8391
+ #define PCI_DEVICE_ID_VIA_82C598_1	0x8598
+ #define PCI_DEVICE_ID_VIA_838X_1	0xB188
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from JosephChan@via.com.tw are
 
-fix-select-on-proc-files-without-poll.patch
-nfs-fix-oops-re-sysctls-and-v4-support.patch
-ifdef-struct-task_structsecurity.patch
-faster-ext2_clear_inode.patch
-fs-proc-mmuc-headers-butchery.patch
-remove-sysctlh-from-fsh.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-shrink-struct-task_structoomkilladj.patch
-remove-struct-task_structio_wait.patch
-drop-some-headers-from-mmh.patch
-revert-faster-ext2_clear_inode.patch
+via82cxxx-pata_via-add-support-for-via-vx800-series.patch
