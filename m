@@ -1,171 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 15:55:10 -0700
-Message-ID: <200709112255.l8BMtAak001452@imap1.linux-foundation.org>
+Subject: - i386-optimize-memset-of-6-and-8-bytes.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 15:55:56 -0700
+Message-ID: <200709112255.l8BMtvjm001476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759622AbXIKW4W (ORCPT
+	by vger.kernel.org with ESMTP id S1759594AbXIKW4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 18:56:22 -0400
+	Tue, 11 Sep 2007 18:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, ak@suse.de, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: use bus conf in NB conf fun1 to get bus range on node
+     i386: optimize memset of 6 and 8 bytes
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+     i386-optimize-memset-of-6-and-8-bytes.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: x86_64: use bus conf in NB conf fun1 to get bus range on node
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: i386: optimize memset of 6 and 8 bytes
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-So we use the same code with Quad core cpu as old opteron.  this patch is
-usful when acpi=off or _PXM is not there in DSDT
+Tne network code does memset for 6 and 8 byte values, that can easily
+be optimized into simple assignments without string instructions.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/pci/k8-bus.c |   88 ++++++++++++++++++++-----------------
- 1 files changed, 48 insertions(+), 40 deletions(-)
+ include/asm-i386/string.h |    8 ++++++++
+ 1 files changed, 8 insertions(+)
 
-diff -puN arch/x86_64/pci/k8-bus.c~x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node arch/x86_64/pci/k8-bus.c
---- a/arch/x86_64/pci/k8-bus.c~x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node
-+++ a/arch/x86_64/pci/k8-bus.c
-@@ -12,15 +12,18 @@
-  * RED-PEN empty cpus get reported wrong
-  */
- 
--#define NODE_ID_REGISTER 0x60
--#define NODE_ID(dword) (dword & 0x07)
--#define LDT_BUS_NUMBER_REGISTER_0 0x94
--#define LDT_BUS_NUMBER_REGISTER_1 0xB4
--#define LDT_BUS_NUMBER_REGISTER_2 0xD4
--#define NR_LDT_BUS_NUMBER_REGISTERS 3
--#define SECONDARY_LDT_BUS_NUMBER(dword) ((dword >> 8) & 0xFF)
--#define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
-+#define NODE_ID(dword) ((dword>>4) & 0x07)
-+#define LDT_BUS_NUMBER_REGISTER_0 0xE0
-+#define LDT_BUS_NUMBER_REGISTER_1 0xE4
-+#define LDT_BUS_NUMBER_REGISTER_2 0xE8
-+#define LDT_BUS_NUMBER_REGISTER_3 0xEC
-+#define NR_LDT_BUS_NUMBER_REGISTERS 4
-+#define SECONDARY_LDT_BUS_NUMBER(dword) ((dword >> 16) & 0xFF)
-+#define SUBORDINATE_LDT_BUS_NUMBER(dword) ((dword >> 24) & 0xFF)
-+
- #define PCI_DEVICE_ID_K8HTCONFIG 0x1100
-+#define PCI_DEVICE_ID_K8_10H_HTCONFIG 0x1200
-+#define PCI_DEVICE_ID_K8_11H_HTCONFIG 0x1300
- 
- #define BUS_NR 256
- 
-@@ -60,12 +63,19 @@ early_fill_mp_bus_to_node(void)
- {
- 	int i, j;
- 	unsigned slot;
--	u32 ldtbus, nid;
-+	u32 ldtbus;
- 	u32 id;
--	static int lbnr[3] = {
-+	int node;
-+	u16 deviceid;
-+	u16 vendorid;
-+	int min_bus;
-+	int max_bus;
-+
-+	static int lbnr[NR_LDT_BUS_NUMBER_REGISTERS] = {
- 		LDT_BUS_NUMBER_REGISTER_0,
- 		LDT_BUS_NUMBER_REGISTER_1,
--		LDT_BUS_NUMBER_REGISTER_2
-+		LDT_BUS_NUMBER_REGISTER_2,
-+		LDT_BUS_NUMBER_REGISTER_3
- 	};
- 
- 	memset(mp_bus_to_node, 0, BUS_NR);
-@@ -73,38 +83,36 @@ early_fill_mp_bus_to_node(void)
- 	if (!early_pci_allowed())
- 		return -1;
- 
--	for (slot = 0x18; slot < 0x20; slot++) {
--		id = read_pci_config(0, slot, 0, PCI_VENDOR_ID);
--		if (id != (PCI_VENDOR_ID_AMD | (PCI_DEVICE_ID_K8HTCONFIG<<16)))
--			break;
--		nid = read_pci_config(0, slot, 0, NODE_ID_REGISTER);
--
--		for (i = 0; i < NR_LDT_BUS_NUMBER_REGISTERS; i++) {
--			ldtbus = read_pci_config(0, slot, 0, lbnr[i]);
--			/*
--			 * if there are no busses hanging off of the current
--			 * ldt link then both the secondary and subordinate
--			 * bus number fields are set to 0.
--			 *
--			 * RED-PEN
--			 * This is slightly broken because it assumes
--			 * HT node IDs == Linux node ids, which is not always
--			 * true. However it is probably mostly true.
--			 */
--			if (!(SECONDARY_LDT_BUS_NUMBER(ldtbus) == 0
--				&& SUBORDINATE_LDT_BUS_NUMBER(ldtbus) == 0)) {
--				for (j = SECONDARY_LDT_BUS_NUMBER(ldtbus);
--				     j <= SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
--				     j++) {
--					int node = NODE_ID(nid);
--					mp_bus_to_node[j] = (unsigned char)node;
--				}
--			}
--		}
-+	slot = 0x18;
-+	id = read_pci_config(0, slot, 0, PCI_VENDOR_ID);
-+
-+	vendorid = id & 0xffff;
-+	if (vendorid != PCI_VENDOR_ID_AMD)
-+		goto out;
-+
-+	deviceid = (id>>16) & 0xffff;
-+	if ((deviceid != PCI_DEVICE_ID_K8HTCONFIG) &&
-+	    (deviceid != PCI_DEVICE_ID_K8_10H_HTCONFIG) &&
-+	    (deviceid != PCI_DEVICE_ID_K8_11H_HTCONFIG))
-+		goto out;
-+
-+	for (i = 0; i < NR_LDT_BUS_NUMBER_REGISTERS; i++) {
-+		ldtbus = read_pci_config(0, slot, 1, lbnr[i]);
-+
-+		/* Check if that register is enabled for bus range */
-+		if ((ldtbus & 7) != 3)
-+			continue;
-+
-+		min_bus = SECONDARY_LDT_BUS_NUMBER(ldtbus);
-+		max_bus = SUBORDINATE_LDT_BUS_NUMBER(ldtbus);
-+		node = NODE_ID(ldtbus);
-+		for (j = min_bus; j <= max_bus; j++)
-+			mp_bus_to_node[j] = (unsigned char) node;
+diff -puN include/asm-i386/string.h~i386-optimize-memset-of-6-and-8-bytes include/asm-i386/string.h
+--- a/include/asm-i386/string.h~i386-optimize-memset-of-6-and-8-bytes
++++ a/include/asm-i386/string.h
+@@ -228,6 +228,14 @@ static __always_inline void * __constant
+ 		case 4:
+ 			*(unsigned long *)s = pattern;
+ 			return s;
++		case 6:
++			*(unsigned long *)s = pattern;
++			*(2+(unsigned short *)s) = pattern;
++			return s;
++		case 8:
++			*(unsigned long *)s = pattern;
++			*(1+(unsigned long *)s) = pattern;
++			return s;
  	}
- 
-+out:
- 	for (i = 0; i < BUS_NR; i++) {
--		int node = mp_bus_to_node[i];
-+		node = mp_bus_to_node[i];
- 		if (node)
- 			printk(KERN_DEBUG "bus: %02x to node: %02x\n", i, node);
- 	}
+ #define COMMON(x) \
+ __asm__  __volatile__( \
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-serial-keep-the-dtr-setting-for-serial-console.patch
-x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
-try-parent-numa_node-at-first-before-using-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-make-io-apic-not-connected-pin-print-complete.patch
-x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
+git-netdev-all.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+ktime_sub_ns-analog-of-ktime_add_ns.patch
+export-reciprocal_value-for-modules.patch
+sky2-avoid-divide-in-receive-path.patch
+sky2-118.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+sky2-restore-multicast-list-on-resume-and-other-ops.patch
+git-net.patch
+i386-optimize-memset-of-6-and-8-bytes.patch
