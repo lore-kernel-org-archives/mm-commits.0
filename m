@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - au88x0_synthc-bugfix.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 13:20:33 -0700
-Message-ID: <200709112020.l8BKKYfF027720@imap1.linux-foundation.org>
+Subject: - via82cxxx-pata_via-add-support-for-via-vx800-series.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 13:20:41 -0700
+Message-ID: <200709112020.l8BKKfUJ027726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38683 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40956 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934196AbXIKUVi (ORCPT
+	by vger.kernel.org with ESMTP id S967385AbXIKUVW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 16:21:38 -0400
+	Tue, 11 Sep 2007 16:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, josephchan@via.com.tw, mm-commits@vger.kernel.org
 
 
 The patch titled
-     au88x0_synth.c bugfix
+     via82cxxx/pata_via: Add support for VIA VX800 series
 has been removed from the -mm tree.  Its filename was
-     au88x0_synthc-bugfix.patch
+     via82cxxx-pata_via-add-support-for-via-vx800-series.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: au88x0_synth.c bugfix
-From: Adrian Bunk <bunk@kernel.org>
+Subject: via82cxxx/pata_via: Add support for VIA VX800 series
+From: <JosephChan@via.com.tw>
 
-This patch fixes the code in vortex_wt_SetFrequency() to what seems to
-have been intended.
+Add IDE support for VIA's VX800 series in both drivers/ide/pci/via82cxxx.c
+and drivers/ata/pata_via.c
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Cc: Jeff Garzik <jeff@garzik.org>
+Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/au88x0/au88x0_synth.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ata/pata_via.c      |    1 +
+ drivers/ide/pci/via82cxxx.c |    1 +
+ include/linux/pci_ids.h     |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN sound/pci/au88x0/au88x0_synth.c~au88x0_synthc-bugfix sound/pci/au88x0/au88x0_synth.c
---- a/sound/pci/au88x0/au88x0_synth.c~au88x0_synthc-bugfix
-+++ a/sound/pci/au88x0/au88x0_synth.c
-@@ -370,8 +370,8 @@ static void vortex_wt_SetFrequency(vorte
- 			while ((edx & 0x80000000) == 0) {
- 				edx <<= 1;
- 				eax--;
--				if (eax == 0) ;
--				break;
-+				if (eax == 0)
-+					break;
- 			}
- 			if (eax)
- 				edx <<= 1;
+diff -puN drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ata/pata_via.c
+@@ -97,6 +97,7 @@ static const struct via_isa_bridge {
+ 	u8 rev_max;
+ 	u16 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ide/pci/via82cxxx.c
+--- a/drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ide/pci/via82cxxx.c
+@@ -74,6 +74,7 @@ static struct via_isa_bridge {
+ 	u8 udma_mask;
+ 	u8 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt6410",	PCI_DEVICE_ID_VIA_6410,     0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+diff -puN include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/include/linux/pci_ids.h
+@@ -1343,6 +1343,7 @@
+ #define PCI_DEVICE_ID_VIA_8231_4	0x8235
+ #define PCI_DEVICE_ID_VIA_8365_1	0x8305
+ #define PCI_DEVICE_ID_VIA_CX700		0x8324
++#define PCI_DEVICE_ID_VIA_VX800		0x8353
+ #define PCI_DEVICE_ID_VIA_8371_1	0x8391
+ #define PCI_DEVICE_ID_VIA_82C598_1	0x8598
+ #define PCI_DEVICE_ID_VIA_838X_1	0xB188
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
-
-update-gitignore.patch
-git-alsa.patch
-arm-extern-inline-static-inline.patch
-omap1-leds-innovatorc-remove-dead-code.patch
-ppc-remove-apus-support.patch
-git-dvb.patch
-git-kbuild.patch
-pass-g-to-assembler-under-config_debug_info-fix.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
-git-nfsd.patch
-drivers-scsi-immc-fix-check-after-use.patch
-git-wireless.patch
-fix-x86_64-mm-unwinder.patch
-i386-visws-extern-inline-static-inline.patch
-fix-serial_core_console-driver-dependencies.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-bitmaph-remove-dead-artifacts.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+Patches currently in -mm which might be from JosephChan@via.com.tw are
