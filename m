@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-bluetooth-build-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2007 16:19:18 -0700
-Message-ID: <200709112324.l8BNOqIJ002597@imap1.linux-foundation.org>
+Subject: + git-net-broke-ixgbe.patch added to -mm tree
+Date: Tue, 11 Sep 2007 16:20:39 -0700
+Message-ID: <200709112326.l8BNQDU3002624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34462 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34904 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755259AbXIKXZO (ORCPT
+	by vger.kernel.org with ESMTP id S1759600AbXIKX0R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 19:25:14 -0400
+	Tue, 11 Sep 2007 19:26:17 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8BNQED4023913
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2007 16:26:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, marcel@holtmann.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-bluetooth-build-fix
+     git-net-broke-ixgbe
 has been added to the -mm tree.  Its filename is
-     git-bluetooth-build-fix.patch
+     git-net-broke-ixgbe.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-bluetooth-build-fix
+Subject: git-net-broke-ixgbe
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- stupidly fix this:
+igiveup
 
-net/bluetooth/hci_sock.c: In function 'hci_sock_cmsg':
-net/bluetooth/hci_sock.c:352: error: storage size of 'ctv' isn't known
-net/bluetooth/hci_sock.c:352: warning: unused variable 'ctv'
 
-- remove pointless inline
 
-- cleanup gunk
-
-Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_sock.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/net/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/bluetooth/hci_sock.c~git-bluetooth-build-fix net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~git-bluetooth-build-fix
-+++ a/net/bluetooth/hci_sock.c
-@@ -332,13 +332,15 @@ static int hci_sock_getname(struct socke
- 	return 0;
- }
- 
--static inline void hci_sock_cmsg(struct sock *sk, struct msghdr *msg, struct sk_buff *skb)
-+static void hci_sock_cmsg(struct sock *sk, struct msghdr *msg,
-+				struct sk_buff *skb)
- {
- 	__u32 mask = hci_pi(sk)->cmsg_mask;
- 
- 	if (mask & HCI_CMSG_DIR) {
- 		int incoming = bt_cb(skb)->incoming;
--		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming), &incoming);
-+		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming),
-+				&incoming);
- 	}
- 
- 	if (mask & HCI_CMSG_TSTAMP) {
-@@ -348,6 +350,7 @@ static inline void hci_sock_cmsg(struct 
- 
- 		skb_get_timestamp(skb, &tv);
- 
-+#ifdef CONFIG_COMPAT
- 		if (msg->msg_flags & MSG_CMSG_COMPAT) {
- 			struct compat_timeval ctv;
- 			ctv.tv_sec = tv.tv_sec;
-@@ -355,9 +358,12 @@ static inline void hci_sock_cmsg(struct 
- 			data = &ctv;
- 			len = sizeof(ctv);
- 		} else {
-+#endif
- 			data = &tv;
- 			len = sizeof(tv);
-+#ifdef CONFIG_COMPAT
- 		}
-+#endif
- 
- 		put_cmsg(msg, SOL_HCI, HCI_CMSG_TSTAMP, len, data);
- 	}
+diff -puN drivers/net/Kconfig~git-net-broke-ixgbe drivers/net/Kconfig
+--- a/drivers/net/Kconfig~git-net-broke-ixgbe
++++ a/drivers/net/Kconfig
+@@ -2456,6 +2456,7 @@ config EHEA
+ config IXGB
+ 	tristate "Intel(R) PRO/10GbE support"
+ 	depends on PCI
++	depends on BROKEN
+ 	---help---
+ 	  This driver supports Intel(R) PRO/10GbE family of
+ 	  adapters.  For more information on how to identify your adapter, go
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,8 +94,10 @@ e1000e-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 git-net.patch
 git-net-fixup.patch
+git-net-broke-ixgbe.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
+git-bluetooth-build-fix.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-ocfs2.patch
@@ -244,4 +212,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-bluetooth-build-fix.patch
