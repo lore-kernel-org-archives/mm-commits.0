@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + restore-call_usermodehelper_pipe-behaviour.patch added to -mm tree
-Date: Mon, 10 Sep 2007 22:02:05 -0700
-Message-ID: <200709110502.l8B525D4026482@imap1.linux-foundation.org>
+Subject: + via82cxxx-pata_via-add-support-for-via-vx800-series.patch added to -mm tree
+Date: Mon, 10 Sep 2007 22:06:41 -0700
+Message-ID: <200709110506.l8B56fCT026570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60217 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753846AbXIKFCT (ORCPT
+	by vger.kernel.org with ESMTP id S1754912AbXIKFGv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 01:02:19 -0400
+	Tue, 11 Sep 2007 01:06:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@ellerman.id.au, ak@suse.de
+Cc: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, htejun@gmail.com, jeff@garzik.org, josephchan@via.com.tw
 
 
 The patch titled
-     Restore call_usermodehelper_pipe() behaviour
+     via82cxxx/pata_via: Add support for VIA VX800 series
 has been added to the -mm tree.  Its filename is
-     restore-call_usermodehelper_pipe-behaviour.patch
+     via82cxxx-pata_via-add-support-for-via-vx800-series.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Restore call_usermodehelper_pipe() behaviour
-From: Michael Ellerman <michael@ellerman.id.au>
+Subject: via82cxxx/pata_via: Add support for VIA VX800 series
+From: <JosephChan@via.com.tw>
 
-The semantics of call_usermodehelper_pipe() used to be that it would fork
-the helper, and wait for the kernel thread to be started.  This was
-implemented by setting sub_info.wait to 0 (implicitly), and doing a
-wait_for_completion().
+Add IDE support for VIA's VX800 series in both drivers/ide/pci/via82cxxx.c
+and drivers/ata/pata_via.c
 
-As part of the cleanup done in 0ab4dc92278a0f3816e486d6350c6652a72e06c8,
-call_usermodehelper_pipe() was changed to pass 1 as the value for wait to
-call_usermodehelper_exec().
-
-This is equivalent to setting sub_info.wait to 1, which is a change from
-the previous behaviour.  Using 1 instead of 0 causes
-__call_usermodehelper() to start the kernel thread running
-wait_for_helper(), rather than directly calling ____call_usermodehelper().
-
-The end result is that the calling kernel code blocks until the user mode
-helper finishes.  As the helper is expecting input on stdin, and now no one
-is writing anything, everything locks up (observed in do_coredump).
-
-The fix is to change the 1 to UMH_WAIT_EXEC (aka 0), indicating that we
-want to wait for the kernel thread to be started, but not for the helper to
-finish.
-
-Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
-Acked-by: Andi Kleen <ak@suse.de>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/pata_via.c      |    1 +
+ drivers/ide/pci/via82cxxx.c |    1 +
+ include/linux/pci_ids.h     |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN kernel/kmod.c~restore-call_usermodehelper_pipe-behaviour kernel/kmod.c
---- a/kernel/kmod.c~restore-call_usermodehelper_pipe-behaviour
-+++ a/kernel/kmod.c
-@@ -505,7 +505,7 @@ int call_usermodehelper_pipe(char *path,
- 	if (ret < 0)
- 		goto out;
- 
--	return call_usermodehelper_exec(sub_info, 1);
-+	return call_usermodehelper_exec(sub_info, UMH_WAIT_EXEC);
- 
-   out:
- 	call_usermodehelper_freeinfo(sub_info);
+diff -puN drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ata/pata_via.c
+@@ -97,6 +97,7 @@ static const struct via_isa_bridge {
+ 	u8 rev_max;
+ 	u16 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_CX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+diff -puN drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series drivers/ide/pci/via82cxxx.c
+--- a/drivers/ide/pci/via82cxxx.c~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/drivers/ide/pci/via82cxxx.c
+@@ -74,6 +74,7 @@ static struct via_isa_bridge {
+ 	u8 udma_mask;
+ 	u8 flags;
+ } via_isa_bridges[] = {
++	{ "vx800 series",	PCI_DEVICE_ID_VIA_CX800,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+ 	{ "vt6410",	PCI_DEVICE_ID_VIA_6410,     0x00, 0x2f, ATA_UDMA6, VIA_BAD_AST },
+diff -puN include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~via82cxxx-pata_via-add-support-for-via-vx800-series
++++ a/include/linux/pci_ids.h
+@@ -1343,6 +1343,7 @@
+ #define PCI_DEVICE_ID_VIA_8231_4	0x8235
+ #define PCI_DEVICE_ID_VIA_8365_1	0x8305
+ #define PCI_DEVICE_ID_VIA_CX700		0x8324
++#define PCI_DEVICE_ID_VIA_CX800		0x8353
+ #define PCI_DEVICE_ID_VIA_8371_1	0x8391
+ #define PCI_DEVICE_ID_VIA_82C598_1	0x8598
+ #define PCI_DEVICE_ID_VIA_838X_1	0xB188
 _
 
-Patches currently in -mm which might be from michael@ellerman.id.au are
+Patches currently in -mm which might be from JosephChan@via.com.tw are
 
-restore-call_usermodehelper_pipe-behaviour.patch
+via82cxxx-pata_via-add-support-for-via-vx800-series.patch
