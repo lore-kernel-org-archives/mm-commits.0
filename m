@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - net-sunrpc-svcsockc-dont-print-uninitialised-string.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 13:21:11 -0700
-Message-ID: <200709112021.l8BKLBC0027767@imap1.linux-foundation.org>
+Subject: - x86_64-get-mp_bus_to_node-as-early-v3-update.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 14:23:04 -0700
+Message-ID: <200709112123.l8BLN5ph030127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52205 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760528AbXIKUWu (ORCPT
+	by vger.kernel.org with ESMTP id S1760390AbXIKVYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 16:22:50 -0400
+	Tue, 11 Sep 2007 17:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wolfgang.walter@studentenwerk.mhn.de, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/sunrpc/svcsock.c: don't print uninitialised string
+     x86_64-get-mp_bus_to_node-as-early-v3 update
 has been removed from the -mm tree.  Its filename was
-     net-sunrpc-svcsockc-dont-print-uninitialised-string.patch
+     x86_64-get-mp_bus_to_node-as-early-v3-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into x86_64-get-mp_bus_to_node-as-early-v3.patch
 
 ------------------------------------------------------
-Subject: net/sunrpc/svcsock.c: don't print uninitialised string
-From: Wolfgang Walter <wolfgang.walter@studentenwerk.mhn.de>
+Subject: x86_64-get-mp_bus_to_node-as-early-v3 update
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Random characters are printed by svc_tcp_accept:
+It seem the one in -mm missed changes to irq.c
 
-	lockd: last TCP connect from <some random chars>
-
-because buf is used unitialized:
-
-printk(KERN_NOTICE
-	"%s: last TCP connect from %s\n",
-	serv->sv_name, buf);
-
-Probably it should be
-
-printk(KERN_NOTICE
-	"%s: last TCP connect from %s\n",
-	serv->sv_name, __svc_print_addr(sin, buf, sizeof(buf)));
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/i386/pci/irq.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/svcsock.c~net-sunrpc-svcsockc-dont-print-uninitialised-string net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~net-sunrpc-svcsockc-dont-print-uninitialised-string
-+++ a/net/sunrpc/svcsock.c
-@@ -1111,7 +1111,8 @@ svc_tcp_accept(struct svc_sock *svsk)
- 						   serv->sv_name);
- 				printk(KERN_NOTICE
- 				       "%s: last TCP connect from %s\n",
--				       serv->sv_name, buf);
-+				       serv->sv_name,
-+				       __svc_print_addr(sin, buf, sizeof(buf)));
- 			}
- 			/*
- 			 * Always select the oldest socket. It's not fair,
+diff -puN arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update arch/i386/pci/irq.c
+--- a/arch/i386/pci/irq.c~x86_64-get-mp_bus_to_node-as-early-v3-update
++++ a/arch/i386/pci/irq.c
+@@ -136,9 +136,11 @@ static void __init pirq_peer_trick(void)
+ 		busmap[e->bus] = 1;
+ 	}
+ 	for(i = 1; i < 256; i++) {
++		int node;
+ 		if (!busmap[i] || pci_find_bus(0, i))
+ 			continue;
+-		if (pci_scan_bus_with_sysdata(i))
++		node = get_mp_bus_to_node(i);
++		if (pci_scan_bus_on_node(i, &pci_root_ops, node))
+ 			printk(KERN_INFO "PCI: Discovered primary peer "
+ 			       "bus %02x [IRQ]\n", i);
+ 	}
 _
 
-Patches currently in -mm which might be from wolfgang.walter@studentenwerk.mhn.de are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-git-nfsd.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+x86_64-get-mp_bus_to_node-as-early-v3.patch
+x86_64-get-mp_bus_to_node-as-early-v3-update.patch
+x86_64-use-bus-conf-in-nb-conf-fun1-to-get-bus-range-on-node.patch
+try-parent-numa_node-at-first-before-using-default.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-make-io-apic-not-connected-pin-print-complete.patch
+x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
