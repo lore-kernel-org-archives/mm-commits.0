@@ -1,559 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-unify-the-syscalls-code.patch added to -mm tree
-Date: Mon, 10 Sep 2007 13:14:58 -0700
-Message-ID: <200709102014.l8AKEwA2008713@imap1.linux-foundation.org>
+Subject: + fix-a-lock-problem-in-generic-phy-code.patch added to -mm tree
+Date: Mon, 10 Sep 2007 21:48:28 -0700
+Message-ID: <200709110448.l8B4mVOi025962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51244 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753764AbXIJUPd (ORCPT
+	by vger.kernel.org with ESMTP id S1750825AbXIKEtW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 10 Sep 2007 16:15:33 -0400
+	Tue, 11 Sep 2007 00:49:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Nadia.Derbey@bull.net
+Cc: hjk@linutronix.de, jeff@garzik.org
 
 
 The patch titled
-     ipc: unify the syscalls code
+     Fix a lock problem in generic phy code
 has been added to the -mm tree.  Its filename is
-     ipc-unify-the-syscalls-code.patch
+     fix-a-lock-problem-in-generic-phy-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ipc: unify the syscalls code
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: Fix a lock problem in generic phy code
+=46rom: Hans J. Koch <hjk@linutronix.de>
 
-This patch introduces a change into the sys_msgget(), sys_semget() and
-sys_shmget() routines: they now share a common code, which is better for
-maintainability.
+I already sent this patch on August, 31. I never got an answer, so here=
+ it
+is again.
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Lock debugging finds a problem in phy.c and phy_device.c:
+
+[ =A0 =A03.420000] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+[ =A0 =A03.420000] [ INFO: inconsistent lock state ]
+[ =A0 =A03.420000] 2.6.23-rc3-mm1 #21
+[ =A0 =A03.420000] ---------------------------------
+[ =A0 =A03.420000] inconsistent {softirq-on-W} -> {in-softirq-W} usage.
+[ =A0 =A03.420000] swapper/1 [HC0[0]:SC1[1]:HE1:SE0] takes:
+[ =A0 =A03.420000] =A0(&dev->lock){-+..}, at: [<c017da1c>] phy_timer+0x=
+1c/0x4c8
+[ =A0 =A03.420000] {softirq-on-W} state was registered at:
+[ =A0 =A03.420000] =A0 [<c006021c>] lock_acquire+0x94/0xac
+[ =A0 =A03.420000] =A0 [<c026423c>] _spin_lock+0x40/0x50
+[ =A0 =A03.420000] =A0 [<c017e2b4>] phy_probe+0x40/0x88
+[ =A0 =A03.420000] =A0 [<c017e60c>] phy_attach+0xc8/0xfc
+[ =A0 =A03.420000] =A0 [<c017e6c4>] phy_connect+0x1c/0x58
+[ =A0 =A03.420000] =A0 [<c017fc44>] macb_probe+0x4fc/0x5bc
+[ =A0 =A03.420000] =A0 [<c0177b44>] platform_drv_probe+0x20/0x24
+[ =A0 =A03.420000] =A0 [<c0176210>] driver_probe_device+0xb0/0x1bc
+[ =A0 =A03.420000] =A0 [<c01764dc>] __driver_attach+0xe4/0xe8
+[ =A0 =A03.420000] =A0 [<c017550c>] bus_for_each_dev+0x54/0x80
+[ =A0 =A03.420000] =A0 [<c0176074>] driver_attach+0x20/0x28
+[ =A0 =A03.420000] =A0 [<c01758d4>] bus_add_driver+0x84/0x1e0
+[ =A0 =A03.420000] =A0 [<c0176708>] driver_register+0x54/0x90
+[ =A0 =A03.420000] =A0 [<c0177de0>] platform_driver_register+0x6c/0x88
+[ =A0 =A03.420000] =A0 [<c00167ec>] macb_init+0x14/0x1c
+[ =A0 =A03.420000] =A0 [<c00087e4>] kernel_init+0x9c/0x2b4
+[ =A0 =A03.420000] =A0 [<c0040338>] do_exit+0x0/0x8e8
+[ =A0 =A03.420000] irq event stamp: 115025
+[ =A0 =A03.420000] hardirqs last =A0enabled at (115025): [<c0264958>] _=
+spin_unlock_irq+0x30/0x60
+[ =A0 =A03.420000] hardirqs last disabled at (115024): [<c02642c8>] _sp=
+in_lock_irq+0x28/0x60
+[ =A0 =A03.420000] softirqs last =A0enabled at (114999): [<c0042910>] _=
+_do_softirq+0xfc/0x12c
+[ =A0 =A03.420000] softirqs last disabled at (115022): [<c0042ee8>] irq=
+_exit+0x68/0x7c
+[ =A0 =A03.420000]
+[ =A0 =A03.420000] other info that might help us debug this:
+[ =A0 =A03.420000] no locks held by swapper/1.
+[ =A0 =A03.420000]
+[ =A0 =A03.420000] stack backtrace:
+[ =A0 =A03.420000] [<c0028af4>] (dump_stack+0x0/0x14) from [<c005d8e4>]=
+ (print_usage_bug+0x120/0x150)
+[ =A0 =A03.420000] [<c005d7c4>] (print_usage_bug+0x0/0x150) from [<c005=
+e5e8>] (mark_lock+0x574/0x6bc)
+[ =A0 =A03.420000] [<c005e074>] (mark_lock+0x0/0x6bc) from [<c005f4c0>]=
+ (__lock_acquire+0x4d0/0x1198)
+[ =A0 =A03.420000] [<c005eff0>] (__lock_acquire+0x0/0x1198) from [<c006=
+021c>] (lock_acquire+0x94/0xac)
+[ =A0 =A03.420000] [<c0060188>] (lock_acquire+0x0/0xac) from [<c026423c=
+>] (_spin_lock+0x40/0x50)
+[ =A0 =A03.420000] [<c02641fc>] (_spin_lock+0x0/0x50) from [<c017da1c>]=
+ (phy_timer+0x1c/0x4c8)
+[ =A0 =A03.420000] =A0r5:c098a800 r4:00000104
+[ =A0 =A03.420000] [<c017da00>] (phy_timer+0x0/0x4c8) from [<c0046ee4>]=
+ (run_timer_softirq+0x1a0/0x218)
+[ =A0 =A03.420000] =A0r7:c081ddd0 r6:c0331e80 r5:c098aa50 r4:00000104
+[ =A0 =A03.420000] [<c0046d44>] (run_timer_softirq+0x0/0x218) from [<c0=
+0428a8>] (__do_softirq+0x94/0x12c)
+[ =A0 =A03.420000] [<c0042814>] (__do_softirq+0x0/0x12c) from [<c0042ee=
+8>] (irq_exit+0x68/0x7c)
+[ =A0 =A03.420000] [<c0042e80>] (irq_exit+0x0/0x7c) from [<c0023060>] (=
+__exception_text_start+0x60/0x74)
+[ =A0 =A03.420000] =A0r4:00000001
+[ =A0 =A03.420000] [<c0023000>] (__exception_text_start+0x0/0x74) from =
+[<c0023b28>] (__irq_svc+0x48/0x74)
+[ =A0 =A03.420000] Exception stack(0xc081de70 to 0xc081deb8)
+[ =A0 =A03.420000] de60: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 c030b2a8 c081a800 60000013 c081c000
+[ =A0 =A03.420000] de80: c032db40 c081dee0 c032d758 c081dece 00000012 c=
+030b398 00000034 c081df2c
+[ =A0 =A03.420000] dea0: c081deb8 c081deb8 c003d6f0 c003d6f8 60000013 f=
+fffffff
+[ =A0 =A03.420000] =A0r7:00000003 r6:00000001 r5:fefff000 r4:ffffffff
+[ =A0 =A03.420000] [<c003d494>] (vprintk+0x0/0x474) from [<c003d930>] (=
+printk+0x28/0x30)
+[ =A0 =A03.420000] [<c003d908>] (printk+0x0/0x30) from [<c01d3558>] (so=
+ck_register+0x64/0x84)
+[ =A0 =A03.420000] =A0r3:00000001 r2:00000002 r1:00000001 r0:c02e4c88
+[ =A0 =A03.420000] [<c01d34f4>] (sock_register+0x0/0x84) from [<c001b7b=
+c>] (af_unix_init+0x40/0x88)
+[ =A0 =A03.420000] =A0r5:00000000 r4:00000000
+[ =A0 =A03.420000] [<c001b77c>] (af_unix_init+0x0/0x88) from [<c00087e4=
+>] (kernel_init+0x9c/0x2b4)
+[ =A0 =A03.420000] =A0r4:00000000
+[ =A0 =A03.420000] [<c0008748>] (kernel_init+0x0/0x2b4) from [<c0040338=
+>] (do_exit+0x0/0x8e8)
+
+The following patch fixes it. Tested on an AT91SAM9263-EK board, kernel=
+ 2.6.23-rc4 and -rc3-mm1.
+
+Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |   61 ++++++++----------------------
- ipc/sem.c  |   78 +++++++++++++++------------------------
- ipc/shm.c  |   75 ++++++++++++++-----------------------
- ipc/util.c |  101 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- ipc/util.h |   43 +++++++++++++++++++++
- 5 files changed, 217 insertions(+), 141 deletions(-)
+ drivers/net/phy/phy.c        |    4 ++--
+ drivers/net/phy/phy_device.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN ipc/msg.c~ipc-unify-the-syscalls-code ipc/msg.c
---- a/ipc/msg.c~ipc-unify-the-syscalls-code
-+++ a/ipc/msg.c
-@@ -81,7 +81,7 @@ static struct ipc_ids init_msg_ids;
- 	ipc_buildid(&msg_ids(ns), id, seq)
- 
- static void freeque(struct ipc_namespace *, struct msg_queue *);
--static int newque (struct ipc_namespace *ns, key_t key, int msgflg);
-+static int newque(struct ipc_namespace *, struct ipc_params *);
- #ifdef CONFIG_PROC_FS
- static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
- #endif
-@@ -144,10 +144,12 @@ static inline void msg_rmid(struct ipc_n
- 	ipc_rmid(&msg_ids(ns), &s->q_perm);
- }
- 
--static int newque (struct ipc_namespace *ns, key_t key, int msgflg)
-+static int newque(struct ipc_namespace *ns, struct ipc_params *params)
- {
- 	struct msg_queue *msq;
- 	int id, retval;
-+	key_t key = params->key;
-+	int msgflg = params->flg;
- 
- 	msq = ipc_rcu_alloc(sizeof(*msq));
- 	if (!msq)
-@@ -264,56 +266,27 @@ static void freeque(struct ipc_namespace
- 	ipc_rcu_putref(msq);
- }
- 
-+static inline int msg_security(void *msq, int msgflg)
-+{
-+	return security_msg_queue_associate((struct msg_queue *) msq, msgflg);
-+}
-+
- asmlinkage long sys_msgget(key_t key, int msgflg)
- {
--	struct msg_queue *msq;
--	int ret;
- 	struct ipc_namespace *ns;
-+	struct ipc_ops msg_ops;
-+	struct ipc_params msg_params;
- 
- 	ns = current->nsproxy->ipc_ns;
- 
--	ret = idr_pre_get(&msg_ids(ns).ipcs_idr, GFP_KERNEL);
--
--	if (key == IPC_PRIVATE)  {
--		if (!ret)
--			ret = -ENOMEM;
--		else {
--			mutex_lock(&msg_ids(ns).mutex);
--			ret = newque(ns, key, msgflg);
--			mutex_unlock(&msg_ids(ns).mutex);
--		}
--	} else {
--		mutex_lock(&msg_ids(ns).mutex);
--		msq = (struct msg_queue *) ipc_findkey(&msg_ids(ns), key);
--		if (msq == NULL) {
--			/* key not used */
--			if (!(msgflg & IPC_CREAT))
--				ret = -ENOENT;
--			else if (!ret)
--				ret = -ENOMEM;
--			else
--				ret = newque(ns, key, msgflg);
--		} else {
--			/* msq has been locked by ipc_findkey() */
-+	msg_ops.getnew = newque;
-+	msg_ops.associate = msg_security;
-+	msg_ops.more_checks = NULL;
- 
--			if (msgflg & IPC_CREAT && msgflg & IPC_EXCL)
--				ret = -EEXIST;
--			else {
--				if (ipcperms(&msq->q_perm, msgflg))
--					ret = -EACCES;
--				else {
--					ret = security_msg_queue_associate(
--								msq, msgflg);
--					if (!ret)
--						ret = msq->q_perm.id;
--				}
--			}
--			msg_unlock(msq);
--		}
--		mutex_unlock(&msg_ids(ns).mutex);
--	}
-+	msg_params.key = key;
-+	msg_params.flg = msgflg;
- 
--	return ret;
-+	return ipcget(ns, &msg_ids(ns), &msg_ops, &msg_params);
- }
- 
- static inline unsigned long
-diff -puN ipc/sem.c~ipc-unify-the-syscalls-code ipc/sem.c
---- a/ipc/sem.c~ipc-unify-the-syscalls-code
-+++ a/ipc/sem.c
-@@ -97,7 +97,7 @@
- 
- static struct ipc_ids init_sem_ids;
- 
--static int newary(struct ipc_namespace *, key_t, int, int);
-+static int newary(struct ipc_namespace *, struct ipc_params *);
- static void freeary(struct ipc_namespace *, struct sem_array *);
- #ifdef CONFIG_PROC_FS
- static int sysvipc_sem_proc_show(struct seq_file *s, void *it);
-@@ -214,12 +214,15 @@ static inline void sem_rmid(struct ipc_n
+diff -puN drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code =
+drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code
++++ a/drivers/net/phy/phy.c
+@@ -755,7 +755,7 @@ out_unlock:
   */
- #define IN_WAKEUP	1
- 
--static int newary (struct ipc_namespace *ns, key_t key, int nsems, int semflg)
-+static int newary(struct ipc_namespace *ns, struct ipc_params *params)
+ void phy_start(struct phy_device *phydev)
  {
- 	int id;
- 	int retval;
- 	struct sem_array *sma;
- 	int size;
-+	key_t key = params->key;
-+	int nsems = params->u.nsems;
-+	int semflg = params->flg;
- 
- 	if (!nsems)
- 		return -EINVAL;
-@@ -263,61 +266,40 @@ static int newary (struct ipc_namespace 
- 	return sma->sem_perm.id;
+-	spin_lock(&phydev->lock);
++	spin_lock_bh(&phydev->lock);
+=20
+ 	switch (phydev->state) {
+ 		case PHY_STARTING:
+@@ -769,7 +769,7 @@ void phy_start(struct phy_device *phydev
+ 		default:
+ 			break;
+ 	}
+-	spin_unlock(&phydev->lock);
++	spin_unlock_bh(&phydev->lock);
  }
- 
--asmlinkage long sys_semget (key_t key, int nsems, int semflg)
-+
-+static inline int sem_security(void *sma, int semflg)
-+{
-+	return security_sem_associate((struct sem_array *) sma, semflg);
-+}
-+
-+static inline int sem_more_checks(void *sma, struct ipc_params *params)
-+{
-+	if (params->u.nsems > ((struct sem_array *)sma)->sem_nsems)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+asmlinkage long sys_semget(key_t key, int nsems, int semflg)
- {
--	int err;
--	struct sem_array *sma;
- 	struct ipc_namespace *ns;
-+	struct ipc_ops sem_ops;
-+	struct ipc_params sem_params;
- 
- 	ns = current->nsproxy->ipc_ns;
- 
- 	if (nsems < 0 || nsems > ns->sc_semmsl)
- 		return -EINVAL;
- 
--	err = idr_pre_get(&sem_ids(ns).ipcs_idr, GFP_KERNEL);
-+	sem_ops.getnew = newary;
-+	sem_ops.associate = sem_security;
-+	sem_ops.more_checks = sem_more_checks;
-+
-+	sem_params.key = key;
-+	sem_params.flg = semflg;
-+	sem_params.u.nsems = nsems;
- 
--	if (key == IPC_PRIVATE) {
--		if (!err)
--			err = -ENOMEM;
--		else {
--			mutex_lock(&sem_ids(ns).mutex);
--			err = newary(ns, key, nsems, semflg);
--			mutex_unlock(&sem_ids(ns).mutex);
--		}
--	} else {
--		mutex_lock(&sem_ids(ns).mutex);
--		sma = (struct sem_array *) ipc_findkey(&sem_ids(ns), key);
--		if (sma == NULL) {
--			/* key not used */
--			if (!(semflg & IPC_CREAT))
--				err = -ENOENT;
--			else if (!err)
--				err = -ENOMEM;
--			else
--				err = newary(ns, key, nsems, semflg);
--		} else {
--			/* sma has been locked by ipc_findkey() */
--
--			if (semflg & IPC_CREAT && semflg & IPC_EXCL)
--				err = -EEXIST;
--			else {
--				if (nsems > sma->sem_nsems)
--					err = -EINVAL;
--				else if (ipcperms(&sma->sem_perm, semflg))
--					err = -EACCES;
--				else {
--					err = security_sem_associate(sma,
--								semflg);
--					if (!err)
--						err = sma->sem_perm.id;
--				}
--			}
--			sem_unlock(sma);
--		}
--		mutex_unlock(&sem_ids(ns).mutex);
--	}
--
--	return err;
-+	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
- }
- 
- /* Manage the doubly linked list sma->sem_pending as a FIFO:
-diff -puN ipc/shm.c~ipc-unify-the-syscalls-code ipc/shm.c
---- a/ipc/shm.c~ipc-unify-the-syscalls-code
-+++ a/ipc/shm.c
-@@ -68,8 +68,7 @@ static struct ipc_ids init_shm_ids;
- #define shm_buildid(ns, id, seq)	\
- 	ipc_buildid(&shm_ids(ns), id, seq)
- 
--static int newseg (struct ipc_namespace *ns, key_t key,
--		int shmflg, size_t size);
-+static int newseg(struct ipc_namespace *, struct ipc_params *);
- static void shm_open(struct vm_area_struct *vma);
- static void shm_close(struct vm_area_struct *vma);
- static void shm_destroy (struct ipc_namespace *ns, struct shmid_kernel *shp);
-@@ -341,8 +340,11 @@ static struct vm_operations_struct shm_v
- #endif
- };
- 
--static int newseg (struct ipc_namespace *ns, key_t key, int shmflg, size_t size)
-+static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
- {
-+	key_t key = params->key;
-+	int shmflg = params->flg;
-+	size_t size = params->u.size;
- 	int error;
- 	struct shmid_kernel *shp;
- 	int numpages = (size + PAGE_SIZE -1) >> PAGE_SHIFT;
-@@ -423,57 +425,36 @@ no_file:
- 	return error;
- }
- 
-+static inline int shm_security(void *shp, int shmflg)
-+{
-+	return security_shm_associate((struct shmid_kernel *) shp, shmflg);
-+}
-+
-+static inline int shm_more_checks(void *shp, struct ipc_params *params)
-+{
-+	if (((struct shmid_kernel *)shp)->shm_segsz < params->u.size)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- asmlinkage long sys_shmget (key_t key, size_t size, int shmflg)
- {
--	struct shmid_kernel *shp;
--	int err;
- 	struct ipc_namespace *ns;
-+	struct ipc_ops shm_ops;
-+	struct ipc_params shm_params;
- 
- 	ns = current->nsproxy->ipc_ns;
- 
--	err = idr_pre_get(&shm_ids(ns).ipcs_idr, GFP_KERNEL);
-+	shm_ops.getnew = newseg;
-+	shm_ops.associate = shm_security;
-+	shm_ops.more_checks = shm_more_checks;
-+
-+	shm_params.key = key;
-+	shm_params.flg = shmflg;
-+	shm_params.u.size = size;
- 
--	if (key == IPC_PRIVATE) {
--		if (!err)
--			err = -ENOMEM;
--		else {
--			mutex_lock(&shm_ids(ns).mutex);
--			err = newseg(ns, key, shmflg, size);
--			mutex_unlock(&shm_ids(ns).mutex);
--		}
--	} else {
--		mutex_lock(&shm_ids(ns).mutex);
--		shp = (struct shmid_kernel *) ipc_findkey(&shm_ids(ns), key);
--		if (shp == NULL) {
--			if (!(shmflg & IPC_CREAT))
--				err = -ENOENT;
--			else if (!err)
--				err = -ENOMEM;
--			else
--				err = newseg(ns, key, shmflg, size);
--		} else {
--			/* shp has been locked by ipc_findkey() */
--
--			if ((shmflg & IPC_CREAT) && (shmflg & IPC_EXCL))
--				err = -EEXIST;
--			else {
--				if (shp->shm_segsz < size)
--					err = -EINVAL;
--				else if (ipcperms(&shp->shm_perm, shmflg))
--					err = -EACCES;
--				else {
--					err = security_shm_associate(shp,
--								shmflg);
--					if (!err)
--						err = shp->shm_perm.id;
--				}
--			}
--			shm_unlock(shp);
--		}
--		mutex_unlock(&shm_ids(ns).mutex);
--	}
--
--	return err;
-+	return ipcget(ns, &shm_ids(ns), &shm_ops, &shm_params);
- }
- 
- static inline unsigned long copy_shmid_to_user(void __user *buf, struct shmid64_ds *in, int version)
-diff -puN ipc/util.c~ipc-unify-the-syscalls-code ipc/util.c
---- a/ipc/util.c~ipc-unify-the-syscalls-code
-+++ a/ipc/util.c
-@@ -197,7 +197,7 @@ void __init ipc_init_proc_interface(cons
-  *	If key is found ipc contains its ipc structure
-  */
-  
--struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key)
-+static struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key)
- {
- 	struct kern_ipc_perm *ipc;
- 	int next_id;
-@@ -301,6 +301,105 @@ int ipc_addid(struct ipc_ids* ids, struc
- }
- 
- /**
-+ *	ipcget_new	-	create a new ipc object
-+ *	@ns: namespace
-+ *	@ids: identifer set
-+ *	@ops: the actual creation routine to call
-+ *	@params: its parameters
-+ *
-+ *	This routine is called sys_msgget, sys_semget() and sys_shmget() when
-+ *	the key is IPC_PRIVATE
-+ */
-+int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
-+		struct ipc_ops *ops, struct ipc_params *params)
-+{
-+	int err;
-+
-+	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
-+
-+	if (!err)
-+		return -ENOMEM;
-+
-+	mutex_lock(&ids->mutex);
-+	err = ops->getnew(ns, params);
-+	mutex_unlock(&ids->mutex);
-+
-+	return err;
-+}
-+
-+/**
-+ *	ipc_check_perms	-	check security and permissions for an IPC
-+ *	@ipcp: ipc permission set
-+ *	@ids: identifer set
-+ *	@ops: the actual security routine to call
-+ *	@params: its parameters
-+ */
-+static int ipc_check_perms(struct kern_ipc_perm *ipcp, struct ipc_ops *ops,
-+			struct ipc_params *params)
-+{
-+	int err;
-+
-+	if (ipcperms(ipcp, params->flg))
-+		err = -EACCES;
-+	else {
-+		err = ops->associate(ipcp, params->flg);
-+		if (!err)
-+			err = ipcp->id;
-+	}
-+
-+	return err;
-+}
-+
-+/**
-+ *	ipcget_public	-	get an ipc object or create a new one
-+ *	@ns: namespace
-+ *	@ids: identifer set
-+ *	@ops: the actual creation routine to call
-+ *	@params: its parameters
-+ *
-+ *	This routine is called sys_msgget, sys_semget() and sys_shmget() when
-+ *	the key is not IPC_PRIVATE
-+ */
-+int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
-+		struct ipc_ops *ops, struct ipc_params *params)
-+{
-+	struct kern_ipc_perm *ipcp;
-+	int flg = params->flg;
-+	int err;
-+
-+	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
-+
-+	mutex_lock(&ids->mutex);
-+	ipcp = ipc_findkey(ids, params->key);
-+	if (ipcp == NULL) {
-+		/* key not used */
-+		if (!(flg & IPC_CREAT))
-+			err = -ENOENT;
-+		else if (!err)
-+			err = -ENOMEM;
-+		else
-+			err = ops->getnew(ns, params);
-+	} else {
-+		/* ipc object has been locked by ipc_findkey() */
-+
-+		if (flg & IPC_CREAT && flg & IPC_EXCL)
-+			err = -EEXIST;
-+		else {
-+			err = 0;
-+			if (ops->more_checks)
-+				err = ops->more_checks(ipcp, params);
-+			if (!err)
-+				err = ipc_check_perms(ipcp, ops, params);
-+		}
-+		ipc_unlock(ipcp);
-+	}
-+	mutex_unlock(&ids->mutex);
-+
-+	return err;
-+}
-+
-+
-+/**
-  *	ipc_rmid	-	remove an IPC identifier
-  *	@ids: identifier set
-  *	@id: ipc perm structure containing the identifier to remove
-diff -puN ipc/util.h~ipc-unify-the-syscalls-code ipc/util.h
---- a/ipc/util.h~ipc-unify-the-syscalls-code
-+++ a/ipc/util.h
-@@ -35,6 +35,35 @@ struct ipc_ids {
- 	struct idr ipcs_idr;
- };
- 
-+/*
-+ * Structure that holds the parameters needed by the ipc operations
-+ * (see after)
-+ */
-+struct ipc_params {
-+	key_t key;
-+	int flg;
-+	union {
-+		size_t size;	/* for shared memories */
-+		int nsems;	/* for semaphores */
-+	} u;			/* holds the getnew() specific param */
-+};
-+
-+/*
-+ * Structure that holds some ipc operations. This structure is used to unify
-+ * the calls to sys_msgget(), sys_semget(), sys_shmget()
-+ *      . routine to call to create a new ipc object. Can be one of newque,
-+ *        newary, newseg
-+ *      . routine to call to call to check permissions for a new ipc object.
-+ *        Can be one of security_msg_associate, security_sem_associate,
-+ *        security_shm_associate
-+ *      . routine to call for an extra check if needed
-+ */
-+struct ipc_ops {
-+	int (*getnew) (struct ipc_namespace *, struct ipc_params *);
-+	int (*associate) (void *, int);
-+	int (*more_checks) (void *, struct ipc_params *);
-+};
-+
- struct seq_file;
- 
- void ipc_init_ids(struct ipc_ids *);
-@@ -50,7 +79,6 @@ void __init ipc_init_proc_interface(cons
- #define IPC_SHM_IDS	2
- 
- /* must be called with ids->mutex acquired.*/
--struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key);
- int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
- int ipc_get_maxid(struct ipc_ids *);
- 
-@@ -95,5 +123,18 @@ int ipc_parse_version (int *cmd);
- extern void free_msg(struct msg_msg *msg);
- extern struct msg_msg *load_msg(const void __user *src, int len);
- extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
-+extern int ipcget_new(struct ipc_namespace *, struct ipc_ids *,
-+			struct ipc_ops *, struct ipc_params *);
-+extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
-+			struct ipc_ops *, struct ipc_params *);
-+
-+static inline int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
-+			struct ipc_ops *ops, struct ipc_params *params)
-+{
-+	if (params->key == IPC_PRIVATE)
-+		return ipcget_new(ns, ids, ops, params);
-+	else
-+		return ipcget_public(ns, ids, ops, params);
-+}
- 
- #endif
+ EXPORT_SYMBOL(phy_stop);
+ EXPORT_SYMBOL(phy_start);
+diff -puN drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-ph=
+y-code drivers/net/phy/phy_device.c
+--- a/drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-phy-co=
+de
++++ a/drivers/net/phy/phy_device.c
+@@ -644,7 +644,7 @@ static int phy_probe(struct device *dev)
+ 	if (!(phydrv->flags & PHY_HAS_INTERRUPT))
+ 		phydev->irq =3D PHY_POLL;
+=20
+-	spin_lock(&phydev->lock);
++	spin_lock_bh(&phydev->lock);
+=20
+ 	/* Start out supporting everything. Eventually,
+ 	 * a controller will attach, and may modify one
+@@ -658,7 +658,7 @@ static int phy_probe(struct device *dev)
+ 	if (phydev->drv->probe)
+ 		err =3D phydev->drv->probe(phydev);
+=20
+-	spin_unlock(&phydev->lock);
++	spin_unlock_bh(&phydev->lock);
+=20
+ 	return err;
+=20
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from hjk@linutronix.de are
 
-ipc-store-ipcs-into-idrs.patch
-ipc-unify-the-syscalls-code.patch
-ipc-remove-the-ipc_get-routine.patch
-ipc-integrate-ipc_checkid-into-ipc_lock.patch
-ipc-introduce-the-ipcid_to_idx-macro.patch
-ipc-inline-ipc_buildid.patch
+git-hwmon.patch
+fix-a-lock-problem-in-generic-phy-code.patch
+pxafb-add-support-for-other-palette-formats.patch
