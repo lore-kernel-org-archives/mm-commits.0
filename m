@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-broke-ixgbe.patch added to -mm tree
-Date: Tue, 11 Sep 2007 16:20:39 -0700
-Message-ID: <200709112326.l8BNQDU3002624@imap1.linux-foundation.org>
+Subject: + git-backlight-build-fix.patch added to -mm tree
+Date: Tue, 11 Sep 2007 16:27:29 -0700
+Message-ID: <200709112333.l8BNX3QL002827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34904 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37675 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759600AbXIKX0R (ORCPT
+	by vger.kernel.org with ESMTP id S1752705AbXIKXdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 19:26:17 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8BNQED4023913
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2007 16:26:15 -0700
+	Tue, 11 Sep 2007 19:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
 
 
 The patch titled
-     git-net-broke-ixgbe
+     git-backlight-build-fix
 has been added to the -mm tree.  Its filename is
-     git-net-broke-ixgbe.patch
+     git-backlight-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,30 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-broke-ixgbe
+Subject: git-backlight-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-igiveup
+drivers/video/backlight/ltv350qv.c: In function 'ltv350qv_suspend':
+drivers/video/backlight/ltv350qv.c:281: error: 'SUSPEND_POWER_DOWN' undeclared (first use in this function)
+drivers/video/backlight/ltv350qv.c:281: error: (Each undeclared identifier is reported only once
+drivers/video/backlight/ltv350qv.c:281: error: for each function it appears in.)
+drivers/video/backlight/ltv350qv.c: In function 'ltv350qv_resume':
+drivers/video/backlight/ltv350qv.c:291: error: 'RESUME_POWER_ON' undeclared (first use in this function)
+drivers/video/backlight/ltv350qv.c: At top level:
+drivers/video/backlight/ltv350qv.c:319: warning: initialization from incompatible pointer type
+drivers/video/backlight/ltv350qv.c:320: warning: initialization from incompatible pointer type
 
+nfi...
 
-
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/backlight/ltv350qv.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/Kconfig~git-net-broke-ixgbe drivers/net/Kconfig
---- a/drivers/net/Kconfig~git-net-broke-ixgbe
-+++ a/drivers/net/Kconfig
-@@ -2456,6 +2456,7 @@ config EHEA
- config IXGB
- 	tristate "Intel(R) PRO/10GbE support"
- 	depends on PCI
-+	depends on BROKEN
- 	---help---
- 	  This driver supports Intel(R) PRO/10GbE family of
- 	  adapters.  For more information on how to identify your adapter, go
+diff -puN drivers/video/backlight/ltv350qv.c~git-backlight-build-fix drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~git-backlight-build-fix
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -273,25 +273,21 @@ static int __devexit ltv350qv_remove(str
+ }
+ 
+ #ifdef CONFIG_PM
+-static int ltv350qv_suspend(struct spi_device *spi,
+-			    pm_message_t state, u32 level)
++static int ltv350qv_suspend(struct spi_device *spi, pm_message_t state)
+ {
+ 	struct ltv350qv *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	if (level == SUSPEND_POWER_DOWN)
++	if (state.event == PM_SUSPEND)
+ 		return ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+ 
+ 	return 0;
+ }
+ 
+-static int ltv350qv_resume(struct spi_device *spi, u32 level)
++static int ltv350qv_resume(struct spi_device *spi)
+ {
+ 	struct ltv350qv *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	if (level == RESUME_POWER_ON)
+-		return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+-
+-	return 0;
++	return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+ }
+ #else
+ #define ltv350qv_suspend	NULL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +124,7 @@ git-net-fixup.patch
 git-net-broke-ixgbe.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
+git-backlight-build-fix.patch
 git-bluetooth-build-fix.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
