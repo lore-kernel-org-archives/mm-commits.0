@@ -1,65 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - intel_cacheinfo-misc-section-annotation-fixes-fix.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 15:58:34 -0700
-Message-ID: <200709112258.l8BMwYK8001556@imap1.linux-foundation.org>
+Subject: - hpet-force-enable-on-vt8235-37-chipsets-fix.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 15:58:11 -0700
+Message-ID: <200709112258.l8BMwBU9001544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760020AbXIKW6q (ORCPT
+	by vger.kernel.org with ESMTP id S1760197AbXIKW7K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 18:58:46 -0400
+	Tue, 11 Sep 2007 18:59:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, satyam@infradead.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, us15@os.inf.tu-dresden.de, venkatesh.pallipadi@intel.com, mm-commits@vge
 
 
 The patch titled
-     intel_cacheinfo-misc-section-annotation-fixes-fix
+     hpet-force-enable-on-vt8235-37-chipsets-fix
 has been removed from the -mm tree.  Its filename was
-     intel_cacheinfo-misc-section-annotation-fixes-fix.patch
+     hpet-force-enable-on-vt8235-37-chipsets-fix.patch
 
-This patch was dropped because it was folded into intel_cacheinfo-misc-section-annotation-fixes.patch
+This patch was dropped because it was folded into hpet-force-enable-on-vt8235-37-chipsets.patch
 
 ------------------------------------------------------
-Subject: intel_cacheinfo-misc-section-annotation-fixes-fix
+Subject: hpet-force-enable-on-vt8235-37-chipsets-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/cpu/intel_cacheinfo.c:181: error: types causes a section type conflict
-arch/i386/kernel/cpu/intel_cacheinfo.c:180: error: levels causes a section type conflict
-arch/i386/kernel/cpu/intel_cacheinfo.c:173: error: assocs causes a section type conflict
+arch/x86_64/kernel/../../i386/kernel/quirks.c: In function 'vt8237_force_enable_hpet':
+arch/x86_64/kernel/../../i386/kernel/quirks.c:279: warning: 'val' is used uninitialized in this function
 
+Cc: "Udo A. Steinberg" <us15@os.inf.tu-dresden.de>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Satyam Sharma <satyam@infradead.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Udo A. Steinberg <us15@os.inf.tu-dresden.de>
 Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/intel_cacheinfo.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/kernel/quirks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix arch/i386/kernel/cpu/intel_cacheinfo.c
---- a/arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-misc-section-annotation-fixes-fix
-+++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
-@@ -170,15 +170,15 @@ union l3_cache {
- 	unsigned val;
- };
+diff -puN arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~hpet-force-enable-on-vt8235-37-chipsets-fix
++++ a/arch/i386/kernel/quirks.c
+@@ -266,7 +266,7 @@ static void vt8237_force_hpet_resume(voi
  
--static const unsigned short assocs[] __cpuinitdata = {
-+static unsigned short assocs[] __cpuinitdata = {
- 	[1] = 1, [2] = 2, [4] = 4, [6] = 8,
- 	[8] = 16, [0xa] = 32, [0xb] = 48,
- 	[0xc] = 64,
- 	[0xf] = 0xffff // ??
- };
+ static void vt8237_force_enable_hpet(struct pci_dev *dev)
+ {
+-	u32 val;
++	u32 uninitialized_var(val);
  
--static const unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
--static const unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
-+static unsigned char levels[] __cpuinitdata = { 1, 1, 2, 3 };
-+static unsigned char types[] __cpuinitdata = { 1, 2, 3, 3 };
- 
- static void __cpuinit amd_cpuid4(int leaf, union _cpuid4_leaf_eax *eax,
- 		       union _cpuid4_leaf_ebx *ebx,
+ 	if (hpet_address || force_hpet_address)
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,10 +116,11 @@ git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-intel_cacheinfo-adjustments.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
 intel_cacheinfo-misc-section-annotation-fixes-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+hpet-force-enable-on-vt8235-37-chipsets-fix.patch
 x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 git-xfs.patch
 git-xtensa.patch
