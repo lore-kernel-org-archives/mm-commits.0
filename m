@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arcmsr-fix-error-handling.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:27:01 -0700
-Message-ID: <200709120327.l8C3R1Ze014049@imap1.linux-foundation.org>
+Subject: + cyclades-avoid-label-defined-but-not-used-warning.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:32:53 -0700
+Message-ID: <200709120332.l8C3Wrhs014219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53677 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966149AbXILD1R (ORCPT
+	by vger.kernel.org with ESMTP id S1756737AbXILDc6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:27:17 -0400
+	Tue, 11 Sep 2007 23:32:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.hampel@gmx.de, James.Bottomley@steeleye.com, erich@areca.com.tw
+Cc: jesper.juhl@gmail.com, jirislaby@gmail.com
 
 
 The patch titled
-     arcmsr: fix error handling
+     Cyclades: Avoid label defined but not used warning
 has been added to the -mm tree.  Its filename is
-     arcmsr-fix-error-handling.patch
+     cyclades-avoid-label-defined-but-not-used-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arcmsr: fix error handling
-From: Maik Hampel <m.hampel@gmx.de>
+Subject: Cyclades: Avoid label defined but not used warning
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Fixed error handling in queuecommand(), now all READ_ and WRITE_ commands
-are aborted in case of RAID is gone.  Before only READ_6 and WRITE_6
-commands were aborted.
+   CC      drivers/char/cyclades.o
+ drivers/char/cyclades.c: In function 'cy_init':
+ drivers/char/cyclades.c:5488: warning: label 'err_unr' defined but not used
 
-Signed-off-by: Maik Hampel <m.hampel@gmx.de>
-Cc: erich <erich@areca.com.tw>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/arcmsr/arcmsr_hba.c |   32 +++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 11 deletions(-)
+ drivers/char/cyclades.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~arcmsr-fix-error-handling drivers/scsi/arcmsr/arcmsr_hba.c
---- a/drivers/scsi/arcmsr/arcmsr_hba.c~arcmsr-fix-error-handling
-+++ a/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -1133,17 +1133,27 @@ static int arcmsr_queue_command(struct s
- 		uint8_t block_cmd;
+diff -puN drivers/char/cyclades.c~cyclades-avoid-label-defined-but-not-used-warning drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cyclades-avoid-label-defined-but-not-used-warning
++++ a/drivers/char/cyclades.c
+@@ -5362,13 +5362,13 @@ static int __init cy_init(void)
+ #ifdef CONFIG_PCI
+ 	/* look for pci boards */
+ 	retval = pci_register_driver(&cy_pci_driver);
+-	if (retval && !nboards)
+-		goto err_unr;
++	if (retval && !nboards) {
++		tty_unregister_driver(cy_serial_driver);
++		goto err_frtty;
++	}
+ #endif
  
- 		block_cmd = cmd->cmnd[0] & 0x0f;
--		if (block_cmd == 0x08 || block_cmd == 0x0a) {
--			printk(KERN_NOTICE
--				"arcmsr%d: block 'read/write'"
--				"command with gone raid volume"
--				" Cmd = %2x, TargetId = %d, Lun = %d \n"
--				, acb->host->host_no
--				, cmd->cmnd[0]
--				, target, lun);
--			cmd->result = (DID_NO_CONNECT << 16);
--			cmd->scsi_done(cmd);
--			return 0;
-+		switch (block_cmd) {
-+			case READ_6:
-+			case READ_10:
-+			case READ_12:
-+			case READ_16:
-+			case WRITE_6:
-+			case WRITE_10:
-+			case WRITE_12:
-+			case WRITE_16:
-+				printk(KERN_NOTICE
-+					"arcmsr%d: block 'read/write'"
-+					"command with gone raid volume"
-+					" Cmd = %2x, TargetId = %d, Lun = %d \n"
-+					, acb->host->host_no
-+					, cmd->cmnd[0]
-+					, target, lun);
-+				cmd->result = (DID_NO_CONNECT << 16);
-+				cmd->scsi_done(cmd);
-+				return 0;
-+			default:
-+				break;
- 		}
- 	}
- 	if (atomic_read(&acb->ccboutstandingcount) >=
+ 	return 0;
+-err_unr:
+-	tty_unregister_driver(cy_serial_driver);
+ err_frtty:
+ 	put_tty_driver(cy_serial_driver);
+ err:
 _
 
-Patches currently in -mm which might be from m.hampel@gmx.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-arcmsr-fix-error-handling.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-powerpc.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-kbuild.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-scsi-misc.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
