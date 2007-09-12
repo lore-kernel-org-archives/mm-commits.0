@@ -1,98 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-pcnet32c.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:44:31 -0700
-Message-ID: <200709120344.l8C3iVPD014682@imap1.linux-foundation.org>
+Subject: - drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 20:46:48 -0700
+Message-ID: <200709120346.l8C3kmXL014719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37028 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758834AbXILDon (ORCPT
+	by vger.kernel.org with ESMTP id S1757336AbXILDrN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:44:43 -0400
+	Tue, 11 Sep 2007 23:47:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, davem@davemloft.net
+To: satyam@infradead.org, adaplas@pol.net, eugeneteo@kernel.sg, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: fix pcnet32.c
-has been added to the -mm tree.  Its filename is
-     git-net-fix-pcnet32c.patch
+     drivers/video/geode/lxfb_core.c: Fix build warning
+has been removed from the -mm tree.  Its filename was
+     drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net: fix pcnet32.c
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: drivers/video/geode/lxfb_core.c: Fix build warning
+From: Satyam Sharma <satyam@infradead.org>
 
-tiny bug fix for pcnet32.c (maybe works well. please confirm.)
+drivers/video/geode/lxfb_core.c: In function 'lxfb_setup':
+drivers/video/geode/lxfb_core.c:564: warning: unused variable 'opt'
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcnet32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/geode/lxfb_core.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN drivers/net/pcnet32.c~git-net-fix-pcnet32c drivers/net/pcnet32.c
---- a/drivers/net/pcnet32.c~git-net-fix-pcnet32c
-+++ a/drivers/net/pcnet32.c
-@@ -2616,7 +2616,7 @@ pcnet32_interrupt(int irq, void *dev_id)
- 			break;
- 		}
- #else
--		pcnet32_rx(dev, dev->napi.weight);
-+		pcnet32_rx(dev, lp->napi.weight);
- 		if (pcnet32_tx(dev)) {
- 			/* reset the chip to clear the error condition, then restart */
- 			lp->a.reset(ioaddr);
+diff -puN drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix
++++ a/drivers/video/geode/lxfb_core.c
+@@ -561,8 +561,6 @@ static struct pci_driver lxfb_driver = {
+ #ifndef MODULE
+ static int __init lxfb_setup(char *options)
+ {
+-	char *opt;
+-
+ 	if (!options || !*options)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-git-net-fix-pcnet32c.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-update-n_high_memory-node-state-for-memory-hotadd.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
-config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
-config_zone_movable-config-zone-movable.patch
+h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-netdev-all.patch
+git-net.patch
+git-s390.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+therm_throtc-fix-section-mismatch.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
