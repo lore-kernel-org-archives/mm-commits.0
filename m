@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch added to -mm tree
-Date: Wed, 12 Sep 2007 15:42:39 -0700
-Message-ID: <200709122242.l8CMgdn1022886@imap1.linux-foundation.org>
+Subject: + uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch added to -mm tree
+Date: Wed, 12 Sep 2007 15:47:00 -0700
+Message-ID: <200709122247.l8CMl0FC023051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754090AbXILWmm (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbXILWr0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 18:42:42 -0400
+	Wed, 12 Sep 2007 18:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM
+Cc: spock@gentoo.org, adaplas@pol.net, hpa@zytor.com, lethal@linux-sh.org, pmarques@grupopie.com
 
 
 The patch titled
-     x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
+     uvesafb: Don't access VGA registers directly when running on non-x86
 has been added to the -mm tree.  Its filename is
-     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+     uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: uvesafb: Don't access VGA registers directly when running on non-x86
+From: Michal Januszewski <spock@gentoo.org>
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+The VGA registers are only available at their legacy IO locations on x86. 
+Don't try to access them when running on other arches.
+
+Note that the code accessing them directly is just an optimization (limits
+slow BIOS function calls).  We don't lose any functionality by using BIOS
+calls instead of it on non-x86.
+
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Paulo Marques <pmarques@grupopie.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/setup.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+)
+ drivers/video/uvesafb.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron
-+++ a/arch/x86_64/kernel/setup.c
-@@ -491,6 +491,32 @@ static int nearby_node(int apicid)
- }
+diff -puN drivers/video/uvesafb.c~uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86 drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86
++++ a/drivers/video/uvesafb.c
+@@ -19,8 +19,10 @@
+ #include <linux/io.h>
+ #include <linux/mutex.h>
+ #include <video/edid.h>
+-#include <video/vga.h>
+ #include <video/uvesafb.h>
++#ifdef CONFIG_X86
++#include <video/vga.h>
++#endif
+ #ifdef CONFIG_MTRR
+ #include <asm/mtrr.h>
  #endif
+@@ -935,6 +937,7 @@ static int uvesafb_setpalette(struct uve
+ 	if (start + count > 256)
+ 		return -EINVAL;
  
-+/*[39:8] */
-+/* why not using 0xfe000000 ? */
-+#define FAM10H_PCI_MMIO_BASE 0xc0000000
-+static void fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
-+{
-+	u32 low, high, address;
-+
-+	address = 0xc0010058;
-+	if (rdmsr_safe(address, &low, &high))
-+		return;
-+
-+	if (low & 1)
-+		return;
-+
-+	printk(KERN_INFO "Enable MMCONFIG on AMD Family 10h\n");
-+	/*
-+	 * if it is not enable, let enable it and assume only one segement
-+	 * with 256 buses
-+	 */
-+	low &= ~(0xfff00000 | (0xf<<2));
-+	low |= (8<<2) | (1<<0);
-+	high &= ~(0x0000ffff);
-+	high |= (FAM10H_PCI_MMIO_BASE>>(32-8));
-+	wrmsr_safe(address, low, high);
-+}
-+
- /*
-  * On a AMD dual core setup the lower bits of the APIC id distingush the cores.
-  * Assumes number of cores is a power of two.
-@@ -645,6 +671,9 @@ static void __cpuinit init_amd(struct cp
- 	    (flags & 0x18))
- 		set_bit(X86_FEATURE_VIRT_DISABLED, &c->x86_capability);
++#ifdef CONFIG_X86
+ 	/* Use VGA registers if mode is VGA-compatible. */
+ 	if (i >= 0 && i < par->vbe_modes_cnt &&
+ 	    par->vbe_modes[i].mode_attr & VBE_MODE_VGACOMPAT) {
+@@ -957,8 +960,10 @@ static int uvesafb_setpalette(struct uve
+ 		  "D" (entries),        /* EDI */
+ 		  "S" (&par->pmi_pal)); /* ESI */
+ 	}
+-#endif
+-	else {
++#endif /* CONFIG_X86_32 */
++	else
++#endif /* CONFIG_X86 */
++	{
+ 		task = uvesafb_prep();
+ 		if (!task)
+ 			return -ENOMEM;
+@@ -1102,6 +1107,7 @@ static int uvesafb_blank(int blank, stru
+ 	struct uvesafb_ktask *task;
+ 	int err = 1;
  
-+	if (c->x86 == 0x10)
-+		fam10h_check_enable_mmcfg(c);
-+
- 	if (ler_enabled && c->x86 <= 17)
- 		__get_cpu_var(ler_msr) = MSR_IA32_LASTINTFROMIP;
- }
++#ifdef CONFIG_X86
+ 	if (par->vbe_ib.capabilities & VBE_CAP_VGACOMPAT) {
+ 		int loop = 10000;
+ 		u8 seq = 0, crtc17 = 0;
+@@ -1124,7 +1130,9 @@ static int uvesafb_blank(int blank, stru
+ 		while (loop--);
+ 		vga_wcrt(NULL, 0x17, crtc17);
+ 		vga_wseq(NULL, 0x00, 0x03);
+-	} else {
++	} else
++#endif /* CONFIG_X86 */
++	{
+ 		task = uvesafb_prep();
+ 		if (!task)
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-make-io-apic-not-connected-pin-print-complete.patch
-x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+fbdev-export-fb_destroy_modelist.patch
+connector-change-connectors-max-message-size.patch
+uvesafb-add-connector-entries.patch
+uvesafb-the-driver-core.patch
+uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
+uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch
+uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch
+uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch
+uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch
+uvesafb-the-driver-core-uvesafb-try-to-set-mode-with-default-timings-if-setting-it-with-our-own-timings-failed.patch
+uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch
+uvesafb-documentation.patch
+uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch
