@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mxser-fix-compiler-warning-when-building-withoug-config_pci.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:21:00 -0700
-Message-ID: <200709120321.l8C3L0vG013859@imap1.linux-foundation.org>
+Subject: + mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:22:01 -0700
+Message-ID: <200709120322.l8C3M1rd013874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40082 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868AbXILDVH (ORCPT
+	by vger.kernel.org with ESMTP id S1751779AbXILDWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:21:07 -0400
+	Tue, 11 Sep 2007 23:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.juhl@gmail.com
 
 
 The patch titled
-     mxser: fix compiler warning when building withoug CONFIG_PCI
+     mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
 has been added to the -mm tree.  Its filename is
-     mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+     mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mxser: fix compiler warning when building withoug CONFIG_PCI
+Subject: mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-drivers/char/mxser.c:386: warning: 'mxser_get_PCI_conf' declared 'static' but never defined
-
-when building without CONFIG_PCI.
+drivers/char/mxser.c:427: warning: 'CheckIsMoxaMust' defined but not used
+when building Moxa driver without CONFIG_PCI.
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/char/mxser.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci
+diff -puN drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix
 +++ a/drivers/char/mxser.c
-@@ -383,7 +383,6 @@ static int mxser_init(void);
+@@ -421,7 +421,7 @@ static void mxser_wait_until_sent(struct
+ static void mxser_startrx(struct tty_struct *tty);
+ static void mxser_stoprx(struct tty_struct *tty);
  
- /* static void   mxser_poll(unsigned long); */
- static int mxser_get_ISA_conf(int, struct mxser_hwconf *);
--static int mxser_get_PCI_conf(int, int, int, struct mxser_hwconf *);
- static void mxser_do_softint(struct work_struct *);
- static int mxser_open(struct tty_struct *, struct file *);
- static void mxser_close(struct tty_struct *, struct file *);
+-
++#ifdef CONFIG_PCI
+ static int CheckIsMoxaMust(int io)
+ {
+ 	u8 oldmcr, hwid;
+@@ -444,6 +444,7 @@ static int CheckIsMoxaMust(int io)
+ 	}
+ 	return MOXA_OTHER_UART;
+ }
++#endif
+ 
+ /* above is modified by Victor Yu. 08-15-2002 */
+ 
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
@@ -92,3 +101,4 @@ floppy-remove-dead-commented-out-code-from-floppy-driver.patch
 floppy-remove-register-keyword-use-from-floppy-driver.patch
 clean-up-duplicate-includes-in-documentation.patch
 mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
