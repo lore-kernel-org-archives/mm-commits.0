@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:22:01 -0700
-Message-ID: <200709120322.l8C3M1rd013874@imap1.linux-foundation.org>
+Subject: + x86_64-nx-bit-handling-in-change_page_attr.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:24:03 -0700
+Message-ID: <200709120324.l8C3O3Kp013993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42439 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751779AbXILDWE (ORCPT
+	by vger.kernel.org with ESMTP id S1760185AbXILDYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:22:04 -0400
+	Tue, 11 Sep 2007 23:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: ying.huang@intel.com, ak@suse.de
 
 
 The patch titled
-     mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
+     x86_64: NX bit handling in change_page_attr
 has been added to the -mm tree.  Its filename is
-     mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+     x86_64-nx-bit-handling-in-change_page_attr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,79 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: x86_64: NX bit handling in change_page_attr
+From: "Huang, Ying" <ying.huang@intel.com>
 
-drivers/char/mxser.c:427: warning: 'CheckIsMoxaMust' defined but not used
-when building Moxa driver without CONFIG_PCI.
+This patch fixes a bug of change_page_attr/change_page_attr_addr on Intel
+x86_64 CPU.  After changing page attribute to be executable with these
+functions, the page remains un-executable on Intel x86_64 CPU.  Because on
+Intel x86_64 CPU, only if the "NX" bits of all four level page tables are
+cleared, the corresponding page is executable (refer to section 4.13.2 of
+Intel 64 and IA-32 Architectures Software Developer's Manual).  So, the bug
+is fixed through clearing the "NX" bit of PMD when splitting the huge PMD.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86_64/mm/pageattr.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix
-+++ a/drivers/char/mxser.c
-@@ -421,7 +421,7 @@ static void mxser_wait_until_sent(struct
- static void mxser_startrx(struct tty_struct *tty);
- static void mxser_stoprx(struct tty_struct *tty);
- 
--
-+#ifdef CONFIG_PCI
- static int CheckIsMoxaMust(int io)
- {
- 	u8 oldmcr, hwid;
-@@ -444,6 +444,7 @@ static int CheckIsMoxaMust(int io)
- 	}
- 	return MOXA_OTHER_UART;
- }
-+#endif
- 
- /* above is modified by Victor Yu. 08-15-2002 */
- 
+diff -puN arch/x86_64/mm/pageattr.c~x86_64-nx-bit-handling-in-change_page_attr arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~x86_64-nx-bit-handling-in-change_page_attr
++++ a/arch/x86_64/mm/pageattr.c
+@@ -189,6 +189,7 @@ __change_page_attr(unsigned long address
+ 			split = split_large_page(address, prot, ref_prot2);
+ 			if (!split)
+ 				return -ENOMEM;
++			pgprot_val(ref_prot2) &= ~_PAGE_NX;
+ 			set_pte(kpte, mk_pte(split, ref_prot2));
+ 			kpte_page = split;
+ 		}
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-scsi-misc.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+x86_64-nx-bit-handling-in-change_page_attr.patch
+x86_64-efi-boot-support-efi-frame-buffer-driver.patch
+x86_64-efi-boot-support-efi-boot-document.patch
