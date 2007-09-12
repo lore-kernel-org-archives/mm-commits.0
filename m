@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wake-up-from-a-serial-port.patch added to -mm tree
-Date: Wed, 12 Sep 2007 15:36:18 -0700
-Message-ID: <200709122236.l8CMaILQ022647@imap1.linux-foundation.org>
+Subject: + x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch added to -mm tree
+Date: Wed, 12 Sep 2007 15:42:37 -0700
+Message-ID: <200709122242.l8CMgb34022883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44718 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934196AbXILWgd (ORCPT
+	by vger.kernel.org with ESMTP id S1753331AbXILWmk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 18:36:33 -0400
+	Wed, 12 Sep 2007 18:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, kay.sievers@vrfy.org, rmk@arm.linux.org.uk
+Cc: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM
 
 
 The patch titled
-     wake up from a serial port
+     x86_64: check MSR to get MMCONFIG for AMD Family 10h Opteron
 has been added to the -mm tree.  Its filename is
-     wake-up-from-a-serial-port.patch
+     x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,133 +26,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wake up from a serial port
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: x86_64: check MSR to get MMCONFIG for AMD Family 10h Opteron
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Enable wakeup from serial ports, make it run-time configurable over sysfs,
-e.g.,
+So even MCFG is not there, we still can use MMCONFIG.
 
-echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/power/wakeup
-
-Requires
-
-# CONFIG_SYSFS_DEPRECATED is not set
-
-Following suggestions from Alan and Russell moved the may_wake_up checks
-to serial_core.c. This time actually tested - it does even work. Could
-someone, please, verify, that put_device after device_find_child is
-correct? Also would be nice to test with a Natsemi UART, that can wake up
-the system, if such systems exist.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   40 ++++++++++++++++++++++++++++++++-
- include/linux/serial_core.h  |    3 +-
- 2 files changed, 41 insertions(+), 2 deletions(-)
+ arch/i386/pci/mmconfig-shared.c |   58 ++++++++++++++++++++++++++----
+ 1 files changed, 52 insertions(+), 6 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/serial_core.c
-@@ -1938,9 +1938,24 @@ static void uart_change_pm(struct uart_s
- 	}
+diff -puN arch/i386/pci/mmconfig-shared.c~x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron arch/i386/pci/mmconfig-shared.c
+--- a/arch/i386/pci/mmconfig-shared.c~x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron
++++ a/arch/i386/pci/mmconfig-shared.c
+@@ -133,33 +133,79 @@ static const char __init *pci_mmcfg_inte
+ 	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
  }
  
-+struct uart_match {
-+	struct uart_port *port;
-+	struct uart_driver *driver;
-+};
-+
-+static int serial_match_port(struct device *dev, void *data)
++static const char __init *pci_mmcfg_amd_fam10h(void)
 +{
-+	struct uart_match *match = data;
-+	dev_t devt = MKDEV(match->driver->major, match->driver->minor) + match->port->line;
++	u32 low, high, address;
++	u64 base;
++	int i;
++	unsigned segnbits = 0, busnbits;
 +
-+	return dev->devt == devt; /* Actually, only one tty per port */
++	address = 0xc0010058;
++	if (rdmsr_safe(address, &low, &high))
++		return NULL;
++
++	/* mmconfig is not enable */
++	if (!(low & 1))
++		return NULL;
++
++	base = high & 0xffff;
++	base <<= 32;
++
++	busnbits = (low >> 2) & 0x0f;
++	if (busnbits > 8) {
++		segnbits = busnbits - 8;
++		busnbits = 8;
++	}
++
++	pci_mmcfg_config_num = (1 << segnbits);
++	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]) * pci_mmcfg_config_num, GFP_KERNEL);
++	if (!pci_mmcfg_config)
++		return NULL;
++
++	for (i=0; i < (1 << segnbits); i++) {
++		pci_mmcfg_config[i].address = base + (1<<28) * i;
++		pci_mmcfg_config[i].pci_segment = i;
++		pci_mmcfg_config[i].start_bus_number = 0;
++		pci_mmcfg_config[i].end_bus_number = (1 << busnbits) - 1;
++	}
++
++	return "AMD Family 10h NB";
 +}
 +
- int uart_suspend_port(struct uart_driver *drv, struct uart_port *port)
- {
- 	struct uart_state *state = drv->state + port->line;
-+	struct device *tty_dev;
-+	struct uart_match match = {port, drv};
- 
- 	mutex_lock(&state->mutex);
- 
-@@ -1951,6 +1966,15 @@ int uart_suspend_port(struct uart_driver
- 	}
- #endif
- 
-+	tty_dev = device_find_child(port->dev, &match, serial_match_port);
-+	if (device_may_wakeup(tty_dev)) {
-+		enable_irq_wake(port->irq);
-+		put_device(tty_dev);
-+		mutex_unlock(&state->mutex);
-+		return 0;
-+	}
-+	port->suspended = 1;
-+
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
- 
-@@ -1999,6 +2023,13 @@ int uart_resume_port(struct uart_driver 
- 	}
- #endif
- 
-+	if (!port->suspended) {
-+		disable_irq_wake(port->irq);
-+		mutex_unlock(&state->mutex);
-+		return 0;
-+	}
-+	port->suspended = 0;
-+
- 	uart_change_pm(state, 0);
- 
- 	/*
-@@ -2271,6 +2302,7 @@ int uart_add_one_port(struct uart_driver
- {
- 	struct uart_state *state;
- 	int ret = 0;
-+	struct device *tty_dev;
- 
- 	BUG_ON(in_interrupt());
- 
-@@ -2306,7 +2338,13 @@ int uart_add_one_port(struct uart_driver
- 	 * Register the port whether it's detected or not.  This allows
- 	 * setserial to be used to alter this ports parameters.
- 	 */
--	tty_register_device(drv->tty_driver, port->line, port->dev);
-+	tty_dev = tty_register_device(drv->tty_driver, port->line, port->dev);
-+	if (likely(!IS_ERR(tty_dev))) {
-+		device_can_wakeup(tty_dev) = 1;
-+		device_set_wakeup_enable(tty_dev, 0);
-+	} else
-+		printk(KERN_ERR "Cannot register tty device on line %d\n",
-+		       port->line);
- 
- 	/*
- 	 * If this driver supports console, and it hasn't been
-diff -puN include/linux/serial_core.h~wake-up-from-a-serial-port include/linux/serial_core.h
---- a/include/linux/serial_core.h~wake-up-from-a-serial-port
-+++ a/include/linux/serial_core.h
-@@ -291,7 +291,8 @@ struct uart_port {
- 	resource_size_t		mapbase;		/* for ioremap */
- 	struct device		*dev;			/* parent device */
- 	unsigned char		hub6;			/* this should be in the 8250 driver */
--	unsigned char		unused[3];
-+	unsigned char		suspended;
-+	unsigned char		unused[2];
- 	void			*private_data;		/* generic platform data pointer */
+ struct pci_mmcfg_hostbridge_probe {
++	u32 bus;
++	u32 devfn;
+ 	u32 vendor;
+ 	u32 device;
+ 	const char *(*probe)(void);
  };
  
+ static struct pci_mmcfg_hostbridge_probe pci_mmcfg_probes[] __initdata = {
+-	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
+-	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
++	{ 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
++	{ 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
++	{ 0, PCI_DEVFN(0x18, 0), PCI_VENDOR_ID_AMD, 0x1200, pci_mmcfg_amd_fam10h },
++	{ 0xff, PCI_DEVFN(0, 0), PCI_VENDOR_ID_AMD, 0x1200, pci_mmcfg_amd_fam10h },
+ };
+ 
+ static int __init pci_mmcfg_check_hostbridge(void)
+ {
+ 	u32 l;
++	u32 bus, devfn;
+ 	u16 vendor, device;
+ 	int i;
+ 	const char *name;
+ 
+-	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0, 4, &l);
+-	vendor = l & 0xffff;
+-	device = (l >> 16) & 0xffff;
+-
+ 	pci_mmcfg_config_num = 0;
+ 	pci_mmcfg_config = NULL;
+ 	name = NULL;
+ 
+ 	for (i = 0; !name && i < ARRAY_SIZE(pci_mmcfg_probes); i++) {
++		bus =  pci_mmcfg_probes[i].bus;
++		devfn = pci_mmcfg_probes[i].devfn;
++		pci_conf1_read(0, bus, devfn, 0, 4, &l);
++		vendor = l & 0xffff;
++		device = (l >> 16) & 0xffff;
++
+ 		if (pci_mmcfg_probes[i].vendor == vendor &&
+ 		    pci_mmcfg_probes[i].device == device)
+ 			name = pci_mmcfg_probes[i].probe();
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
-git-powerpc.patch
-wake-up-from-a-serial-port.patch
+net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-make-io-apic-not-connected-pin-print-complete.patch
+x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
+x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
