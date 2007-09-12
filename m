@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - wake-up-from-a-serial-port.patch removed from -mm tree
-Date: Wed, 12 Sep 2007 15:18:28 -0700
-Message-ID: <200709122218.l8CMISAD021927@imap1.linux-foundation.org>
+Subject: + wake-up-from-a-serial-port.patch added to -mm tree
+Date: Wed, 12 Sep 2007 15:36:18 -0700
+Message-ID: <200709122236.l8CMaILQ022647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47847 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757040AbXILWTc (ORCPT
+	by vger.kernel.org with ESMTP id S934196AbXILWgd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 18:19:32 -0400
+	Wed, 12 Sep 2007 18:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, kay.sievers@vrfy.org, rmk@arm.linux.org.uk
 
 
 The patch titled
      wake up from a serial port
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      wake-up-from-a-serial-port.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: wake up from a serial port
@@ -34,89 +38,83 @@ Requires
 
 # CONFIG_SYSFS_DEPRECATED is not set
 
-Linkstation / kurobox systems from Buffalo Tech.  have an AVR controller
-connected to host's UART.  The AVR controls power, buttons, fan, LEDs,
-sensors...  So, practically the only way to wake the system up is to press a
-button, which sends a byte from the AVR to the CPU.
+Following suggestions from Alan and Russell moved the may_wake_up checks
+to serial_core.c. This time actually tested - it does even work. Could
+someone, please, verify, that put_device after device_find_child is
+correct? Also would be nice to test with a Natsemi UART, that can wake up
+the system, if such systems exist.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c        |   30 ++++++++++++++++++++++++++----
- drivers/serial/serial_core.c |    9 ++++++++-
- 2 files changed, 34 insertions(+), 5 deletions(-)
+ drivers/serial/serial_core.c |   40 ++++++++++++++++++++++++++++++++-
+ include/linux/serial_core.h  |    3 +-
+ 2 files changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/8250.c~wake-up-from-a-serial-port drivers/serial/8250.c
---- a/drivers/serial/8250.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/8250.c
-@@ -129,6 +129,7 @@ struct uart_8250_port {
- 	unsigned char		mcr;
- 	unsigned char		mcr_mask;	/* mask of user bits */
- 	unsigned char		mcr_force;	/* mask of forced bits */
-+	char			suspended;
- 
- 	/*
- 	 * Some bits in registers are cleared on a read, so they must
-@@ -2701,6 +2702,14 @@ static int __devexit serial8250_remove(s
- 	return 0;
+diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~wake-up-from-a-serial-port
++++ a/drivers/serial/serial_core.c
+@@ -1938,9 +1938,24 @@ static void uart_change_pm(struct uart_s
+ 	}
  }
  
-+static int serial8250_match_port(struct device *dev, void *data)
++struct uart_match {
++	struct uart_port *port;
++	struct uart_driver *driver;
++};
++
++static int serial_match_port(struct device *dev, void *data)
 +{
-+	struct uart_port *port = data;
-+	dev_t devt = MKDEV(serial8250_reg.major, serial8250_reg.minor) + port->line;
++	struct uart_match *match = data;
++	dev_t devt = MKDEV(match->driver->major, match->driver->minor) + match->port->line;
 +
 +	return dev->devt == devt; /* Actually, only one tty per port */
 +}
 +
- static int serial8250_suspend(struct platform_device *dev, pm_message_t state)
+ int uart_suspend_port(struct uart_driver *drv, struct uart_port *port)
  {
- 	int i;
-@@ -2708,8 +2717,16 @@ static int serial8250_suspend(struct pla
- 	for (i = 0; i < UART_NR; i++) {
- 		struct uart_8250_port *up = &serial8250_ports[i];
+ 	struct uart_state *state = drv->state + port->line;
++	struct device *tty_dev;
++	struct uart_match match = {port, drv};
  
--		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			uart_suspend_port(&serial8250_reg, &up->port);
-+		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev) {
-+			struct device *tty_dev = device_find_child(up->port.dev, &up->port,
-+								   serial8250_match_port);
-+			if (device_may_wakeup(tty_dev))
-+				enable_irq_wake(up->port.irq);
-+			else {
-+				uart_suspend_port(&serial8250_reg, &up->port);
-+				up->suspended = 1;
-+			}
-+		}
+ 	mutex_lock(&state->mutex);
+ 
+@@ -1951,6 +1966,15 @@ int uart_suspend_port(struct uart_driver
  	}
+ #endif
  
- 	return 0;
-@@ -2722,8 +2739,13 @@ static int serial8250_resume(struct plat
- 	for (i = 0; i < UART_NR; i++) {
- 		struct uart_8250_port *up = &serial8250_ports[i];
++	tty_dev = device_find_child(port->dev, &match, serial_match_port);
++	if (device_may_wakeup(tty_dev)) {
++		enable_irq_wake(port->irq);
++		put_device(tty_dev);
++		mutex_unlock(&state->mutex);
++		return 0;
++	}
++	port->suspended = 1;
++
+ 	if (state->info && state->info->flags & UIF_INITIALIZED) {
+ 		const struct uart_ops *ops = port->ops;
  
--		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev)
--			serial8250_resume_port(i);
-+		if (up->port.type != PORT_UNKNOWN && up->port.dev == &dev->dev) {
-+			if (up->suspended) {
-+				serial8250_resume_port(i);
-+				up->suspended = 0;
-+			} else
-+				disable_irq_wake(up->port.irq);
-+		}
+@@ -1999,6 +2023,13 @@ int uart_resume_port(struct uart_driver 
  	}
+ #endif
  
- 	return 0;
-diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/serial_core.c
-@@ -2271,6 +2271,7 @@ int uart_add_one_port(struct uart_driver
++	if (!port->suspended) {
++		disable_irq_wake(port->irq);
++		mutex_unlock(&state->mutex);
++		return 0;
++	}
++	port->suspended = 0;
++
+ 	uart_change_pm(state, 0);
+ 
+ 	/*
+@@ -2271,6 +2302,7 @@ int uart_add_one_port(struct uart_driver
  {
  	struct uart_state *state;
  	int ret = 0;
@@ -124,7 +122,7 @@ diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial
  
  	BUG_ON(in_interrupt());
  
-@@ -2306,7 +2307,13 @@ int uart_add_one_port(struct uart_driver
+@@ -2306,7 +2338,13 @@ int uart_add_one_port(struct uart_driver
  	 * Register the port whether it's detected or not.  This allows
  	 * setserial to be used to alter this ports parameters.
  	 */
@@ -139,6 +137,19 @@ diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial
  
  	/*
  	 * If this driver supports console, and it hasn't been
+diff -puN include/linux/serial_core.h~wake-up-from-a-serial-port include/linux/serial_core.h
+--- a/include/linux/serial_core.h~wake-up-from-a-serial-port
++++ a/include/linux/serial_core.h
+@@ -291,7 +291,8 @@ struct uart_port {
+ 	resource_size_t		mapbase;		/* for ioremap */
+ 	struct device		*dev;			/* parent device */
+ 	unsigned char		hub6;			/* this should be in the 8250 driver */
+-	unsigned char		unused[3];
++	unsigned char		suspended;
++	unsigned char		unused[2];
+ 	void			*private_data;		/* generic platform data pointer */
+ };
+ 
 _
 
 Patches currently in -mm which might be from g.liakhovetski@gmx.de are
