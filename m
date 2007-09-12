@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:42:29 -0700
-Message-ID: <200709120342.l8C3gTeT014560@imap1.linux-foundation.org>
+Subject: + kernel-doc-fix-doc-blocks-and-html.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:41:15 -0700
+Message-ID: <200709120341.l8C3fFHq014545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38106 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762742AbXILDmh (ORCPT
+	by vger.kernel.org with ESMTP id S1762753AbXILDmn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:42:37 -0400
+	Tue, 11 Sep 2007 23:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, rpjday@mindspring.com
+Cc: randy.dunlap@oracle.com, johannes@sipsolutions.net
 
 
 The patch titled
-     add-a-rounddown_pow_of_two-routine-to-log2h.patch fix
+     kernel-doc: fix doc blocks and html
 has been added to the -mm tree.  Its filename is
-     add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+     kernel-doc-fix-doc-blocks-and-html.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,154 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add-a-rounddown_pow_of_two-routine-to-log2h.patch fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: kernel-doc: fix doc blocks and html
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-	This patch fixes the unbalanced parenthesis inroduced by
-add-a-rounddown_pow_of_two-routine-to-log2h.patch.
+Johannes Berg reports (Thanks!) that &struct names are not highlighted in
+html output format when they are inside a DOC: block.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Robert P. J. Day <rpjday@mindspring.com>
+DOC: blocks were not escaped thru xml_escape() like other kernel-doc
+comments were.  Fixed that.
+
+However, that left a problem with <p> ($blankline_html) being processed
+thru xml_escape(), converting it to &lt;p&gt;, which isn't good for the
+generated html output (the <p> should remain unchanged), so this patch also
+introduces the notion of "local" kernel-doc meta-characters
+('\\\\mnemonic:'), which are converted to html just before writing the
+stream to its output file.
+
+Please report any problems that you (anyone) see in "highlighting" in any
+output mode (text, man, html, xml).
+
+Also update copyright to include me.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/kernel-doc |   41 ++++++++++++++++++++++++++++++++---------
+ 1 file changed, 32 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/log2.h~add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix include/linux/log2.h
---- a/include/linux/log2.h~add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix
-+++ a/include/linux/log2.h
-@@ -186,7 +186,7 @@ unsigned long __rounddown_pow_of_two(uns
- (						\
- 	__builtin_constant_p(n) ? (		\
- 		(n == 1) ? 0 :			\
--		(1UL << ilog2(n)) :		\
-+		(1UL << ilog2(n))) :		\
- 	__rounddown_pow_of_two(n)		\
-  )
+diff -puN scripts/kernel-doc~kernel-doc-fix-doc-blocks-and-html scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-doc-blocks-and-html
++++ a/scripts/kernel-doc
+@@ -5,6 +5,7 @@ use strict;
+ ## Copyright (c) 1998 Michael Zucchi, All Rights Reserved        ##
+ ## Copyright (C) 2000, 1  Tim Waugh <twaugh@redhat.com>          ##
+ ## Copyright (C) 2001  Simon Huggins                             ##
++## Copyright (C) 2005-2007  Randy Dunlap                         ##
+ ## 								 ##
+ ## #define enhancements by Armin Kuster <akuster@mvista.com>	 ##
+ ## Copyright (c) 2000 MontaVista Software, Inc.			 ##
+@@ -161,7 +162,7 @@ my $type_constant = '\%([-_\w]+)';
+ my $type_func = '(\w+)\(\)';
+ my $type_param = '\@(\w+)';
+ my $type_struct = '\&((struct\s*)*[_\w]+)';
+-my $type_struct_xml = '\\\amp;((struct\s*)*[_\w]+)';
++my $type_struct_xml = '\\&amp;((struct\s*)*[_\w]+)';
+ my $type_env = '(\$\w+)';
  
+ # Output conversion substitutions.
+@@ -173,7 +174,9 @@ my %highlights_html = ( $type_constant, 
+ 			$type_struct_xml, "<i>\$1</i>",
+ 			$type_env, "<b><i>\$1</i></b>",
+ 			$type_param, "<tt><b>\$1</b></tt>" );
+-my $blankline_html = "<p>";
++my $local_lt = "\\\\\\\\lt:";
++my $local_gt = "\\\\\\\\gt:";
++my $blankline_html = $local_lt . "p" . $local_gt;	# was "<p>"
+ 
+ # XML, docbook format
+ my %highlights_xml = ( "([^=])\\\"([^\\\"<]+)\\\"", "\$1<quote>\$2</quote>",
+@@ -391,17 +394,19 @@ sub output_highlight {
+ #	confess "output_highlight got called with no args?\n";
+ #   }
+ 
++    if ($output_mode eq "html") {
++	$contents = local_unescape($contents);
++	# convert data read & converted thru xml_escape() into &xyz; format:
++	$contents =~ s/\\\\\\/&/g;
++    }
+ #   print STDERR "contents b4:$contents\n";
+     eval $dohighlight;
+     die $@ if $@;
+-    if ($output_mode eq "html") {
+-	$contents =~ s/\\\\//;
+-    }
+ #   print STDERR "contents af:$contents\n";
+ 
+     foreach $line (split "\n", $contents) {
+ 	if ($line eq ""){
+-	    print $lineprefix, $blankline;
++	    print $lineprefix, local_unescape($blankline);
+ 	} else {
+ 	    $line =~ s/\\\\\\/\&/g;
+ 	    if ($output_mode eq "man" && substr($line, 0, 1) eq ".") {
+@@ -1752,7 +1757,13 @@ sub process_state3_type($$) {
+     }
+ }
+ 
+-# replace <, >, and &
++# xml_escape: replace <, >, and & in the text stream;
++#
++# however, formatting controls that are generated internally/locally in the
++# kernel-doc script are not escaped here; instead, they begin life like
++# $blankline_html (4 of '\' followed by a mnemonic + ':'), then these strings
++# are converted to their mnemonic-expected output, without the 4 * '\' & ':',
++# just before actual output; (this is done by local_unescape())
+ sub xml_escape($) {
+ 	my $text = shift;
+ 	if (($output_mode eq "text") || ($output_mode eq "man")) {
+@@ -1764,6 +1775,18 @@ sub xml_escape($) {
+ 	return $text;
+ }
+ 
++# convert local escape strings to html
++# local escape strings look like:  '\\\\menmonic:' (that's 4 backslashes)
++sub local_unescape($) {
++	my $text = shift;
++	if (($output_mode eq "text") || ($output_mode eq "man")) {
++		return $text;
++	}
++	$text =~ s/\\\\\\\\lt:/</g;
++	$text =~ s/\\\\\\\\gt:/>/g;
++	return $text;
++}
++
+ sub process_file($) {
+     my $file;
+     my $identifier;
+@@ -1903,7 +1926,7 @@ sub process_file($) {
+ 	} elsif ($state == 4) {
+ 		# Documentation block
+ 		if (/$doc_block/) {
+-			dump_section($section, $contents);
++			dump_section($section, xml_escape($contents));
+ 			output_intro({'sectionlist' => \@sectionlist,
+ 				      'sections' => \%sections });
+ 			$contents = "";
+@@ -1923,7 +1946,7 @@ sub process_file($) {
+ 		}
+ 		elsif (/$doc_end/)
+ 		{
+-			dump_section($section, $contents);
++			dump_section($section, xml_escape($contents));
+ 			output_intro({'sectionlist' => \@sectionlist,
+ 				      'sections' => \%sections });
+ 			$contents = "";
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-alsa.patch
-arm-unbalanced-parenthesis-fix.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
-git-dvb.patch
-git-mmc.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
 git-mtd.patch
-mtd-add-module-license-to-mtdbdi.patch
-git-netdev-all.patch
-skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
-message-fusion-remove-redundant-memset.patch
-git-v9fs.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
-fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-nfsd.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+profile-likely-unlikely-macros.patch
