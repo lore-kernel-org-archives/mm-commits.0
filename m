@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-nx-bit-handling-in-change_page_attr.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:24:03 -0700
-Message-ID: <200709120324.l8C3O3Kp013993@imap1.linux-foundation.org>
+Subject: + arcmsr-fix-error-handling.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:27:01 -0700
+Message-ID: <200709120327.l8C3R1Ze014049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760185AbXILDYM (ORCPT
+	by vger.kernel.org with ESMTP id S966149AbXILD1R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:24:12 -0400
+	Tue, 11 Sep 2007 23:27:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, ak@suse.de
+Cc: m.hampel@gmx.de, James.Bottomley@steeleye.com, erich@areca.com.tw
 
 
 The patch titled
-     x86_64: NX bit handling in change_page_attr
+     arcmsr: fix error handling
 has been added to the -mm tree.  Its filename is
-     x86_64-nx-bit-handling-in-change_page_attr.patch
+     arcmsr-fix-error-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: NX bit handling in change_page_attr
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: arcmsr: fix error handling
+From: Maik Hampel <m.hampel@gmx.de>
 
-This patch fixes a bug of change_page_attr/change_page_attr_addr on Intel
-x86_64 CPU.  After changing page attribute to be executable with these
-functions, the page remains un-executable on Intel x86_64 CPU.  Because on
-Intel x86_64 CPU, only if the "NX" bits of all four level page tables are
-cleared, the corresponding page is executable (refer to section 4.13.2 of
-Intel 64 and IA-32 Architectures Software Developer's Manual).  So, the bug
-is fixed through clearing the "NX" bit of PMD when splitting the huge PMD.
+Fixed error handling in queuecommand(), now all READ_ and WRITE_ commands
+are aborted in case of RAID is gone.  Before only READ_6 and WRITE_6
+commands were aborted.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Maik Hampel <m.hampel@gmx.de>
+Cc: erich <erich@areca.com.tw>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/pageattr.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/arcmsr/arcmsr_hba.c |   32 +++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86_64/mm/pageattr.c~x86_64-nx-bit-handling-in-change_page_attr arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~x86_64-nx-bit-handling-in-change_page_attr
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -189,6 +189,7 @@ __change_page_attr(unsigned long address
- 			split = split_large_page(address, prot, ref_prot2);
- 			if (!split)
- 				return -ENOMEM;
-+			pgprot_val(ref_prot2) &= ~_PAGE_NX;
- 			set_pte(kpte, mk_pte(split, ref_prot2));
- 			kpte_page = split;
+diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~arcmsr-fix-error-handling drivers/scsi/arcmsr/arcmsr_hba.c
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c~arcmsr-fix-error-handling
++++ a/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -1133,17 +1133,27 @@ static int arcmsr_queue_command(struct s
+ 		uint8_t block_cmd;
+ 
+ 		block_cmd = cmd->cmnd[0] & 0x0f;
+-		if (block_cmd == 0x08 || block_cmd == 0x0a) {
+-			printk(KERN_NOTICE
+-				"arcmsr%d: block 'read/write'"
+-				"command with gone raid volume"
+-				" Cmd = %2x, TargetId = %d, Lun = %d \n"
+-				, acb->host->host_no
+-				, cmd->cmnd[0]
+-				, target, lun);
+-			cmd->result = (DID_NO_CONNECT << 16);
+-			cmd->scsi_done(cmd);
+-			return 0;
++		switch (block_cmd) {
++			case READ_6:
++			case READ_10:
++			case READ_12:
++			case READ_16:
++			case WRITE_6:
++			case WRITE_10:
++			case WRITE_12:
++			case WRITE_16:
++				printk(KERN_NOTICE
++					"arcmsr%d: block 'read/write'"
++					"command with gone raid volume"
++					" Cmd = %2x, TargetId = %d, Lun = %d \n"
++					, acb->host->host_no
++					, cmd->cmnd[0]
++					, target, lun);
++				cmd->result = (DID_NO_CONNECT << 16);
++				cmd->scsi_done(cmd);
++				return 0;
++			default:
++				break;
  		}
+ 	}
+ 	if (atomic_read(&acb->ccboutstandingcount) >=
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from m.hampel@gmx.de are
 
-x86_64-nx-bit-handling-in-change_page_attr.patch
-x86_64-efi-boot-support-efi-frame-buffer-driver.patch
-x86_64-efi-boot-support-efi-boot-document.patch
+arcmsr-fix-error-handling.patch
