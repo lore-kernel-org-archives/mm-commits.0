@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-missing-00-index-file-for-documentation-vm.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:39:42 -0700
-Message-ID: <200709120339.l8C3dgmU014477@imap1.linux-foundation.org>
+Subject: + add-a-00-index-file-to-documentation-mips.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:39:44 -0700
+Message-ID: <200709120339.l8C3divC014480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757939AbXILDk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758373AbXILDk0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 11 Sep 2007 23:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.juhl@gmail.com, rdunlap@xenotime.net, rob@landley.net
 
 
 The patch titled
-     Add a missing 00-INDEX file for Documentation/vm/
+     [resend] Add a 00-INDEX file to Documentation/mips/
 has been added to the -mm tree.  Its filename is
-     add-a-missing-00-index-file-for-documentation-vm.patch
+     add-a-00-index-file-to-documentation-mips.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add a missing 00-INDEX file for Documentation/vm/
+Subject: [resend] Add a 00-INDEX file to Documentation/mips/
 From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This patch adds a 00-INDEX file to Documentation/vm/
+Add a 00-INDEX file to Documentation/mips/
 
 Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Cc: Rob Landley <rob@landley.net>
@@ -37,33 +37,21 @@ Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- vm/00-INDEX |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/mips/00-INDEX |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN /dev/null vm/00-INDEX
+diff -puN /dev/null Documentation/mips/00-INDEX
 --- /dev/null
-+++ a/vm/00-INDEX
-@@ -0,0 +1,20 @@
++++ a/Documentation/mips/00-INDEX
+@@ -0,0 +1,8 @@
 +00-INDEX
 +	- this file.
-+balance
-+	- various information on memory balancing.
-+hugetlbpage.txt
-+	- a brief summary of hugetlbpage support in the Linux kernel.
-+locking
-+	- info on how locking and synchronization is done in the Linux vm code.
-+numa
-+	- information about NUMA specific code in the Linux vm.
-+numa_memory_policy.txt
-+	- documentation of concepts and APIs of the 2.6 memory policy support.
-+overcommit-accounting
-+	- description of the Linux kernels overcommit handling modes.
-+page_migration
-+	- description of page migration in NUMA systems.
-+slabinfo.c
-+	- source code for a tool to get reports about slabs.
-+slub.txt
-+	- a short users guide for SLUB.
++AU1xxx_IDE.README
++	- README for MIPS AU1XXX IDE driver.
++GT64120.README
++	- README for dir with info on MIPS boards using GT-64120 or GT-64120A.
++time.README
++	- README for MIPS time services.
 _
 
 Patches currently in -mm which might be from jesper.juhl@gmail.com are
