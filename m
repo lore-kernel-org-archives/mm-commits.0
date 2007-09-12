@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-new-required-termio-functions.patch added to -mm tree
-Date: Tue, 11 Sep 2007 20:01:15 -0700
-Message-ID: <200709120301.l8C31FRh013244@imap1.linux-foundation.org>
+Subject: + uml-use-correct-type-in-blkgetsize-ioctl.patch added to -mm tree
+Date: Tue, 11 Sep 2007 20:10:49 -0700
+Message-ID: <200709120310.l8C3Anqn013526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46917 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753061AbXILDB3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751118AbXILDLM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:01:29 -0400
+	Tue, 11 Sep 2007 23:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, paulus@samba.org, torvalds@linux-foundation.org
+Cc: nicolas.george@ens.fr, jdike@addtoit.com
 
 
 The patch titled
-     powerpc: fix tty_ioctl.c build
+     uml: use correct type in BLKGETSIZE ioctl
 has been added to the -mm tree.  Its filename is
-     powerpc-add-new-required-termio-functions.patch
+     uml-use-correct-type-in-blkgetsize-ioctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: fix tty_ioctl.c build
-From: Tony Breeds <tony@bakeyournoodle.com>
+Subject: uml: use correct type in BLKGETSIZE ioctl
+From: Nicolas George <nicolas.george@ens.fr>
 
-Add Guards around TIOCSLCKTRMIOS and TIOCGLCKTRMIOS.
+I found a type mismatch in UML that makes host block devices unusable as ubd
+devices on x86_64 and other 64 bits systems (segfault of the mm subsystem):
 
-Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+In block/ioctl.c, the following lines show that the BLKGETSIZE ioctl expects
+a pointer to a long:
+
+	case BLKGETSIZE:
+		if ((bdev->bd_inode->i_size >> 9) > ~0UL)
+			return -EFBIG;
+		return put_ulong(arg, bdev->bd_inode->i_size >> 9);
+
+In arch/um/os-Linux/file.c, os_file_size calls it with an int.
+
+The ioctl_list man page should be fixed as well.
+
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/um/os-Linux/file.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~powerpc-add-new-required-termio-functions drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~powerpc-add-new-required-termio-functions
-+++ a/drivers/char/tty_ioctl.c
-@@ -795,6 +795,19 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			if (L_ICANON(tty))
- 				retval = inq_canon(tty);
- 			return put_user(retval, (unsigned int __user *) arg);
-+#ifndef TCGETS2
-+		case TIOCGLCKTRMIOS:
-+			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
-+				return -EFAULT;
-+			return 0;
-+
-+		case TIOCSLCKTRMIOS:
-+			if (!capable(CAP_SYS_ADMIN))
-+				return -EPERM;
-+			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
-+				return -EFAULT;
-+			return 0;
-+#else
- 		case TIOCGLCKTRMIOS:
- 			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
- 				return -EFAULT;
-@@ -806,6 +819,7 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
- 				return -EFAULT;
- 			return 0;
-+#endif
+diff -puN arch/um/os-Linux/file.c~uml-use-correct-type-in-blkgetsize-ioctl arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-use-correct-type-in-blkgetsize-ioctl
++++ a/arch/um/os-Linux/file.c
+@@ -320,7 +320,8 @@ int os_file_size(char *file, unsigned lo
+ 	}
  
- 		case TIOCPKT:
- 		{
+ 	if(S_ISBLK(buf.ust_mode)){
+-		int fd, blocks;
++		int fd;
++		long blocks;
+ 
+ 		fd = os_open_file(file, of_read(OPENFLAGS()), 0);
+ 		if(fd < 0){
 _
 
-Patches currently in -mm which might be from tony@bakeyournoodle.com are
+Patches currently in -mm which might be from nicolas.george@ens.fr are
 
-fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
-powerpc-add-new-required-termio-functions.patch
-mkmakefile-include-arch-on-o=-builds.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+uml-use-correct-type-in-blkgetsize-ioctl.patch
