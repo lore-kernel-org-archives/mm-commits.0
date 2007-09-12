@@ -1,79 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch removed from -mm tree
-Date: Tue, 11 Sep 2007 20:46:48 -0700
-Message-ID: <200709120346.l8C3kmXL014719@imap1.linux-foundation.org>
+Subject: - ktime_sub_ns-analog-of-ktime_add_ns.patch removed from -mm tree
+Date: Tue, 11 Sep 2007 20:49:29 -0700
+Message-ID: <200709120349.l8C3nTlR014833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757336AbXILDrN (ORCPT
+	by vger.kernel.org with ESMTP id S1754975AbXILDtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 23:47:13 -0400
+	Tue, 11 Sep 2007 23:49:31 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8C3nUxg001604
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2007 20:49:31 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, adaplas@pol.net, eugeneteo@kernel.sg, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/geode/lxfb_core.c: Fix build warning
+     ktime_sub_ns: analog of ktime_add_ns
 has been removed from the -mm tree.  Its filename was
-     drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
+     ktime_sub_ns-analog-of-ktime_add_ns.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/video/geode/lxfb_core.c: Fix build warning
-From: Satyam Sharma <satyam@infradead.org>
+Subject: ktime_sub_ns: analog of ktime_add_ns
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-drivers/video/geode/lxfb_core.c: In function 'lxfb_setup':
-drivers/video/geode/lxfb_core.c:564: warning: unused variable 'opt'
+Add macro/function to subtract constant nanoseconds.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |    2 --
- 1 files changed, 2 deletions(-)
+ include/linux/ktime.h |   16 ++++++++++++++++
+ kernel/hrtimer.c      |   24 ++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+)
 
-diff -puN drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -561,8 +561,6 @@ static struct pci_driver lxfb_driver = {
- #ifndef MODULE
- static int __init lxfb_setup(char *options)
- {
--	char *opt;
--
- 	if (!options || !*options)
- 		return 0;
+diff -puN include/linux/ktime.h~ktime_sub_ns-analog-of-ktime_add_ns include/linux/ktime.h
+--- a/include/linux/ktime.h~ktime_sub_ns-analog-of-ktime_add_ns
++++ a/include/linux/ktime.h
+@@ -102,6 +102,13 @@ static inline ktime_t ktime_set(const lo
+ #define ktime_add_ns(kt, nsval) \
+ 		({ (ktime_t){ .tv64 = (kt).tv64 + (nsval) }; })
  
++/*
++ * Subtract a ktime_t variable and a scalar nanosecond value.
++ * res = kt - nsval:
++ */
++#define ktime_sub_ns(kt, nsval) \
++		({ (ktime_t){ .tv64 = (kt).tv64 - (nsval) }; })
++
+ /* convert a timespec to ktime_t format: */
+ static inline ktime_t timespec_to_ktime(struct timespec ts)
+ {
+@@ -200,6 +207,15 @@ static inline ktime_t ktime_add(const kt
+ extern ktime_t ktime_add_ns(const ktime_t kt, u64 nsec);
+ 
+ /**
++ * ktime_sub_ns - Subtract a scalar nanoseconds value to a ktime_t variable
++ * @kt:	        minuend
++ * @nsec:	subtrahend in nanoseconds
++ *
++ * Returns the difference of @kt and @nsec in ktime_t format
++ */
++extern ktime_t ktime_sub_ns(const ktime_t kt, u64 nsec);
++
++/**
+  * timespec_to_ktime - convert a timespec to ktime_t format
+  * @ts:		the timespec variable to convert
+  *
+diff -puN kernel/hrtimer.c~ktime_sub_ns-analog-of-ktime_add_ns kernel/hrtimer.c
+--- a/kernel/hrtimer.c~ktime_sub_ns-analog-of-ktime_add_ns
++++ a/kernel/hrtimer.c
+@@ -277,6 +277,30 @@ ktime_t ktime_add_ns(const ktime_t kt, u
+ }
+ 
+ EXPORT_SYMBOL_GPL(ktime_add_ns);
++
++/**
++ * ktime_sub_ns - Subract a scalar nanoseconds value to a ktime_t variable
++ * @kt:		minuend
++ * @nsec:	subtrahend in nanoseconds
++ *
++ * Returns the difference of kt and nsec in ktime_t format
++ */
++ktime_t ktime_sub_ns(const ktime_t kt, u64 nsec)
++{
++	ktime_t tmp;
++
++	if (likely(nsec < NSEC_PER_SEC)) {
++		tmp.tv64 = nsec;
++	} else {
++		unsigned long rem = do_div(nsec, NSEC_PER_SEC);
++
++		tmp = ktime_set((long)nsec, rem);
++	}
++
++	return ktime_sub(kt, tmp);
++}
++
++EXPORT_SYMBOL_GPL(ktime_add_ns);
+ # endif /* !CONFIG_KTIME_SCALAR */
+ 
+ /*
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+pci-x-pci-express-read-control-interfaces-mthca.patch
 git-netdev-all.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+ktime_sub_ns-analog-of-ktime_add_ns.patch
+export-reciprocal_value-for-modules.patch
+sky2-avoid-divide-in-receive-path.patch
+sky2-118.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+sky2-restore-multicast-list-on-resume-and-other-ops.patch
 git-net.patch
-git-s390.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-drivers-video-geode-lxfb_corec-fix-lxfb_setup-warning-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
