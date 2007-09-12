@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-backlight-dependency-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2007 16:54:31 -0700
-Message-ID: <200709120000.l8C0055U003842@imap1.linux-foundation.org>
+Subject: + git-kgdb-fixup-2.patch added to -mm tree
+Date: Tue, 11 Sep 2007 17:09:35 -0700
+Message-ID: <200709120015.l8C0F9D1004377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47861 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932880AbXILAAR (ORCPT
+	by vger.kernel.org with ESMTP id S1754882AbXILAPN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 20:00:17 -0400
+	Tue, 11 Sep 2007 20:15:13 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8C0FA1D025323
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2007 17:15:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-backlight dependency fix
+     git-kgdb-fixup-2
 has been added to the -mm tree.  Its filename is
-     git-backlight-dependency-fix.patch
+     git-kgdb-fixup-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +30,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-backlight dependency fix
+Subject: git-kgdb-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/backlight/corgi_bl.c:21:30: error: asm/arch/sharpsl.h: No such file or directory
-drivers/video/backlight/corgi_bl.c:22:37: error: asm/hardware/sharpsl_pm.h: No such file or directory
-drivers/video/backlight/corgi_bl.c: In function 'corgibl_send_intensity':
-drivers/video/backlight/corgi_bl.c:51: error: 'sharpsl_battery_kick' undeclared (first use in this function)
-drivers/video/backlight/corgi_bl.c:51: error: (Each undeclared identifier is reported only once
-drivers/video/backlight/corgi_bl.c:51: error: for each function it appears in.)
-drivers/video/backlight/corgi_bl.c:51: warning: type defaults to 'int' in declaration of 'type name'
-drivers/video/backlight/corgi_bl.c:51: warning: assignment makes pointer from integer without a cast
-
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |    1 +
+ include/asm-x86_64/kdebug.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/Kconfig~git-backlight-dependency-fix drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~git-backlight-dependency-fix
-+++ a/drivers/video/backlight/Kconfig
-@@ -53,6 +53,7 @@ config BACKLIGHT_CLASS_DEVICE
- config BACKLIGHT_CORGI
- 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
- 	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on ARM
- 	default n
- 	help
- 	  Say y to enable the generic platform backlight driver previously
+diff -puN include/asm-x86_64/kdebug.h~git-kgdb-fixup-2 include/asm-x86_64/kdebug.h
+--- a/include/asm-x86_64/kdebug.h~git-kgdb-fixup-2
++++ a/include/asm-x86_64/kdebug.h
+@@ -23,6 +23,7 @@ enum die_val {
+ 	DIE_CALL,
+ 	DIE_NMI_IPI,
+ 	DIE_PAGE_FAULT,
++	DIE_PAGE_FAULT_NO_CONTEXT,
+ };
+ 
+ extern void printk_address(unsigned long address);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +69,7 @@ revert-gregkh-driver-block-device.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
 i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
 infiniband-work-around-gcc-slub-problem.patch
 git-input.patch
@@ -100,6 +95,7 @@ git-net-broke-ixgbe.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
 git-bluetooth-build-fix.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
@@ -128,6 +124,7 @@ x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
 git-xfs.patch
 git-xtensa.patch
 git-kgdb-fixup.patch
+git-kgdb-fixup-2.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
 atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
@@ -215,5 +212,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-dvb-build-fix.patch
-git-backlight-dependency-fix.patch
