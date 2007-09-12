@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slub-limit-the-maximum-size-of-merged-slab-caches.patch added to -mm tree
-Date: Wed, 12 Sep 2007 13:57:47 -0700
-Message-ID: <200709122057.l8CKvlw7018901@imap1.linux-foundation.org>
+Subject: - slub-limit-the-maximum-size-of-merged-slab-caches.patch removed from -mm tree
+Date: Wed, 12 Sep 2007 13:58:57 -0700
+Message-ID: <200709122058.l8CKwvEW018920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57264 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38130 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760660AbXILU5x (ORCPT
+	by vger.kernel.org with ESMTP id S1761221AbXILU7F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 16:57:53 -0400
+	Wed, 12 Sep 2007 16:59:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, davem@davemloft.net
+To: clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      slub: limit the maximum size of merged slab caches
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      slub-limit-the-maximum-size-of-merged-slab-caches.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: slub: limit the maximum size of merged slab caches
