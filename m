@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-fixup-2.patch added to -mm tree
-Date: Tue, 11 Sep 2007 17:09:35 -0700
-Message-ID: <200709120015.l8C0F9D1004377@imap1.linux-foundation.org>
+Subject: + ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch added to -mm tree
+Date: Tue, 11 Sep 2007 17:15:28 -0700
+Message-ID: <200709120021.l8C0L3Jc004576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60420 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48374 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754882AbXILAPN (ORCPT
+	by vger.kernel.org with ESMTP id S1751916AbXILAVl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 11 Sep 2007 20:15:13 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8C0FA1D025323
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2007 17:15:11 -0700
+	Tue, 11 Sep 2007 20:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, Nadia.Derbey@bull.net
 
 
 The patch titled
-     git-kgdb-fixup-2
+     ipc-integrate-ipc_checkid-into-ipc_lock-fix
 has been added to the -mm tree.  Its filename is
-     git-kgdb-fixup-2.patch
+     ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,26 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb-fixup-2
+Subject: ipc-integrate-ipc_checkid-into-ipc_lock-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ipc/util.h: In function 'ipc_lock_check':
+ipc/util.h:157: error: implicit declaration of function 'IS_ERR'
+ipc/util.h:162: error: implicit declaration of function 'ERR_PTR'
+ipc/util.h:162: warning: return makes pointer from integer without a cast
+
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/kdebug.h |    1 +
+ ipc/util.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86_64/kdebug.h~git-kgdb-fixup-2 include/asm-x86_64/kdebug.h
---- a/include/asm-x86_64/kdebug.h~git-kgdb-fixup-2
-+++ a/include/asm-x86_64/kdebug.h
-@@ -23,6 +23,7 @@ enum die_val {
- 	DIE_CALL,
- 	DIE_NMI_IPI,
- 	DIE_PAGE_FAULT,
-+	DIE_PAGE_FAULT_NO_CONTEXT,
- };
+diff -puN ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix ipc/util.h
+--- a/ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix
++++ a/ipc/util.h
+@@ -11,6 +11,7 @@
+ #define _IPC_UTIL_H
  
- extern void printk_address(unsigned long address);
+ #include <linux/idr.h>
++#include <linux/err.h>
+ 
+ #define USHRT_MAX 0xffff
+ #define SEQ_MULTIPLIER	(IPCMNI)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -206,6 +208,7 @@ memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
