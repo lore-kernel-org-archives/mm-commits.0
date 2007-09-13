@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + modpost-detect-unterminated-device-id-lists.patch added to -mm tree
-Date: Wed, 12 Sep 2007 18:24:30 -0700
-Message-ID: <200709130124.l8D1OUxr028313@imap1.linux-foundation.org>
+Subject: + modpost-detect-unterminated-device-id-lists-fix.patch added to -mm tree
+Date: Wed, 12 Sep 2007 18:24:32 -0700
+Message-ID: <200709130124.l8D1OWEH028316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753462AbXIMBZE (ORCPT
+	by vger.kernel.org with ESMTP id S1754057AbXIMBZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 21:25:04 -0400
+	Wed, 12 Sep 2007 21:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kees@ubuntu.com, adobriyan@gmail.com, bcollins@ubuntu.com, flamingice@sourmilk.net, greg@kroah.com, jeff@garzik.org, rusty@rustcorp.com.au, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, bcollins@ubuntu.com, flamingice@sourmilk.net, jeff@garzik.org, kees@ubuntu.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     modpost: detect unterminated device id lists
+     modpost-detect-unterminated-device-id-lists-fix
 has been added to the -mm tree.  Its filename is
-     modpost-detect-unterminated-device-id-lists.patch
+     modpost-detect-unterminated-device-id-lists-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,235 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: modpost: detect unterminated device id lists
-From: Kees Cook <kees@ubuntu.com>
+Subject: modpost-detect-unterminated-device-id-lists-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Cause modpost to fail if any device id lists are incorrectly terminated,
-after reporting the offender.
-
-Signed-off-by: Kees Cook <kees@ubuntu.com>
-Greg KH <greg@kroah.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Ben Collins <bcollins@ubuntu.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Kees Cook <kees@ubuntu.com>
 Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/file2alias.c |   38 ++++++++++++++++++++++++++++++-------
- 1 file changed, 31 insertions(+), 7 deletions(-)
+ scripts/mod/file2alias.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists
+diff -puN scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists-fix scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists-fix
 +++ a/scripts/mod/file2alias.c
-@@ -55,10 +55,13 @@ do {                                    
-  * Check that sizeof(device_id type) are consistent with size of section
-  * in .o file. If in-consistent then userspace and kernel does not agree
-  * on actual size which is a bug.
-+ * Also verify that the final entry in the table is all zeros.
-  **/
--static void device_id_size_check(const char *modname, const char *device_id,
--				 unsigned long size, unsigned long id_size)
-+static void device_id_check(const char *modname, const char *device_id,
-+			    unsigned long size, unsigned long id_size,
-+			    void *symval)
+@@ -62,6 +62,7 @@ static void device_id_check(const char *
+ 			    void *symval)
  {
-+	int i;
+ 	int i;
++
  	if (size % id_size || size < id_size) {
  		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
  		      "of the size of section __mod_%s_device_table=%lu.\n"
-@@ -66,6 +69,18 @@ static void device_id_size_check(const c
- 		      "in mod_devicetable.h\n",
- 		      modname, device_id, id_size, device_id, size, device_id);
+@@ -71,11 +72,13 @@ static void device_id_check(const char *
  	}
-+	/* Verify last one is a terminator */
-+	for (i = 0; i < id_size; i++ ) {
-+		if ( *(uint8_t*)(symval+size-id_size+i) ) {
-+			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  The last of %lu is:\n", modname, device_id, id_size, size / id_size);
-+			for (i = 0; i < id_size; i++ ) {
-+				fprintf(stderr,"0x%02x ", *(uint8_t*)(symval+size-id_size+i) );
-+			}
-+			fprintf(stderr,"\n");
-+			fatal("%s: struct %s_device_id is not terminated "
-+				"with a NULL entry!\n", modname, device_id);
-+		}
-+	}
- }
- 
- /* USB is special because the bcdDevice can be matched against a numeric range */
-@@ -168,7 +183,7 @@ static void do_usb_table(void *symval, u
- 	unsigned int i;
- 	const unsigned long id_size = sizeof(struct usb_device_id);
- 
--	device_id_size_check(mod->name, "usb", size, id_size);
-+	device_id_check(mod->name, "usb", size, id_size, symval);
- 
- 	/* Leave last one: it's the terminator. */
- 	size -= id_size;
-@@ -529,7 +544,7 @@ static void do_table(void *symval, unsig
- 	char alias[500];
- 	int (*do_entry)(const char *, void *entry, char *alias) = function;
- 
--	device_id_size_check(mod->name, device_id, size, id_size);
-+	device_id_check(mod->name, device_id, size, id_size, symval);
- 	/* Leave last one: it's the terminator. */
- 	size -= id_size;
- 
-@@ -551,14 +566,22 @@ void handle_moddevtable(struct module *m
- 			Elf_Sym *sym, const char *symname)
- {
- 	void *symval;
-+	char *zeros = NULL;
- 
- 	/* We're looking for a section relative symbol */
- 	if (!sym->st_shndx || sym->st_shndx >= info->hdr->e_shnum)
- 		return;
- 
--	symval = (void *)info->hdr
--		+ info->sechdrs[sym->st_shndx].sh_offset
--		+ sym->st_value;
-+	/* Handle all-NULL symbols allocated into .bss */
-+	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
-+		zeros = calloc(1, sym->st_size);
-+		symval = zeros;
-+	}
-+	else {
-+		symval = (void *)info->hdr
-+			+ info->sechdrs[sym->st_shndx].sh_offset
-+			+ sym->st_value;
-+	}
- 
- 	if (sym_is(symname, "__mod_pci_device_table"))
- 		do_table(symval, sym->st_size,
-@@ -627,6 +650,7 @@ void handle_moddevtable(struct module *m
+ 	/* Verify last one is a terminator */
+ 	for (i = 0; i < id_size; i++ ) {
+-		if ( *(uint8_t*)(symval+size-id_size+i) ) {
+-			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  The last of %lu is:\n", modname, device_id, id_size, size / id_size);
+-			for (i = 0; i < id_size; i++ ) {
+-				fprintf(stderr,"0x%02x ", *(uint8_t*)(symval+size-id_size+i) );
+-			}
++		if (*(uint8_t*)(symval+size-id_size+i)) {
++			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  "
++				"The last of %lu is:\n",
++				modname, device_id, id_size, size / id_size);
++			for (i = 0; i < id_size; i++ )
++				fprintf(stderr,"0x%02x ",
++					*(uint8_t*)(symval+size-id_size+i) );
+ 			fprintf(stderr,"\n");
+ 			fatal("%s: struct %s_device_id is not terminated "
+ 				"with a NULL entry!\n", modname, device_id);
+@@ -576,8 +579,7 @@ void handle_moddevtable(struct module *m
+ 	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
+ 		zeros = calloc(1, sym->st_size);
+ 		symval = zeros;
+-	}
+-	else {
++	} else {
+ 		symval = (void *)info->hdr
+ 			+ info->sechdrs[sym->st_shndx].sh_offset
+ 			+ sym->st_value;
+@@ -650,7 +652,7 @@ void handle_moddevtable(struct module *m
  		do_table(symval, sym->st_size,
  			 sizeof(struct ssb_device_id), "ssb",
  			 do_ssb_entry, mod);
-+	if (zeros) free(zeros);
+-	if (zeros) free(zeros);
++	free(zeros);
  }
  
  /* Now add out buffered information to the generated C source */
 _
 
-Patches currently in -mm which might be from kees@ubuntu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-modpost-detect-unterminated-device-id-lists.patch
+bug-in-at91-mci-suspend-routines.patch
+leases-can-be-hidden-by-flocks.patch
+revert-highmem-catch-illegal-nesting.patch
+slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
+atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-powerpc-fixup.patch
+revert-gregkh-driver-block-device.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-kbuild.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+e1000e-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+git-net.patch
+git-net-fixup.patch
+git-net-broke-ixgbe.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-bluetooth-build-fix.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-ocfs2.patch
+serial-8250-implement-dtr-dsr-handshaking-fix.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-intel_cacheinfo-adjustments.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+git-xfs.patch
+git-xtensa.patch
+git-kgdb-fixup.patch
+git-kgdb-fixup-2.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
 modpost-detect-unterminated-device-id-lists-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
