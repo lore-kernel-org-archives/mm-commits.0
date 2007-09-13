@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sgiseeq-replace-use-of-dma_cache_wback_inv.patch added to -mm tree
-Date: Thu, 13 Sep 2007 15:03:16 -0700
-Message-ID: <200709132203.l8DM3GDu008144@imap1.linux-foundation.org>
+Subject: + spelling-fix-weired-weird.patch added to -mm tree
+Date: Thu, 13 Sep 2007 15:04:06 -0700
+Message-ID: <200709132204.l8DM46kV008179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33626 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755038AbXIMWDc (ORCPT
+	by vger.kernel.org with ESMTP id S1758123AbXIMWEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 18:03:32 -0400
+	Thu, 13 Sep 2007 18:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, jeff@garzik.org
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     sgiseeq: replace use of dma_cache_wback_inv
+     Spelling fix: weired -> weird
 has been added to the -mm tree.  Its filename is
-     sgiseeq-replace-use-of-dma_cache_wback_inv.patch
+     spelling-fix-weired-weird.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sgiseeq: replace use of dma_cache_wback_inv
+Subject: Spelling fix: weired -> weird
 From: Ralf Baechle <ralf@linux-mips.org>
 
-The sgiseeq driver is one of the few remaining users of the ancient cache
-banging DMA API.  Replaced with the modern days DMA API.
-
 Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sgiseeq.c |   26 +++++++++++---------------
- 1 files changed, 11 insertions(+), 15 deletions(-)
+ Documentation/scsi/ibmmca.txt |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv drivers/net/sgiseeq.c
---- a/drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv
-+++ a/drivers/net/sgiseeq.c
-@@ -75,6 +75,7 @@ struct sgiseeq_init_block { /* Note the 
- 
- struct sgiseeq_private {
- 	struct sgiseeq_init_block *srings;
-+	dma_addr_t srings_dma;
- 
- 	/* Ptrs to the descriptors in uncached space. */
- 	struct sgiseeq_rx_desc *rx_desc;
-@@ -634,13 +635,20 @@ static int __init sgiseeq_probe(struct p
- 	sp = netdev_priv(dev);
- 
- 	/* Make private data page aligned */
--	sr = (struct sgiseeq_init_block *) get_zeroed_page(GFP_KERNEL);
-+	sr = dma_alloc_coherent(&pdev->dev, sizeof(*sp->srings),
-+				&sp->srings_dma, GFP_KERNEL);
- 	if (!sr) {
- 		printk(KERN_ERR "Sgiseeq: Page alloc failed, aborting.\n");
- 		err = -ENOMEM;
- 		goto err_out_free_dev;
- 	}
- 	sp->srings = sr;
-+	sp->rx_desc = sp->srings->rxvector;
-+	sp->tx_desc = sp->srings->txvector;
-+
-+	/* A couple calculations now, saves many cycles later. */
-+	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
-+	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
- 
- 	memcpy(dev->dev_addr, pd->mac, ETH_ALEN);
- 
-@@ -653,19 +661,6 @@ static int __init sgiseeq_probe(struct p
- 	sp->name = sgiseeqstr;
- 	sp->mode = SEEQ_RCMD_RBCAST;
- 
--	sp->rx_desc = (struct sgiseeq_rx_desc *)
--	              CKSEG1ADDR(ALIGNED(&sp->srings->rxvector[0]));
--	dma_cache_wback_inv((unsigned long)&sp->srings->rxvector,
--	                    sizeof(sp->srings->rxvector));
--	sp->tx_desc = (struct sgiseeq_tx_desc *)
--	              CKSEG1ADDR(ALIGNED(&sp->srings->txvector[0]));
--	dma_cache_wback_inv((unsigned long)&sp->srings->txvector,
--	                    sizeof(sp->srings->txvector));
--
--	/* A couple calculations now, saves many cycles later. */
--	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
--	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
--
- 	/* Setup PIO and DMA transfer timing */
- 	sp->hregs->pconfig = 0x161;
- 	sp->hregs->dconfig = HPC3_EDCFG_FIRQ | HPC3_EDCFG_FEOP |
-@@ -722,7 +717,8 @@ static int __exit sgiseeq_remove(struct 
- 	struct sgiseeq_private *sp = netdev_priv(dev);
- 
- 	unregister_netdev(dev);
--	free_page((unsigned long) sp->srings);
-+	dma_free_coherent(&pdev->dev, sizeof(*sp->srings), sp->srings,
-+	                  sp->srings_dma);
- 	free_netdev(dev);
- 	platform_set_drvdata(pdev, NULL);
- 
+diff -puN Documentation/scsi/ibmmca.txt~spelling-fix-weired-weird Documentation/scsi/ibmmca.txt
+--- a/Documentation/scsi/ibmmca.txt~spelling-fix-weired-weird
++++ a/Documentation/scsi/ibmmca.txt
+@@ -1188,7 +1188,7 @@
+ 	and 15 get ignored by the driver & adapter!
+      Q: I have a 9595 and I get a NMI during heavy SCSI I/O e.g. during fsck.
+         A COMMAND ERROR is reported and characters on the screen are missing.
+-	Warm reboot is not possible. Things look like quite weired.
++	Warm reboot is not possible. Things look like quite weird.
+      A: Check the processor type of your 9595. If you have an 80486 or 486DX-2
+         processor complex on your mainboard and you compiled a kernel that
+ 	supports 80386 processors, it is possible, that the kernel cannot
 _
 
 Patches currently in -mm which might be from ralf@linux-mips.org are
@@ -128,6 +73,7 @@ fix-ide-legacy-mode-resources-fix.patch
 during-vm-oom-condition-kill-all-threads-in-process-group.patch
 drivers-pmc-msp71xx-gpio-char-driver.patch
 clean-up-duplicate-includes-in-drivers-char.patch
+spelling-fix-weired-weird.patch
 rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
 fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
 fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
