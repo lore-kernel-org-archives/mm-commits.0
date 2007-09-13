@@ -1,119 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + the-hack-below.patch added to -mm tree
-Date: Wed, 12 Sep 2007 21:48:33 -0700
-Message-ID: <200709130448.l8D4mXoF002378@imap1.linux-foundation.org>
+Subject: - powerpc-add-new-required-termio-functions.patch removed from -mm tree
+Date: Wed, 12 Sep 2007 23:45:21 -0700
+Message-ID: <200709130645.l8D6jLWB006295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55892 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60419 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751316AbXIMEtL (ORCPT
+	by vger.kernel.org with ESMTP id S1757070AbXIMGpi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 00:49:11 -0400
+	Thu, 13 Sep 2007 02:45:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de
+To: tony@bakeyournoodle.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, paulus@samba.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     the hack below
-has been added to the -mm tree.  Its filename is
-     the-hack-below.patch
+     powerpc: fix tty_ioctl.c build
+has been removed from the -mm tree.  Its filename was
+     powerpc-add-new-required-termio-functions.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: the hack below
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: powerpc: fix tty_ioctl.c build
+From: Tony Breeds <tony@bakeyournoodle.com>
 
-Does the test hack below fix the problem for nohz/highres enabled
-kernels ?
+Add Guards around TIOCSLCKTRMIOS and TIOCGLCKTRMIOS.
 
-
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/tty_ioctl.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN kernel/time/tick-broadcast.c~the-hack-below kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~the-hack-below
-+++ a/kernel/time/tick-broadcast.c
-@@ -382,6 +382,8 @@ static int tick_broadcast_set_event(ktim
- 
- int tick_resume_broadcast_oneshot(struct clock_event_device *bc)
- {
-+	cpu_set(smp_processor_id(), tick_broadcast_oneshot_mask);
+diff -puN drivers/char/tty_ioctl.c~powerpc-add-new-required-termio-functions drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~powerpc-add-new-required-termio-functions
++++ a/drivers/char/tty_ioctl.c
+@@ -795,6 +795,19 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (L_ICANON(tty))
+ 				retval = inq_canon(tty);
+ 			return put_user(retval, (unsigned int __user *) arg);
++#ifndef TCGETS2
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
 +
- 	clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#else
+ 		case TIOCGLCKTRMIOS:
+ 			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
+ 				return -EFAULT;
+@@ -806,6 +819,7 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
+ 				return -EFAULT;
+ 			return 0;
++#endif
  
- 	if(!cpus_empty(tick_broadcast_oneshot_mask))
+ 		case TIOCPKT:
+ 		{
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
-the-hack-below.patch
-futex_compat-fix-list-traversal-bugs.patch
 fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
-timekeeping-prevent-time-going-backwards-on-resume.patch
-git-acpi.patch
-arm-cleanup-struct-irqaction-initializers.patch
-git-mips.patch
-sh-cleanup-struct-irqaction-initializers.patch
-sh64-cleanup-struct-irqaction-initializers.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+mkmakefile-include-arch-on-o=-builds.patch
 fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-futex_compat-simplify-pointer-magic.patch
-futex_compat-update-to-match-native-version.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
