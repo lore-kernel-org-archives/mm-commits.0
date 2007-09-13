@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch added to -mm tree
-Date: Thu, 13 Sep 2007 15:01:18 -0700
-Message-ID: <200709132201.l8DM1Iru008052@imap1.linux-foundation.org>
+Subject: + sgiseeq-replace-use-of-dma_cache_wback_inv.patch added to -mm tree
+Date: Thu, 13 Sep 2007 15:03:16 -0700
+Message-ID: <200709132203.l8DM3GDu008144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47609 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752645AbXIMWBe (ORCPT
+	by vger.kernel.org with ESMTP id S1755038AbXIMWDc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 18:01:34 -0400
+	Thu, 13 Sep 2007 18:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, dushistov@mail.ru
+Cc: ralf@linux-mips.org, jeff@garzik.org
 
 
 The patch titled
-     ufs: Fix mount check in ufs_fill_super()
+     sgiseeq: replace use of dma_cache_wback_inv
 has been added to the -mm tree.  Its filename is
-     ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+     sgiseeq-replace-use-of-dma_cache_wback_inv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ufs: Fix mount check in ufs_fill_super()
-From: Satyam Sharma <satyam@infradead.org>
+Subject: sgiseeq: replace use of dma_cache_wback_inv
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The current code skips the check to verify whether the filesystem was
-previously cleanly unmounted, if (flags & UFS_ST_MASK) == UFS_ST_44BSD or
-UFS_ST_OLD.  This looks like an inadvertent bug that slipped in due to
-parantheses in the compound conditional to me, especially given that
-ufs_get_fs_state() handles the UFS_ST_44BSD case perfectly well.  So, let's
-fix the compound condition appropriately.
+The sgiseeq driver is one of the few remaining users of the ancient cache
+banging DMA API.  Replaced with the modern days DMA API.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/net/sgiseeq.c |   26 +++++++++++---------------
+ 1 files changed, 11 insertions(+), 15 deletions(-)
 
-diff -puN fs/ufs/super.c~ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super
-+++ a/fs/ufs/super.c
-@@ -934,19 +934,20 @@ magic_found:
- 		flags |=  UFS_ST_SUN;
+diff -puN drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv drivers/net/sgiseeq.c
+--- a/drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv
++++ a/drivers/net/sgiseeq.c
+@@ -75,6 +75,7 @@ struct sgiseeq_init_block { /* Note the 
+ 
+ struct sgiseeq_private {
+ 	struct sgiseeq_init_block *srings;
++	dma_addr_t srings_dma;
+ 
+ 	/* Ptrs to the descriptors in uncached space. */
+ 	struct sgiseeq_rx_desc *rx_desc;
+@@ -634,13 +635,20 @@ static int __init sgiseeq_probe(struct p
+ 	sp = netdev_priv(dev);
+ 
+ 	/* Make private data page aligned */
+-	sr = (struct sgiseeq_init_block *) get_zeroed_page(GFP_KERNEL);
++	sr = dma_alloc_coherent(&pdev->dev, sizeof(*sp->srings),
++				&sp->srings_dma, GFP_KERNEL);
+ 	if (!sr) {
+ 		printk(KERN_ERR "Sgiseeq: Page alloc failed, aborting.\n");
+ 		err = -ENOMEM;
+ 		goto err_out_free_dev;
  	}
+ 	sp->srings = sr;
++	sp->rx_desc = sp->srings->rxvector;
++	sp->tx_desc = sp->srings->txvector;
++
++	/* A couple calculations now, saves many cycles later. */
++	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
++	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
  
--	sbi->s_flags = flags;/*after that line some functions use s_flags*/
-+	/* Set sbi->s_flags here, used by ufs_get_fs_state() below */
-+	sbi->s_flags = flags;
- 	ufs_print_super_stuff(sb, usb1, usb2, usb3);
+ 	memcpy(dev->dev_addr, pd->mac, ETH_ALEN);
  
- 	/*
- 	 * Check, if file system was correctly unmounted.
- 	 * If not, make it read only.
- 	 */
--	if (((flags & UFS_ST_MASK) == UFS_ST_44BSD) ||
--	  ((flags & UFS_ST_MASK) == UFS_ST_OLD) ||
--	  (((flags & UFS_ST_MASK) == UFS_ST_SUN || 
--	    (flags & UFS_ST_MASK) == UFS_ST_SUNOS ||
--	  (flags & UFS_ST_MASK) == UFS_ST_SUNx86) && 
--	  (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time))))) {
-+	if ((((flags & UFS_ST_MASK) == UFS_ST_44BSD)	||
-+	     ((flags & UFS_ST_MASK) == UFS_ST_OLD)	||
-+	     ((flags & UFS_ST_MASK) == UFS_ST_SUN)	||
-+	     ((flags & UFS_ST_MASK) == UFS_ST_SUNOS)	||
-+	     ((flags & UFS_ST_MASK) == UFS_ST_SUNx86))	&&
-+	    (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time)))) {
- 		switch(usb1->fs_clean) {
- 		case UFS_FSCLEAN:
- 			UFSD("fs is clean\n");
+@@ -653,19 +661,6 @@ static int __init sgiseeq_probe(struct p
+ 	sp->name = sgiseeqstr;
+ 	sp->mode = SEEQ_RCMD_RBCAST;
+ 
+-	sp->rx_desc = (struct sgiseeq_rx_desc *)
+-	              CKSEG1ADDR(ALIGNED(&sp->srings->rxvector[0]));
+-	dma_cache_wback_inv((unsigned long)&sp->srings->rxvector,
+-	                    sizeof(sp->srings->rxvector));
+-	sp->tx_desc = (struct sgiseeq_tx_desc *)
+-	              CKSEG1ADDR(ALIGNED(&sp->srings->txvector[0]));
+-	dma_cache_wback_inv((unsigned long)&sp->srings->txvector,
+-	                    sizeof(sp->srings->txvector));
+-
+-	/* A couple calculations now, saves many cycles later. */
+-	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
+-	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
+-
+ 	/* Setup PIO and DMA transfer timing */
+ 	sp->hregs->pconfig = 0x161;
+ 	sp->hregs->dconfig = HPC3_EDCFG_FIRQ | HPC3_EDCFG_FEOP |
+@@ -722,7 +717,8 @@ static int __exit sgiseeq_remove(struct 
+ 	struct sgiseeq_private *sp = netdev_priv(dev);
+ 
+ 	unregister_netdev(dev);
+-	free_page((unsigned long) sp->srings);
++	dma_free_coherent(&pdev->dev, sizeof(*sp->srings), sp->srings,
++	                  sp->srings_dma);
+ 	free_netdev(dev);
+ 	platform_set_drvdata(pdev, NULL);
+ 
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-drivers-char-nozomic-__devexit_p-usage-build-fix.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+bcm1480-serial-build-fix.patch
+git-input.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
 git-netdev-all.patch
-3c59x-fix-uninitialized-variable-bug.patch
-git-net.patch
-net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-i386-cpuid_count-fix-argument-signedness-warnings.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+remove-setup-of-platform-device-from-jazzsonicc.patch
+sgiseeq-replace-use-of-dma_cache_wback_inv.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
