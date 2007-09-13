@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + timekeeping-prevent-time-going-backwards-on-resume-v2.patch added to -mm tree
-Date: Thu, 13 Sep 2007 14:20:30 -0700
-Message-ID: <200709132120.l8DLKUCA006605@imap1.linux-foundation.org>
+Subject: + mips-add-gpio-support-to-the-bcm947xx-platform-update.patch added to -mm tree
+Date: Thu, 13 Sep 2007 14:35:20 -0700
+Message-ID: <200709132135.l8DLZKbH007131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39561 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065AbXIMVVM (ORCPT
+	by vger.kernel.org with ESMTP id S1754355AbXIMVgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 17:21:12 -0400
+	Thu, 13 Sep 2007 17:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, marcelo@kvack.org
+Cc: aurelien@aurel32.net, david-b@pacbell.net, geert@linux-m68k.org, mb@bu3sch.de, ralf@linux-mips.org
 
 
 The patch titled
-     timekeeping: prevent time going backwards on resume (V2)
+     mips-add-gpio-support-to-the-bcm947xx-platform update
 has been added to the -mm tree.  Its filename is
-     timekeeping-prevent-time-going-backwards-on-resume-v2.patch
+     mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,159 +26,244 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: timekeeping: prevent time going backwards on resume (V2)
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mips-add-gpio-support-to-the-bcm947xx-platform update
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-Timekeeping resume adjusts xtime by adding the slept time in seconds and
-resets the reference value of the clock source (clock->cycle_last).
-clock->cycle last is used to calculate the delta between the last xtime
-update and the readout of the clock source in __get_nsec_offset(). xtime
-plus the offset is the current time. The resume code ignores the delta
-which had already elapsed between the last xtime update and the actual
-time of suspend. If the suspend time is short, then we can see time
-going backwards on resume.
+On Fri, Aug 17, 2007 at 09:00:31PM +0200, Michael Buesch wrote:
+> On Friday 17 August 2007 20:56:42 David Brownell wrote:
+> > On Friday 17 August 2007, akpm@linux-foundation.org wrote:
+> >
+> > > +static inline int gpio_to_irq(unsigned gpio)
+> > > +{
+> > > +	if (ssb_bcm947xx.chipco.dev)
+> >
+> > Looks like a runtime switch ... can this be done at
+> > compile time instead?
+>
+> No, it's a runtime condition.
+>
+> > This idiom shows up in all of
+> > these routines.  (ssb_bcm947xx isn't in kernel.org
+> > code so Mr. Grep is no help yet.)  If not, these
+> > might all be better as non-inlned functions.
+>
+> Yeah.
 
-Suspend:
-offs_s = clock->read() - clock->cycle_last;
-now = xtime + offs_s;
-timekeeping_suspend_time = read_rtc();
+First of all, sorry for the delay. Please find below a new version of
+the patch that takes into account your comments. The functions are not
+inlined anymore and they check the gpio pin number.
 
-Resume:
-sleep_time = read_rtc() - timekeeping_suspend_time;
-xtime.tv_sec += sleep_time;
-clock->cycle_last = clock->read();
-offs_r = clock->read() - clock->cycle_last;
-now = xtime + offs_r;
+Andrew, this patch replaces the patch called
+mips-add-gpio-support-to-the-bcm947xx-platform.patch.
 
-if sleep_time_seconds == 0 and offs_r < offs_s, then time goes
-backwards.
-
-Fix this by storing the offset from the last xtime update and add it to
-xtime during resume, when we reset clock->cycle_last:
-
-sleep_time = read_rtc() - timekeeping_suspend_time;
-xtime.tv_sec += sleep_time;
-xtime += offs_s;        /* Fixup xtime offset at suspend time */
-clock->cycle_last = clock->read();
-offs_r = clock->read() - clock->cycle_last;
-now = xtime + offs_r;
-
-Thanks to Marcelo for tracking this down on the OLPC and providing the
-necessary details to analyze the root cause.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Marcelo Tosatti <marcelo@kvack.org>
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ arch/mips/bcm947xx/Makefile           |    2 
+ arch/mips/bcm947xx/gpio.c             |   79 ++++++++++++++++++++++++
+ include/asm-mips/mach-bcm947xx/gpio.h |   58 ++++-------------
+ 3 files changed, 94 insertions(+), 45 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2 kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2
-+++ a/kernel/time/timekeeping.c
-@@ -217,6 +217,7 @@ static void change_clocksource(void)
+diff -puN arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update arch/mips/bcm947xx/Makefile
+--- a/arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update
++++ a/arch/mips/bcm947xx/Makefile
+@@ -3,4 +3,4 @@
+ # under Linux.
+ #
+ 
+-obj-y := irq.o prom.o serial.o setup.o time.o
++obj-y := gpio.o irq.o prom.o serial.o setup.o time.o
+diff -puN /dev/null arch/mips/bcm947xx/gpio.c
+--- /dev/null
++++ a/arch/mips/bcm947xx/gpio.c
+@@ -0,0 +1,79 @@
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 2007 Aurelien Jarno <aurelien@aurel32.net>
++ */
++
++#include <linux/ssb/ssb.h>
++#include <linux/ssb/ssb_driver_chipcommon.h>
++#include <linux/ssb/ssb_driver_extif.h>
++#include <asm/mach-bcm947xx/bcm947xx.h>
++#include <asm/mach-bcm947xx/gpio.h>
++
++int bcm947xx_gpio_to_irq(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
++	else if (ssb_bcm947xx.extif.dev)
++		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
++	else
++		return -EINVAL;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_to_irq);
++
++int bcm947xx_gpio_get_value(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
++	else if (ssb_bcm947xx.extif.dev)
++		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
++	else
++		return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_get_value);
++
++void bcm947xx_gpio_set_value(unsigned gpio, int value)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
++				    1 << gpio,
++				    value ? 1 << gpio : 0);
++	else if (ssb_bcm947xx.extif.dev)
++		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
++				   1 << gpio,
++				   value ? 1 << gpio : 0);
++}
++EXPORT_SYMBOL(bcm947xx_gpio_set_value);
++
++int bcm947xx_gpio_direction_input(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
++		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
++				      1 << gpio, 0);
++	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
++		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
++				     1 << gpio, 0);
++	else
++		return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_direction_input);
++
++int bcm947xx_gpio_direction_output(unsigned gpio, int value)
++{
++	bcm947xx_gpio_set_value(gpio, value);
++
++	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
++		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
++				      1 << gpio, 1 << gpio);
++	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
++		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
++				     1 << gpio, 1 << gpio);
++	else
++		return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_direction_output);
++
+diff -puN include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update include/asm-mips/mach-bcm947xx/gpio.h
+--- a/include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update
++++ a/include/asm-mips/mach-bcm947xx/gpio.h
+@@ -9,10 +9,14 @@
+ #ifndef __BCM947XX_GPIO_H
+ #define __BCM947XX_GPIO_H
+ 
+-#include <linux/ssb/ssb.h>
+-#include <linux/ssb/ssb_driver_chipcommon.h>
+-#include <linux/ssb/ssb_driver_extif.h>
+-#include <asm/mach-bcm947xx/bcm947xx.h>
++#define BCM947XX_EXTIF_GPIO_LINES	5
++#define BCM947XX_CHIPCO_GPIO_LINES	16
++
++extern int bcm947xx_gpio_to_irq(unsigned gpio);
++extern int bcm947xx_gpio_get_value(unsigned gpio);
++extern void bcm947xx_gpio_set_value(unsigned gpio, int value);
++extern int bcm947xx_gpio_direction_input(unsigned gpio);
++extern int bcm947xx_gpio_direction_output(unsigned gpio, int value);
+ 
+ static inline int gpio_request(unsigned gpio, const char *label)
+ {
+@@ -25,64 +29,30 @@ static inline void gpio_free(unsigned gp
+ 
+ static inline int gpio_to_irq(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
+-	else if (ssb_bcm947xx.extif.dev)
+-		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
+-	else
+-		return -EINVAL;
++	return bcm947xx_gpio_to_irq(gpio);
  }
- #else
- static inline void change_clocksource(void) { }
-+static inline s64 __get_nsec_offset(void) { return 0; }
- #endif
  
- /**
-@@ -281,7 +282,7 @@ static int timekeeping_suspended;
- /* time in seconds when suspend began */
- static unsigned long timekeeping_suspend_time;
- /* xtime offset when we went into suspend */
--static s64 timekeeping_suspend_offset;
-+static s64 timekeeping_suspend_nsecs;
+ static inline int gpio_get_value(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
+-	else if (ssb_bcm947xx.extif.dev)
+-		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
+-	else
+-		return 0;
++	return bcm947xx_gpio_get_value(gpio);
+ }
  
- /**
-  * timekeeping_resume - Resumes the generic timekeeping subsystem.
-@@ -308,7 +309,7 @@ static int timekeeping_resume(struct sys
- 		total_sleep_time += sleep_length;
- 	}
- 	/* Make sure that we have the correct xtime reference */
--	timespec_add_ns(&xtime, timekeeping_suspend_offset);
-+	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
- 	/* re-base the last cycle value */
- 	clock->cycle_last = clocksource_read(clock);
- 	clock->error = 0;
-@@ -330,9 +331,9 @@ static int timekeeping_suspend(struct sy
- 	unsigned long flags;
+ static inline void gpio_set_value(unsigned gpio, int value)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
+-				    1 << gpio,
+-				    value ? 1 << gpio : 0);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
+-				   1 << gpio,
+-				   value ? 1 << gpio : 0);
++	bcm947xx_gpio_set_value(gpio, value);
+ }
  
- 	write_seqlock_irqsave(&xtime_lock, flags);
--	timekeeping_suspended = 1;
- 	/* Get the current xtime offset */
--	timekeeping_suspend_offset = __get_nsec_offset();
-+	timekeeping_suspend_nsecs = __get_nsec_offset();
-+	timekeeping_suspended = 1;
- 	timekeeping_suspend_time = read_persistent_clock();
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ static inline int gpio_direction_input(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
+-				      1 << gpio, 0);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
+-				     1 << gpio, 0);
+-	else
+-		return -EINVAL;
+-	return 0;
++	return bcm947xx_gpio_direction_input(gpio);
+ }
+ 
+ static inline int gpio_direction_output(unsigned gpio, int value)
+ {
+-	gpio_set_value(gpio, value);
+-
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
+-				      1 << gpio, 1 << gpio);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
+-				     1 << gpio, 1 << gpio);
+-	else
+-		return -EINVAL;
+-	return 0;
++	return bcm947xx_gpio_direction_output(gpio, value);
+ }
+ 
++
+ /* cansleep wrappers */
+ #include <asm-generic/gpio.h>
  
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-futex_compat-fix-list-traversal-bugs.patch
-fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
-timekeeping-prevent-time-going-backwards-on-resume.patch
-timekeeping-prevent-time-going-backwards-on-resume-v2.patch
-the-hack-below.patch
-git-acpi.patch
-arm-cleanup-struct-irqaction-initializers.patch
+git-kvm.patch
 git-mips.patch
-sh-cleanup-struct-irqaction-initializers.patch
-sh64-cleanup-struct-irqaction-initializers.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-futex_compat-simplify-pointer-magic.patch
-futex_compat-update-to-match-native-version.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+git-wireless.patch
+move-mm_struct-and-vm_area_struct-fix.patch
