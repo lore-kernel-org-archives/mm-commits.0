@@ -1,59 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - sundance-phy-address-form-0-only-for-device-id-0x0200.patch removed from -mm tree
-Date: Thu, 13 Sep 2007 15:10:03 -0700
-Message-ID: <200709132210.l8DMA3I9008381@imap1.linux-foundation.org>
+Subject: + prevent-kswapd-from-freeing-excessive-amounts-of-lowmem.patch added to -mm tree
+Date: Thu, 13 Sep 2007 15:11:43 -0700
+Message-ID: <200709132211.l8DMBh0n008399@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754073AbXIMWKU (ORCPT
+	by vger.kernel.org with ESMTP id S1756904AbXIMWMC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 18:10:20 -0400
+	Thu, 13 Sep 2007 18:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesse@icplus.com.tw, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: riel@redhat.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     sundance: PHY address form 0, only for device ID 0x0200 (IP100A) (20070605)
-has been removed from the -mm tree.  Its filename was
-     sundance-phy-address-form-0-only-for-device-id-0x0200.patch
+     mm: prevent kswapd from freeing excessive amounts of lowmem
+has been added to the -mm tree.  Its filename is
+     prevent-kswapd-from-freeing-excessive-amounts-of-lowmem.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: sundance: PHY address form 0, only for device ID 0x0200 (IP100A) (20070605)
-From: Jesse Huang <jesse@icplus.com.tw>
+Subject: mm: prevent kswapd from freeing excessive amounts of lowmem
+From: Rik van Riel <riel@redhat.com>
 
-Search PHY address form 0, only for device ID 0x0200 (IP100A).  Other
-device are from PHY address 1.
+The current VM can get itself into trouble fairly easily on systems with a
+small ZONE_HIGHMEM, which is common on i686 computers with 1GB of memory.
 
-Signed-off-by: Jesse Huang <jesse@icplus.com.tw>
-Cc: Jeff Garzik <jeff@garzik.org>
+On one side, page_alloc() will allocate down to zone->pages_low, while on
+the other side, kswapd() and balance_pgdat() will try to free memory from
+every zone, until every zone has more free pages than zone->pages_high.
+
+Highmem can be filled up to zone->pages_low with page tables, ramfs,
+vmalloc allocations and other unswappable things quite easily and without
+many bad side effects, since we still have a huge ZONE_NORMAL to do future
+allocations from.
+
+However, as long as the number of free pages in the highmem zone is below
+zone->pages_high, kswapd will continue swapping things out from
+ZONE_NORMAL, too!
+
+Sami Farin managed to get his system into a stage where kswapd had freed
+about 700MB of low memory and was still "going strong".
+
+The attached patch will make kswapd stop paging out data from zones when
+there is more than enough memory free.  We do go above zone->pages_high in
+order to keep pressure between zones equal in normal circumstances, but the
+patch should prevent the kind of excesses that made Sami's computer totally
+unusable.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sundance.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200 drivers/net/sundance.c
---- a/drivers/net/sundance.c~sundance-phy-address-form-0-only-for-device-id-0x0200
-+++ a/drivers/net/sundance.c
-@@ -559,7 +559,11 @@ static int __devinit sundance_probe1 (st
- 	 * It seems some phys doesn't deal well with address 0 being accessed
- 	 * first, so leave address zero to the end of the loop (32 & 31).
- 	 */
--	for (phy = 1; phy <= 32 && phy_idx < MII_CNT; phy++) {
-+	if (sundance_pci_tbl[np->chip_id].device == 0x0200)
-+		phy = 0;
-+	else
-+		phy = 1;
-+	for (; phy <= 32 && phy_idx < MII_CNT; phy++) {
- 		int phyx = phy & 0x1f;
- 		int mii_status = mdio_read(dev, phyx, MII_BMSR);
- 		if (mii_status != 0xffff  &&  mii_status != 0x0000) {
+diff -puN mm/vmscan.c~prevent-kswapd-from-freeing-excessive-amounts-of-lowmem mm/vmscan.c
+--- a/mm/vmscan.c~prevent-kswapd-from-freeing-excessive-amounts-of-lowmem
++++ a/mm/vmscan.c
+@@ -1374,7 +1374,13 @@ loop_again:
+ 			temp_priority[i] = priority;
+ 			sc.nr_scanned = 0;
+ 			note_zone_scanning_priority(zone, priority);
+-			nr_reclaimed += shrink_zone(priority, zone, &sc);
++			/*
++			 * We put equal pressure on every zone, unless one
++			 * zone has way too many pages free already.
++			 */
++			if (!zone_watermark_ok(zone, order, 8*zone->pages_high,
++						end_zone, 0))
++				nr_reclaimed += shrink_zone(priority, zone, &sc);
+ 			reclaim_state->reclaimed_slab = 0;
+ 			nr_slab = shrink_slab(sc.nr_scanned, GFP_KERNEL,
+ 						lru_pages);
 _
 
-Patches currently in -mm which might be from jesse@icplus.com.tw are
+Patches currently in -mm which might be from riel@redhat.com are
 
-sundance-phy-address-form-0-only-for-device-id-0x0200.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+prevent-kswapd-from-freeing-excessive-amounts-of-lowmem.patch
