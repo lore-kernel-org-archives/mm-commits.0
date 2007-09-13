@@ -1,87 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-and-others-fix-tty_ioctlc-build.patch added to -mm tree
-Date: Thu, 13 Sep 2007 02:00:46 -0700
-Message-ID: <200709130900.l8D90kQX010941@imap1.linux-foundation.org>
+Subject: - sparc-add-support-for-arbitrary-serial-speeds.patch removed from -mm tree
+Date: Thu, 13 Sep 2007 02:00:57 -0700
+Message-ID: <200709130900.l8D90vRu010944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40614 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbXIMJBE (ORCPT
+	by vger.kernel.org with ESMTP id S1752364AbXIMJBP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 05:01:04 -0400
+	Thu, 13 Sep 2007 05:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: tony@bakeyournoodle.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, paulus@samba.org, torvalds@linux-foundation.org
+To: davem@redhat.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc64 (and others): fix tty_ioctl.c build
-has been added to the -mm tree.  Its filename is
-     sparc64-and-others-fix-tty_ioctlc-build.patch
+     sparc: add support for arbitrary serial speeds
+has been removed from the -mm tree.  Its filename was
+     sparc-add-support-for-arbitrary-serial-speeds.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: sparc64 (and others): fix tty_ioctl.c build
-From: Tony Breeds <tony@bakeyournoodle.com>
+Subject: sparc: add support for arbitrary serial speeds
+From: David Miller <davem@redhat.com>
 
-Add Guards around TIOCSLCKTRMIOS and TIOCGLCKTRMIOS.
-
-(akpm: let's see if this fixes sparc)
-
-Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/asm-sparc/ioctls.h     |    4 ++
+ include/asm-sparc/termbits.h   |   15 ++++++++++
+ include/asm-sparc/termios.h    |   44 ++++++++++++++++++++++++++++++-
+ include/asm-sparc64/ioctls.h   |    4 ++
+ include/asm-sparc64/termbits.h |   17 ++++++++++-
+ include/asm-sparc64/termios.h  |   42 +++++++++++++++++++++++++++++
+ 6 files changed, 123 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~sparc64-and-others-fix-tty_ioctlc-build drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~sparc64-and-others-fix-tty_ioctlc-build
-+++ a/drivers/char/tty_ioctl.c
-@@ -795,6 +795,19 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			if (L_ICANON(tty))
- 				retval = inq_canon(tty);
- 			return put_user(retval, (unsigned int __user *) arg);
-+#ifndef TCGETS2
-+		case TIOCGLCKTRMIOS:
-+			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
-+				return -EFAULT;
-+			return 0;
-+
-+		case TIOCSLCKTRMIOS:
-+			if (!capable(CAP_SYS_ADMIN))
-+				return -EPERM;
-+			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
-+				return -EFAULT;
-+			return 0;
-+#else
- 		case TIOCGLCKTRMIOS:
- 			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
- 				return -EFAULT;
-@@ -806,6 +819,7 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
- 				return -EFAULT;
- 			return 0;
-+#endif
+diff -puN include/asm-sparc64/ioctls.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc64/ioctls.h
+--- a/include/asm-sparc64/ioctls.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc64/ioctls.h
+@@ -16,6 +16,10 @@
+ #define TCSETS		_IOW('T', 9, struct termios)
+ #define TCSETSW		_IOW('T', 10, struct termios)
+ #define TCSETSF		_IOW('T', 11, struct termios)
++#define TCGETS2		_IOR('T', 12, struct termios2)
++#define TCSETS2		_IOW('T', 13, struct termios2)
++#define TCSETSW2	_IOW('T', 14, struct termios2)
++#define TCSETSF2	_IOW('T', 15, struct termios2)
  
- 		case TIOCPKT:
- 		{
+ /* Note that all the ioctls that are not available in Linux have a 
+  * double underscore on the front to: a) avoid some programs to
+diff -puN include/asm-sparc64/termbits.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc64/termbits.h
+--- a/include/asm-sparc64/termbits.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc64/termbits.h
+@@ -5,8 +5,6 @@
+ 
+ typedef unsigned char   cc_t;
+ typedef unsigned int    speed_t;
+-
+-/* XXX is this right for sparc64?  it was an unsigned long... XXX */
+ typedef unsigned int    tcflag_t;
+ 
+ #define NCC 8
+@@ -33,6 +31,18 @@ struct termios {
+ #endif
+ };
+ 
++struct termios2 {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	cc_t _x_cc[2];                  /* padding to match ktermios */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ struct ktermios {
+ 	tcflag_t c_iflag;		/* input mode flags */
+ 	tcflag_t c_oflag;		/* output mode flags */
+@@ -161,6 +171,7 @@ struct ktermios {
+ #define HUPCL	  0x00000400
+ #define CLOCAL	  0x00000800
+ #define CBAUDEX   0x00001000
++#define  BOTHER   0x00001000
+ #define  B57600   0x00001001
+ #define  B115200  0x00001002
+ #define  B230400  0x00001003
+@@ -190,6 +201,8 @@ struct ktermios {
+ #define CMSPAR    0x40000000  /* mark or space (stick) parity */
+ #define CRTSCTS	  0x80000000  /* flow control */
+ 
++#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0x00000001
+ #define ICANON	0x00000002
+diff -puN include/asm-sparc64/termios.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc64/termios.h
+--- a/include/asm-sparc64/termios.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc64/termios.h
+@@ -123,6 +123,8 @@ struct winsize {
+ 		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+ 		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+ 	} \
++	err |= get_user((k)->c_ispeed,  &(u)->c_ispeed); \
++	err |= get_user((k)->c_ospeed,  &(u)->c_ospeed); \
+ 	err; \
+ })
+ 
+@@ -142,6 +144,46 @@ struct winsize {
+ 		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+ 		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+ 	} \
++	err |= put_user((k)->c_ispeed, &(u)->c_ispeed); \
++	err |= put_user((k)->c_ospeed, &(u)->c_ospeed); \
++	err; \
++})
++
++#define user_termios_to_kernel_termios_1(k, u) \
++({ \
++	int err; \
++	err  = get_user((k)->c_iflag, &(u)->c_iflag); \
++	err |= get_user((k)->c_oflag, &(u)->c_oflag); \
++	err |= get_user((k)->c_cflag, &(u)->c_cflag); \
++	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
++	err |= get_user((k)->c_line,  &(u)->c_line); \
++	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
++	if((k)->c_lflag & ICANON) { \
++		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++	} else { \
++		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++	} \
++	err; \
++})
++
++#define kernel_termios_to_user_termios_1(u, k) \
++({ \
++	int err; \
++	err  = put_user((k)->c_iflag, &(u)->c_iflag); \
++	err |= put_user((k)->c_oflag, &(u)->c_oflag); \
++	err |= put_user((k)->c_cflag, &(u)->c_cflag); \
++	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
++	err |= put_user((k)->c_line, &(u)->c_line); \
++	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
++	if(!((k)->c_lflag & ICANON)) { \
++		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++	} else { \
++		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++	} \
+ 	err; \
+ })
+ 
+diff -puN include/asm-sparc/ioctls.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc/ioctls.h
+--- a/include/asm-sparc/ioctls.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc/ioctls.h
+@@ -15,6 +15,10 @@
+ #define TCSETS		_IOW('T', 9, struct termios)
+ #define TCSETSW		_IOW('T', 10, struct termios)
+ #define TCSETSF		_IOW('T', 11, struct termios)
++#define TCGETS2		_IOR('T', 12, struct termios2)
++#define TCSETS2		_IOW('T', 13, struct termios2)
++#define TCSETSW2	_IOW('T', 14, struct termios2)
++#define TCSETSF2	_IOW('T', 15, struct termios2)
+ 
+ /* Note that all the ioctls that are not available in Linux have a 
+  * double underscore on the front to: a) avoid some programs to
+diff -puN include/asm-sparc/termbits.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc/termbits.h
+--- a/include/asm-sparc/termbits.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc/termbits.h
+@@ -31,6 +31,18 @@ struct termios {
+ #endif
+ };
+ 
++struct termios2 {
++	tcflag_t c_iflag;		/* input mode flags */
++	tcflag_t c_oflag;		/* output mode flags */
++	tcflag_t c_cflag;		/* control mode flags */
++	tcflag_t c_lflag;		/* local mode flags */
++	cc_t c_line;			/* line discipline */
++	cc_t c_cc[NCCS];		/* control characters */
++	cc_t _x_cc[2];                  /* padding to match ktermios */
++	speed_t c_ispeed;		/* input speed */
++	speed_t c_ospeed;		/* output speed */
++};
++
+ struct ktermios {
+ 	tcflag_t c_iflag;		/* input mode flags */
+ 	tcflag_t c_oflag;		/* output mode flags */
+@@ -160,6 +172,7 @@ struct ktermios {
+ #define CLOCAL	  0x00000800
+ #define CBAUDEX   0x00001000
+ /* We'll never see these speeds with the Zilogs, but for completeness... */
++#define  BOTHER   0x00001000
+ #define  B57600   0x00001001
+ #define  B115200  0x00001002
+ #define  B230400  0x00001003
+@@ -189,6 +202,8 @@ struct ktermios {
+ #define CMSPAR	  0x40000000  /* mark or space (stick) parity */
+ #define CRTSCTS	  0x80000000  /* flow control */
+ 
++#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
++
+ /* c_lflag bits */
+ #define ISIG	0x00000001
+ #define ICANON	0x00000002
+diff -puN include/asm-sparc/termios.h~sparc-add-support-for-arbitrary-serial-speeds include/asm-sparc/termios.h
+--- a/include/asm-sparc/termios.h~sparc-add-support-for-arbitrary-serial-speeds
++++ a/include/asm-sparc/termios.h
+@@ -108,6 +108,48 @@ struct winsize {
+ 
+ #define user_termios_to_kernel_termios(k, u) \
+ ({ \
++	int err; \
++	err  = get_user((k)->c_iflag, &(u)->c_iflag); \
++	err |= get_user((k)->c_oflag, &(u)->c_oflag); \
++	err |= get_user((k)->c_cflag, &(u)->c_cflag); \
++	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
++	err |= get_user((k)->c_line,  &(u)->c_line); \
++	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
++	if((k)->c_lflag & ICANON) { \
++		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++	} else { \
++		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++	} \
++	err |= get_user((k)->c_ispeed,  &(u)->c_ispeed); \
++	err |= get_user((k)->c_ospeed,  &(u)->c_ospeed); \
++	err; \
++})
++
++#define kernel_termios_to_user_termios(u, k) \
++({ \
++	int err; \
++	err  = put_user((k)->c_iflag, &(u)->c_iflag); \
++	err |= put_user((k)->c_oflag, &(u)->c_oflag); \
++	err |= put_user((k)->c_cflag, &(u)->c_cflag); \
++	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
++	err |= put_user((k)->c_line, &(u)->c_line); \
++	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
++	if(!((k)->c_lflag & ICANON)) { \
++		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
++		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
++	} else { \
++		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
++		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
++	} \
++	err |= put_user((k)->c_ispeed, &(u)->c_ispeed); \
++	err |= put_user((k)->c_ospeed, &(u)->c_ospeed); \
++	err; \
++})
++
++#define user_termios_to_kernel_termios_1(k, u) \
++({ \
+ 	get_user((k)->c_iflag, &(u)->c_iflag); \
+ 	get_user((k)->c_oflag, &(u)->c_oflag); \
+ 	get_user((k)->c_cflag, &(u)->c_cflag); \
+@@ -124,7 +166,7 @@ struct winsize {
+ 	0; \
+ })
+ 
+-#define kernel_termios_to_user_termios(u, k) \
++#define kernel_termios_to_user_termios_1(u, k) \
+ ({ \
+ 	put_user((k)->c_iflag, &(u)->c_iflag); \
+ 	put_user((k)->c_oflag, &(u)->c_oflag); \
 _
 
-Patches currently in -mm which might be from tony@bakeyournoodle.com are
+Patches currently in -mm which might be from davem@redhat.com are
 
-fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
-sparc64-and-others-fix-tty_ioctlc-build.patch
-mkmakefile-include-arch-on-o=-builds.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+sparc-add-support-for-arbitrary-serial-speeds.patch
