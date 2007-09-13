@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch added to -mm tree
-Date: Thu, 13 Sep 2007 02:04:21 -0700
-Message-ID: <200709130904.l8D94Lk2011018@imap1.linux-foundation.org>
+Subject: + radeonfb-add-pci-id-for-rs482-radeon-xpress-200m.patch added to -mm tree
+Date: Thu, 13 Sep 2007 02:12:06 -0700
+Message-ID: <200709130912.l8D9C6hG011313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44248 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56522 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754767AbXIMJEa (ORCPT
+	by vger.kernel.org with ESMTP id S1753182AbXIMJMW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 05:04:30 -0400
+	Thu, 13 Sep 2007 05:12:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: micah.gruber@gmail.com, grundler@parisc-linux.org, jeff@garzik.org
+Cc: aherrman@arcor.de, adaplas@pol.net, benh@kernel.crashing.org
 
 
 The patch titled
-     Fix a potential NULL pointer dereference in uli526x_interrupt() in drivers/net/tulip/uli526x.c
+     radeonfb: add PCI Id for RS482/Radeon Xpress 200M
 has been added to the -mm tree.  Its filename is
-     fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch
+     radeonfb-add-pci-id-for-rs482-radeon-xpress-200m.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix a potential NULL pointer dereference in uli526x_interrupt() in drivers/net/tulip/uli526x.c
-From: Micah Gruber <micah.gruber@gmail.com>
+Subject: radeonfb: add PCI Id for RS482/Radeon Xpress 200M
+From: Andreas Herrmann <aherrman@arcor.de>
 
-This patch fixes an apparent potential null dereference bug where we
-dereference dev before a null check.  This patch simply remvoes the
-can't-happen test for a null pointer.
+.. which can be found in Acer Aspire 5100.
 
-Signed-off-by: Micah Gruber <micah.gruber@gmail.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/uli526x.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/video/aty/ati_ids.h     |    1 +
+ drivers/video/aty/radeon_base.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN drivers/net/tulip/uli526x.c~fix-a-potential-null-pointer-dereference-in-uli526x_interrupt drivers/net/tulip/uli526x.c
---- a/drivers/net/tulip/uli526x.c~fix-a-potential-null-pointer-dereference-in-uli526x_interrupt
-+++ a/drivers/net/tulip/uli526x.c
-@@ -666,11 +666,6 @@ static irqreturn_t uli526x_interrupt(int
- 	unsigned long ioaddr = dev->base_addr;
- 	unsigned long flags;
- 
--	if (!dev) {
--		ULI526X_DBUG(1, "uli526x_interrupt() without DEVICE arg", 0);
--		return IRQ_NONE;
--	}
--
- 	spin_lock_irqsave(&db->lock, flags);
- 	outl(0, ioaddr + DCR7);
- 
+diff -puN drivers/video/aty/ati_ids.h~radeonfb-add-pci-id-for-rs482-radeon-xpress-200m drivers/video/aty/ati_ids.h
+--- a/drivers/video/aty/ati_ids.h~radeonfb-add-pci-id-for-rs482-radeon-xpress-200m
++++ a/drivers/video/aty/ati_ids.h
+@@ -211,3 +211,4 @@
+ #define PCI_CHIP_RS350_7834             0x7834
+ #define PCI_CHIP_RS350_7835             0x7835
+ #define PCI_CHIP_RS480_5955             0x5955
++#define PCI_CHIP_RS482_5975             0x5975
+diff -puN drivers/video/aty/radeon_base.c~radeonfb-add-pci-id-for-rs482-radeon-xpress-200m drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~radeonfb-add-pci-id-for-rs482-radeon-xpress-200m
++++ a/drivers/video/aty/radeon_base.c
+@@ -102,6 +102,7 @@
+ static struct pci_device_id radeonfb_pci_table[] = {
+         /* Radeon Xpress 200m */
+ 	CHIP_DEF(PCI_CHIP_RS480_5955,   RS480,  CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
++	CHIP_DEF(PCI_CHIP_RS482_5975,   RS480,  CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
+ 	/* Mobility M6 */
+ 	CHIP_DEF(PCI_CHIP_RADEON_LY, 	RV100,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
+ 	CHIP_DEF(PCI_CHIP_RADEON_LZ,	RV100,	CHIP_HAS_CRTC2 | CHIP_IS_MOBILITY),
 _
 
-Patches currently in -mm which might be from micah.gruber@gmail.com are
+Patches currently in -mm which might be from aherrman@arcor.de are
 
-fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch
-git-net.patch
+radeonfb-add-pci-id-for-rs482-radeon-xpress-200m.patch
+radeonfb-add-new-module-parameter-to-force-pll-calculation.patch
+radeonfb-add-new-module-parameter-to-force-pll-calculation-fix.patch
+radeonfb-fix-setting-of-ppll_ref_div-for-rv370-5b60.patch
+radeonfb-use-pci-device-id-in-hex-for-name-string.patch
