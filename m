@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spelling-fix-weired-weird.patch added to -mm tree
-Date: Thu, 13 Sep 2007 15:04:06 -0700
-Message-ID: <200709132204.l8DM46kV008179@imap1.linux-foundation.org>
+Subject: + pcmcia-convert-io_req_t-to-use-kio_addr_t.patch added to -mm tree
+Date: Thu, 13 Sep 2007 15:06:09 -0700
+Message-ID: <200709132206.l8DM69eX008237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53583 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758123AbXIMWEO (ORCPT
+	by vger.kernel.org with ESMTP id S1752173AbXIMWGc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 18:04:14 -0400
+	Thu, 13 Sep 2007 18:06:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: olof@lixom.net, benh@kernel.crashing.org, hch@lst.de, linux@dominikbrodowski.net, paulus@samba.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Spelling fix: weired -> weird
+     pcmcia: convert io_req_t to use kio_addr_t
 has been added to the -mm tree.  Its filename is
-     spelling-fix-weired-weird.patch
+     pcmcia-convert-io_req_t-to-use-kio_addr_t.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Spelling fix: weired -> weird
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: pcmcia: convert io_req_t to use kio_addr_t
+From: Olof Johansson <olof@lixom.net>
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Convert the io_req_t members to kio_addr_t, to allow use on machines with
+more than 16 bits worth of IO port address space (ppc64 in this case,
+but it applies to others as well).
+
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/ibmmca.txt |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/pcmcia_resource.c |   12 ++++++------
+ include/pcmcia/cs.h              |    8 ++++----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/scsi/ibmmca.txt~spelling-fix-weired-weird Documentation/scsi/ibmmca.txt
---- a/Documentation/scsi/ibmmca.txt~spelling-fix-weired-weird
-+++ a/Documentation/scsi/ibmmca.txt
-@@ -1188,7 +1188,7 @@
- 	and 15 get ignored by the driver & adapter!
-      Q: I have a 9595 and I get a NMI during heavy SCSI I/O e.g. during fsck.
-         A COMMAND ERROR is reported and characters on the screen are missing.
--	Warm reboot is not possible. Things look like quite weired.
-+	Warm reboot is not possible. Things look like quite weird.
-      A: Check the processor type of your 9595. If you have an 80486 or 486DX-2
-         processor complex on your mainboard and you compiled a kernel that
- 	supports 80386 processors, it is possible, that the kernel cannot
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-io_req_t-to-use-kio_addr_t drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-io_req_t-to-use-kio_addr_t
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -65,8 +65,8 @@ extern int ds_pc_debug;
+  * Special stuff for managing IO windows, because they are scarce
+  */
+ 
+-static int alloc_io_space(struct pcmcia_socket *s, u_int attr, ioaddr_t *base,
+-			  ioaddr_t num, u_int lines)
++static int alloc_io_space(struct pcmcia_socket *s, u_int attr, kio_addr_t *base,
++			  kio_addr_t num, u_int lines)
+ {
+ 	int i;
+ 	kio_addr_t try, align;
+@@ -74,14 +74,14 @@ static int alloc_io_space(struct pcmcia_
+ 	align = (*base) ? (lines ? 1<<lines : 0) : 1;
+ 	if (align && (align < num)) {
+ 		if (*base) {
+-			ds_dbg(s, 0, "odd IO request: num %#x align %#lx\n",
++			ds_dbg(s, 0, "odd IO request: num %#lx align %#lx\n",
+ 			       num, align);
+ 			align = 0;
+ 		} else
+ 			while (align && (align < num)) align <<= 1;
+ 	}
+ 	if (*base & ~(align-1)) {
+-		ds_dbg(s, 0, "odd IO request: base %#x align %#lx\n",
++		ds_dbg(s, 0, "odd IO request: base %#lx align %#lx\n",
+ 		       *base, align);
+ 		align = 0;
+ 	}
+@@ -132,8 +132,8 @@ static int alloc_io_space(struct pcmcia_
+ } /* alloc_io_space */
+ 
+ 
+-static void release_io_space(struct pcmcia_socket *s, ioaddr_t base,
+-			     ioaddr_t num)
++static void release_io_space(struct pcmcia_socket *s, kio_addr_t base,
++			     kio_addr_t num)
+ {
+ 	int i;
+ 
+diff -puN include/pcmcia/cs.h~pcmcia-convert-io_req_t-to-use-kio_addr_t include/pcmcia/cs.h
+--- a/include/pcmcia/cs.h~pcmcia-convert-io_req_t-to-use-kio_addr_t
++++ a/include/pcmcia/cs.h
+@@ -147,11 +147,11 @@ typedef struct config_req_t {
+ 
+ /* For RequestIO and ReleaseIO */
+ typedef struct io_req_t {
+-    ioaddr_t	BasePort1;
+-    ioaddr_t	NumPorts1;
++    kio_addr_t	BasePort1;
++    kio_addr_t	NumPorts1;
+     u_int	Attributes1;
+-    ioaddr_t	BasePort2;
+-    ioaddr_t	NumPorts2;
++    kio_addr_t	BasePort2;
++    kio_addr_t	NumPorts2;
+     u_int	Attributes2;
+     u_int	IOAddrLines;
+ } io_req_t;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
-bcm1480-serial-build-fix.patch
-git-input.patch
-git-mips.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
-git-mtd.patch
+git-powerpc.patch
 git-netdev-all.patch
-remove-setup-of-platform-device-from-jazzsonicc.patch
-sgiseeq-replace-use-of-dma_cache_wback_inv.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
+pcmcia-convert-io_req_t-to-use-kio_addr_t.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
