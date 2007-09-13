@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sched-sch_cbqc-shut-up-uninitialized-variable.patch added to -mm tree
-Date: Thu, 13 Sep 2007 00:25:36 -0700
-Message-ID: <200709130725.l8D7PaPJ007684@imap1.linux-foundation.org>
+Subject: + remove-setup-of-platform-device-from-jazzsonicc.patch added to -mm tree
+Date: Thu, 13 Sep 2007 00:27:34 -0700
+Message-ID: <200709130727.l8D7RYx2007705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55065 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751240AbXIMHZu (ORCPT
+	by vger.kernel.org with ESMTP id S1751619AbXIMH2K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 03:25:50 -0400
+	Thu, 13 Sep 2007 03:28:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, kaber@trash.net
+Cc: tsbogend@alpha.franken.de, greg@kroah.com, jeff@garzik.org, ralf@linux-mips.org
 
 
 The patch titled
-     net/sched/sch_cbq.c: Shut up uninitialized variable warning
+     remove setup of platform device from jazzsonic.c
 has been added to the -mm tree.  Its filename is
-     net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
+     remove-setup-of-platform-device-from-jazzsonicc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/sched/sch_cbq.c: Shut up uninitialized variable warning
-From: Satyam Sharma <satyam@infradead.org>
+Subject: remove setup of platform device from jazzsonic.c
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-net/sched/sch_cbq.c: In function 'cbq_enqueue':
-net/sched/sch_cbq.c:383: warning: 'ret' may be used uninitialized in this function
+Remove setup platform device from jazzsonic, which is done in arch code now
 
-has been verified to be a bogus case. So let's shut it up.
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sched/sch_cbq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/jazzsonic.c |   61 ++++----------------------------------
+ 1 file changed, 7 insertions(+), 54 deletions(-)
 
-diff -puN net/sched/sch_cbq.c~net-sched-sch_cbqc-shut-up-uninitialized-variable net/sched/sch_cbq.c
---- a/net/sched/sch_cbq.c~net-sched-sch_cbqc-shut-up-uninitialized-variable
-+++ a/net/sched/sch_cbq.c
-@@ -380,7 +380,7 @@ cbq_enqueue(struct sk_buff *skb, struct 
- {
- 	struct cbq_sched_data *q = qdisc_priv(sch);
- 	int len = skb->len;
--	int ret;
-+	int uninitialized_var(ret);
- 	struct cbq_class *cl = cbq_classify(skb, sch, &ret);
+diff -puN drivers/net/jazzsonic.c~remove-setup-of-platform-device-from-jazzsonicc drivers/net/jazzsonic.c
+--- a/drivers/net/jazzsonic.c~remove-setup-of-platform-device-from-jazzsonicc
++++ a/drivers/net/jazzsonic.c
+@@ -45,7 +45,6 @@
+ #include <asm/jazzdma.h>
  
- #ifdef CONFIG_NET_CLS_ACT
+ static char jazz_sonic_string[] = "jazzsonic";
+-static struct platform_device *jazz_sonic_device;
+ 
+ #define SONIC_MEM_SIZE	0x100
+ 
+@@ -70,14 +69,6 @@ static unsigned int sonic_debug = 1;
+ #endif
+ 
+ /*
+- * Base address and interrupt of the SONIC controller on JAZZ boards
+- */
+-static struct {
+-	unsigned int port;
+-	unsigned int irq;
+-} sonic_portlist[] = { {JAZZ_ETHERNET_BASE, JAZZ_ETHERNET_IRQ}, {0, 0}};
+-
+-/*
+  * We cannot use station (ethernet) address prefixes to detect the
+  * sonic controller since these are board manufacturer depended.
+  * So we check for known Silicon Revision IDs instead.
+@@ -215,13 +206,12 @@ static int __init jazz_sonic_probe(struc
+ {
+ 	struct net_device *dev;
+ 	struct sonic_local *lp;
++	struct resource *res;
+ 	int err = 0;
+ 	int i;
+ 
+-	/*
+-	 * Don't probe if we're not running on a Jazz board.
+-	 */
+-	if (mips_machgroup != MACH_GROUP_JAZZ)
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res)
+ 		return -ENODEV;
+ 
+ 	dev = alloc_etherdev(sizeof(struct sonic_local));
+@@ -235,20 +225,9 @@ static int __init jazz_sonic_probe(struc
+ 
+ 	netdev_boot_setup_check(dev);
+ 
+-	if (dev->base_addr >= KSEG0) { /* Check a single specified location. */
+-		err = sonic_probe1(dev);
+-	} else if (dev->base_addr != 0) { /* Don't probe at all. */
+-		err = -ENXIO;
+-	} else {
+-		for (i = 0; sonic_portlist[i].port; i++) {
+-			dev->base_addr = sonic_portlist[i].port;
+-			dev->irq = sonic_portlist[i].irq;
+-			if (sonic_probe1(dev) == 0)
+-				break;
+-		}
+-		if (!sonic_portlist[i].port)
+-			err = -ENODEV;
+-	}
++	dev->base_addr = res->start;
++	dev->irq = platform_get_irq(pdev, 0);
++	err = sonic_probe1(dev);
+ 	if (err)
+ 		goto out;
+ 	err = register_netdev(dev);
+@@ -303,38 +282,12 @@ static struct platform_driver jazz_sonic
+ 
+ static int __init jazz_sonic_init_module(void)
+ {
+-	int err;
+-
+-	if ((err = platform_driver_register(&jazz_sonic_driver))) {
+-		printk(KERN_ERR "Driver registration failed\n");
+-		return err;
+-	}
+-
+-	jazz_sonic_device = platform_device_alloc(jazz_sonic_string, 0);
+-	if (!jazz_sonic_device)
+-		goto out_unregister;
+-
+-	if (platform_device_add(jazz_sonic_device)) {
+-		platform_device_put(jazz_sonic_device);
+-		jazz_sonic_device = NULL;
+-	}
+-
+-	return 0;
+-
+-out_unregister:
+-	platform_driver_unregister(&jazz_sonic_driver);
+-
+-	return -ENOMEM;
++	return platform_driver_register(&jazz_sonic_driver);
+ }
+ 
+ static void __exit jazz_sonic_cleanup_module(void)
+ {
+ 	platform_driver_unregister(&jazz_sonic_driver);
+-
+-	if (jazz_sonic_device) {
+-		platform_device_unregister(jazz_sonic_device);
+-		jazz_sonic_device = NULL;
+-	}
+ }
+ 
+ module_init(jazz_sonic_init_module);
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-git-netdev-all.patch
-git-net.patch
-net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
-git-s390.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-therm_throtc-fix-section-mismatch.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+git-mips.patch
+remove-setup-of-platform-device-from-jazzsonicc.patch
