@@ -1,108 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch removed from -mm tree
-Date: Wed, 12 Sep 2007 18:18:50 -0700
-Message-ID: <200709130118.l8D1Io6S028103@imap1.linux-foundation.org>
+Subject: + modpost-detect-unterminated-device-id-lists.patch added to -mm tree
+Date: Wed, 12 Sep 2007 18:24:30 -0700
+Message-ID: <200709130124.l8D1OUxr028313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47763 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751009AbXIMBS7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753462AbXIMBZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 12 Sep 2007 21:18:59 -0400
+	Wed, 12 Sep 2007 21:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guichaz@yahoo.fr, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kees@ubuntu.com, adobriyan@gmail.com, bcollins@ubuntu.com, flamingice@sourmilk.net, greg@kroah.com, jeff@garzik.org, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     Add all thread stats for TASKSTATS_CMD_ATTR_TGID
-has been removed from the -mm tree.  Its filename was
-     add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
+     modpost: detect unterminated device id lists
+has been added to the -mm tree.  Its filename is
+     modpost-detect-unterminated-device-id-lists.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Add all thread stats for TASKSTATS_CMD_ATTR_TGID
-From: "Guillaume Chazarain" <guichaz@yahoo.fr>
+Subject: modpost: detect unterminated device id lists
+From: Kees Cook <kees@ubuntu.com>
 
-Add all thread accounting stats for the global tgid stats.  As a shameless
-plug, this fixes iotop -P (http://guichaz.free.fr/misc/iotop.py).
+Cause modpost to fail if any device id lists are incorrectly terminated,
+after reporting the offender.
 
-Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Jay Lan <jlan@engr.sgi.com>
-Cc: Jonathan Lim <jlim@sgi.com>
+Signed-off-by: Kees Cook <kees@ubuntu.com>
+Greg KH <greg@kroah.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ben Collins <bcollins@ubuntu.com>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    2 ++
- kernel/tsacct.c    |   22 +++++++++-------------
- 2 files changed, 11 insertions(+), 13 deletions(-)
+ scripts/mod/file2alias.c |   38 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN kernel/taskstats.c~add-all-thread-stats-for-taskstats_cmd_attr_tgid kernel/taskstats.c
---- a/kernel/taskstats.c~add-all-thread-stats-for-taskstats_cmd_attr_tgid
-+++ a/kernel/taskstats.c
-@@ -232,6 +232,7 @@ static int fill_tgid(pid_t tgid, struct 
- 		memset(stats, 0, sizeof(*stats));
- 
- 	tsk = first;
-+	bacct_add_tsk(stats, first);
- 	do {
- 		if (tsk->exit_state)
- 			continue;
-@@ -245,6 +246,7 @@ static int fill_tgid(pid_t tgid, struct 
- 
- 		stats->nvcsw += tsk->nvcsw;
- 		stats->nivcsw += tsk->nivcsw;
-+		xacct_add_tsk(stats, tsk);
- 	} while_each_thread(first, tsk);
- 
- 	unlock_task_sighand(first, &flags);
-diff -puN kernel/tsacct.c~add-all-thread-stats-for-taskstats_cmd_attr_tgid kernel/tsacct.c
---- a/kernel/tsacct.c~add-all-thread-stats-for-taskstats_cmd_attr_tgid
-+++ a/kernel/tsacct.c
-@@ -81,8 +81,8 @@ void xacct_add_tsk(struct taskstats *sta
- 	struct mm_struct *mm;
- 
- 	/* convert pages-jiffies to Mbyte-usec */
--	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
--	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
-+	stats->coremem += jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
-+	stats->virtmem += jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
- 	mm = get_task_mm(p);
- 	if (mm) {
- 		/* adjust to KB unit */
-@@ -90,18 +90,14 @@ void xacct_add_tsk(struct taskstats *sta
- 		stats->hiwater_vm    = mm->hiwater_vm * PAGE_SIZE / KB;
- 		mmput(mm);
+diff -puN scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists
++++ a/scripts/mod/file2alias.c
+@@ -55,10 +55,13 @@ do {                                    
+  * Check that sizeof(device_id type) are consistent with size of section
+  * in .o file. If in-consistent then userspace and kernel does not agree
+  * on actual size which is a bug.
++ * Also verify that the final entry in the table is all zeros.
+  **/
+-static void device_id_size_check(const char *modname, const char *device_id,
+-				 unsigned long size, unsigned long id_size)
++static void device_id_check(const char *modname, const char *device_id,
++			    unsigned long size, unsigned long id_size,
++			    void *symval)
+ {
++	int i;
+ 	if (size % id_size || size < id_size) {
+ 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
+ 		      "of the size of section __mod_%s_device_table=%lu.\n"
+@@ -66,6 +69,18 @@ static void device_id_size_check(const c
+ 		      "in mod_devicetable.h\n",
+ 		      modname, device_id, id_size, device_id, size, device_id);
  	}
--	stats->read_char	= p->rchar;
--	stats->write_char	= p->wchar;
--	stats->read_syscalls	= p->syscr;
--	stats->write_syscalls	= p->syscw;
-+	stats->read_char	+= p->rchar;
-+	stats->write_char	+= p->wchar;
-+	stats->read_syscalls	+= p->syscr;
-+	stats->write_syscalls	+= p->syscw;
- #ifdef CONFIG_TASK_IO_ACCOUNTING
--	stats->read_bytes	= p->ioac.read_bytes;
--	stats->write_bytes	= p->ioac.write_bytes;
--	stats->cancelled_write_bytes = p->ioac.cancelled_write_bytes;
--#else
--	stats->read_bytes	= 0;
--	stats->write_bytes	= 0;
--	stats->cancelled_write_bytes = 0;
-+	stats->read_bytes	+= p->ioac.read_bytes;
-+	stats->write_bytes	+= p->ioac.write_bytes;
-+	stats->cancelled_write_bytes += p->ioac.cancelled_write_bytes;
- #endif
++	/* Verify last one is a terminator */
++	for (i = 0; i < id_size; i++ ) {
++		if ( *(uint8_t*)(symval+size-id_size+i) ) {
++			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  The last of %lu is:\n", modname, device_id, id_size, size / id_size);
++			for (i = 0; i < id_size; i++ ) {
++				fprintf(stderr,"0x%02x ", *(uint8_t*)(symval+size-id_size+i) );
++			}
++			fprintf(stderr,"\n");
++			fatal("%s: struct %s_device_id is not terminated "
++				"with a NULL entry!\n", modname, device_id);
++		}
++	}
  }
- #undef KB
+ 
+ /* USB is special because the bcdDevice can be matched against a numeric range */
+@@ -168,7 +183,7 @@ static void do_usb_table(void *symval, u
+ 	unsigned int i;
+ 	const unsigned long id_size = sizeof(struct usb_device_id);
+ 
+-	device_id_size_check(mod->name, "usb", size, id_size);
++	device_id_check(mod->name, "usb", size, id_size, symval);
+ 
+ 	/* Leave last one: it's the terminator. */
+ 	size -= id_size;
+@@ -529,7 +544,7 @@ static void do_table(void *symval, unsig
+ 	char alias[500];
+ 	int (*do_entry)(const char *, void *entry, char *alias) = function;
+ 
+-	device_id_size_check(mod->name, device_id, size, id_size);
++	device_id_check(mod->name, device_id, size, id_size, symval);
+ 	/* Leave last one: it's the terminator. */
+ 	size -= id_size;
+ 
+@@ -551,14 +566,22 @@ void handle_moddevtable(struct module *m
+ 			Elf_Sym *sym, const char *symname)
+ {
+ 	void *symval;
++	char *zeros = NULL;
+ 
+ 	/* We're looking for a section relative symbol */
+ 	if (!sym->st_shndx || sym->st_shndx >= info->hdr->e_shnum)
+ 		return;
+ 
+-	symval = (void *)info->hdr
+-		+ info->sechdrs[sym->st_shndx].sh_offset
+-		+ sym->st_value;
++	/* Handle all-NULL symbols allocated into .bss */
++	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
++		zeros = calloc(1, sym->st_size);
++		symval = zeros;
++	}
++	else {
++		symval = (void *)info->hdr
++			+ info->sechdrs[sym->st_shndx].sh_offset
++			+ sym->st_value;
++	}
+ 
+ 	if (sym_is(symname, "__mod_pci_device_table"))
+ 		do_table(symval, sym->st_size,
+@@ -627,6 +650,7 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct ssb_device_id), "ssb",
+ 			 do_ssb_entry, mod);
++	if (zeros) free(zeros);
+ }
+ 
+ /* Now add out buffered information to the generated C source */
 _
 
-Patches currently in -mm which might be from guichaz@yahoo.fr are
+Patches currently in -mm which might be from kees@ubuntu.com are
 
-taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
-sync_sb_inodes-propagate-errors.patch
+modpost-detect-unterminated-device-id-lists.patch
+modpost-detect-unterminated-device-id-lists-fix.patch
