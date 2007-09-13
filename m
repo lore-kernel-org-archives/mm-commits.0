@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-add-gpio-support-to-the-bcm947xx-platform-update.patch added to -mm tree
-Date: Thu, 13 Sep 2007 14:35:20 -0700
-Message-ID: <200709132135.l8DLZKbH007131@imap1.linux-foundation.org>
+Subject: + ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch added to -mm tree
+Date: Thu, 13 Sep 2007 15:01:18 -0700
+Message-ID: <200709132201.l8DM1Iru008052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754355AbXIMVgr (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbXIMWBe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 17:36:47 -0400
+	Thu, 13 Sep 2007 18:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aurelien@aurel32.net, david-b@pacbell.net, geert@linux-m68k.org, mb@bu3sch.de, ralf@linux-mips.org
+Cc: satyam@infradead.org, dushistov@mail.ru
 
 
 The patch titled
-     mips-add-gpio-support-to-the-bcm947xx-platform update
+     ufs: Fix mount check in ufs_fill_super()
 has been added to the -mm tree.  Its filename is
-     mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+     ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,244 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mips-add-gpio-support-to-the-bcm947xx-platform update
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: ufs: Fix mount check in ufs_fill_super()
+From: Satyam Sharma <satyam@infradead.org>
 
-On Fri, Aug 17, 2007 at 09:00:31PM +0200, Michael Buesch wrote:
-> On Friday 17 August 2007 20:56:42 David Brownell wrote:
-> > On Friday 17 August 2007, akpm@linux-foundation.org wrote:
-> >
-> > > +static inline int gpio_to_irq(unsigned gpio)
-> > > +{
-> > > +	if (ssb_bcm947xx.chipco.dev)
-> >
-> > Looks like a runtime switch ... can this be done at
-> > compile time instead?
->
-> No, it's a runtime condition.
->
-> > This idiom shows up in all of
-> > these routines.  (ssb_bcm947xx isn't in kernel.org
-> > code so Mr. Grep is no help yet.)  If not, these
-> > might all be better as non-inlned functions.
->
-> Yeah.
+The current code skips the check to verify whether the filesystem was
+previously cleanly unmounted, if (flags & UFS_ST_MASK) == UFS_ST_44BSD or
+UFS_ST_OLD.  This looks like an inadvertent bug that slipped in due to
+parantheses in the compound conditional to me, especially given that
+ufs_get_fs_state() handles the UFS_ST_44BSD case perfectly well.  So, let's
+fix the compound condition appropriately.
 
-First of all, sorry for the delay. Please find below a new version of
-the patch that takes into account your comments. The functions are not
-inlined anymore and they check the gpio pin number.
-
-Andrew, this patch replaces the patch called
-mips-add-gpio-support-to-the-bcm947xx-platform.patch.
-
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Michael Buesch <mb@bu3sch.de>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/bcm947xx/Makefile           |    2 
- arch/mips/bcm947xx/gpio.c             |   79 ++++++++++++++++++++++++
- include/asm-mips/mach-bcm947xx/gpio.h |   58 ++++-------------
- 3 files changed, 94 insertions(+), 45 deletions(-)
+ fs/ufs/super.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update arch/mips/bcm947xx/Makefile
---- a/arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update
-+++ a/arch/mips/bcm947xx/Makefile
-@@ -3,4 +3,4 @@
- # under Linux.
- #
+diff -puN fs/ufs/super.c~ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super
++++ a/fs/ufs/super.c
+@@ -934,19 +934,20 @@ magic_found:
+ 		flags |=  UFS_ST_SUN;
+ 	}
  
--obj-y := irq.o prom.o serial.o setup.o time.o
-+obj-y := gpio.o irq.o prom.o serial.o setup.o time.o
-diff -puN /dev/null arch/mips/bcm947xx/gpio.c
---- /dev/null
-+++ a/arch/mips/bcm947xx/gpio.c
-@@ -0,0 +1,79 @@
-+/*
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (C) 2007 Aurelien Jarno <aurelien@aurel32.net>
-+ */
-+
-+#include <linux/ssb/ssb.h>
-+#include <linux/ssb/ssb_driver_chipcommon.h>
-+#include <linux/ssb/ssb_driver_extif.h>
-+#include <asm/mach-bcm947xx/bcm947xx.h>
-+#include <asm/mach-bcm947xx/gpio.h>
-+
-+int bcm947xx_gpio_to_irq(unsigned gpio)
-+{
-+	if (ssb_bcm947xx.chipco.dev)
-+		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
-+	else if (ssb_bcm947xx.extif.dev)
-+		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
-+	else
-+		return -EINVAL;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_to_irq);
-+
-+int bcm947xx_gpio_get_value(unsigned gpio)
-+{
-+	if (ssb_bcm947xx.chipco.dev)
-+		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
-+	else if (ssb_bcm947xx.extif.dev)
-+		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
-+	else
-+		return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_get_value);
-+
-+void bcm947xx_gpio_set_value(unsigned gpio, int value)
-+{
-+	if (ssb_bcm947xx.chipco.dev)
-+		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
-+				    1 << gpio,
-+				    value ? 1 << gpio : 0);
-+	else if (ssb_bcm947xx.extif.dev)
-+		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
-+				   1 << gpio,
-+				   value ? 1 << gpio : 0);
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_set_value);
-+
-+int bcm947xx_gpio_direction_input(unsigned gpio)
-+{
-+	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
-+		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
-+				      1 << gpio, 0);
-+	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
-+		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
-+				     1 << gpio, 0);
-+	else
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_direction_input);
-+
-+int bcm947xx_gpio_direction_output(unsigned gpio, int value)
-+{
-+	bcm947xx_gpio_set_value(gpio, value);
-+
-+	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
-+		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
-+				      1 << gpio, 1 << gpio);
-+	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
-+		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
-+				     1 << gpio, 1 << gpio);
-+	else
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_direction_output);
-+
-diff -puN include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update include/asm-mips/mach-bcm947xx/gpio.h
---- a/include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update
-+++ a/include/asm-mips/mach-bcm947xx/gpio.h
-@@ -9,10 +9,14 @@
- #ifndef __BCM947XX_GPIO_H
- #define __BCM947XX_GPIO_H
+-	sbi->s_flags = flags;/*after that line some functions use s_flags*/
++	/* Set sbi->s_flags here, used by ufs_get_fs_state() below */
++	sbi->s_flags = flags;
+ 	ufs_print_super_stuff(sb, usb1, usb2, usb3);
  
--#include <linux/ssb/ssb.h>
--#include <linux/ssb/ssb_driver_chipcommon.h>
--#include <linux/ssb/ssb_driver_extif.h>
--#include <asm/mach-bcm947xx/bcm947xx.h>
-+#define BCM947XX_EXTIF_GPIO_LINES	5
-+#define BCM947XX_CHIPCO_GPIO_LINES	16
-+
-+extern int bcm947xx_gpio_to_irq(unsigned gpio);
-+extern int bcm947xx_gpio_get_value(unsigned gpio);
-+extern void bcm947xx_gpio_set_value(unsigned gpio, int value);
-+extern int bcm947xx_gpio_direction_input(unsigned gpio);
-+extern int bcm947xx_gpio_direction_output(unsigned gpio, int value);
- 
- static inline int gpio_request(unsigned gpio, const char *label)
- {
-@@ -25,64 +29,30 @@ static inline void gpio_free(unsigned gp
- 
- static inline int gpio_to_irq(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
--	else if (ssb_bcm947xx.extif.dev)
--		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
--	else
--		return -EINVAL;
-+	return bcm947xx_gpio_to_irq(gpio);
- }
- 
- static inline int gpio_get_value(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
--	else if (ssb_bcm947xx.extif.dev)
--		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
--	else
--		return 0;
-+	return bcm947xx_gpio_get_value(gpio);
- }
- 
- static inline void gpio_set_value(unsigned gpio, int value)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
--				    1 << gpio,
--				    value ? 1 << gpio : 0);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
--				   1 << gpio,
--				   value ? 1 << gpio : 0);
-+	bcm947xx_gpio_set_value(gpio, value);
- }
- 
- static inline int gpio_direction_input(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
--				      1 << gpio, 0);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
--				     1 << gpio, 0);
--	else
--		return -EINVAL;
--	return 0;
-+	return bcm947xx_gpio_direction_input(gpio);
- }
- 
- static inline int gpio_direction_output(unsigned gpio, int value)
- {
--	gpio_set_value(gpio, value);
--
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
--				      1 << gpio, 1 << gpio);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
--				     1 << gpio, 1 << gpio);
--	else
--		return -EINVAL;
--	return 0;
-+	return bcm947xx_gpio_direction_output(gpio, value);
- }
- 
-+
- /* cansleep wrappers */
- #include <asm-generic/gpio.h>
- 
+ 	/*
+ 	 * Check, if file system was correctly unmounted.
+ 	 * If not, make it read only.
+ 	 */
+-	if (((flags & UFS_ST_MASK) == UFS_ST_44BSD) ||
+-	  ((flags & UFS_ST_MASK) == UFS_ST_OLD) ||
+-	  (((flags & UFS_ST_MASK) == UFS_ST_SUN || 
+-	    (flags & UFS_ST_MASK) == UFS_ST_SUNOS ||
+-	  (flags & UFS_ST_MASK) == UFS_ST_SUNx86) && 
+-	  (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time))))) {
++	if ((((flags & UFS_ST_MASK) == UFS_ST_44BSD)	||
++	     ((flags & UFS_ST_MASK) == UFS_ST_OLD)	||
++	     ((flags & UFS_ST_MASK) == UFS_ST_SUN)	||
++	     ((flags & UFS_ST_MASK) == UFS_ST_SUNOS)	||
++	     ((flags & UFS_ST_MASK) == UFS_ST_SUNx86))	&&
++	    (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time)))) {
+ 		switch(usb1->fs_clean) {
+ 		case UFS_FSCLEAN:
+ 			UFSD("fs is clean\n");
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-git-kvm.patch
-git-mips.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-git-wireless.patch
-move-mm_struct-and-vm_area_struct-fix.patch
+h8-300-fix-misnamed-config_blkdev_reserve_address-kconfig-variable.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+drivers-char-nozomic-__devexit_p-usage-build-fix.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-netdev-all.patch
+3c59x-fix-uninitialized-variable-bug.patch
+git-net.patch
+net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+therm_throtc-fix-section-mismatch.patch
+i386-cpuid_count-fix-argument-signedness-warnings.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
