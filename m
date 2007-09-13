@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-improve-user-interface.patch added to -mm tree
-Date: Thu, 13 Sep 2007 00:33:14 -0700
-Message-ID: <200709130733.l8D7XEnf007882@imap1.linux-foundation.org>
+Subject: + memory-controller-make-charging-gfp-mask-aware.patch added to -mm tree
+Date: Thu, 13 Sep 2007 00:35:42 -0700
+Message-ID: <200709130735.l8D7Zgs9008009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751402AbXIMHew (ORCPT
+	by vger.kernel.org with ESMTP id S1751211AbXIMHgi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 03:34:52 -0400
+	Thu, 13 Sep 2007 03:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: balbir@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmiss
 
 
 The patch titled
-     Memory controller improve user interface 
+     Memory controller: make charging gfp mask aware
 has been added to the -mm tree.  Its filename is
-     memory-controller-improve-user-interface.patch
+     memory-controller-make-charging-gfp-mask-aware.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,19 +26,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memory controller improve user interface 
+Subject: Memory controller: make charging gfp mask aware
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Change the interface to use bytes instead of pages.  Page sizes can vary
-across platforms and configurations.  A new strategy routine has been added
-to the resource counters infrastructure to format the data as desired.
+Nick Piggin pointed out that swap cache and page cache addition routines
+could be called from non GFP_KERNEL contexts.  This patch makes the
+charging routine aware of the gfp context.  Charging might fail if the
+container is over it's limit, in which case a suitable error is returned.
 
-Suggested by David Rientjes, Andrew Morton and Herbert Poetzl
-
-Tested on a UML setup with the config for memory control enabled.
+This patch was tested on a Powerpc box.  I am still looking at being able
+to test the path, through which allocations happen in non GFP_KERNEL
+contexts.
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Pavel Emelianov <xemul@openvz.org>
+Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -50,257 +51,256 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |   29 +++++++++++++++++---
- include/linux/res_counter.h          |   12 +++++---
- kernel/res_counter.c                 |   34 ++++++++++++++++--------
- mm/memcontrol.c                      |   35 +++++++++++++++++--------
- 4 files changed, 79 insertions(+), 31 deletions(-)
+ include/linux/memcontrol.h |   12 ++++++++----
+ include/linux/swap.h       |    3 ++-
+ mm/filemap.c               |    2 +-
+ mm/memcontrol.c            |   24 +++++++++++++++++-------
+ mm/memory.c                |   10 +++++-----
+ mm/migrate.c               |    2 +-
+ mm/swap_state.c            |    2 +-
+ mm/swapfile.c              |    2 +-
+ mm/vmscan.c                |    5 +++--
+ 9 files changed, 39 insertions(+), 23 deletions(-)
 
-diff -puN Documentation/controllers/memory.txt~memory-controller-improve-user-interface Documentation/controllers/memory.txt
---- a/Documentation/controllers/memory.txt~memory-controller-improve-user-interface
-+++ a/Documentation/controllers/memory.txt
-@@ -165,11 +165,30 @@ c. Enable CONFIG_CONTAINER_MEM_CONT
+diff -puN include/linux/memcontrol.h~memory-controller-make-charging-gfp-mask-aware include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-make-charging-gfp-mask-aware
++++ a/include/linux/memcontrol.h
+@@ -32,7 +32,8 @@ extern void mm_free_container(struct mm_
+ extern void page_assign_page_container(struct page *page,
+ 					struct page_container *pc);
+ extern struct page_container *page_get_page_container(struct page *page);
+-extern int mem_container_charge(struct page *page, struct mm_struct *mm);
++extern int mem_container_charge(struct page *page, struct mm_struct *mm,
++				gfp_t gfp_mask);
+ extern void mem_container_uncharge(struct page_container *pc);
+ extern void mem_container_move_lists(struct page_container *pc, bool active);
+ extern unsigned long mem_container_isolate_pages(unsigned long nr_to_scan,
+@@ -42,7 +43,8 @@ extern unsigned long mem_container_isola
+ 					struct mem_container *mem_cont,
+ 					int active);
+ extern void mem_container_out_of_memory(struct mem_container *mem);
+-extern int mem_container_cache_charge(struct page *page, struct mm_struct *mm);
++extern int mem_container_cache_charge(struct page *page, struct mm_struct *mm,
++					gfp_t gfp_mask);
+ extern struct mem_container *mm_container(struct mm_struct *mm);
  
- Since now we're in the 0 container,
- We can alter the memory limit:
--# echo -n 6000 > /containers/0/memory.limit
-+# echo -n 4M > /containers/0/memory.limit_in_bytes
-+
-+NOTE: We can use a suffix (k, K, m, M, g or G) to indicate values in kilo,
-+mega or gigabytes.
-+
-+# cat /containers/0/memory.limit_in_bytes
-+4194304 Bytes
-+
-+NOTE: The interface has now changed to display the usage in bytes
-+instead of pages
- 
- We can check the usage:
--# cat /containers/0/memory.usage
--25
-+# cat /containers/0/memory.usage_in_bytes
-+1216512 Bytes
-+
-+A successful write to this file does not guarantee a successful set of
-+this limit to the value written into the file.  This can be due to a
-+number of factors, such as rounding up to page boundaries or the total
-+availability of memory on the system.  The user is required to re-read
-+this file after a write to guarantee the value committed by the kernel.
-+
-+# echo -n 1 > memory.limit_in_bytes
-+# cat memory.limit_in_bytes
-+4096 Bytes
- 
- The memory.failcnt field gives the number of times that the container limit was
- exceeded.
-@@ -206,8 +225,8 @@ container might have some charge associa
- tasks have migrated away from it. If some pages are still left, after following
- the steps listed in sections 4.1 and 4.2, check the Swap Cache usage in
- /proc/meminfo to see if the Swap Cache usage is showing up in the
--containers memory.usage counter. A simple test of swapoff -a and swapon -a
--should free any pending Swap Cache usage.
-+containers memory.usage_in_bytes counter. A simple test of swapoff -a and
-+swapon -a should free any pending Swap Cache usage.
- 
- 4.4 Choosing what to account  -- Page Cache (unmapped) vs RSS (mapped)?
- 
-diff -puN include/linux/res_counter.h~memory-controller-improve-user-interface include/linux/res_counter.h
---- a/include/linux/res_counter.h~memory-controller-improve-user-interface
-+++ a/include/linux/res_counter.h
-@@ -23,15 +23,15 @@ struct res_counter {
- 	/*
- 	 * the current resource consumption level
- 	 */
--	unsigned long usage;
-+	unsigned long long usage;
- 	/*
- 	 * the limit that usage cannot exceed
- 	 */
--	unsigned long limit;
-+	unsigned long long limit;
- 	/*
- 	 * the number of unsuccessful attempts to consume the resource
- 	 */
--	unsigned long failcnt;
-+	unsigned long long failcnt;
- 	/*
- 	 * the lock to protect all of the above.
- 	 * the routines below consider this to be IRQ-safe
-@@ -52,9 +52,11 @@ struct res_counter {
-  */
- 
- ssize_t res_counter_read(struct res_counter *counter, int member,
--		const char __user *buf, size_t nbytes, loff_t *pos);
-+		const char __user *buf, size_t nbytes, loff_t *pos,
-+		int (*read_strategy)(unsigned long long val, char *s));
- ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *buf, size_t nbytes, loff_t *pos);
-+		const char __user *buf, size_t nbytes, loff_t *pos,
-+		int (*write_strategy)(char *buf, unsigned long long *val));
- 
- /*
-  * the field descriptors. one for each member of res_counter
-diff -puN kernel/res_counter.c~memory-controller-improve-user-interface kernel/res_counter.c
---- a/kernel/res_counter.c~memory-controller-improve-user-interface
-+++ a/kernel/res_counter.c
-@@ -16,7 +16,7 @@
- void res_counter_init(struct res_counter *counter)
- {
- 	spin_lock_init(&counter->lock);
--	counter->limit = (unsigned long)LONG_MAX;
-+	counter->limit = (unsigned long long)LLONG_MAX;
+ static inline void mem_container_uncharge_page(struct page *page)
+@@ -70,7 +72,8 @@ static inline struct page_container *pag
+ 	return NULL;
  }
  
- int res_counter_charge_locked(struct res_counter *counter, unsigned long val)
-@@ -59,8 +59,8 @@ void res_counter_uncharge(struct res_cou
+-static inline int mem_container_charge(struct page *page, struct mm_struct *mm)
++static inline int mem_container_charge(struct page *page, struct mm_struct *mm,
++					gfp_t gfp_mask)
+ {
+ 	return 0;
+ }
+@@ -89,7 +92,8 @@ static inline void mem_container_move_li
  }
  
- 
--static inline unsigned long *res_counter_member(struct res_counter *counter,
--						int member)
-+static inline unsigned long long *
-+res_counter_member(struct res_counter *counter, int member)
+ static inline int mem_container_cache_charge(struct page *page,
+-						struct mm_struct *mm)
++						struct mm_struct *mm,
++						gfp_t gfp_mask)
  {
- 	switch (member) {
- 	case RES_USAGE:
-@@ -76,24 +76,29 @@ static inline unsigned long *res_counter
+ 	return 0;
  }
+diff -puN include/linux/swap.h~memory-controller-make-charging-gfp-mask-aware include/linux/swap.h
+--- a/include/linux/swap.h~memory-controller-make-charging-gfp-mask-aware
++++ a/include/linux/swap.h
+@@ -191,7 +191,8 @@ extern void swap_setup(void);
+ /* linux/mm/vmscan.c */
+ extern unsigned long try_to_free_pages(struct zone **zones, int order,
+ 					gfp_t gfp_mask);
+-extern unsigned long try_to_free_mem_container_pages(struct mem_container *mem);
++extern unsigned long try_to_free_mem_container_pages(struct mem_container *mem,
++							gfp_t gfp_mask);
+ extern int __isolate_lru_page(struct page *page, int mode);
+ extern unsigned long shrink_all_memory(unsigned long nr_pages);
+ extern int vm_swappiness;
+diff -puN mm/filemap.c~memory-controller-make-charging-gfp-mask-aware mm/filemap.c
+--- a/mm/filemap.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/filemap.c
+@@ -444,7 +444,7 @@ int add_to_page_cache(struct page *page,
  
- ssize_t res_counter_read(struct res_counter *counter, int member,
--		const char __user *userbuf, size_t nbytes, loff_t *pos)
-+		const char __user *userbuf, size_t nbytes, loff_t *pos,
-+		int (*read_strategy)(unsigned long long val, char *st_buf))
- {
--	unsigned long *val;
-+	unsigned long long *val;
- 	char buf[64], *s;
+ 	if (error == 0) {
  
- 	s = buf;
- 	val = res_counter_member(counter, member);
--	s += sprintf(s, "%lu\n", *val);
-+	if (read_strategy)
-+		s += read_strategy(*val, s);
-+	else
-+		s += sprintf(s, "%llu\n", *val);
- 	return simple_read_from_buffer((void __user *)userbuf, nbytes,
- 			pos, buf, s - buf);
- }
+-		error = mem_container_cache_charge(page, current->mm);
++		error = mem_container_cache_charge(page, current->mm, gfp_mask);
+ 		if (error)
+ 			goto out;
  
- ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *userbuf, size_t nbytes, loff_t *pos)
-+		const char __user *userbuf, size_t nbytes, loff_t *pos,
-+		int (*write_strategy)(char *st_buf, unsigned long long *val))
- {
- 	int ret;
- 	char *buf, *end;
--	unsigned long tmp, *val;
-+	unsigned long long tmp, *val;
- 
- 	buf = kmalloc(nbytes + 1, GFP_KERNEL);
- 	ret = -ENOMEM;
-@@ -106,9 +111,16 @@ ssize_t res_counter_write(struct res_cou
- 		goto out_free;
- 
- 	ret = -EINVAL;
--	tmp = simple_strtoul(buf, &end, 10);
--	if (*end != '\0')
--		goto out_free;
-+
-+	if (write_strategy) {
-+		if (write_strategy(buf, &tmp)) {
-+			goto out_free;
-+		}
-+	} else {
-+		tmp = simple_strtoull(buf, &end, 10);
-+		if (*end != '\0')
-+			goto out_free;
-+	}
- 
- 	val = res_counter_member(counter, member);
- 	*val = tmp;
-diff -puN mm/memcontrol.c~memory-controller-improve-user-interface mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-improve-user-interface
+diff -puN mm/memcontrol.c~memory-controller-make-charging-gfp-mask-aware mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-controller-make-charging-gfp-mask-aware
 +++ a/mm/memcontrol.c
-@@ -296,7 +296,7 @@ int mem_container_charge(struct page *pa
- 	 * If we created the page_container, we should free it on exceeding
+@@ -261,7 +261,8 @@ unsigned long mem_container_isolate_page
+  * 0 if the charge was successful
+  * < 0 if the container is over its limit
+  */
+-int mem_container_charge(struct page *page, struct mm_struct *mm)
++int mem_container_charge(struct page *page, struct mm_struct *mm,
++				gfp_t gfp_mask)
+ {
+ 	struct mem_container *mem;
+ 	struct page_container *pc, *race_pc;
+@@ -287,7 +288,7 @@ int mem_container_charge(struct page *pa
+ 
+ 	unlock_page_container(page);
+ 
+-	pc = kzalloc(sizeof(struct page_container), GFP_KERNEL);
++	pc = kzalloc(sizeof(struct page_container), gfp_mask);
+ 	if (pc == NULL)
+ 		goto err;
+ 
+@@ -314,7 +315,14 @@ int mem_container_charge(struct page *pa
  	 * the container limit.
  	 */
--	while (res_counter_charge(&mem->res, 1)) {
-+	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
- 		if (try_to_free_mem_container_pages(mem))
+ 	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
+-		if (try_to_free_mem_container_pages(mem))
++		bool is_atomic = gfp_mask & GFP_ATOMIC;
++		/*
++		 * We cannot reclaim under GFP_ATOMIC, fail the charge
++		 */
++		if (is_atomic)
++			goto noreclaim;
++
++		if (try_to_free_mem_container_pages(mem, gfp_mask))
  			continue;
  
-@@ -335,7 +335,7 @@ int mem_container_charge(struct page *pa
- 		kfree(pc);
- 		pc = race_pc;
- 		atomic_inc(&pc->ref_cnt);
--		res_counter_uncharge(&mem->res, 1);
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
+ 		/*
+@@ -338,9 +346,10 @@ int mem_container_charge(struct page *pa
+ 			congestion_wait(WRITE, HZ/10);
+ 			continue;
+ 		}
+-
++noreclaim:
  		css_put(&mem->css);
- 		goto done;
+-		mem_container_out_of_memory(mem);
++		if (!is_atomic)
++			mem_container_out_of_memory(mem);
+ 		goto free_pc;
  	}
-@@ -380,7 +380,7 @@ void mem_container_uncharge(struct page_
- 		css_put(&mem->css);
- 		page_assign_page_container(page, NULL);
- 		unlock_page_container(page);
--		res_counter_uncharge(&mem->res, 1);
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
  
-  		spin_lock_irqsave(&mem->lru_lock, flags);
-  		list_del_init(&pc->lru);
-@@ -389,12 +389,26 @@ void mem_container_uncharge(struct page_
+@@ -381,7 +390,8 @@ err:
+ /*
+  * See if the cached pages should be charged at all?
+  */
+-int mem_container_cache_charge(struct page *page, struct mm_struct *mm)
++int mem_container_cache_charge(struct page *page, struct mm_struct *mm,
++				gfp_t gfp_mask)
+ {
+ 	struct mem_container *mem;
+ 	if (!mm)
+@@ -389,7 +399,7 @@ int mem_container_cache_charge(struct pa
+ 
+ 	mem = rcu_dereference(mm->mem_container);
+ 	if (mem->control_type == MEM_CONTAINER_TYPE_ALL)
+-		return mem_container_charge(page, mm);
++		return mem_container_charge(page, mm, gfp_mask);
+ 	else
+ 		return 0;
+ }
+diff -puN mm/memory.c~memory-controller-make-charging-gfp-mask-aware mm/memory.c
+--- a/mm/memory.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/memory.c
+@@ -1137,7 +1137,7 @@ static int insert_page(struct mm_struct 
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 
+-	retval = mem_container_charge(page, mm);
++	retval = mem_container_charge(page, mm, GFP_KERNEL);
+ 	if (retval)
+ 		goto out;
+ 
+@@ -1638,7 +1638,7 @@ gotten:
+ 		goto oom;
+ 	cow_user_page(new_page, old_page, address, vma);
+ 
+-	if (mem_container_charge(new_page, mm))
++	if (mem_container_charge(new_page, mm, GFP_KERNEL))
+ 		goto oom_free_new;
+ 
+ 	/*
+@@ -2101,7 +2101,7 @@ static int do_swap_page(struct mm_struct
  	}
- }
  
--static ssize_t mem_container_read(struct container *cont, struct cftype *cft,
--			struct file *file, char __user *userbuf, size_t nbytes,
--			loff_t *ppos)
-+int mem_container_write_strategy(char *buf, unsigned long long *tmp)
-+{
-+	*tmp = memparse(buf, &buf);
-+	if (*buf != '\0')
-+		return -EINVAL;
-+
-+	/*
-+	 * Round up the value to the closest page size
-+	 */
-+	*tmp = ((*tmp + PAGE_SIZE - 1) >> PAGE_SHIFT) << PAGE_SHIFT;
-+	return 0;
-+}
-+
-+static ssize_t mem_container_read(struct container *cont,
-+			struct cftype *cft, struct file *file,
-+			char __user *userbuf, size_t nbytes, loff_t *ppos)
+ 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+-	if (mem_container_charge(page, mm)) {
++	if (mem_container_charge(page, mm, GFP_KERNEL)) {
+ 		ret = VM_FAULT_OOM;
+ 		goto out;
+ 	}
+@@ -2185,7 +2185,7 @@ static int do_anonymous_page(struct mm_s
+ 	if (!page)
+ 		goto oom;
+ 
+-	if (mem_container_charge(page, mm))
++	if (mem_container_charge(page, mm, GFP_KERNEL))
+ 		goto oom_free_page;
+ 
+ 	entry = mk_pte(page, vma->vm_page_prot);
+@@ -2320,7 +2320,7 @@ static int __do_fault(struct mm_struct *
+ 
+ 	}
+ 
+-	if (mem_container_charge(page, mm)) {
++	if (mem_container_charge(page, mm, GFP_KERNEL)) {
+ 		ret = VM_FAULT_OOM;
+ 		goto out;
+ 	}
+diff -puN mm/migrate.c~memory-controller-make-charging-gfp-mask-aware mm/migrate.c
+--- a/mm/migrate.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/migrate.c
+@@ -158,7 +158,7 @@ static void remove_migration_pte(struct 
+  		return;
+  	}
+ 
+-	if (mem_container_charge(new, mm)) {
++	if (mem_container_charge(new, mm, GFP_KERNEL)) {
+ 		pte_unmap(ptep);
+ 		return;
+ 	}
+diff -puN mm/swapfile.c~memory-controller-make-charging-gfp-mask-aware mm/swapfile.c
+--- a/mm/swapfile.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/swapfile.c
+@@ -510,7 +510,7 @@ unsigned int count_swap_pages(int type, 
+ static int unuse_pte(struct vm_area_struct *vma, pte_t *pte,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
  {
- 	return res_counter_read(&mem_container_from_cont(cont)->res,
--				cft->private, userbuf, nbytes, ppos);
-+				cft->private, userbuf, nbytes, ppos,
-+				NULL);
- }
+-	if (mem_container_charge(page, vma->vm_mm))
++	if (mem_container_charge(page, vma->vm_mm, GFP_KERNEL))
+ 		return -ENOMEM;
  
- static ssize_t mem_container_write(struct container *cont, struct cftype *cft,
-@@ -402,17 +416,18 @@ static ssize_t mem_container_write(struc
- 				size_t nbytes, loff_t *ppos)
+ 	inc_mm_counter(vma->vm_mm, anon_rss);
+diff -puN mm/swap_state.c~memory-controller-make-charging-gfp-mask-aware mm/swap_state.c
+--- a/mm/swap_state.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/swap_state.c
+@@ -81,7 +81,7 @@ static int __add_to_swap_cache(struct pa
+ 	error = radix_tree_preload(gfp_mask);
+ 	if (!error) {
+ 
+-		error = mem_container_cache_charge(page, current->mm);
++		error = mem_container_cache_charge(page, current->mm, gfp_mask);
+ 		if (error)
+ 			goto out;
+ 
+diff -puN mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-make-charging-gfp-mask-aware
++++ a/mm/vmscan.c
+@@ -1350,10 +1350,11 @@ unsigned long try_to_free_pages(struct z
+ #define ZONE_USERPAGES ZONE_NORMAL
+ #endif
+ 
+-unsigned long try_to_free_mem_container_pages(struct mem_container *mem_cont)
++unsigned long try_to_free_mem_container_pages(struct mem_container *mem_cont,
++						gfp_t gfp_mask)
  {
- 	return res_counter_write(&mem_container_from_cont(cont)->res,
--				cft->private, userbuf, nbytes, ppos);
-+				cft->private, userbuf, nbytes, ppos,
-+				mem_container_write_strategy);
- }
- 
- static struct cftype mem_container_files[] = {
- 	{
--		.name = "usage",
-+		.name = "usage_in_bytes",
- 		.private = RES_USAGE,
- 		.read = mem_container_read,
- 	},
- 	{
--		.name = "limit",
-+		.name = "limit_in_bytes",
- 		.private = RES_LIMIT,
- 		.write = mem_container_write,
- 		.read = mem_container_read,
+ 	struct scan_control sc = {
+-		.gfp_mask = GFP_KERNEL,
++		.gfp_mask = gfp_mask,
+ 		.may_writepage = !laptop_mode,
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -324,3 +324,4 @@ memory-controller-improve-user-interface.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
