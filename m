@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + softlockup-improve-debug-output-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2007 00:47:26 -0700
-Message-ID: <200709130747.l8D7lQY0008372@imap1.linux-foundation.org>
+Subject: + sched-use-show_regs-to-improve-__schedule_bug-output.patch added to -mm tree
+Date: Thu, 13 Sep 2007 00:49:19 -0700
+Message-ID: <200709130749.l8D7nJYX008415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751769AbXIMHsY (ORCPT
+	by vger.kernel.org with ESMTP id S1751701AbXIMHuC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 03:48:24 -0400
+	Thu, 13 Sep 2007 03:50:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: satyam@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     softlockup-improve-debug-output fix
+     sched: Use show_regs() to improve __schedule_bug() output
 has been added to the -mm tree.  Its filename is
-     softlockup-improve-debug-output-fix.patch
+     sched-use-show_regs-to-improve-__schedule_bug-output.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: softlockup-improve-debug-output fix
+Subject: sched: Use show_regs() to improve __schedule_bug() output
 From: Satyam Sharma <satyam@infradead.org>
 
-On Sun, 2 Sep 2007, Satyam Sharma wrote:
->
-> --- kernel/softlockup.c~fix	2007-09-02 04:23:49.000000000 +0530
-> +++ kernel/softlockup.c	2007-09-02 04:34:45.000000000 +0530
-  ^^^^^^^^^^
+A full register dump along with stack backtrace would make the "scheduling
+while atomic" message more helpful.  Use show_regs() instead of
+dump_stack() for this.  We already know we're atomic in here (that is why
+this function was called) so show_regs()'s atomicity expectations are
+guaranteed.
 
-Ick, I botched a trivial patch, it doesn't even apply. Updated one below
-(with indentation fix as added bonus :-)
-
-[PATCH -mm] softlockup-improve-debug-output.patch fix (v2)
-
-kernel/softlockup.c: In function 'softlockup_tick':
-kernel/softlockup.c:125: warning: 'regs' is used uninitialized in this function
-
-is a genuine bug (will cause an oops in all probability,
-or cause wrong info to be printed, if we're lucky). So let's fix the
-softlockup-improve-debug-output.patch to actually work as intended.
+Also, modify the output of the "BUG: scheduling while atomic:" header a bit
+to keep task->comm and task->pid together and preempt_count() after them.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN kernel/softlockup.c~softlockup-improve-debug-output-fix kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-improve-debug-output-fix
-+++ a/kernel/softlockup.c
-@@ -79,7 +79,7 @@ void softlockup_tick(void)
- 	int this_cpu = smp_processor_id();
- 	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
- 	unsigned long print_timestamp;
--	struct pt_regs *regs;
-+	struct pt_regs *regs = get_irq_regs();
- 	unsigned long now;
+diff -puN kernel/sched.c~sched-use-show_regs-to-improve-__schedule_bug-output kernel/sched.c
+--- a/kernel/sched.c~sched-use-show_regs-to-improve-__schedule_bug-output
++++ a/kernel/sched.c
+@@ -64,6 +64,7 @@
+ #include <linux/unistd.h>
  
- 	if (touch_timestamp == 0) {
+ #include <asm/tlb.h>
++#include <asm/irq_regs.h>
+ 
+ /*
+  * Scheduler clock - returns current time in nanosec units.
+@@ -3402,12 +3403,19 @@ EXPORT_SYMBOL(sub_preempt_count);
+  */
+ static noinline void __schedule_bug(struct task_struct *prev)
+ {
+-	printk(KERN_ERR "BUG: scheduling while atomic: %s/0x%08x/%d\n",
+-		prev->comm, preempt_count(), prev->pid);
++	struct pt_regs *regs = get_irq_regs();
++
++	printk(KERN_ERR "BUG: scheduling while atomic: %s/%d/0x%08x\n",
++		prev->comm, prev->pid, preempt_count());
++
+ 	debug_show_held_locks(prev);
+ 	if (irqs_disabled())
+ 		print_irqtrace_events(prev);
+-	dump_stack();
++
++	if (regs)
++		show_regs(regs);
++	else
++		dump_stack();
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
@@ -83,6 +96,7 @@ git-netdev-all.patch
 git-net.patch
 net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
 git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
 use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
 ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
 git-watchdog.patch
