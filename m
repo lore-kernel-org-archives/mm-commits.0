@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-shortage-can-result-in-inconsistent-flocks-state.patch added to -mm tree
-Date: Fri, 14 Sep 2007 03:35:13 -0700
-Message-ID: <200709141035.l8EAZDLY000709@imap1.linux-foundation.org>
+Subject: + add-node-states-sysfs-class-attributes-v5.patch added to -mm tree
+Date: Fri, 14 Sep 2007 03:40:57 -0700
+Message-ID: <200709141040.l8EAevov000912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59426 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751152AbXINKgN (ORCPT
+	by vger.kernel.org with ESMTP id S1753155AbXINKlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 06:36:13 -0400
+	Fri, 14 Sep 2007 06:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
+Cc: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     Memory shortage can result in inconsistent flocks state
+     mm: add node states sysfs class attributeS
 has been added to the -mm tree.  Its filename is
-     memory-shortage-can-result-in-inconsistent-flocks-state.patch
+     add-node-states-sysfs-class-attributes-v5.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,149 +26,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Memory shortage can result in inconsistent flocks state
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: mm: add node states sysfs class attributeS
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-When the flock_lock_file() is called to change the flock from F_RDLCK to
-F_WRLCK or vice versa the existing flock can be removed without appropriate
-warning.
+Add a per node state sysfs class attribute file to /sys/devices/system/node
+to display node state masks.
 
-Look:
-        for_each_lock(inode, before) {
-                struct file_lock *fl = *before;
-                if (IS_POSIX(fl))
-                        break;
-                if (IS_LEASE(fl))
-                        continue;
-                if (filp != fl->fl_file)
-                        continue;
-                if (request->fl_type == fl->fl_type)
-                        goto out;
-                found = 1;
-                locks_delete_lock(before); <<<<<< !
-                break;
-        }
+E.g., on a 4-cell HP ia64 NUMA platform, we have 5 nodes: 4 representing
+the actual hardware cells and one memory-only pseudo-node representing a
+small amount [512MB] of "hardware interleaved" memory.  With this patch, in
+/sys/devices/system/node we see:
 
-if after this point the subsequent locks_alloc_lock() will
-fail the return code will be -ENOMEM, but the existing lock
-is already removed.
+#ls -1F /sys/devices/system/node
+has_cpu
+has_normal_memory
+node0/
+node1/
+node2/
+node3/
+node4/
+online
+possible
+#cat /sys/devices/system/node/possible
+0-255
+#cat /sys/devices/system/node/online
+0-4
+#cat /sys/devices/system/node/has_normal_memory
+0-4
+#cat /sys/devices/system/node/has_cpu
+0-3
 
-This is a known feature that such "re-locking" is not atomic,
-but in the racy case the file should stay locked (although by
-some other process), but in this case the file will be unlocked.
-
-The proposal is to prepare the lock in advance keeping no chance
-to fail in the future code.
-
-Found during making the flocks pid-namespaces aware.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ drivers/base/node.c |   91 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 90 insertions(+), 1 deletion(-)
 
-diff -puN fs/locks.c~memory-shortage-can-result-in-inconsistent-flocks-state fs/locks.c
---- a/fs/locks.c~memory-shortage-can-result-in-inconsistent-flocks-state
-+++ a/fs/locks.c
-@@ -733,6 +733,14 @@ static int flock_lock_file(struct file *
- 	lock_kernel();
- 	if (request->fl_flags & FL_ACCESS)
- 		goto find_conflict;
-+
-+	if (request->fl_type != F_UNLCK) {
-+		error = -ENOMEM;
-+		new_fl = locks_alloc_lock();
-+		if (new_fl == NULL)
-+			goto out;
-+	}
-+
- 	for_each_lock(inode, before) {
- 		struct file_lock *fl = *before;
- 		if (IS_POSIX(fl))
-@@ -754,10 +762,6 @@ static int flock_lock_file(struct file *
- 		goto out;
- 	}
+diff -puN drivers/base/node.c~add-node-states-sysfs-class-attributes-v5 drivers/base/node.c
+--- a/drivers/base/node.c~add-node-states-sysfs-class-attributes-v5
++++ a/drivers/base/node.c
+@@ -12,6 +12,7 @@
+ #include <linux/topology.h>
+ #include <linux/nodemask.h>
+ #include <linux/cpu.h>
++#include <linux/device.h>
  
--	error = -ENOMEM;
--	new_fl = locks_alloc_lock();
--	if (new_fl == NULL)
--		goto out;
- 	/*
- 	 * If a higher-priority process was blocked on the old file lock,
- 	 * give it the opportunity to lock the file.
+ static struct sysdev_class node_class = {
+ 	set_kset_name("node"),
+@@ -232,8 +233,96 @@ void unregister_one_node(int nid)
+ 	unregister_node(&node_devices[nid]);
+ }
+ 
++/*
++ * node states attributes
++ */
++
++static ssize_t print_nodes_state(enum node_states state, char *buf)
++{
++	int n;
++
++	n = nodelist_scnprintf(buf, PAGE_SIZE, node_states[state]);
++	if (n > 0 && PAGE_SIZE > n + 1) {
++		*(buf + n++) = '\n';
++		*(buf + n++) = '\0';
++	}
++	return n;
++}
++
++static ssize_t print_nodes_possible(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_POSSIBLE, buf);
++}
++
++static ssize_t print_nodes_online(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_ONLINE, buf);
++}
++
++static ssize_t print_nodes_has_normal_memory(struct sysdev_class *class,
++						char *buf)
++{
++	return print_nodes_state(N_NORMAL_MEMORY, buf);
++}
++
++static ssize_t print_nodes_has_cpu(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_CPU, buf);
++}
++
++static SYSDEV_CLASS_ATTR(possible, 0444, print_nodes_possible, NULL);
++static SYSDEV_CLASS_ATTR(online, 0444, print_nodes_online, NULL);
++static SYSDEV_CLASS_ATTR(has_normal_memory, 0444, print_nodes_has_normal_memory,
++									NULL);
++static SYSDEV_CLASS_ATTR(has_cpu, 0444, print_nodes_has_cpu, NULL);
++
++#ifdef CONFIG_HIGHMEM
++static ssize_t print_nodes_has_high_memory(struct sysdev_class *class,
++						 char *buf)
++{
++	return print_nodes_state(N_HIGH_MEMORY, buf);
++}
++
++static SYSDEV_CLASS_ATTR(has_high_memory, 0444, print_nodes_has_high_memory,
++									 NULL);
++#endif
++
++struct sysdev_class_attribute *node_state_attr[] = {
++	&attr_possible,
++	&attr_online,
++	&attr_has_normal_memory,
++#ifdef CONFIG_HIGHMEM
++	&attr_has_high_memory,
++#endif
++	&attr_has_cpu,
++};
++
++static int node_states_init(void)
++{
++	int i;
++	int err = 0;
++
++	for (i = 0;  i < NR_NODE_STATES; i++) {
++		int ret;
++		ret = sysdev_class_create_file(&node_class, node_state_attr[i]);
++		if (!err)
++			err = ret;
++	}
++	return err;
++}
++
+ static int __init register_node_type(void)
+ {
+-	return sysdev_class_register(&node_class);
++	int ret;
++
++	ret = sysdev_class_register(&node_class);
++	if (!ret)
++		ret = node_states_init();
++
++	/*
++	 * Note:  we're not going to unregister the node class if we fail
++	 * to register the node state class attribute files.
++	 */
++	return ret;
+ }
+ postcore_initcall(register_node_type);
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-leases-can-be-hidden-by-flocks.patch
-git-net.patch
-memory-shortage-can-result-in-inconsistent-flocks-state.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-isolate-some-explicit-usage-of-task-tgid-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+update-n_high_memory-node-state-for-memory-hotadd.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+add-node-states-sysfs-class-attributes-v5.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
