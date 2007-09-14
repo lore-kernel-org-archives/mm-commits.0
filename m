@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + lib-floating-proportions.patch added to -mm tree
-Date: Fri, 14 Sep 2007 04:21:03 -0700
-Message-ID: <200709141121.l8EBL3Nw002319@imap1.linux-foundation.org>
+Subject: + mm-per-device-dirty-threshold.patch added to -mm tree
+Date: Fri, 14 Sep 2007 04:21:05 -0700
+Message-ID: <200709141121.l8EBL5RO002324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43113 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752495AbXINL2M (ORCPT
+	by vger.kernel.org with ESMTP id S1752987AbXINL2M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 14 Sep 2007 07:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lib: floating proportions
+     mm: per device dirty threshold
 has been added to the -mm tree.  Its filename is
-     lib-floating-proportions.patch
+     mm-per-device-dirty-threshold.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,553 +26,451 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: floating proportions
+Subject: mm: per device dirty threshold
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Given a set of objects, floating proportions aims to efficiently give the
-proportional 'activity' of a single item as compared to the whole set. Where
-'activity' is a measure of a temporal property of the items.
+Scale writeback cache per backing device, proportional to its writeout speed.
 
-It is efficient in that it need not inspect any other items of the set
-in order to provide the answer. It is not even needed to know how many
-other items there are.
+By decoupling the BDI dirty thresholds a number of problems we currently have
+will go away, namely:
 
-It has one parameter, and that is the period of 'time' over which the
-'activity' is measured.
+ - mutual interference starvation (for any number of BDIs);
+ - deadlocks with stacked BDIs (loop, FUSE and local NFS mounts).
+
+It might be that all dirty pages are for a single BDI while other BDIs are
+idling. By giving each BDI a 'fair' share of the dirty limit, each one can have
+dirty pages outstanding and make progress.
+
+A global threshold also creates a deadlock for stacked BDIs; when A writes to
+B, and A generates enough dirty pages to get throttled, B will never start
+writeback until the dirty pages go away. Again, by giving each BDI its own
+'independent' dirty limit, this problem is avoided.
+
+So the problem is to determine how to distribute the total dirty limit across
+the BDIs fairly and efficiently. A DBI that has a large dirty limit but does
+not have any dirty pages outstanding is a waste.
+
+What is done is to keep a floating proportion between the DBIs based on
+writeback completions. This way faster/more active devices get a larger share
+than slower/idle devices.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proportions.h |  119 ++++++++++
- lib/Makefile                |    3 
- lib/proportions.c           |  384 ++++++++++++++++++++++++++++++++++
- 3 files changed, 505 insertions(+), 1 deletion(-)
+ include/linux/backing-dev.h |    4 
+ include/linux/writeback.h   |    4 
+ kernel/sysctl.c             |    2 
+ mm/backing-dev.c            |   19 ++-
+ mm/page-writeback.c         |  202 +++++++++++++++++++++++++++++-----
+ 5 files changed, 196 insertions(+), 35 deletions(-)
 
-diff -puN /dev/null include/linux/proportions.h
---- /dev/null
-+++ a/include/linux/proportions.h
-@@ -0,0 +1,119 @@
-+/*
-+ * FLoating proportions
-+ *
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-+ *
-+ * This file contains the public data structure and API definitions.
-+ */
-+
-+#ifndef _LINUX_PROPORTIONS_H
-+#define _LINUX_PROPORTIONS_H
-+
-+#include <linux/percpu_counter.h>
-+#include <linux/spinlock.h>
-+#include <linux/mutex.h>
-+
-+struct prop_global {
-+	/*
-+	 * The period over which we differentiate
-+	 *
-+	 *   period = 2^shift
-+	 */
-+	int shift;
-+	/*
-+	 * The total event counter aka 'time'.
-+	 *
-+	 * Treated as an unsigned long; the lower 'shift - 1' bits are the
-+	 * counter bits, the remaining upper bits the period counter.
-+	 */
-+	struct percpu_counter events;
-+};
-+
-+/*
-+ * global proportion descriptor
-+ *
-+ * this is needed to consitently flip prop_global structures.
-+ */
-+struct prop_descriptor {
-+	int index;
-+	struct prop_global pg[2];
-+	struct mutex mutex;		/* serialize the prop_global switch */
-+};
-+
-+int prop_descriptor_init(struct prop_descriptor *pd, int shift);
-+void prop_change_shift(struct prop_descriptor *pd, int new_shift);
-+
-+/*
-+ * ----- PERCPU ------
-+ */
-+
-+struct prop_local_percpu {
-+	/*
-+	 * the local events counter
-+	 */
-+	struct percpu_counter events;
-+
-+	/*
-+	 * snapshot of the last seen global state
-+	 */
-+	int shift;
-+	unsigned long period;
-+	spinlock_t lock;		/* protect the snapshot state */
-+};
-+
-+int prop_local_init_percpu(struct prop_local_percpu *pl);
-+void prop_local_destroy_percpu(struct prop_local_percpu *pl);
-+void __prop_inc_percpu(struct prop_descriptor *pd, struct prop_local_percpu *pl);
-+void prop_fraction_percpu(struct prop_descriptor *pd, struct prop_local_percpu *pl,
-+		long *numerator, long *denominator);
-+
-+static inline
-+void prop_inc_percpu(struct prop_descriptor *pd, struct prop_local_percpu *pl)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__prop_inc_percpu(pd, pl);
-+	local_irq_restore(flags);
-+}
-+
-+/*
-+ * ----- SINGLE ------
-+ */
-+
-+struct prop_local_single {
-+	/*
-+	 * the local events counter
-+	 */
-+	unsigned long events;
-+
-+	/*
-+	 * snapshot of the last seen global state
-+	 * and a lock protecting this state
-+	 */
-+	int shift;
-+	unsigned long period;
-+	spinlock_t lock;		/* protect the snapshot state */
-+};
-+
-+#define INIT_PROP_LOCAL_SINGLE(name)			\
-+{	.lock = __SPIN_LOCK_UNLOCKED(name.lock),	\
-+}
-+
-+int prop_local_init_single(struct prop_local_single *pl);
-+void prop_local_destroy_single(struct prop_local_single *pl);
-+void __prop_inc_single(struct prop_descriptor *pd, struct prop_local_single *pl);
-+void prop_fraction_single(struct prop_descriptor *pd, struct prop_local_single *pl,
-+		long *numerator, long *denominator);
-+
-+static inline
-+void prop_inc_single(struct prop_descriptor *pd, struct prop_local_single *pl)
-+{
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+	__prop_inc_single(pd, pl);
-+	local_irq_restore(flags);
-+}
-+
-+#endif /* _LINUX_PROPORTIONS_H */
-diff -puN lib/Makefile~lib-floating-proportions lib/Makefile
---- a/lib/Makefile~lib-floating-proportions
-+++ a/lib/Makefile
-@@ -5,7 +5,8 @@
- lib-y := ctype.o string.o vsprintf.o kasprintf.o cmdline.o \
- 	 rbtree.o radix-tree.o dump_stack.o \
- 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
--	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
-+	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
-+	 proportions.o
+diff -puN include/linux/backing-dev.h~mm-per-device-dirty-threshold include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-per-device-dirty-threshold
++++ a/include/linux/backing-dev.h
+@@ -10,6 +10,7 @@
  
- lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
- lib-$(CONFIG_SMP) += cpumask.o
-diff -puN /dev/null lib/proportions.c
---- /dev/null
-+++ a/lib/proportions.c
-@@ -0,0 +1,384 @@
-+/*
-+ * Floating proportions
-+ *
-+ *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
-+ *
-+ * Description:
-+ *
-+ * The floating proportion is a time derivative with an exponentially decaying
-+ * history:
-+ *
-+ *   p_{j} = \Sum_{i=0} (dx_{j}/dt_{-i}) / 2^(1+i)
-+ *
-+ * Where j is an element from {prop_local}, x_{j} is j's number of events,
-+ * and i the time period over which the differential is taken. So d/dt_{-i} is
-+ * the differential over the i-th last period.
-+ *
-+ * The decaying history gives smooth transitions. The time differential carries
-+ * the notion of speed.
-+ *
-+ * The denominator is 2^(1+i) because we want the series to be normalised, ie.
-+ *
-+ *   \Sum_{i=0} 1/2^(1+i) = 1
-+ *
-+ * Further more, if we measure time (t) in the same events as x; so that:
-+ *
-+ *   t = \Sum_{j} x_{j}
-+ *
-+ * we get that:
-+ *
-+ *   \Sum_{j} p_{j} = 1
-+ *
-+ * Writing this in an iterative fashion we get (dropping the 'd's):
-+ *
-+ *   if (++x_{j}, ++t > period)
-+ *     t /= 2;
-+ *     for_each (j)
-+ *       x_{j} /= 2;
-+ *
-+ * so that:
-+ *
-+ *   p_{j} = x_{j} / t;
-+ *
-+ * We optimize away the '/= 2' for the global time delta by noting that:
-+ *
-+ *   if (++t > period) t /= 2:
-+ *
-+ * Can be approximated by:
-+ *
-+ *   period/2 + (++t % period/2)
-+ *
-+ * [ Furthermore, when we choose period to be 2^n it can be written in terms of
-+ *   binary operations and wraparound artefacts disappear. ]
-+ *
-+ * Also note that this yields a natural counter of the elapsed periods:
-+ *
-+ *   c = t / (period/2)
-+ *
-+ * [ Its monotonic increasing property can be applied to mitigate the wrap-
-+ *   around issue. ]
-+ *
-+ * This allows us to do away with the loop over all prop_locals on each period
-+ * expiration. By remembering the period count under which it was last accessed
-+ * as c_{j}, we can obtain the number of 'missed' cycles from:
-+ *
-+ *   c - c_{j}
-+ *
-+ * We can then lazily catch up to the global period count every time we are
-+ * going to use x_{j}, by doing:
-+ *
-+ *   x_{j} /= 2^(c - c_{j}), c_{j} = c
-+ */
-+
+ #include <linux/percpu_counter.h>
+ #include <linux/log2.h>
 +#include <linux/proportions.h>
-+#include <linux/rcupdate.h>
+ #include <asm/atomic.h>
+ 
+ struct page;
+@@ -44,6 +45,9 @@ struct backing_dev_info {
+ 	void *unplug_io_data;
+ 
+ 	struct percpu_counter bdi_stat[NR_BDI_STAT_ITEMS];
 +
-+/*
-+ * Limit the time part in order to ensure there are some bits left for the
-+ * cycle counter.
-+ */
-+#define PROP_MAX_SHIFT (3*BITS_PER_LONG/4)
++	struct prop_local_percpu completions;
++	int dirty_exceeded;
+ };
+ 
+ int bdi_init(struct backing_dev_info *bdi);
+diff -puN include/linux/writeback.h~mm-per-device-dirty-threshold include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-per-device-dirty-threshold
++++ a/include/linux/writeback.h
+@@ -97,6 +97,10 @@ extern int dirty_expire_interval;
+ extern int block_dump;
+ extern int laptop_mode;
+ 
++extern int dirty_ratio_handler(struct ctl_table *table, int write,
++		struct file *filp, void __user *buffer, size_t *lenp,
++		loff_t *ppos);
 +
-+int prop_descriptor_init(struct prop_descriptor *pd, int shift)
-+{
-+	int err;
+ struct ctl_table;
+ struct file;
+ int dirty_writeback_centisecs_handler(struct ctl_table *, int, struct file *,
+diff -puN kernel/sysctl.c~mm-per-device-dirty-threshold kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-per-device-dirty-threshold
++++ a/kernel/sysctl.c
+@@ -822,7 +822,7 @@ static ctl_table vm_table[] = {
+ 		.data		= &vm_dirty_ratio,
+ 		.maxlen		= sizeof(vm_dirty_ratio),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_minmax,
++		.proc_handler	= &dirty_ratio_handler,
+ 		.strategy	= &sysctl_intvec,
+ 		.extra1		= &zero,
+ 		.extra2		= &one_hundred,
+diff -puN mm/backing-dev.c~mm-per-device-dirty-threshold mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-per-device-dirty-threshold
++++ a/mm/backing-dev.c
+@@ -12,11 +12,17 @@ int bdi_init(struct backing_dev_info *bd
+ 
+ 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++) {
+ 		err = percpu_counter_init_irq(&bdi->bdi_stat[i], 0);
+-		if (err) {
+-			for (j = 0; j < i; j++)
+-				percpu_counter_destroy(&bdi->bdi_stat[i]);
+-			break;
+-		}
++		if (err)
++			goto err;
++	}
 +
-+	if (shift > PROP_MAX_SHIFT)
-+		shift = PROP_MAX_SHIFT;
++	bdi->dirty_exceeded = 0;
++	err = prop_local_init_percpu(&bdi->completions);
 +
-+	pd->index = 0;
-+	pd->pg[0].shift = shift;
-+	mutex_init(&pd->mutex);
-+	err = percpu_counter_init_irq(&pd->pg[0].events, 0);
-+	if (err)
-+		goto out;
++	if (err) {
++err:
++		for (j = 0; j < i; j++)
++			percpu_counter_destroy(&bdi->bdi_stat[i]);
+ 	}
+ 
+ 	return err;
+@@ -29,6 +35,8 @@ void bdi_destroy(struct backing_dev_info
+ 
+ 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
+ 		percpu_counter_destroy(&bdi->bdi_stat[i]);
 +
-+	err = percpu_counter_init_irq(&pd->pg[1].events, 0);
-+	if (err)
-+		percpu_counter_destroy(&pd->pg[0].events);
++	prop_local_destroy_percpu(&bdi->completions);
+ }
+ EXPORT_SYMBOL(bdi_destroy);
+ 
+@@ -81,3 +89,4 @@ long congestion_wait(int rw, long timeou
+ 	return ret;
+ }
+ EXPORT_SYMBOL(congestion_wait);
 +
-+out:
-+	return err;
-+}
-+
-+/*
-+ * We have two copies, and flip between them to make it seem like an atomic
-+ * update. The update is not really atomic wrt the events counter, but
-+ * it is internally consistent with the bit layout depending on shift.
+diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-per-device-dirty-threshold
++++ a/mm/page-writeback.c
+@@ -2,6 +2,7 @@
+  * mm/page-writeback.c
+  *
+  * Copyright (C) 2002, Linus Torvalds.
++ * Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra <pzijlstr@redhat.com>
+  *
+  * Contains functions related to writing back dirty pages at the
+  * address_space level.
+@@ -49,8 +50,6 @@
+  */
+ static long ratelimit_pages = 32;
+ 
+-static int dirty_exceeded __cacheline_aligned_in_smp;	/* Dirty mem may be over limit */
+-
+ /*
+  * When balance_dirty_pages decides that the caller needs to perform some
+  * non-background writeback, this is how many pages it will attempt to write.
+@@ -103,6 +102,103 @@ EXPORT_SYMBOL(laptop_mode);
+ static void background_writeout(unsigned long _min_pages);
+ 
+ /*
++ * Scale the writeback cache size proportional to the relative writeout speeds.
 + *
-+ * We copy the events count, move the bits around and flip the index.
++ * We do this by keeping a floating proportion between BDIs, based on page
++ * writeback completions [end_page_writeback()]. Those devices that write out
++ * pages fastest will get the larger share, while the slower will get a smaller
++ * share.
++ *
++ * We use page writeout completions because we are interested in getting rid of
++ * dirty pages. Having them written out is the primary goal.
++ *
++ * We introduce a concept of time, a period over which we measure these events,
++ * because demand can/will vary over time. The length of this period itself is
++ * measured in page writeback completions.
++ *
 + */
-+void prop_change_shift(struct prop_descriptor *pd, int shift)
++static struct prop_descriptor vm_completions;
++
++static unsigned long determine_dirtyable_memory(void);
++
++/*
++ * couple the period to the dirty_ratio:
++ *
++ *   period/2 ~ roundup_pow_of_two(dirty limit)
++ */
++static int calc_period_shift(void)
 +{
-+	int index;
-+	int offset;
-+	u64 events;
-+	unsigned long flags;
++	unsigned long dirty_total;
 +
-+	if (shift > PROP_MAX_SHIFT)
-+		shift = PROP_MAX_SHIFT;
-+
-+	mutex_lock(&pd->mutex);
-+
-+	index = pd->index ^ 1;
-+	offset = pd->pg[pd->index].shift - shift;
-+	if (!offset)
-+		goto out;
-+
-+	pd->pg[index].shift = shift;
-+
-+	local_irq_save(flags);
-+	events = percpu_counter_sum(&pd->pg[pd->index].events);
-+	if (offset < 0)
-+		events <<= -offset;
-+	else
-+		events >>= offset;
-+	percpu_counter_set(&pd->pg[index].events, events);
-+
-+	/*
-+	 * ensure the new pg is fully written before the switch
-+	 */
-+	smp_wmb();
-+	pd->index = index;
-+	local_irq_restore(flags);
-+
-+	synchronize_rcu();
-+
-+out:
-+	mutex_unlock(&pd->mutex);
++	dirty_total = (vm_dirty_ratio * determine_dirtyable_memory()) / 100;
++	return 2 + ilog2(dirty_total - 1);
 +}
 +
 +/*
-+ * wrap the access to the data in an rcu_read_lock() section;
-+ * this is used to track the active references.
++ * update the period when the dirty ratio changes.
 + */
-+static struct prop_global *prop_get_global(struct prop_descriptor *pd)
++int dirty_ratio_handler(struct ctl_table *table, int write,
++		struct file *filp, void __user *buffer, size_t *lenp,
++		loff_t *ppos)
 +{
-+	int index;
-+
-+	rcu_read_lock();
-+	index = pd->index;
-+	/*
-+	 * match the wmb from vcd_flip()
-+	 */
-+	smp_rmb();
-+	return &pd->pg[index];
++	int old_ratio = vm_dirty_ratio;
++	int ret = proc_dointvec_minmax(table, write, filp, buffer, lenp, ppos);
++	if (ret == 0 && write && vm_dirty_ratio != old_ratio) {
++		int shift = calc_period_shift();
++		prop_change_shift(&vm_completions, shift);
++	}
++	return ret;
 +}
 +
-+static void prop_put_global(struct prop_descriptor *pd, struct prop_global *pg)
++/*
++ * Increment the BDI's writeout completion count and the global writeout
++ * completion count. Called from test_clear_page_writeback().
++ */
++static inline void __bdi_writeout_inc(struct backing_dev_info *bdi)
 +{
-+	rcu_read_unlock();
++	__prop_inc_percpu(&vm_completions, &bdi->completions);
 +}
 +
++/*
++ * Obtain an accurate fraction of the BDI's portion.
++ */
++static void bdi_writeout_fraction(struct backing_dev_info *bdi,
++		long *numerator, long *denominator)
++{
++	if (bdi_cap_writeback_dirty(bdi)) {
++		prop_fraction_percpu(&vm_completions, &bdi->completions,
++				numerator, denominator);
++	} else {
++		*numerator = 0;
++		*denominator = 1;
++	}
++}
++
++/*
++ * Clip the earned share of dirty pages to that which is actually available.
++ * This avoids exceeding the total dirty_limit when the floating averages
++ * fluctuate too quickly.
++ */
 +static void
-+prop_adjust_shift(int *pl_shift, unsigned long *pl_period, int new_shift)
++clip_bdi_dirty_limit(struct backing_dev_info *bdi, long dirty, long *pbdi_dirty)
 +{
-+	int offset = *pl_shift - new_shift;
++	long avail_dirty;
 +
-+	if (!offset)
-+		return;
++	avail_dirty = dirty -
++		(global_page_state(NR_FILE_DIRTY) +
++		 global_page_state(NR_WRITEBACK) +
++		 global_page_state(NR_UNSTABLE_NFS));
 +
-+	if (offset < 0)
-+		*pl_period <<= -offset;
-+	else
-+		*pl_period >>= offset;
++	if (avail_dirty < 0)
++		avail_dirty = 0;
 +
-+	*pl_shift = new_shift;
++	avail_dirty += bdi_stat(bdi, BDI_RECLAIMABLE) +
++		bdi_stat(bdi, BDI_WRITEBACK);
++
++	*pbdi_dirty = min(*pbdi_dirty, avail_dirty);
 +}
 +
 +/*
-+ * PERCPU
-+ */
+  * Work out the current dirty-memory clamping and background writeout
+  * thresholds.
+  *
+@@ -157,8 +253,8 @@ static unsigned long determine_dirtyable
+ }
+ 
+ static void
+-get_dirty_limits(long *pbackground, long *pdirty,
+-					struct address_space *mapping)
++get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
++		 struct backing_dev_info *bdi)
+ {
+ 	int background_ratio;		/* Percentages */
+ 	int dirty_ratio;
+@@ -192,6 +288,22 @@ get_dirty_limits(long *pbackground, long
+ 	}
+ 	*pbackground = background;
+ 	*pdirty = dirty;
 +
-+int prop_local_init_percpu(struct prop_local_percpu *pl)
-+{
-+	spin_lock_init(&pl->lock);
-+	pl->shift = 0;
-+	pl->period = 0;
-+	return percpu_counter_init_irq(&pl->events, 0);
-+}
-+
-+void prop_local_destroy_percpu(struct prop_local_percpu *pl)
-+{
-+	percpu_counter_destroy(&pl->events);
-+}
-+
-+/*
-+ * Catch up with missed period expirations.
-+ *
-+ *   until (c_{j} == c)
-+ *     x_{j} -= x_{j}/2;
-+ *     c_{j}++;
-+ */
-+static
-+void prop_norm_percpu(struct prop_global *pg, struct prop_local_percpu *pl)
-+{
-+	unsigned long period = 1UL << (pg->shift - 1);
-+	unsigned long period_mask = ~(period - 1);
-+	unsigned long global_period;
-+	unsigned long flags;
-+
-+	global_period = percpu_counter_read(&pg->events);
-+	global_period &= period_mask;
-+
-+	/*
-+	 * Fast path - check if the local and global period count still match
-+	 * outside of the lock.
-+	 */
-+	if (pl->period == global_period)
-+		return;
-+
-+	spin_lock_irqsave(&pl->lock, flags);
-+	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
-+	/*
-+	 * For each missed period, we half the local counter.
-+	 * basically:
-+	 *   pl->events >> (global_period - pl->period);
-+	 *
-+	 * but since the distributed nature of percpu counters make division
-+	 * rather hard, use a regular subtraction loop. This is safe, because
-+	 * the events will only every be incremented, hence the subtraction
-+	 * can never result in a negative number.
-+	 */
-+	while (pl->period != global_period) {
-+		unsigned long val = percpu_counter_read(&pl->events);
-+		unsigned long half = (val + 1) >> 1;
++	if (bdi) {
++		long long bdi_dirty = dirty;
++		long numerator, denominator;
 +
 +		/*
-+		 * Half of zero won't be much less, break out.
-+		 * This limits the loop to shift iterations, even
-+		 * if we missed a million.
++		 * Calculate this BDI's share of the dirty ratio.
 +		 */
-+		if (!val)
-+			break;
++		bdi_writeout_fraction(bdi, &numerator, &denominator);
 +
-+		percpu_counter_add(&pl->events, -half);
-+		pl->period += period;
++		bdi_dirty *= numerator;
++		do_div(bdi_dirty, denominator);
++
++		*pbdi_dirty = bdi_dirty;
++		clip_bdi_dirty_limit(bdi, dirty, pbdi_dirty);
 +	}
-+	pl->period = global_period;
-+	spin_unlock_irqrestore(&pl->lock, flags);
-+}
+ }
+ 
+ /*
+@@ -203,9 +315,11 @@ get_dirty_limits(long *pbackground, long
+  */
+ static void balance_dirty_pages(struct address_space *mapping)
+ {
+-	long nr_reclaimable;
++	long bdi_nr_reclaimable;
++	long bdi_nr_writeback;
+ 	long background_thresh;
+ 	long dirty_thresh;
++	long bdi_thresh;
+ 	unsigned long pages_written = 0;
+ 	unsigned long write_chunk = sync_writeback_pages();
+ 
+@@ -220,15 +334,15 @@ static void balance_dirty_pages(struct a
+ 			.range_cyclic	= 1,
+ 		};
+ 
+-		get_dirty_limits(&background_thresh, &dirty_thresh, mapping);
+-		nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-		if (nr_reclaimable + global_page_state(NR_WRITEBACK) <=
+-			dirty_thresh)
++		get_dirty_limits(&background_thresh, &dirty_thresh,
++				&bdi_thresh, bdi);
++		bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
++		bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
++		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+ 				break;
+ 
+-		if (!dirty_exceeded)
+-			dirty_exceeded = 1;
++		if (!bdi->dirty_exceeded)
++			bdi->dirty_exceeded = 1;
+ 
+ 		/* Note: nr_reclaimable denotes nr_dirty + nr_unstable.
+ 		 * Unstable writes are a feature of certain networked
+@@ -236,16 +350,37 @@ static void balance_dirty_pages(struct a
+ 		 * written to the server's write cache, but has not yet
+ 		 * been flushed to permanent storage.
+ 		 */
+-		if (nr_reclaimable) {
++		if (bdi_nr_reclaimable) {
+ 			writeback_inodes(&wbc);
+-			get_dirty_limits(&background_thresh,
+-					 	&dirty_thresh, mapping);
+-			nr_reclaimable = global_page_state(NR_FILE_DIRTY) +
+-					global_page_state(NR_UNSTABLE_NFS);
+-			if (nr_reclaimable +
+-				global_page_state(NR_WRITEBACK)
+-					<= dirty_thresh)
+-						break;
 +
-+/*
-+ *   ++x_{j}, ++t
-+ */
-+void __prop_inc_percpu(struct prop_descriptor *pd, struct prop_local_percpu *pl)
-+{
-+	struct prop_global *pg = prop_get_global(pd);
++			get_dirty_limits(&background_thresh, &dirty_thresh,
++				       &bdi_thresh, bdi);
 +
-+	prop_norm_percpu(pg, pl);
-+	percpu_counter_add(&pl->events, 1);
-+	percpu_counter_add(&pg->events, 1);
-+	prop_put_global(pd, pg);
-+}
++			/*
++			 * In order to avoid the stacked BDI deadlock we need
++			 * to ensure we accurately count the 'dirty' pages when
++			 * the threshold is low.
++			 *
++			 * Otherwise it would be possible to get thresh+n pages
++			 * reported dirty, even though there are thresh-m pages
++			 * actually dirty; with m+n sitting in the percpu
++			 * deltas.
++			 */
++			if (bdi_thresh < 2*bdi_stat_error(bdi)) {
++				bdi_nr_reclaimable =
++					bdi_stat_sum(bdi, BDI_RECLAIMABLE);
++				bdi_nr_writeback =
++					bdi_stat_sum(bdi, BDI_WRITEBACK);
++			} else {
++				bdi_nr_reclaimable =
++					bdi_stat(bdi, BDI_RECLAIMABLE);
++				bdi_nr_writeback =
++					bdi_stat(bdi, BDI_WRITEBACK);
++			}
 +
-+/*
-+ * Obtain a fraction of this proportion
-+ *
-+ *   p_{j} = x_{j} / (period/2 + t % period/2)
-+ */
-+void prop_fraction_percpu(struct prop_descriptor *pd,
-+		struct prop_local_percpu *pl,
-+		long *numerator, long *denominator)
-+{
-+	struct prop_global *pg = prop_get_global(pd);
-+	unsigned long period_2 = 1UL << (pg->shift - 1);
-+	unsigned long counter_mask = period_2 - 1;
-+	unsigned long global_count;
++			if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
++				break;
 +
-+	prop_norm_percpu(pg, pl);
-+	*numerator = percpu_counter_read_positive(&pl->events);
+ 			pages_written += write_chunk - wbc.nr_to_write;
+ 			if (pages_written >= write_chunk)
+ 				break;		/* We've done our duty */
+@@ -253,9 +388,9 @@ static void balance_dirty_pages(struct a
+ 		congestion_wait(WRITE, HZ/10);
+ 	}
+ 
+-	if (nr_reclaimable + global_page_state(NR_WRITEBACK)
+-		<= dirty_thresh && dirty_exceeded)
+-			dirty_exceeded = 0;
++	if (bdi_nr_reclaimable + bdi_nr_writeback < bdi_thresh &&
++			bdi->dirty_exceeded)
++		bdi->dirty_exceeded = 0;
+ 
+ 	if (writeback_in_progress(bdi))
+ 		return;		/* pdflush is already working this queue */
+@@ -269,7 +404,9 @@ static void balance_dirty_pages(struct a
+ 	 * background_thresh, to keep the amount of dirty memory low.
+ 	 */
+ 	if ((laptop_mode && pages_written) ||
+-	     (!laptop_mode && (nr_reclaimable > background_thresh)))
++			(!laptop_mode && (global_page_state(NR_FILE_DIRTY)
++					  + global_page_state(NR_UNSTABLE_NFS)
++					  > background_thresh)))
+ 		pdflush_operation(background_writeout, 0);
+ }
+ 
+@@ -305,7 +442,7 @@ void balance_dirty_pages_ratelimited_nr(
+ 	unsigned long *p;
+ 
+ 	ratelimit = ratelimit_pages;
+-	if (dirty_exceeded)
++	if (mapping->backing_dev_info->dirty_exceeded)
+ 		ratelimit = 8;
+ 
+ 	/*
+@@ -341,7 +478,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 	}
+ 
+         for ( ; ; ) {
+-		get_dirty_limits(&background_thresh, &dirty_thresh, NULL);
++		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
+ 
+                 /*
+                  * Boost the allowable dirty threshold a bit for page
+@@ -376,7 +513,7 @@ static void background_writeout(unsigned
+ 		long background_thresh;
+ 		long dirty_thresh;
+ 
+-		get_dirty_limits(&background_thresh, &dirty_thresh, NULL);
++		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
+ 		if (global_page_state(NR_FILE_DIRTY) +
+ 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
+ 				&& min_pages <= 0)
+@@ -579,9 +716,14 @@ static struct notifier_block __cpuinitda
+  */
+ void __init page_writeback_init(void)
+ {
++	int shift;
 +
-+	global_count = percpu_counter_read(&pg->events);
-+	*denominator = period_2 + (global_count & counter_mask);
+ 	mod_timer(&wb_timer, jiffies + dirty_writeback_interval);
+ 	writeback_set_ratelimit();
+ 	register_cpu_notifier(&ratelimit_nb);
 +
-+	prop_put_global(pd, pg);
-+}
-+
-+/*
-+ * SINGLE
-+ */
-+
-+int prop_local_init_single(struct prop_local_single *pl)
-+{
-+	spin_lock_init(&pl->lock);
-+	pl->shift = 0;
-+	pl->period = 0;
-+	pl->events = 0;
-+	return 0;
-+}
-+
-+void prop_local_destroy_single(struct prop_local_single *pl)
-+{
-+}
-+
-+/*
-+ * Catch up with missed period expirations.
-+ */
-+static
-+void prop_norm_single(struct prop_global *pg, struct prop_local_single *pl)
-+{
-+	unsigned long period = 1UL << (pg->shift - 1);
-+	unsigned long period_mask = ~(period - 1);
-+	unsigned long global_period;
-+	unsigned long flags;
-+
-+	global_period = percpu_counter_read(&pg->events);
-+	global_period &= period_mask;
-+
-+	/*
-+	 * Fast path - check if the local and global period count still match
-+	 * outside of the lock.
-+	 */
-+	if (pl->period == global_period)
-+		return;
-+
-+	spin_lock_irqsave(&pl->lock, flags);
-+	prop_adjust_shift(&pl->shift, &pl->period, pg->shift);
-+	/*
-+	 * For each missed period, we half the local counter.
-+	 */
-+	period = (global_period - pl->period) >> (pg->shift - 1);
-+	if (likely(period < BITS_PER_LONG))
-+		pl->events >>= period;
-+	else
-+		pl->events = 0;
-+	pl->period = global_period;
-+	spin_unlock_irqrestore(&pl->lock, flags);
-+}
-+
-+/*
-+ *   ++x_{j}, ++t
-+ */
-+void __prop_inc_single(struct prop_descriptor *pd, struct prop_local_single *pl)
-+{
-+	struct prop_global *pg = prop_get_global(pd);
-+
-+	prop_norm_single(pg, pl);
-+	pl->events++;
-+	percpu_counter_add(&pg->events, 1);
-+	prop_put_global(pd, pg);
-+}
-+
-+/*
-+ * Obtain a fraction of this proportion
-+ *
-+ *   p_{j} = x_{j} / (period/2 + t % period/2)
-+ */
-+void prop_fraction_single(struct prop_descriptor *pd,
-+	       	struct prop_local_single *pl,
-+		long *numerator, long *denominator)
-+{
-+	struct prop_global *pg = prop_get_global(pd);
-+	unsigned long period_2 = 1UL << (pg->shift - 1);
-+	unsigned long counter_mask = period_2 - 1;
-+	unsigned long global_count;
-+
-+	prop_norm_single(pg, pl);
-+	*numerator = pl->events;
-+
-+	global_count = percpu_counter_read(&pg->events);
-+	*denominator = period_2 + (global_count & counter_mask);
-+
-+	prop_put_global(pd, pg);
-+}
++	shift = calc_period_shift();
++	prop_descriptor_init(&vm_completions, shift);
+ }
+ 
+ /**
+@@ -987,8 +1129,10 @@ int test_clear_page_writeback(struct pag
+ 			radix_tree_tag_clear(&mapping->page_tree,
+ 						page_index(page),
+ 						PAGECACHE_TAG_WRITEBACK);
+-			if (bdi_cap_writeback_dirty(bdi))
++			if (bdi_cap_writeback_dirty(bdi)) {
+ 				__dec_bdi_stat(bdi, BDI_WRITEBACK);
++				__bdi_writeout_inc(bdi);
++			}
+ 		}
+ 		write_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	} else {
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
