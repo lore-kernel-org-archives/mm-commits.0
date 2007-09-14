@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch added to -mm tree
-Date: Fri, 14 Sep 2007 04:20:57 -0700
-Message-ID: <200709141120.l8EBKv4L002297@imap1.linux-foundation.org>
+Subject: + mtd-bdi-init-hooks.patch added to -mm tree
+Date: Fri, 14 Sep 2007 04:20:55 -0700
+Message-ID: <200709141120.l8EBKt2c002291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756502AbXINLVR (ORCPT
+	by vger.kernel.org with ESMTP id S1758609AbXINLVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 07:21:17 -0400
+	Fri, 14 Sep 2007 07:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, dwmw2@infradead.org, rkaiser@sysgo.de
+Cc: a.p.zijlstra@chello.nl, dwmw2@infradead.org
 
 
 The patch titled
-     mtd: give mtdconcat devices their own backing_dev_info
+     mtd: bdi init hooks
 has been added to the -mm tree.  Its filename is
-     mtd-give-mtdconcat-devices-their-own-backing_dev_info.patch
+     mtd-bdi-init-hooks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd: give mtdconcat devices their own backing_dev_info
+Subject: mtd: bdi init hooks
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-These are actual devices, give them their own BDI.
+split off because the relevant mtd changes seem particular to -mm
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Robert Kaiser <rkaiser@sysgo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdconcat.c |   28 ++++++++++++++++++----------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ drivers/mtd/mtdcore.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info drivers/mtd/mtdconcat.c
---- a/drivers/mtd/mtdconcat.c~mtd-give-mtdconcat-devices-their-own-backing_dev_info
-+++ a/drivers/mtd/mtdconcat.c
-@@ -32,6 +32,7 @@ struct mtd_concat {
- 	struct mtd_info mtd;
- 	int num_subdev;
- 	struct mtd_info **subdev;
-+	struct backing_dev_info backing_dev_info;
- };
+diff -puN drivers/mtd/mtdcore.c~mtd-bdi-init-hooks drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mtd-bdi-init-hooks
++++ a/drivers/mtd/mtdcore.c
+@@ -48,6 +48,7 @@ static LIST_HEAD(mtd_notifiers);
+ int add_mtd_device(struct mtd_info *mtd)
+ {
+ 	int i;
++	int err;
  
- /*
-@@ -782,10 +783,9 @@ struct mtd_info *mtd_concat_create(struc
- 
- 	for (i = 1; i < num_devs; i++) {
- 		if (concat->mtd.type != subdev[i]->type) {
--			kfree(concat);
- 			printk("Incompatible device type on \"%s\"\n",
- 			       subdev[i]->name);
--			return NULL;
-+			goto error;
+ 	if (!mtd->backing_dev_info) {
+ 		switch (mtd->type) {
+@@ -62,6 +63,9 @@ int add_mtd_device(struct mtd_info *mtd)
+ 			break;
  		}
- 		if (concat->mtd.flags != subdev[i]->flags) {
- 			/*
-@@ -794,10 +794,9 @@ struct mtd_info *mtd_concat_create(struc
- 			 */
- 			if ((concat->mtd.flags ^ subdev[i]->
- 			     flags) & ~MTD_WRITEABLE) {
--				kfree(concat);
- 				printk("Incompatible device flags on \"%s\"\n",
- 				       subdev[i]->name);
--				return NULL;
-+				goto error;
- 			} else
- 				/* if writeable attribute differs,
- 				   make super device writeable */
-@@ -809,9 +808,12 @@ struct mtd_info *mtd_concat_create(struc
- 		 * - copy-mapping is still permitted
- 		 */
- 		if (concat->mtd.backing_dev_info !=
--		    subdev[i]->backing_dev_info)
-+		    subdev[i]->backing_dev_info) {
-+			concat->backing_dev_info = default_backing_dev_info;
-+			bdi_init(&concat->backing_dev_info);
- 			concat->mtd.backing_dev_info =
--				&default_backing_dev_info;
-+				&concat->backing_dev_info;
-+		}
- 
- 		concat->mtd.size += subdev[i]->size;
- 		concat->mtd.ecc_stats.badblocks +=
-@@ -821,10 +823,9 @@ struct mtd_info *mtd_concat_create(struc
- 		    concat->mtd.oobsize    !=  subdev[i]->oobsize ||
- 		    !concat->mtd.read_oob  != !subdev[i]->read_oob ||
- 		    !concat->mtd.write_oob != !subdev[i]->write_oob) {
--			kfree(concat);
- 			printk("Incompatible OOB or ECC data on \"%s\"\n",
- 			       subdev[i]->name);
--			return NULL;
-+			goto error;
- 		}
- 		concat->subdev[i] = subdev[i];
- 
-@@ -903,11 +904,10 @@ struct mtd_info *mtd_concat_create(struc
- 		    kmalloc(num_erase_region *
- 			    sizeof (struct mtd_erase_region_info), GFP_KERNEL);
- 		if (!erase_region_p) {
--			kfree(concat);
- 			printk
- 			    ("memory allocation error while creating erase region list"
- 			     " for device \"%s\"\n", name);
--			return NULL;
-+			goto error;
- 		}
- 
- 		/*
-@@ -968,6 +968,12 @@ struct mtd_info *mtd_concat_create(struc
  	}
++	err = bdi_init(mtd->backing_dev_info);
++	if (err)
++		return 1;
  
- 	return &concat->mtd;
-+
-+error:
-+	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
-+		bdi_destroy(&concat->backing_dev_info);
-+	kfree(concat);
-+	return NULL;
+ 	BUG_ON(mtd->writesize == 0);
+ 	mutex_lock(&mtd_table_mutex);
+@@ -102,6 +106,7 @@ int add_mtd_device(struct mtd_info *mtd)
+ 		}
+ 
+ 	mutex_unlock(&mtd_table_mutex);
++	bdi_destroy(mtd->backing_dev_info);
+ 	return 1;
  }
  
- /*
-@@ -977,6 +983,8 @@ struct mtd_info *mtd_concat_create(struc
- void mtd_concat_destroy(struct mtd_info *mtd)
- {
- 	struct mtd_concat *concat = CONCAT(mtd);
-+	if (concat->mtd.backing_dev_info == &concat->backing_dev_info)
-+		bdi_destroy(&concat->backing_dev_info);
- 	if (concat->mtd.numeraseregions)
- 		kfree(concat->mtd.eraseregions);
- 	kfree(concat);
+@@ -144,6 +149,10 @@ int del_mtd_device (struct mtd_info *mtd
+ 	}
+ 
+ 	mutex_unlock(&mtd_table_mutex);
++
++	if (mtd->backing_dev_info)
++		bdi_destroy(mtd->backing_dev_info);
++
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
