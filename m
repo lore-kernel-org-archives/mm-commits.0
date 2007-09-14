@@ -1,227 +1,458 @@
 From: akpm@linux-foundation.org
-Subject: - x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch removed from -mm tree
-Date: Fri, 14 Sep 2007 16:24:56 -0700
-Message-ID: <200709142324.l8ENOu00029381@imap1.linux-foundation.org>
+Subject: + convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch added to -mm tree
+Date: Fri, 14 Sep 2007 16:27:28 -0700
+Message-ID: <200709142327.l8ENRSc3029486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49325 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753680AbXINXZH (ORCPT
+	by vger.kernel.org with ESMTP id S1753305AbXINX1i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 19:25:07 -0400
+	Fri, 14 Sep 2007 19:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, travis@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
-has been removed from the -mm tree.  Its filename was
-     x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
+     Convert cpu_sibling_map to be a per cpu variable 
+has been added to the -mm tree.  Its filename is
+     convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Convert cpu_sibling_map to be a per cpu variable 
+From: Mike Travis <travis@sgi.com>
 
-ia64 build breakage
+Convert cpu_sibling_map from a static array sized by NR_CPUS to a per_cpu
+variable.  This saves sizeof(cpumask_t) * NR unused cpus.  Access is mostly
+from startup and CPU HOTPLUG functions.
 
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/i386/kernel/cpu/cpufreq/p4-clockmod.c   |    2 
+ arch/i386/kernel/cpu/cpufreq/speedstep-ich.c |    2 
+ arch/i386/kernel/io_apic.c                   |    4 -
+ arch/i386/kernel/smpboot.c                   |   36 ++++++++---------
+ arch/i386/oprofile/op_model_p4.c             |    2 
+ arch/i386/xen/smp.c                          |    4 -
+ arch/x86_64/kernel/smpboot.c                 |   26 ++++++------
+ block/blktrace.c                             |    2 
+ include/asm-i386/smp.h                       |    2 
+ include/asm-i386/topology.h                  |    2 
+ include/asm-x86_64/smp.h                     |    6 +-
+ include/asm-x86_64/topology.h                |    2 
+ kernel/sched.c                               |    8 +--
+ 13 files changed, 50 insertions(+), 48 deletions(-)
 
-diff -puN arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64
-+++ a/arch/ia64/Kconfig
-@@ -303,6 +303,7 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
- config SCHED_SMT
- 	bool "SMT scheduler support"
- 	depends on SMP
-+	depends on BROKEN
- 	help
- 	  Improves the CPU scheduler's decision making when dealing with
- 	  Intel IA64 chips with MultiThreading at a cost of slightly increased
+diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+--- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+@@ -200,7 +200,7 @@ static int cpufreq_p4_cpu_init(struct cp
+ 	unsigned int i;
+ 
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	/* Errata workaround */
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-ich.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+@@ -322,7 +322,7 @@ static int speedstep_cpu_init(struct cpu
+ 
+ 	/* only run on CPU to be set, or on its sibling */
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	cpus_allowed = current->cpus_allowed;
+diff -puN arch/i386/kernel/io_apic.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/kernel/io_apic.c
+--- a/arch/i386/kernel/io_apic.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/io_apic.c
+@@ -378,7 +378,7 @@ static struct irq_cpu_info {
+ 
+ #define IRQ_ALLOWED(cpu, allowed_mask)	cpu_isset(cpu, allowed_mask)
+ 
+-#define CPU_TO_PACKAGEINDEX(i) (first_cpu(cpu_sibling_map[i]))
++#define CPU_TO_PACKAGEINDEX(i) (first_cpu(per_cpu(cpu_sibling_map, i)))
+ 
+ static cpumask_t balance_irq_affinity[NR_IRQS] = {
+ 	[0 ... NR_IRQS-1] = CPU_MASK_ALL
+@@ -598,7 +598,7 @@ tryanotherirq:
+ 	 * (A+B)/2 vs B
+ 	 */
+ 	load = CPU_IRQ(min_loaded) >> 1;
+-	for_each_cpu_mask(j, cpu_sibling_map[min_loaded]) {
++	for_each_cpu_mask(j, per_cpu(cpu_sibling_map, min_loaded)) {
+ 		if (load > CPU_IRQ(j)) {
+ 			/* This won't change cpu_sibling_map[min_loaded] */
+ 			load = CPU_IRQ(j);
+diff -puN arch/i386/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/kernel/smpboot.c
+@@ -70,8 +70,8 @@ EXPORT_SYMBOL(smp_num_siblings);
+ int cpu_llc_id[NR_CPUS] __cpuinitdata = {[0 ... NR_CPUS-1] = BAD_APICID};
+ 
+ /* representing HT siblings of each logical CPU */
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_sibling_map);
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+ DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+@@ -319,8 +319,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+@@ -328,13 +328,13 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			}
+ 		}
+ 	} else {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -351,12 +351,12 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+-			if (cpus_weight(cpu_sibling_map[cpu]) == 1) {
++			if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1) {
+ 				/*
+ 				 * for each core in package, increment
+ 				 * the booted_cores for this new cpu
+ 				 */
+-				if (first_cpu(cpu_sibling_map[i]) == i)
++				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+ 					c[cpu].booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+@@ -983,7 +983,7 @@ static void __init smp_boot_cpus(unsigne
+ 			printk(KERN_NOTICE "Local APIC not detected."
+ 					   " Using dummy APIC emulation.\n");
+ 		map_cpu_to_logical_apicid();
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+@@ -1008,7 +1008,7 @@ static void __init smp_boot_cpus(unsigne
+ 		printk(KERN_ERR "... forcing use of dummy APIC emulation. (tell your hw vendor)\n");
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+@@ -1023,7 +1023,7 @@ static void __init smp_boot_cpus(unsigne
+ 		printk(KERN_INFO "SMP mode deactivated, forcing use of dummy APIC emulation.\n");
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+@@ -1102,15 +1102,15 @@ static void __init smp_boot_cpus(unsigne
+ 	Dprintk("Boot done.\n");
+ 
+ 	/*
+-	 * construct cpu_sibling_map[], so that we can tell sibling CPUs
++	 * construct cpu_sibling_map, so that we can tell sibling CPUs
+ 	 * efficiently.
+ 	 */
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	}
+ 
+-	cpu_set(0, cpu_sibling_map[0]);
++	cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 	cpu_set(0, per_cpu(cpu_core_map, 0));
+ 
+ 	smpboot_setup_io_apic();
+@@ -1153,13 +1153,13 @@ void remove_siblinginfo(int cpu)
+ 		/*/
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+-		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
++		if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1)
+ 			c[sibling].booted_cores--;
+ 	}
+ 			
+-	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[sibling]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, sibling));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+diff -puN arch/i386/oprofile/op_model_p4.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/oprofile/op_model_p4.c
+--- a/arch/i386/oprofile/op_model_p4.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/oprofile/op_model_p4.c
+@@ -379,7 +379,7 @@ static unsigned int get_stagger(void)
+ {
+ #ifdef CONFIG_SMP
+ 	int cpu = smp_processor_id();
+-	return (cpu != first_cpu(cpu_sibling_map[cpu]));
++	return (cpu != first_cpu(per_cpu(cpu_sibling_map, cpu)));
+ #endif	
+ 	return 0;
+ }
+diff -puN arch/i386/xen/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/i386/xen/smp.c
+--- a/arch/i386/xen/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/i386/xen/smp.c
+@@ -147,7 +147,7 @@ void __init xen_smp_prepare_boot_cpu(voi
+ 	make_lowmem_page_readwrite(&per_cpu__gdt_page);
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		/*
+ 		 * cpu_core_map lives in a per cpu area that is cleared
+ 		 * when the per cpu array is allocated.
+@@ -164,7 +164,7 @@ void __init xen_smp_prepare_cpus(unsigne
+ 	unsigned cpu;
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		/*
+ 		 * cpu_core_ map will be zeroed when the per
+ 		 * cpu area is allocated.
+diff -puN arch/x86_64/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -91,8 +91,8 @@ EXPORT_SYMBOL(cpu_data);
+ int smp_threads_ready;
+ 
+ /* representing HT siblings of each logical CPU */
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_sibling_map);
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+ DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+@@ -263,8 +263,8 @@ static inline void set_cpu_sibling_map(i
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+@@ -272,13 +272,13 @@ static inline void set_cpu_sibling_map(i
+ 			}
+ 		}
+ 	} else {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -295,12 +295,12 @@ static inline void set_cpu_sibling_map(i
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+-			if (cpus_weight(cpu_sibling_map[cpu]) == 1) {
++			if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1) {
+ 				/*
+ 				 * for each core in package, increment
+ 				 * the booted_cores for this new cpu
+ 				 */
+-				if (first_cpu(cpu_sibling_map[i]) == i)
++				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+ 					c[cpu].booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+@@ -738,7 +738,7 @@ static __init void disable_smp(void)
+ 		phys_cpu_present_map = physid_mask_of_physid(boot_cpu_id);
+ 	else
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+-	cpu_set(0, cpu_sibling_map[0]);
++	cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 	cpu_set(0, per_cpu(cpu_core_map, 0));
+ }
+ 
+@@ -986,13 +986,13 @@ static void remove_siblinginfo(int cpu)
+ 		/*
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+-		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
++		if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1)
+ 			c[sibling].booted_cores--;
+ 	}
+ 			
+-	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[sibling]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, sibling));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+diff -puN block/blktrace.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable block/blktrace.c
+--- a/block/blktrace.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/block/blktrace.c
+@@ -536,7 +536,7 @@ static void blk_trace_set_ht_offsets(voi
+ 	for_each_online_cpu(cpu) {
+ 		unsigned long long *cpu_off, *sibling_off;
+ 
+-		for_each_cpu_mask(i, cpu_sibling_map[cpu]) {
++		for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu)) {
+ 			if (i == cpu)
+ 				continue;
+ 
+diff -puN include/asm-i386/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-i386/smp.h
+--- a/include/asm-i386/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-i386/smp.h
+@@ -30,7 +30,7 @@
+ extern void smp_alloc_memory(void);
+ extern int pic_mode;
+ extern int smp_num_siblings;
+-extern cpumask_t cpu_sibling_map[];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ 
+ extern void (*mtrr_hook) (void);
+diff -puN include/asm-i386/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-i386/topology.h
+--- a/include/asm-i386/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-i386/topology.h
+@@ -31,7 +31,7 @@
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #endif
+ 
+ #ifdef CONFIG_NUMA
+diff -puN include/asm-x86_64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86_64/smp.h
+--- a/include/asm-x86_64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86_64/smp.h
+@@ -40,12 +40,14 @@ extern void smp_send_reschedule(int cpu)
+ extern int smp_call_function_mask(cpumask_t mask, void (*func)(void *),
+ 				  void *info, int wait);
+ 
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
+ /*
+- * cpu_core_map lives in a per cpu area
++ * cpu_sibling_map and cpu_core_map now live
++ * in the per cpu area
+  *
++ * extern cpumask_t cpu_sibling_map[NR_CPUS];
+  * extern cpumask_t cpu_core_map[NR_CPUS];
+  */
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ 
+ extern u8 cpu_llc_id[NR_CPUS];
+diff -puN include/asm-x86_64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86_64/topology.h
+@@ -59,7 +59,7 @@ extern int __node_distance(int, int);
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
+ #define smt_capable() 			(smp_num_siblings > 1)
+ #endif
+diff -puN kernel/sched.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable kernel/sched.c
+--- a/kernel/sched.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/kernel/sched.c
+@@ -5862,7 +5862,7 @@ static int cpu_to_core_group(int cpu, co
+ 			     struct sched_group **sg)
+ {
+ 	int group;
+-	cpumask_t mask = cpu_sibling_map[cpu];
++	cpumask_t mask = per_cpu(cpu_sibling_map, cpu);
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ 	if (sg)
+@@ -5891,7 +5891,7 @@ static int cpu_to_phys_group(int cpu, co
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ #elif defined(CONFIG_SCHED_SMT)
+-	cpumask_t mask = cpu_sibling_map[cpu];
++	cpumask_t mask = per_cpu(cpu_sibling_map, cpu);
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ #else
+@@ -6126,7 +6126,7 @@ static int build_sched_domains(const cpu
+ 		p = sd;
+ 		sd = &per_cpu(cpu_domains, i);
+ 		*sd = SD_SIBLING_INIT;
+-		sd->span = cpu_sibling_map[i];
++		sd->span = per_cpu(cpu_sibling_map, i);
+ 		cpus_and(sd->span, sd->span, *cpu_map);
+ 		sd->parent = p;
+ 		p->child = sd;
+@@ -6137,7 +6137,7 @@ static int build_sched_domains(const cpu
+ #ifdef CONFIG_SCHED_SMT
+ 	/* Set up CPU (sibling) groups */
+ 	for_each_cpu_mask(i, *cpu_map) {
+-		cpumask_t this_sibling_map = cpu_sibling_map[i];
++		cpumask_t this_sibling_map = per_cpu(cpu_sibling_map, i);
+ 		cpus_and(this_sibling_map, this_sibling_map, *cpu_map);
+ 		if (i != first_cpu(this_sibling_map))
+ 			continue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
-fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
-bug-in-at91-mci-suspend-routines.patch
-leases-can-be-hidden-by-flocks.patch
-revert-highmem-catch-illegal-nesting.patch
-slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
-atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-alsa-procfs-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kbuild.patch
-git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-net-fixup.patch
-git-net-broke-ixgbe.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-git-bluetooth-build-fix.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-x86-convert-cpu_sibling_map-to-be-a-per-cpu-variable-broke-ia64.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-xtensa.patch
-git-kgdb-fixup.patch
-git-kgdb-fixup-2.patch
-i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
-modpost-detect-unterminated-device-id-lists-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
