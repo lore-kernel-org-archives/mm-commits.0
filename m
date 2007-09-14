@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sctp-socketc-make-3-variables-static.patch added to -mm tree
-Date: Thu, 13 Sep 2007 17:57:00 -0700
-Message-ID: <200709140057.l8E0v0lH014270@imap1.linux-foundation.org>
+Subject: + memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch added to -mm tree
+Date: Thu, 13 Sep 2007 17:58:29 -0700
+Message-ID: <200709140058.l8E0wTYA014361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754902AbXINA5u (ORCPT
+	by vger.kernel.org with ESMTP id S1755558AbXINA65 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 20:57:50 -0400
+	Thu, 13 Sep 2007 20:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, davem@davemloft.net, nhorman@tuxdriver.com
+Cc: bunk@kernel.org, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     net/sctp/socket.c: make 3 variables static
+     make do_try_to_free_pages() static
 has been added to the -mm tree.  Its filename is
-     net-sctp-socketc-make-3-variables-static.patch
+     memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net/sctp/socket.c: make 3 variables static
+Subject: make do_try_to_free_pages() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Makethe following needlessly global variables static:
-
-- sctp_memory_pressure
-- sctp_memory_allocated
-- sctp_sockets_allocated
+do_try_to_free_pages() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/sctp/socket.c~net-sctp-socketc-make-3-variables-static net/sctp/socket.c
---- a/net/sctp/socket.c~net-sctp-socketc-make-3-variables-static
-+++ a/net/sctp/socket.c
-@@ -112,9 +112,9 @@ extern int sysctl_sctp_mem[3];
- extern int sysctl_sctp_rmem[3];
- extern int sysctl_sctp_wmem[3];
- 
--int sctp_memory_pressure;
--atomic_t sctp_memory_allocated;
--atomic_t sctp_sockets_allocated;
-+static int sctp_memory_pressure;
-+static atomic_t sctp_memory_allocated;
-+static atomic_t sctp_sockets_allocated;
- 
- static void sctp_enter_memory_pressure(void)
+diff -puN mm/vmscan.c~memory-controller-add-per-container-lru-and-reclaim-v7-cleanup mm/vmscan.c
+--- a/mm/vmscan.c~memory-controller-add-per-container-lru-and-reclaim-v7-cleanup
++++ a/mm/vmscan.c
+@@ -1241,8 +1241,8 @@ static unsigned long shrink_zones(int pr
+  * holds filesystem locks which prevent writeout this might not work, and the
+  * allocation attempt will fail.
+  */
+-unsigned long do_try_to_free_pages(struct zone **zones, gfp_t gfp_mask,
+-					struct scan_control *sc)
++static unsigned long do_try_to_free_pages(struct zone **zones, gfp_t gfp_mask,
++					  struct scan_control *sc)
  {
+ 	int priority;
+ 	int ret = 0;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -102,6 +95,7 @@ pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
 bitmaph-remove-dead-artifacts.patch
 sysctl-parport-remove-binary-paths-fix.patch
 sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
 remove-asm-bitopsh-includes.patch
 forbid-asm-bitopsh-direct-inclusion.patch
