@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_counter_set.patch added to -mm tree
-Date: Fri, 14 Sep 2007 04:20:48 -0700
-Message-ID: <200709141120.l8EBKmqu002272@imap1.linux-foundation.org>
+Subject: + lib-percpu_counter_init_irq.patch added to -mm tree
+Date: Fri, 14 Sep 2007 04:20:52 -0700
+Message-ID: <200709141120.l8EBKq90002285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52217 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60561 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756614AbXINLUy (ORCPT
+	by vger.kernel.org with ESMTP id S1755386AbXINLUz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 07:20:54 -0400
+	Fri, 14 Sep 2007 07:20:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lib: percpu_counter_set
+     lib: percpu_counter_init_irq
 has been added to the -mm tree.  Its filename is
-     lib-percpu_counter_set.patch
+     lib-percpu_counter_init_irq.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: percpu_counter_set
+Subject: lib: percpu_counter_init_irq
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Provide a method to set a percpu counter to a specified value.
+provide a way to tell lockdep about percpu_counters that are supposed to be
+used from irq safe contexts.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |    6 ++++++
- lib/percpu_counter.c           |   14 ++++++++++++++
- 2 files changed, 20 insertions(+)
+ include/linux/percpu_counter.h |    3 +++
+ lib/percpu_counter.c           |   12 ++++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN include/linux/percpu_counter.h~lib-percpu_counter_set include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~lib-percpu_counter_set
+diff -puN include/linux/percpu_counter.h~lib-percpu_counter_init_irq include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-percpu_counter_init_irq
 +++ a/include/linux/percpu_counter.h
-@@ -32,6 +32,7 @@ struct percpu_counter {
- 
- void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
- void percpu_counter_destroy(struct percpu_counter *fbc);
-+void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
- s64 percpu_counter_sum(struct percpu_counter *fbc);
- 
-@@ -75,6 +76,11 @@ static inline void percpu_counter_destro
- {
- }
- 
-+static inline void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
-+{
-+	fbc->count = amount;
-+}
-+
- #define __percpu_counter_add(fbc, amount, batch) \
- 	percpu_counter_add(fbc, amount)
- 
-diff -puN lib/percpu_counter.c~lib-percpu_counter_set lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counter_set
-+++ a/lib/percpu_counter.c
-@@ -14,6 +14,20 @@ static LIST_HEAD(percpu_counters);
- static DEFINE_MUTEX(percpu_counters_lock);
+@@ -31,6 +31,7 @@ struct percpu_counter {
  #endif
  
-+void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
-+{
-+	int cpu;
+ int percpu_counter_init(struct percpu_counter *fbc, s64 amount);
++int percpu_counter_init_irq(struct percpu_counter *fbc, s64 amount);
+ void percpu_counter_destroy(struct percpu_counter *fbc);
+ void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
+ void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
+@@ -84,6 +85,8 @@ static inline int percpu_counter_init(st
+ 	return 0;
+ }
+ 
++#define percpu_counter_init_irq percpu_counter_init
 +
-+	spin_lock(&fbc->lock);
-+	for_each_possible_cpu(cpu) {
-+		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
-+		*pcount = 0;
-+	}
-+	fbc->count = amount;
-+	spin_unlock(&fbc->lock);
-+}
-+EXPORT_SYMBOL(percpu_counter_set);
-+
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
+ static inline void percpu_counter_destroy(struct percpu_counter *fbc)
  {
- 	s64 count;
+ }
+diff -puN lib/percpu_counter.c~lib-percpu_counter_init_irq lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-percpu_counter_init_irq
++++ a/lib/percpu_counter.c
+@@ -68,6 +68,8 @@ s64 __percpu_counter_sum(struct percpu_c
+ }
+ EXPORT_SYMBOL(__percpu_counter_sum);
+ 
++static struct lock_class_key percpu_counter_irqsafe;
++
+ int percpu_counter_init(struct percpu_counter *fbc, s64 amount)
+ {
+ 	spin_lock_init(&fbc->lock);
+@@ -84,6 +86,16 @@ int percpu_counter_init(struct percpu_co
+ }
+ EXPORT_SYMBOL(percpu_counter_init);
+ 
++int percpu_counter_init_irq(struct percpu_counter *fbc, s64 amount)
++{
++	int err;
++
++	err = percpu_counter_init(fbc, amount);
++	if (!err)
++		lockdep_set_class(&fbc->lock, &percpu_counter_irqsafe);
++	return err;
++}
++
+ void percpu_counter_destroy(struct percpu_counter *fbc)
+ {
+ 	if (!fbc->counters)
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
