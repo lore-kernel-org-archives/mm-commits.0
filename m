@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-uts-corruption-during-cloneclone_newuts.patch added to -mm tree
-Date: Fri, 14 Sep 2007 14:59:19 -0700
-Message-ID: <200709142159.l8ELxJwO026363@imap1.linux-foundation.org>
+Subject: + try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch added to -mm tree
+Date: Fri, 14 Sep 2007 15:03:00 -0700
+Message-ID: <200709142203.l8EM30T4026519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47513 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46321 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757486AbXINWA5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753193AbXINWEP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 18:00:57 -0400
+	Fri, 14 Sep 2007 18:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, serue@us.ibm.com
+Cc: chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com
 
 
 The patch titled
-     Fix UTS corruption during clone(CLONE_NEWUTS)
+     try to reap reiserfs pages left around by invalidatepage
 has been added to the -mm tree.  Its filename is
-     fix-uts-corruption-during-cloneclone_newuts.patch
+     try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix UTS corruption during clone(CLONE_NEWUTS)
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: try to reap reiserfs pages left around by invalidatepage
+From: Chris Mason <chris.mason@oracle.com>
 
-struct utsname is copied from master one without any exclusion.
+reiserfs_invalidatepage will refuse to free pages if they have been logged
+in data=journal mode, or were pinned down by a data=ordered operation.  For
+data=journal, this is fairly easy to trigger just with fsx-linux, and it
+results in a large number of pages hanging around on the LRUs with
+page->mapping == NULL.
 
-Here is sample output from one proggie doing
+Calling try_to_free_buffers when reiserfs decides it is done with the page
+allows it to be freed earlier, and with much less VM thrashing.  Lock
+ordering rules mean that reiserfs can't call lock_page when it is releasing
+the buffers, so TestSetPageLocked is used instead.  Contention on these
+pages should be rare, so it should be sufficient most of the time.
 
-	sethostname("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-	sethostname("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-
-and another
-
-	clone(,, CLONE_NEWUTS, ...)
-	uname()
-
-	hostname = 'aaaaaaaaaaaaaaaaaaaaaaaaabbbbb'
-	hostname = 'bbbaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-	hostname = 'aaaaaaaabbbbbbbbbbbbbbbbbbbbbb'
-	hostname = 'aaaaaaaaaaaaaaaaaaaaaaaaaabbbb'
-	hostname = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaabb'
-	hostname = 'aaabbbbbbbbbbbbbbbbbbbbbbbbbbb'
-	hostname = 'bbbbbbbbbbbbbbbbaaaaaaaaaaaaaa'
-
-Hostname is sometimes corrupted.
-
-Yes, even _the_ simplest namespace activity had bug in it. :-(
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Chris Mason <chris.mason@oracle.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/utsname.c |    2 ++
- 1 files changed, 2 insertions(+)
+ fs/reiserfs/journal.c |   42 ++++++++++++++++++++++++++++++----------
+ 1 files changed, 32 insertions(+), 10 deletions(-)
 
-diff -puN kernel/utsname.c~fix-uts-corruption-during-cloneclone_newuts kernel/utsname.c
---- a/kernel/utsname.c~fix-uts-corruption-during-cloneclone_newuts
-+++ a/kernel/utsname.c
-@@ -28,7 +28,9 @@ static struct uts_namespace *clone_uts_n
- 	if (!ns)
- 		return ERR_PTR(-ENOMEM);
- 
-+	down_read(&uts_sem);
- 	memcpy(&ns->name, &old_ns->name, sizeof(ns->name));
-+	up_read(&uts_sem);
- 	kref_init(&ns->kref);
- 	return ns;
+diff -puN fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage
++++ a/fs/reiserfs/journal.c
+@@ -615,6 +615,31 @@ static int journal_list_still_alive(stru
+ 	return 0;
  }
+ 
++/*
++ * If page->mapping was null, we failed to truncate this page for
++ * some reason.  Most likely because it was truncated after being
++ * logged via data=journal.
++ *
++ * This does a check to see if the buffer belongs to one of these
++ * lost pages before doing the final put_bh.  If page->mapping was
++ * null, it tries to free buffers on the page, which should make the
++ * final page_cache_release drop the page from the lru.
++ */
++static void release_buffer_page(struct buffer_head *bh)
++{
++	struct page *page = bh->b_page;
++	if (!page->mapping && !TestSetPageLocked(page)) {
++		page_cache_get(page);
++		put_bh(bh);
++		if (!page->mapping)
++			try_to_free_buffers(page);
++		unlock_page(page);
++		page_cache_release(page);
++	} else {
++		put_bh(bh);
++	}
++}
++
+ static void reiserfs_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
+ {
+ 	char b[BDEVNAME_SIZE];
+@@ -628,8 +653,9 @@ static void reiserfs_end_buffer_io_sync(
+ 		set_buffer_uptodate(bh);
+ 	else
+ 		clear_buffer_uptodate(bh);
++
+ 	unlock_buffer(bh);
+-	put_bh(bh);
++	release_buffer_page(bh);
+ }
+ 
+ static void reiserfs_end_ordered_io(struct buffer_head *bh, int uptodate)
+@@ -1546,9 +1572,10 @@ static int flush_journal_list(struct sup
+ 				BUG_ON(!test_clear_buffer_journal_dirty
+ 				       (cn->bh));
+ 
+-				/* undo the inc from journal_mark_dirty */
++				/* drop one ref for us */
+ 				put_bh(cn->bh);
+-				brelse(cn->bh);
++				/* drop one ref for journal_mark_dirty */
++				release_buffer_page(cn->bh);
+ 			}
+ 			cn = cn->next;
+ 		}
+@@ -3708,13 +3735,8 @@ int journal_mark_freed(struct reiserfs_t
+ 		}
+ 	}
+ 
+-	if (bh) {
+-		put_bh(bh);	/* get_hash grabs the buffer */
+-		if (atomic_read(&(bh->b_count)) < 0) {
+-			reiserfs_warning(p_s_sb,
+-					 "journal-2165: bh->b_count < 0");
+-		}
+-	}
++	if (bh)
++		release_buffer_page(bh); /* get_hash grabs the buffer */
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from chris.mason@oracle.com are
 
-fix-uts-corruption-during-cloneclone_newuts.patch
-consolidate-ptrace_detach.patch
-git-kbuild.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-single_open-seq_release-leak-diagnostics.patch
+try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
