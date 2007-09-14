@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_counter-variable-batch.patch added to -mm tree
-Date: Fri, 14 Sep 2007 04:20:46 -0700
-Message-ID: <200709141120.l8EBKkoJ002266@imap1.linux-foundation.org>
+Subject: + lib-make-percpu_counter_add-take-s64.patch added to -mm tree
+Date: Fri, 14 Sep 2007 04:20:47 -0700
+Message-ID: <200709141120.l8EBKlOU002269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34258 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbXINLUt (ORCPT
+	by vger.kernel.org with ESMTP id S1755386AbXINLUu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 07:20:49 -0400
+	Fri, 14 Sep 2007 07:20:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lib: percpu_counter variable batch
+     lib: make percpu_counter_add take s64
 has been added to the -mm tree.  Its filename is
-     lib-percpu_counter-variable-batch.patch
+     lib-make-percpu_counter_add-take-s64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,79 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lib: percpu_counter variable batch
+Subject: lib: make percpu_counter_add take s64
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Because the current batch setup has an quadric error bound on the counter,
-allow for an alternative setup.
+percpu_counter is a s64 counter, make _add consitent.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu_counter.h |   10 +++++++++-
- lib/percpu_counter.c           |    6 +++---
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ include/linux/percpu_counter.h |    6 +++---
+ lib/percpu_counter.c           |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/percpu_counter.h~lib-percpu_counter-variable-batch include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~lib-percpu_counter-variable-batch
+diff -puN include/linux/percpu_counter.h~lib-make-percpu_counter_add-take-s64 include/linux/percpu_counter.h
+--- a/include/linux/percpu_counter.h~lib-make-percpu_counter_add-take-s64
 +++ a/include/linux/percpu_counter.h
-@@ -32,9 +32,14 @@ struct percpu_counter {
+@@ -32,10 +32,10 @@ struct percpu_counter {
  
  void percpu_counter_init(struct percpu_counter *fbc, s64 amount);
  void percpu_counter_destroy(struct percpu_counter *fbc);
--void percpu_counter_add(struct percpu_counter *fbc, s32 amount);
-+void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch);
+-void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch);
++void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
  s64 percpu_counter_sum(struct percpu_counter *fbc);
  
-+static inline void percpu_counter_add(struct percpu_counter *fbc, s32 amount)
-+{
-+	__percpu_counter_add(fbc, amount, FBC_BATCH);
-+}
-+
- static inline s64 percpu_counter_read(struct percpu_counter *fbc)
+-static inline void percpu_counter_add(struct percpu_counter *fbc, s32 amount)
++static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
  {
- 	return fbc->count;
-@@ -70,6 +75,9 @@ static inline void percpu_counter_destro
- {
+ 	__percpu_counter_add(fbc, amount, FBC_BATCH);
  }
+@@ -79,7 +79,7 @@ static inline void percpu_counter_destro
+ 	percpu_counter_add(fbc, amount)
  
-+#define __percpu_counter_add(fbc, amount, batch) \
-+	percpu_counter_add(fbc, amount)
-+
  static inline void
- percpu_counter_add(struct percpu_counter *fbc, s32 amount)
+-percpu_counter_add(struct percpu_counter *fbc, s32 amount)
++percpu_counter_add(struct percpu_counter *fbc, s64 amount)
  {
-diff -puN lib/percpu_counter.c~lib-percpu_counter-variable-batch lib/percpu_counter.c
---- a/lib/percpu_counter.c~lib-percpu_counter-variable-batch
+ 	preempt_disable();
+ 	fbc->count += amount;
+diff -puN lib/percpu_counter.c~lib-make-percpu_counter_add-take-s64 lib/percpu_counter.c
+--- a/lib/percpu_counter.c~lib-make-percpu_counter_add-take-s64
 +++ a/lib/percpu_counter.c
-@@ -14,7 +14,7 @@ static LIST_HEAD(percpu_counters);
+@@ -14,9 +14,9 @@ static LIST_HEAD(percpu_counters);
  static DEFINE_MUTEX(percpu_counters_lock);
  #endif
  
--void percpu_counter_add(struct percpu_counter *fbc, s32 amount)
-+void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch)
+-void __percpu_counter_add(struct percpu_counter *fbc, s32 amount, s32 batch)
++void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch)
  {
- 	long count;
+-	long count;
++	s64 count;
  	s32 *pcount;
-@@ -22,7 +22,7 @@ void percpu_counter_add(struct percpu_co
+ 	int cpu = get_cpu();
  
- 	pcount = per_cpu_ptr(fbc->counters, cpu);
- 	count = *pcount + amount;
--	if (count >= FBC_BATCH || count <= -FBC_BATCH) {
-+	if (count >= batch || count <= -batch) {
- 		spin_lock(&fbc->lock);
- 		fbc->count += count;
- 		*pcount = 0;
-@@ -32,7 +32,7 @@ void percpu_counter_add(struct percpu_co
- 	}
- 	put_cpu();
- }
--EXPORT_SYMBOL(percpu_counter_add);
-+EXPORT_SYMBOL(__percpu_counter_add);
- 
- /*
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
