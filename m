@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2007 18:52:31 -0700
-Message-ID: <200709140152.l8E1qVO5016171@imap1.linux-foundation.org>
+Subject: + fix-panic-of-cpu-online-with-memory-less-node.patch added to -mm tree
+Date: Thu, 13 Sep 2007 22:00:53 -0700
+Message-ID: <200709140500.l8E50rfj022201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56605 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038AbXINBwf (ORCPT
+	by vger.kernel.org with ESMTP id S1751259AbXINFBA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 21:52:35 -0400
+	Fri, 14 Sep 2007 01:01:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, ebiederm@xmission.com
+Cc: y-goto@jp.fujitsu.com
 
 
 The patch titled
-     sysctl: Fix syscall disabled build.
+     Fix panic of cpu online with memory less node
 has been added to the -mm tree.  Its filename is
-     sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch
+     fix-panic-of-cpu-online-with-memory-less-node.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,127 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysctl: Fix syscall disabled build.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: Fix panic of cpu online with memory less node
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-deprecated_sysctl_warning() is used for sys_sysctl(), whether
-CONFIG_SYSCTL_SYSCALL is enabled or not. When it was added, it was
-added under the CONFIG_SYSCTL section, so it's not defined if we have
-the support disabled completely.
+When a cpu is onlined on memory-less-node box, kernel panics due to touch
+NULL pointer of pgdat->kswapd.  Current kswapd runs only nodes which have
+memory.  So, calling of set_cpus_allowed() is not necessary for memory-less
+node.
 
-  CC      kernel/sysctl.o
-kernel/sysctl.c: In function 'sys_sysctl':
-kernel/sysctl.c:2601: error: implicit declaration of function 'deprecated_sysctl_warning'
-make[1]: *** [kernel/sysctl.o] Error 1
-make: *** [kernel] Error 2
+This is fix for it.
 
-This just moves the function past the end of the CONFIG_SYSCTL space
-so both configurations are happy.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   56 +++++++++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 27 deletions(-)
+ mm/vmscan.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix
-+++ a/kernel/sysctl.c
-@@ -55,6 +55,8 @@
- #include <asm/stacktrace.h>
- #endif
+diff -puN mm/vmscan.c~fix-panic-of-cpu-online-with-memory-less-node mm/vmscan.c
+--- a/mm/vmscan.c~fix-panic-of-cpu-online-with-memory-less-node
++++ a/mm/vmscan.c
+@@ -1698,9 +1698,11 @@ static int __devinit cpu_callback(struct
+ {
+ 	pg_data_t *pgdat;
+ 	cpumask_t mask;
++	int nid;
  
-+static int deprecated_sysctl_warning(struct __sysctl_args *args);
-+
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
-@@ -1320,33 +1322,6 @@ struct ctl_table_header *sysctl_head_nex
- 	return NULL;
- }
- 
--static int deprecated_sysctl_warning(struct __sysctl_args *args)
--{
--	static int msg_count;
--	int name[CTL_MAXNAME];
--	int i;
--
--	/* Read in the sysctl name for better debug message logging */
--	for (i = 0; i < args->nlen; i++)
--		if (get_user(name[i], args->name + i))
--			return -EFAULT;
--
--	/* Ignore accesses to kernel.version */
--	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
--		return 0;
--
--	if (msg_count < 5) {
--		msg_count++;
--		printk(KERN_INFO
--			"warning: process `%s' used the deprecated sysctl "
--			"system call with ", current->comm);
--		for (i = 0; i < args->nlen; i++)
--			printk("%d.", name[i]);
--		printk("\n");
--	}
--	return 0;
--}
--
- #ifdef CONFIG_SYSCTL_SYSCALL
- int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
- 	       void __user *newval, size_t newlen)
-@@ -2632,6 +2607,33 @@ int sysctl_ms_jiffies(struct ctl_table *
- 
- #endif /* CONFIG_SYSCTL_SYSCALL */
- 
-+static int deprecated_sysctl_warning(struct __sysctl_args *args)
-+{
-+	static int msg_count;
-+	int name[CTL_MAXNAME];
-+	int i;
-+
-+	/* Read in the sysctl name for better debug message logging */
-+	for (i = 0; i < args->nlen; i++)
-+		if (get_user(name[i], args->name + i))
-+			return -EFAULT;
-+
-+	/* Ignore accesses to kernel.version */
-+	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
-+		return 0;
-+
-+	if (msg_count < 5) {
-+		msg_count++;
-+		printk(KERN_INFO
-+			"warning: process `%s' used the deprecated sysctl "
-+			"system call with ", current->comm);
-+		for (i = 0; i < args->nlen; i++)
-+			printk("%d.", name[i]);
-+		printk("\n");
-+	}
-+	return 0;
-+}
-+
- /*
-  * No sense putting this after each symbol definition, twice,
-  * exception granted :-)
+ 	if (action == CPU_ONLINE || action == CPU_ONLINE_FROZEN) {
+-		for_each_online_pgdat(pgdat) {
++		for_each_node_state(nid, N_HIGH_MEMORY) {
++			pgdat = NODE_DATA(nid);
+ 			mask = node_to_cpumask(pgdat->node_id);
+ 			if (any_online_cpu(mask) != NR_CPUS)
+ 				/* One of our CPUs online: restore mask */
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-sh.patch
-sh-cleanup-struct-irqaction-initializers.patch
-sh64-cleanup-struct-irqaction-initializers.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-clean-up-duplicate-includes-in-mm.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
 update-n_high_memory-node-state-for-memory-hotadd-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch
-sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch
-bitops-introduce-lock-ops.patch
+fix-panic-of-cpu-online-with-memory-less-node.patch
+move-free-pages-between-lists-on-steal.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
