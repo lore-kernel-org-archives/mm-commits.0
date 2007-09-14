@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wake-up-from-a-serial-port.patch added to -mm tree
-Date: Fri, 14 Sep 2007 01:42:34 -0700
-Message-ID: <200709140842.l8E8gYgJ029321@imap1.linux-foundation.org>
+Subject: + scsi-megaraid_sas-add-hibernation-support.patch added to -mm tree
+Date: Fri, 14 Sep 2007 03:32:37 -0700
+Message-ID: <200709141032.l8EAWbQR000560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48686 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51079 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751356AbXINIn1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756292AbXINKcn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 04:43:27 -0400
+	Fri, 14 Sep 2007 06:32:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, alan@lxorguk.ukuu.org.uk, greg@kroah.com, kay.sievers@vrfy.org, rmk@arm.linux.org.uk
+Cc: bo.yang@lsi.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     wake up from a serial port
+     scsi: megaraid_sas: add hibernation support
 has been added to the -mm tree.  Its filename is
-     wake-up-from-a-serial-port.patch
+     scsi-megaraid_sas-add-hibernation-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,140 +26,429 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wake up from a serial port
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: scsi: megaraid_sas: add hibernation support
+From: Bo Yang <bo.yang@lsi.com>
 
-Enable wakeup from serial ports, make it run-time configurable over sysfs,
-e.g.,
+The megaraid_sas driver doesn't support the hibernation, the suspend/resume
+routine implemented to support the hibernation.
 
-echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/power/wakeup
-
-Requires
-
-# CONFIG_SYSFS_DEPRECATED is not set
-
-Following suggestions from Alan and Russell moved the may_wake_up checks
-to serial_core.c. This time actually tested - it does even work. Could
-someone, please, verify, that put_device after device_find_child is
-correct?
-
-Also would be nice to test with a Natsemi UART, that can wake up the system,
-if such systems exist.
-
-For this you just have to apply the patch below, issue the above "echo"
-command to one of your Natsemi port, suspend and resume your system, and
-verify that your Natsemi port still works.  If you are actually capable of
-waking up the system from that port, would be nice to test that as well.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Bo Yang <bo.yang@lsi.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   40 ++++++++++++++++++++++++++++++++-
- include/linux/serial_core.h  |    3 +-
- 2 files changed, 41 insertions(+), 2 deletions(-)
+ drivers/scsi/megaraid/megaraid_sas.c |  309 +++++++++++++++++++------
+ drivers/scsi/megaraid/megaraid_sas.h |    1 
+ 2 files changed, 240 insertions(+), 70 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~wake-up-from-a-serial-port drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~wake-up-from-a-serial-port
-+++ a/drivers/serial/serial_core.c
-@@ -1938,9 +1938,24 @@ static void uart_change_pm(struct uart_s
- 	}
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-add-hibernation-support drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-add-hibernation-support
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -1802,6 +1802,81 @@ static void megasas_complete_cmd_dpc(uns
  }
  
-+struct uart_match {
-+	struct uart_port *port;
-+	struct uart_driver *driver;
-+};
-+
-+static int serial_match_port(struct device *dev, void *data)
+ /**
++ * megasas_issue_init_mfi -	Initializes the FW
++ * @instance:		Adapter soft state
++ *
++ * Issues the INIT MFI cmd
++ */
++static int
++megasas_issue_init_mfi(struct megasas_instance *instance)
 +{
-+	struct uart_match *match = data;
-+	dev_t devt = MKDEV(match->driver->major, match->driver->minor) + match->port->line;
++	u32 context;
 +
-+	return dev->devt == devt; /* Actually, only one tty per port */
++	struct megasas_cmd *cmd;
++
++	struct megasas_init_frame *init_frame;
++	struct megasas_init_queue_info *initq_info;
++	dma_addr_t init_frame_h;
++	dma_addr_t initq_info_h;
++
++	/*
++	 * Prepare a init frame. Note the init frame points to queue info
++	 * structure. Each frame has SGL allocated after first 64 bytes. For
++	 * this frame - since we don't need any SGL - we use SGL's space as
++	 * queue info structure
++	 *
++	 * We will not get a NULL command below. We just created the pool.
++	 */
++	cmd = megasas_get_cmd(instance);
++
++	init_frame = (struct megasas_init_frame *)cmd->frame;
++	initq_info = (struct megasas_init_queue_info *)
++		((unsigned long)init_frame + 64);
++
++	init_frame_h = cmd->frame_phys_addr;
++	initq_info_h = init_frame_h + 64;
++
++	context = init_frame->context;
++	memset(init_frame, 0, MEGAMFI_FRAME_SIZE);
++	memset(initq_info, 0, sizeof(struct megasas_init_queue_info));
++	init_frame->context = context;
++
++	initq_info->reply_queue_entries = instance->max_fw_cmds + 1;
++	initq_info->reply_queue_start_phys_addr_lo = instance->reply_queue_h;
++
++	initq_info->producer_index_phys_addr_lo = instance->producer_h;
++	initq_info->consumer_index_phys_addr_lo = instance->consumer_h;
++
++	init_frame->cmd = MFI_CMD_INIT;
++	init_frame->cmd_status = 0xFF;
++	init_frame->queue_info_new_phys_addr_lo = initq_info_h;
++
++	init_frame->data_xfer_len = sizeof(struct megasas_init_queue_info);
++
++	/*
++	 * disable the intr before firing the init frame to FW
++	 */
++	instance->instancet->disable_intr(instance->reg_set);
++
++	/*
++	 * Issue the init frame in polled mode
++	 */
++
++	if (megasas_issue_polled(instance, cmd)) {
++		printk(KERN_ERR "megasas: Failed to init firmware\n");
++		megasas_return_cmd(instance, cmd);
++		goto fail_fw_init;
++	}
++
++	megasas_return_cmd(instance, cmd);
++
++	return 0;
++
++fail_fw_init:
++	return -EINVAL;
 +}
 +
- int uart_suspend_port(struct uart_driver *drv, struct uart_port *port)
- {
- 	struct uart_state *state = drv->state + port->line;
-+	struct device *tty_dev;
-+	struct uart_match match = {port, drv};
- 
- 	mutex_lock(&state->mutex);
- 
-@@ -1951,6 +1966,15 @@ int uart_suspend_port(struct uart_driver
- 	}
- #endif
- 
-+	tty_dev = device_find_child(port->dev, &match, serial_match_port);
-+	if (device_may_wakeup(tty_dev)) {
-+		enable_irq_wake(port->irq);
-+		put_device(tty_dev);
-+		mutex_unlock(&state->mutex);
-+		return 0;
-+	}
-+	port->suspended = 1;
-+
- 	if (state->info && state->info->flags & UIF_INITIALIZED) {
- 		const struct uart_ops *ops = port->ops;
- 
-@@ -1999,6 +2023,13 @@ int uart_resume_port(struct uart_driver 
- 	}
- #endif
- 
-+	if (!port->suspended) {
-+		disable_irq_wake(port->irq);
-+		mutex_unlock(&state->mutex);
-+		return 0;
-+	}
-+	port->suspended = 0;
-+
- 	uart_change_pm(state, 0);
- 
++/**
+  * megasas_init_mfi -	Initializes the FW
+  * @instance:		Adapter soft state
+  *
+@@ -1814,15 +1889,7 @@ static int megasas_init_mfi(struct megas
+ 	u32 max_sectors_1;
+ 	u32 max_sectors_2;
+ 	struct megasas_register_set __iomem *reg_set;
+-
+-	struct megasas_cmd *cmd;
+ 	struct megasas_ctrl_info *ctrl_info;
+-
+-	struct megasas_init_frame *init_frame;
+-	struct megasas_init_queue_info *initq_info;
+-	dma_addr_t init_frame_h;
+-	dma_addr_t initq_info_h;
+-
  	/*
-@@ -2271,6 +2302,7 @@ int uart_add_one_port(struct uart_driver
- {
- 	struct uart_state *state;
- 	int ret = 0;
-+	struct device *tty_dev;
- 
- 	BUG_ON(in_interrupt());
- 
-@@ -2306,7 +2338,13 @@ int uart_add_one_port(struct uart_driver
- 	 * Register the port whether it's detected or not.  This allows
- 	 * setserial to be used to alter this ports parameters.
+ 	 * Map the message registers
  	 */
--	tty_register_device(drv->tty_driver, port->line, port->dev);
-+	tty_dev = tty_register_device(drv->tty_driver, port->line, port->dev);
-+	if (likely(!IS_ERR(tty_dev))) {
-+		device_can_wakeup(tty_dev) = 1;
-+		device_set_wakeup_enable(tty_dev, 0);
-+	} else
-+		printk(KERN_ERR "Cannot register tty device on line %d\n",
-+		       port->line);
+@@ -1899,52 +1966,8 @@ static int megasas_init_mfi(struct megas
+ 		goto fail_reply_queue;
+ 	}
+ 
+-	/*
+-	 * Prepare a init frame. Note the init frame points to queue info
+-	 * structure. Each frame has SGL allocated after first 64 bytes. For
+-	 * this frame - since we don't need any SGL - we use SGL's space as
+-	 * queue info structure
+-	 *
+-	 * We will not get a NULL command below. We just created the pool.
+-	 */
+-	cmd = megasas_get_cmd(instance);
+-
+-	init_frame = (struct megasas_init_frame *)cmd->frame;
+-	initq_info = (struct megasas_init_queue_info *)
+-	    ((unsigned long)init_frame + 64);
+-
+-	init_frame_h = cmd->frame_phys_addr;
+-	initq_info_h = init_frame_h + 64;
+-
+-	memset(init_frame, 0, MEGAMFI_FRAME_SIZE);
+-	memset(initq_info, 0, sizeof(struct megasas_init_queue_info));
+-
+-	initq_info->reply_queue_entries = instance->max_fw_cmds + 1;
+-	initq_info->reply_queue_start_phys_addr_lo = instance->reply_queue_h;
+-
+-	initq_info->producer_index_phys_addr_lo = instance->producer_h;
+-	initq_info->consumer_index_phys_addr_lo = instance->consumer_h;
+-
+-	init_frame->cmd = MFI_CMD_INIT;
+-	init_frame->cmd_status = 0xFF;
+-	init_frame->queue_info_new_phys_addr_lo = initq_info_h;
+-
+-	init_frame->data_xfer_len = sizeof(struct megasas_init_queue_info);
+-
+-	/*
+-	 * disable the intr before firing the init frame to FW
+-	 */
+-	instance->instancet->disable_intr(instance->reg_set);
+-
+-	/*
+-	 * Issue the init frame in polled mode
+-	 */
+-	if (megasas_issue_polled(instance, cmd)) {
+-		printk(KERN_DEBUG "megasas: Failed to init firmware\n");
++	if (megasas_issue_init_mfi(instance))
+ 		goto fail_fw_init;
+-	}
+-
+-	megasas_return_cmd(instance, cmd);
+ 
+ 	ctrl_info = kmalloc(sizeof(struct megasas_ctrl_info), GFP_KERNEL);
+ 
+@@ -1980,7 +2003,6 @@ static int megasas_init_mfi(struct megas
+ 	return 0;
+ 
+       fail_fw_init:
+-	megasas_return_cmd(instance, cmd);
+ 
+ 	pci_free_consistent(instance->pdev, reply_q_sz,
+ 			    instance->reply_queue, instance->reply_queue_h);
+@@ -2262,6 +2284,28 @@ static int megasas_io_attach(struct mega
+ 	return 0;
+ }
+ 
++static int
++megasas_set_dma_mask(struct pci_dev *pdev)
++{
++	/*
++	 * All our contollers are capable of performing 64-bit DMA
++	 */
++	if (IS_DMA64) {
++		if (pci_set_dma_mask(pdev, DMA_64BIT_MASK) != 0) {
++
++			if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
++				goto fail_set_dma_mask;
++		}
++	} else {
++		if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
++			goto fail_set_dma_mask;
++	}
++	return 0;
++
++fail_set_dma_mask:
++	return 1;
++}
++
+ /**
+  * megasas_probe_one -	PCI hotplug entry point
+  * @pdev:		PCI device structure
+@@ -2295,19 +2339,8 @@ megasas_probe_one(struct pci_dev *pdev, 
+ 
+ 	pci_set_master(pdev);
+ 
+-	/*
+-	 * All our contollers are capable of performing 64-bit DMA
+-	 */
+-	if (IS_DMA64) {
+-		if (pci_set_dma_mask(pdev, DMA_64BIT_MASK) != 0) {
+-
+-			if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
+-				goto fail_set_dma_mask;
+-		}
+-	} else {
+-		if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
+-			goto fail_set_dma_mask;
+-	}
++	if (megasas_set_dma_mask(pdev))
++		goto fail_set_dma_mask;
+ 
+ 	host = scsi_host_alloc(&megasas_template,
+ 			       sizeof(struct megasas_instance));
+@@ -2489,8 +2522,10 @@ static void megasas_flush_cache(struct m
+ /**
+  * megasas_shutdown_controller -	Instructs FW to shutdown the controller
+  * @instance:				Adapter soft state
++ * @opcode:				Shutdown/Hibernate
+  */
+-static void megasas_shutdown_controller(struct megasas_instance *instance)
++static void megasas_shutdown_controller(struct megasas_instance *instance,
++					u32 opcode)
+ {
+ 	struct megasas_cmd *cmd;
+ 	struct megasas_dcmd_frame *dcmd;
+@@ -2513,7 +2548,7 @@ static void megasas_shutdown_controller(
+ 	dcmd->flags = MFI_FRAME_DIR_NONE;
+ 	dcmd->timeout = 0;
+ 	dcmd->data_xfer_len = 0;
+-	dcmd->opcode = MR_DCMD_CTRL_SHUTDOWN;
++	dcmd->opcode = opcode;
+ 
+ 	megasas_issue_blocked_cmd(instance, cmd);
+ 
+@@ -2523,6 +2558,138 @@ static void megasas_shutdown_controller(
+ }
+ 
+ /**
++ * megasas_suspend -    driver suspend entry point
++ * @pdev:               PCI device structure
++ * @state:		PCI power state to suspend routine
++ */
++static int __devinit
++megasas_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct Scsi_Host *host;
++	struct megasas_instance *instance;
++
++	instance = pci_get_drvdata(pdev);
++	host = instance->host;
++
++	megasas_flush_cache(instance);
++	megasas_shutdown_controller(instance, MR_DCMD_HIBERNATE_SHUTDOWN);
++	tasklet_kill(&instance->isr_tasklet);
++
++	pci_set_drvdata(instance->pdev, instance);
++	instance->instancet->disable_intr(instance->reg_set);
++	free_irq(instance->pdev->irq, instance);
++
++	scsi_host_put(host);
++
++	pci_save_state(pdev);
++	pci_disable_device(pdev);
++
++	pci_set_power_state(pdev, pci_choose_state(pdev, state));
++
++	return 0;
++}
++
++/**
++ * megasas_resume-      driver resume entry point
++ * @pdev:               PCI device structure
++ */
++static int __devinit
++megasas_resume(struct pci_dev *pdev)
++{
++	int rval;
++	struct Scsi_Host *host;
++	struct megasas_instance *instance;
++
++	instance = pci_get_drvdata(pdev);
++	host = instance->host;
++	pci_set_power_state(pdev, PCI_D0);
++	pci_enable_wake(pdev, PCI_D0, 0);
++	pci_restore_state(pdev);
++
++	/*
++	 * PCI prepping: enable device set bus mastering and dma mask
++	 */
++	rval = pci_enable_device(pdev);
++
++	if (rval) {
++		printk(KERN_ERR "megasas: Enable device failed\n");
++		return rval;
++	}
++
++	pci_set_master(pdev);
++
++	if (megasas_set_dma_mask(pdev))
++		goto fail_set_dma_mask;
++
++	/*
++	 * Initialize MFI Firmware
++	 */
++
++	*instance->producer = 0;
++	*instance->consumer = 0;
++
++	atomic_set(&instance->fw_outstanding, 0);
++
++	/*
++	 * We expect the FW state to be READY
++	 */
++	if (megasas_transition_to_ready(instance))
++		goto fail_ready_state;
++
++	if (megasas_issue_init_mfi(instance))
++		goto fail_init_mfi;
++
++	tasklet_init(&instance->isr_tasklet, megasas_complete_cmd_dpc,
++			(unsigned long)instance);
++
++	/*
++	 * Register IRQ
++	 */
++	if (request_irq(pdev->irq, megasas_isr, IRQF_SHARED,
++		"megasas", instance)) {
++		printk(KERN_ERR "megasas: Failed to register IRQ\n");
++		goto fail_irq;
++	}
++
++	instance->instancet->enable_intr(instance->reg_set);
++
++	/*
++	 * Store instance in PCI softstate
++	 */
++	pci_set_drvdata(pdev, instance);
++
++	/*
++	 * Initiate AEN (Asynchronous Event Notification)
++	 */
++	if (megasas_start_aen(instance))
++		printk(KERN_ERR "megasas: Start AEN failed\n");
++
++	return 0;
++
++fail_irq:
++fail_init_mfi:
++	if (instance->evt_detail)
++		pci_free_consistent(pdev, sizeof(struct megasas_evt_detail),
++				instance->evt_detail,
++				instance->evt_detail_h);
++
++	if (instance->producer)
++		pci_free_consistent(pdev, sizeof(u32), instance->producer,
++				instance->producer_h);
++	if (instance->consumer)
++		pci_free_consistent(pdev, sizeof(u32), instance->consumer,
++				instance->consumer_h);
++	scsi_host_put(host);
++
++fail_set_dma_mask:
++fail_ready_state:
++
++	pci_disable_device(pdev);
++
++	return -ENODEV;
++}
++
++/**
+  * megasas_detach_one -	PCI hot"un"plug entry point
+  * @pdev:		PCI device structure
+  */
+@@ -2537,7 +2704,7 @@ static void megasas_detach_one(struct pc
+ 
+ 	scsi_remove_host(instance->host);
+ 	megasas_flush_cache(instance);
+-	megasas_shutdown_controller(instance);
++	megasas_shutdown_controller(instance, MR_DCMD_CTRL_SHUTDOWN);
+ 	tasklet_kill(&instance->isr_tasklet);
  
  	/*
- 	 * If this driver supports console, and it hasn't been
-diff -puN include/linux/serial_core.h~wake-up-from-a-serial-port include/linux/serial_core.h
---- a/include/linux/serial_core.h~wake-up-from-a-serial-port
-+++ a/include/linux/serial_core.h
-@@ -291,7 +291,8 @@ struct uart_port {
- 	resource_size_t		mapbase;		/* for ioremap */
- 	struct device		*dev;			/* parent device */
- 	unsigned char		hub6;			/* this should be in the 8250 driver */
--	unsigned char		unused[3];
-+	unsigned char		suspended;
-+	unsigned char		unused[2];
- 	void			*private_data;		/* generic platform data pointer */
+@@ -2976,6 +3143,8 @@ static struct pci_driver megasas_pci_dri
+ 	.id_table = megasas_pci_table,
+ 	.probe = megasas_probe_one,
+ 	.remove = __devexit_p(megasas_detach_one),
++	.suspend = megasas_suspend,
++	.resume = megasas_resume,
+ 	.shutdown = megasas_shutdown,
  };
  
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-add-hibernation-support drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-add-hibernation-support
++++ a/drivers/scsi/megaraid/megaraid_sas.h
+@@ -117,6 +117,7 @@
+ #define MR_FLUSH_DISK_CACHE			0x02
+ 
+ #define MR_DCMD_CTRL_SHUTDOWN			0x01050000
++#define MR_DCMD_HIBERNATE_SHUTDOWN		0x01060000
+ #define MR_ENABLE_DRIVE_SPINDOWN		0x01
+ 
+ #define MR_DCMD_CTRL_EVENT_GET_INFO		0x01040100
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from bo.yang@lsi.com are
 
-git-powerpc.patch
-wake-up-from-a-serial-port.patch
+scsi-megaraid_sas-add-hibernation-support.patch
+scsi-megaraid_sas-add-module-param-fast_load.patch
+scsi-megaraid_sas-add-module-param-max_sectors-cmd_per_lun.patch
+scsi-megaraid_sas-update-version-and-changelog.patch
