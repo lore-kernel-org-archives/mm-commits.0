@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch added to -mm tree
-Date: Fri, 14 Sep 2007 04:25:25 -0700
-Message-ID: <200709141125.l8EBPPQp002477@imap1.linux-foundation.org>
+Subject: + debug-sysfs-files-for-the-current-ratio-size-total.patch added to -mm tree
+Date: Fri, 14 Sep 2007 04:21:08 -0700
+Message-ID: <200709141121.l8EBL8ZD002331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759365AbXINLZc (ORCPT
+	by vger.kernel.org with ESMTP id S1751379AbXINL2K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 07:25:32 -0400
+	Fri, 14 Sep 2007 07:28:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: a.p.zijlstra@chello.nl
 
 
 The patch titled
-     containers: bdi init hooks
+     debug: sysfs files for the current ratio/size/total
 has been added to the -mm tree.  Its filename is
-     task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
+     debug-sysfs-files-for-the-current-ratio-size-total.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: containers: bdi init hooks
+Subject: debug: sysfs files for the current ratio/size/total
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-split off from the large bdi_init patch because containers are not slated
-for mainline any time soon.
+Expose the per bdi dirty limits in sysfs
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ block/ll_rw_blk.c   |   81 ++++++++++++++++++++++++++++++++++++++++++
+ mm/page-writeback.c |    4 +-
+ 2 files changed, 83 insertions(+), 2 deletions(-)
 
-diff -puN kernel/container.c~task-containersv11-add-procfs-interface-containers-bdi-init-hooks kernel/container.c
---- a/kernel/container.c~task-containersv11-add-procfs-interface-containers-bdi-init-hooks
-+++ a/kernel/container.c
-@@ -250,12 +250,13 @@ static int container_populate_dir(struct
- static struct inode_operations container_dir_inode_operations;
- static struct file_operations proc_containerstats_operations;
+diff -puN block/ll_rw_blk.c~debug-sysfs-files-for-the-current-ratio-size-total block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~debug-sysfs-files-for-the-current-ratio-size-total
++++ a/block/ll_rw_blk.c
+@@ -4128,6 +4128,57 @@ static ssize_t queue_max_segments_store(
  
-+static struct backing_dev_info container_backing_dev_info = {
-+	.capabilities	= BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_WRITEBACK,
+ 	return ret;
+ }
++
++extern void bdi_writeout_fraction(struct backing_dev_info *bdi,
++		long *numerator, long *denominator);
++
++static ssize_t queue_nr_cache_ratio_show(struct request_queue *q, char *page)
++{
++	long scale, div;
++
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++	scale *= 1024;
++	scale /= div;
++
++	return sprintf(page, "%ld\n", scale);
++}
++
++static ssize_t queue_nr_cache_num_show(struct request_queue *q, char *page)
++{
++	long scale, div;
++
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++
++	return sprintf(page, "%ld\n", scale);
++}
++
++static ssize_t queue_nr_cache_denom_show(struct request_queue *q, char *page)
++{
++	long scale, div;
++
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++
++	return sprintf(page, "%ld\n", div);
++}
++
++extern void
++get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
++		struct backing_dev_info *bdi);
++
++static ssize_t queue_nr_cache_size_show(struct request_queue *q, char *page)
++{
++	long background, dirty, bdi_dirty;
++	get_dirty_limits(&background, &dirty, &bdi_dirty, &q->backing_dev_info);
++	return sprintf(page, "%ld\n", bdi_dirty);
++}
++
++static ssize_t queue_nr_cache_total_show(struct request_queue *q, char *page)
++{
++	long background, dirty, bdi_dirty;
++	get_dirty_limits(&background, &dirty, &bdi_dirty, &q->backing_dev_info);
++	return sprintf(page, "%ld\n", dirty);
++}
++
+ static struct queue_sysfs_entry queue_requests_entry = {
+ 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
+ 	.show = queue_requests_show,
+@@ -4167,6 +4218,31 @@ static struct queue_sysfs_entry queue_wr
+ 	.show = queue_nr_writeback_show,
+ };
+ 
++static struct queue_sysfs_entry queue_cache_ratio_entry = {
++	.attr = {.name = "cache_ratio", .mode = S_IRUGO },
++	.show = queue_nr_cache_ratio_show,
 +};
 +
- static struct inode *container_new_inode(mode_t mode, struct super_block *sb)
++static struct queue_sysfs_entry queue_cache_num_entry = {
++	.attr = {.name = "cache_num", .mode = S_IRUGO },
++	.show = queue_nr_cache_num_show,
++};
++
++static struct queue_sysfs_entry queue_cache_denom_entry = {
++	.attr = {.name = "cache_denom", .mode = S_IRUGO },
++	.show = queue_nr_cache_denom_show,
++};
++
++static struct queue_sysfs_entry queue_cache_size_entry = {
++	.attr = {.name = "cache_size", .mode = S_IRUGO },
++	.show = queue_nr_cache_size_show,
++};
++
++static struct queue_sysfs_entry queue_cache_total_entry = {
++	.attr = {.name = "cache_total", .mode = S_IRUGO },
++	.show = queue_nr_cache_total_show,
++};
++
+ static struct queue_sysfs_entry queue_iosched_entry = {
+ 	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
+ 	.show = elv_iosched_show,
+@@ -4181,6 +4257,11 @@ static struct attribute *default_attrs[]
+ 	&queue_max_segments_entry.attr,
+ 	&queue_reclaimable_entry.attr,
+ 	&queue_writeback_entry.attr,
++	&queue_cache_ratio_entry.attr,
++	&queue_cache_num_entry.attr,
++	&queue_cache_denom_entry.attr,
++	&queue_cache_size_entry.attr,
++	&queue_cache_total_entry.attr,
+ 	&queue_iosched_entry.attr,
+ 	NULL,
+ };
+diff -puN mm/page-writeback.c~debug-sysfs-files-for-the-current-ratio-size-total mm/page-writeback.c
+--- a/mm/page-writeback.c~debug-sysfs-files-for-the-current-ratio-size-total
++++ a/mm/page-writeback.c
+@@ -169,7 +169,7 @@ static inline void task_dirty_inc(struct
+ /*
+  * Obtain an accurate fraction of the BDI's portion.
+  */
+-static void bdi_writeout_fraction(struct backing_dev_info *bdi,
++void bdi_writeout_fraction(struct backing_dev_info *bdi,
+ 		long *numerator, long *denominator)
  {
- 	struct inode *inode = new_inode(sb);
--	static struct backing_dev_info container_backing_dev_info = {
--		.capabilities	= BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_WRITEBACK,
--	};
- 
- 	if (inode) {
- 		inode->i_mode = mode;
-@@ -1570,6 +1571,10 @@ int __init container_init(void)
- 	int i;
- 	struct proc_dir_entry *entry;
- 
-+	err = bdi_init(&container_backing_dev_info);
-+	if (err)
-+		return err;
-+
- 	for (i = 0; i < CONTAINER_SUBSYS_COUNT; i++) {
- 		struct container_subsys *ss = subsys[i];
- 		if (!ss->early_init)
-@@ -1585,6 +1590,9 @@ int __init container_init(void)
- 		entry->proc_fops = &proc_containerstats_operations;
- 
- out:
-+	if (err)
-+		bdi_destroy(&container_backing_dev_info);
-+
- 	return err;
+ 	if (bdi_cap_writeback_dirty(bdi)) {
+@@ -290,7 +290,7 @@ static unsigned long determine_dirtyable
+ 	return x + 1;	/* Ensure that we never return 0 */
  }
  
+-static void
++void
+ get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
+ 		 struct backing_dev_info *bdi)
+ {
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
@@ -117,9 +202,9 @@ intel-iommu-intel-iommu-cmdline-option-forcedac.patch
 intel-iommu-dmar-fault-handling-support.patch
 intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
 task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
 task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+containers-bdi-init-hooks.patch
 workqueue-debug-flushing-deadlocks-with-lockdep.patch
 workqueue-debug-work-related-deadlocks-with-lockdep.patch
 memory-controller-add-documentation.patch
