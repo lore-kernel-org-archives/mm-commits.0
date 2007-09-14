@@ -1,132 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch added to -mm tree
-Date: Fri, 14 Sep 2007 15:03:00 -0700
-Message-ID: <200709142203.l8EM30T4026519@imap1.linux-foundation.org>
+Subject: - v4l-fix-build-error-for-et61x251-driver.patch removed from -mm tree
+Date: Fri, 14 Sep 2007 15:13:20 -0700
+Message-ID: <200709142213.l8EMDK5G026877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753193AbXINWEP (ORCPT
+	by vger.kernel.org with ESMTP id S1755473AbXINWNn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 18:04:15 -0400
+	Fri, 14 Sep 2007 18:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com
+To: aherrman@arcor.de, luca.risolia@studio.unibo.it, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     try to reap reiserfs pages left around by invalidatepage
-has been added to the -mm tree.  Its filename is
-     try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
+     v4l: fix build error for et61x251 driver
+has been removed from the -mm tree.  Its filename was
+     v4l-fix-build-error-for-et61x251-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: try to reap reiserfs pages left around by invalidatepage
-From: Chris Mason <chris.mason@oracle.com>
+Subject: v4l: fix build error for et61x251 driver
+From: Andreas Herrmann <aherrman@arcor.de>
 
-reiserfs_invalidatepage will refuse to free pages if they have been logged
-in data=journal mode, or were pinned down by a data=ordered operation.  For
-data=journal, this is fairly easy to trigger just with fsx-linux, and it
-results in a large number of pages hanging around on the LRUs with
-page->mapping == NULL.
+Get rid of some v4l1 remainders to avoid kernel build errors if
+V4L1_COMPAT is not selected:
 
-Calling try_to_free_buffers when reiserfs decides it is done with the page
-allows it to be freed earlier, and with much less VM thrashing.  Lock
-ordering rules mean that reiserfs can't call lock_page when it is releasing
-the buffers, so TestSetPageLocked is used instead.  Contention on these
-pages should be rare, so it should be sufficient most of the time.
+  drivers/media/video/et61x251/et61x251_core.c: In et61x251_show_:
+  drivers/media/video/et61x251/et61x251_core.c:718: error: implicit
+    declaration of to_video_device
 
-Signed-off-by: Chris Mason <chris.mason@oracle.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Fix as suggested by Luca Risolia <luca.risolia@studio.unibo.it>
+
+Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
+Hacked-by: Luca Risolia <luca.risolia@studio.unibo.it>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |   42 ++++++++++++++++++++++++++++++----------
- 1 files changed, 32 insertions(+), 10 deletions(-)
+ drivers/media/video/et61x251/et61x251_core.c |   24 +++++++++++------
+ 1 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage
-+++ a/fs/reiserfs/journal.c
-@@ -615,6 +615,31 @@ static int journal_list_still_alive(stru
- 	return 0;
- }
+diff -puN drivers/media/video/et61x251/et61x251_core.c~v4l-fix-build-error-for-et61x251-driver drivers/media/video/et61x251/et61x251_core.c
+--- a/drivers/media/video/et61x251/et61x251_core.c~v4l-fix-build-error-for-et61x251-driver
++++ a/drivers/media/video/et61x251/et61x251_core.c
+@@ -714,7 +714,8 @@ static ssize_t et61x251_show_reg(struct 
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
  
-+/*
-+ * If page->mapping was null, we failed to truncate this page for
-+ * some reason.  Most likely because it was truncated after being
-+ * logged via data=journal.
-+ *
-+ * This does a check to see if the buffer belongs to one of these
-+ * lost pages before doing the final put_bh.  If page->mapping was
-+ * null, it tries to free buffers on the page, which should make the
-+ * final page_cache_release drop the page from the lru.
-+ */
-+static void release_buffer_page(struct buffer_head *bh)
-+{
-+	struct page *page = bh->b_page;
-+	if (!page->mapping && !TestSetPageLocked(page)) {
-+		page_cache_get(page);
-+		put_bh(bh);
-+		if (!page->mapping)
-+			try_to_free_buffers(page);
-+		unlock_page(page);
-+		page_cache_release(page);
-+	} else {
-+		put_bh(bh);
-+	}
-+}
-+
- static void reiserfs_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
- {
- 	char b[BDEVNAME_SIZE];
-@@ -628,8 +653,9 @@ static void reiserfs_end_buffer_io_sync(
- 		set_buffer_uptodate(bh);
- 	else
- 		clear_buffer_uptodate(bh);
-+
- 	unlock_buffer(bh);
--	put_bh(bh);
-+	release_buffer_page(bh);
- }
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -738,7 +739,8 @@ et61x251_store_reg(struct class_device* 
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
  
- static void reiserfs_end_ordered_io(struct buffer_head *bh, int uptodate)
-@@ -1546,9 +1572,10 @@ static int flush_journal_list(struct sup
- 				BUG_ON(!test_clear_buffer_journal_dirty
- 				       (cn->bh));
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -770,7 +772,8 @@ static ssize_t et61x251_show_val(struct 
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
  
--				/* undo the inc from journal_mark_dirty */
-+				/* drop one ref for us */
- 				put_bh(cn->bh);
--				brelse(cn->bh);
-+				/* drop one ref for journal_mark_dirty */
-+				release_buffer_page(cn->bh);
- 			}
- 			cn = cn->next;
- 		}
-@@ -3708,13 +3735,8 @@ int journal_mark_freed(struct reiserfs_t
- 		}
- 	}
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -802,7 +805,8 @@ et61x251_store_val(struct class_device* 
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
  
--	if (bh) {
--		put_bh(bh);	/* get_hash grabs the buffer */
--		if (atomic_read(&(bh->b_count)) < 0) {
--			reiserfs_warning(p_s_sb,
--					 "journal-2165: bh->b_count < 0");
--		}
--	}
-+	if (bh)
-+		release_buffer_page(bh); /* get_hash grabs the buffer */
- 	return 0;
- }
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -838,7 +842,8 @@ static ssize_t et61x251_show_i2c_reg(str
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
  
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -864,7 +869,8 @@ et61x251_store_i2c_reg(struct class_devi
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
+ 
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -896,7 +902,8 @@ static ssize_t et61x251_show_i2c_val(str
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
+ 
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
+@@ -933,7 +940,8 @@ et61x251_store_i2c_val(struct class_devi
+ 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
+ 		return -ERESTARTSYS;
+ 
+-	cam = video_get_drvdata(to_video_device(cd));
++	cam = video_get_drvdata(container_of(cd, struct video_device,
++					     class_dev));
+ 	if (!cam) {
+ 		mutex_unlock(&et61x251_sysfs_lock);
+ 		return -ENODEV;
 _
 
-Patches currently in -mm which might be from chris.mason@oracle.com are
+Patches currently in -mm which might be from aherrman@arcor.de are
 
-try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
+v4l-fix-build-error-for-et61x251-driver.patch
+radeonfb-fix-setting-of-ppll_ref_div-for-rv370-5b60.patch
