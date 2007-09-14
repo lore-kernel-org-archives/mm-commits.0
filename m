@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch added to -mm tree
-Date: Thu, 13 Sep 2007 17:56:02 -0700
-Message-ID: <200709140056.l8E0u2Kf014267@imap1.linux-foundation.org>
+Subject: + net-sctp-socketc-make-3-variables-static.patch added to -mm tree
+Date: Thu, 13 Sep 2007 17:57:00 -0700
+Message-ID: <200709140057.l8E0v0lH014270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755152AbXINA4U (ORCPT
+	by vger.kernel.org with ESMTP id S1754902AbXINA5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 20:56:20 -0400
+	Thu, 13 Sep 2007 20:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, balbir@linux.vnet.ibm.com
+Cc: bunk@kernel.org, davem@davemloft.net, nhorman@tuxdriver.com
 
 
 The patch titled
-     mm/memcontrol.c: clenups
+     net/sctp/socket.c: make 3 variables static
 has been added to the -mm tree.  Its filename is
-     memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+     net-sctp-socketc-make-3-variables-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/memcontrol.c: clenups
+Subject: net/sctp/socket.c: make 3 variables static
 From: Adrian Bunk <bunk@kernel.org>
 
-- lock_page_container()
-- unlock_page_container()
-- __mem_container_move_lists()
+Makethe following needlessly global variables static:
 
-Additionally, there was no reason for the "mem_control_type" object.
+- sctp_memory_pressure
+- sctp_memory_allocated
+- sctp_sockets_allocated
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/sctp/socket.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup
-+++ a/mm/memcontrol.c
-@@ -91,7 +91,7 @@ enum {
- 	MEM_CONTAINER_TYPE_CACHED,
- 	MEM_CONTAINER_TYPE_ALL,
- 	MEM_CONTAINER_TYPE_MAX,
--} mem_control_type;
-+};
+diff -puN net/sctp/socket.c~net-sctp-socketc-make-3-variables-static net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-socketc-make-3-variables-static
++++ a/net/sctp/socket.c
+@@ -112,9 +112,9 @@ extern int sysctl_sctp_mem[3];
+ extern int sysctl_sctp_rmem[3];
+ extern int sysctl_sctp_wmem[3];
  
- static struct mem_container init_mem_container;
+-int sctp_memory_pressure;
+-atomic_t sctp_memory_allocated;
+-atomic_t sctp_sockets_allocated;
++static int sctp_memory_pressure;
++static atomic_t sctp_memory_allocated;
++static atomic_t sctp_sockets_allocated;
  
-@@ -151,18 +151,18 @@ struct page_container *page_get_page_con
- 		(page->page_container & ~PAGE_CONTAINER_LOCK);
- }
- 
--void __always_inline lock_page_container(struct page *page)
-+static void __always_inline lock_page_container(struct page *page)
+ static void sctp_enter_memory_pressure(void)
  {
- 	bit_spin_lock(PAGE_CONTAINER_LOCK_BIT, &page->page_container);
- 	VM_BUG_ON(!page_container_locked(page));
- }
- 
--void __always_inline unlock_page_container(struct page *page)
-+static void __always_inline unlock_page_container(struct page *page)
- {
- 	bit_spin_unlock(PAGE_CONTAINER_LOCK_BIT, &page->page_container);
- }
- 
--void __mem_container_move_lists(struct page_container *pc, bool active)
-+static void __mem_container_move_lists(struct page_container *pc, bool active)
- {
- 	if (active)
- 		list_move(&pc->lru, &pc->mem_container->active_list);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -92,6 +75,7 @@ pass-g-to-assembler-under-config_debug_info-fix.patch
 fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
 fix-ide-ide-remove-ide-dma-check.patch
 drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+net-sctp-socketc-make-3-variables-static.patch
 git-nfs-make-nfs_wb_page_priority-static.patch
 git-nfsd.patch
 drivers-scsi-immc-fix-check-after-use.patch
