@@ -1,93 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - fix-bios-e820-end-address.patch removed from -mm tree
-Date: Fri, 14 Sep 2007 15:19:33 -0700
-Message-ID: <200709142219.l8EMJX6q027081@imap1.linux-foundation.org>
+Subject: + i386-fix-section-mismatch-warning-in-intelc.patch added to -mm tree
+Date: Fri, 14 Sep 2007 15:20:09 -0700
+Message-ID: <200709142220.l8EMKAIo027130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34902 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757733AbXINWTj (ORCPT
+	by vger.kernel.org with ESMTP id S1757498AbXINWU3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 18:19:39 -0400
+	Fri, 14 Sep 2007 18:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anil.s.keshavamurthy@intel.com, ak@suse.de, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sam@ravnborg.org, ak@suse.de, frankvm@frankvm.com
 
 
 The patch titled
-     Fix BIOS-e820 end address
-has been removed from the -mm tree.  Its filename was
-     fix-bios-e820-end-address.patch
+     i386: fix section mismatch warning in intel.c
+has been added to the -mm tree.  Its filename is
+     i386-fix-section-mismatch-warning-in-intelc.patch
 
-This patch was dropped because it was withdrawn
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Fix BIOS-e820 end address
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: i386: fix section mismatch warning in intel.c
+From: Sam Ravnborg <sam@ravnborg.org>
 
---snip of boot message--
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
- BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000007fe8cc00 (usable)
-----end snip---
+Fix following section mismatch warning:
+WARNING: vmlinux.o(.text+0xc88c): Section mismatch: reference to .init.text:trap_init_f00f_bug (between 'init_intel' and 'cpuid4_cache_lookup')
 
-As you see from above the address 0000000000100000 is both
-shown as reserved and usable which is confusing.
+init_intel are __cpuint where trap_init_f00f_bug is __init.
+Fixed by declaring trap_init_f00f_bug __cpuinit.
 
-This patch fixes the BIOS-e820 end address.
+Moved the defintion of trap_init_f00f_bug to the sole user in init.c
+so the ugly prototype in intel.c could get killed.
 
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Frank van Maarseveen <frankvm@frankvm.com> supplied the .config used
+to reproduce the warning.
+
+Cc: Frank van Maarseveen <frankvm@frankvm.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/e820.c   |    2 +-
- arch/x86_64/kernel/e820.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/i386/kernel/cpu/intel.c |   17 +++++++++++++++--
+ arch/i386/kernel/traps.c     |   14 --------------
+ 2 files changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN arch/i386/kernel/e820.c~fix-bios-e820-end-address arch/i386/kernel/e820.c
---- a/arch/i386/kernel/e820.c~fix-bios-e820-end-address
-+++ a/arch/i386/kernel/e820.c
-@@ -753,7 +753,7 @@ void __init print_memory_map(char *who)
- 	for (i = 0; i < e820.nr_map; i++) {
- 		printk(" %s: %016Lx - %016Lx ", who,
- 			e820.map[i].addr,
--			e820.map[i].addr + e820.map[i].size);
-+			e820.map[i].addr + e820.map[i].size - 1);
- 		switch (e820.map[i].type) {
- 		case E820_RAM:	printk("(usable)\n");
- 				break;
-diff -puN arch/x86_64/kernel/e820.c~fix-bios-e820-end-address arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~fix-bios-e820-end-address
-+++ a/arch/x86_64/kernel/e820.c
-@@ -368,7 +368,7 @@ void __init e820_print_map(char *who)
- 	for (i = 0; i < e820.nr_map; i++) {
- 		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
- 			(unsigned long long) e820.map[i].addr,
--			(unsigned long long) (e820.map[i].addr + e820.map[i].size));
-+			(unsigned long long) (e820.map[i].addr + e820.map[i].size - 1));
- 		switch (e820.map[i].type) {
- 		case E820_RAM:	printk("(usable)\n");
- 				break;
+diff -puN arch/i386/kernel/cpu/intel.c~i386-fix-section-mismatch-warning-in-intelc arch/i386/kernel/cpu/intel.c
+--- a/arch/i386/kernel/cpu/intel.c~i386-fix-section-mismatch-warning-in-intelc
++++ a/arch/i386/kernel/cpu/intel.c
+@@ -8,6 +8,7 @@
+ #include <linux/module.h>
+ 
+ #include <asm/processor.h>
++#include <asm/pgtable.h>
+ #include <asm/msr.h>
+ #include <asm/uaccess.h>
+ 
+@@ -19,8 +20,6 @@
+ #include <mach_apic.h>
+ #endif
+ 
+-extern int trap_init_f00f_bug(void);
+-
+ #ifdef CONFIG_X86_INTEL_USERCOPY
+ /*
+  * Alignment at which movsl is preferred for bulk memory copies.
+@@ -95,6 +94,20 @@ static int __cpuinit num_cpu_cores(struc
+ 		return 1;
+ }
+ 
++#ifdef CONFIG_X86_F00F_BUG
++static void __cpuinit trap_init_f00f_bug(void)
++{
++	__set_fixmap(FIX_F00F_IDT, __pa(&idt_table), PAGE_KERNEL_RO);
++
++	/*
++	 * Update the IDT descriptor and reload the IDT so that
++	 * it uses the read-only mapped virtual address.
++	 */
++	idt_descr.address = fix_to_virt(FIX_F00F_IDT);
++	load_idt(&idt_descr);
++}
++#endif
++
+ static void __cpuinit init_intel(struct cpuinfo_x86 *c)
+ {
+ 	unsigned int l2 = 0;
+diff -puN arch/i386/kernel/traps.c~i386-fix-section-mismatch-warning-in-intelc arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~i386-fix-section-mismatch-warning-in-intelc
++++ a/arch/i386/kernel/traps.c
+@@ -1179,20 +1179,6 @@ asmlinkage void math_emulate(long arg)
+ 
+ #endif /* CONFIG_MATH_EMULATION */
+ 
+-#ifdef CONFIG_X86_F00F_BUG
+-void __init trap_init_f00f_bug(void)
+-{
+-	__set_fixmap(FIX_F00F_IDT, __pa(&idt_table), PAGE_KERNEL_RO);
+-
+-	/*
+-	 * Update the IDT descriptor and reload the IDT so that
+-	 * it uses the read-only mapped virtual address.
+-	 */
+-	idt_descr.address = fix_to_virt(FIX_F00F_IDT);
+-	load_idt(&idt_descr);
+-}
+-#endif
+-
+ /*
+  * This needs to use 'idt_table' rather than 'idt', and
+  * thus use the _nonmapped_ version of the IDT, as the
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-fix-bios-e820-end-address.patch
-kprobes-support-kretprobe-blacklist.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info.patch
+mkmakefile-include-arch-on-o=-builds.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+i386-fix-section-mismatch-warning-in-intelc.patch
+kconfig-syntax-cleanups.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+modpost-detect-unterminated-device-id-lists.patch
+modpost-detect-unterminated-device-id-lists-fix.patch
+documentation-make-headers_installtxt.patch
