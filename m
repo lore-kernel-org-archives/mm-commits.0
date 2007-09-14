@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch added to -mm tree
-Date: Fri, 14 Sep 2007 16:28:15 -0700
-Message-ID: <200709142328.l8ENSFx9029502@imap1.linux-foundation.org>
+Subject: + bfin_twi-remove-useless-twi_lock-mutex.patch added to -mm tree
+Date: Fri, 14 Sep 2007 16:33:42 -0700
+Message-ID: <200709142333.l8ENXg0T029675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50208 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754210AbXINX2T (ORCPT
+	by vger.kernel.org with ESMTP id S1754805AbXINXdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 19:28:19 -0400
+	Fri, 14 Sep 2007 19:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, davem@davemloft.net
+Cc: bryan.wu@analog.com, francis.moro@gmail.com, sonic.zhang@analog.com
 
 
 The patch titled
-     Convert cpu_sibling_map to a per_cpu data array: sparc64
+     bfin_twi: Remove useless twi_lock mutex
 has been added to the -mm tree.  Its filename is
-     convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
+     bfin_twi-remove-useless-twi_lock-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert cpu_sibling_map to a per_cpu data array: sparc64
-From: Mike Travis <travis@sgi.com>
+Subject: bfin_twi: Remove useless twi_lock mutex
+From: Bryan Wu <bryan.wu@analog.com>
 
-Convert cpu_sibling_map to a per_cpu cpumask_t array for the sparc64
-architecture.  This fixes build errors in block/blktrace.c and
-kernel/sched.c when CONFIG_SCHED_SMT is defined.
+This patch removes this unneeded mutex.  Indeed it was used to serialized
+access to the hardware, but this is already done by the i2c-core layer, see
+'bus_lock' mutex used by i2c_transfer().
 
-Note: these changes have not been built nor tested.
-
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Francis Moreau <francis.moro@gmail.com>
+Acked-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/smp.c      |   17 ++++++++---------
- include/asm-sparc64/smp.h      |    3 ++-
- include/asm-sparc64/topology.h |    2 +-
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/i2c/busses/i2c-bfin-twi.c |   16 ----------------
+ 1 files changed, 16 deletions(-)
 
-diff -puN arch/sparc64/kernel/smp.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64 arch/sparc64/kernel/smp.c
---- a/arch/sparc64/kernel/smp.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64
-+++ a/arch/sparc64/kernel/smp.c
-@@ -52,14 +52,13 @@ int sparc64_multi_core __read_mostly;
+diff -puN drivers/i2c/busses/i2c-bfin-twi.c~bfin_twi-remove-useless-twi_lock-mutex drivers/i2c/busses/i2c-bfin-twi.c
+--- a/drivers/i2c/busses/i2c-bfin-twi.c~bfin_twi-remove-useless-twi_lock-mutex
++++ a/drivers/i2c/busses/i2c-bfin-twi.c
+@@ -44,7 +44,6 @@
+ #define TWI_I2C_MODE_COMBINED		0x04
  
- cpumask_t cpu_possible_map __read_mostly = CPU_MASK_NONE;
- cpumask_t cpu_online_map __read_mostly = CPU_MASK_NONE;
--cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly =
--	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
-+DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
- cpumask_t cpu_core_map[NR_CPUS] __read_mostly =
- 	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
+ struct bfin_twi_iface {
+-	struct mutex		twi_lock;
+ 	int			irq;
+ 	spinlock_t		lock;
+ 	char			read_write;
+@@ -228,12 +227,8 @@ static int bfin_twi_master_xfer(struct i
+ 	if (!(bfin_read_TWI_CONTROL() & TWI_ENA))
+ 		return -ENXIO;
  
- EXPORT_SYMBOL(cpu_possible_map);
- EXPORT_SYMBOL(cpu_online_map);
--EXPORT_SYMBOL(cpu_sibling_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
- EXPORT_SYMBOL(cpu_core_map);
- 
- static cpumask_t smp_commenced_mask;
-@@ -1259,16 +1258,16 @@ void __devinit smp_fill_in_sib_core_maps
- 	for_each_present_cpu(i) {
- 		unsigned int j;
- 
--		cpus_clear(cpu_sibling_map[i]);
-+		cpus_clear(per_cpu(cpu_sibling_map, i));
- 		if (cpu_data(i).proc_id == -1) {
--			cpu_set(i, cpu_sibling_map[i]);
-+			cpu_set(i, per_cpu(cpu_sibling_map, i));
- 			continue;
- 		}
- 
- 		for_each_present_cpu(j) {
- 			if (cpu_data(i).proc_id ==
- 			    cpu_data(j).proc_id)
--				cpu_set(j, cpu_sibling_map[i]);
-+				cpu_set(j, per_cpu(cpu_sibling_map, i));
- 		}
+-	mutex_lock(&iface->twi_lock);
+-
+ 	while (bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
+-		mutex_unlock(&iface->twi_lock);
+ 		yield();
+-		mutex_lock(&iface->twi_lock);
  	}
+ 
+ 	ret = 0;
+@@ -310,9 +305,6 @@ static int bfin_twi_master_xfer(struct i
+ 			break;
+ 	}
+ 
+-	/* Release mutex */
+-	mutex_unlock(&iface->twi_lock);
+-
+ 	return ret;
  }
-@@ -1340,9 +1339,9 @@ int __cpu_disable(void)
- 		cpu_clear(cpu, cpu_core_map[i]);
- 	cpus_clear(cpu_core_map[cpu]);
  
--	for_each_cpu_mask(i, cpu_sibling_map[cpu])
--		cpu_clear(cpu, cpu_sibling_map[i]);
--	cpus_clear(cpu_sibling_map[cpu]);
-+	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
-+		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
-+	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+@@ -330,12 +322,8 @@ int bfin_twi_smbus_xfer(struct i2c_adapt
+ 	if (!(bfin_read_TWI_CONTROL() & TWI_ENA))
+ 		return -ENXIO;
  
- 	c = &cpu_data(cpu);
+-	mutex_lock(&iface->twi_lock);
+-
+ 	while (bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
+-		mutex_unlock(&iface->twi_lock);
+ 		yield();
+-		mutex_lock(&iface->twi_lock);
+ 	}
  
-diff -puN include/asm-sparc64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64 include/asm-sparc64/smp.h
---- a/include/asm-sparc64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64
-+++ a/include/asm-sparc64/smp.h
-@@ -28,8 +28,9 @@
-  
- #include <asm/bitops.h>
- #include <asm/atomic.h>
-+#include <asm/percpu.h>
+ 	iface->writeNum = 0;
+@@ -502,9 +490,6 @@ int bfin_twi_smbus_xfer(struct i2c_adapt
  
--extern cpumask_t cpu_sibling_map[NR_CPUS];
-+DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- extern cpumask_t cpu_core_map[NR_CPUS];
- extern int sparc64_multi_core;
+ 	rc = (iface->result >= 0) ? 0 : -1;
  
-diff -puN include/asm-sparc64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64 include/asm-sparc64/topology.h
---- a/include/asm-sparc64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64
-+++ a/include/asm-sparc64/topology.h
-@@ -5,7 +5,7 @@
- #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
- #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
- #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
--#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
-+#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #define mc_capable()				(sparc64_multi_core)
- #define smt_capable()				(sparc64_multi_core)
- #endif /* CONFIG_SMP */
+-	/* Release mutex */
+-	mutex_unlock(&iface->twi_lock);
+-
+ 	return rc;
+ }
+ 
+@@ -555,7 +540,6 @@ static int i2c_bfin_twi_probe(struct pla
+ 	struct i2c_adapter *p_adap;
+ 	int rc;
+ 
+-	mutex_init(&(iface->twi_lock));
+ 	spin_lock_init(&(iface->lock));
+ 	init_completion(&(iface->complete));
+ 	iface->irq = IRQ_TWI;
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-x86-fix-cpu_to_node-references.patch
-x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
+fix-serial_core_console-driver-dependencies.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+bfin_twi-remove-useless-twi_lock-mutex.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+kconfig-syntax-cleanups.patch
+add-stack-checking-for-blackfin.patch
+maintainters-use-our-mail-list-as-blackfin-arch-maintainters.patch
+bitops-introduce-lock-ops.patch
