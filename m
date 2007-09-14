@@ -1,188 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + add-node-states-sysfs-class-attributes-v5.patch added to -mm tree
-Date: Fri, 14 Sep 2007 03:40:57 -0700
-Message-ID: <200709141040.l8EAevov000912@imap1.linux-foundation.org>
+Subject: - pcmcia-convert-io_req_t-to-use-kio_addr_t.patch removed from -mm tree
+Date: Fri, 14 Sep 2007 03:51:37 -0700
+Message-ID: <200709141051.l8EApdt6001252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753155AbXINKlG (ORCPT
+	by vger.kernel.org with ESMTP id S1752806AbXINKwF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 06:41:06 -0400
+	Fri, 14 Sep 2007 06:52:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com
+To: olof@lixom.net, benh@kernel.crashing.org, hch@lst.de, linux@dominikbrodowski.net, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add node states sysfs class attributeS
-has been added to the -mm tree.  Its filename is
-     add-node-states-sysfs-class-attributes-v5.patch
+     pcmcia: convert io_req_t to use kio_addr_t
+has been removed from the -mm tree.  Its filename was
+     pcmcia-convert-io_req_t-to-use-kio_addr_t.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: mm: add node states sysfs class attributeS
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: pcmcia: convert io_req_t to use kio_addr_t
+From: Olof Johansson <olof@lixom.net>
 
-Add a per node state sysfs class attribute file to /sys/devices/system/node
-to display node state masks.
+Convert the io_req_t members to kio_addr_t, to allow use on machines with
+more than 16 bits worth of IO port address space (ppc64 in this case,
+but it applies to others as well).
 
-E.g., on a 4-cell HP ia64 NUMA platform, we have 5 nodes: 4 representing
-the actual hardware cells and one memory-only pseudo-node representing a
-small amount [512MB] of "hardware interleaved" memory.  With this patch, in
-/sys/devices/system/node we see:
-
-#ls -1F /sys/devices/system/node
-has_cpu
-has_normal_memory
-node0/
-node1/
-node2/
-node3/
-node4/
-online
-possible
-#cat /sys/devices/system/node/possible
-0-255
-#cat /sys/devices/system/node/online
-0-4
-#cat /sys/devices/system/node/has_normal_memory
-0-4
-#cat /sys/devices/system/node/has_cpu
-0-3
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   91 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 90 insertions(+), 1 deletion(-)
+ drivers/pcmcia/pcmcia_resource.c |   12 ++++++------
+ include/pcmcia/cs.h              |    8 ++++----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/base/node.c~add-node-states-sysfs-class-attributes-v5 drivers/base/node.c
---- a/drivers/base/node.c~add-node-states-sysfs-class-attributes-v5
-+++ a/drivers/base/node.c
-@@ -12,6 +12,7 @@
- #include <linux/topology.h>
- #include <linux/nodemask.h>
- #include <linux/cpu.h>
-+#include <linux/device.h>
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-io_req_t-to-use-kio_addr_t drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-io_req_t-to-use-kio_addr_t
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -65,8 +65,8 @@ extern int ds_pc_debug;
+  * Special stuff for managing IO windows, because they are scarce
+  */
  
- static struct sysdev_class node_class = {
- 	set_kset_name("node"),
-@@ -232,8 +233,96 @@ void unregister_one_node(int nid)
- 	unregister_node(&node_devices[nid]);
- }
- 
-+/*
-+ * node states attributes
-+ */
-+
-+static ssize_t print_nodes_state(enum node_states state, char *buf)
-+{
-+	int n;
-+
-+	n = nodelist_scnprintf(buf, PAGE_SIZE, node_states[state]);
-+	if (n > 0 && PAGE_SIZE > n + 1) {
-+		*(buf + n++) = '\n';
-+		*(buf + n++) = '\0';
-+	}
-+	return n;
-+}
-+
-+static ssize_t print_nodes_possible(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_POSSIBLE, buf);
-+}
-+
-+static ssize_t print_nodes_online(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_ONLINE, buf);
-+}
-+
-+static ssize_t print_nodes_has_normal_memory(struct sysdev_class *class,
-+						char *buf)
-+{
-+	return print_nodes_state(N_NORMAL_MEMORY, buf);
-+}
-+
-+static ssize_t print_nodes_has_cpu(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_CPU, buf);
-+}
-+
-+static SYSDEV_CLASS_ATTR(possible, 0444, print_nodes_possible, NULL);
-+static SYSDEV_CLASS_ATTR(online, 0444, print_nodes_online, NULL);
-+static SYSDEV_CLASS_ATTR(has_normal_memory, 0444, print_nodes_has_normal_memory,
-+									NULL);
-+static SYSDEV_CLASS_ATTR(has_cpu, 0444, print_nodes_has_cpu, NULL);
-+
-+#ifdef CONFIG_HIGHMEM
-+static ssize_t print_nodes_has_high_memory(struct sysdev_class *class,
-+						 char *buf)
-+{
-+	return print_nodes_state(N_HIGH_MEMORY, buf);
-+}
-+
-+static SYSDEV_CLASS_ATTR(has_high_memory, 0444, print_nodes_has_high_memory,
-+									 NULL);
-+#endif
-+
-+struct sysdev_class_attribute *node_state_attr[] = {
-+	&attr_possible,
-+	&attr_online,
-+	&attr_has_normal_memory,
-+#ifdef CONFIG_HIGHMEM
-+	&attr_has_high_memory,
-+#endif
-+	&attr_has_cpu,
-+};
-+
-+static int node_states_init(void)
-+{
-+	int i;
-+	int err = 0;
-+
-+	for (i = 0;  i < NR_NODE_STATES; i++) {
-+		int ret;
-+		ret = sysdev_class_create_file(&node_class, node_state_attr[i]);
-+		if (!err)
-+			err = ret;
-+	}
-+	return err;
-+}
-+
- static int __init register_node_type(void)
+-static int alloc_io_space(struct pcmcia_socket *s, u_int attr, ioaddr_t *base,
+-			  ioaddr_t num, u_int lines)
++static int alloc_io_space(struct pcmcia_socket *s, u_int attr, kio_addr_t *base,
++			  kio_addr_t num, u_int lines)
  {
--	return sysdev_class_register(&node_class);
-+	int ret;
-+
-+	ret = sysdev_class_register(&node_class);
-+	if (!ret)
-+		ret = node_states_init();
-+
-+	/*
-+	 * Note:  we're not going to unregister the node class if we fail
-+	 * to register the node state class attribute files.
-+	 */
-+	return ret;
- }
- postcore_initcall(register_node_type);
+ 	int i;
+ 	kio_addr_t try, align;
+@@ -74,14 +74,14 @@ static int alloc_io_space(struct pcmcia_
+ 	align = (*base) ? (lines ? 1<<lines : 0) : 1;
+ 	if (align && (align < num)) {
+ 		if (*base) {
+-			ds_dbg(s, 0, "odd IO request: num %#x align %#lx\n",
++			ds_dbg(s, 0, "odd IO request: num %#lx align %#lx\n",
+ 			       num, align);
+ 			align = 0;
+ 		} else
+ 			while (align && (align < num)) align <<= 1;
+ 	}
+ 	if (*base & ~(align-1)) {
+-		ds_dbg(s, 0, "odd IO request: base %#x align %#lx\n",
++		ds_dbg(s, 0, "odd IO request: base %#lx align %#lx\n",
+ 		       *base, align);
+ 		align = 0;
+ 	}
+@@ -132,8 +132,8 @@ static int alloc_io_space(struct pcmcia_
+ } /* alloc_io_space */
+ 
+ 
+-static void release_io_space(struct pcmcia_socket *s, ioaddr_t base,
+-			     ioaddr_t num)
++static void release_io_space(struct pcmcia_socket *s, kio_addr_t base,
++			     kio_addr_t num)
+ {
+ 	int i;
+ 
+diff -puN include/pcmcia/cs.h~pcmcia-convert-io_req_t-to-use-kio_addr_t include/pcmcia/cs.h
+--- a/include/pcmcia/cs.h~pcmcia-convert-io_req_t-to-use-kio_addr_t
++++ a/include/pcmcia/cs.h
+@@ -147,11 +147,11 @@ typedef struct config_req_t {
+ 
+ /* For RequestIO and ReleaseIO */
+ typedef struct io_req_t {
+-    ioaddr_t	BasePort1;
+-    ioaddr_t	NumPorts1;
++    kio_addr_t	BasePort1;
++    kio_addr_t	NumPorts1;
+     u_int	Attributes1;
+-    ioaddr_t	BasePort2;
+-    ioaddr_t	NumPorts2;
++    kio_addr_t	BasePort2;
++    kio_addr_t	NumPorts2;
+     u_int	Attributes2;
+     u_int	IOAddrLines;
+ } io_req_t;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from olof@lixom.net are
 
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-update-n_high_memory-node-state-for-memory-hotadd.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-add-node-states-sysfs-class-attributes-v5.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
+git-powerpc.patch
+git-netdev-all.patch
+pcmcia-convert-io_req_t-to-use-kio_addr_t.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
