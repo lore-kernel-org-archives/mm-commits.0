@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-lock-bitops-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2007 17:51:02 -0700
-Message-ID: <200709140051.l8E0p2Et014088@imap1.linux-foundation.org>
+Subject: + i-oat-add-support-for-msi-and-msi-x-fix.patch added to -mm tree
+Date: Thu, 13 Sep 2007 17:52:34 -0700
+Message-ID: <200709140052.l8E0qYn4014103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbXINAwL (ORCPT
+	by vger.kernel.org with ESMTP id S1754002AbXINAwt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 20:52:11 -0400
+	Thu, 13 Sep 2007 20:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ink@jurassic.park.msu.ru, npiggin@suse.de, rth@twiddle.net
+Cc: bunk@kernel.org, shannon.nelson@intel.com
 
 
 The patch titled
-     alpha bitops.h must #include <asm/barrier.h>
+     drivers/dma/ioat_dma.c: make 3 functions static
 has been added to the -mm tree.  Its filename is
-     alpha-lock-bitops-fix.patch
+     i-oat-add-support-for-msi-and-msi-x-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha bitops.h must #include <asm/barrier.h>
+Subject: drivers/dma/ioat_dma.c: make 3 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-In file included from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/bitops.h:17,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/kernel.h:15,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/sched.h:50,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/arch/alpha/kernel/asm-offsets.c:9:
-include2/asm/bitops.h: In function 'clear_bit_unlock':
-include2/asm/bitops.h:75: error: implicit declaration of function 'smp_mb'
-make[2]: *** [arch/alpha/kernel/asm-offsets.s] Error 1
+This patch makes three needlessly global functions static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/bitops.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/dma/ioat_dma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-alpha/bitops.h~alpha-lock-bitops-fix include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~alpha-lock-bitops-fix
-+++ a/include/asm-alpha/bitops.h
-@@ -6,6 +6,7 @@
- #endif
+diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix
++++ a/drivers/dma/ioat_dma.c
+@@ -47,8 +47,8 @@
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
  
- #include <asm/compiler.h>
-+#include <asm/barrier.h>
- 
- /*
-  * Copyright 1994, Linus Torvalds.
+-struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
+-						int index)
++static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
++						       int index)
+ {
+ 	return device->idx[index];
+ }
+@@ -716,7 +716,7 @@ MODULE_PARM_DESC(ioat_interrupt_style,
+  * ioat_dma_setup_interrupts - setup interrupt handler
+  * @device: ioat device
+  */
+-int ioat_dma_setup_interrupts(struct ioatdma_device *device)
++static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
+ {
+ 	struct ioat_dma_chan *ioat_chan;
+ 	int err, i, j, msixcnt;
+@@ -826,7 +826,7 @@ err_no_irq:
+  * ioat_dma_remove_interrupts - remove whatever interrupts were set
+  * @device: ioat device
+  */
+-void ioat_dma_remove_interrupts(struct ioatdma_device *device)
++static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
+ {
+ 	struct ioat_dma_chan *ioat_chan;
+ 	int i;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -82,6 +95,7 @@ file-capabilities-clear-fcaps-on-inode-change-fix.patch
 security-cleanups.patch
 make-kernel-power-maincsuspend_enter-static.patch
 uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
 kconfig-syntax-cleanups.patch
 kernel-time-timekeepingc-cleanups.patch
 make-fs-libfscsimple_commit_write-static.patch
