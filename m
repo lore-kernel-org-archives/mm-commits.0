@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch added to -mm tree
-Date: Fri, 14 Sep 2007 16:27:48 -0700
-Message-ID: <200709142327.l8ENRmIr029489@imap1.linux-foundation.org>
+Subject: + convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch added to -mm tree
+Date: Fri, 14 Sep 2007 16:28:05 -0700
+Message-ID: <200709142328.l8ENS5aL029499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56025 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754071AbXINX1y (ORCPT
+	by vger.kernel.org with ESMTP id S1754181AbXINX2O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 19:27:54 -0400
+	Fri, 14 Sep 2007 19:28:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, tony.luck@intel.com
+Cc: travis@sgi.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     Convert cpu_sibling_map to a per_cpu data array: ia64
+     Convert cpu_sibling_map to a per_cpu data array: ppc64
 has been added to the -mm tree.  Its filename is
-     convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
+     convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,142 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert cpu_sibling_map to a per_cpu data array: ia64
+Subject: Convert cpu_sibling_map to a per_cpu data array: ppc64
 From: Mike Travis <travis@sgi.com>
 
-Convert cpu_sibling_map to a per_cpu cpumask_t array for the ia64
+Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
 architecture.  This fixes build errors in block/blktrace.c and
 kernel/sched.c when CONFIG_SCHED_SMT is defined.
 
-There was one access to cpu_sibling_map before the per_cpu data
-area was created, so that step was moved to after the per_cpu
-area is setup.
-
-Tested and verified on an A4700.
+Note: these changes have not been built nor tested.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/setup.c    |    4 ----
- arch/ia64/kernel/smpboot.c  |   18 ++++++++++--------
- arch/ia64/mm/contig.c       |    6 ++++++
- include/asm-ia64/smp.h      |    2 +-
- include/asm-ia64/topology.h |    2 +-
- 5 files changed, 18 insertions(+), 14 deletions(-)
+ arch/powerpc/kernel/setup-common.c        |    4 ++--
+ arch/powerpc/kernel/smp.c                 |    4 ++--
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |    2 +-
+ include/asm-powerpc/smp.h                 |    4 +++-
+ include/asm-powerpc/topology.h            |    2 +-
+ 5 files changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/kernel/setup.c
---- a/arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
-+++ a/arch/ia64/kernel/setup.c
-@@ -528,10 +528,6 @@ setup_arch (char **cmdline_p)
+diff -puN arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64 arch/powerpc/kernel/setup-common.c
+--- a/arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -415,9 +415,9 @@ void __init smp_setup_cpu_maps(void)
+ 	 * Do the sibling map; assume only two threads per processor.
+ 	 */
+ 	for_each_possible_cpu(cpu) {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, cpu_sibling_map(cpu));
+ 		if (cpu_has_feature(CPU_FTR_SMT))
+-			cpu_set(cpu ^ 0x1, cpu_sibling_map[cpu]);
++			cpu_set(cpu ^ 0x1, cpu_sibling_map(cpu));
+ 	}
+ 
+ 	vdso_data->processorCount = num_present_cpus();
+diff -puN arch/powerpc/kernel/smp.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64 arch/powerpc/kernel/smp.c
+--- a/arch/powerpc/kernel/smp.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64
++++ a/arch/powerpc/kernel/smp.c
+@@ -61,11 +61,11 @@ struct thread_info *secondary_ti;
+ 
+ cpumask_t cpu_possible_map = CPU_MASK_NONE;
+ cpumask_t cpu_online_map = CPU_MASK_NONE;
+-cpumask_t cpu_sibling_map[NR_CPUS] = { [0 ... NR_CPUS-1] = CPU_MASK_NONE };
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
+ 
+ EXPORT_SYMBOL(cpu_online_map);
+ EXPORT_SYMBOL(cpu_possible_map);
+-EXPORT_SYMBOL(cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ 
+ /* SMP operations for this machine */
+ struct smp_ops_t *smp_ops;
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64 arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -117,7 +117,7 @@ static int cbe_cpufreq_cpu_init(struct c
+ 	policy->cur = cbe_freqs[cur_pmode].frequency;
  
  #ifdef CONFIG_SMP
- 	cpu_physical_id(0) = hard_smp_processor_id();
--
--	cpu_set(0, cpu_sibling_map[0]);
--	cpu_set(0, cpu_core_map[0]);
--
- 	check_for_logical_procs();
- 	if (smp_num_cpucores > 1)
- 		printk(KERN_INFO
-diff -puN arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -138,7 +138,9 @@ cpumask_t cpu_possible_map = CPU_MASK_NO
- EXPORT_SYMBOL(cpu_possible_map);
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = cpu_sibling_map(policy->cpu);
+ #endif
  
- cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
--cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
-+DEFINE_PER_CPU_SHARED_ALIGNED(cpumask_t, cpu_sibling_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
-+
- int smp_num_siblings = 1;
- int smp_num_cpucores = 1;
+ 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
+diff -puN include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64 include/asm-powerpc/smp.h
+--- a/include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64
++++ a/include/asm-powerpc/smp.h
+@@ -25,6 +25,7 @@
  
-@@ -650,12 +652,12 @@ clear_cpu_sibling_map(int cpu)
- {
- 	int i;
+ #ifdef CONFIG_PPC64
+ #include <asm/paca.h>
++#include <asm/percpu.h>
+ #endif
  
--	for_each_cpu_mask(i, cpu_sibling_map[cpu])
--		cpu_clear(cpu, cpu_sibling_map[i]);
-+	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
-+		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
- 	for_each_cpu_mask(i, cpu_core_map[cpu])
- 		cpu_clear(cpu, cpu_core_map[i]);
+ extern int boot_cpuid;
+@@ -58,7 +59,8 @@ extern int smp_hw_index[];
+ 					(smp_hw_index[(cpu)] = (phys))
+ #endif
  
--	cpu_sibling_map[cpu] = cpu_core_map[cpu] = CPU_MASK_NONE;
-+	per_cpu(cpu_sibling_map, cpu) = cpu_core_map[cpu] = CPU_MASK_NONE;
- }
- 
- static void
-@@ -666,7 +668,7 @@ remove_siblinginfo(int cpu)
- 	if (cpu_data(cpu)->threads_per_core == 1 &&
- 	    cpu_data(cpu)->cores_per_socket == 1) {
- 		cpu_clear(cpu, cpu_core_map[cpu]);
--		cpu_clear(cpu, cpu_sibling_map[cpu]);
-+		cpu_clear(cpu, per_cpu(cpu_sibling_map, cpu));
- 		return;
- 	}
- 
-@@ -807,8 +809,8 @@ set_cpu_sibling_map(int cpu)
- 			cpu_set(i, cpu_core_map[cpu]);
- 			cpu_set(cpu, cpu_core_map[i]);
- 			if (cpu_data(cpu)->core_id == cpu_data(i)->core_id) {
--				cpu_set(i, cpu_sibling_map[cpu]);
--				cpu_set(cpu, cpu_sibling_map[i]);
-+				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
-+				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
- 			}
- 		}
- 	}
-@@ -839,7 +841,7 @@ __cpu_up (unsigned int cpu)
- 
- 	if (cpu_data(cpu)->threads_per_core == 1 &&
- 	    cpu_data(cpu)->cores_per_socket == 1) {
--		cpu_set(cpu, cpu_sibling_map[cpu]);
-+		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
- 		cpu_set(cpu, cpu_core_map[cpu]);
- 		return 0;
- 	}
-diff -puN arch/ia64/mm/contig.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/mm/contig.c
---- a/arch/ia64/mm/contig.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
-+++ a/arch/ia64/mm/contig.c
-@@ -212,6 +212,12 @@ per_cpu_init (void)
- 			cpu_data += PERCPU_PAGE_SIZE;
- 			per_cpu(local_per_cpu_offset, cpu) = __per_cpu_offset[cpu];
- 		}
-+		/*
-+		 * cpu_sibling_map is now a per_cpu variable - it needs to
-+		 * be accessed after per_cpu_init() sets up the per_cpu area.
-+		 */
-+		cpu_set(0, per_cpu(cpu_sibling_map, 0));
-+		cpu_set(0, cpu_core_map[0]);
- 	}
- 	return __per_cpu_start + __per_cpu_offset[smp_processor_id()];
- }
-diff -puN include/asm-ia64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 include/asm-ia64/smp.h
---- a/include/asm-ia64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
-+++ a/include/asm-ia64/smp.h
-@@ -58,7 +58,7 @@ extern char no_int_routing __devinitdata
- 
- extern cpumask_t cpu_online_map;
- extern cpumask_t cpu_core_map[NR_CPUS];
 -extern cpumask_t cpu_sibling_map[NR_CPUS];
 +DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- extern int smp_num_siblings;
- extern int smp_num_cpucores;
- extern void __iomem *ipi_base_addr;
-diff -puN include/asm-ia64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 include/asm-ia64/topology.h
---- a/include/asm-ia64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
-+++ a/include/asm-ia64/topology.h
-@@ -112,7 +112,7 @@ void build_cpu_to_node_map(void);
- #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
- #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
- #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
--#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
-+#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
- #define smt_capable() 				(smp_num_siblings > 1)
++#define cpu_sibling_map(cpu) per_cpu(cpu_sibling_map, cpu)
+ 
+ /* Since OpenPIC has only 4 IPIs, we use slightly different message numbers.
+  *
+diff -puN include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64 include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64
++++ a/include/asm-powerpc/topology.h
+@@ -108,7 +108,7 @@ static inline void sysfs_remove_device_f
+ #ifdef CONFIG_PPC64
+ #include <asm/smp.h>
+ 
+-#define topology_thread_siblings(cpu)	(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)	(cpu_sibling_map(cpu))
+ #endif
  #endif
  
 _
