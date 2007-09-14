@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch added to -mm tree
-Date: Thu, 13 Sep 2007 18:31:06 -0700
-Message-ID: <200709140131.l8E1V6bR015490@imap1.linux-foundation.org>
+Subject: + task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch added to -mm tree
+Date: Thu, 13 Sep 2007 18:32:19 -0700
+Message-ID: <200709140132.l8E1WJqw015505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53802 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750827AbXINBbM (ORCPT
+	by vger.kernel.org with ESMTP id S1751132AbXINBcZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 21:31:12 -0400
+	Thu, 13 Sep 2007 21:32:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: menage@google.com
 The patch titled
      Containers: Fix refcount bug
 has been added to the -mm tree.  Its filename is
-     task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
+     task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -33,88 +33,33 @@ Fix a reference counting bug in containerfs
 
 As part of the extraction of cpusetfs to containerfs, a call to
 cpuset_get_dentry() was lost (justified by the fact that the dentry in
-question was now being passed down by the caller).  Since
-cpuset_get_dentry() called lookup_one_len(), this resulted in a reference
-count being missed from the directory dentry.
+question was now being passed down by the caller). Since
+cpuset_get_dentry() called lookup_one_len(), this resulted in a
+reference count being missed from the directory dentry.
 
-This patch removes container_get_dentry() and replaces it with direct calls
-to lookup_one_len(); the initialization of containerfs dentry ops is done
-now in container_create_file() at dentry creation time.
+This patch removes container_get_dentry() and replaces it with direct
+calls to lookup_one_len(); the initialization of containerfs dentry
+ops is done now in container_create_file() at dentry creation time.
 
 Signed-off-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/container.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ kernel/container.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/container.c~task-containersv11-basic-task-container-framework-containers-fix-refcount-bug kernel/container.c
---- a/kernel/container.c~task-containersv11-basic-task-container-framework-containers-fix-refcount-bug
+diff -puN kernel/container.c~task-containersv11-add-container_clone-interface-containers-fix-refcount-bug kernel/container.c
+--- a/kernel/container.c~task-containersv11-add-container_clone-interface-containers-fix-refcount-bug
 +++ a/kernel/container.c
-@@ -250,19 +250,6 @@ static void container_diput(struct dentr
- 	iput(inode);
- }
- 
--static struct dentry *container_get_dentry(struct dentry *parent,
--					   const char *name)
--{
--	struct dentry *d = lookup_one_len(name, parent, strlen(name));
--	static struct dentry_operations container_dops = {
--		.d_iput = container_diput,
--	};
--
--	if (!IS_ERR(d))
--		d->d_op = &container_dops;
--	return d;
--}
--
- static void remove_dir(struct dentry *d)
- {
- 	struct dentry *parent = dget(d->d_parent);
-@@ -824,6 +811,10 @@ static struct inode_operations container
- static int container_create_file(struct dentry *dentry, int mode,
- 				struct super_block *sb)
- {
-+	static struct dentry_operations container_dops = {
-+		.d_iput = container_diput,
-+	};
-+
- 	struct inode *inode;
- 
- 	if (!dentry)
-@@ -849,7 +840,7 @@ static int container_create_file(struct 
- 		inode->i_size = 0;
- 		inode->i_fop = &container_file_operations;
- 	}
--
-+	dentry->d_op = &container_dops;
- 	d_instantiate(dentry, inode);
- 	dget(dentry);	/* Extra count - pin the dentry in core */
- 	return 0;
-@@ -870,13 +861,12 @@ static int container_create_dir(struct c
- 	int error = 0;
- 
- 	parent = cont->parent->dentry;
--	if (IS_ERR(dentry))
--		return PTR_ERR(dentry);
- 	error = container_create_file(dentry, S_IFDIR | mode, cont->root->sb);
- 	if (!error) {
- 		dentry->d_fsdata = cont;
- 		inc_nlink(parent->d_inode);
- 		cont->dentry = dentry;
-+		dget(dentry);
- 	}
- 	dput(dentry);
- 
-@@ -898,7 +888,7 @@ int container_add_file(struct container 
- 	}
- 	strcat(name, cft->name);
- 	BUG_ON(!mutex_is_locked(&dir->d_inode->i_mutex));
--	dentry = container_get_dentry(dir, name);
-+	dentry = lookup_one_len(name, dir, strlen(name));
- 	if (!IS_ERR(dentry)) {
- 		error = container_create_file(dentry, 0644 | S_IFREG,
- 						cont->root->sb);
+@@ -1722,7 +1722,7 @@ int container_clone(struct task_struct *
+ 	/* Hold the parent directory mutex across this operation to
+ 	 * stop anyone else deleting the new container */
+ 	mutex_lock(&inode->i_mutex);
+-	dentry = container_get_dentry(parent->dentry, nodename);
++	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
+ 	if (IS_ERR(dentry)) {
+ 		printk(KERN_INFO
+ 		       "Couldn't allocate dentry for %s: %ld\n", nodename,
 _
 
 Patches currently in -mm which might be from menage@google.com are
@@ -126,6 +71,7 @@ task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.pa
 task-containersv11-add-tasks-file-interface.patch
 task-containersv11-add-fork-exit-hooks.patch
 task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
 task-containersv11-add-procfs-interface.patch
 task-containersv11-shared-container-subsystem-group-arrays.patch
 task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
