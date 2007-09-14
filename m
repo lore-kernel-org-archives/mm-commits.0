@@ -1,134 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - v4l-fix-build-error-for-et61x251-driver.patch removed from -mm tree
-Date: Fri, 14 Sep 2007 15:13:20 -0700
-Message-ID: <200709142213.l8EMDK5G026877@imap1.linux-foundation.org>
+Subject: - mtd-add-module-license-to-mtdbdi.patch removed from -mm tree
+Date: Fri, 14 Sep 2007 15:18:24 -0700
+Message-ID: <200709142218.l8EMIPxK027043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57017 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755473AbXINWNn (ORCPT
+	by vger.kernel.org with ESMTP id S1751756AbXINWSi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 18:13:43 -0400
+	Fri, 14 Sep 2007 18:18:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aherrman@arcor.de, luca.risolia@studio.unibo.it, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     v4l: fix build error for et61x251 driver
+     mtd: add module license to mtdbdi
 has been removed from the -mm tree.  Its filename was
-     v4l-fix-build-error-for-et61x251-driver.patch
+     mtd-add-module-license-to-mtdbdi.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: v4l: fix build error for et61x251 driver
-From: Andreas Herrmann <aherrman@arcor.de>
+Subject: mtd: add module license to mtdbdi
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Get rid of some v4l1 remainders to avoid kernel build errors if
-V4L1_COMPAT is not selected:
+This seems to be a known issue [1] about Photron PNC-2000 module called
+pnc2000.  To reproduce this just 'modprobe pnc2000'.  The patch attached at
+least makes the kernel to be not tainted when mtdbdi gets loaded.
 
-  drivers/media/video/et61x251/et61x251_core.c: In et61x251_show_:
-  drivers/media/video/et61x251/et61x251_core.c:718: error: implicit
-    declaration of to_video_device
-
-Fix as suggested by Luca Risolia <luca.risolia@studio.unibo.it>
-
-Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-Hacked-by: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/et61x251/et61x251_core.c |   24 +++++++++++------
- 1 files changed, 16 insertions(+), 8 deletions(-)
+ drivers/mtd/mtdbdi.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN drivers/media/video/et61x251/et61x251_core.c~v4l-fix-build-error-for-et61x251-driver drivers/media/video/et61x251/et61x251_core.c
---- a/drivers/media/video/et61x251/et61x251_core.c~v4l-fix-build-error-for-et61x251-driver
-+++ a/drivers/media/video/et61x251/et61x251_core.c
-@@ -714,7 +714,8 @@ static ssize_t et61x251_show_reg(struct 
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -738,7 +739,8 @@ et61x251_store_reg(struct class_device* 
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -770,7 +772,8 @@ static ssize_t et61x251_show_val(struct 
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -802,7 +805,8 @@ et61x251_store_val(struct class_device* 
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -838,7 +842,8 @@ static ssize_t et61x251_show_i2c_reg(str
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -864,7 +869,8 @@ et61x251_store_i2c_reg(struct class_devi
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -896,7 +902,8 @@ static ssize_t et61x251_show_i2c_val(str
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
-@@ -933,7 +940,8 @@ et61x251_store_i2c_val(struct class_devi
- 	if (mutex_lock_interruptible(&et61x251_sysfs_lock))
- 		return -ERESTARTSYS;
- 
--	cam = video_get_drvdata(to_video_device(cd));
-+	cam = video_get_drvdata(container_of(cd, struct video_device,
-+					     class_dev));
- 	if (!cam) {
- 		mutex_unlock(&et61x251_sysfs_lock);
- 		return -ENODEV;
+diff -puN drivers/mtd/mtdbdi.c~mtd-add-module-license-to-mtdbdi drivers/mtd/mtdbdi.c
+--- a/drivers/mtd/mtdbdi.c~mtd-add-module-license-to-mtdbdi
++++ a/drivers/mtd/mtdbdi.c
+@@ -46,3 +46,5 @@ struct backing_dev_info mtd_bdi_rw_mappa
+ 			   BDI_CAP_WRITE_MAP),
+ };
+ EXPORT_SYMBOL_GPL(mtd_bdi_rw_mappable);
++
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from aherrman@arcor.de are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-v4l-fix-build-error-for-et61x251-driver.patch
-radeonfb-fix-setting-of-ppll_ref_div-for-rv370-5b60.patch
+git-alsa.patch
+arm-unbalanced-parenthesis-fix.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
+git-dvb.patch
+git-mmc.patch
+git-mtd.patch
+mtd-add-module-license-to-mtdbdi.patch
+git-netdev-all.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+git-scsi-misc.patch
+drivers-message-fusion-mptctlc-mostly-kmalloc-memset-conversion-to-kzalloc.patch
+message-fusion-remove-redundant-memset.patch
+git-v9fs.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
