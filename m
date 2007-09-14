@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i-oat-add-support-for-msi-and-msi-x-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2007 17:52:34 -0700
-Message-ID: <200709140052.l8E0qYn4014103@imap1.linux-foundation.org>
+Subject: + git-nfs-make-nfs_wb_page_priority-static.patch added to -mm tree
+Date: Thu, 13 Sep 2007 17:53:39 -0700
+Message-ID: <200709140053.l8E0rdEE014184@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754002AbXINAwt (ORCPT
+	by vger.kernel.org with ESMTP id S1764140AbXINAy3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2007 20:52:49 -0400
+	Thu, 13 Sep 2007 20:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, shannon.nelson@intel.com
+Cc: bunk@kernel.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     drivers/dma/ioat_dma.c: make 3 functions static
+     git-nfs: make nfs_wb_page_priority() static
 has been added to the -mm tree.  Its filename is
-     i-oat-add-support-for-msi-and-msi-x-fix.patch
+     git-nfs-make-nfs_wb_page_priority-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/dma/ioat_dma.c: make 3 functions static
+Subject: git-nfs: make nfs_wb_page_priority() static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes three needlessly global functions static.
+nfs_wb_page_priority() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nfs/write.c         |    3 ++-
+ include/linux/nfs_fs.h |    1 -
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix
-+++ a/drivers/dma/ioat_dma.c
-@@ -47,8 +47,8 @@
- static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
- static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
- 
--struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
--						int index)
-+static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
-+						       int index)
- {
- 	return device->idx[index];
+diff -puN fs/nfs/write.c~git-nfs-make-nfs_wb_page_priority-static fs/nfs/write.c
+--- a/fs/nfs/write.c~git-nfs-make-nfs_wb_page_priority-static
++++ a/fs/nfs/write.c
+@@ -1424,7 +1424,8 @@ out:
+ 	return ret;
  }
-@@ -716,7 +716,7 @@ MODULE_PARM_DESC(ioat_interrupt_style,
-  * ioat_dma_setup_interrupts - setup interrupt handler
-  * @device: ioat device
-  */
--int ioat_dma_setup_interrupts(struct ioatdma_device *device)
-+static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
+ 
+-int nfs_wb_page_priority(struct inode *inode, struct page *page, int how)
++static int nfs_wb_page_priority(struct inode *inode, struct page *page,
++				int how)
  {
- 	struct ioat_dma_chan *ioat_chan;
- 	int err, i, j, msixcnt;
-@@ -826,7 +826,7 @@ err_no_irq:
-  * ioat_dma_remove_interrupts - remove whatever interrupts were set
-  * @device: ioat device
-  */
--void ioat_dma_remove_interrupts(struct ioatdma_device *device)
-+static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
- {
- 	struct ioat_dma_chan *ioat_chan;
- 	int i;
+ 	loff_t range_start = page_offset(page);
+ 	loff_t range_end = range_start + (loff_t)(PAGE_CACHE_SIZE - 1);
+diff -puN include/linux/nfs_fs.h~git-nfs-make-nfs_wb_page_priority-static include/linux/nfs_fs.h
+--- a/include/linux/nfs_fs.h~git-nfs-make-nfs_wb_page_priority-static
++++ a/include/linux/nfs_fs.h
+@@ -430,7 +430,6 @@ extern long nfs_sync_mapping_wait(struct
+ extern int nfs_wb_all(struct inode *inode);
+ extern int nfs_wb_nocommit(struct inode *inode);
+ extern int nfs_wb_page(struct inode *inode, struct page* page);
+-extern int nfs_wb_page_priority(struct inode *inode, struct page* page, int how);
+ extern int nfs_wb_page_cancel(struct inode *inode, struct page* page);
+ #if defined(CONFIG_NFS_V3) || defined(CONFIG_NFS_V4)
+ extern int  nfs_commit_inode(struct inode *, int);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -86,6 +80,7 @@ pass-g-to-assembler-under-config_debug_info-fix.patch
 fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
 fix-ide-ide-remove-ide-dma-check.patch
 drivers-mtd-mtdbdic-is-no-longer-an-own-module.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
 git-nfsd.patch
 drivers-scsi-immc-fix-check-after-use.patch
 git-wireless.patch
