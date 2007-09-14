@@ -1,315 +1,450 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-megaraid_sas-update-version-and-changelog.patch removed from -mm tree
-Date: Fri, 14 Sep 2007 14:01:32 -0700
-Message-ID: <200709142101.l8EL1W7R024266@imap1.linux-foundation.org>
+Subject: - scsi-megaraid_sas-add-hibernation-support.patch removed from -mm tree
+Date: Fri, 14 Sep 2007 14:01:16 -0700
+Message-ID: <200709142101.l8EL1HeQ024254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756175AbXINVBj (ORCPT
+	by vger.kernel.org with ESMTP id S1756130AbXINVBd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 17:01:39 -0400
+	Fri, 14 Sep 2007 17:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bo.yang@lsi.com, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: megaraid_sas: update version and Changelog
+     scsi: megaraid_sas: add hibernation support
 has been removed from the -mm tree.  Its filename was
-     scsi-megaraid_sas-update-version-and-changelog.patch
+     scsi-megaraid_sas-add-hibernation-support.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: scsi: megaraid_sas: update version and Changelog
+Subject: scsi: megaraid_sas: add hibernation support
 From: Bo Yang <bo.yang@lsi.com>
 
-Update version and Changelog
+The megaraid_sas driver doesn't support the hibernation, the suspend/resume
+routine implemented to support the hibernation.
 
 Signed-off-by: Bo Yang <bo.yang@lsi.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/scsi/ChangeLog.megaraid_sas |  236 ++++++++++++++++++++
- drivers/scsi/megaraid/megaraid_sas.c      |    2 
- drivers/scsi/megaraid/megaraid_sas.h      |    6 
- 3 files changed, 240 insertions(+), 4 deletions(-)
+ drivers/scsi/megaraid/megaraid_sas.c |  309 +++++++++++++++++++------
+ drivers/scsi/megaraid/megaraid_sas.h |    1 
+ 2 files changed, 240 insertions(+), 70 deletions(-)
 
-diff -puN Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-version-and-changelog Documentation/scsi/ChangeLog.megaraid_sas
---- a/Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-version-and-changelog
-+++ a/Documentation/scsi/ChangeLog.megaraid_sas
-@@ -1,3 +1,239 @@
-+1 Release Date    : Tue. Aug. 14 10:09:32 PDT 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+
-+2 Current Version : 00.00.03.14-RC2
-+3 Older Version   : 00.00.03.13
-+
-+1. convert to use the data buffer accessors
-+
-+>From: James Bottomley [mailto:jejb@kernel.org]
-+>Sent: Thursday, May 31, 2007 3:40 PM
-+>To: FUJITA Tomonori; Patro, Sumant; James Bottomley
-+>Subject: Patch added to scsi-misc-2.6: [SCSI] megaraid_sas: convert to use the data buffer accessors
-+    - remove the unnecessary map_single path.
-+    - convert to use the new accessors for the sg lists and the
-+    parameters.
-+
-+2. Clean up the codes and take off the compile warning.
-+
-+1 Release Date    : Thu. May. 31 11:25:21 PDT 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+
-+2 Current Version : 00.00.03.13
-+3 Older Version   : 00.00.03.12
-+
-+1.	Added the megasas_reset_timer routine to intercept cmd timeout
-+	and throttle io.
-+
-+On Fri, 2007-03-16 at 16:44 -0600, James Bottomley wrote:
-+It looks like megaraid_sas at least needs this to throttle its commands
-+> as they begin to time out.  The code keeps the existing transport
-+> template use of eh_timed_out (and allows the transport to override the
-+> host if they both have this callback).
-+>
-+> James
-+
-+1 Release Date    : Sat. May. 14 16:30:43 PST 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+			Sumant Patro
-+			Bo Yang
-+
-+2 Current Version : 00.00.03.12
-+3 Older Version   : 00.00.03.11
-+
-+1.  When MegaSAS driver receives reset call from OS, driver waits in reset
-+routine for max 3 minutes for all pending command completion. Now driver will
-+call completion routine every 5 seconds from the reset routine instead of
-+waiting for cmd completion from isr path.
-+
-+1 Release Date    : Mon Apr. 30 10:25:52 PST 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+			Sumant Patro
-+			Bo Yang
-+
-+2 Current Version : 00.00.03.11
-+3 Older Version   : 00.00.03.10
-+
-+	1. Following module parameters added -
-+		fast_load: Faster loading of the driver, skips physical devices
-+		cmd_per_lun: Maximum number of commands per logical unit
-+		max_sectors: Maximum number of sectors per IO command
-+	2. Hibernation support added
-+	3. Performing diskdump while running IO in RHEL 4 was failing. Fixed.
-+
-+1 Release Date    : Wed Mar. 28 10:25:52 PST 2007
-+2 Current Version : 00.00.03.10
-+3 Older Version   : 00.00.03.09
-+
-+i.	Replaced pci_alloc_consistent with dma_alloc_coherent in ioctl path
-+ii.	eh_timed_out call back (megasas_reset_timer) is now used to throttle io to the
-+	adapter when it is called the first time for a scmd.
-+	The MEGASAS_FW_BUSY flag is set and can_queue reduced to 16. The can_queue is
-+	restored from completion routine in following two conditions :
-+	5 seconds has elapsed and the # of outstanding cmds in FW is < 17.
-+	This implementation replaces the throttling mechanism of 3.08 ver.
-+
-+On Thu, 2007-02-15 at 19:53 -0700, Patro, Sumant wrote:
-+> Hello James,
-+>
-+>       I re-submitted the patch yesterday with the "space" issue fixed
-+> (adhering to coding guideline).
-+>
-+>       I will check for alternative to calculate the time driver have
-+> been sending host busy to OS. Will check with time_before() as you have
-+> suggested.
-+>
-+>       Throttling from megasas_generic_reset() handler did not help.
-+> megaraid does not have feature to abort cmds. So, in the generic reset
-+> routine, the driver just waits for cmd completion by FW. These timed-out
-+> cmds gets retried by mid-layer with "retries" incremented by 1.
-+> Eventually we see retries equals max_allowed followed by SCSI error with
-+> "DRIVER_TIMEOUT".
-+
-+That's rather what worries me.  When the error handler activates (which
-+it will on the first timeout), it waits for all commands to complete or
-+time out before running.  Your reset handler does nothing other than
-+wait for the firmware to complete the commands (now uselessly), so we
-+now wait for the entire firmware command queue to drain, then you tell
-+the mid layer everything is OK, so it loads you up again with all the
-+commands plus a few test unit readies for good measure, then you
-+throttle.
-+
-+You really want to catch the device going into this condition and do
-+something at that point ... prime candidate would be lowering the
-+can_queue depth to get fewer commands transiting the firmware.
-+
-+James <James.Bottomley@SteelEye.com>
-+
-+On Thu, 2007-03-01 at 13:29 -0800, Sumant Patro wrote:
-+> Driver to throttle IO to reduce risk of OS timing out cmds.
-+>
-+> Implemented a circular queue to keep track of pending OS cmds in FW.
-+> This queue is periodically (every 10 sec) checked by a timer routine.
-+> If there is any cmd that is in risk of getting timed-out by the OS,
-+> the host->can_queue is reduced to 16 and MEGASAS_FW_BUSY flag is set.
-+> The host->can_queue will be restored to default value when the following
-+> two conditions are met : 5 secs has elapsed and the # of outstanding cmds
-+> in FW is less than 17.
-+> Also increased the per cmd timeout to 120*HZ from 90*HZ.
-+
-+OK, this is still not nice.  What you need to be doing is intercepting
-+the timeout before it fires (and quiesces the machine).  Currently the
-+eh_timed_out() callback is only exposed to transport classes, I'll put
-+it back into the host template and then you can use it.
-+
-+James <James.Bottomley@SteelEye.com>
-+
-+Fri, 16 Mar 2007 16:44:41 -0600  (15:44 PDT)
-+
-+It looks like megaraid_sas at least needs this to throttle its commands
-+as they begin to time out.  The code keeps the existing transport
-+template use of eh_timed_out (and allows the transport to override the
-+host if they both have this callback).
-+
-+James <James.Bottomley@SteelEye.com>
-+
-+diff --git a/drivers/scsi/scsi_error.c b/drivers/scsi/scsi_error.c
-+index b8edcf5..7a1a1bb 100644
-+--- a/drivers/scsi/scsi_error.c
-++++ b/drivers/scsi/scsi_error.c
-+@@ -184,10 +184,19 @@ int scsi_delete_timer(struct scsi_cmnd *scmd)
-+  **/
-+ void scsi_times_out(struct scsi_cmnd *scmd)
-+ {
-++       enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
-++
-+        scsi_log_completion(scmd, TIMEOUT_ERROR);
-+
-+        if (scmd->device->host->transportt->eh_timed_out)
-+-               switch (scmd->device->host->transportt->eh_timed_out(scmd)) {
-++               eh_timed_out = scmd->device->host->transportt->eh_timed_out;
-++       else if (scmd->device->host->hostt->eh_timed_out)
-++               eh_timed_out = scmd->device->host->hostt->eh_timed_out;
-++       else
-++               eh_timed_out = NULL;
-++
-++       if (eh_timed_out)
-++               switch (eh_timed_out(scmd)) {
-+                case EH_HANDLED:
-+                        __scsi_done(scmd);
-+                        return;
-+diff --git a/include/scsi/scsi_host.h b/include/scsi/scsi_host.h
-+index 965b6b8..68f461b 100644
-+--- a/include/scsi/scsi_host.h
-++++ b/include/scsi/scsi_host.h
-+@@ -326,6 +326,19 @@ struct scsi_host_template {
-+        int (*proc_info)(struct Scsi_Host *, char *, char **, off_t, int, int);
-+
-+        /*
-++        * This is an optional routine that allows the transport to become
-++        * involved when a scsi io timer fires. The return value tells the
-++        * timer routine how to finish the io timeout handling:
-++        * EH_HANDLED:          I fixed the error, please complete the command
-++        * EH_RESET_TIMER:      I need more time, reset the timer and
-++        *                      begin counting again
-++        * EH_NOT_HANDLED       Begin normal error recovery
-++        *
-++        * Status: OPTIONAL
-++        */
-++       enum scsi_eh_timer_return (* eh_timed_out)(struct scsi_cmnd *);
-++
-++       /*
-+         * suspend support
-+         */
-+        int (*resume)(struct scsi_device *);
-+
-+1 Release Date    : Fri Feb. 09 14:36:28 PST 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+			Sumant Patro
-+			Bo Yang
-+
-+2 Current Version : 00.00.03.09
-+3 Older Version   : 00.00.03.08
-+
-+i.	Under heavy IO mid-layer prints "DRIVER_TIMEOUT" errors
-+
-+	The driver now waits for 10 seconds to elapse instead of 5 (as in
-+	previous release) to resume IO when FW busy is set.
-+
-+1 Release Date    : Mon Feb. 05 11:35:24 PST 2007 -
-+			(emaild-id:megaraidlinux@lsi.com)
-+			Sumant Patro
-+			Bo Yang
-+2 Current Version : 00.00.03.08
-+3 Older Version   : 00.00.03.07
-+
-+i.	Under heavy IO mid-layer prints "DRIVER_TIMEOUT" errors
-+
-+	Fix:	The driver is now throttling IO.
-+	Checks added in megasas_queue_command to know if FW is able to
-+	process commands within timeout period. If number of retries
-+	is 2 or greater,the driver stops sending cmd to FW temporarily. IO is
-+	resumed if pending cmd count reduces to 16 or 5 seconds has elapsed
-+	from the time cmds were last sent to FW.
-+
-+ii.	FW enables WCE bit in Mode Sense cmd for drives that are configured
-+	as WriteBack. The OS may send "SYNCHRONIZE_CACHE" cmd when Logical
-+	Disks are exposed with WCE=1. User is advised to enable Write Back
-+	mode only when the controller has battery backup. At this time
-+	Synhronize cache is not supported by the FW. Driver will short-cycle
-+	the cmd and return sucess without sending down to FW.
-+
-+1 Release Date    : Sun Jan. 14 11:21:32 PDT 2007 -
-+		 Sumant Patro <Sumant.Patro@lsil.com>/Bo Yang
-+2 Current Version : 00.00.03.07
-+3 Older Version   : 00.00.03.06
-+
-+i.	bios_param entry added in scsi_host_template that returns disk geometry
-+	information.
-+
-+1 Release Date    : Fri Oct 20 11:21:32 PDT 2006 - Sumant Patro <Sumant.Patro@lsil.com>/Bo Yang
-+2 Current Version : 00.00.03.06
-+3 Older Version   : 00.00.03.05
-+
-+1. Added new memory management module to support the IOCTL memory allocation. For IOCTL we try to allocate from the memory pool created during driver initialization. If mem pool is empty then we allocate at run time.
-+2. Added check in megasas_queue_command and dpc/isr routine to see if we have already declared adapter dead
-+   (hw_crit_error=1). If hw_crit_error==1, now we donot accept any processing of pending cmds/accept any cmd from OS
- 
- 1 Release Date    : Mon Oct 02 11:21:32 PDT 2006 - Sumant Patro <Sumant.Patro@lsil.com>
- 2 Current Version : 00.00.03.05
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-changelog drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-version-and-changelog
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-add-hibernation-support drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-add-hibernation-support
 +++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -10,7 +10,7 @@
-  *	   2 of the License, or (at your option) any later version.
-  *
-  * FILE		: megaraid_sas.c
-- * Version	: v00.00.03.10-rc5
-+ * Version	: v00.00.03.14-rc2
-  *
-  * Authors:
-  *	(email-id : megaraidlinux@lsi.com)
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-changelog drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-version-and-changelog
-+++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -18,9 +18,9 @@
- /*
-  * MegaRAID SAS Driver meta data
-  */
--#define MEGASAS_VERSION				"00.00.03.10-rc5"
--#define MEGASAS_RELDATE				"May 17, 2007"
--#define MEGASAS_EXT_VERSION			"Thu May 17 10:09:32 PDT 2007"
-+#define MEGASAS_VERSION				"00.00.03.14-rc2"
-+#define MEGASAS_RELDATE				"Aug. 14, 2007"
-+#define MEGASAS_EXT_VERSION			"Tue Aug. 14 10:09:32 PDT 2007"
+@@ -1802,6 +1802,81 @@ static void megasas_complete_cmd_dpc(uns
+ }
  
- /*
-  * Device IDs
+ /**
++ * megasas_issue_init_mfi -	Initializes the FW
++ * @instance:		Adapter soft state
++ *
++ * Issues the INIT MFI cmd
++ */
++static int
++megasas_issue_init_mfi(struct megasas_instance *instance)
++{
++	u32 context;
++
++	struct megasas_cmd *cmd;
++
++	struct megasas_init_frame *init_frame;
++	struct megasas_init_queue_info *initq_info;
++	dma_addr_t init_frame_h;
++	dma_addr_t initq_info_h;
++
++	/*
++	 * Prepare a init frame. Note the init frame points to queue info
++	 * structure. Each frame has SGL allocated after first 64 bytes. For
++	 * this frame - since we don't need any SGL - we use SGL's space as
++	 * queue info structure
++	 *
++	 * We will not get a NULL command below. We just created the pool.
++	 */
++	cmd = megasas_get_cmd(instance);
++
++	init_frame = (struct megasas_init_frame *)cmd->frame;
++	initq_info = (struct megasas_init_queue_info *)
++		((unsigned long)init_frame + 64);
++
++	init_frame_h = cmd->frame_phys_addr;
++	initq_info_h = init_frame_h + 64;
++
++	context = init_frame->context;
++	memset(init_frame, 0, MEGAMFI_FRAME_SIZE);
++	memset(initq_info, 0, sizeof(struct megasas_init_queue_info));
++	init_frame->context = context;
++
++	initq_info->reply_queue_entries = instance->max_fw_cmds + 1;
++	initq_info->reply_queue_start_phys_addr_lo = instance->reply_queue_h;
++
++	initq_info->producer_index_phys_addr_lo = instance->producer_h;
++	initq_info->consumer_index_phys_addr_lo = instance->consumer_h;
++
++	init_frame->cmd = MFI_CMD_INIT;
++	init_frame->cmd_status = 0xFF;
++	init_frame->queue_info_new_phys_addr_lo = initq_info_h;
++
++	init_frame->data_xfer_len = sizeof(struct megasas_init_queue_info);
++
++	/*
++	 * disable the intr before firing the init frame to FW
++	 */
++	instance->instancet->disable_intr(instance->reg_set);
++
++	/*
++	 * Issue the init frame in polled mode
++	 */
++
++	if (megasas_issue_polled(instance, cmd)) {
++		printk(KERN_ERR "megasas: Failed to init firmware\n");
++		megasas_return_cmd(instance, cmd);
++		goto fail_fw_init;
++	}
++
++	megasas_return_cmd(instance, cmd);
++
++	return 0;
++
++fail_fw_init:
++	return -EINVAL;
++}
++
++/**
+  * megasas_init_mfi -	Initializes the FW
+  * @instance:		Adapter soft state
+  *
+@@ -1814,15 +1889,7 @@ static int megasas_init_mfi(struct megas
+ 	u32 max_sectors_1;
+ 	u32 max_sectors_2;
+ 	struct megasas_register_set __iomem *reg_set;
+-
+-	struct megasas_cmd *cmd;
+ 	struct megasas_ctrl_info *ctrl_info;
+-
+-	struct megasas_init_frame *init_frame;
+-	struct megasas_init_queue_info *initq_info;
+-	dma_addr_t init_frame_h;
+-	dma_addr_t initq_info_h;
+-
+ 	/*
+ 	 * Map the message registers
+ 	 */
+@@ -1899,52 +1966,8 @@ static int megasas_init_mfi(struct megas
+ 		goto fail_reply_queue;
+ 	}
+ 
+-	/*
+-	 * Prepare a init frame. Note the init frame points to queue info
+-	 * structure. Each frame has SGL allocated after first 64 bytes. For
+-	 * this frame - since we don't need any SGL - we use SGL's space as
+-	 * queue info structure
+-	 *
+-	 * We will not get a NULL command below. We just created the pool.
+-	 */
+-	cmd = megasas_get_cmd(instance);
+-
+-	init_frame = (struct megasas_init_frame *)cmd->frame;
+-	initq_info = (struct megasas_init_queue_info *)
+-	    ((unsigned long)init_frame + 64);
+-
+-	init_frame_h = cmd->frame_phys_addr;
+-	initq_info_h = init_frame_h + 64;
+-
+-	memset(init_frame, 0, MEGAMFI_FRAME_SIZE);
+-	memset(initq_info, 0, sizeof(struct megasas_init_queue_info));
+-
+-	initq_info->reply_queue_entries = instance->max_fw_cmds + 1;
+-	initq_info->reply_queue_start_phys_addr_lo = instance->reply_queue_h;
+-
+-	initq_info->producer_index_phys_addr_lo = instance->producer_h;
+-	initq_info->consumer_index_phys_addr_lo = instance->consumer_h;
+-
+-	init_frame->cmd = MFI_CMD_INIT;
+-	init_frame->cmd_status = 0xFF;
+-	init_frame->queue_info_new_phys_addr_lo = initq_info_h;
+-
+-	init_frame->data_xfer_len = sizeof(struct megasas_init_queue_info);
+-
+-	/*
+-	 * disable the intr before firing the init frame to FW
+-	 */
+-	instance->instancet->disable_intr(instance->reg_set);
+-
+-	/*
+-	 * Issue the init frame in polled mode
+-	 */
+-	if (megasas_issue_polled(instance, cmd)) {
+-		printk(KERN_DEBUG "megasas: Failed to init firmware\n");
++	if (megasas_issue_init_mfi(instance))
+ 		goto fail_fw_init;
+-	}
+-
+-	megasas_return_cmd(instance, cmd);
+ 
+ 	ctrl_info = kmalloc(sizeof(struct megasas_ctrl_info), GFP_KERNEL);
+ 
+@@ -1980,7 +2003,6 @@ static int megasas_init_mfi(struct megas
+ 	return 0;
+ 
+       fail_fw_init:
+-	megasas_return_cmd(instance, cmd);
+ 
+ 	pci_free_consistent(instance->pdev, reply_q_sz,
+ 			    instance->reply_queue, instance->reply_queue_h);
+@@ -2262,6 +2284,28 @@ static int megasas_io_attach(struct mega
+ 	return 0;
+ }
+ 
++static int
++megasas_set_dma_mask(struct pci_dev *pdev)
++{
++	/*
++	 * All our contollers are capable of performing 64-bit DMA
++	 */
++	if (IS_DMA64) {
++		if (pci_set_dma_mask(pdev, DMA_64BIT_MASK) != 0) {
++
++			if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
++				goto fail_set_dma_mask;
++		}
++	} else {
++		if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
++			goto fail_set_dma_mask;
++	}
++	return 0;
++
++fail_set_dma_mask:
++	return 1;
++}
++
+ /**
+  * megasas_probe_one -	PCI hotplug entry point
+  * @pdev:		PCI device structure
+@@ -2295,19 +2339,8 @@ megasas_probe_one(struct pci_dev *pdev, 
+ 
+ 	pci_set_master(pdev);
+ 
+-	/*
+-	 * All our contollers are capable of performing 64-bit DMA
+-	 */
+-	if (IS_DMA64) {
+-		if (pci_set_dma_mask(pdev, DMA_64BIT_MASK) != 0) {
+-
+-			if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
+-				goto fail_set_dma_mask;
+-		}
+-	} else {
+-		if (pci_set_dma_mask(pdev, DMA_32BIT_MASK) != 0)
+-			goto fail_set_dma_mask;
+-	}
++	if (megasas_set_dma_mask(pdev))
++		goto fail_set_dma_mask;
+ 
+ 	host = scsi_host_alloc(&megasas_template,
+ 			       sizeof(struct megasas_instance));
+@@ -2489,8 +2522,10 @@ static void megasas_flush_cache(struct m
+ /**
+  * megasas_shutdown_controller -	Instructs FW to shutdown the controller
+  * @instance:				Adapter soft state
++ * @opcode:				Shutdown/Hibernate
+  */
+-static void megasas_shutdown_controller(struct megasas_instance *instance)
++static void megasas_shutdown_controller(struct megasas_instance *instance,
++					u32 opcode)
+ {
+ 	struct megasas_cmd *cmd;
+ 	struct megasas_dcmd_frame *dcmd;
+@@ -2513,7 +2548,7 @@ static void megasas_shutdown_controller(
+ 	dcmd->flags = MFI_FRAME_DIR_NONE;
+ 	dcmd->timeout = 0;
+ 	dcmd->data_xfer_len = 0;
+-	dcmd->opcode = MR_DCMD_CTRL_SHUTDOWN;
++	dcmd->opcode = opcode;
+ 
+ 	megasas_issue_blocked_cmd(instance, cmd);
+ 
+@@ -2523,6 +2558,138 @@ static void megasas_shutdown_controller(
+ }
+ 
+ /**
++ * megasas_suspend -    driver suspend entry point
++ * @pdev:               PCI device structure
++ * @state:		PCI power state to suspend routine
++ */
++static int __devinit
++megasas_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++	struct Scsi_Host *host;
++	struct megasas_instance *instance;
++
++	instance = pci_get_drvdata(pdev);
++	host = instance->host;
++
++	megasas_flush_cache(instance);
++	megasas_shutdown_controller(instance, MR_DCMD_HIBERNATE_SHUTDOWN);
++	tasklet_kill(&instance->isr_tasklet);
++
++	pci_set_drvdata(instance->pdev, instance);
++	instance->instancet->disable_intr(instance->reg_set);
++	free_irq(instance->pdev->irq, instance);
++
++	scsi_host_put(host);
++
++	pci_save_state(pdev);
++	pci_disable_device(pdev);
++
++	pci_set_power_state(pdev, pci_choose_state(pdev, state));
++
++	return 0;
++}
++
++/**
++ * megasas_resume-      driver resume entry point
++ * @pdev:               PCI device structure
++ */
++static int __devinit
++megasas_resume(struct pci_dev *pdev)
++{
++	int rval;
++	struct Scsi_Host *host;
++	struct megasas_instance *instance;
++
++	instance = pci_get_drvdata(pdev);
++	host = instance->host;
++	pci_set_power_state(pdev, PCI_D0);
++	pci_enable_wake(pdev, PCI_D0, 0);
++	pci_restore_state(pdev);
++
++	/*
++	 * PCI prepping: enable device set bus mastering and dma mask
++	 */
++	rval = pci_enable_device(pdev);
++
++	if (rval) {
++		printk(KERN_ERR "megasas: Enable device failed\n");
++		return rval;
++	}
++
++	pci_set_master(pdev);
++
++	if (megasas_set_dma_mask(pdev))
++		goto fail_set_dma_mask;
++
++	/*
++	 * Initialize MFI Firmware
++	 */
++
++	*instance->producer = 0;
++	*instance->consumer = 0;
++
++	atomic_set(&instance->fw_outstanding, 0);
++
++	/*
++	 * We expect the FW state to be READY
++	 */
++	if (megasas_transition_to_ready(instance))
++		goto fail_ready_state;
++
++	if (megasas_issue_init_mfi(instance))
++		goto fail_init_mfi;
++
++	tasklet_init(&instance->isr_tasklet, megasas_complete_cmd_dpc,
++			(unsigned long)instance);
++
++	/*
++	 * Register IRQ
++	 */
++	if (request_irq(pdev->irq, megasas_isr, IRQF_SHARED,
++		"megasas", instance)) {
++		printk(KERN_ERR "megasas: Failed to register IRQ\n");
++		goto fail_irq;
++	}
++
++	instance->instancet->enable_intr(instance->reg_set);
++
++	/*
++	 * Store instance in PCI softstate
++	 */
++	pci_set_drvdata(pdev, instance);
++
++	/*
++	 * Initiate AEN (Asynchronous Event Notification)
++	 */
++	if (megasas_start_aen(instance))
++		printk(KERN_ERR "megasas: Start AEN failed\n");
++
++	return 0;
++
++fail_irq:
++fail_init_mfi:
++	if (instance->evt_detail)
++		pci_free_consistent(pdev, sizeof(struct megasas_evt_detail),
++				instance->evt_detail,
++				instance->evt_detail_h);
++
++	if (instance->producer)
++		pci_free_consistent(pdev, sizeof(u32), instance->producer,
++				instance->producer_h);
++	if (instance->consumer)
++		pci_free_consistent(pdev, sizeof(u32), instance->consumer,
++				instance->consumer_h);
++	scsi_host_put(host);
++
++fail_set_dma_mask:
++fail_ready_state:
++
++	pci_disable_device(pdev);
++
++	return -ENODEV;
++}
++
++/**
+  * megasas_detach_one -	PCI hot"un"plug entry point
+  * @pdev:		PCI device structure
+  */
+@@ -2537,7 +2704,7 @@ static void megasas_detach_one(struct pc
+ 
+ 	scsi_remove_host(instance->host);
+ 	megasas_flush_cache(instance);
+-	megasas_shutdown_controller(instance);
++	megasas_shutdown_controller(instance, MR_DCMD_CTRL_SHUTDOWN);
+ 	tasklet_kill(&instance->isr_tasklet);
+ 
+ 	/*
+@@ -2976,6 +3143,8 @@ static struct pci_driver megasas_pci_dri
+ 	.id_table = megasas_pci_table,
+ 	.probe = megasas_probe_one,
+ 	.remove = __devexit_p(megasas_detach_one),
++	.suspend = megasas_suspend,
++	.resume = megasas_resume,
+ 	.shutdown = megasas_shutdown,
+ };
+ 
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-add-hibernation-support drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-add-hibernation-support
++++ a/drivers/scsi/megaraid/megaraid_sas.h
+@@ -117,6 +117,7 @@
+ #define MR_FLUSH_DISK_CACHE			0x02
+ 
+ #define MR_DCMD_CTRL_SHUTDOWN			0x01050000
++#define MR_DCMD_HIBERNATE_SHUTDOWN		0x01060000
+ #define MR_ENABLE_DRIVE_SPINDOWN		0x01
+ 
+ #define MR_DCMD_CTRL_EVENT_GET_INFO		0x01040100
 _
 
 Patches currently in -mm which might be from bo.yang@lsi.com are
 
+scsi-megaraid_sas-add-hibernation-support.patch
+scsi-megaraid_sas-add-module-param-fast_load.patch
+scsi-megaraid_sas-add-module-param-max_sectors-cmd_per_lun.patch
 scsi-megaraid_sas-update-version-and-changelog.patch
