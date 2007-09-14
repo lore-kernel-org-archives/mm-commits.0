@@ -1,122 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: + bfin_twi-remove-useless-twi_lock-mutex.patch added to -mm tree
-Date: Fri, 14 Sep 2007 16:33:42 -0700
-Message-ID: <200709142333.l8ENXg0T029675@imap1.linux-foundation.org>
+Subject: + hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch added to -mm tree
+Date: Fri, 14 Sep 2007 16:35:07 -0700
+Message-ID: <200709142335.l8ENZ7ZK029730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754805AbXINXdt (ORCPT
+	by vger.kernel.org with ESMTP id S1754154AbXINXfm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 19:33:49 -0400
+	Fri, 14 Sep 2007 19:35:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, francis.moro@gmail.com, sonic.zhang@analog.com
+Cc: rjw@sisk.pl, pavel@ucw.cz
 
 
 The patch titled
-     bfin_twi: Remove useless twi_lock mutex
+     Hibernation: Check if ACPI is enabled during restore in the right =
+place
 has been added to the -mm tree.  Its filename is
-     bfin_twi-remove-useless-twi_lock-mutex.patch
+     hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-p=
+lace.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bfin_twi: Remove useless twi_lock mutex
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: Hibernation: Check if ACPI is enabled during restore in the ri=
+ght place
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-This patch removes this unneeded mutex.  Indeed it was used to serialized
-access to the hardware, but this is already done by the i2c-core layer, see
-'bus_lock' mutex used by i2c_transfer().
+The following scenario leads to total confusion of the platform firmwar=
+e on
+some boxes (eg. HPC nx6325):
+* Hibernate with ACPI enabled
+* Resume passing "acpi=3Doff" to the boot kernel
 
-Signed-off-by: Francis Moreau <francis.moro@gmail.com>
-Acked-by: Bryan Wu <bryan.wu@analog.com>
-Acked-by: Sonic Zhang <sonic.zhang@analog.com>
+To prevent this from happening it's necessary to check if ACPI is enabl=
+ed (and
+enable it if that's not the case) _right_ _after_ control has been tran=
+sfered
+from the boot kernel to the image kernel, before device_power_up() is c=
+alled
+(ie.  with interrupts disabled).  =A0Enabling ACPI after calling
+device_power_up() turns out to be insufficient.
+
+=46or this reason, introduce new hibernation callback ->leave() that wi=
+ll be
+executed before device_power_up() by the restored image kernel.  =A0To =
+make it
+work, it also is necessary to move swsusp_suspend() from swsusp.c to di=
+sk.c
+(it's name is changed to "create_image", which is more up to the point)=
+=2E
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-bfin-twi.c |   16 ----------------
- 1 files changed, 16 deletions(-)
+ drivers/acpi/sleep/main.c |    7 +++-
+ include/linux/suspend.h   |    7 ++++
+ kernel/power/disk.c       |   58 +++++++++++++++++++++++++++++++++++-
+ kernel/power/power.h      |    1=20
+ kernel/power/swsusp.c     |   33 --------------------
+ 5 files changed, 70 insertions(+), 36 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-bfin-twi.c~bfin_twi-remove-useless-twi_lock-mutex drivers/i2c/busses/i2c-bfin-twi.c
---- a/drivers/i2c/busses/i2c-bfin-twi.c~bfin_twi-remove-useless-twi_lock-mutex
-+++ a/drivers/i2c/busses/i2c-bfin-twi.c
-@@ -44,7 +44,6 @@
- #define TWI_I2C_MODE_COMBINED		0x04
- 
- struct bfin_twi_iface {
--	struct mutex		twi_lock;
- 	int			irq;
- 	spinlock_t		lock;
- 	char			read_write;
-@@ -228,12 +227,8 @@ static int bfin_twi_master_xfer(struct i
- 	if (!(bfin_read_TWI_CONTROL() & TWI_ENA))
- 		return -ENXIO;
- 
--	mutex_lock(&iface->twi_lock);
--
- 	while (bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
--		mutex_unlock(&iface->twi_lock);
- 		yield();
--		mutex_lock(&iface->twi_lock);
- 	}
- 
- 	ret = 0;
-@@ -310,9 +305,6 @@ static int bfin_twi_master_xfer(struct i
- 			break;
- 	}
- 
--	/* Release mutex */
--	mutex_unlock(&iface->twi_lock);
--
- 	return ret;
+diff -puN drivers/acpi/sleep/main.c~hibernation-check-if-acpi-is-enable=
+d-during-restore-in-the-right-place drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~hibernation-check-if-acpi-is-enabled-du=
+ring-restore-in-the-right-place
++++ a/drivers/acpi/sleep/main.c
+@@ -231,13 +231,17 @@ static int acpi_hibernation_enter(void)
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
  }
- 
-@@ -330,12 +322,8 @@ int bfin_twi_smbus_xfer(struct i2c_adapt
- 	if (!(bfin_read_TWI_CONTROL() & TWI_ENA))
- 		return -ENXIO;
- 
--	mutex_lock(&iface->twi_lock);
--
- 	while (bfin_read_TWI_MASTER_STAT() & BUSBUSY) {
--		mutex_unlock(&iface->twi_lock);
- 		yield();
--		mutex_lock(&iface->twi_lock);
- 	}
- 
- 	iface->writeNum = 0;
-@@ -502,9 +490,6 @@ int bfin_twi_smbus_xfer(struct i2c_adapt
- 
- 	rc = (iface->result >= 0) ? 0 : -1;
- 
--	/* Release mutex */
--	mutex_unlock(&iface->twi_lock);
--
- 	return rc;
+=20
+-static void acpi_hibernation_finish(void)
++static void acpi_hibernation_leave(void)
+ {
+ 	/*
+ 	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
+ 	 * enable it here.
+ 	 */
+ 	acpi_enable();
++}
++
++static void acpi_hibernation_finish(void)
++{
+ 	acpi_leave_sleep_state(ACPI_STATE_S4);
+ 	acpi_disable_wakeup_device(ACPI_STATE_S4);
+=20
+@@ -267,6 +271,7 @@ static struct platform_hibernation_ops a
+ 	.finish =3D acpi_hibernation_finish,
+ 	.prepare =3D acpi_hibernation_prepare,
+ 	.enter =3D acpi_hibernation_enter,
++	.leave =3D acpi_hibernation_leave,
+ 	.pre_restore =3D acpi_hibernation_pre_restore,
+ 	.restore_cleanup =3D acpi_hibernation_restore_cleanup,
+ };
+diff -puN include/linux/suspend.h~hibernation-check-if-acpi-is-enabled-=
+during-restore-in-the-right-place include/linux/suspend.h
+--- a/include/linux/suspend.h~hibernation-check-if-acpi-is-enabled-duri=
+ng-restore-in-the-right-place
++++ a/include/linux/suspend.h
+@@ -156,6 +156,12 @@ extern void mark_free_pages(struct zone=20
+  *	Called after the nonboot CPUs have been disabled and all of the low
+  *	level devices have been shut down (runs with IRQs off).
+  *
++ * @leave: Perform the first stage of the cleanup after the system sle=
+ep state
++ *	indicated by @set_target() has been left.
++ *	Called right after the control has been passed from the boot kernel=
+ to
++ *	the image kernel, before the nonboot CPUs are enabled and before de=
+vices
++ *	are resumed.  Executed with interrupts disabled.
++ *
+  * @pre_restore: Prepare system for the restoration from a hibernation=
+ image.
+  *	Called right after devices have been frozen and before the nonboot
+  *	CPUs are disabled (runs with IRQs on).
+@@ -170,6 +176,7 @@ struct platform_hibernation_ops {
+ 	void (*finish)(void);
+ 	int (*prepare)(void);
+ 	int (*enter)(void);
++	void (*leave)(void);
+ 	int (*pre_restore)(void);
+ 	void (*restore_cleanup)(void);
+ };
+diff -puN kernel/power/disk.c~hibernation-check-if-acpi-is-enabled-duri=
+ng-restore-in-the-right-place kernel/power/disk.c
+--- a/kernel/power/disk.c~hibernation-check-if-acpi-is-enabled-during-r=
+estore-in-the-right-place
++++ a/kernel/power/disk.c
+@@ -93,6 +93,17 @@ static int platform_pre_snapshot(int pla
  }
- 
-@@ -555,7 +540,6 @@ static int i2c_bfin_twi_probe(struct pla
- 	struct i2c_adapter *p_adap;
- 	int rc;
- 
--	mutex_init(&(iface->twi_lock));
- 	spin_lock_init(&(iface->lock));
- 	init_completion(&(iface->complete));
- 	iface->irq = IRQ_TWI;
+=20
+ /**
++ *	platform_leave - prepare the machine for switching to the normal mo=
+de
++ *	of operation using the platform driver (called with interrupts disa=
+bled)
++ */
++
++static void platform_leave(int platform_mode)
++{
++	if (platform_mode && hibernation_ops)
++		hibernation_ops->leave();
++}
++
++/**
+  *	platform_finish - switch the machine to the normal mode of operatio=
+n
+  *	using the platform driver (must be called after platform_prepare())
+  */
+@@ -129,6 +140,51 @@ static void platform_restore_cleanup(int
+ }
+=20
+ /**
++ *	create_image - freeze devices that need to be frozen with interrupt=
+s
++ *	off, create the hibernation image and thaw those devices.  Control
++ *	reappears in this routine after a restore.
++ */
++
++int create_image(int platform_mode)
++{
++	int error;
++
++	error =3D arch_prepare_suspend();
++	if (error)
++		return error;
++
++	local_irq_disable();
++	/* At this point, device_suspend() has been called, but *not*
++	 * device_power_down(). We *must* call device_power_down() now.
++	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
++	 * become desynchronized with the actual state of the hardware
++	 * at resume time, and evil weirdness ensues.
++	 */
++	error =3D device_power_down(PMSG_FREEZE);
++	if (error) {
++		printk(KERN_ERR "Some devices failed to power down, "
++			KERN_ERR "aborting suspend\n");
++		goto Enable_irqs;
++	}
++
++	save_processor_state();
++	error =3D swsusp_arch_suspend();
++	if (error)
++		printk(KERN_ERR "Error %d while creating the image\n", error);
++	/* Restore control flow magically appears here */
++	restore_processor_state();
++	if (!in_suspend)
++		platform_leave(platform_mode);
++	/* NOTE:  device_power_up() is just a resume() for devices
++	 * that suspended with irqs off ... no overall powerup.
++	 */
++	device_power_up();
++ Enable_irqs:
++	local_irq_enable();
++	return error;
++}
++
++/**
+  *	hibernation_snapshot - quiesce devices and create the hibernation
+  *	snapshot image.
+  *	@platform_mode - if set, use the platform driver, if available, to
+@@ -163,7 +219,7 @@ int hibernation_snapshot(int platform_mo
+ 	if (!error) {
+ 		if (hibernation_mode !=3D HIBERNATION_TEST) {
+ 			in_suspend =3D 1;
+-			error =3D swsusp_suspend();
++			error =3D create_image(platform_mode);
+ 			/* Control returns here after successful restore */
+ 		} else {
+ 			printk("swsusp debug: Waiting for 5 seconds.\n");
+diff -puN kernel/power/power.h~hibernation-check-if-acpi-is-enabled-dur=
+ing-restore-in-the-right-place kernel/power/power.h
+--- a/kernel/power/power.h~hibernation-check-if-acpi-is-enabled-during-=
+restore-in-the-right-place
++++ a/kernel/power/power.h
+@@ -183,7 +183,6 @@ extern int swsusp_swap_in_use(void);
+ extern int swsusp_check(void);
+ extern int swsusp_shrink_memory(void);
+ extern void swsusp_free(void);
+-extern int swsusp_suspend(void);
+ extern int swsusp_resume(void);
+ extern int swsusp_read(unsigned int *flags_p);
+ extern int swsusp_write(unsigned int flags);
+diff -puN kernel/power/swsusp.c~hibernation-check-if-acpi-is-enabled-du=
+ring-restore-in-the-right-place kernel/power/swsusp.c
+--- a/kernel/power/swsusp.c~hibernation-check-if-acpi-is-enabled-during=
+-restore-in-the-right-place
++++ a/kernel/power/swsusp.c
+@@ -270,39 +270,6 @@ int swsusp_shrink_memory(void)
+ 	return 0;
+ }
+=20
+-int swsusp_suspend(void)
+-{
+-	int error;
+-
+-	if ((error =3D arch_prepare_suspend()))
+-		return error;
+-
+-	local_irq_disable();
+-	/* At this point, device_suspend() has been called, but *not*
+-	 * device_power_down(). We *must* device_power_down() now.
+-	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
+-	 * become desynchronized with the actual state of the hardware
+-	 * at resume time, and evil weirdness ensues.
+-	 */
+-	if ((error =3D device_power_down(PMSG_FREEZE))) {
+-		printk(KERN_ERR "Some devices failed to power down, aborting suspend=
+\n");
+-		goto Enable_irqs;
+-	}
+-
+-	save_processor_state();
+-	if ((error =3D swsusp_arch_suspend()))
+-		printk(KERN_ERR "Error %d suspending\n", error);
+-	/* Restore control flow magically appears here */
+-	restore_processor_state();
+-	/* NOTE:  device_power_up() is just a resume() for devices
+-	 * that suspended with irqs off ... no overall powerup.
+-	 */
+-	device_power_up();
+- Enable_irqs:
+-	local_irq_enable();
+-	return error;
+-}
+-
+ int swsusp_resume(void)
+ {
+ 	int error;
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-fix-serial_core_console-driver-dependencies.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-bfin_twi-remove-useless-twi_lock-mutex.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-kconfig-syntax-cleanups.patch
-add-stack-checking-for-blackfin.patch
-maintainters-use-our-mail-list-as-blackfin-arch-maintainters.patch
-bitops-introduce-lock-ops.patch
+fix-failure-to-resume-from-initrds.patch
+hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.p=
+atch
+acpi-clean-up-acpi_enter_sleep_state_prep.patch
+git-netdev-all.patch
+make-kernel-power-maincsuspend_enter-static.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-use-wait-queue-instead-of-busy-looping.patch
+freezer-measure-freezing-time.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
+on.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
+on-update.patch
+s2ram-kill-old-debugging-junk.patch
+hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
+hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
+hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
+hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64=
+=2Epatch
+hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.=
+patch
+hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.=
+patch
+pnp-make-pnpacpi_suspend-handle-errors.patch
+shrink_slab-handle-bad-shrinkers.patch
