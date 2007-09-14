@@ -1,148 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - nommu-add-support-for-direct-mapping-through-mtdconcat.patch removed from -mm tree
-Date: Fri, 14 Sep 2007 04:47:28 -0700
-Message-ID: <200709141147.l8EBlS33003173@imap1.linux-foundation.org>
+Subject: + fix-failure-to-resume-from-initrds.patch added to -mm tree
+Date: Fri, 14 Sep 2007 13:08:49 -0700
+Message-ID: <200709142008.l8EK8nkr022168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54169 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754122AbXINLrt (ORCPT
+	by vger.kernel.org with ESMTP id S1753031AbXINUJT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 07:47:49 -0400
+	Fri, 14 Sep 2007 16:09:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, gavinl@compacsort.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     NOMMU: add support for direct mapping through mtdconcat if possible
-has been removed from the -mm tree.  Its filename was
-     nommu-add-support-for-direct-mapping-through-mtdconcat.patch
+     Fix failure to resume from initrds
+has been added to the -mm tree.  Its filename is
+     fix-failure-to-resume-from-initrds.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: NOMMU: add support for direct mapping through mtdconcat if possible
-From: David Howells <dhowells@redhat.com>
+Subject: Fix failure to resume from initrds
+From: Nigel Cunningham <nigel@nigel.suspend2.net>
 
-Add support for direct mapping through mtdconcat, if possible, by attaching
-the samebacking_dev_info structure to the master.
+Commit 831441862956fffa17b9801db37e6ea1650b0f69 (Freezer: make kernel
+threads nonfreezable by default) breaks freezing when attempting to resume
+from an initrd, because the init (which is freezeable) spins while waiting
+for another thread to run /linuxrc, but doesn't check whether it has been
+told to enter the refrigerator.  The original patch replaced a call to
+try_to_freeze() with a call to yield().  I believe a simple reversion is
+wrong because if !CONFIG_PM_SLEEP, try_to_freeze() is a noop.  It should
+still yield.
 
-It has some restrictions:
-
- (1) It won't permit direct mapping of concatenated devices that have differing
-     BDIs.
-
- (2) It doesn't support maps that span the 'gap' between devices, although it
-     possibly could if the devices spanned across return compatible
-     (ie. contiguous) addresses from their get_unmapped_area() ops.
-
-Signed-off-by: Gavin Lambert <gavinl@compacsort.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdconcat.c |   47 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 47 insertions(+)
+ init/do_mounts_initrd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/mtdconcat.c~nommu-add-support-for-direct-mapping-through-mtdconcat drivers/mtd/mtdconcat.c
---- a/drivers/mtd/mtdconcat.c~nommu-add-support-for-direct-mapping-through-mtdconcat
-+++ a/drivers/mtd/mtdconcat.c
-@@ -15,6 +15,7 @@
- #include <linux/slab.h>
- #include <linux/sched.h>
- #include <linux/types.h>
-+#include <linux/backing-dev.h>
+diff -puN init/do_mounts_initrd.c~fix-failure-to-resume-from-initrds init/do_mounts_initrd.c
+--- a/init/do_mounts_initrd.c~fix-failure-to-resume-from-initrds
++++ a/init/do_mounts_initrd.c
+@@ -57,8 +57,10 @@ static void __init handle_initrd(void)
  
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/concat.h>
-@@ -686,6 +687,40 @@ static int concat_block_markbad(struct m
- }
- 
- /*
-+ * try to support NOMMU mmaps on concatenated devices
-+ * - we don't support subdev spanning as we can't guarantee it'll work
-+ */
-+static unsigned long concat_get_unmapped_area(struct mtd_info *mtd,
-+					      unsigned long len,
-+					      unsigned long offset,
-+					      unsigned long flags)
-+{
-+	struct mtd_concat *concat = CONCAT(mtd);
-+	int i;
-+
-+	for (i = 0; i < concat->num_subdev; i++) {
-+		struct mtd_info *subdev = concat->subdev[i];
-+
-+		if (offset >= subdev->size) {
-+			offset -= subdev->size;
-+			continue;
+ 	pid = kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD);
+ 	if (pid > 0)
+-		while (pid != sys_wait4(-1, NULL, 0, NULL))
++		while (pid != sys_wait4(-1, NULL, 0, NULL)) {
++			try_to_freeze();
+ 			yield();
 +		}
-+
-+		/* we've found the subdev over which the mapping will reside */
-+		if (offset + len > subdev->size)
-+			return (unsigned long) -EINVAL;
-+
-+		if (subdev->get_unmapped_area)
-+			return subdev->get_unmapped_area(subdev, len, offset,
-+							 flags);
-+
-+		break;
-+	}
-+
-+	return (unsigned long) -ENOSYS;
-+}
-+
-+/*
-  * This function constructs a virtual MTD device by concatenating
-  * num_devs MTD devices. A pointer to the new device object is
-  * stored to *new_dev upon success. This function does _not_
-@@ -741,6 +776,8 @@ struct mtd_info *mtd_concat_create(struc
  
- 	concat->mtd.ecc_stats.badblocks = subdev[0]->ecc_stats.badblocks;
- 
-+	concat->mtd.backing_dev_info = subdev[0]->backing_dev_info;
-+
- 	concat->subdev[0] = subdev[0];
- 
- 	for (i = 1; i < num_devs; i++) {
-@@ -767,6 +804,15 @@ struct mtd_info *mtd_concat_create(struc
- 				concat->mtd.flags |=
- 				    subdev[i]->flags & MTD_WRITEABLE;
- 		}
-+
-+		/* only permit direct mapping if the BDIs are all the same
-+		 * - copy-mapping is still permitted
-+		 */
-+		if (concat->mtd.backing_dev_info !=
-+		    subdev[i]->backing_dev_info)
-+			concat->mtd.backing_dev_info =
-+				&default_backing_dev_info;
-+
- 		concat->mtd.size += subdev[i]->size;
- 		concat->mtd.ecc_stats.badblocks +=
- 			subdev[i]->ecc_stats.badblocks;
-@@ -797,6 +843,7 @@ struct mtd_info *mtd_concat_create(struc
- 	concat->mtd.unlock = concat_unlock;
- 	concat->mtd.suspend = concat_suspend;
- 	concat->mtd.resume = concat_resume;
-+	concat->mtd.get_unmapped_area = concat_get_unmapped_area;
- 
- 	/*
- 	 * Combine the erase block size info of the subdevices:
+ 	/* move initrd to rootfs' /old */
+ 	sys_fchdir(old_fd);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from nigel@nigel.suspend2.net are
 
-mntput-called-before-dput-in-afs.patch
-nommu-add-support-for-direct-mapping-through-mtdconcat.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-frv-cleanup-struct-irqaction-initializers.patch
-fs-afs-possible-cleanups.patch
-binfmt_flat-warning-fixes.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-64-bit-i_version-afs-fixes.patch
-bitops-introduce-lock-ops.patch
-mutex-subsystem-synchro-test-module.patch
+fix-failure-to-resume-from-initrds.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+freezer-be-more-verbose.patch
