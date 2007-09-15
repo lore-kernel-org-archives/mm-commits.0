@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-constify-stacktrace_ops.patch added to -mm tree
-Date: Sat, 15 Sep 2007 01:33:28 -0700
-Message-ID: <200709150833.l8F8XSk1025474@imap1.linux-foundation.org>
+Subject: + x86-constify-wd_ops.patch added to -mm tree
+Date: Sat, 15 Sep 2007 01:33:29 -0700
+Message-ID: <200709150833.l8F8XTw8025480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752335AbXIOIda (ORCPT
+	by vger.kernel.org with ESMTP id S1751966AbXIOIdb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 04:33:30 -0400
+	Sat, 15 Sep 2007 04:33:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jbeulich@novell.com
 
 
 The patch titled
-     x86: constify stacktrace_ops
+     x86: constify wd_ops
 has been added to the -mm tree.  Its filename is
-     x86-constify-stacktrace_ops.patch
+     x86-constify-wd_ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: constify stacktrace_ops
+Subject: x86: constify wd_ops
 From: "Jan Beulich" <jbeulich@novell.com>
 
-.. as they're never written to.
+.. as they're, with a single exception, never written to.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/traps.c        |    6 +++---
- arch/x86_64/kernel/stacktrace.c |    2 +-
- arch/x86_64/kernel/traps.c      |    4 ++--
- include/asm-x86_64/stacktrace.h |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ arch/i386/kernel/cpu/perfctr-watchdog.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/traps.c~x86-constify-stacktrace_ops arch/i386/kernel/traps.c
---- a/arch/i386/kernel/traps.c~x86-constify-stacktrace_ops
-+++ a/arch/i386/kernel/traps.c
-@@ -119,7 +119,7 @@ struct stack_frame {
- 
- static inline unsigned long print_context_stack(struct thread_info *tinfo,
- 				unsigned long *stack, unsigned long ebp,
--				struct stacktrace_ops *ops, void *data)
-+				const struct stacktrace_ops *ops, void *data)
- {
- #ifdef	CONFIG_FRAME_POINTER
- 	struct stack_frame *frame = (struct stack_frame *)ebp;
-@@ -184,7 +184,7 @@ dump_trace_unwind(struct unwind_frame_in
- 
- void dump_trace(struct task_struct *task, struct pt_regs *regs,
- 	        unsigned long *stack,
--		struct stacktrace_ops *ops, void *data)
-+		const struct stacktrace_ops *ops, void *data)
- {
- 	unsigned long ebp = 0;
- 
-@@ -291,7 +291,7 @@ static void print_trace_address(void *da
- 	touch_nmi_watchdog();
- }
- 
--static struct stacktrace_ops print_trace_ops = {
-+static const struct stacktrace_ops print_trace_ops = {
- 	.warning = print_trace_warning,
- 	.warning_symbol = print_trace_warning_symbol,
- 	.stack = print_trace_stack,
-diff -puN arch/x86_64/kernel/stacktrace.c~x86-constify-stacktrace_ops arch/x86_64/kernel/stacktrace.c
---- a/arch/x86_64/kernel/stacktrace.c~x86-constify-stacktrace_ops
-+++ a/arch/x86_64/kernel/stacktrace.c
-@@ -35,7 +35,7 @@ static void save_stack_address(void *dat
- 		trace->entries[trace->nr_entries++] = addr;
- }
- 
--static struct stacktrace_ops save_stack_ops = {
-+static const struct stacktrace_ops save_stack_ops = {
- 	.warning = save_stack_warning,
- 	.warning_symbol = save_stack_warning_symbol,
- 	.stack = save_stack_stack,
-diff -puN arch/x86_64/kernel/traps.c~x86-constify-stacktrace_ops arch/x86_64/kernel/traps.c
---- a/arch/x86_64/kernel/traps.c~x86-constify-stacktrace_ops
-+++ a/arch/x86_64/kernel/traps.c
-@@ -248,7 +248,7 @@ static inline int valid_stack_ptr(struct
- 
- void dump_trace(struct task_struct *tsk, struct pt_regs *regs,
- 		unsigned long *stack,
--		struct stacktrace_ops *ops, void *data)
-+		const struct stacktrace_ops *ops, void *data)
- {
- 	const unsigned cpu = get_cpu();
- 	unsigned long *irqstack_end = (unsigned long*)cpu_pda(cpu)->irqstackptr;
-@@ -404,7 +404,7 @@ static void print_trace_address(void *da
- 	printk_address(addr);
- }
- 
--static struct stacktrace_ops print_trace_ops = {
-+static const struct stacktrace_ops print_trace_ops = {
- 	.warning = print_trace_warning,
- 	.warning_symbol = print_trace_warning_symbol,
- 	.stack = print_trace_stack,
-diff -puN include/asm-x86_64/stacktrace.h~x86-constify-stacktrace_ops include/asm-x86_64/stacktrace.h
---- a/include/asm-x86_64/stacktrace.h~x86-constify-stacktrace_ops
-+++ a/include/asm-x86_64/stacktrace.h
-@@ -15,6 +15,6 @@ struct stacktrace_ops {
+diff -puN arch/i386/kernel/cpu/perfctr-watchdog.c~x86-constify-wd_ops arch/i386/kernel/cpu/perfctr-watchdog.c
+--- a/arch/i386/kernel/cpu/perfctr-watchdog.c~x86-constify-wd_ops
++++ a/arch/i386/kernel/cpu/perfctr-watchdog.c
+@@ -34,7 +34,7 @@ struct wd_ops {
+ 	u64 checkbit;
  };
  
- void dump_trace(struct task_struct *tsk, struct pt_regs *regs, unsigned long *stack,
--		struct stacktrace_ops *ops, void *data);
-+		const struct stacktrace_ops *ops, void *data);
+-static struct wd_ops *wd_ops;
++static const struct wd_ops *wd_ops;
  
- #endif
+ /* this number is calculated from Intel's MSR_P4_CRU_ESCR5 register and it's
+  * offset from MSR_P4_BSU_ESCR0.  It will be the max for all platforms (for now)
+@@ -325,7 +325,7 @@ static void single_msr_rearm(struct nmi_
+ 	write_watchdog_counter(wd->perfctr_msr, NULL, nmi_hz);
+ }
+ 
+-static struct wd_ops k7_wd_ops = {
++static const struct wd_ops k7_wd_ops = {
+ 	.reserve = single_msr_reserve,
+ 	.unreserve = single_msr_unreserve,
+ 	.setup = setup_k7_watchdog,
+@@ -388,7 +388,7 @@ static void p6_rearm(struct nmi_watchdog
+ 	write_watchdog_counter32(wd->perfctr_msr, NULL,nmi_hz);
+ }
+ 
+-static struct wd_ops p6_wd_ops = {
++static const struct wd_ops p6_wd_ops = {
+ 	.reserve = single_msr_reserve,
+ 	.unreserve = single_msr_unreserve,
+ 	.setup = setup_p6_watchdog,
+@@ -540,7 +540,7 @@ static void p4_rearm(struct nmi_watchdog
+ 	write_watchdog_counter(wd->perfctr_msr, NULL, nmi_hz);
+ }
+ 
+-static struct wd_ops p4_wd_ops = {
++static const struct wd_ops p4_wd_ops = {
+ 	.reserve = p4_reserve,
+ 	.unreserve = p4_unreserve,
+ 	.setup = setup_p4_watchdog,
+@@ -558,6 +558,8 @@ static struct wd_ops p4_wd_ops = {
+ #define ARCH_PERFMON_NMI_EVENT_SEL	ARCH_PERFMON_UNHALTED_CORE_CYCLES_SEL
+ #define ARCH_PERFMON_NMI_EVENT_UMASK	ARCH_PERFMON_UNHALTED_CORE_CYCLES_UMASK
+ 
++static struct wd_ops intel_arch_wd_ops;
++
+ static int setup_intel_arch_watchdog(unsigned nmi_hz)
+ {
+ 	unsigned int ebx;
+@@ -599,11 +601,11 @@ static int setup_intel_arch_watchdog(uns
+ 	wd->perfctr_msr = perfctr_msr;
+ 	wd->evntsel_msr = evntsel_msr;
+ 	wd->cccr_msr = 0;  //unused
+-	wd_ops->checkbit = 1ULL << (eax.split.bit_width - 1);
++	intel_arch_wd_ops.checkbit = 1ULL << (eax.split.bit_width - 1);
+ 	return 1;
+ }
+ 
+-static struct wd_ops intel_arch_wd_ops = {
++static struct wd_ops intel_arch_wd_ops __read_mostly = {
+ 	.reserve = single_msr_reserve,
+ 	.unreserve = single_msr_unreserve,
+ 	.setup = setup_intel_arch_watchdog,
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
