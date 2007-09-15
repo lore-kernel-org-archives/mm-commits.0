@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ps3fb-fix-spurious-mode-change-failures.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:25:24 -0700
-Message-ID: <200709150225.l8F2PObS002961@imap1.linux-foundation.org>
+Subject: + pm3fb-replace-busy-waiting-with-cpu_relax.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:25:29 -0700
+Message-ID: <200709150225.l8F2PThQ002976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50091 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755519AbXIOCZd (ORCPT
+	by vger.kernel.org with ESMTP id S1755397AbXIOCZd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 14 Sep 2007 22:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com, geoffrey.levand@am.sony.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     ps3fb: Fix spurious mode change failures
+     pm3fb: replace busy waiting with cpu_relax
 has been added to the -mm tree.  Its filename is
-     ps3fb-fix-spurious-mode-change-failures.patch
+     pm3fb-replace-busy-waiting-with-cpu_relax.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3fb: Fix spurious mode change failures
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: pm3fb: replace busy waiting with cpu_relax
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-ps3fb: Add a `mode' parameter to ps3fb_get_res_table(), as in some cases it
-should check the full-screen flag of the _new_ video mode instead of the
-current video mode.
+This patch replaces busy waiting with the cpu_relax() call.  This makes
+scrolling faster.
 
-This bug caused spurious mode change failures when switching between
-fullscreen and non-fullscreen modes using fbset, while ps3-video-mode worked
-fine.
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-CC: Geoff Levand <geoffrey.levand@am.sony.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/video/pm3fb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-fix-spurious-mode-change-failures drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-fix-spurious-mode-change-failures
-+++ a/drivers/video/ps3fb.c
-@@ -303,13 +303,13 @@ module_param(ps3fb_mode, int, 0);
+diff -puN drivers/video/pm3fb.c~pm3fb-replace-busy-waiting-with-cpu_relax drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-replace-busy-waiting-with-cpu_relax
++++ a/drivers/video/pm3fb.c
+@@ -110,7 +110,8 @@ static inline void PM3_WRITE_REG(struct 
  
- static char *mode_option __devinitdata;
- 
--static int ps3fb_get_res_table(u32 xres, u32 yres)
-+static int ps3fb_get_res_table(u32 xres, u32 yres, int mode)
+ static inline void PM3_WAIT(struct pm3_par *par, u32 n)
  {
- 	int full_mode;
- 	unsigned int i;
- 	u32 x, y, f;
+-	while (PM3_READ_REG(par, PM3InFIFOSpace) < n);
++	while (PM3_READ_REG(par, PM3InFIFOSpace) < n)
++		cpu_relax();
+ }
  
--	full_mode = (ps3fb_mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
-+	full_mode = (mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
- 	for (i = 0;; i++) {
- 		x = ps3fb_res[i].xres;
- 		y = ps3fb_res[i].yres;
-@@ -527,7 +527,7 @@ static int ps3fb_check_var(struct fb_var
- 	}
+ static inline void PM3_WRITE_DAC_REG(struct pm3_par *par, unsigned r, u8 v)
+@@ -209,8 +210,8 @@ static int pm3fb_sync(struct fb_info *in
+ 	PM3_WRITE_REG(par, PM3Sync, 0);
+ 	mb();
+ 	do {
+-		while ((PM3_READ_REG(par, PM3OutFIFOWords)) == 0);
+-		rmb();
++		while ((PM3_READ_REG(par, PM3OutFIFOWords)) == 0)
++			cpu_relax();
+ 	} while ((PM3_READ_REG(par, PM3OutputFifo)) != PM3Sync_Tag);
  
- 	/* Memory limit */
--	i = ps3fb_get_res_table(var->xres, var->yres);
-+	i = ps3fb_get_res_table(var->xres, var->yres, mode);
- 	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP > ps3fb_videomemory.size) {
- 		DPRINTK("Not enough memory\n");
- 		return -ENOMEM;
-@@ -553,13 +553,14 @@ static int ps3fb_set_par(struct fb_info 
- 	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
- 		info->var.xres, info->var.xres_virtual,
- 		info->var.yres, info->var.yres_virtual, info->var.pixclock);
--	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
--	ps3fb.res_index = i;
- 
- 	mode = ps3fb_find_mode(&info->var, &info->fix.line_length);
- 	if (!mode)
- 		return -EINVAL;
- 
-+	i = ps3fb_get_res_table(info->var.xres, info->var.yres, mode);
-+	ps3fb.res_index = i;
-+
- 	offset = FB_OFF(i) + VP_OFF(i);
- 	info->fix.smem_len = ps3fb_videomemory.size - offset;
- 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
-@@ -610,7 +611,7 @@ static int ps3fb_mmap(struct fb_info *in
- 	unsigned long size, offset;
- 	int i;
- 
--	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
-+	i = ps3fb_get_res_table(info->var.xres, info->var.yres, ps3fb_mode);
- 	if (i == -1)
- 		return -EINVAL;
- 
-@@ -999,7 +1000,7 @@ static int __devinit ps3fb_probe(struct 
- 
- 	if (ps3fb_mode > 0 &&
- 	    !ps3av_video_mode2res(ps3fb_mode, &xres, &yres)) {
--		ps3fb.res_index = ps3fb_get_res_table(xres, yres);
-+		ps3fb.res_index = ps3fb_get_res_table(xres, yres, ps3fb_mode);
- 		DPRINTK("res_index:%d\n", ps3fb.res_index);
- 	} else
- 		ps3fb.res_index = GPU_RES_INDEX;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-git-scsi-misc.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-ps3-fix-black-and-white-stripes.patch
-ps3fb-fix-spurious-mode-change-failures.patch
+git-alsa.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
+tdfxfb-replace-busy-waiting-with-cpu_relax.patch
+pm2fb-replace-busy-waiting-with-cpu_relax.patch
+pm3fb-replace-busy-waiting-with-cpu_relax.patch
+tdfxfb-checkpatch-fixes.patch
