@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + convert-uid-hash-to-hlist.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:31:30 -0700
-Message-ID: <200709150231.l8F2VUUY003262@imap1.linux-foundation.org>
+Subject: + fix-user-namespace-exiting-oops.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:31:33 -0700
+Message-ID: <200709150231.l8F2VXht003265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759990AbXIOCbg (ORCPT
+	by vger.kernel.org with ESMTP id S1760015AbXIOCbi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:31:36 -0400
+	Fri, 14 Sep 2007 22:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, adobriyan@openvz.org, serue@us.ibm.com
 
 
 The patch titled
-     Convert uid hash to hlist
+     Fix user namespace exiting OOPs
 has been added to the -mm tree.  Its filename is
-     convert-uid-hash-to-hlist.patch
+     fix-user-namespace-exiting-oops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,110 +26,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Convert uid hash to hlist
+Subject: Fix user namespace exiting OOPs
 From: Pavel Emelyanov <xemul@openvz.org>
 
-Surprisingly, but (spotted by Alexey Dobriyan) the uid hash still uses
-list_heads, thus occupying twice as much place as it could.  Convert it to
-hlist_heads.
+It turned out, that the user namespace is released during the do_exit() in
+exit_task_namespaces(), but the struct user_struct is released only during the
+put_task_struct(), i.e.  MUCH later.
+
+On debug kernels with poisoned slabs this will cause the oops in
+uid_hash_remove() because the head of the chain, which resides inside the
+struct user_namespace, will be already freed and poisoned.
+
+Since the uid hash itself is required only when someone can search it, i.e. 
+when the namespace is alive, we can safely unhash all the user_struct-s from
+it during the namespace exiting.  The subsequent free_uid() will complete the
+user_struct destruction.
+
+For example simple program
+
+   #include <sched.h>
+
+   char stack[2 * 1024 * 1024];
+
+   int f(void *foo)
+   {
+   	return 0;
+   }
+
+   int main(void)
+   {
+   	clone(f, stack + 1 * 1024 * 1024, 0x10000000, 0);
+   	return 0;
+   }
+
+run on kernel with CONFIG_USER_NS turned on will oops the
+kernel immediately.
+
+This was spotted during OpenVZ kernel testing.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Acked-by: "Serge E. Hallyn" <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h          |    2 +-
- include/linux/user_namespace.h |    2 +-
- kernel/user.c                  |   15 ++++++++-------
- kernel/user_namespace.c        |    2 +-
- 4 files changed, 11 insertions(+), 10 deletions(-)
+ include/linux/sched.h   |    1 +
+ kernel/user.c           |   26 +++++++++++++++++++++++++-
+ kernel/user_namespace.c |    2 +-
+ 3 files changed, 27 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~convert-uid-hash-to-hlist include/linux/sched.h
---- a/include/linux/sched.h~convert-uid-hash-to-hlist
+diff -puN include/linux/sched.h~fix-user-namespace-exiting-oops include/linux/sched.h
+--- a/include/linux/sched.h~fix-user-namespace-exiting-oops
 +++ a/include/linux/sched.h
-@@ -593,7 +593,7 @@ struct user_struct {
- #endif
- 
- 	/* Hash table maintenance information */
--	struct list_head uidhash_list;
-+	struct hlist_node uidhash_node;
- 	uid_t uid;
- };
- 
-diff -puN include/linux/user_namespace.h~convert-uid-hash-to-hlist include/linux/user_namespace.h
---- a/include/linux/user_namespace.h~convert-uid-hash-to-hlist
-+++ a/include/linux/user_namespace.h
-@@ -11,7 +11,7 @@
- 
- struct user_namespace {
- 	struct kref		kref;
--	struct list_head	uidhash_table[UIDHASH_SZ];
-+	struct hlist_head	uidhash_table[UIDHASH_SZ];
- 	struct user_struct	*root_user;
- };
- 
-diff -puN kernel/user.c~convert-uid-hash-to-hlist kernel/user.c
---- a/kernel/user.c~convert-uid-hash-to-hlist
-+++ a/kernel/user.c
-@@ -55,21 +55,22 @@ struct user_struct root_user = {
- /*
-  * These routines must be called with the uidhash spinlock held!
-  */
--static inline void uid_hash_insert(struct user_struct *up, struct list_head *hashent)
-+static inline void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
- {
--	list_add(&up->uidhash_list, hashent);
-+	hlist_add_head(&up->uidhash_node, hashent);
+@@ -1472,6 +1472,7 @@ static inline struct user_struct *get_ui
  }
+ extern void free_uid(struct user_struct *);
+ extern void switch_uid(struct user_struct *);
++extern void release_uids(struct user_namespace *ns);
+ 
+ #include <asm/current.h>
+ 
+diff -puN kernel/user.c~fix-user-namespace-exiting-oops kernel/user.c
+--- a/kernel/user.c~fix-user-namespace-exiting-oops
++++ a/kernel/user.c
+@@ -62,7 +62,7 @@ static inline void uid_hash_insert(struc
  
  static inline void uid_hash_remove(struct user_struct *up)
  {
--	list_del(&up->uidhash_list);
-+	hlist_del(&up->uidhash_node);
+-	hlist_del(&up->uidhash_node);
++	hlist_del_init(&up->uidhash_node);
  }
  
--static inline struct user_struct *uid_hash_find(uid_t uid, struct list_head *hashent)
-+static inline struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
+ static inline struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
+@@ -199,6 +199,30 @@ void switch_uid(struct user_struct *new_
+ 	suid_keys(current);
+ }
+ 
++void release_uids(struct user_namespace *ns)
++{
++	int i;
++	unsigned long flags;
++	struct hlist_head *head;
++	struct hlist_node *nd;
++
++	spin_lock_irqsave(&uidhash_lock, flags);
++	/*
++	 * collapse the chains so that the user_struct-s will
++	 * be still alive, but not in hashes. subsequent free_uid()
++	 * will free them.
++	 */
++	for (i = 0; i < UIDHASH_SZ; i++) {
++		head = ns->uidhash_table + i;
++		while (!hlist_empty(head)) {
++			nd = head->first;
++			hlist_del_init(nd);
++		}
++	}
++	spin_unlock_irqrestore(&uidhash_lock, flags);
++
++	free_uid(ns->root_user);
++}
+ 
+ static int __init uid_cache_init(void)
  {
- 	struct user_struct *user;
-+	struct hlist_node *h;
- 
--	list_for_each_entry(user, hashent, uidhash_list) {
-+	hlist_for_each_entry(user, h, hashent, uidhash_node) {
- 		if(user->uid == uid) {
- 			atomic_inc(&user->__count);
- 			return user;
-@@ -118,7 +119,7 @@ void free_uid(struct user_struct *up)
- 
- struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
- {
--	struct list_head *hashent = uidhashentry(ns, uid);
-+	struct hlist_head *hashent = uidhashentry(ns, uid);
- 	struct user_struct *up;
- 
- 	spin_lock_irq(&uidhash_lock);
-@@ -207,7 +208,7 @@ static int __init uid_cache_init(void)
- 			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
- 
- 	for(n = 0; n < UIDHASH_SZ; ++n)
--		INIT_LIST_HEAD(init_user_ns.uidhash_table + n);
-+		INIT_HLIST_HEAD(init_user_ns.uidhash_table + n);
- 
- 	/* Insert the root user immediately (init already runs as root) */
- 	spin_lock_irq(&uidhash_lock);
-diff -puN kernel/user_namespace.c~convert-uid-hash-to-hlist kernel/user_namespace.c
---- a/kernel/user_namespace.c~convert-uid-hash-to-hlist
+diff -puN kernel/user_namespace.c~fix-user-namespace-exiting-oops kernel/user_namespace.c
+--- a/kernel/user_namespace.c~fix-user-namespace-exiting-oops
 +++ a/kernel/user_namespace.c
-@@ -39,7 +39,7 @@ static struct user_namespace *clone_user
- 	kref_init(&ns->kref);
+@@ -81,7 +81,7 @@ void free_user_ns(struct kref *kref)
+ 	struct user_namespace *ns;
  
- 	for (n = 0; n < UIDHASH_SZ; ++n)
--		INIT_LIST_HEAD(ns->uidhash_table + n);
-+		INIT_HLIST_HEAD(ns->uidhash_table + n);
+ 	ns = container_of(kref, struct user_namespace, kref);
+-	free_uid(ns->root_user);
++	release_uids(ns);
+ 	kfree(ns);
+ }
  
- 	/* Insert new root user.  */
- 	ns->root_user = alloc_uid(ns, 0);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
