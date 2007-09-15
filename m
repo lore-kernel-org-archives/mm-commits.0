@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mspec-handle-shrinking-virtual-memory-areas-3.patch added to -mm tree
-Date: Sat, 15 Sep 2007 03:43:13 -0700
-Message-ID: <200709151043.l8FAhD7o029704@imap1.linux-foundation.org>
+Subject: + kvm-mmu-fix-rare-oops-on-guest-context-switch.patch added to -mm tree
+Date: Sat, 15 Sep 2007 03:43:56 -0700
+Message-ID: <200709151043.l8FAhulN029707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57541 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43588 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751721AbXIOKnQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752798AbXIOKn7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 06:43:16 -0400
+	Sat, 15 Sep 2007 06:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cpw@sgi.com, jes@sgi.com
+Cc: avi@qumranet.com
 
 
 The patch titled
-     mspec: handle shrinking virtual memory areas
+     KVM: MMU: Fix rare oops on guest context switch
 has been added to the -mm tree.  Its filename is
-     mspec-handle-shrinking-virtual-memory-areas-3.patch
+     kvm-mmu-fix-rare-oops-on-guest-context-switch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mspec: handle shrinking virtual memory areas
-From: Cliff Wickman <cpw@sgi.com>
+Subject: KVM: MMU: Fix rare oops on guest context switch
+From: Avi Kivity <avi@qumranet.com>
 
-Stress testing revealed the need for more revision:
+A guest context switch to an uncached cr3 can require allocation of
+shadow pages, but we only recycle shadow pages in kvm_mmu_page_fault().
 
-Version 3: single thread the clearing of vma_data maddr[]
+Move shadow page recycling to mmu_topup_memory_caches(), which is called
+from both the page fault handler and from guest cr3 reload.
 
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Acked-by: Jes Sorensen <jes@sgi.com>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/kvm/kvm.h |   10 +++++++---
+ drivers/kvm/mmu.c |    5 +++--
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/mspec.c~mspec-handle-shrinking-virtual-memory-areas-3 drivers/char/mspec.c
---- a/drivers/char/mspec.c~mspec-handle-shrinking-virtual-memory-areas-3
-+++ a/drivers/char/mspec.c
-@@ -91,7 +91,7 @@ static int is_sn2;
-  */
- struct vma_data {
- 	atomic_t refcnt;	/* Number of vmas sharing the data. */
--	spinlock_t lock;	/* Serialize access to the vma. */
-+	spinlock_t lock;	/* Serialize access to this structure. */
- 	int count;		/* Number of pages allocated. */
- 	enum mspec_page_type type; /* Type of pages allocated. */
- 	int flags;		/* See VMD_xxx below. */
-@@ -162,11 +162,13 @@ mspec_close(struct vm_area_struct *vma)
+diff -puN drivers/kvm/kvm.h~kvm-mmu-fix-rare-oops-on-guest-context-switch drivers/kvm/kvm.h
+--- a/drivers/kvm/kvm.h~kvm-mmu-fix-rare-oops-on-guest-context-switch
++++ a/drivers/kvm/kvm.h
+@@ -619,7 +619,7 @@ unsigned long segment_base(u16 selector)
+ void kvm_mmu_pte_write(struct kvm_vcpu *vcpu, gpa_t gpa,
+ 		       const u8 *old, const u8 *new, int bytes);
+ int kvm_mmu_unprotect_page_virt(struct kvm_vcpu *vcpu, gva_t gva);
+-void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu);
++void __kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu);
+ int kvm_mmu_load(struct kvm_vcpu *vcpu);
+ void kvm_mmu_unload(struct kvm_vcpu *vcpu);
+ 
+@@ -628,11 +628,15 @@ int kvm_hypercall(struct kvm_vcpu *vcpu,
+ static inline int kvm_mmu_page_fault(struct kvm_vcpu *vcpu, gva_t gva,
+ 				     u32 error_code)
  {
- 	struct vma_data *vdata;
- 	int index, last_index, result;
-+	unsigned long my_page;
+-	if (unlikely(vcpu->kvm->n_free_mmu_pages < KVM_MIN_FREE_MMU_PAGES))
+-		kvm_mmu_free_some_pages(vcpu);
+ 	return vcpu->mmu.page_fault(vcpu, gva, error_code);
+ }
  
- 	vdata = vma->vm_private_data;
++static inline void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu)
++{
++	if (unlikely(vcpu->kvm->n_free_mmu_pages < KVM_MIN_FREE_MMU_PAGES))
++		__kvm_mmu_free_some_pages(vcpu);
++}
++
+ static inline int kvm_mmu_reload(struct kvm_vcpu *vcpu)
+ {
+ 	if (likely(vcpu->mmu.root_hpa != INVALID_PAGE))
+diff -puN drivers/kvm/mmu.c~kvm-mmu-fix-rare-oops-on-guest-context-switch drivers/kvm/mmu.c
+--- a/drivers/kvm/mmu.c~kvm-mmu-fix-rare-oops-on-guest-context-switch
++++ a/drivers/kvm/mmu.c
+@@ -273,12 +273,14 @@ static int mmu_topup_memory_caches(struc
+ 	int r;
  
- 	BUG_ON(vma->vm_start < vdata->vm_start || vma->vm_end > vdata->vm_end);
- 
-+	spin_lock(&vdata->lock);
- 	index = (vma->vm_start - vdata->vm_start) >> PAGE_SHIFT;
- 	last_index = (vma->vm_end - vdata->vm_start) >> PAGE_SHIFT;
- 	for (; index < last_index; index++) {
-@@ -176,15 +178,19 @@ mspec_close(struct vm_area_struct *vma)
- 		 * Clear the page before sticking it back
- 		 * into the pool.
- 		 */
--		result = mspec_zero_block(vdata->maddr[index], PAGE_SIZE);
-+		my_page = vdata->maddr[index];
-+		vdata->maddr[index] = 0;
-+		spin_unlock(&vdata->lock);
-+		result = mspec_zero_block(my_page, PAGE_SIZE);
- 		if (!result)
--			uncached_free_page(vdata->maddr[index]);
-+			uncached_free_page(my_page);
- 		else
- 			printk(KERN_WARNING "mspec_close(): "
- 			       "failed to zero page %i\n",
- 			       result);
--		vdata->maddr[index] = 0;
-+		spin_lock(&vdata->lock);
+ 	r = __mmu_topup_memory_caches(vcpu, GFP_NOWAIT);
++	kvm_mmu_free_some_pages(vcpu);
+ 	if (r < 0) {
+ 		spin_unlock(&vcpu->kvm->lock);
+ 		kvm_arch_ops->vcpu_put(vcpu);
+ 		r = __mmu_topup_memory_caches(vcpu, GFP_KERNEL);
+ 		kvm_arch_ops->vcpu_load(vcpu);
+ 		spin_lock(&vcpu->kvm->lock);
++		kvm_mmu_free_some_pages(vcpu);
  	}
-+	spin_unlock(&vdata->lock);
+ 	return r;
+ }
+@@ -1208,7 +1210,7 @@ int kvm_mmu_unprotect_page_virt(struct k
+ 	return kvm_mmu_unprotect_page(vcpu, gpa >> PAGE_SHIFT);
+ }
  
- 	if (!atomic_dec_and_test(&vdata->refcnt))
- 		return;
+-void kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu)
++void __kvm_mmu_free_some_pages(struct kvm_vcpu *vcpu)
+ {
+ 	while (vcpu->kvm->n_free_mmu_pages < KVM_REFILL_PAGES) {
+ 		struct kvm_mmu_page *page;
+@@ -1218,7 +1220,6 @@ void kvm_mmu_free_some_pages(struct kvm_
+ 		kvm_mmu_zap_page(vcpu->kvm, page);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(kvm_mmu_free_some_pages);
+ 
+ static void free_mmu_pages(struct kvm_vcpu *vcpu)
+ {
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-mspec-handle-shrinking-virtual-memory-areas.patch
-mspec-handle-shrinking-virtual-memory-areas-3.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+kvm-mmu-fix-rare-oops-on-guest-context-switch.patch
+git-kvm.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
