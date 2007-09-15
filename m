@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + mspec-handle-shrinking-virtual-memory-areas.patch added to -mm tree
-Date: Sat, 15 Sep 2007 02:56:59 -0700
-Message-ID: <200709150956.l8F9uxG6028235@imap1.linux-foundation.org>
+Date: Sat, 15 Sep 2007 02:57:29 -0700
+Message-ID: <200709150957.l8F9vTqg028247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60792 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750838AbXIOJ5E (ORCPT
+	by vger.kernel.org with ESMTP id S1751220AbXIOJ5c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 05:57:04 -0400
+	Sat, 15 Sep 2007 05:57:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -32,28 +32,26 @@ From: Cliff Wickman <cpw@sgi.com>
 The shrinking of a virtual memory area that is mmap(2)'d to a memory
 special file (device drivers/char/mspec.c) can cause a panic.
 
-If the mapped size of the vma (vm_area_struct) is very large, mspec
-allocates a large vma_data structure with vmalloc().  But such a vma can be
-shrunk by an munmap(2).  The current driver uses the current size of each
-vma to deduce whether its vma_data structure was allocated by kmalloc() or
-vmalloc().  So if the vma was shrunk it appears to have been allocated by
-kmalloc(), and mspec attempts to free it with kfree().  This results in a
-panic.
+If the mapped size of the vma (vm_area_struct) is very large, mspec allocates
+a large vma_data structure with vmalloc(). But such a vma can be shrunk by
+an munmap(2).  The current driver uses the current size of each vma to
+deduce whether its vma_data structure was allocated by kmalloc() or vmalloc().
+So if the vma was shrunk it appears to have been allocated by kmalloc(),
+and mspec attempts to free it with kfree().  This results in a panic.
 
 This patch avoids the panic (by preserving the type of the allocation) and
 also makes mspec work correctly as the vma is split into pieces by the
 munmap(2)'s.
 
-All vma's derived from such a split vma share the same vma_data structure
-that represents all the pages mapped into this set of vma's.  The mpec
-driver must be made capable of using the right portion of the structure for
-each member vma.  In other words, it must index into the array of page
-addresses using the portion of the array that represents the current vma. 
-This is enabled by storing the vma group's vm_start in the vma_data
-structure.
+All vma's derived from such a split vma share the same vma_data structure that
+represents all the pages mapped into this set of vma's.  The mpec driver
+must be made capable of using the right portion of the structure for each
+member vma.  In other words, it must index into the array of page addresses
+using the portion of the array that represents the current vma. This is
+enabled by storing the vma group's vm_start in the vma_data structure.
 
-The vma's are protected by mm->mmap_sem, so the reference count was changed
-from an atomic_t to an int.
+The shared vma_data's are not protected by mm->mmap_sem in the fork() case
+so the reference count is left as atomic_t.
 
 Signed-off-by: Cliff Wickman <cpw@sgi.com>
 Acked-by: Jes Sorensen <jes@sgi.com>
