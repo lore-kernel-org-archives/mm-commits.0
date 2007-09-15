@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-update-documentation-fb-00-index.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:25:25 -0700
-Message-ID: <200709150225.l8F2PPxZ002964@imap1.linux-foundation.org>
+Subject: + fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:25:16 -0700
+Message-ID: <200709150225.l8F2PGUr002948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60919 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754009AbXIOCZa (ORCPT
+	by vger.kernel.org with ESMTP id S1751540AbXIOCZV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:25:30 -0400
+	Fri, 14 Sep 2007 22:25:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, adaplas@gmail.com
+Cc: spock@gentoo.org, adaplas@gmail.com
 
 
 The patch titled
-     fbdev: Update Documentation/fb/00-INDEX
+     fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
 has been added to the -mm tree.  Its filename is
-     fbdev-update-documentation-fb-00-index.patch
+     fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,130 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: Update Documentation/fb/00-INDEX
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
+From: Michal Januszewski <spock@gentoo.org>
 
-An update to Documentation/fb/00-INDEX is long overdue.  This patch adds
-entries for new files in the directory and removes entries for files that no
-longer exist.  The files are now also sorted alphabetically.
+Currently, if the refresh rate is not specified, fb_find_mode() returns the
+first known video mode with the requested resolution, which provides no
+guarantees wrt the refresh rate.  Change this so that the mode with the
+highest refresh rate is returned when the driver provides a custom video mode
+database and the monitor limits, and a mode with the safe 60 Hz refresh rate
+otherwise.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/00-INDEX |   46 ++++++++++++++++++++++++++++--------
- 1 file changed, 37 insertions(+), 9 deletions(-)
+ drivers/video/modedb.c |   41 +++++++++++++++++++++++++++------------
+ 1 file changed, 29 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/fb/00-INDEX~fbdev-update-documentation-fb-00-index Documentation/fb/00-INDEX
---- a/Documentation/fb/00-INDEX~fbdev-update-documentation-fb-00-index
-+++ a/Documentation/fb/00-INDEX
-@@ -5,21 +5,49 @@ please mail me.
+diff -puN drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode drivers/video/modedb.c
+--- a/drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode
++++ a/drivers/video/modedb.c
+@@ -606,26 +606,43 @@ done:
+ 	DPRINTK("Trying specified video mode%s %ix%i\n",
+ 	    refresh_specified ? "" : " (ignoring refresh rate)", xres, yres);
  
- 00-INDEX
- 	- this file
-+arkfb.txt
-+	- info on the fbdev driver for ARK Logic chips.
-+aty128fb.txt
-+	- info on the ATI Rage128 frame buffer driver.
-+cirrusfb.txt
-+	- info on the driver for Cirrus Logic chipsets.
-+cyblafb/
-+	- directory with documentation files related to the cyblafb driver.
-+deferred_io.txt
-+	- an introduction to deferred IO.
-+fbcon.txt
-+	- intro to and usage guide for the framebuffer console (fbcon).
- framebuffer.txt
--	- introduction to frame buffer devices
-+	- introduction to frame buffer devices.
-+imacfb.txt
-+	- info on the generic EFI platform driver for Intel based Macs.
-+intel810.txt
-+	- documentation for the Intel 810/815 framebuffer driver.
-+intelfb.txt
-+	- docs for Intel 830M/845G/852GM/855GM/865G/915G/945G fb driver.
- internals.txt
--	- quick overview of frame buffer device internals
-+	- quick overview of frame buffer device internals.
-+matroxfb.txt
-+	- info on the Matrox framebuffer driver for Alpha, Intel and PPC.
- modedb.txt
--	- info on the video mode database
--aty128fb.txt
--	- info on the ATI Rage128 frame buffer driver
--clgenfb.txt
--	- info on the Cirrus Logic frame buffer driver
-+	- info on the video mode database.
- matroxfb.txt
--	- info on the Matrox frame buffer driver
-+	- info on the Matrox frame buffer driver.
- pvr2fb.txt
--	- info on the PowerVR 2 frame buffer driver
-+	- info on the PowerVR 2 frame buffer driver.
-+pxafb.txt
-+	- info on the driver for the PXA25x LCD controller.
-+s3fb.txt
-+	- info on the fbdev driver for S3 Trio/Virge chips.
-+sa1100fb.txt
-+	- information about the driver for the SA-1100 LCD controller.
-+sisfb.txt
-+	- info on the framebuffer device driver for various SiS chips.
-+sstfb.txt
-+	- info on the frame buffer driver for 3dfx' Voodoo Graphics boards.
- tgafb.txt
- 	- info on the TGA (DECChip 21030) frame buffer driver
- vesafb.txt
- 	- info on the VESA frame buffer device
-+vt8623fb.txt
-+	- info on the fb driver for the graphics core in VIA VT8623 chipsets.
+-	diff = refresh;
++	if (!refresh_specified) {
++		/*
++		 * If the caller has provided a custom mode database and a
++		 * valid monspecs structure, we look for the mode with the
++		 * highest refresh rate.  Otherwise we play it safe it and
++		 * try to find a mode with a refresh rate closest to the
++		 * standard 60 Hz.
++		 */
++		if (db != modedb &&
++		    info->monspecs.vfmin && info->monspecs.vfmax &&
++		    info->monspecs.hfmin && info->monspecs.hfmax &&
++		    info->monspecs.dclkmax) {
++			refresh = 1000;
++		} else {
++			refresh = 60;
++		}
++	}
++
++	diff = -1;
+ 	best = -1;
+ 	for (i = 0; i < dbsize; i++) {
+-		if (name_matches(db[i], name, namelen) ||
+-		    (res_specified && res_matches(db[i], xres, yres))) {
+-			if(!fb_try_mode(var, info, &db[i], bpp)) {
+-				if(!refresh_specified || db[i].refresh == refresh)
+-					return 1;
+-				else {
+-					if(diff > abs(db[i].refresh - refresh)) {
+-						diff = abs(db[i].refresh - refresh);
+-						best = i;
+-					}
++		if ((name_matches(db[i], name, namelen) ||
++		    (res_specified && res_matches(db[i], xres, yres))) &&
++		    !fb_try_mode(var, info, &db[i], bpp)) {
++			if (refresh_specified && db[i].refresh == refresh) {
++				return 1;
++			} else {
++				if (abs(db[i].refresh - refresh) < diff) {
++					diff = abs(db[i].refresh - refresh);
++					best = i;
+ 				}
+ 			}
+ 		}
+ 	}
+ 	if (best != -1) {
+ 		fb_try_mode(var, info, &db[best], bpp);
+-		return 2;
++		return (refresh_specified) ? 2 : 1;
+ 	}
+ 
+ 	diff = xres + yres;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
-git-netdev-all.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-scsi-misc.patch
-mpt-fusion-fix-two-potential-mem-leaks.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+fbdev-export-fb_destroy_modelist.patch
+connector-change-connectors-max-message-size.patch
+uvesafb-add-connector-entries.patch
+uvesafb-the-driver-core.patch
+uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
+uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch
+uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch
+uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch
+uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch
+uvesafb-the-driver-core-uvesafb-try-to-set-mode-with-default-timings-if-setting-it-with-our-own-timings-failed.patch
+uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch
+uvesafb-documentation.patch
+uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch
+fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch
