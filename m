@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xen-dont-bother-trying-to-set-cr4.patch added to -mm tree
-Date: Sat, 15 Sep 2007 03:03:08 -0700
-Message-ID: <200709151003.l8FA38VN028417@imap1.linux-foundation.org>
+Subject: + pci-fix-unterminated-pci_device_id-lists-fix.patch added to -mm tree
+Date: Sat, 15 Sep 2007 03:06:17 -0700
+Message-ID: <200709151006.l8FA6H1b028546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46514 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41101 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752741AbXIOKDR (ORCPT
+	by vger.kernel.org with ESMTP id S1751981AbXIOKGV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 06:03:17 -0400
+	Sat, 15 Sep 2007 06:06:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, ak@suse.de, jeremy@xensource.com
+Cc: kees@ubuntu.com
 
 
 The patch titled
-     xen: don't bother trying to set cr4
+     misc: fix unterminated *_device_id lists
 has been added to the -mm tree.  Its filename is
-     xen-dont-bother-trying-to-set-cr4.patch
+     pci-fix-unterminated-pci_device_id-lists-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xen: don't bother trying to set cr4
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: misc: fix unterminated *_device_id lists
+From: Kees Cook <kees@ubuntu.com>
 
-Xen ignores all updates to cr4, and some versions will kill the domain if
-you try to change its value.  Just ignore all changes.
+Fixes drivers that do not correctly terminate their *_device_id lists. 
+This results in garbage being spewed into modules.pcimap when the module
+happens to not have 28 NULL bytes following the table, and/or the last PCI
+ID is actually truncated from the table when calculating the modules.alias
+PCI aliases, causing those unfortunate device IDs to not auto-load.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Kees Cook <kees@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/enlighten.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/usbvision/usbvision-cards.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4 arch/i386/xen/enlighten.c
---- a/arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4
-+++ a/arch/i386/xen/enlighten.c
-@@ -623,8 +623,8 @@ static unsigned long xen_read_cr2_direct
+diff -puN drivers/media/video/usbvision/usbvision-cards.c~pci-fix-unterminated-pci_device_id-lists-fix drivers/media/video/usbvision/usbvision-cards.c
+--- a/drivers/media/video/usbvision/usbvision-cards.c~pci-fix-unterminated-pci_device_id-lists-fix
++++ a/drivers/media/video/usbvision/usbvision-cards.c
+@@ -1081,6 +1081,7 @@ struct usb_device_id usbvision_table [] 
+ 	{ USB_DEVICE(0x2304, 0x0301), .driver_info=PINNA_LINX_VD_IN_CAB_PAL },
+ 	{ USB_DEVICE(0x2304, 0x0419), .driver_info=PINNA_PCTV_BUNGEE_PAL_FM },
+ 	{ USB_DEVICE(0x2400, 0x4200), .driver_info=HPG_WINTV },
++	{ },    /* terminate list */
+ };
  
- static void xen_write_cr4(unsigned long cr4)
- {
--	/* never allow TSC to be disabled */
--	native_write_cr4(cr4 & ~X86_CR4_TSD);
-+	/* Just ignore cr4 changes; Xen doesn't allow us to do
-+	   anything anyway. */
- }
- 
- static unsigned long xen_read_cr3(void)
+ MODULE_DEVICE_TABLE (usb, usbvision_table);
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from kees@ubuntu.com are
 
-xen-dont-bother-trying-to-set-cr4.patch
-git-netdev-all.patch
-enforce-noreplace-smp-in-alternative_instructions.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
-core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+pci-fix-unterminated-pci_device_id-lists.patch
+pci-fix-unterminated-pci_device_id-lists-fix.patch
+modpost-detect-unterminated-device-id-lists.patch
+modpost-detect-unterminated-device-id-lists-fix.patch
