@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:25:16 -0700
-Message-ID: <200709150225.l8F2PGUr002948@imap1.linux-foundation.org>
+Subject: + tdfxfb-replace-busy-waiting-with-cpu_relax.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:25:26 -0700
+Message-ID: <200709150225.l8F2PQOg002967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60919 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751540AbXIOCZV (ORCPT
+	by vger.kernel.org with ESMTP id S1754274AbXIOCZ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:25:21 -0400
+	Fri, 14 Sep 2007 22:25:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
+     tdfxfb: replace busy waiting with cpu_relax
 has been added to the -mm tree.  Its filename is
-     fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch
+     tdfxfb-replace-busy-waiting-with-cpu_relax.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
-From: Michal Januszewski <spock@gentoo.org>
+Subject: tdfxfb: replace busy waiting with cpu_relax
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Currently, if the refresh rate is not specified, fb_find_mode() returns the
-first known video mode with the requested resolution, which provides no
-guarantees wrt the refresh rate.  Change this so that the mode with the
-highest refresh rate is returned when the driver provides a custom video mode
-database and the monitor limits, and a mode with the safe 60 Hz refresh rate
-otherwise.
+This patch replaces busy waiting with cpu_relax() call.  This makes scrolling
+faster.
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |   41 +++++++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ drivers/video/tdfxfb.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode
-+++ a/drivers/video/modedb.c
-@@ -606,26 +606,43 @@ done:
- 	DPRINTK("Trying specified video mode%s %ix%i\n",
- 	    refresh_specified ? "" : " (ignoring refresh rate)", xres, yres);
- 
--	diff = refresh;
-+	if (!refresh_specified) {
-+		/*
-+		 * If the caller has provided a custom mode database and a
-+		 * valid monspecs structure, we look for the mode with the
-+		 * highest refresh rate.  Otherwise we play it safe it and
-+		 * try to find a mode with a refresh rate closest to the
-+		 * standard 60 Hz.
-+		 */
-+		if (db != modedb &&
-+		    info->monspecs.vfmin && info->monspecs.vfmax &&
-+		    info->monspecs.hfmin && info->monspecs.hfmax &&
-+		    info->monspecs.dclkmax) {
-+			refresh = 1000;
-+		} else {
-+			refresh = 60;
-+		}
-+	}
-+
-+	diff = -1;
- 	best = -1;
- 	for (i = 0; i < dbsize; i++) {
--		if (name_matches(db[i], name, namelen) ||
--		    (res_specified && res_matches(db[i], xres, yres))) {
--			if(!fb_try_mode(var, info, &db[i], bpp)) {
--				if(!refresh_specified || db[i].refresh == refresh)
--					return 1;
--				else {
--					if(diff > abs(db[i].refresh - refresh)) {
--						diff = abs(db[i].refresh - refresh);
--						best = i;
--					}
-+		if ((name_matches(db[i], name, namelen) ||
-+		    (res_specified && res_matches(db[i], xres, yres))) &&
-+		    !fb_try_mode(var, info, &db[i], bpp)) {
-+			if (refresh_specified && db[i].refresh == refresh) {
-+				return 1;
-+			} else {
-+				if (abs(db[i].refresh - refresh) < diff) {
-+					diff = abs(db[i].refresh - refresh);
-+					best = i;
- 				}
- 			}
- 		}
- 	}
- 	if (best != -1) {
- 		fb_try_mode(var, info, &db[best], bpp);
--		return 2;
-+		return (refresh_specified) ? 2 : 1;
- 	}
- 
- 	diff = xres + yres;
+diff -puN drivers/video/tdfxfb.c~tdfxfb-replace-busy-waiting-with-cpu_relax drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-replace-busy-waiting-with-cpu_relax
++++ a/drivers/video/tdfxfb.c
+@@ -273,7 +273,8 @@ static inline void banshee_make_room(str
+ {
+ 	/* Note: The Voodoo3's onboard FIFO has 32 slots. This loop
+ 	 * won't quit if you ask for more. */
+- 	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1) ;
++	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1)
++		cpu_relax();
+ }
+  
+ static int banshee_wait_idle(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-fbdev-export-fb_destroy_modelist.patch
-connector-change-connectors-max-message-size.patch
-uvesafb-add-connector-entries.patch
-uvesafb-the-driver-core.patch
-uvesafb-the-driver-core-uvesafb-set-the-refresh-rate-to-60hz-if-nocrtc-is-used.patch
-uvesafb-the-driver-core-uvesafb-always-use-mutexes-when-accessing-uvfb_tasks.patch
-uvesafb-the-driver-core-uvesafb-fix-a-typo-in-a-warning.patch
-uvesafb-the-driver-core-uvesafb-use-visual_truecolor-as-the-default-visual.patch
-uvesafb-the-driver-core-uvesafb-use-the-default-refresh-rate-if-the-monitor-limits-are-not-set.patch
-uvesafb-the-driver-core-uvesafb-try-to-set-mode-with-default-timings-if-setting-it-with-our-own-timings-failed.patch
-uvesafb-the-driver-core-dont-access-vga-registers-directly-when-running-on-non-x86.patch
-uvesafb-documentation.patch
-uvesafb-documentation-uvesafb-add-info-about-pmipal-yrap-and-ypan-being-available-only-on-x86.patch
-fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch
+git-alsa.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-fix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
+tdfxfb-replace-busy-waiting-with-cpu_relax.patch
+pm2fb-replace-busy-waiting-with-cpu_relax.patch
+pm3fb-replace-busy-waiting-with-cpu_relax.patch
+tdfxfb-checkpatch-fixes.patch
