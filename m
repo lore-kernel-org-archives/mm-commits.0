@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-the-pr_-family-of-macros-in-kernelh-complete.patch added to -mm tree
-Date: Fri, 14 Sep 2007 17:10:48 -0700
-Message-ID: <200709150010.l8F0Amba031010@imap1.linux-foundation.org>
+Subject: + doc-about-email-clients-for-linux-patches.patch added to -mm tree
+Date: Fri, 14 Sep 2007 17:23:17 -0700
+Message-ID: <200709150023.l8F0NH4K031475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54823 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755189AbXIOALp (ORCPT
+	by vger.kernel.org with ESMTP id S1753813AbXIOAXu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 20:11:45 -0400
+	Fri, 14 Sep 2007 20:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Emilian.Medve@Freescale.com, adaplas@pol.net, jeff@garzik.org, khali@linux-fr.org, randy.dunlap@oracle.com, satyam@infradead.org, tony@atomide.com
+Cc: randy.dunlap@oracle.com, jeff@garzik.org, mbligh@mbligh.org
 
 
 The patch titled
-     Make the pr_*() family of macros in kernel.h complete
+     doc: about email clients for Linux patches
 has been added to the -mm tree.  Its filename is
-     make-the-pr_-family-of-macros-in-kernelh-complete.patch
+     doc-about-email-clients-for-linux-patches.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,187 +26,265 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make the pr_*() family of macros in kernel.h complete
-From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: doc: about email clients for Linux patches
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Other/Some pr_*() macros are already defined in kernel.h, but pr_err() was
-defined multiple times in several other places
+Requested by Jeff Garzik.
+v3, updated from lkml comments.
 
-Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Add info about various email clients and their applicability
+in being used to send Linux kernel patches.
+
+Some notes takes from http://mbligh.org/linuxdocs/Email/Clients
+Portions used with permission.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Tony Lindgren <tony@atomide.com>
-Reviewed-by: Satyam Sharma <satyam@infradead.org>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Martin Bligh <mbligh@mbligh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/chips/menelaus.c     |   10 ++++------
- drivers/net/spider_net.h         |    3 ---
- drivers/video/omap/lcd_h3.c      |    6 ++----
- drivers/video/omap/lcd_inn1610.c |    6 ++----
- include/linux/kernel.h           |   22 +++++++++++++++++-----
- 5 files changed, 25 insertions(+), 22 deletions(-)
+ Documentation/email-clients.txt |  217 ++++++++++++++++++++++++++++++
+ 1 files changed, 217 insertions(+)
 
-diff -puN drivers/i2c/chips/menelaus.c~make-the-pr_-family-of-macros-in-kernelh-complete drivers/i2c/chips/menelaus.c
---- a/drivers/i2c/chips/menelaus.c~make-the-pr_-family-of-macros-in-kernelh-complete
-+++ a/drivers/i2c/chips/menelaus.c
-@@ -49,8 +49,6 @@
- 
- #define DRIVER_NAME			"menelaus"
- 
--#define pr_err(fmt, arg...)	printk(KERN_ERR DRIVER_NAME ": ", ## arg);
--
- #define MENELAUS_I2C_ADDRESS		0x72
- 
- #define MENELAUS_REV			0x01
-@@ -155,7 +153,7 @@ static int menelaus_write_reg(int reg, u
- 	int val = i2c_smbus_write_byte_data(the_menelaus->client, reg, value);
- 
- 	if (val < 0) {
--		pr_err("write error");
-+		pr_err(DRIVER_NAME ": write error");
- 		return val;
- 	}
- 
-@@ -167,7 +165,7 @@ static int menelaus_read_reg(int reg)
- 	int val = i2c_smbus_read_byte_data(the_menelaus->client, reg);
- 
- 	if (val < 0)
--		pr_err("read error");
-+		pr_err(DRIVER_NAME ": read error");
- 
- 	return val;
- }
-@@ -1177,7 +1175,7 @@ static int menelaus_probe(struct i2c_cli
- 	/* If a true probe check the device */
- 	rev = menelaus_read_reg(MENELAUS_REV);
- 	if (rev < 0) {
--		pr_err("device not found");
-+		pr_err(DRIVER_NAME ": device not found");
- 		err = -ENODEV;
- 		goto fail1;
- 	}
-@@ -1258,7 +1256,7 @@ static int __init menelaus_init(void)
- 
- 	res = i2c_add_driver(&menelaus_i2c_driver);
- 	if (res < 0) {
--		pr_err("driver registration failed\n");
-+		pr_err(DRIVER_NAME ": driver registration failed\n");
- 		return res;
- 	}
- 
-diff -puN drivers/net/spider_net.h~make-the-pr_-family-of-macros-in-kernelh-complete drivers/net/spider_net.h
---- a/drivers/net/spider_net.h~make-the-pr_-family-of-macros-in-kernelh-complete
-+++ a/drivers/net/spider_net.h
-@@ -494,7 +494,4 @@ struct spider_net_card {
- 	struct spider_net_descr darray[0];
- };
- 
--#define pr_err(fmt,arg...) \
--	printk(KERN_ERR fmt ,##arg)
--
- #endif
-diff -puN drivers/video/omap/lcd_h3.c~make-the-pr_-family-of-macros-in-kernelh-complete drivers/video/omap/lcd_h3.c
---- a/drivers/video/omap/lcd_h3.c~make-the-pr_-family-of-macros-in-kernelh-complete
-+++ a/drivers/video/omap/lcd_h3.c
-@@ -28,8 +28,6 @@
- 
- #define MODULE_NAME	"omapfb-lcd_h3"
- 
--#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
--
- static int h3_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
- {
- 	return 0;
-@@ -48,7 +46,7 @@ static int h3_panel_enable(struct lcd_pa
- 	if (!r)
- 		r = tps65010_set_gpio_out_value(GPIO2, HIGH);
- 	if (r)
--		pr_err("Unable to turn on LCD panel\n");
-+		pr_err(MODULE_NAME ": Unable to turn on LCD panel\n");
- 
- 	return r;
- }
-@@ -62,7 +60,7 @@ static void h3_panel_disable(struct lcd_
- 	if (!r)
- 		tps65010_set_gpio_out_value(GPIO2, LOW);
- 	if (r)
--		pr_err("Unable to turn off LCD panel\n");
-+		pr_err(MODULE_NAME ": Unable to turn off LCD panel\n");
- }
- 
- static unsigned long h3_panel_get_caps(struct lcd_panel *panel)
-diff -puN drivers/video/omap/lcd_inn1610.c~make-the-pr_-family-of-macros-in-kernelh-complete drivers/video/omap/lcd_inn1610.c
---- a/drivers/video/omap/lcd_inn1610.c~make-the-pr_-family-of-macros-in-kernelh-complete
-+++ a/drivers/video/omap/lcd_inn1610.c
-@@ -27,20 +27,18 @@
- 
- #define MODULE_NAME	"omapfb-lcd_h3"
- 
--#define pr_err(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
--
- static int innovator1610_panel_init(struct lcd_panel *panel,
- 				    struct omapfb_device *fbdev)
- {
- 	int r = 0;
- 
- 	if (omap_request_gpio(14)) {
--		pr_err("can't request GPIO 14\n");
-+		pr_err(MODULE_NAME ": can't request GPIO 14\n");
- 		r = -1;
- 		goto exit;
- 	}
- 	if (omap_request_gpio(15)) {
--		pr_err("can't request GPIO 15\n");
-+		pr_err(MODULE_NAME ": can't request GPIO 15\n");
- 		omap_free_gpio(14);
- 		r = -1;
- 		goto exit;
-diff -puN include/linux/kernel.h~make-the-pr_-family-of-macros-in-kernelh-complete include/linux/kernel.h
---- a/include/linux/kernel.h~make-the-pr_-family-of-macros-in-kernelh-complete
-+++ a/include/linux/kernel.h
-@@ -237,10 +237,25 @@ extern void print_hex_dump_bytes(const c
- 			const void *buf, size_t len);
- #define hex_asc(x)	"0123456789abcdef"[x]
- 
-+#define pr_emerg(fmt, arg...) \
-+	printk(KERN_EMERG fmt, ##arg)
-+#define pr_alert(fmt, arg...) \
-+	printk(KERN_ALERT fmt, ##arg)
-+#define pr_crit(fmt, arg...) \
-+	printk(KERN_CRIT fmt, ##arg)
-+#define pr_err(fmt, arg...) \
-+	printk(KERN_ERR fmt, ##arg)
-+#define pr_warning(fmt, arg...) \
-+	printk(KERN_WARNING fmt, ##arg)
-+#define pr_notice(fmt, arg...) \
-+	printk(KERN_NOTICE fmt, ##arg)
-+#define pr_info(fmt, arg...) \
-+	printk(KERN_INFO fmt, ##arg)
+diff -puN /dev/null Documentation/email-clients.txt
+--- /dev/null
++++ a/Documentation/email-clients.txt
+@@ -0,0 +1,217 @@
++Email clients info for Linux
++======================================================================
 +
- #ifdef DEBUG
- /* If you are writing a driver, please use dev_dbg instead */
--#define pr_debug(fmt,arg...) \
--	printk(KERN_DEBUG fmt,##arg)
-+#define pr_debug(fmt, arg...) \
-+	printk(KERN_DEBUG fmt, ##arg)
- #else
- static inline int __attribute__ ((format (printf, 1, 2))) pr_debug(const char * fmt, ...)
- {
-@@ -248,9 +263,6 @@ static inline int __attribute__ ((format
- }
- #endif
- 
--#define pr_info(fmt,arg...) \
--	printk(KERN_INFO fmt,##arg)
--
- /*
-  *      Display an IP address in readable format.
-  */
++General Preferences
++----------------------------------------------------------------------
++Patches for the Linux kernel are submitted via email, preferably as
++inline text in the body of the email.  Some maintainers accept
++attachments, but then the attachments should have content-type
++"text/plain".  However, attachments are generally frowned upon because
++it makes quoting portions of the patch more difficult in the patch
++review process.
++
++Email clients that are used for Linux kernel patches should send the
++patch text untouched.  For example, they should not modify or delete tabs
++or spaces, even at the beginning or end of lines.
++
++Don't send patches with "format=flowed".  This can cause unexpected
++and unwanted line breaks.
++
++Don't let your email client do automatic word wrapping for you.
++This can also corrupt your patch.
++
++Email clients should not modify the character set encoding of the text.
++Emailed patches should be in ASCII or UTF-8 encoding only.
++If you configure your email client to send emails with UTF-8 encoding,
++you avoid some possible charset problems.
++
++Email clients should generate and maintain References: or In-Reply-To:
++headers so that mail threading is not broken.
++
++Copy-and-paste (or cut-and-paste) usually does not work for patches
++because tabs are converted to spaces.  Using xclipboard, xclip, and/or
++xcutsel may work, but it's best to test this for yourself or just avoid
++copy-and-paste.
++
++Don't use PGP/GPG signatures in mail that contains patches.
++This breaks many scripts that read and apply the patches.
++(This should be fixable.)
++
++It's a good idea to send a patch to yourself, save the received message,
++and successfully apply it with 'patch' before sending patches to Linux
++mailing lists.
++
++
++Some email client (MUA) hints
++----------------------------------------------------------------------
++Here are some specific MUA configuration hints for editing and sending
++patches for the Linux kernel.  These are not meant to be complete
++software package configuration summaries.
++
++Legend:
++TUI = text-based user interface
++GUI = graphical user interface
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Alpine (TUI)
++
++Config options:
++In the "Sending Preferences" section:
++
++- "Do Not Send Flowed Text" must be enabled
++- "Strip Whitespace Before Sending" must be disabled
++
++When composing the message, the cursor should be placed where the patch
++should appear, and then pressing CTRL-R let you specify the patch file
++to insert into the message.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Evolution (GUI)
++
++Some people use this successfully for patches.
++
++When composing mail select: Preformat
++  from Format->Heading->Preformatted (Ctrl-7)
++  or the toolbar
++
++Then use:
++  Insert->Text File... (Alt-n x)
++to insert the patch.
++
++You can also "diff -Nru old.c new.c | xclip", select Preformat, then
++paste with the middle button.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Kmail (GUI)
++
++Some people use Kmail successfully for patches.
++
++The default setting of not composing in HTML is appropriate; do not
++enable it.
++
++When composing an email, under options, uncheck "word wrap". The only
++disadvantage is any text you type in the email will not be word-wrapped
++so you will have to manually word wrap text before the patch. The easiest
++way around this is to compose your email with word wrap enabled, then save
++it as a draft. Once you pull it up again from your drafts it is now hard
++word-wrapped and you can uncheck "word wrap" without losing the existing
++wrapping.
++
++At the bottom of your email, put the commonly-used patch delimiter before
++inserting your patch:  three hyphens (---).
++
++Then from the "Message" menu item, select insert file and choose your patch.
++As an added bonus you can customise the message creation toolbar menu
++and put the "insert file" icon there.
++
++You can safely GPG sign attachments, but inlined text is preferred for
++patches so do not GPG sign them.  Signing patches that have been inserted
++as inlined text will make them tricky to extract from their 7-bit encoding.
++
++If you absolutely must send patches as attachments instead of inlining
++them as text, right click on the attachment and select properties, and
++highlight "Suggest automatic display" to make the attachment inlined to
++make it more viewable.
++
++When saving patches that are sent as inlined text, select the email that
++contains the patch from the message list pane, right click and select
++"save as".  You can use the whole email unmodified as a patch if it was
++properly composed.  There is no option currently to save the email when you
++are actually viewing it in its own window -- there has been a request filed
++at kmail's bugzilla and hopefully this will be addressed.  Emails are saved
++as read-write for user only so you will have to chmod them to make them
++group and world readable if you copy them elsewhere.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Lotus Notes (GUI)
++
++Run away from it.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Mutt (TUI)
++
++Plenty of Linux developers use mutt, so it must work pretty well.
++
++Mutt doesn't come with an editor, so whatever editor you use should be
++used in a way that there are no automatic linebreaks.  Most editors have
++an "insert file" option that inserts the contents of a file unaltered.
++
++To use 'vim' with mutt:
++  set editor="vi"
++
++  If using xclip, type the command
++  :set paste
++  before middle button or shift-insert or use
++  :r filename
++
++if you want to include the patch inline.
++(a)ttach works fine without "set paste".
++
++Config options:
++It should work with default settings.
++However, it's a good idea to set the "send_charset" to:
++  set send_charset="us-ascii:utf-8"
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Pine (TUI)
++
++Pine has had some whitespace truncation issues in the past, but these
++should all be fixed now.
++
++Use alpine (pine's successor) if you can.
++
++Config options:
++- quell-flowed-text is needed for recent versions
++- the "no-strip-whitespace-before-send" option is needed
++
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Sylpheed (GUI)
++
++- Works well for inlining text (or using attachments).
++- Allows use of an external editor.
++- Not good for IMAP.
++- Is slow on large folders.
++- Won't do TLS SMTP auth over a non-SSL connection.
++- Has a helpful ruler bar in the compose window.
++- Adding addresses to address book doesn't understand the display name
++  properly.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++Thunderbird (GUI)
++
++By default, thunderbird likes to mangle text, but there are ways to
++coerce it into being nice.
++
++- Under account settings, composition and addressing, uncheck "Compose
++  messages in HTML format".
++
++- Edit your Thunderbird config settings to tell it not to wrap lines:
++      user_pref("mailnews.wraplength", 0);
++
++- Edit your Thunderbird config settings so that it won't use format=flowed:
++      user_pref("mailnews.send_plaintext_flowed", false);
++
++- You need to get Thunderbird into preformat mode:
++. If you compose HTML messages by default, it's not too hard. Just select
++  "Preformat" from the drop-down box just under the subject line.
++. If you compose in text by default, you have to tell it to compose a new
++  message in HTML (just as a one-off), and then force it from there back to
++  text, else it will wrap lines. To do this, use shift-click on the Write
++  icon to compose to get HTML compose mode, then select "Preformat" from
++  the drop-down box just under the subject line.
++
++- Allows use of an external editor:
++  The easiest thing to do with Thunderbird and patches is to use an
++  "external editor" extension and then just use your favorite $EDITOR
++  for reading/merging patches into the body text.  To do this, download
++  and install the extension, then add a button for it using
++  View->Toolbars->Customize... and finally just click on it when in the
++  Compose dialog.
++
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++TkRat (GUI)
++
++Works.  Use "Insert file..." or external editor.
++
++                                ###
 _
 
-Patches currently in -mm which might be from Emilian.Medve@Freescale.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+git-mtd.patch
+git-nfsd.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
 make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+profile-likely-unlikely-macros.patch
