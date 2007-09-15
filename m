@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-replace-busy-waiting-with-cpu_relax.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:25:26 -0700
-Message-ID: <200709150225.l8F2PQOg002967@imap1.linux-foundation.org>
+Subject: + pm2fb-replace-busy-waiting-with-cpu_relax.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:25:28 -0700
+Message-ID: <200709150225.l8F2PSM7002972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754274AbXIOCZ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755506AbXIOCZd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:25:29 -0400
+	Fri, 14 Sep 2007 22:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     tdfxfb: replace busy waiting with cpu_relax
+     pm2fb: replace busy waiting with cpu_relax
 has been added to the -mm tree.  Its filename is
-     tdfxfb-replace-busy-waiting-with-cpu_relax.patch
+     pm2fb-replace-busy-waiting-with-cpu_relax.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tdfxfb: replace busy waiting with cpu_relax
+Subject: pm2fb: replace busy waiting with cpu_relax
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch replaces busy waiting with cpu_relax() call.  This makes scrolling
-faster.
+This patch replaces busy waiting with the cpu_relax() call.  This makes
+scrolling faster.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/pm2fb.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-replace-busy-waiting-with-cpu_relax drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-replace-busy-waiting-with-cpu_relax
-+++ a/drivers/video/tdfxfb.c
-@@ -273,7 +273,8 @@ static inline void banshee_make_room(str
+diff -puN drivers/video/pm2fb.c~pm2fb-replace-busy-waiting-with-cpu_relax drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-replace-busy-waiting-with-cpu_relax
++++ a/drivers/video/pm2fb.c
+@@ -193,8 +193,8 @@ static inline void pm2v_RDAC_WR(struct p
+ #else
+ static inline void WAIT_FIFO(struct pm2fb_par *p, u32 a)
  {
- 	/* Note: The Voodoo3's onboard FIFO has 32 slots. This loop
- 	 * won't quit if you ask for more. */
-- 	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1) ;
-+	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1)
+-	while (pm2_RD(p, PM2R_IN_FIFO_SPACE) < a);
+-	mb();
++	while (pm2_RD(p, PM2R_IN_FIFO_SPACE) < a)
 +		cpu_relax();
  }
-  
- static int banshee_wait_idle(struct fb_info *info)
+ #endif
+ 
+@@ -328,7 +328,7 @@ static void reset_card(struct pm2fb_par 
+ 	pm2_WR(p, PM2R_RESET_STATUS, 0);
+ 	mb();
+ 	while (pm2_RD(p, PM2R_RESET_STATUS) & PM2F_BEING_RESET)
+-		;
++		cpu_relax();
+ 	mb();
+ #ifdef CONFIG_FB_PM2_FIFO_DISCONNECT
+ 	DPRINTK("FIFO disconnect enabled\n");
+@@ -1041,8 +1041,7 @@ static int pm2fb_sync(struct fb_info *in
+ 	mb();
+ 	do {
+ 		while (pm2_RD(par, PM2R_OUT_FIFO_WORDS) == 0)
+-			udelay(10);
+-		rmb();
++			cpu_relax();
+ 	} while (pm2_RD(par, PM2R_OUT_FIFO) != PM2TAG(PM2R_SYNC));
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
