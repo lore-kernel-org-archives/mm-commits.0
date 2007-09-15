@@ -1,390 +1,494 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-support-for-byte-reversed-framebuffer-formats.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:25:20 -0700
-Message-ID: <200709150225.l8F2PKdt002954@imap1.linux-foundation.org>
+Subject: + tdfxfb-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:25:30 -0700
+Message-ID: <200709150225.l8F2PUeG002979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53451 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759242AbXIOCZf (ORCPT
+	by vger.kernel.org with ESMTP id S1756255AbXIOCZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:25:35 -0400
+	Fri, 14 Sep 2007 22:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pisa@cmp.felk.cvut.cz, adaplas@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@gmail.com
 
 
 The patch titled
-     fbdev: Support for byte-reversed framebuffer formats
+     tdfxfb: checkpatch fixes
 has been added to the -mm tree.  Its filename is
-     fbdev-support-for-byte-reversed-framebuffer-formats.patch
+     tdfxfb-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: Support for byte-reversed framebuffer formats
-From: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Subject: tdfxfb: checkpatch fixes
+=46rom: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Allow generic frame-buffer code to correctly write texts and blit images for
-1, 2 and 4 bit per pixel frame-buffer organizations when pixels in bytes are
-organized to in opposite order than bytes in long type.
+This patch fixes all errors pointed by the checkpatch.pl script.
 
-Overhead should be reasonable.  If option is not selected, than compiler
-should eliminate completely all overhead.
-
-The feature is disabled at compile time if CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is
-not set.
-
-[adaplas]
-Convert helper functions to macros if feature is not enabled.
-
-Signed-off-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |    9 ++++
- drivers/video/cfbcopyarea.c |   17 ++++----
- drivers/video/cfbfillrect.c |   20 ++++++----
- drivers/video/cfbimgblt.c   |   17 +++++---
- drivers/video/fb_draw.h     |   68 ++++++++++++++++++++++++++++++++++
- include/linux/fb.h          |    1 
- 6 files changed, 109 insertions(+), 23 deletions(-)
+ drivers/video/tdfxfb.c |  136 ++++++++++++++++++++++-----------------
+ 1 file changed, 77 insertions(+), 59 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/Kconfig
-@@ -102,6 +102,15 @@ config FB_CFB_IMAGEBLIT
- 	  blitting. This is used by drivers that don't provide their own
- 	  (accelerated) version.
- 
-+config FB_CFB_REV_PIXELS_IN_BYTE
-+	bool
-+	depends on FB
-+	default n
-+	---help---
-+	  Allow generic frame-buffer functions to work on displays with 1, 2
-+	  and 4 bits per pixel depths which has opposite order of pixels in
-+	  byte order to bytes in long order.
-+
- config FB_SYS_FILLRECT
- 	tristate
- 	depends on FB
-diff -puN drivers/video/cfbcopyarea.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbcopyarea.c
---- a/drivers/video/cfbcopyarea.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbcopyarea.c
-@@ -45,14 +45,14 @@
- 
- static void
- bitcpy(unsigned long __iomem *dst, int dst_idx, const unsigned long __iomem *src,
--	int src_idx, int bits, unsigned n)
-+	int src_idx, int bits, unsigned n, u32 bswapmask)
- {
- 	unsigned long first, last;
- 	int const shift = dst_idx-src_idx;
- 	int left, right;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (!shift) {
- 		// Same alignment for source and dest
-@@ -185,7 +185,7 @@ bitcpy(unsigned long __iomem *dst, int d
- 
- static void
- bitcpy_rev(unsigned long __iomem *dst, int dst_idx, const unsigned long __iomem *src,
--		int src_idx, int bits, unsigned n)
-+		int src_idx, int bits, unsigned n, u32 bswapmask)
- {
- 	unsigned long first, last;
- 	int shift;
-@@ -203,8 +203,8 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 
- 	shift = dst_idx-src_idx;
- 
--	first = FB_SHIFT_LOW(~0UL, bits - 1 - dst_idx);
--	last = ~(FB_SHIFT_LOW(~0UL, bits - 1 - ((dst_idx-n) % bits)));
-+	first = fb_shifted_pixels_mask_long(bits - 1 - dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long(bits - 1 - ((dst_idx-n) % bits), bswapmask);
- 
- 	if (!shift) {
- 		// Same alignment for source and dest
-@@ -336,6 +336,7 @@ void cfb_copyarea(struct fb_info *p, con
- 	unsigned long __iomem *dst = NULL, *src = NULL;
- 	int bits = BITS_PER_LONG, bytes = bits >> 3;
- 	int dst_idx = 0, src_idx = 0, rev_copy = 0;
-+	u32 bswapmask = fb_compute_bswapmask(p);
- 
- 	if (p->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -368,7 +369,7 @@ void cfb_copyarea(struct fb_info *p, con
- 			src += src_idx >> (ffs(bits) - 1);
- 			src_idx &= (bytes - 1);
- 			bitcpy_rev(dst, dst_idx, src, src_idx, bits,
--				width*p->var.bits_per_pixel);
-+				width*p->var.bits_per_pixel, bswapmask);
- 		}
- 	} else {
- 		while (height--) {
-@@ -377,7 +378,7 @@ void cfb_copyarea(struct fb_info *p, con
- 			src += src_idx >> (ffs(bits) - 1);
- 			src_idx &= (bytes - 1);
- 			bitcpy(dst, dst_idx, src, src_idx, bits,
--				width*p->var.bits_per_pixel);
-+				width*p->var.bits_per_pixel, bswapmask);
- 			dst_idx += bits_per_line;
- 			src_idx += bits_per_line;
- 		}
-diff -puN drivers/video/cfbfillrect.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbfillrect.c
---- a/drivers/video/cfbfillrect.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbfillrect.c
-@@ -36,15 +36,16 @@
-      */
- 
- static void
--bitfill_aligned(unsigned long __iomem *dst, int dst_idx, unsigned long pat, unsigned n, int bits)
-+bitfill_aligned(unsigned long __iomem *dst, int dst_idx, unsigned long pat,
-+		unsigned n, int bits, u32 bswapmask)
- {
- 	unsigned long first, last;
- 
- 	if (!n)
- 		return;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (dst_idx+n <= bits) {
- 		// Single word
-@@ -146,7 +147,8 @@ bitfill_unaligned(unsigned long __iomem 
-      *  Aligned pattern invert using 32/64-bit memory accesses
-      */
- static void
--bitfill_aligned_rev(unsigned long __iomem *dst, int dst_idx, unsigned long pat, unsigned n, int bits)
-+bitfill_aligned_rev(unsigned long __iomem *dst, int dst_idx, unsigned long pat,
-+		unsigned n, int bits, u32 bswapmask)
- {
- 	unsigned long val = pat, dat;
- 	unsigned long first, last;
-@@ -154,8 +156,8 @@ bitfill_aligned_rev(unsigned long __iome
- 	if (!n)
- 		return;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (dst_idx+n <= bits) {
- 		// Single word
-@@ -303,8 +305,10 @@ void cfb_fillrect(struct fb_info *p, con
- 	if (p->fbops->fb_sync)
- 		p->fbops->fb_sync(p);
- 	if (!left) {
-+		u32 bswapmask = fb_compute_bswapmask(p);
- 		void (*fill_op32)(unsigned long __iomem *dst, int dst_idx,
--		                  unsigned long pat, unsigned n, int bits) = NULL;
-+		                  unsigned long pat, unsigned n, int bits,
-+				  u32 bswapmask) = NULL;
- 
- 		switch (rect->rop) {
- 		case ROP_XOR:
-@@ -321,7 +325,7 @@ void cfb_fillrect(struct fb_info *p, con
- 		while (height--) {
- 			dst += dst_idx >> (ffs(bits) - 1);
- 			dst_idx &= (bits - 1);
--			fill_op32(dst, dst_idx, pat, width*bpp, bits);
-+			fill_op32(dst, dst_idx, pat, width*bpp, bits, bswapmask);
- 			dst_idx += p->fix.line_length*8;
- 		}
- 	} else {
-diff -puN drivers/video/cfbimgblt.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbimgblt.c
---- a/drivers/video/cfbimgblt.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbimgblt.c
-@@ -33,6 +33,7 @@
- #include <linux/string.h>
- #include <linux/fb.h>
- #include <asm/types.h>
-+#include "fb_draw.h"
- 
- #define DEBUG
- 
-@@ -87,6 +88,7 @@ static inline void color_imageblit(const
- 	u32 null_bits = 32 - bpp;
- 	u32 *palette = (u32 *) p->pseudo_palette;
- 	const u8 *src = image->data;
-+	u32 bswapmask = fb_compute_bswapmask(p);
- 
- 	dst2 = (u32 __iomem *) dst1;
- 	for (i = image->height; i--; ) {
-@@ -96,7 +98,7 @@ static inline void color_imageblit(const
- 		val = 0;
- 		
- 		if (start_index) {
--			u32 start_mask = ~(FB_SHIFT_HIGH(~(u32)0, start_index));
-+			u32 start_mask = ~fb_shifted_pixels_mask_u32(start_index, bswapmask);
- 			val = FB_READL(dst) & start_mask;
- 			shift = start_index;
- 		}
-@@ -107,7 +109,7 @@ static inline void color_imageblit(const
- 			else
- 				color = *src;
- 			color <<= FB_LEFT_POS(bpp);
--			val |= FB_SHIFT_HIGH(color, shift);
-+			val |= FB_SHIFT_HIGH(color, shift ^ bswapmask);
- 			if (shift >= null_bits) {
- 				FB_WRITEL(val, dst++);
- 	
-@@ -119,7 +121,7 @@ static inline void color_imageblit(const
- 			src++;
- 		}
- 		if (shift) {
--			u32 end_mask = FB_SHIFT_HIGH(~(u32)0, shift);
-+			u32 end_mask = fb_shifted_pixels_mask_u32(shift, bswapmask);
- 
- 			FB_WRITEL((FB_READL(dst) & end_mask) | val, dst);
- 		}
-@@ -147,7 +149,8 @@ static inline void slow_imageblit(const 
- 	u32 spitch = (image->width+7)/8;
- 	const u8 *src = image->data, *s;
- 	u32 i, j, l;
--	
-+	u32 bswapmask = fb_compute_bswapmask(p);
-+
- 	dst2 = (u32 __iomem *) dst1;
- 	fgcolor <<= FB_LEFT_POS(bpp);
- 	bgcolor <<= FB_LEFT_POS(bpp);
-@@ -161,7 +164,7 @@ static inline void slow_imageblit(const 
- 
- 		/* write leading bits */
- 		if (start_index) {
--			u32 start_mask = ~(FB_SHIFT_HIGH(~(u32)0,start_index));
-+			u32 start_mask = ~fb_shifted_pixels_mask_u32(start_index, bswapmask);
- 			val = FB_READL(dst) & start_mask;
- 			shift = start_index;
- 		}
-@@ -169,7 +172,7 @@ static inline void slow_imageblit(const 
- 		while (j--) {
- 			l--;
- 			color = (*s & (1 << l)) ? fgcolor : bgcolor;
--			val |= FB_SHIFT_HIGH(color, shift);
-+			val |= FB_SHIFT_HIGH(color, shift ^ bswapmask);
- 			
- 			/* Did the bitshift spill bits to the next long? */
- 			if (shift >= null_bits) {
-@@ -184,7 +187,7 @@ static inline void slow_imageblit(const 
- 
- 		/* write trailing bits */
-  		if (shift) {
--			u32 end_mask = FB_SHIFT_HIGH(~(u32)0, shift);
-+			u32 end_mask = fb_shifted_pixels_mask_u32(shift, bswapmask);
- 
- 			FB_WRITEL((FB_READL(dst) & end_mask) | val, dst);
- 		}
-diff -puN drivers/video/fb_draw.h~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/fb_draw.h
---- a/drivers/video/fb_draw.h~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/fb_draw.h
-@@ -2,6 +2,7 @@
- #define _FB_DRAW_H
- 
- #include <asm/types.h>
-+#include <linux/fb.h>
- 
-     /*
-      *  Compose two values, using a bitmask as decision value
-@@ -69,4 +70,71 @@ pixel_to_pat( u32 bpp, u32 pixel)
-     }
+diff -puN drivers/video/tdfxfb.c~tdfxfb-checkpatch-fixes drivers/video/=
+tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-checkpatch-fixes
++++ a/drivers/video/tdfxfb.c
+@@ -4,7 +4,7 @@
+  *
+  * Author: Hannu Mallat <hmallat@cc.hut.fi>
+  *
+- * Copyright =A9 1999 Hannu Mallat
++ * Copyright =C2=A9 1999 Hannu Mallat
+  * All rights reserved
+  *
+  * Created      : Thu Sep 23 18:17:43 1999, hmallat
+@@ -42,18 +42,18 @@
+  *
+  * Version history:
+  *
+- * 0.1.4 (released 2002-05-28) ported over to new fbdev api by James S=
+immons
++ * 0.1.4 (released 2002-05-28)	ported over to new fbdev api by James S=
+immons
+  *
+- * 0.1.3 (released 1999-11-02) added Attila's panning support, code
+- *			       reorg, hwcursor address page size alignment
+- *                             (for mmaping both frame buffer and regs=
+),
+- *                             and my changes to get rid of hardcoded
+- *                             VGA i/o register locations (uses PCI
+- *                             configuration info now)
+- * 0.1.2 (released 1999-10-19) added Attila Kesmarki's bug fixes and
+- *                             improvements
+- * 0.1.1 (released 1999-10-07) added Voodoo3 support by Harold Oga.
+- * 0.1.0 (released 1999-10-06) initial version
++ * 0.1.3 (released 1999-11-02)	added Attila's panning support, code
++ *				reorg, hwcursor address page size alignment
++ *				(for mmaping both frame buffer and regs),
++ *				and my changes to get rid of hardcoded
++ *				VGA i/o register locations (uses PCI
++ *				configuration info now)
++ * 0.1.2 (released 1999-10-19)	added Attila Kesmarki's bug fixes and
++ *				improvements
++ * 0.1.1 (released 1999-10-07)	added Voodoo3 support by Harold Oga.
++ * 0.1.0 (released 1999-10-06)	initial version
+  *
+  */
+=20
+@@ -70,12 +70,7 @@
+=20
+ #include <video/tdfx.h>
+=20
+-#undef TDFXFB_DEBUG
+-#ifdef TDFXFB_DEBUG
+-#define DPRINTK(a,b...) printk(KERN_DEBUG "fb: %s: " a, __FUNCTION__ ,=
+ ## b)
+-#else
+-#define DPRINTK(a,b...)
+-#endif
++#define DPRINTK(a, b...) pr_debug("fb: %s: " a, __FUNCTION__ , ## b)
+=20
+ #ifdef CONFIG_MTRR
+ #include <asm/mtrr.h>
+@@ -172,7 +167,7 @@ static char *mode_option __devinitdata;
+ static int nomtrr __devinitdata;
+=20
+ /* -------------------------------------------------------------------=
+------
+- *                      Hardware-specific funcions
++ *			Hardware-specific funcions
+  * -------------------------------------------------------------------=
+------ */
+=20
+ static inline u8 vga_inb(struct tdfx_par *par, u32 reg)
+@@ -276,7 +271,7 @@ static inline void banshee_make_room(str
+ 	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1)
+ 		cpu_relax();
  }
- #endif
+-=20
 +
-+#ifdef CONFIG_FB_CFB_REV_PIXELS_IN_BYTE
-+
-+static inline u32 fb_shifted_pixels_mask_u32(u32 index, u32 bswapmask)
+ static int banshee_wait_idle(struct fb_info *info)
+ {
+ 	struct tdfx_par *par =3D info->par;
+@@ -286,8 +281,8 @@ static int banshee_wait_idle(struct fb_i
+ 	tdfx_outl(par, COMMAND_3D, COMMAND_3D_NOP);
+=20
+ 	do {
+- 		if ((tdfx_inl(par, STATUS) & STATUS_BUSY) =3D=3D 0)
+-		       i++;
++		if ((tdfx_inl(par, STATUS) & STATUS_BUSY) =3D=3D 0)
++			i++;
+ 	} while (i < 3);
+=20
+ 	return 0;
+@@ -297,7 +292,7 @@ static int banshee_wait_idle(struct fb_i
+  * Set the color of a palette entry in 8bpp mode
+  */
+ static inline void do_setpalentry(struct tdfx_par *par, unsigned regno=
+, u32 c)
+-{ =20
 +{
-+	u32 mask;
-+
-+	if (!bswapmask) {
-+		mask = FB_SHIFT_HIGH(~(u32)0, index);
-+	} else {
-+		mask = 0xff << FB_LEFT_POS(8);
-+		mask = FB_SHIFT_LOW(mask, index & (bswapmask)) & mask;
-+		mask = FB_SHIFT_HIGH(mask, index & ~(bswapmask));
-+#if defined(__i386__) || defined(__x86_64__)
-+		/* Shift argument is limited to 0 - 31 on x86 based CPU's */
-+		if(index + bswapmask < 32)
+ 	banshee_make_room(par, 2);
+ 	tdfx_outl(par, DACADDR, regno);
+ 	/* read after write makes it working */
+@@ -475,8 +470,12 @@ static int tdfxfb_check_var(struct fb_va
+ 	}
+ 	var->yoffset =3D 0;
+=20
+-	/* Banshee doesn't support interlace, but Voodoo4/5 and probably Vood=
+oo3 do. */
+-	/* no direct information about device id now? use max_pixclock for th=
+is... */
++	/*
++	 * Banshee doesn't support interlace, but Voodoo4/5 and probably
++	 * Voodoo3 do.
++	 * no direct information about device id now?
++	 *  use max_pixclock for this...
++	 */
+ 	if (((var->vmode & FB_VMODE_MASK) =3D=3D FB_VMODE_INTERLACED) &&
+ 	    (par->max_pixclock < VOODOO3_MAX_PIXCLOCK)) {
+ 		DPRINTK("interlace not supported\n");
+@@ -516,7 +515,10 @@ static int tdfxfb_check_var(struct fb_va
+ 	var->transp.length =3D 0;
+ 	switch (var->bits_per_pixel) {
+ 	case 8:
+-		var->red.length =3D var->green.length =3D var->blue.length =3D 8;
++		var->red.length =3D 8;
++		var->red.offset =3D 0;
++		var->green =3D var->red;
++		var->blue =3D var->red;
+ 		break;
+ 	case 16:
+ 		var->red.offset   =3D 11;
+@@ -536,7 +538,8 @@ static int tdfxfb_check_var(struct fb_va
+ 		var->red.length =3D var->green.length =3D var->blue.length =3D 8;
+ 		break;
+ 	}
+-	var->height =3D var->width =3D -1;
++	var->width =3D -1;
++	var->height =3D -1;
+=20
+ 	var->accel_flags =3D FB_ACCELF_TEXT;
+=20
+@@ -581,7 +584,8 @@ static int tdfxfb_set_par(struct fb_info
+ 		htotal   >>=3D 1;
+ 	}
+=20
+-	hd  =3D wd =3D (hdispend >> 3) - 1;
++	wd =3D (hdispend >> 3) - 1;
++	hd  =3D wd;
+ 	hs  =3D (hsyncsta >> 3) - 1;
+ 	he  =3D (hsyncend >> 3) - 1;
+ 	ht  =3D (htotal >> 3) - 1;
+@@ -589,21 +593,23 @@ static int tdfxfb_set_par(struct fb_info
+ 	hbe =3D ht;
+=20
+ 	if ((info->var.vmode & FB_VMODE_MASK) =3D=3D FB_VMODE_DOUBLE) {
+-		vbs =3D vd =3D (info->var.yres << 1) - 1;
++		vd =3D (info->var.yres << 1) - 1;
+ 		vs  =3D vd + (info->var.lower_margin << 1);
+ 		ve  =3D vs + (info->var.vsync_len << 1);
+-		vbe =3D vt =3D ve + (info->var.upper_margin << 1) - 1;
++		vt =3D ve + (info->var.upper_margin << 1) - 1;
+ 		reg.screensize =3D info->var.xres | (info->var.yres << 13);
+ 		reg.vidcfg |=3D VIDCFG_HALF_MODE;
+ 		reg.crt[0x09] =3D 0x80;
+ 	} else {
+-		vbs =3D vd =3D info->var.yres - 1;
++		vd =3D info->var.yres - 1;
+ 		vs  =3D vd + info->var.lower_margin;
+ 		ve  =3D vs + info->var.vsync_len;
+-		vbe =3D vt =3D ve + info->var.upper_margin - 1;
++		vt =3D ve + info->var.upper_margin - 1;
+ 		reg.screensize =3D info->var.xres | (info->var.yres << 12);
+ 		reg.vidcfg &=3D ~VIDCFG_HALF_MODE;
+ 	}
++	vbs =3D vd;
++	vbe =3D vt;
+=20
+ 	/* this is all pretty standard VGA register stuffing */
+ 	reg.misc[0x00] =3D 0x0f |
+@@ -736,7 +742,7 @@ static int tdfxfb_set_par(struct fb_info
+ }
+=20
+ /* A handy macro shamelessly pinched from matroxfb */
+-#define CNVT_TOHW(val, width) ((((val)<<(width))+0x7FFF-(val))>>16)
++#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF - (val)) >=
+> 16)
+=20
+ static int tdfxfb_setcolreg(unsigned regno, unsigned red, unsigned gre=
+en,
+ 			    unsigned blue, unsigned transp,
+@@ -751,14 +757,16 @@ static int tdfxfb_setcolreg(unsigned reg
+ 	/* grayscale works only partially under directcolor */
+ 	if (info->var.grayscale) {
+ 		/* grayscale =3D 0.30*R + 0.59*G + 0.11*B */
+-		red =3D green =3D blue =3D (red * 77 + green * 151 + blue * 28) >> 8=
+;
++		blue =3D (red * 77 + green * 151 + blue * 28) >> 8;
++		green =3D blue;
++		red =3D blue;
+ 	}
+=20
+ 	switch (info->fix.visual) {
+ 	case FB_VISUAL_PSEUDOCOLOR:
+-		rgbcol =3D(((u32)red   & 0xff00) << 8) |
+-			(((u32)green & 0xff00) << 0) |
+-			(((u32)blue  & 0xff00) >> 8);
++		rgbcol =3D (((u32)red   & 0xff00) << 8) |
++			 (((u32)green & 0xff00) << 0) |
++			 (((u32)blue  & 0xff00) >> 8);
+ 		do_setpalentry(par, regno, rgbcol);
+ 		break;
+ 	/* Truecolor has no hardware color palettes. */
+@@ -851,7 +859,7 @@ static void tdfxfb_fillrect(struct fb_in
+ 	struct tdfx_par *par =3D info->par;
+ 	u32 bpp =3D info->var.bits_per_pixel;
+ 	u32 stride =3D info->fix.line_length;
+-	u32 fmt=3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13);
++	u32 fmt =3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13);
+ 	int tdfx_rop;
+ 	u32 dx =3D rect->dx;
+ 	u32 dy =3D rect->dy;
+@@ -922,13 +930,13 @@ static void tdfxfb_copyarea(struct fb_in
+ 	}
+=20
+ 	if (area->sx <=3D area->dx) {
+-		//-X
++		/* -X */
+ 		blitcmd |=3D BIT(14);
+ 		sx +=3D area->width - 1;
+ 		dx +=3D area->width - 1;
+ 	}
+ 	if (area->sy <=3D area->dy) {
+-		//-Y
++		/* -Y */
+ 		blitcmd |=3D BIT(15);
+ 		sy +=3D area->height - 1;
+ 		dy +=3D area->height - 1;
+@@ -961,9 +969,13 @@ static void tdfxfb_imageblit(struct fb_i
+ 	u32 dstbase =3D 0;
+=20
+ 	if (image->depth !=3D 1) {
+-		//banshee_make_room(par, 6 + ((size + 3) >> 2));
+-		//srcfmt =3D stride | ((bpp+((bpp=3D=3D8) ? 0 : 8)) << 13) | 0x40000=
+0;
++#ifdef BROKEN_CODE
++		banshee_make_room(par, 6 + ((size + 3) >> 2));
++		srcfmt =3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13) |
++			0x400000;
++#else
+ 		cfb_imageblit(info, image);
 +#endif
-+			mask |= FB_SHIFT_HIGH(~(u32)0,
-+					(index + bswapmask) & ~(bswapmask));
-+	}
-+	return mask;
-+}
-+
-+static inline unsigned long fb_shifted_pixels_mask_long(u32 index, u32 bswapmask)
-+{
-+	unsigned long mask;
-+
-+	if (!bswapmask) {
-+		mask = FB_SHIFT_HIGH(~0UL, index);
-+	} else {
-+		mask = 0xff << FB_LEFT_POS(8);
-+		mask = FB_SHIFT_LOW(mask, index & (bswapmask)) & mask;
-+		mask = FB_SHIFT_HIGH(mask, index & ~(bswapmask));
-+#if defined(__i386__) || defined(__x86_64__)
-+		/* Shift argument is limited to 0 - 31 on x86 based CPU's */
-+		if(index + bswapmask < BITS_PER_LONG)
-+#endif
-+			mask |= FB_SHIFT_HIGH(~0UL,
-+					(index + bswapmask) & ~(bswapmask));
-+	}
-+	return mask;
-+}
-+
-+
-+static inline u32 fb_compute_bswapmask(struct fb_info *info)
-+{
-+	u32 bswapmask = 0;
-+	unsigned bpp = info->var.bits_per_pixel;
-+
-+	if ((bpp < 8) && (info->var.nonstd & FB_NONSTD_REV_PIX_IN_B)) {
-+		/*
-+		 * Reversed order of pixel layout in bytes
-+		 * works only for 1, 2 and 4 bpp
-+		 */
-+		bswapmask = 7 - bpp + 1;
-+	}
-+	return bswapmask;
-+}
-+
-+#else /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
-+
-+#define fb_shifted_pixels_mask_u32(i, b) FB_SHIFT_HIGH(~(u32)0, (i))
-+#define fb_shifted_pixels_mask_long(i, b) FB_SHIFT_HIGH(~0UL, (i))
-+#define fb_compute_bswapmask(...) 0
-+
-+#endif  /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
-+
- #endif /* FB_DRAW_H */
-diff -puN include/linux/fb.h~fbdev-support-for-byte-reversed-framebuffer-formats include/linux/fb.h
---- a/include/linux/fb.h~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/include/linux/fb.h
-@@ -180,6 +180,7 @@ struct fb_bitfield {
- };
- 
- #define FB_NONSTD_HAM		1	/* Hold-And-Modify (HAM)        */
-+#define FB_NONSTD_REV_PIX_IN_B	2	/* order of pixels in each byte is reversed */
- 
- #define FB_ACTIVATE_NOW		0	/* set values immediately (or vbl)*/
- #define FB_ACTIVATE_NXTOPEN	1	/* activate on next open	*/
+ 		return;
+ 	}
+ 	banshee_make_room(par, 9);
+@@ -998,7 +1010,8 @@ static void tdfxfb_imageblit(struct fb_i
+ 	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, SRCXY, 0);
+ 	tdfx_outl(par, DSTXY, dx | (dy << 16));
+-	tdfx_outl(par, COMMAND_2D, COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << =
+24));
++	tdfx_outl(par, COMMAND_2D,
++		  COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << 24));
+ 	tdfx_outl(par, SRCFORMAT, srcfmt);
+ 	tdfx_outl(par, DSTFORMAT, dstfmt);
+ 	tdfx_outl(par, DSTSIZE, image->width | (image->height << 16));
+@@ -1013,7 +1026,7 @@ static void tdfxfb_imageblit(struct fb_i
+ 			fifo_free =3D 31;
+ 			banshee_make_room(par, fifo_free);
+ 		}
+-		tdfx_outl(par, LAUNCH_2D, *(u32*)chardata);
++		tdfx_outl(par, LAUNCH_2D, *(u32 *)chardata);
+ 		chardata +=3D 4;
+ 	}
+=20
+@@ -1026,11 +1039,11 @@ static void tdfxfb_imageblit(struct fb_i
+ 		tdfx_outl(par, LAUNCH_2D, *chardata);
+ 		break;
+ 	case 2:
+-		tdfx_outl(par, LAUNCH_2D, *(u16*)chardata);
++		tdfx_outl(par, LAUNCH_2D, *(u16 *)chardata);
+ 		break;
+ 	case 3:
+ 		tdfx_outl(par, LAUNCH_2D,
+-			*(u16*)chardata | ((chardata[3]) << 24));
++			*(u16 *)chardata | (chardata[3] << 24));
+ 		break;
+ 	}
+ }
+@@ -1175,8 +1188,9 @@ static int __devinit tdfxfb_probe(struct
+ 	struct fb_info *info;
+ 	int err, lpitch;
+=20
+-	if ((err =3D pci_enable_device(pdev))) {
+-		printk(KERN_WARNING "tdfxfb: Can't enable pdev: %d\n", err);
++	err =3D pci_enable_device(pdev);
++	if (err) {
++		printk(KERN_ERR "tdfxfb: Can't enable pdev: %d\n", err);
+ 		return err;
+ 	}
+=20
+@@ -1207,33 +1221,36 @@ static int __devinit tdfxfb_probe(struct
+ 	tdfx_fix.mmio_len =3D pci_resource_len(pdev, 0);
+ 	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
+ 				"tdfx regbase")) {
+-		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
++		printk(KERN_ERR "tdfxfb: Can't reserve regbase\n");
+ 		goto out_err;
+ 	}
+=20
+ 	default_par->regbase_virt =3D
+ 		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
+ 	if (!default_par->regbase_virt) {
+-		printk("fb: Can't remap %s register area.\n", tdfx_fix.id);
++		printk(KERN_ERR "fb: Can't remap %s register area.\n",
++				tdfx_fix.id);
+ 		goto out_err_regbase;
+ 	}
+=20
+ 	tdfx_fix.smem_start =3D pci_resource_start(pdev, 1);
+-	if (!(tdfx_fix.smem_len =3D do_lfb_size(default_par, pdev->device))) =
+{
+-		printk("fb: Can't count %s memory.\n", tdfx_fix.id);
++	tdfx_fix.smem_len =3D do_lfb_size(default_par, pdev->device);
++	if (!tdfx_fix.smem_len) {
++		printk(KERN_ERR "fb: Can't count %s memory.\n", tdfx_fix.id);
+ 		goto out_err_regbase;
+ 	}
+=20
+ 	if (!request_mem_region(tdfx_fix.smem_start,
+ 				pci_resource_len(pdev, 1), "tdfx smem")) {
+-		printk(KERN_WARNING "tdfxfb: Can't reserve smem\n");
++		printk(KERN_ERR "tdfxfb: Can't reserve smem\n");
+ 		goto out_err_regbase;
+ 	}
+=20
+ 	info->screen_base =3D ioremap_nocache(tdfx_fix.smem_start,
+ 					    tdfx_fix.smem_len);
+ 	if (!info->screen_base) {
+-		printk("fb: Can't remap %s framebuffer.\n", tdfx_fix.id);
++		printk(KERN_ERR "fb: Can't remap %s framebuffer.\n",
++				tdfx_fix.id);
+ 		goto out_err_screenbase;
+ 	}
+=20
+@@ -1241,11 +1258,12 @@ static int __devinit tdfxfb_probe(struct
+=20
+ 	if (!request_region(pci_resource_start(pdev, 2),
+ 			    pci_resource_len(pdev, 2), "tdfx iobase")) {
+-		printk(KERN_WARNING "tdfxfb: Can't reserve iobase\n");
++		printk(KERN_ERR "tdfxfb: Can't reserve iobase\n");
+ 		goto out_err_screenbase;
+ 	}
+=20
+-	printk("fb: %s memory =3D %dK\n", tdfx_fix.id, tdfx_fix.smem_len >> 1=
+0);
++	printk(KERN_INFO "fb: %s memory =3D %dK\n", tdfx_fix.id,
++			tdfx_fix.smem_len >> 10);
+=20
+ 	default_par->mtrr_handle =3D -1;
+ 	if (!nomtrr)
+@@ -1261,7 +1279,7 @@ static int __devinit tdfxfb_probe(struct
+ 	info->pseudo_palette	=3D default_par->palette;
+ 	info->flags		=3D FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
+ #ifdef CONFIG_FB_3DFX_ACCEL
+-	info->flags             |=3D FBINFO_HWACCEL_FILLRECT |
++	info->flags		|=3D FBINFO_HWACCEL_FILLRECT |
+ 				   FBINFO_HWACCEL_COPYAREA |
+ 				   FBINFO_HWACCEL_IMAGEBLIT |
+ 				   FBINFO_READS_FAST;
+@@ -1286,12 +1304,12 @@ static int __devinit tdfxfb_probe(struct
+ 		goto out_err_iobase;
+=20
+ 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+-		printk(KERN_WARNING "tdfxfb: Can't allocate color map\n");
++		printk(KERN_ERR "tdfxfb: Can't allocate color map\n");
+ 		goto out_err_iobase;
+ 	}
+=20
+ 	if (register_framebuffer(info) < 0) {
+-		printk("tdfxfb: can't register framebuffer\n");
++		printk(KERN_ERR "tdfxfb: can't register framebuffer\n");
+ 		fb_dealloc_cmap(&info->cmap);
+ 		goto out_err_iobase;
+ 	}
 _
 
-Patches currently in -mm which might be from pisa@cmp.felk.cvut.cz are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-fbdev-support-for-byte-reversed-framebuffer-formats.patch
+git-alsa.patch
+git-hwmon.patch
+pm3fb-copyarea-and-partial-imageblit-suppor.patch
+skeletonfb-wrong-field-name-fix.patch
+pm3fb-header-file-reduction.patch
+pm3fb-imageblit-improved.patch
+pm3fb-3-small-fixes.patch
+pm3fb-improvements-and-cleanups.patch
+pm3fb-mtrr-support-and-noaccel-option.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patc=
+h
+pm2fb-mtrr-support-and-noaccel-option.patch
+pm2fb-mtrr-support-and-noaccel-option-pm2fb-lowsyncs-section-mismatch-f=
+ix.patch
+pm2fb-accelerated-imageblit.patch
+pm2fb-source-code-improvements.patch
+pm2fb-permedia-2v-initialization-fixes.patch
+pm2fb-accelerated-24-bit-fillrect.patch
+tridentfb-coding-style-improvement.patch
+tdfxfb-coding-style-improvement.patch
+tdfxfb-3-fixes.patch
+tdfxfb-palette-fixes.patch
+tdfxfb-code-improvements.patch
+tdfxfb-hardware-cursor.patch
+tdfxfb-mtrr-support.patch
+tdfxfb-mtrr-support-fix.patch
+tdfxfb-mtrr-support-fix-2.patch
+pm2fb-checkpatch-fixes.patch
+pm3fb-checkpatch-fixes.patch
+pm2fb-permedia-2v-hardware-cursor-support.patch
+pm3fb-hardware-cursor-support.patch
+s3c2410fb-code-cleanup.patch
+s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
+s3c2410fb-multi-display-support.patch
+s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-new-margin-fields.patch
+s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
+s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
+s3c2410fb-use-vertical-margins-values.patch
+s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
+s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+s3c2410fb-fix-missing-registers-offset.patch
+fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
+s3c2410fb-source-code-improvements.patch
+s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
+s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
+s3c2410fb-make-use-of-default_display-settings.patch
+cirrusfb-checkpatchpl-cleanup.patch
+cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+cirrusfb-remove-typedefs.patch
+cirrusfb-remove-fields-from-cirrusfb_info.patch
+cirrusfb-code-improvements.patch
+cirrusfb-code-improvement-2nd-part.patch
+pm3fb-header-file-cleanup.patch
+pm2fb-hardware-cursor-support-for-the-permedia2.patch
+pm2fb-panning-and-hardware-cursor-fixes.patch
+tdfxfb-replace-busy-waiting-with-cpu_relax.patch
+pm2fb-replace-busy-waiting-with-cpu_relax.patch
+pm3fb-replace-busy-waiting-with-cpu_relax.patch
+tdfxfb-checkpatch-fixes.patch
