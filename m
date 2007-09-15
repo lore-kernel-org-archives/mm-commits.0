@@ -1,198 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-convert-to-generic-sys_ptrace.patch added to -mm tree
-Date: Sat, 15 Sep 2007 01:11:54 -0700
-Message-ID: <200709150811.l8F8BseB024827@imap1.linux-foundation.org>
+Subject: - update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones.patch removed from -mm tree
+Date: Sat, 15 Sep 2007 01:17:00 -0700
+Message-ID: <200709150817.l8F8H0fa024984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54797 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859AbXIOIMY (ORCPT
+	by vger.kernel.org with ESMTP id S1752132AbXIOIRR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 04:12:24 -0400
+	Sat, 15 Sep 2007 04:17:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, ink@jurassic.park.msu.ru, rth@twiddle.net
+To: jesper.juhl@gmail.com, rdunlap@xenotime.net, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: convert to generic sys_ptrace
-has been added to the -mm tree.  Its filename is
-     alpha-convert-to-generic-sys_ptrace.patch
+     Update Documentation/fb/00-INDEX - add new files, remove entries for deleted ones
+has been removed from the -mm tree.  Its filename was
+     update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was a dupe
 
 ------------------------------------------------------
-Subject: alpha: convert to generic sys_ptrace
-From: Christoph Hellwig <hch@lst.de>
+Subject: Update Documentation/fb/00-INDEX - add new files, remove entries for deleted ones
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This patch converts alpha to the generic sys_ptrace.  We use
-force_successful_syscall_return to avoid having to pass the pt_regs pointer
-down to the function.  I think the removal of the assemly stub is correct,
-but I could only compile-test this patch, so please give it a spin before
-commiting :)
+An update to Documentation/fb/00-INDEX is long overdue.  This patch adds
+entries for new files in the directory and removes entries for files that no
+longer exist.  The files are now also sorted alphabetically.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/entry.S  |    9 -------
- arch/alpha/kernel/ptrace.c |   42 +++++------------------------------
- include/asm-alpha/ptrace.h |    2 -
- 3 files changed, 6 insertions(+), 47 deletions(-)
+ Documentation/fb/00-INDEX |   46 ++++++++++++++++++++++++++++--------
+ 1 file changed, 37 insertions(+), 9 deletions(-)
 
-diff -puN arch/alpha/kernel/entry.S~alpha-convert-to-generic-sys_ptrace arch/alpha/kernel/entry.S
---- a/arch/alpha/kernel/entry.S~alpha-convert-to-generic-sys_ptrace
-+++ a/arch/alpha/kernel/entry.S
-@@ -917,15 +917,6 @@ sys_pipe:
- .end sys_pipe
+diff -puN Documentation/fb/00-INDEX~update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones Documentation/fb/00-INDEX
+--- a/Documentation/fb/00-INDEX~update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones
++++ a/Documentation/fb/00-INDEX
+@@ -5,21 +5,49 @@ please mail me.
  
- 	.align	4
--	.globl	sys_ptrace
--	.ent	sys_ptrace
--sys_ptrace:
--	.prologue 0
--	mov	$sp, $20
--	jmp	$31, do_sys_ptrace
--.end sys_ptrace
--
--	.align	4
- 	.globl	sys_execve
- 	.ent	sys_execve
- sys_execve:
-diff -puN arch/alpha/kernel/ptrace.c~alpha-convert-to-generic-sys_ptrace arch/alpha/kernel/ptrace.c
---- a/arch/alpha/kernel/ptrace.c~alpha-convert-to-generic-sys_ptrace
-+++ a/arch/alpha/kernel/ptrace.c
-@@ -260,38 +260,12 @@ void ptrace_disable(struct task_struct *
- 	ptrace_cancel_bpt(child);
- }
- 
--asmlinkage long
--do_sys_ptrace(long request, long pid, long addr, long data,
--	      struct pt_regs *regs)
-+long arch_ptrace(struct task_struct *child, long request, long addr, long data)
- {
--	struct task_struct *child;
- 	unsigned long tmp;
- 	size_t copied;
- 	long ret;
- 
--	lock_kernel();
--	DBG(DBG_MEM, ("request=%ld pid=%ld addr=0x%lx data=0x%lx\n",
--		      request, pid, addr, data));
--	if (request == PTRACE_TRACEME) {
--		ret = ptrace_traceme();
--		goto out_notsk;
--	}
--
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
--		goto out_notsk;
--	}
--
--	if (request == PTRACE_ATTACH) {
--		ret = ptrace_attach(child);
--		goto out;
--	}
--
--	ret = ptrace_check_attach(child, request == PTRACE_KILL);
--	if (ret < 0)
--		goto out;
--
- 	switch (request) {
- 	/* When I and D space are separate, these will need to be fixed.  */
- 	case PTRACE_PEEKTEXT: /* read word at location addr. */
-@@ -301,13 +275,13 @@ do_sys_ptrace(long request, long pid, lo
- 		if (copied != sizeof(tmp))
- 			break;
- 		
--		regs->r0 = 0;	/* special return: no errors */
-+		force_successful_syscall_return();
- 		ret = tmp;
- 		break;
- 
- 	/* Read register number ADDR. */
- 	case PTRACE_PEEKUSR:
--		regs->r0 = 0;	/* special return: no errors */
-+		force_successful_syscall_return();
- 		ret = get_reg(child, addr);
- 		DBG(DBG_MEM, ("peek $%ld->%#lx\n", addr, ret));
- 		break;
-@@ -353,7 +327,7 @@ do_sys_ptrace(long request, long pid, lo
- 		/* make sure single-step breakpoint is gone. */
- 		ptrace_cancel_bpt(child);
- 		wake_up_process(child);
--		goto out;
-+		break;
- 
- 	case PTRACE_SINGLESTEP:  /* execute single instruction. */
- 		ret = -EIO;
-@@ -366,16 +340,12 @@ do_sys_ptrace(long request, long pid, lo
- 		wake_up_process(child);
- 		/* give it a chance to run. */
- 		ret = 0;
--		goto out;
-+		break;
- 
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
--		goto out;
-+		break;
- 	}
-- out:
--	put_task_struct(child);
-- out_notsk:
--	unlock_kernel();
- 	return ret;
- }
- 
-diff -puN include/asm-alpha/ptrace.h~alpha-convert-to-generic-sys_ptrace include/asm-alpha/ptrace.h
---- a/include/asm-alpha/ptrace.h~alpha-convert-to-generic-sys_ptrace
-+++ a/include/asm-alpha/ptrace.h
-@@ -68,8 +68,6 @@ struct switch_stack {
- 
- #ifdef __KERNEL__
- 
--#define __ARCH_SYS_PTRACE	1
--
- #define user_mode(regs) (((regs)->ps & 8) != 0)
- #define instruction_pointer(regs) ((regs)->pc)
- #define profile_pc(regs) instruction_pointer(regs)
+ 00-INDEX
+ 	- this file
++arkfb.txt
++	- info on the fbdev driver for ARK Logic chips.
++aty128fb.txt
++	- info on the ATI Rage128 frame buffer driver.
++cirrusfb.txt
++	- info on the driver for Cirrus Logic chipsets.
++cyblafb/
++	- directory with documentation files related to the cyblafb driver.
++deferred_io.txt
++	- an introduction to deferred IO.
++fbcon.txt
++	- intro to and usage guide for the framebuffer console (fbcon).
+ framebuffer.txt
+-	- introduction to frame buffer devices
++	- introduction to frame buffer devices.
++imacfb.txt
++	- info on the generic EFI platform driver for Intel based Macs.
++intel810.txt
++	- documentation for the Intel 810/815 framebuffer driver.
++intelfb.txt
++	- docs for Intel 830M/845G/852GM/855GM/865G/915G/945G fb driver.
+ internals.txt
+-	- quick overview of frame buffer device internals
++	- quick overview of frame buffer device internals.
++matroxfb.txt
++	- info on the Matrox framebuffer driver for Alpha, Intel and PPC.
+ modedb.txt
+-	- info on the video mode database
+-aty128fb.txt
+-	- info on the ATI Rage128 frame buffer driver
+-clgenfb.txt
+-	- info on the Cirrus Logic frame buffer driver
++	- info on the video mode database.
+ matroxfb.txt
+-	- info on the Matrox frame buffer driver
++	- info on the Matrox frame buffer driver.
+ pvr2fb.txt
+-	- info on the PowerVR 2 frame buffer driver
++	- info on the PowerVR 2 frame buffer driver.
++pxafb.txt
++	- info on the driver for the PXA25x LCD controller.
++s3fb.txt
++	- info on the fbdev driver for S3 Trio/Virge chips.
++sa1100fb.txt
++	- information about the driver for the SA-1100 LCD controller.
++sisfb.txt
++	- info on the framebuffer device driver for various SiS chips.
++sstfb.txt
++	- info on the frame buffer driver for 3dfx' Voodoo Graphics boards.
+ tgafb.txt
+ 	- info on the TGA (DECChip 21030) frame buffer driver
+ vesafb.txt
+ 	- info on the VESA frame buffer device
++vt8623fb.txt
++	- info on the fb driver for the graphics core in VIA VT8623 chipsets.
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
-git-nfs.patch
-git-nfsd.patch
-partially-fix-up-the-lookup_one_noperm-mess.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-alsa.patch
+fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+git-powerpc.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-kbuild.patch
+git-mtd.patch
+git-ubi.patch
+git-netdev-all.patch
+eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
+avoid-possible-null-pointer-deref-in-3c359-driver.patch
+git-backlight.patch
+clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+clean-up-duplicate-includes-in-fs-ntfs.patch
+git-scsi-misc.patch
+mpt-fusion-fix-two-potential-mem-leaks.patch
+fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
 git-xfs.patch
-sysv-convert-to-new-aops.patch
-alpha-convert-to-generic-sys_ptrace.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
-fix-execute-checking-in-permission.patch
-exec-remove-unnecessary-check-for-mnt_noexec.patch
-fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
+uml-remove-unneeded-void-cast.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+fbdev-update-documentation-fb-00-index.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+update-documentation-fb-00-index-add-new-files-remove-entries-for-deleted-ones.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
