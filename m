@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + express-relocatability-of-kernel-on-x86_64-in.patch added to -mm tree
-Date: Sat, 15 Sep 2007 01:18:40 -0700
-Message-ID: <200709150818.l8F8IeIi025005@imap1.linux-foundation.org>
+Subject: + powerpc-proper-defconfig-for-crosscompiles.patch added to -mm tree
+Date: Sat, 15 Sep 2007 01:24:49 -0700
+Message-ID: <200709150824.l8F8OnO9025197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39899 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46164 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239AbXIOITa (ORCPT
+	by vger.kernel.org with ESMTP id S1753416AbXIOI0T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 04:19:30 -0400
+	Sat, 15 Sep 2007 04:26:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, bwalle@suse.de, ebiederm@xmission.com, hbabu@us.ibm.com, vgoyal@in.ibm.com
+Cc: bunk@kernel.org, benh@kernel.crashing.org, olof@lixom.net, paulus@samba.org, sam@ravnborg.org
 
 
 The patch titled
-     Update help text for CONFIG_CRASH_DUMP
+     powerpc: proper defconfig for crosscompiles
 has been added to the -mm tree.  Its filename is
-     express-relocatability-of-kernel-on-x86_64-in.patch
+     powerpc-proper-defconfig-for-crosscompiles.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update help text for CONFIG_CRASH_DUMP
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: powerpc: proper defconfig for crosscompiles
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix typos in CONFIG_RELOCATABLE.  Use tab + 2 spaces for indentation on all
-lines.
+The trick for finding the right defconfig is neat, but you forgot to
+provide an i686_defconfig.  ;-)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Haren Myneni <hbabu@us.ibm.com>
+More seriously, cross compiling the defconfig is often useful, e.g. for
+testing the compilation of patches that touch multiple architectures,
+and this patch therefore chooses g5_defconfig if $(CROSS_COMPILE) is
+non-empty.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig   |   17 +++++++++--------
- arch/x86_64/Kconfig |   21 +++++++++++----------
- 2 files changed, 20 insertions(+), 18 deletions(-)
+ arch/powerpc/Makefile |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/i386/Kconfig~express-relocatability-of-kernel-on-x86_64-in arch/i386/Kconfig
---- a/arch/i386/Kconfig~express-relocatability-of-kernel-on-x86_64-in
-+++ a/arch/i386/Kconfig
-@@ -821,12 +821,13 @@ config CRASH_DUMP
- 	depends on HIGHMEM
- 	help
- 	  Generate crash dump after being started by kexec.
--          This should be normally only set in special crash dump kernels
-+	  This should be normally only set in special crash dump kernels
- 	  which are loaded in the main kernel with kexec-tools into
- 	  a specially reserved region and then later executed after
- 	  a crash by kdump/kexec. The crash dump kernel must be compiled
--          to a memory address not used by the main kernel or BIOS using
--          PHYSICAL_START.
-+	  to a memory address not used by the main kernel or BIOS using
-+	  PHYSICAL_START, or it must be built as a relocatable image
-+	  (CONFIG_RELOCATABLE=y).
- 	  For more details see Documentation/kdump/kdump.txt
+diff -puN arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles
++++ a/arch/powerpc/Makefile
+@@ -35,7 +35,11 @@ endif
  
- config PHYSICAL_START
-@@ -872,17 +873,17 @@ config PHYSICAL_START
- 	  Don't change this unless you know what you are doing.
+ export CROSS32CC CROSS32AS CROSS32LD CROSS32AR CROSS32OBJCOPY
  
- config RELOCATABLE
--	bool "Build a relocatable kernel(EXPERIMENTAL)"
-+	bool "Build a relocatable kernel (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	help
- 	  This builds a kernel image that retains relocation information
--          so it can be loaded someplace besides the default 1MB.
-+	  so it can be loaded someplace besides the default 1MB.
- 	  The relocations tend to make the kernel binary about 10% larger,
--          but are discarded at runtime.
-+	  but are discarded at runtime.
++ifeq ($(CROSS_COMPILE),)
+ KBUILD_DEFCONFIG := $(shell uname -m)_defconfig
++else
++KBUILD_DEFCONFIG := g5_defconfig
++endif
  
- 	  One use is for the kexec on panic case where the recovery kernel
--          must live at a different physical address than the primary
--          kernel.
-+	  must live at a different physical address than the primary
-+	  kernel.
- 
- config PHYSICAL_ALIGN
- 	hex "Alignment value to which kernel should be aligned"
-diff -puN arch/x86_64/Kconfig~express-relocatability-of-kernel-on-x86_64-in arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~express-relocatability-of-kernel-on-x86_64-in
-+++ a/arch/x86_64/Kconfig
-@@ -590,17 +590,18 @@ config CRASH_DUMP
- 	bool "kernel crash dumps (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	help
--          Generate crash dump after being started by kexec.
--          This should be normally only set in special crash dump kernels
--          which are loaded in the main kernel with kexec-tools into
--          a specially reserved region and then later executed after
--          a crash by kdump/kexec. The crash dump kernel must be compiled
-+	  Generate crash dump after being started by kexec.
-+	  This should be normally only set in special crash dump kernels
-+	  which are loaded in the main kernel with kexec-tools into
-+	  a specially reserved region and then later executed after
-+	  a crash by kdump/kexec. The crash dump kernel must be compiled
- 	  to a memory address not used by the main kernel or BIOS using
--	  PHYSICAL_START.
--          For more details see Documentation/kdump/kdump.txt
-+	  PHYSICAL_START, or it must be built as a relocatable image
-+	  (CONFIG_RELOCATABLE=y).
-+	  For more details see Documentation/kdump/kdump.txt
- 
- config RELOCATABLE
--	bool "Build a relocatable kernel(EXPERIMENTAL)"
-+	bool "Build a relocatable kernel (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	help
- 	  Builds a relocatable kernel. This enables loading and running
-@@ -611,8 +612,8 @@ config RELOCATABLE
- 	  must live at a different physical address than the primary
- 	  kernel.
- 
--	  Note: If CONFIG_RELOCATABLE=y, then kernel run from the address
--	  it has been loaded at and compile time physical address
-+	  Note: If CONFIG_RELOCATABLE=y, then the kernel runs from the address
-+	  it has been loaded at and the compile time physical address
- 	  (CONFIG_PHYSICAL_START) is ignored.
- 
- config PHYSICAL_START
+ ifeq ($(CONFIG_PPC64),y)
+ OLDARCH	:= ppc64
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
+fix-serial_core_console-driver-dependencies.patch
+git-alsa.patch
+arm-extern-inline-static-inline.patch
+omap1-leds-innovatorc-remove-dead-code.patch
+ppc-remove-apus-support.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
+git-dvb.patch
 git-kbuild.patch
-git-mtd.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+net-sctp-socketc-make-3-variables-static.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
 git-nfsd.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-profile-likely-unlikely-macros.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
