@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + correctly-close-old-nfsd-lockd-sockets.patch added to -mm tree
-Date: Sat, 15 Sep 2007 02:49:18 -0700
-Message-ID: <200709150949.l8F9nIWQ027946@imap1.linux-foundation.org>
+Date: Sat, 15 Sep 2007 02:49:28 -0700
+Message-ID: <200709150949.l8F9nTKk027949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60037 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60295 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237AbXIOJto (ORCPT
+	by vger.kernel.org with ESMTP id S1753634AbXIOJuH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 05:49:44 -0400
+	Sat, 15 Sep 2007 05:50:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, bfields@fieldses.org, wolfgang.walter@studentenwerk.mhn.de
+Cc: neilb@suse.de, bfields@fieldses.org, stable@kernel.org, wolfgang.walter@studentenwerk.mhn.de
 
 
 The patch titled
@@ -40,6 +40,7 @@ Thanks to Wolfgang Walter for finding and reporting the bug.
 Cc: Wolfgang Walter <wolfgang.walter@studentenwerk.mhn.de>
 Signed-off-by: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
