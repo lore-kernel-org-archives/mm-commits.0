@@ -1,159 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-support-broken.patch removed from -mm tree
-Date: Sat, 15 Sep 2007 15:03:46 -0700
-Message-ID: <200709152203.l8FM3kQL019838@imap1.linux-foundation.org>
+Subject: - timekeeping-prevent-time-going-backwards-on-resume-v2.patch removed from -mm tree
+Date: Sat, 15 Sep 2007 15:03:43 -0700
+Message-ID: <200709152203.l8FM3hWL019835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37118 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34288 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751347AbXIOWDy (ORCPT
+	by vger.kernel.org with ESMTP id S1752220AbXIOWEa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 18:03:54 -0400
+	Sat, 15 Sep 2007 18:04:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, marcelo@kvack.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu hotplug support broken
+     timekeeping: prevent time going backwards on resume (V2)
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-support-broken.patch
+     timekeeping-prevent-time-going-backwards-on-resume-v2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: cpu hotplug support broken
+Subject: timekeeping: prevent time going backwards on resume (V2)
 From: Thomas Gleixner <tglx@linutronix.de>
 
+Timekeeping resume adjusts xtime by adding the slept time in seconds and
+resets the reference value of the clock source (clock->cycle_last).
+clock->cycle last is used to calculate the delta between the last xtime
+update and the readout of the clock source in __get_nsec_offset(). xtime
+plus the offset is the current time. The resume code ignores the delta
+which had already elapsed between the last xtime update and the actual
+time of suspend. If the suspend time is short, then we can see time
+going backwards on resume.
 
+Suspend:
+offs_s = clock->read() - clock->cycle_last;
+now = xtime + offs_s;
+timekeeping_suspend_time = read_rtc();
 
+Resume:
+sleep_time = read_rtc() - timekeeping_suspend_time;
+xtime.tv_sec += sleep_time;
+clock->cycle_last = clock->read();
+offs_r = clock->read() - clock->cycle_last;
+now = xtime + offs_r;
+
+if sleep_time_seconds == 0 and offs_r < offs_s, then time goes
+backwards.
+
+Fix this by storing the offset from the last xtime update and add it to
+xtime during resume, when we reset clock->cycle_last:
+
+sleep_time = read_rtc() - timekeeping_suspend_time;
+xtime.tv_sec += sleep_time;
+xtime += offs_s;        /* Fixup xtime offset at suspend time */
+clock->cycle_last = clock->read();
+offs_r = clock->read() - clock->cycle_last;
+now = xtime + offs_r;
+
+Thanks to Marcelo for tracking this down on the OLPC and providing the
+necessary details to analyze the root cause.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Marcelo Tosatti <marcelo@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |   21 +++++++++++++++++++++
- kernel/time/tick-broadcast.c  |   24 ++++++++++++++++--------
- kernel/time/tick-sched.c      |   12 ++++++++++++
- 3 files changed, 49 insertions(+), 8 deletions(-)
+ kernel/time/timekeeping.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~cpu-hotplug-support-broken drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~cpu-hotplug-support-broken
-+++ a/drivers/acpi/processor_core.c
-@@ -724,6 +724,25 @@ static void acpi_processor_notify(acpi_h
- 	return;
+diff -puN kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2 kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2
++++ a/kernel/time/timekeeping.c
+@@ -217,6 +217,7 @@ static void change_clocksource(void)
  }
- 
-+static int acpi_cpu_soft_notify(struct notifier_block *nfb,
-+		unsigned long action, void *hcpu)
-+{
-+	unsigned int cpu = (unsigned long)hcpu;
-+	struct acpi_processor *pr = processors[cpu];
-+
-+	if (action == CPU_ONLINE && pr) {
-+		acpi_processor_ppc_has_changed(pr);
-+		acpi_processor_cst_has_changed(pr);
-+		acpi_processor_tstate_has_changed(pr);
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block acpi_cpu_notifier =
-+{
-+	    .notifier_call = acpi_cpu_soft_notify,
-+};
-+
- static int acpi_processor_add(struct acpi_device *device)
- {
- 	struct acpi_processor *pr = NULL;
-@@ -987,6 +1006,7 @@ void acpi_processor_install_hotplug_noti
- 			    ACPI_UINT32_MAX,
- 			    processor_walk_namespace_cb, &action, NULL);
+ #else
+ static inline void change_clocksource(void) { }
++static inline s64 __get_nsec_offset(void) { return 0; }
  #endif
-+	register_hotcpu_notifier(&acpi_cpu_notifier);
- }
  
- static
-@@ -999,6 +1019,7 @@ void acpi_processor_uninstall_hotplug_no
- 			    ACPI_UINT32_MAX,
- 			    processor_walk_namespace_cb, &action, NULL);
- #endif
-+	unregister_hotcpu_notifier(&acpi_cpu_notifier);
- }
+ /**
+@@ -281,7 +282,7 @@ static int timekeeping_suspended;
+ /* time in seconds when suspend began */
+ static unsigned long timekeeping_suspend_time;
+ /* xtime offset when we went into suspend */
+-static s64 timekeeping_suspend_offset;
++static s64 timekeeping_suspend_nsecs;
  
- /*
-diff -puN kernel/time/tick-broadcast.c~cpu-hotplug-support-broken kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~cpu-hotplug-support-broken
-+++ a/kernel/time/tick-broadcast.c
-@@ -382,12 +382,23 @@ static int tick_broadcast_set_event(ktim
- 
- int tick_resume_broadcast_oneshot(struct clock_event_device *bc)
- {
-+	int cpu = smp_processor_id();
-+
-+	/*
-+	 * If the CPU is marked for broadcast, enforce oneshot
-+	 * broadcast mode. The jinxed VAIO does not resume otherwise.
-+	 * No idea why it ends up in a lower C State during resume
-+	 * without notifying the clock events layer.
-+	 */
-+	if (cpu_isset(cpu, tick_broadcast_mask))
-+		cpu_set(cpu, tick_broadcast_oneshot_mask);
-+
- 	clockevents_set_mode(bc, CLOCK_EVT_MODE_ONESHOT);
- 
- 	if(!cpus_empty(tick_broadcast_oneshot_mask))
- 		tick_broadcast_set_event(ktime_get(), 1);
- 
--	return cpu_isset(smp_processor_id(), tick_broadcast_oneshot_mask);
-+	return cpu_isset(cpu, tick_broadcast_oneshot_mask);
- }
- 
- /*
-@@ -549,20 +560,17 @@ void tick_broadcast_switch_to_oneshot(vo
-  */
- void tick_shutdown_broadcast_oneshot(unsigned int *cpup)
- {
--	struct clock_event_device *bc;
+ /**
+  * timekeeping_resume - Resumes the generic timekeeping subsystem.
+@@ -308,7 +309,7 @@ static int timekeeping_resume(struct sys
+ 		total_sleep_time += sleep_length;
+ 	}
+ 	/* Make sure that we have the correct xtime reference */
+-	timespec_add_ns(&xtime, timekeeping_suspend_offset);
++	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
+ 	/* re-base the last cycle value */
+ 	clock->cycle_last = clocksource_read(clock);
+ 	clock->error = 0;
+@@ -330,9 +331,9 @@ static int timekeeping_suspend(struct sy
  	unsigned long flags;
- 	unsigned int cpu = *cpup;
  
- 	spin_lock_irqsave(&tick_broadcast_lock, flags);
- 
--	bc = tick_broadcast_device.evtdev;
-+	/*
-+	 * Clear the broadcast mask flag for the dead cpu, but do not
-+	 * stop the broadcast device!
-+	 */
- 	cpu_clear(cpu, tick_broadcast_oneshot_mask);
- 
--	if (tick_broadcast_device.mode == TICKDEV_MODE_ONESHOT) {
--		if (bc && cpus_empty(tick_broadcast_oneshot_mask))
--			clockevents_set_mode(bc, CLOCK_EVT_MODE_SHUTDOWN);
--	}
--
- 	spin_unlock_irqrestore(&tick_broadcast_lock, flags);
- }
- 
-diff -puN kernel/time/tick-sched.c~cpu-hotplug-support-broken kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~cpu-hotplug-support-broken
-+++ a/kernel/time/tick-sched.c
-@@ -160,6 +160,18 @@ void tick_nohz_stop_sched_tick(void)
- 	cpu = smp_processor_id();
- 	ts = &per_cpu(tick_cpu_sched, cpu);
- 
-+	/*
-+	 * If this cpu is offline and it is the one which updates
-+	 * jiffies, then give up the assignment and let it be taken by
-+	 * the cpu which runs the tick timer next. If we don't drop
-+	 * this here the jiffies might be stale and do_timer() never
-+	 * invoked.
-+	 */
-+	if (unlikely(!cpu_online(cpu))) {
-+		if (cpu == tick_do_timer_cpu)
-+			tick_do_timer_cpu = -1;
-+	}
-+
- 	if (unlikely(ts->nohz_mode == NOHZ_MODE_INACTIVE))
- 		goto end;
+ 	write_seqlock_irqsave(&xtime_lock, flags);
+-	timekeeping_suspended = 1;
+ 	/* Get the current xtime offset */
+-	timekeeping_suspend_offset = __get_nsec_offset();
++	timekeeping_suspend_nsecs = __get_nsec_offset();
++	timekeeping_suspended = 1;
+ 	timekeeping_suspend_time = read_persistent_clock();
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
  
 _
 
@@ -161,6 +117,7 @@ Patches currently in -mm which might be from tglx@linutronix.de are
 
 futex_compat-fix-list-traversal-bugs.patch
 fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
+timekeeping-prevent-time-going-backwards-on-resume-v2.patch
 cpu-hotplug-support-broken.patch
 git-acpi.patch
 arm-cleanup-struct-irqaction-initializers.patch
