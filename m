@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-refcount-check-in-dput.patch added to -mm tree
-Date: Sat, 15 Sep 2007 01:39:18 -0700
-Message-ID: <200709150839.l8F8dIPU025671@imap1.linux-foundation.org>
+Subject: + pci-fix-unterminated-pci_device_id-lists.patch added to -mm tree
+Date: Sat, 15 Sep 2007 02:40:20 -0700
+Message-ID: <200709150940.l8F9eKcx027603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39725 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40871 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750832AbXIOIjY (ORCPT
+	by vger.kernel.org with ESMTP id S1751981AbXIOJko (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 04:39:24 -0400
+	Sat, 15 Sep 2007 05:40:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com
+Cc: kees@ubuntu.com, dwmw2@infradead.org, greg@kroah.com, jeff@garzik.org, minyard@acm.org
 
 
 The patch titled
-     Add a refcount check in dput()
+     pci: fix unterminated pci_device_id lists
 has been added to the -mm tree.  Its filename is
-     add-a-refcount-check-in-dput.patch
+     pci-fix-unterminated-pci_device_id-lists.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,91 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add a refcount check in dput()
-From: menage@google.com (Paul Menage)
+Subject: pci: fix unterminated pci_device_id lists
+From: Kees Cook <kees@ubuntu.com>
 
-Add a WARN_ON_ONCE() to check for passing an unreferenced dentry to dput().
+Fix a couple drivers that do not correctly terminate their pci_device_id
+lists.  This results in garbage being spewed into modules.pcimap when the
+module happens to not have 28 NULL bytes following the table, and/or the
+last PCI ID is actually truncated from the table when calculating the
+modules.alias PCI aliases, cause those unfortunate device IDs to not
+auto-load.
 
-This is analogous to the similar check in dget(), and will make
-reference-counting bugs in filesystems more immediately obvious. (I
-just spent a while debugging an oops that turned out to be due to
-broken fs reference counting.)
-
-Signed-off-by: Paul Menage <menage@google.com>
+Signed-off-by: Kees Cook <kees@ubuntu.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/ipmi/ipmi_si_intf.c |    3 ++-
+ drivers/mtd/nand/cafe_nand.c     |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/dcache.c~add-a-refcount-check-in-dput fs/dcache.c
---- a/fs/dcache.c~add-a-refcount-check-in-dput
-+++ a/fs/dcache.c
-@@ -176,6 +176,7 @@ void dput(struct dentry *dentry)
- 	if (!dentry)
- 		return;
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~pci-fix-unterminated-pci_device_id-lists drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~pci-fix-unterminated-pci_device_id-lists
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2215,7 +2215,8 @@ static int ipmi_pci_resume(struct pci_de
  
-+	WARN_ON_ONCE(!atomic_read(&dentry->d_count));
- repeat:
- 	if (atomic_read(&dentry->d_count) == 1)
- 		might_sleep();
+ static struct pci_device_id ipmi_pci_devices[] = {
+ 	{ PCI_DEVICE(PCI_HP_VENDOR_ID, PCI_MMC_DEVICE_ID) },
+-	{ PCI_DEVICE_CLASS(PCI_ERMC_CLASSCODE, PCI_ERMC_CLASSCODE_MASK) }
++	{ PCI_DEVICE_CLASS(PCI_ERMC_CLASSCODE, PCI_ERMC_CLASSCODE_MASK) },
++	{ 0, }
+ };
+ MODULE_DEVICE_TABLE(pci, ipmi_pci_devices);
+ 
+diff -puN drivers/mtd/nand/cafe_nand.c~pci-fix-unterminated-pci_device_id-lists drivers/mtd/nand/cafe_nand.c
+--- a/drivers/mtd/nand/cafe_nand.c~pci-fix-unterminated-pci_device_id-lists
++++ a/drivers/mtd/nand/cafe_nand.c
+@@ -816,7 +816,8 @@ static void __devexit cafe_nand_remove(s
+ }
+ 
+ static struct pci_device_id cafe_nand_tbl[] = {
+-	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_MEMORY_FLASH << 8, 0xFFFF0 }
++	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_MEMORY_FLASH << 8, 0xFFFF0 },
++	{ 0, }
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, cafe_nand_tbl);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from kees@ubuntu.com are
 
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-containers-implement-namespace-tracking-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-add-a-refcount-check-in-dput.patch
+pci-fix-unterminated-pci_device_id-lists.patch
+modpost-detect-unterminated-device-id-lists.patch
+modpost-detect-unterminated-device-id-lists-fix.patch
