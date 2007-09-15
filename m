@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mspec-handle-shrinking-virtual-memory-areas.patch added to -mm tree
-Date: Sat, 15 Sep 2007 00:57:03 -0700
-Message-ID: <200709150757.l8F7v3Ls024333@imap1.linux-foundation.org>
+Subject: + ata_piix-replace-spaces-with-tabs.patch added to -mm tree
+Date: Sat, 15 Sep 2007 01:01:33 -0700
+Message-ID: <200709150801.l8F81XKN024506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751834AbXIOH5e (ORCPT
+	by vger.kernel.org with ESMTP id S1750827AbXIOIB6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 03:57:34 -0400
+	Sat, 15 Sep 2007 04:01:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cpw@sgi.com, jes@sgi.com
+Cc: jason.d.gaston@intel.com, alan@redhat.com
 
 
 The patch titled
-     mspec: handle shrinking virtual memory areas
+     ata_piix: replace spaces with tabs
 has been added to the -mm tree.  Its filename is
-     mspec-handle-shrinking-virtual-memory-areas.patch
+     ata_piix-replace-spaces-with-tabs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,209 +26,404 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mspec: handle shrinking virtual memory areas
-From: Cliff Wickman <cpw@sgi.com>
+Subject: ata_piix: replace spaces with tabs
+From: Jason Gaston <jason.d.gaston@intel.com>
 
-The shrinking of a virtual memory area that is mmap(2)'d to a memory
-special file (device drivers/char/mspec.c) can cause a panic.
+This patch removes some incorrect formatting spaces and replaces them with
+tabs.
 
-If the mapped size of the vma (vm_area_struct) is very large, mspec
-allocates a large vma_data structure with vmalloc().  But such a vma can be
-shrunk by an munmap(2).  The current driver uses the current size of each
-vma to deduce whether its vma_data structure was allocated by kmalloc() or
-vmalloc().  So if the vma was shrunk it appears to have been allocated by
-kmalloc(), and mspec attempts to free it with kfree().  This results in a
-panic.
-
-This patch avoids the panic (by preserving the type of the allocation) and
-also makes mspec work correctly as the vma is split into pieces by the
-munmap(2)'s.
-
-All vma's derived from such a split vma share the same vma_data structure
-that represents all the pages mapped into this set of vma's.  The mpec
-driver must be made capable of using the right portion of the structure for
-each member vma.  In other words, it must index into the array of page
-addresses using the portion of the array that represents the current vma. 
-This is enabled by storing the vma group's vm_start in the vma_data
-structure.
-
-The vma's are protected by mm->mmap_sem, so the reference count was changed
-from an atomic_t to an int.
-
-Signed-off-by: Cliff Wickman <cpw@sgi.com>
-Acked-by: Jes Sorensen <jes@sgi.com>
+Signed-off-by: Jason Gaston <jason.d.gaston@intel.com>
+Reviewed-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |   68 +++++++++++++++++++++++++++--------------
- 1 file changed, 45 insertions(+), 23 deletions(-)
+ drivers/ata/ata_piix.c      |   18 ++--
+ drivers/ata/ata_piix.c.orig |  134 +++++++++++++++++++++++++---------
+ 2 files changed, 108 insertions(+), 44 deletions(-)
 
-diff -puN drivers/char/mspec.c~mspec-handle-shrinking-virtual-memory-areas drivers/char/mspec.c
---- a/drivers/char/mspec.c~mspec-handle-shrinking-virtual-memory-areas
-+++ a/drivers/char/mspec.c
-@@ -67,7 +67,7 @@
- /*
-  * Page types allocated by the device.
-  */
--enum {
-+enum mspec_page_type {
- 	MSPEC_FETCHOP = 1,
- 	MSPEC_CACHED,
- 	MSPEC_UNCACHED
-@@ -83,15 +83,26 @@ static int is_sn2;
-  * One of these structures is allocated when an mspec region is mmaped. The
-  * structure is pointed to by the vma->vm_private_data field in the vma struct.
-  * This structure is used to record the addresses of the mspec pages.
-+ * This structure is shared by all vma's that are split off from the
-+ * original vma when split_vma()'s are done.
-+ *
-+ * The refcnt is incremented non-atomically because all paths leading
-+ * to mspec_open() and mspec_close() are single threaded by the exclusive
-+ * locking of mm->mmap_sem.
-  */
- struct vma_data {
--	atomic_t refcnt;	/* Number of vmas sharing the data. */
-+	int refcnt;		/* Number of vmas sharing the data. */
- 	spinlock_t lock;	/* Serialize access to the vma. */
- 	int count;		/* Number of pages allocated. */
--	int type;		/* Type of pages allocated. */
-+	enum mspec_page_type type; /* Type of pages allocated. */
-+	int flags;		/* See VMD_xxx below. */
-+	unsigned long vm_start;	/* Original (unsplit) base. */
-+	unsigned long vm_end;	/* Original (unsplit) end. */
- 	unsigned long maddr[0];	/* Array of MSPEC addresses. */
+diff -puN drivers/ata/ata_piix.c~ata_piix-replace-spaces-with-tabs drivers/ata/ata_piix.c
+--- a/drivers/ata/ata_piix.c~ata_piix-replace-spaces-with-tabs
++++ a/drivers/ata/ata_piix.c
+@@ -437,15 +437,15 @@ static const struct piix_map_db ich8_map
  };
  
-+#define VMD_VMALLOCED 0x1	/* vmalloc'd rather than kmalloc'd */
-+
- /* used on shub2 to clear FOP cache in the HUB */
- static unsigned long scratch_page[MAX_NUMNODES];
- #define SH2_AMO_CACHE_ENTRIES	4
-@@ -129,8 +140,8 @@ mspec_zero_block(unsigned long addr, int
-  * mspec_open
-  *
-  * Called when a device mapping is created by a means other than mmap
-- * (via fork, etc.).  Increments the reference count on the underlying
-- * mspec data so it is not freed prematurely.
-+ * (via fork, munmap, etc.).  Increments the reference count on the
-+ * underlying mspec data so it is not freed prematurely.
-  */
- static void
- mspec_open(struct vm_area_struct *vma)
-@@ -138,7 +149,7 @@ mspec_open(struct vm_area_struct *vma)
- 	struct vma_data *vdata;
+ static const struct piix_map_db tolapai_map_db = {
+-        .mask = 0x3,
+-        .port_enable = 0x3,
+-        .map = {
+-                /* PM   PS   SM   SS       MAP */
+-                {  P0,  NA,  P1,  NA }, /* 00b */
+-                {  RV,  RV,  RV,  RV }, /* 01b */
+-                {  RV,  RV,  RV,  RV }, /* 10b */
+-                {  RV,  RV,  RV,  RV },
+-        },
++	.mask = 0x3,
++	.port_enable = 0x3,
++	.map = {
++		/* PM   PS   SM   SS       MAP */
++		{  P0,  NA,  P1,  NA }, /* 00b */
++		{  RV,  RV,  RV,  RV }, /* 01b */
++		{  RV,  RV,  RV,  RV }, /* 10b */
++		{  RV,  RV,  RV,  RV },
++	},
+ };
  
- 	vdata = vma->vm_private_data;
--	atomic_inc(&vdata->refcnt);
-+	vdata->refcnt++;
+ static const struct piix_map_db *piix_map_db_table[] = {
+diff -puN drivers/ata/ata_piix.c.orig~ata_piix-replace-spaces-with-tabs drivers/ata/ata_piix.c.orig
+--- a/drivers/ata/ata_piix.c.orig~ata_piix-replace-spaces-with-tabs
++++ a/drivers/ata/ata_piix.c.orig
+@@ -94,7 +94,7 @@
+ #include <linux/dmi.h>
+ 
+ #define DRV_NAME	"ata_piix"
+-#define DRV_VERSION	"2.11"
++#define DRV_VERSION	"2.12"
+ 
+ enum {
+ 	PIIX_IOCFG		= 0x54, /* IDE I/O configuration register */
+@@ -123,13 +123,13 @@ enum {
+ 	ich_pata_33		= 1,	/* ICH up to UDMA 33 only */
+ 	ich_pata_66		= 2,	/* ICH up to 66 Mhz */
+ 	ich_pata_100		= 3,	/* ICH up to UDMA 100 */
+-	ich_pata_133		= 4,	/* ICH up to UDMA 133 */
+ 	ich5_sata		= 5,
+ 	ich6_sata		= 6,
+ 	ich6_sata_ahci		= 7,
+ 	ich6m_sata_ahci		= 8,
+ 	ich8_sata_ahci		= 9,
+ 	piix_pata_mwdma		= 10,	/* PIIX3 MWDMA only */
++	tolapai_sata_ahci	= 11,
+ 
+ 	/* constants for mapping table */
+ 	P0			= 0,  /* port 0 */
+@@ -198,7 +198,7 @@ static const struct pci_device_id piix_p
+ 	{ 0x8086, 0x24CA, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	{ 0x8086, 0x24CB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* Intel ICH5 */
+-	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
++	{ 0x8086, 0x24DB, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* C-ICH (i810E2) */
+ 	{ 0x8086, 0x245B, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ESB (855GME/875P + 6300ESB) UDMA 100  */
+@@ -206,7 +206,7 @@ static const struct pci_device_id piix_p
+ 	/* ICH6 (and 6) (i915) UDMA 100 */
+ 	{ 0x8086, 0x266F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ICH7/7-R (i945, i975) UDMA 100*/
+-	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_133 },
++	{ 0x8086, 0x27DF, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	{ 0x8086, 0x269E, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+ 	/* ICH8 Mobile PATA Controller */
+ 	{ 0x8086, 0x2850, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich_pata_100 },
+@@ -253,6 +253,8 @@ static const struct pci_device_id piix_p
+ 	{ 0x8086, 0x292d, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
+ 	/* SATA Controller IDE (ICH9M) */
+ 	{ 0x8086, 0x292e, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
++	/* SATA Controller IDE (Tolapai) */
++	{ 0x8086, 0x5028, PCI_ANY_ID, PCI_ANY_ID, 0, 0, tolapai_sata_ahci },
+ 
+ 	{ }	/* terminate list */
+ };
+@@ -287,7 +289,6 @@ static struct scsi_host_template piix_sh
+ };
+ 
+ static const struct ata_port_operations piix_pata_ops = {
+-	.port_disable		= ata_port_disable,
+ 	.set_piomode		= piix_set_piomode,
+ 	.set_dmamode		= piix_set_dmamode,
+ 	.mode_filter		= ata_pci_default_filter,
+@@ -315,13 +316,11 @@ static const struct ata_port_operations 
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
+ 	.irq_on			= ata_irq_on,
+-	.irq_ack		= ata_irq_ack,
+ 
+ 	.port_start		= ata_port_start,
+ };
+ 
+ static const struct ata_port_operations ich_pata_ops = {
+-	.port_disable		= ata_port_disable,
+ 	.set_piomode		= piix_set_piomode,
+ 	.set_dmamode		= ich_set_dmamode,
+ 	.mode_filter		= ata_pci_default_filter,
+@@ -349,14 +348,11 @@ static const struct ata_port_operations 
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
+ 	.irq_on			= ata_irq_on,
+-	.irq_ack		= ata_irq_ack,
+ 
+ 	.port_start		= ata_port_start,
+ };
+ 
+ static const struct ata_port_operations piix_sata_ops = {
+-	.port_disable		= ata_port_disable,
+-
+ 	.tf_load		= ata_tf_load,
+ 	.tf_read		= ata_tf_read,
+ 	.check_status		= ata_check_status,
+@@ -379,7 +375,6 @@ static const struct ata_port_operations 
+ 	.irq_handler		= ata_interrupt,
+ 	.irq_clear		= ata_bmdma_irq_clear,
+ 	.irq_on			= ata_irq_on,
+-	.irq_ack		= ata_irq_ack,
+ 
+ 	.port_start		= ata_port_start,
+ };
+@@ -441,16 +436,29 @@ static const struct piix_map_db ich8_map
+ 	},
+ };
+ 
++static const struct piix_map_db tolapai_map_db = {
++        .mask = 0x3,
++        .port_enable = 0x3,
++        .map = {
++                /* PM   PS   SM   SS       MAP */
++                {  P0,  NA,  P1,  NA }, /* 00b */
++                {  RV,  RV,  RV,  RV }, /* 01b */
++                {  RV,  RV,  RV,  RV }, /* 10b */
++                {  RV,  RV,  RV,  RV },
++        },
++};
++
+ static const struct piix_map_db *piix_map_db_table[] = {
+ 	[ich5_sata]		= &ich5_map_db,
+ 	[ich6_sata]		= &ich6_map_db,
+ 	[ich6_sata_ahci]	= &ich6_map_db,
+ 	[ich6m_sata_ahci]	= &ich6m_map_db,
+ 	[ich8_sata_ahci]	= &ich8_map_db,
++	[tolapai_sata_ahci]	= &tolapai_map_db,
+ };
+ 
+ static struct ata_port_info piix_port_info[] = {
+-	/* piix_pata_33: 0:  PIIX4 at 33MHz */
++	[piix_pata_33] =	/* PIIX4 at 33MHz */
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS,
+@@ -460,7 +468,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_pata_ops,
+ 	},
+ 
+-	/* ich_pata_33: 1 	ICH0 - ICH at 33Mhz*/
++	[ich_pata_33] = 	/* ICH0 - ICH at 33Mhz*/
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS,
+@@ -469,7 +477,8 @@ static struct ata_port_info piix_port_in
+ 		.udma_mask	= ATA_UDMA2, /* UDMA33 */
+ 		.port_ops	= &ich_pata_ops,
+ 	},
+-	/* ich_pata_66: 2 	ICH controllers up to 66MHz */
++
++	[ich_pata_66] = 	/* ICH controllers up to 66MHz */
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS,
+@@ -479,7 +488,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &ich_pata_ops,
+ 	},
+ 
+-	/* ich_pata_100: 3 */
++	[ich_pata_100] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS | PIIX_FLAG_CHECKINTR,
+@@ -489,17 +498,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &ich_pata_ops,
+ 	},
+ 
+-	/* ich_pata_133: 4 	ICH with full UDMA6 */
+-	{
+-		.sht		= &piix_sht,
+-		.flags		= PIIX_PATA_FLAGS | PIIX_FLAG_CHECKINTR,
+-		.pio_mask 	= 0x1f,	/* pio 0-4 */
+-		.mwdma_mask	= 0x06, /* Check: maybe 0x07  */
+-		.udma_mask	= ATA_UDMA6, /* UDMA133 */
+-		.port_ops	= &ich_pata_ops,
+-	},
+-
+-	/* ich5_sata: 5 */
++	[ich5_sata] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_SATA_FLAGS,
+@@ -509,7 +508,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_sata_ops,
+ 	},
+ 
+-	/* ich6_sata: 6 */
++	[ich6_sata] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR,
+@@ -519,7 +518,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_sata_ops,
+ 	},
+ 
+-	/* ich6_sata_ahci: 7 */
++	[ich6_sata_ahci] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
+@@ -530,7 +529,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_sata_ops,
+ 	},
+ 
+-	/* ich6m_sata_ahci: 8 */
++	[ich6m_sata_ahci] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
+@@ -541,7 +540,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_sata_ops,
+ 	},
+ 
+-	/* ich8_sata_ahci: 9 */
++	[ich8_sata_ahci] =
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
+@@ -552,7 +551,7 @@ static struct ata_port_info piix_port_in
+ 		.port_ops	= &piix_sata_ops,
+ 	},
+ 
+-	/* piix_pata_mwdma: 10:  PIIX3 MWDMA only */
++	[piix_pata_mwdma] = 	/* PIIX3 MWDMA only */
+ 	{
+ 		.sht		= &piix_sht,
+ 		.flags		= PIIX_PATA_FLAGS,
+@@ -560,6 +559,17 @@ static struct ata_port_info piix_port_in
+ 		.mwdma_mask	= 0x06, /* mwdma1-2 ?? CHECK 0 should be ok but slow */
+ 		.port_ops	= &piix_pata_ops,
+ 	},
++
++	[tolapai_sata_ahci] =
++	{
++		.sht		= &piix_sht,
++		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
++				  PIIX_FLAG_AHCI,
++		.pio_mask	= 0x1f,	/* pio0-4 */
++		.mwdma_mask	= 0x07, /* mwdma0-2 */
++		.udma_mask	= ATA_UDMA6,
++		.port_ops	= &piix_sata_ops,
++	},
+ };
+ 
+ static struct pci_bits piix_enable_bits[] = {
+@@ -630,19 +640,20 @@ static int ich_pata_cable_detect(struct 
+ 
+ /**
+  *	piix_pata_prereset - prereset for PATA host controller
+- *	@ap: Target port
++ *	@link: Target link
+  *	@deadline: deadline jiffies for the operation
+  *
+  *	LOCKING:
+  *	None (inherited from caller).
+  */
+-static int piix_pata_prereset(struct ata_port *ap, unsigned long deadline)
++static int piix_pata_prereset(struct ata_link *link, unsigned long deadline)
+ {
++	struct ata_port *ap = link->ap;
+ 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
+ 
+ 	if (!pci_test_config_bits(pdev, &piix_enable_bits[ap->port_no]))
+ 		return -ENOENT;
+-	return ata_std_prereset(ap, deadline);
++	return ata_std_prereset(link, deadline);
  }
  
- /*
-@@ -151,34 +162,38 @@ static void
- mspec_close(struct vm_area_struct *vma)
- {
- 	struct vma_data *vdata;
--	int i, pages, result, vdata_size;
-+	int index, last_index, result;
- 
- 	vdata = vma->vm_private_data;
--	if (!atomic_dec_and_test(&vdata->refcnt))
--		return;
- 
--	pages = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
--	vdata_size = sizeof(struct vma_data) + pages * sizeof(long);
--	for (i = 0; i < pages; i++) {
--		if (vdata->maddr[i] == 0)
-+	BUG_ON(vma->vm_start < vdata->vm_start || vma->vm_end > vdata->vm_end);
+ static void piix_pata_error_handler(struct ata_port *ap)
+@@ -901,6 +912,20 @@ static int piix_broken_suspend(void)
+ 			},
+ 		},
+ 		{
++			.ident = "TECRA M7",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "TECRA M7"),
++			},
++		},
++		{
++			.ident = "Satellite U200",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
++				DMI_MATCH(DMI_PRODUCT_NAME, "Satellite U200"),
++			},
++		},
++		{
+ 			.ident = "Satellite U205",
+ 			.matches = {
+ 				DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+@@ -914,7 +939,8 @@ static int piix_broken_suspend(void)
+ 				DMI_MATCH(DMI_PRODUCT_NAME, "PORTEGE M500"),
+ 			},
+ 		},
+-		{ }
 +
-+	index = (vma->vm_start - vdata->vm_start) >> PAGE_SHIFT;
-+	last_index = (vma->vm_end - vdata->vm_start) >> PAGE_SHIFT;
-+	for (; index < last_index; index++) {
-+		if (vdata->maddr[index] == 0)
- 			continue;
- 		/*
- 		 * Clear the page before sticking it back
- 		 * into the pool.
- 		 */
--		result = mspec_zero_block(vdata->maddr[i], PAGE_SIZE);
-+		result = mspec_zero_block(vdata->maddr[index], PAGE_SIZE);
- 		if (!result)
--			uncached_free_page(vdata->maddr[i]);
-+			uncached_free_page(vdata->maddr[index]);
- 		else
- 			printk(KERN_WARNING "mspec_close(): "
- 			       "failed to zero page %i\n",
- 			       result);
-+		vdata->maddr[index] = 0;
- 	}
++		{ }	/* terminate list */
+ 	};
+ 	static const char *oemstrs[] = {
+ 		"Tecra M3,",
+@@ -1132,6 +1158,41 @@ static void __devinit piix_init_sata_map
+ 	hpriv->map = map;
+ }
  
--	if (vdata_size <= PAGE_SIZE)
--		kfree(vdata);
--	else
-+	if (--vdata->refcnt)
++static void piix_iocfg_bit18_quirk(struct pci_dev *pdev)
++{
++	static struct dmi_system_id sysids[] = {
++		{
++			/* Clevo M570U sets IOCFG bit 18 if the cdrom
++			 * isn't used to boot the system which
++			 * disables the channel.
++			 */
++			.ident = "M570U",
++			.matches = {
++				DMI_MATCH(DMI_SYS_VENDOR, "Clevo Co."),
++				DMI_MATCH(DMI_PRODUCT_NAME, "M570U"),
++			},
++		},
++
++		{ }	/* terminate list */
++	};
++	u32 iocfg;
++
++	if (!dmi_check_system(sysids))
 +		return;
 +
-+	if (vdata->flags & VMD_VMALLOCED)
- 		vfree(vdata);
-+	else
-+		kfree(vdata);
- }
- 
- 
-@@ -195,7 +210,8 @@ mspec_nopfn(struct vm_area_struct *vma, 
- 	int index;
- 	struct vma_data *vdata = vma->vm_private_data;
- 
--	index = (address - vma->vm_start) >> PAGE_SHIFT;
-+	BUG_ON(address < vdata->vm_start || address >= vdata->vm_end);
-+	index = (address - vdata->vm_start) >> PAGE_SHIFT;
- 	maddr = (volatile unsigned long) vdata->maddr[index];
- 	if (maddr == 0) {
- 		maddr = uncached_alloc_page(numa_node_id());
-@@ -237,10 +253,11 @@ static struct vm_operations_struct mspec
-  * underlying pages.
-  */
- static int
--mspec_mmap(struct file *file, struct vm_area_struct *vma, int type)
-+mspec_mmap(struct file *file, struct vm_area_struct *vma,
-+					enum mspec_page_type type)
- {
- 	struct vma_data *vdata;
--	int pages, vdata_size;
-+	int pages, vdata_size, flags = 0;
- 
- 	if (vma->vm_pgoff != 0)
- 		return -EINVAL;
-@@ -255,15 +272,20 @@ mspec_mmap(struct file *file, struct vm_
- 	vdata_size = sizeof(struct vma_data) + pages * sizeof(long);
- 	if (vdata_size <= PAGE_SIZE)
- 		vdata = kmalloc(vdata_size, GFP_KERNEL);
--	else
-+	else {
- 		vdata = vmalloc(vdata_size);
-+		flags = VMD_VMALLOCED;
++	/* The datasheet says that bit 18 is NOOP but certain systems
++	 * seem to use it to disable a channel.  Clear the bit on the
++	 * affected systems.
++	 */
++	pci_read_config_dword(pdev, PIIX_IOCFG, &iocfg);
++	if (iocfg & (1 << 18)) {
++		dev_printk(KERN_INFO, &pdev->dev,
++			   "applying IOCFG bit18 quirk\n");
++		iocfg &= ~(1 << 18);
++		pci_write_config_dword(pdev, PIIX_IOCFG, iocfg);
 +	}
- 	if (!vdata)
- 		return -ENOMEM;
- 	memset(vdata, 0, vdata_size);
++}
++
+ /**
+  *	piix_init_one - Register PIIX ATA PCI device with kernel services
+  *	@pdev: PCI device to register
+@@ -1193,6 +1254,9 @@ static int piix_init_one (struct pci_dev
+ 			      piix_map_db_table[ent->driver_data]);
+ 	}
  
-+	vdata->vm_start = vma->vm_start;
-+	vdata->vm_end = vma->vm_end;
-+	vdata->flags = flags;
- 	vdata->type = type;
- 	spin_lock_init(&vdata->lock);
--	vdata->refcnt = ATOMIC_INIT(1);
-+	vdata->refcnt = 1;
- 	vma->vm_private_data = vdata;
- 
- 	vma->vm_flags |= (VM_IO | VM_RESERVED | VM_PFNMAP);
++	/* apply IOCFG bit18 quirk */
++	piix_iocfg_bit18_quirk(pdev);
++
+ 	/* On ICH5, some BIOSen disable the interrupt using the
+ 	 * PCI_COMMAND_INTX_DISABLE bit added in PCI 2.3.
+ 	 * On ICH6, this bit has the same effect, but only when
 _
 
-Patches currently in -mm which might be from cpw@sgi.com are
+Patches currently in -mm which might be from jason.d.gaston@intel.com are
 
-mspec-handle-shrinking-virtual-memory-areas.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+i2c-i801-documentation-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+ahci-raid-mode-sata-patch-for-intel-tolapai.patch
+ata_piix-replace-spaces-with-tabs.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai.patch
+irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
