@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-bug_on.patch added to -mm tree
-Date: Fri, 14 Sep 2007 19:07:40 -0700
-Message-ID: <200709150207.l8F27era002416@imap1.linux-foundation.org>
+Subject: + storing-ipcs-into-idrs.patch added to -mm tree
+Date: Fri, 14 Sep 2007 19:08:43 -0700
+Message-ID: <200709150208.l8F28hIn002426@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37652 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753466AbXIOCHo (ORCPT
+	by vger.kernel.org with ESMTP id S1756299AbXIOCJT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 14 Sep 2007 22:07:44 -0400
+	Fri, 14 Sep 2007 22:09:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com
+Cc: Nadia.Derbey@bull.net
 
 
 The patch titled
-     memory controller BUG_ON()
+     Storing ipcs into IDRs
 has been added to the -mm tree.  Its filename is
-     memory-controller-bug_on.patch
+     storing-ipcs-into-idrs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory controller BUG_ON()
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: Storing ipcs into IDRs
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Move mem_controller_cache_charge() above radix_tree_preload(). 
-radix_tree_preload() disables preemption, even though the gfp_mask passed
-contains __GFP_WAIT, we cannot really do __GFP_WAIT allocations, thus we
-hit a BUG_ON() in kmem_cache_alloc().
+This patch converts casts of struct kern_ipc_perm to
+   . struct msg_queue
+   . struct sem_array
+   . struct shmid_kernel
+into the equivalent container_of() macro. It improves code maintenance
+because the code need not change if kern_ipc_perm is no longer at the
+beginning of the containing struct.
 
-This patch moves mem_controller_cache_charge() to above radix_tree_preload()
-for cache charging.
-
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c    |   13 ++++++-------
- mm/swap_state.c |   13 +++++++------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ ipc/msg.c  |   14 ++++++++++----
+ ipc/sem.c  |   23 +++++++++++++++++------
+ ipc/shm.c  |   23 +++++++++++++++++------
+ ipc/util.h |    4 ++--
+ 4 files changed, 46 insertions(+), 18 deletions(-)
 
-diff -puN mm/filemap.c~memory-controller-bug_on mm/filemap.c
---- a/mm/filemap.c~memory-controller-bug_on
-+++ a/mm/filemap.c
-@@ -440,14 +440,12 @@ int filemap_write_and_wait_range(struct 
- int add_to_page_cache(struct page *page, struct address_space *mapping,
- 		pgoff_t offset, gfp_t gfp_mask)
+diff -puN ipc/msg.c~storing-ipcs-into-idrs ipc/msg.c
+--- a/ipc/msg.c~storing-ipcs-into-idrs
++++ a/ipc/msg.c
+@@ -138,13 +138,17 @@ void __init msg_init(void)
+ 
+ static inline struct msg_queue *msg_lock(struct ipc_namespace *ns, int id)
  {
--	int error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
-+	int error = mem_container_cache_charge(page, current->mm, gfp_mask);
-+	if (error)
-+		goto out;
+-	return (struct msg_queue *) ipc_lock(&msg_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock(&msg_ids(ns), id);
++
++	return container_of(ipcp, struct msg_queue, q_perm);
+ }
  
-+	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
- 	if (error == 0) {
--
--		error = mem_container_cache_charge(page, current->mm, gfp_mask);
--		if (error)
--			goto out;
--
- 		write_lock_irq(&mapping->tree_lock);
- 		error = radix_tree_insert(&mapping->page_tree, offset, page);
- 		if (!error) {
-@@ -462,7 +460,8 @@ int add_to_page_cache(struct page *page,
+ static inline struct msg_queue *msg_lock_check(struct ipc_namespace *ns,
+ 						int id)
+ {
+-	return (struct msg_queue *) ipc_lock_check(&msg_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock_check(&msg_ids(ns), id);
++
++	return container_of(ipcp, struct msg_queue, q_perm);
+ }
  
- 		write_unlock_irq(&mapping->tree_lock);
- 		radix_tree_preload_end();
--	}
-+	} else
-+		mem_container_uncharge_page(page);
- out:
+ static inline void msg_rmid(struct ipc_namespace *ns, struct msg_queue *s)
+@@ -274,9 +278,11 @@ static void freeque(struct ipc_namespace
+ 	ipc_rcu_putref(msq);
+ }
+ 
+-static inline int msg_security(void *msq, int msgflg)
++static inline int msg_security(struct kern_ipc_perm *ipcp, int msgflg)
+ {
+-	return security_msg_queue_associate((struct msg_queue *) msq, msgflg);
++	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
++
++	return security_msg_queue_associate(msq, msgflg);
+ }
+ 
+ asmlinkage long sys_msgget(key_t key, int msgflg)
+diff -puN ipc/sem.c~storing-ipcs-into-idrs ipc/sem.c
+--- a/ipc/sem.c~storing-ipcs-into-idrs
++++ a/ipc/sem.c
+@@ -176,13 +176,17 @@ void __init sem_init (void)
+ 
+ static inline struct sem_array *sem_lock(struct ipc_namespace *ns, int id)
+ {
+-	return (struct sem_array *) ipc_lock(&sem_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock(&sem_ids(ns), id);
++
++	return container_of(ipcp, struct sem_array, sem_perm);
+ }
+ 
+ static inline struct sem_array *sem_lock_check(struct ipc_namespace *ns,
+ 						int id)
+ {
+-	return (struct sem_array *) ipc_lock_check(&sem_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock_check(&sem_ids(ns), id);
++
++	return container_of(ipcp, struct sem_array, sem_perm);
+ }
+ 
+ static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+@@ -277,14 +281,21 @@ static int newary(struct ipc_namespace *
+ }
+ 
+ 
+-static inline int sem_security(void *sma, int semflg)
++static inline int sem_security(struct kern_ipc_perm *ipcp, int semflg)
+ {
+-	return security_sem_associate((struct sem_array *) sma, semflg);
++	struct sem_array *sma;
++
++	sma = container_of(ipcp, struct sem_array, sem_perm);
++	return security_sem_associate(sma, semflg);
+ }
+ 
+-static inline int sem_more_checks(void *sma, struct ipc_params *params)
++static inline int sem_more_checks(struct kern_ipc_perm *ipcp,
++				struct ipc_params *params)
+ {
+-	if (params->u.nsems > ((struct sem_array *)sma)->sem_nsems)
++	struct sem_array *sma;
++
++	sma = container_of(ipcp, struct sem_array, sem_perm);
++	if (params->u.nsems > sma->sem_nsems)
+ 		return -EINVAL;
+ 
+ 	return 0;
+diff -puN ipc/shm.c~storing-ipcs-into-idrs ipc/shm.c
+--- a/ipc/shm.c~storing-ipcs-into-idrs
++++ a/ipc/shm.c
+@@ -139,13 +139,17 @@ void __init shm_init (void)
+ 
+ static inline struct shmid_kernel *shm_lock(struct ipc_namespace *ns, int id)
+ {
+-	return (struct shmid_kernel *) ipc_lock(&shm_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock(&shm_ids(ns), id);
++
++	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+ static inline struct shmid_kernel *shm_lock_check(struct ipc_namespace *ns,
+ 						int id)
+ {
+-	return (struct shmid_kernel *) ipc_lock_check(&shm_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_lock_check(&shm_ids(ns), id);
++
++	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+ static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
+@@ -424,14 +428,21 @@ no_file:
  	return error;
  }
-diff -puN mm/swap_state.c~memory-controller-bug_on mm/swap_state.c
---- a/mm/swap_state.c~memory-controller-bug_on
-+++ a/mm/swap_state.c
-@@ -78,13 +78,13 @@ static int __add_to_swap_cache(struct pa
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(PageSwapCache(page));
- 	BUG_ON(PagePrivate(page));
--	error = radix_tree_preload(gfp_mask);
--	if (!error) {
  
--		error = mem_container_cache_charge(page, current->mm, gfp_mask);
--		if (error)
--			goto out;
-+	error = mem_container_cache_charge(page, current->mm, gfp_mask);
-+	if (error)
-+		goto out;
- 
-+	error = radix_tree_preload(gfp_mask);
-+	if (!error) {
- 		write_lock_irq(&swapper_space.tree_lock);
- 		error = radix_tree_insert(&swapper_space.page_tree,
- 						entry.val, page);
-@@ -99,7 +99,8 @@ static int __add_to_swap_cache(struct pa
- 
- 		write_unlock_irq(&swapper_space.tree_lock);
- 		radix_tree_preload_end();
--	}
-+	} else
-+		mem_container_uncharge_page(page);
- out:
- 	return error;
+-static inline int shm_security(void *shp, int shmflg)
++static inline int shm_security(struct kern_ipc_perm *ipcp, int shmflg)
+ {
+-	return security_shm_associate((struct shmid_kernel *) shp, shmflg);
++	struct shmid_kernel *shp;
++
++	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
++	return security_shm_associate(shp, shmflg);
  }
+ 
+-static inline int shm_more_checks(void *shp, struct ipc_params *params)
++static inline int shm_more_checks(struct kern_ipc_perm *ipcp,
++				struct ipc_params *params)
+ {
+-	if (((struct shmid_kernel *)shp)->shm_segsz < params->u.size)
++	struct shmid_kernel *shp;
++
++	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
++	if (shp->shm_segsz < params->u.size)
+ 		return -EINVAL;
+ 
+ 	return 0;
+diff -puN ipc/util.h~storing-ipcs-into-idrs ipc/util.h
+--- a/ipc/util.h~storing-ipcs-into-idrs
++++ a/ipc/util.h
+@@ -61,8 +61,8 @@ struct ipc_params {
+  */
+ struct ipc_ops {
+ 	int (*getnew) (struct ipc_namespace *, struct ipc_params *);
+-	int (*associate) (void *, int);
+-	int (*more_checks) (void *, struct ipc_params *);
++	int (*associate) (struct kern_ipc_perm *, int);
++	int (*more_checks) (struct kern_ipc_perm *, struct ipc_params *);
+ };
+ 
+ struct seq_file;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-containerstats-v3.patch
-add-containerstats-v3-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-memory-controller-bug_on.patch
+ipc-store-ipcs-into-idrs.patch
+ipc-unify-the-syscalls-code.patch
+ipc-remove-the-ipc_get-routine.patch
+ipc-integrate-ipc_checkid-into-ipc_lock.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+storing-ipcs-into-idrs.patch
+ipc-introduce-the-ipcid_to_idx-macro.patch
+ipc-inline-ipc_buildid.patch
