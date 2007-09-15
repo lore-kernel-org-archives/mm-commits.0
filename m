@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tristate-choices-with-mixed-tristate-and-boolean.patch added to -mm tree
-Date: Sat, 15 Sep 2007 01:31:48 -0700
-Message-ID: <200709150831.l8F8Vmv1025453@imap1.linux-foundation.org>
+Subject: + x86-constify-stacktrace_ops.patch added to -mm tree
+Date: Sat, 15 Sep 2007 01:33:28 -0700
+Message-ID: <200709150833.l8F8XSk1025474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35350 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752335AbXIOIdD (ORCPT
+	by vger.kernel.org with ESMTP id S1752335AbXIOIda (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 04:33:03 -0400
+	Sat, 15 Sep 2007 04:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: jbeulich@novell.com
 
 
 The patch titled
-     tristate choices with mixed tristate and boolean values
+     x86: constify stacktrace_ops
 has been added to the -mm tree.  Its filename is
-     tristate-choices-with-mixed-tristate-and-boolean.patch
+     x86-constify-stacktrace_ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,85 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tristate choices with mixed tristate and boolean values
+Subject: x86: constify stacktrace_ops
 From: "Jan Beulich" <jbeulich@novell.com>
 
-Change kconfig behavior so that mixing bool and tristate config settings in
-a choice is possible and has the desired effect of offering just the
-tristate options individually if the choice gets set to M, and a normal
-boolean selection if the choice gets set to Y.
+.. as they're never written to.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/menu.c |   35 ++++++++++++++++++++++++++---------
- 1 file changed, 26 insertions(+), 9 deletions(-)
+ arch/i386/kernel/traps.c        |    6 +++---
+ arch/x86_64/kernel/stacktrace.c |    2 +-
+ arch/x86_64/kernel/traps.c      |    4 ++--
+ include/asm-x86_64/stacktrace.h |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN scripts/kconfig/menu.c~tristate-choices-with-mixed-tristate-and-boolean scripts/kconfig/menu.c
---- a/scripts/kconfig/menu.c~tristate-choices-with-mixed-tristate-and-boolean
-+++ a/scripts/kconfig/menu.c
-@@ -235,16 +235,23 @@ void menu_finalize(struct menu *parent)
- 	sym = parent->sym;
- 	if (parent->list) {
- 		if (sym && sym_is_choice(sym)) {
--			/* find the first choice value and find out choice type */
-+			/* find out choice type */
-+			enum symbol_type type = S_UNKNOWN;
-+
- 			for (menu = parent->list; menu; menu = menu->next) {
--				if (menu->sym) {
--					current_entry = parent;
--					menu_set_type(menu->sym->type);
--					current_entry = menu;
--					menu_set_type(sym->type);
--					break;
-+				if (menu->sym && menu->sym->type != S_UNKNOWN) {
-+					if (type == S_UNKNOWN)
-+						type = menu->sym->type;
-+					if (type != S_BOOLEAN)
-+						break;
-+					if (menu->sym->type == S_TRISTATE) {
-+						type = S_TRISTATE;
-+						break;
-+					}
- 				}
- 			}
-+			current_entry = parent;
-+			menu_set_type(type);
- 			parentdep = expr_alloc_symbol(sym);
- 		} else if (parent->prompt)
- 			parentdep = parent->prompt->visible.expr;
-@@ -253,7 +260,16 @@ void menu_finalize(struct menu *parent)
+diff -puN arch/i386/kernel/traps.c~x86-constify-stacktrace_ops arch/i386/kernel/traps.c
+--- a/arch/i386/kernel/traps.c~x86-constify-stacktrace_ops
++++ a/arch/i386/kernel/traps.c
+@@ -119,7 +119,7 @@ struct stack_frame {
  
- 		for (menu = parent->list; menu; menu = menu->next) {
- 			basedep = expr_transform(menu->dep);
--			basedep = expr_alloc_and(expr_copy(parentdep), basedep);
-+			dep = parentdep;
-+			if (sym && sym_is_choice(sym) && menu->sym) {
-+				enum symbol_type type = menu->sym->type;
-+
-+				if (type == S_UNKNOWN)
-+					type = sym->type;
-+			     if (type != S_TRISTATE)
-+					dep = expr_alloc_comp(E_EQUAL, sym, &symbol_yes);
-+			}
-+			basedep = expr_alloc_and(expr_copy(dep), basedep);
- 			basedep = expr_eliminate_dups(basedep);
- 			menu->dep = basedep;
- 			if (menu->sym)
-@@ -326,7 +342,8 @@ void menu_finalize(struct menu *parent)
- 					    "values not supported");
- 			}
- 			current_entry = menu;
--			menu_set_type(sym->type);
-+			if (menu->sym->type == S_UNKNOWN)
-+				menu_set_type(sym->type);
- 			menu_add_symbol(P_CHOICE, sym, NULL);
- 			prop = sym_get_choice_prop(sym);
- 			for (ep = &prop->expr; *ep; ep = &(*ep)->left.expr)
+ static inline unsigned long print_context_stack(struct thread_info *tinfo,
+ 				unsigned long *stack, unsigned long ebp,
+-				struct stacktrace_ops *ops, void *data)
++				const struct stacktrace_ops *ops, void *data)
+ {
+ #ifdef	CONFIG_FRAME_POINTER
+ 	struct stack_frame *frame = (struct stack_frame *)ebp;
+@@ -184,7 +184,7 @@ dump_trace_unwind(struct unwind_frame_in
+ 
+ void dump_trace(struct task_struct *task, struct pt_regs *regs,
+ 	        unsigned long *stack,
+-		struct stacktrace_ops *ops, void *data)
++		const struct stacktrace_ops *ops, void *data)
+ {
+ 	unsigned long ebp = 0;
+ 
+@@ -291,7 +291,7 @@ static void print_trace_address(void *da
+ 	touch_nmi_watchdog();
+ }
+ 
+-static struct stacktrace_ops print_trace_ops = {
++static const struct stacktrace_ops print_trace_ops = {
+ 	.warning = print_trace_warning,
+ 	.warning_symbol = print_trace_warning_symbol,
+ 	.stack = print_trace_stack,
+diff -puN arch/x86_64/kernel/stacktrace.c~x86-constify-stacktrace_ops arch/x86_64/kernel/stacktrace.c
+--- a/arch/x86_64/kernel/stacktrace.c~x86-constify-stacktrace_ops
++++ a/arch/x86_64/kernel/stacktrace.c
+@@ -35,7 +35,7 @@ static void save_stack_address(void *dat
+ 		trace->entries[trace->nr_entries++] = addr;
+ }
+ 
+-static struct stacktrace_ops save_stack_ops = {
++static const struct stacktrace_ops save_stack_ops = {
+ 	.warning = save_stack_warning,
+ 	.warning_symbol = save_stack_warning_symbol,
+ 	.stack = save_stack_stack,
+diff -puN arch/x86_64/kernel/traps.c~x86-constify-stacktrace_ops arch/x86_64/kernel/traps.c
+--- a/arch/x86_64/kernel/traps.c~x86-constify-stacktrace_ops
++++ a/arch/x86_64/kernel/traps.c
+@@ -248,7 +248,7 @@ static inline int valid_stack_ptr(struct
+ 
+ void dump_trace(struct task_struct *tsk, struct pt_regs *regs,
+ 		unsigned long *stack,
+-		struct stacktrace_ops *ops, void *data)
++		const struct stacktrace_ops *ops, void *data)
+ {
+ 	const unsigned cpu = get_cpu();
+ 	unsigned long *irqstack_end = (unsigned long*)cpu_pda(cpu)->irqstackptr;
+@@ -404,7 +404,7 @@ static void print_trace_address(void *da
+ 	printk_address(addr);
+ }
+ 
+-static struct stacktrace_ops print_trace_ops = {
++static const struct stacktrace_ops print_trace_ops = {
+ 	.warning = print_trace_warning,
+ 	.warning_symbol = print_trace_warning_symbol,
+ 	.stack = print_trace_stack,
+diff -puN include/asm-x86_64/stacktrace.h~x86-constify-stacktrace_ops include/asm-x86_64/stacktrace.h
+--- a/include/asm-x86_64/stacktrace.h~x86-constify-stacktrace_ops
++++ a/include/asm-x86_64/stacktrace.h
+@@ -15,6 +15,6 @@ struct stacktrace_ops {
+ };
+ 
+ void dump_trace(struct task_struct *tsk, struct pt_regs *regs, unsigned long *stack,
+-		struct stacktrace_ops *ops, void *data);
++		const struct stacktrace_ops *ops, void *data);
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
@@ -112,6 +122,10 @@ Patches currently in -mm which might be from jbeulich@novell.com are
 intel_cacheinfo-adjustmentspatch.patch
 tristate-choices-with-mixed-tristate-and-boolean.patch
 fix-x86_64-mm-unwinder.patch
+x86-misc-constifications.patch
+x86-constify-stacktrace_ops.patch
+x86-constify-wd_ops.patch
+x86-multi-byte-single-instruction-nops.patch
 floppy-tolerate-dma-channel-unavailability.patch
 cleanup-floppyh.patch
 handle-recursive-calls-to-bust_spinlocks.patch
