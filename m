@@ -1,38 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - timekeeping-prevent-time-going-backwards-on-resume-v2.patch removed from -mm tree
-Date: Sat, 15 Sep 2007 15:03:43 -0700
-Message-ID: <200709152203.l8FM3hWL019835@imap1.linux-foundation.org>
+Subject: - timekeeping-prevent-time-going-backwards-on-resume.patch removed from -mm tree
+Date: Sat, 15 Sep 2007 15:03:39 -0700
+Message-ID: <200709152203.l8FM3d1w019829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34288 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51743 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752220AbXIOWEa (ORCPT
+	by vger.kernel.org with ESMTP id S1752509AbXIOWEf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 15 Sep 2007 18:04:30 -0400
+	Sat, 15 Sep 2007 18:04:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, marcelo@kvack.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timekeeping: prevent time going backwards on resume (V2)
+     timekeeping: Prevent time going backwards on resume
 has been removed from the -mm tree.  Its filename was
-     timekeeping-prevent-time-going-backwards-on-resume-v2.patch
+     timekeeping-prevent-time-going-backwards-on-resume.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: timekeeping: prevent time going backwards on resume (V2)
+Subject: timekeeping: Prevent time going backwards on resume
 From: Thomas Gleixner <tglx@linutronix.de>
 
 Timekeeping resume adjusts xtime by adding the slept time in seconds and
-resets the reference value of the clock source (clock->cycle_last).
+resets the reference value of the clock source (clock->cycle_last). 
 clock->cycle last is used to calculate the delta between the last xtime
-update and the readout of the clock source in __get_nsec_offset(). xtime
-plus the offset is the current time. The resume code ignores the delta
-which had already elapsed between the last xtime update and the actual
-time of suspend. If the suspend time is short, then we can see time
-going backwards on resume.
+update and the readout of the clock source in __get_nsec_offset().  xtime
+plus the offset is the current time.  The resume code ignores the delta
+which had already elapsed between the last xtime update and the actual time
+of suspend.  If the suspend time is short, then we can see time going
+backwards on resume.
 
 Suspend:
 offs_s = clock->read() - clock->cycle_last;
@@ -54,7 +54,7 @@ xtime during resume, when we reset clock->cycle_last:
 
 sleep_time = read_rtc() - timekeeping_suspend_time;
 xtime.tv_sec += sleep_time;
-xtime += offs_s;        /* Fixup xtime offset at suspend time */
+xtime += offs_s;	/* Fixup xtime offset at suspend time */
 clock->cycle_last = clock->read();
 offs_r = clock->read() - clock->cycle_last;
 now = xtime + offs_r;
@@ -63,51 +63,40 @@ Thanks to Marcelo for tracking this down on the OLPC and providing the
 necessary details to analyze the root cause.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Marcelo Tosatti <marcelo@kvack.org>
+Tested-by: Marcelo Tosatti <marcelo@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ kernel/time/timekeeping.c |    6 ++++++
+ 1 files changed, 6 insertions(+)
 
-diff -puN kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2 kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume-v2
+diff -puN kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~timekeeping-prevent-time-going-backwards-on-resume
 +++ a/kernel/time/timekeeping.c
-@@ -217,6 +217,7 @@ static void change_clocksource(void)
- }
- #else
- static inline void change_clocksource(void) { }
-+static inline s64 __get_nsec_offset(void) { return 0; }
- #endif
- 
- /**
-@@ -281,7 +282,7 @@ static int timekeeping_suspended;
+@@ -280,6 +280,8 @@ void __init timekeeping_init(void)
+ static int timekeeping_suspended;
  /* time in seconds when suspend began */
  static unsigned long timekeeping_suspend_time;
- /* xtime offset when we went into suspend */
--static s64 timekeeping_suspend_offset;
-+static s64 timekeeping_suspend_nsecs;
++/* xtime offset when we went into suspend */
++static s64 timekeeping_suspend_offset;
  
  /**
   * timekeeping_resume - Resumes the generic timekeeping subsystem.
-@@ -308,7 +309,7 @@ static int timekeeping_resume(struct sys
+@@ -305,6 +307,8 @@ static int timekeeping_resume(struct sys
+ 		wall_to_monotonic.tv_sec -= sleep_length;
  		total_sleep_time += sleep_length;
  	}
- 	/* Make sure that we have the correct xtime reference */
--	timespec_add_ns(&xtime, timekeeping_suspend_offset);
-+	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
++	/* Make sure that we have the correct xtime reference */
++	timespec_add_ns(&xtime, timekeeping_suspend_offset);
  	/* re-base the last cycle value */
  	clock->cycle_last = clocksource_read(clock);
  	clock->error = 0;
-@@ -330,9 +331,9 @@ static int timekeeping_suspend(struct sy
- 	unsigned long flags;
+@@ -327,6 +331,8 @@ static int timekeeping_suspend(struct sy
  
  	write_seqlock_irqsave(&xtime_lock, flags);
--	timekeeping_suspended = 1;
- 	/* Get the current xtime offset */
--	timekeeping_suspend_offset = __get_nsec_offset();
-+	timekeeping_suspend_nsecs = __get_nsec_offset();
-+	timekeeping_suspended = 1;
+ 	timekeeping_suspended = 1;
++	/* Get the current xtime offset */
++	timekeeping_suspend_offset = __get_nsec_offset();
  	timekeeping_suspend_time = read_persistent_clock();
  	write_sequnlock_irqrestore(&xtime_lock, flags);
  
@@ -117,6 +106,7 @@ Patches currently in -mm which might be from tglx@linutronix.de are
 
 futex_compat-fix-list-traversal-bugs.patch
 fix-no_sync_cmos_clock-logic-inversion-in-kernel-time-ntpc.patch
+timekeeping-prevent-time-going-backwards-on-resume.patch
 timekeeping-prevent-time-going-backwards-on-resume-v2.patch
 cpu-hotplug-support-broken.patch
 git-acpi.patch
