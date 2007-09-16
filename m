@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-nfs.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:36:43 -0700
-Message-ID: <200709160836.l8G8ahEp007563@imap1.linux-foundation.org>
+Subject: + git-jg-misc-revert-scsi-diff.patch added to -mm tree
+Date: Sun, 16 Sep 2007 01:40:39 -0700
+Message-ID: <200709160840.l8G8edfn007718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54736 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751636AbXIPIgq (ORCPT
+	by vger.kernel.org with ESMTP id S1751359AbXIPIkr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:36:46 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8ah6w001773
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:36:44 -0700
+	Sun, 16 Sep 2007 04:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     git-net-vs-git-nfs
+     git-jg-misc-revert-scsi-diff
 has been added to the -mm tree.  Its filename is
-     git-net-vs-git-nfs.patch
+     git-jg-misc-revert-scsi-diff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,109 +26,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-vs-git-nfs
+Subject: git-jg-misc-revert-scsi-diff
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Avoid trashing the scsi tree.
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtsock.c |   67 +++++++++++++++++++++++++++++-----------
- 1 file changed, 49 insertions(+), 18 deletions(-)
+ drivers/scsi/arcmsr/arcmsr_hba.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN net/sunrpc/xprtsock.c~git-net-vs-git-nfs net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-net-vs-git-nfs
-+++ a/net/sunrpc/xprtsock.c
-@@ -1334,41 +1334,72 @@ static int xs_bind6(struct sock_xprt *tr
- static struct lock_class_key xs_key[2];
- static struct lock_class_key xs_slock_key[2];
- 
--static inline void xs_reclassify_socket(struct socket *sock)
-+static inline void xs_reclassify_socket4(struct socket *sock)
+diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~git-jg-misc-revert-scsi-diff drivers/scsi/arcmsr/arcmsr_hba.c
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c~git-jg-misc-revert-scsi-diff
++++ a/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -159,12 +159,14 @@ static struct pci_driver arcmsr_pci_driv
+ static irqreturn_t arcmsr_do_interrupt(int irq, void *dev_id)
  {
- 	struct sock *sk = sock->sk;
-+
- 	BUG_ON(sock_owned_by_user(sk));
--	switch (sk->sk_family) {
--	case AF_INET:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
--			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
--		break;
-+	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
-+		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
-+}
+ 	irqreturn_t handle_state;
+-	struct AdapterControlBlock *acb = dev_id;
++	struct AdapterControlBlock *acb;
++	unsigned long flags;
  
--	case AF_INET6:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
--			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
--		break;
-+static inline void xs_reclassify_socket6(struct socket *sock)
-+{
-+	struct sock *sk = sock->sk;
+-	spin_lock(acb->host->host_lock);
+-	handle_state = arcmsr_interrupt(acb);
+-	spin_unlock(acb->host->host_lock);
++	acb = (struct AdapterControlBlock *)dev_id;
  
--	default:
--		BUG();
--	}
-+	BUG_ON(sock_owned_by_user(sk));
-+	sock_lock_init_class_and_name(sk, "slock-AF_INET6-RPC",
-+		&xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
++	spin_lock_irqsave(acb->host->host_lock, flags);
++	handle_state = arcmsr_interrupt(acb);
++	spin_unlock_irqrestore(acb->host->host_lock, flags);
+ 	return handle_state;
  }
- #else
--static inline void xs_reclassify_socket(struct socket *sock)
-+static inline void xs_reclassify_socket4(struct socket *sock)
-+{
-+}
-+
-+static inline void xs_reclassify_socket6(struct socket *sock)
- {
- }
- #endif
  
-+static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
-+{
-+	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
-+
-+	if (!transport->inet) {
-+		struct sock *sk = sock->sk;
-+
-+		write_lock_bh(&sk->sk_callback_lock);
-+
-+		sk->sk_user_data = xprt;
-+		transport->old_data_ready = sk->sk_data_ready;
-+		transport->old_state_change = sk->sk_state_change;
-+		transport->old_write_space = sk->sk_write_space;
-+		sk->sk_data_ready = xs_udp_data_ready;
-+		sk->sk_write_space = xs_udp_write_space;
-+		sk->sk_no_check = UDP_CSUM_NORCV;
-+		sk->sk_allocation = GFP_ATOMIC;
-+
-+		xprt_set_connected(xprt);
-+
-+		/* Reset to new socket */
-+		transport->sock = sock;
-+		transport->inet = sk;
-+
-+		write_unlock_bh(&sk->sk_callback_lock);
-+	}
-+	xs_udp_do_set_buffer_size(xprt);
-+}
-+
- /**
-- * xs_udp_connect_worker - set up a UDP socket
-+ * xs_udp_connect_worker4 - set up a UDP socket
-  * @work: RPC transport to connect
-  *
-  * Invoked by a work queue tasklet.
-  */
--static void xs_udp_connect_worker(struct work_struct *work)
-+static void xs_udp_connect_worker4(struct work_struct *work)
- {
--	struct sock_xprt *transport =
--		container_of(work, struct sock_xprt, connect_worker.work);
-+  	struct sock_xprt *transport =
-+  		container_of(work, struct sock_xprt, connect_worker.work);
- 	struct rpc_xprt *xprt = &transport->xprt;
- 	struct socket *sock = transport->sock;
- 	int err, status = -EIO;
+@@ -329,7 +331,7 @@ static int arcmsr_probe(struct pci_dev *
+ 		goto out_iounmap;
+ 
+ 	error = request_irq(pdev->irq, arcmsr_do_interrupt,
+-			    IRQF_SHARED, "arcmsr", acb);
++			IRQF_DISABLED | IRQF_SHARED, "arcmsr", acb);
+ 	if (error)
+ 		goto out_free_ccb_pool;
+ 
+@@ -419,7 +421,7 @@ static void arcmsr_remove(struct pci_dev
+ 	for (poll_count = 0; poll_count < 256; poll_count++) {
+ 		if (!atomic_read(&acb->ccboutstandingcount))
+ 			break;
+-		arcmsr_interrupt(acb);	/* FIXME: need spinlock */
++		arcmsr_interrupt(acb);
+ 		msleep(25);
+ 	}
+ 
+@@ -538,7 +540,7 @@ static uint8_t arcmsr_wait_msgint_ready(
+ 					, &reg->outbound_intstatus);
+ 				return 0x00;
+ 			}
+-			msleep(10);
++			msleep_interruptible(10);
+ 		}/*max 1 seconds*/
+ 	} while (Retries++ < 20);/*max 20 sec*/
+ 	return 0xff;
+@@ -1419,10 +1421,8 @@ static void arcmsr_iop_reset(struct Adap
+ 	if (atomic_read(&acb->ccboutstandingcount) != 0) {
+ 		/* talk to iop 331 outstanding command aborted */
+ 		arcmsr_abort_allcmd(acb);
+-
+ 		/* wait for 3 sec for all command aborted*/
+-		ssleep(3);
+-
++		msleep_interruptible(3000);
+ 		/* disable all outbound interrupt */
+ 		intmask_org = arcmsr_disable_outbound_ints(acb);
+ 		/* clear all outbound posted Q */
+@@ -1450,7 +1450,7 @@ static int arcmsr_bus_reset(struct scsi_
+ 	for (i = 0; i < 400; i++) {
+ 		if (!atomic_read(&acb->ccboutstandingcount))
+ 			break;
+-		arcmsr_interrupt(acb);	/* FIXME: need spinlock */
++		arcmsr_interrupt(acb);
+ 		msleep(25);
+ 	}
+ 	arcmsr_iop_reset(acb);
+@@ -1468,7 +1468,7 @@ static void arcmsr_abort_one_cmd(struct 
+ 	/*
+ 	** Wait for 3 sec for all command done.
+ 	*/
+-	ssleep(3);
++	msleep_interruptible(3000);
+ 
+ 	intmask = arcmsr_disable_outbound_ints(acb);
+ 	arcmsr_polling_ccbdone(acb, ccb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,6 +144,7 @@ git-input-fixup.patch
 adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility-fix.patch
 console-keyboard-events-and-accessibility-fix-2.patch
+git-jg-misc-revert-scsi-diff.patch
 git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
@@ -183,7 +168,6 @@ git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
-irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
 git-s390.patch
 git-scsi-misc.patch
 advansys-printk-fix.patch
