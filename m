@@ -1,95 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-pcnet32c.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:27:17 -0700
-Message-ID: <200709160927.l8G9RHDr009247@imap1.linux-foundation.org>
+Subject: - arm-extern-inline-static-inline.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:26:50 -0700
+Message-ID: <200709160926.l8G9QoEG009211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57210 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46110 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751983AbXIPJiZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752011AbXIPJi2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:25 -0400
+	Sun, 16 Sep 2007 05:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: fix pcnet32.c
+     arm: "extern inline" -> "static inline"
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-pcnet32c.patch
+     arm-extern-inline-static-inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-net: fix pcnet32.c
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: arm: "extern inline" -> "static inline"
+From: Adrian Bunk <bunk@kernel.org>
 
-tiny bug fix for pcnet32.c (maybe works well. please confirm.)
+"extern inline" will have different semantics with gcc 4.3.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcnet32.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/nwfpe/ARM-gcc.h                |    2 +-
+ arch/arm/nwfpe/fpa11.inl                |    8 ++++----
+ include/asm-arm/arch-ixp23xx/platform.h |    6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/pcnet32.c~git-net-fix-pcnet32c drivers/net/pcnet32.c
---- a/drivers/net/pcnet32.c~git-net-fix-pcnet32c
-+++ a/drivers/net/pcnet32.c
-@@ -2616,7 +2616,7 @@ pcnet32_interrupt(int irq, void *dev_id)
- 			break;
- 		}
- #else
--		pcnet32_rx(dev, dev->napi.weight);
-+		pcnet32_rx(dev, lp->napi.weight);
- 		if (pcnet32_tx(dev)) {
- 			/* reset the chip to clear the error condition, then restart */
- 			lp->a.reset(ioaddr);
+diff -puN arch/arm/nwfpe/ARM-gcc.h~arm-extern-inline-static-inline arch/arm/nwfpe/ARM-gcc.h
+--- a/arch/arm/nwfpe/ARM-gcc.h~arm-extern-inline-static-inline
++++ a/arch/arm/nwfpe/ARM-gcc.h
+@@ -68,7 +68,7 @@ a compiler does not support explicit inl
+ to be `static'.
+ -------------------------------------------------------------------------------
+ */
+-#define INLINE extern __inline__
++#define INLINE static inline
+ 
+ 
+ /* For use as a GCC soft-float library we need some special function names. */
+diff -puN arch/arm/nwfpe/fpa11.inl~arm-extern-inline-static-inline arch/arm/nwfpe/fpa11.inl
+--- a/arch/arm/nwfpe/fpa11.inl~arm-extern-inline-static-inline
++++ a/arch/arm/nwfpe/fpa11.inl
+@@ -22,13 +22,13 @@
+ #include "fpa11.h"
+ 
+ /* Read and write floating point status register */
+-extern __inline__ unsigned int readFPSR(void)
++static inline unsigned int readFPSR(void)
+ {
+ 	FPA11 *fpa11 = GET_FPA11();
+ 	return (fpa11->fpsr);
+ }
+ 
+-extern __inline__ void writeFPSR(FPSR reg)
++static inline void writeFPSR(FPSR reg)
+ {
+ 	FPA11 *fpa11 = GET_FPA11();
+ 	/* the sysid byte in the status register is readonly */
+@@ -36,14 +36,14 @@ extern __inline__ void writeFPSR(FPSR re
+ }
+ 
+ /* Read and write floating point control register */
+-extern __inline__ FPCR readFPCR(void)
++static inline FPCR readFPCR(void)
+ {
+ 	FPA11 *fpa11 = GET_FPA11();
+ 	/* clear SB, AB and DA bits before returning FPCR */
+ 	return (fpa11->fpcr & ~MASK_RFC);
+ }
+ 
+-extern __inline__ void writeFPCR(FPCR reg)
++static inline void writeFPCR(FPCR reg)
+ {
+ 	FPA11 *fpa11 = GET_FPA11();
+ 	fpa11->fpcr &= ~MASK_WFC;		/* clear SB, AB and DA bits */
+diff -puN include/asm-arm/arch-ixp23xx/platform.h~arm-extern-inline-static-inline include/asm-arm/arch-ixp23xx/platform.h
+--- a/include/asm-arm/arch-ixp23xx/platform.h~arm-extern-inline-static-inline
++++ a/include/asm-arm/arch-ixp23xx/platform.h
+@@ -14,17 +14,17 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-extern inline unsigned long ixp2000_reg_read(volatile void *reg)
++static inline unsigned long ixp2000_reg_read(volatile void *reg)
+ {
+ 	return *((volatile unsigned long *)reg);
+ }
+ 
+-extern inline void ixp2000_reg_write(volatile void *reg, unsigned long val)
++static inline void ixp2000_reg_write(volatile void *reg, unsigned long val)
+ {
+ 	*((volatile unsigned long *)reg) = val;
+ }
+ 
+-extern inline void ixp2000_reg_wrb(volatile void *reg, unsigned long val)
++static inline void ixp2000_reg_wrb(volatile void *reg, unsigned long val)
+ {
+ 	*((volatile unsigned long *)reg) = val;
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+origin.patch
+git-alsa.patch
+git-arm.patch
+ppc-remove-apus-support.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+git-dvb.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
 git-net.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-update-n_high_memory-node-state-for-memory-hotadd.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
-config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
-config_zone_movable-config-zone-movable.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-nfsd.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-block.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
