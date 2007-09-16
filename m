@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-arcmsr-build-fix.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:20:16 -0700
-Message-ID: <200709162025.l8GKPus2031271@imap1.linux-foundation.org>
+Subject: + nit-net-skge-build-fix.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:24:02 -0700
+Message-ID: <200709162029.l8GKTg3o031403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750893AbXIPU0d (ORCPT
+	by vger.kernel.org with ESMTP id S1751619AbXIPU34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:26:33 -0400
+	Sun, 16 Sep 2007 16:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, shemminger@linux-foundation.org
 
 
 The patch titled
-     git-scsi-misc-arcmsr-build-fix
+     nit-net: skge-build-fix
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-arcmsr-build-fix.patch
+     nit-net-skge-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc-arcmsr-build-fix
+Subject: nit-net: skge-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/arcmsr/arcmsr_hba.c:129: error: 'arcmsr_pci_error_detected' undeclared here (not in a function)
-drivers/scsi/arcmsr/arcmsr_hba.c:130: error: 'arcmsr_pci_slot_reset' undeclared here (not in a function)
+drivers/net/sk98lin/skge.c: In function 'skge_probe_one':                       drivers/net/sk98lin/skge.c:4880: error: implicit declaration of function 'SET_MODULE_OWNER'                                                                     
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@osdl.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/arcmsr/arcmsr_hba.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/net/sk98lin/skge.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~git-scsi-misc-arcmsr-build-fix drivers/scsi/arcmsr/arcmsr_hba.c
---- a/drivers/scsi/arcmsr/arcmsr_hba.c~git-scsi-misc-arcmsr-build-fix
-+++ a/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -125,6 +125,10 @@ static struct scsi_host_template arcmsr_
- 	.shost_attrs		= arcmsr_host_attrs,
- };
- #ifdef CONFIG_SCSI_ARCMSR_AER
-+static pci_ers_result_t arcmsr_pci_slot_reset(struct pci_dev *pdev);
-+static pci_ers_result_t arcmsr_pci_error_detected(struct pci_dev *pdev,
-+						pci_channel_state_t state);
-+
- static struct pci_error_handlers arcmsr_pci_error_handlers = {
- 	.error_detected		= arcmsr_pci_error_detected,
- 	.slot_reset		= arcmsr_pci_slot_reset,
+diff -puN drivers/net/sk98lin/skge.c~nit-net-skge-build-fix drivers/net/sk98lin/skge.c
+--- a/drivers/net/sk98lin/skge.c~nit-net-skge-build-fix
++++ a/drivers/net/sk98lin/skge.c
+@@ -4877,7 +4877,6 @@ static int __devinit skge_probe_one(stru
+ 		goto out_free_netdev;
+ 	}
+ 
+-	SET_MODULE_OWNER(dev);
+ 	dev->open =		&SkGeOpen;
+ 	dev->stop =		&SkGeClose;
+ 	dev->hard_start_xmit =	&SkGeXmit;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +96,7 @@ gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-fixup.patch
+nit-net-skge-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
