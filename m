@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch added to -mm tree
-Date: Sun, 16 Sep 2007 03:48:42 -0700
-Message-ID: <200709161054.l8GAsMFr012101@imap1.linux-foundation.org>
+Subject: + mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:54:36 -0700
+Message-ID: <200709161100.l8GB0GH4012282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751159AbXIPKy2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752920AbXIPLAU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 06:54:28 -0400
+	Sun, 16 Sep 2007 07:00:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
+     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been added to the -mm tree.  Its filename is
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
+Subject: mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
+drivers/mmc/core/bus.c: In function 'mmc_bus_uevent':
+drivers/mmc/core/bus.c:77: warning: unused variable 'length'
+drivers/mmc/core/bus.c:77: warning: unused variable 'i'
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/bus.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
-+++ a/fs/ecryptfs/main.c
-@@ -590,7 +590,7 @@ static struct ecryptfs_cache_info {
- 	struct kmem_cache **cache;
- 	const char *name;
- 	size_t size;
--	void (*ctor)(void*, struct kmem_cache *, unsigned long);
-+	void (*ctor)(struct kmem_cache *cache, void *obj);
- } ecryptfs_cache_infos[] = {
- 	{
- 		.cache = &ecryptfs_auth_tok_list_item_cache,
+diff -puN drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/mmc/core/bus.c
+@@ -74,7 +74,6 @@ mmc_bus_uevent(struct device *dev, struc
+ {
+ 	struct mmc_card *card = dev_to_mmc_card(dev);
+ 	const char *type;
+-	int i = 0, length = 0;
+ 
+ 	switch (card->type) {
+ 	case MMC_TYPE_MMC:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -222,3 +226,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
