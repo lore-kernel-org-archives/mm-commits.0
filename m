@@ -1,75 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-00-index-notice-ecryptfstxt-moved.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:42 -0700
-Message-ID: <200709160925.l8G9PgdC009127@imap1.linux-foundation.org>
+Subject: - mntput-called-before-dput-in-afs.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:36 -0700
+Message-ID: <200709160925.l8G9PaS6009115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43743 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751804AbXIPJZ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751810AbXIPJ0G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:25:58 -0400
+	Sun, 16 Sep 2007 05:26:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: agruen@suse.de, dhowells@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/00-INDEX: notice ecryptfs.txt moved
+     afs: mntput called before dput
 has been removed from the -mm tree.  Its filename was
-     documentation-00-index-notice-ecryptfstxt-moved.patch
+     mntput-called-before-dput-in-afs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation/00-INDEX: notice ecryptfs.txt moved
-From: Rob Landley <rob@landley.net>
+Subject: afs: mntput called before dput
+From: Andreas Gruenbacher <agruen@suse.de>
 
-ecryptfs.txt moved into filesystems, make 00-INDEX follow.
+dput must be called before mntput here.
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
+Acked-By: David Howells <dhowells@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX             |    2 --
- Documentation/filesystems/00-INDEX |    2 ++
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/afs/mntpt.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved
-+++ a/Documentation/00-INDEX
-@@ -134,8 +134,6 @@ dvb/
- 	- info on Linux Digital Video Broadcast (DVB) subsystem.
- early-userspace/
- 	- info about initramfs, klibc, and userspace early during boot.
--ecryptfs.txt
--	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
- eisa.txt
- 	- info on EISA bus support.
- exception.txt
-diff -puN Documentation/filesystems/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved Documentation/filesystems/00-INDEX
---- a/Documentation/filesystems/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved
-+++ a/Documentation/filesystems/00-INDEX
-@@ -32,6 +32,8 @@ directory-locking
- 	- info about the locking scheme used for directory operations.
- dlmfs.txt
- 	- info on the userspace interface to the OCFS2 DLM.
-+ecryptfs.txt
-+	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
- ext2.txt
- 	- info, mount options and specifications for the Ext2 filesystem.
- ext3.txt
+diff -puN fs/afs/mntpt.c~mntput-called-before-dput-in-afs fs/afs/mntpt.c
+--- a/fs/afs/mntpt.c~mntput-called-before-dput-in-afs
++++ a/fs/afs/mntpt.c
+@@ -235,8 +235,8 @@ static void *afs_mntpt_follow_link(struc
+ 	err = do_add_mount(newmnt, nd, MNT_SHRINKABLE, &afs_vfsmounts);
+ 	switch (err) {
+ 	case 0:
+-		mntput(nd->mnt);
+ 		dput(nd->dentry);
++		mntput(nd->mnt);
+ 		nd->mnt = newmnt;
+ 		nd->dentry = dget(newmnt->mnt_root);
+ 		schedule_delayed_work(&afs_mntpt_expiry_timer,
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from agruen@suse.de are
 
 origin.patch
-documentation-arm-00-index-add-missing-entries.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-documentation-make-headers_installtxt.patch
-documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
+faster-ext2_clear_inode.patch
+revert-faster-ext2_clear_inode.patch
