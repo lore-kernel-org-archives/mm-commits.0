@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:34:17 -0700
-Message-ID: <200709162039.l8GKdvow031730@imap1.linux-foundation.org>
+Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:35:49 -0700
+Message-ID: <200709162041.l8GKfTCn031778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbXIPUkc (ORCPT
+	by vger.kernel.org with ESMTP id S1751053AbXIPUmO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:40:32 -0400
+	Sun, 16 Sep 2007 16:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com, jsipek@cs.sunysb.edu
 
 
 The patch titled
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
 has been added to the -mm tree.  Its filename is
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
+fs/unionfs/super.c: In function 'unionfs_init_inode_cache':
+fs/unionfs/super.c:874: warning: passing argument 5 of 'kmem_cache_create' from incompatible pointer type
+
 Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/super_ops.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/unionfs/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/super_ops.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4 fs/reiser4/super_ops.c
---- a/fs/reiser4/super_ops.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
-+++ a/fs/reiser4/super_ops.c
-@@ -20,14 +20,13 @@ static struct dentry *reiser4_debugfs_ro
+diff -puN fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs fs/unionfs/super.c
+--- a/fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
++++ a/fs/unionfs/super.c
+@@ -857,9 +857,9 @@ static void unionfs_destroy_inode(struct
+ }
  
- /**
-  * init_once - constructor for reiser4 inodes
-- * @obj: inode to be initialized
-  * @cache: cache @obj belongs to
-- * @flags: SLAB flags
-+ * @obj: inode to be initialized
-  *
-  * Initialization function to be called when new page is allocated by reiser4
-  * inode cache. It is set on inode cache creation.
-  */
--static void init_once(void *obj, struct kmem_cache *cache, unsigned long flags)
-+static void init_once(struct kmem_cache *cache, void *obj)
+ /* unionfs inode cache constructor */
+-static void init_once(void *v, struct kmem_cache *cachep, unsigned long flags)
++static void init_once(struct kmem_cache *cachep, void *obj)
  {
- 	struct reiser4_inode_object *info;
+-	struct unionfs_inode_info *i = v;
++	struct unionfs_inode_info *i = obj;
  
+ 	inode_init_once(&i->vfs_inode);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -238,3 +237,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
