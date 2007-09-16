@@ -1,69 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - intel-fb-pixel-clock-calculation-fix.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:26:29 -0700
-Message-ID: <200709160926.l8G9QTVM009187@imap1.linux-foundation.org>
+Subject: - sgiseeq-replace-use-of-dma_cache_wback_inv.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:27:26 -0700
+Message-ID: <200709160927.l8G9RQeC009259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752007AbXIPJic (ORCPT
+	by vger.kernel.org with ESMTP id S1752027AbXIPJid (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:32 -0400
+	Sun, 16 Sep 2007 05:38:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khc@pm.waw.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] Intel FB pixel clock calculation fix
+     sgiseeq: replace use of dma_cache_wback_inv
 has been removed from the -mm tree.  Its filename was
-     intel-fb-pixel-clock-calculation-fix.patch
+     sgiseeq-replace-use-of-dma_cache_wback_inv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] Intel FB pixel clock calculation fix
-From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: sgiseeq: replace use of dma_cache_wback_inv
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Intel framebuffer mis-calculated pixel clocks.
+The sgiseeq driver is one of the few remaining users of the ancient cache
+banging DMA API.  Replaced with the modern days DMA API.
 
-The pixel clock (and thus both H and V sync) will be slower than requested, so
-if you set the minimum allowed the display may not sync.  In case of really
-old CRT display it could theoretically damage it.
-
-I'm using it with PAL TV (using RGB input - SCART connector) and the bug
-prevented it from working at all (TV requirements are more strict and made the
-bug visible).
-
-Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/intelfb/intelfbhw.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/sgiseeq.c |   26 +++++++++++---------------
+ 1 files changed, 11 insertions(+), 15 deletions(-)
 
-diff -puN drivers/video/intelfb/intelfbhw.c~intel-fb-pixel-clock-calculation-fix drivers/video/intelfb/intelfbhw.c
---- a/drivers/video/intelfb/intelfbhw.c~intel-fb-pixel-clock-calculation-fix
-+++ a/drivers/video/intelfb/intelfbhw.c
-@@ -924,10 +924,10 @@ calc_pll_params(int index, int clock, u3
- 			if (m > pll->max_m)
- 				m = pll->max_m - 1;
- 			for (testm = m - 1; testm <= m; testm++) {
--				f_out = calc_vclock3(index, m, n, p);
-+				f_out = calc_vclock3(index, testm, n, p);
- 				if (splitm(index, testm, &m1, &m2)) {
--					WRN_MSG("cannot split m = %d\n", m);
--					n++;
-+					WRN_MSG("cannot split m = %d\n",
-+						testm);
- 					continue;
- 				}
- 				if (clock > f_out)
+diff -puN drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv drivers/net/sgiseeq.c
+--- a/drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv
++++ a/drivers/net/sgiseeq.c
+@@ -75,6 +75,7 @@ struct sgiseeq_init_block { /* Note the 
+ 
+ struct sgiseeq_private {
+ 	struct sgiseeq_init_block *srings;
++	dma_addr_t srings_dma;
+ 
+ 	/* Ptrs to the descriptors in uncached space. */
+ 	struct sgiseeq_rx_desc *rx_desc;
+@@ -634,13 +635,20 @@ static int __init sgiseeq_probe(struct p
+ 	sp = netdev_priv(dev);
+ 
+ 	/* Make private data page aligned */
+-	sr = (struct sgiseeq_init_block *) get_zeroed_page(GFP_KERNEL);
++	sr = dma_alloc_coherent(&pdev->dev, sizeof(*sp->srings),
++				&sp->srings_dma, GFP_KERNEL);
+ 	if (!sr) {
+ 		printk(KERN_ERR "Sgiseeq: Page alloc failed, aborting.\n");
+ 		err = -ENOMEM;
+ 		goto err_out_free_dev;
+ 	}
+ 	sp->srings = sr;
++	sp->rx_desc = sp->srings->rxvector;
++	sp->tx_desc = sp->srings->txvector;
++
++	/* A couple calculations now, saves many cycles later. */
++	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
++	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
+ 
+ 	memcpy(dev->dev_addr, pd->mac, ETH_ALEN);
+ 
+@@ -653,19 +661,6 @@ static int __init sgiseeq_probe(struct p
+ 	sp->name = sgiseeqstr;
+ 	sp->mode = SEEQ_RCMD_RBCAST;
+ 
+-	sp->rx_desc = (struct sgiseeq_rx_desc *)
+-	              CKSEG1ADDR(ALIGNED(&sp->srings->rxvector[0]));
+-	dma_cache_wback_inv((unsigned long)&sp->srings->rxvector,
+-	                    sizeof(sp->srings->rxvector));
+-	sp->tx_desc = (struct sgiseeq_tx_desc *)
+-	              CKSEG1ADDR(ALIGNED(&sp->srings->txvector[0]));
+-	dma_cache_wback_inv((unsigned long)&sp->srings->txvector,
+-	                    sizeof(sp->srings->txvector));
+-
+-	/* A couple calculations now, saves many cycles later. */
+-	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
+-	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
+-
+ 	/* Setup PIO and DMA transfer timing */
+ 	sp->hregs->pconfig = 0x161;
+ 	sp->hregs->dconfig = HPC3_EDCFG_FIRQ | HPC3_EDCFG_FEOP |
+@@ -722,7 +717,8 @@ static int __exit sgiseeq_remove(struct 
+ 	struct sgiseeq_private *sp = netdev_priv(dev);
+ 
+ 	unregister_netdev(dev);
+-	free_page((unsigned long) sp->srings);
++	dma_free_coherent(&pdev->dev, sizeof(*sp->srings), sp->srings,
++	                  sp->srings_dma);
+ 	free_netdev(dev);
+ 	platform_set_drvdata(pdev, NULL);
+ 
 _
 
-Patches currently in -mm which might be from khc@pm.waw.pl are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-ath5k-panic-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+mips-gpio-led-driver-for-the-wgt634u-machine.patch
+mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
+mips-add-cfe-support-to-bcm947xx-code.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
+git-net.patch
+sb1250-macc-de-typedef-de-volatile-de-etc.patch
+net_sb1250_mac-update-kconfig-entry.patch
+net_sb1250_mac-rename-to-sb1250_mac.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+spelling-fix-weired-weird.patch
+remove-dma_cache_wbackinvwback_inv-functions.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
