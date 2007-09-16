@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-headers_check.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:46:08 -0700
-Message-ID: <200709160846.l8G8k88u007878@imap1.linux-foundation.org>
+Subject: + git-nfsd-fixup.patch added to -mm tree
+Date: Sun, 16 Sep 2007 01:54:28 -0700
+Message-ID: <200709160854.l8G8sSrw008136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751511AbXIPIqV (ORCPT
+	by vger.kernel.org with ESMTP id S1751756AbXIPIy7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:46:21 -0400
+	Sun, 16 Sep 2007 04:54:59 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8sS8W002338
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:54:29 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-block: fix headers_check
+     git-nfsd-fixup
 has been added to the -mm tree.  Its filename is
-     git-block-fix-headers_check.patch
+     git-nfsd-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +30,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block: fix headers_check
+Subject: git-nfsd-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- include/linux/net.h: remove need for splice.h inclusion
-
-- include/linux/skbuff.h: remove dependency on net.h (probably pointless,
-  given that it includes net.h anwyay).
-
-(akpm: still broken, still needed!)
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/net.h    |    2 +-
- include/linux/skbuff.h |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ net/sunrpc/svcsock.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/net.h~git-block-fix-headers_check include/linux/net.h
---- a/include/linux/net.h~git-block-fix-headers_check
-+++ a/include/linux/net.h
-@@ -19,10 +19,10 @@
- #define _LINUX_NET_H
+diff -puN net/sunrpc/svcsock.c~git-nfsd-fixup net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~git-nfsd-fixup
++++ a/net/sunrpc/svcsock.c
+@@ -1594,12 +1594,8 @@ svc_age_temp_sockets(unsigned long closu
  
- #include <linux/wait.h>
--#include <linux/splice.h>
- #include <asm/socket.h>
- 
- struct poll_table_struct;
-+struct pipe_inode_info;
- struct inode;
- struct net;
- 
-diff -puN include/linux/skbuff.h~git-block-fix-headers_check include/linux/skbuff.h
---- a/include/linux/skbuff.h~git-block-fix-headers_check
-+++ a/include/linux/skbuff.h
-@@ -29,6 +29,8 @@
- #include <linux/dmaengine.h>
- #include <linux/hrtimer.h>
- 
-+struct pipe_inode_info;
-+
- #define HAVE_ALLOC_SKB		/* For the drivers to know */
- #define HAVE_ALIGNABLE_SKB	/* Ditto 8)		   */
- 
+ 		if (!test_and_set_bit(SK_OLD, &svsk->sk_flags))
+ 			continue;
+-<<<<<<< HEAD/net/sunrpc/svcsock.c
+-		if (atomic_read(&svsk->sk_inuse) > 1 || test_bit(SK_BUSY, &svsk->sk_flags))
+-=======
+ 		if (atomic_read(&svsk->sk_inuse) > 1
+ 		    || test_bit(SK_BUSY, &svsk->sk_flags))
+->>>>>>> /net/sunrpc/svcsock.c
+ 			continue;
+ 		atomic_inc(&svsk->sk_inuse);
+ 		list_move(le, &to_be_aged);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +95,7 @@ git-mmc-fixup2.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-net.patch
+git-net-fixup.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
@@ -118,6 +103,7 @@ git-backlight-dependency-fix.patch
 git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
+git-nfsd-fixup.patch
 git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
