@@ -1,55 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-broke-ixgbe.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 01:31:36 -0700
-Message-ID: <200709160831.l8G8VaFE007406@imap1.linux-foundation.org>
+Subject: - git-bluetooth-build-fix.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 01:34:05 -0700
+Message-ID: <200709160834.l8G8Y5ui007508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751767AbXIPIbj (ORCPT
+	by vger.kernel.org with ESMTP id S1751425AbXIPIeV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:31:39 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8VaJv001602
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:31:37 -0700
+	Sun, 16 Sep 2007 04:34:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-broke-ixgbe
+     git-bluetooth-build-fix
 has been removed from the -mm tree.  Its filename was
-     git-net-broke-ixgbe.patch
+     git-bluetooth-build-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-broke-ixgbe
+Subject: git-bluetooth-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-igiveup
+- stupidly fix this:
 
+net/bluetooth/hci_sock.c: In function 'hci_sock_cmsg':
+net/bluetooth/hci_sock.c:352: error: storage size of 'ctv' isn't known
+net/bluetooth/hci_sock.c:352: warning: unused variable 'ctv'
 
+- remove pointless inline
 
+- cleanup gunk
+
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ net/bluetooth/hci_sock.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/Kconfig~git-net-broke-ixgbe drivers/net/Kconfig
---- a/drivers/net/Kconfig~git-net-broke-ixgbe
-+++ a/drivers/net/Kconfig
-@@ -2473,6 +2473,7 @@ config IXGB_NAPI
- config IXGBE
- 	tristate "Intel(R) PRO/10GbE PCI Express adapters support"
- 	depends on PCI
-+	depends on BROKEN
- 	---help---
- 	  This driver supports Intel(R) PRO/10GbE PCI Express family of
- 	  adapters.  For more information on how to identify your adapter, go
+diff -puN net/bluetooth/hci_sock.c~git-bluetooth-build-fix net/bluetooth/hci_sock.c
+--- a/net/bluetooth/hci_sock.c~git-bluetooth-build-fix
++++ a/net/bluetooth/hci_sock.c
+@@ -332,13 +332,15 @@ static int hci_sock_getname(struct socke
+ 	return 0;
+ }
+ 
+-static inline void hci_sock_cmsg(struct sock *sk, struct msghdr *msg, struct sk_buff *skb)
++static void hci_sock_cmsg(struct sock *sk, struct msghdr *msg,
++				struct sk_buff *skb)
+ {
+ 	__u32 mask = hci_pi(sk)->cmsg_mask;
+ 
+ 	if (mask & HCI_CMSG_DIR) {
+ 		int incoming = bt_cb(skb)->incoming;
+-		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming), &incoming);
++		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming),
++				&incoming);
+ 	}
+ 
+ 	if (mask & HCI_CMSG_TSTAMP) {
+@@ -348,6 +350,7 @@ static inline void hci_sock_cmsg(struct 
+ 
+ 		skb_get_timestamp(skb, &tv);
+ 
++#ifdef CONFIG_COMPAT
+ 		if (msg->msg_flags & MSG_CMSG_COMPAT) {
+ 			struct compat_timeval ctv;
+ 			ctv.tv_sec = tv.tv_sec;
+@@ -355,9 +358,12 @@ static inline void hci_sock_cmsg(struct 
+ 			data = &ctv;
+ 			len = sizeof(ctv);
+ 		} else {
++#endif
+ 			data = &tv;
+ 			len = sizeof(tv);
++#ifdef CONFIG_COMPAT
+ 		}
++#endif
+ 
+ 		put_cmsg(msg, SOL_HCI, HCI_CMSG_TSTAMP, len, data);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +123,6 @@ git-mmc-fixup2.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-net.patch
-git-net-broke-ixgbe.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
