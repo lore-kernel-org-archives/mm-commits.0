@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-broke-reiser4.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:33:05 -0700
-Message-ID: <200709162038.l8GKckOo031624@imap1.linux-foundation.org>
+Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:34:17 -0700
+Message-ID: <200709162039.l8GKdvow031730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752283AbXIPUji (ORCPT
+	by vger.kernel.org with ESMTP id S1750780AbXIPUkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:39:38 -0400
+	Sun, 16 Sep 2007 16:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@citi.umich.edu, edward@namesys.com, vs@namesys.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     git-nfsd-broke-reiser4
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
 has been added to the -mm tree.  Its filename is
-     git-nfsd-broke-reiser4.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfsd-broke-reiser4
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/reiser4/export_ops.c: In function 'reiser4_decode_fh':
-fs/reiser4/export_ops.c:96: error: 'const struct export_operations' has no member named 'find_exported_dentry'
-fs/reiser4/export_ops.c:96: warning: type defaults to 'int' in declaration of 'fn'
-fs/reiser4/export_ops.c:98: error: 'const struct export_operations' has no member named 'find_exported_dentry'
-fs/reiser4/export_ops.c:99: warning: comparison between pointer and integer
-fs/reiser4/export_ops.c:101: error: called object 'fn' is not a function
-fs/reiser4/export_ops.c: At top level:
-fs/reiser4/export_ops.c:282: error: unknown field 'decode_fh' specified in initializer
-fs/reiser4/export_ops.c:282: warning: initialization from incompatible pointer type
-fs/reiser4/export_ops.c:284: error: unknown field 'get_dentry' specified in initializer
-fs/reiser4/export_ops.c:285: warning: excess elements in struct initializer
-fs/reiser4/export_ops.c:285: warning: (near initialization for 'reiser4_export_operations')
-
-help!
-
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/export_ops.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/reiser4/super_ops.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiser4/export_ops.c~git-nfsd-broke-reiser4 fs/reiser4/export_ops.c
---- a/fs/reiser4/export_ops.c~git-nfsd-broke-reiser4
-+++ a/fs/reiser4/export_ops.c
-@@ -86,7 +86,7 @@ static struct dentry *reiser4_decode_fh(
+diff -puN fs/reiser4/super_ops.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4 fs/reiser4/super_ops.c
+--- a/fs/reiser4/super_ops.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4
++++ a/fs/reiser4/super_ops.c
+@@ -20,14 +20,13 @@ static struct dentry *reiser4_debugfs_ro
  
- 	object_on_wire_init(&object);
- 	object_on_wire_init(&parent);
--
-+#if 0
- 	addr = decode_inode(super, addr, &object);
- 	if (!IS_ERR(addr)) {
- 		if (with_parent)
-@@ -105,12 +105,14 @@ static struct dentry *reiser4_decode_fh(
- 			addr = (char *)d;
- 		}
- 	}
--
- 	object_on_wire_done(&object);
- 	object_on_wire_done(&parent);
+ /**
+  * init_once - constructor for reiser4 inodes
+- * @obj: inode to be initialized
+  * @cache: cache @obj belongs to
+- * @flags: SLAB flags
++ * @obj: inode to be initialized
+  *
+  * Initialization function to be called when new page is allocated by reiser4
+  * inode cache. It is set on inode cache creation.
+  */
+-static void init_once(void *obj, struct kmem_cache *cache, unsigned long flags)
++static void init_once(struct kmem_cache *cache, void *obj)
+ {
+ 	struct reiser4_inode_object *info;
  
- 	reiser4_exit_context(ctx);
- 	return (void *)addr;
-+#else
-+	return ERR_PTR(-EINVAL);
-+#endif
- }
- 
- /*
-@@ -279,9 +281,9 @@ static struct dentry *reiser4_get_dentry
- 
- struct export_operations reiser4_export_operations = {
- 	.encode_fh = reiser4_encode_fh,
--	.decode_fh = reiser4_decode_fh,
-+//	.decode_fh = reiser4_decode_fh,
- 	.get_parent = reiser4_get_dentry_parent,
--	.get_dentry = reiser4_get_dentry
-+//	.get_dentry = reiser4_get_dentry
- };
- 
- /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -270,6 +233,7 @@ ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
