@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nit-net-skge-build-fix.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:24:02 -0700
-Message-ID: <200709162029.l8GKTg3o031403@imap1.linux-foundation.org>
+Subject: + git-nfsd-broke-reiser4.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:33:05 -0700
+Message-ID: <200709162038.l8GKckOo031624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751619AbXIPU34 (ORCPT
+	by vger.kernel.org with ESMTP id S1752283AbXIPUji (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:29:56 -0400
+	Sun, 16 Sep 2007 16:39:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, shemminger@linux-foundation.org
+Cc: akpm@linux-foundation.org, bfields@citi.umich.edu, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     nit-net: skge-build-fix
+     git-nfsd-broke-reiser4
 has been added to the -mm tree.  Its filename is
-     nit-net-skge-build-fix.patch
+     git-nfsd-broke-reiser4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nit-net: skge-build-fix
+Subject: git-nfsd-broke-reiser4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/sk98lin/skge.c: In function 'skge_probe_one':                       drivers/net/sk98lin/skge.c:4880: error: implicit declaration of function 'SET_MODULE_OWNER'                                                                     
+fs/reiser4/export_ops.c: In function 'reiser4_decode_fh':
+fs/reiser4/export_ops.c:96: error: 'const struct export_operations' has no member named 'find_exported_dentry'
+fs/reiser4/export_ops.c:96: warning: type defaults to 'int' in declaration of 'fn'
+fs/reiser4/export_ops.c:98: error: 'const struct export_operations' has no member named 'find_exported_dentry'
+fs/reiser4/export_ops.c:99: warning: comparison between pointer and integer
+fs/reiser4/export_ops.c:101: error: called object 'fn' is not a function
+fs/reiser4/export_ops.c: At top level:
+fs/reiser4/export_ops.c:282: error: unknown field 'decode_fh' specified in initializer
+fs/reiser4/export_ops.c:282: warning: initialization from incompatible pointer type
+fs/reiser4/export_ops.c:284: error: unknown field 'get_dentry' specified in initializer
+fs/reiser4/export_ops.c:285: warning: excess elements in struct initializer
+fs/reiser4/export_ops.c:285: warning: (near initialization for 'reiser4_export_operations')
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@osdl.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+help!
+
+Cc: J. Bruce Fields <bfields@citi.umich.edu>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sk98lin/skge.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/reiser4/export_ops.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/sk98lin/skge.c~nit-net-skge-build-fix drivers/net/sk98lin/skge.c
---- a/drivers/net/sk98lin/skge.c~nit-net-skge-build-fix
-+++ a/drivers/net/sk98lin/skge.c
-@@ -4877,7 +4877,6 @@ static int __devinit skge_probe_one(stru
- 		goto out_free_netdev;
- 	}
+diff -puN fs/reiser4/export_ops.c~git-nfsd-broke-reiser4 fs/reiser4/export_ops.c
+--- a/fs/reiser4/export_ops.c~git-nfsd-broke-reiser4
++++ a/fs/reiser4/export_ops.c
+@@ -86,7 +86,7 @@ static struct dentry *reiser4_decode_fh(
  
--	SET_MODULE_OWNER(dev);
- 	dev->open =		&SkGeOpen;
- 	dev->stop =		&SkGeClose;
- 	dev->hard_start_xmit =	&SkGeXmit;
+ 	object_on_wire_init(&object);
+ 	object_on_wire_init(&parent);
+-
++#if 0
+ 	addr = decode_inode(super, addr, &object);
+ 	if (!IS_ERR(addr)) {
+ 		if (with_parent)
+@@ -105,12 +105,14 @@ static struct dentry *reiser4_decode_fh(
+ 			addr = (char *)d;
+ 		}
+ 	}
+-
+ 	object_on_wire_done(&object);
+ 	object_on_wire_done(&parent);
+ 
+ 	reiser4_exit_context(ctx);
+ 	return (void *)addr;
++#else
++	return ERR_PTR(-EINVAL);
++#endif
+ }
+ 
+ /*
+@@ -279,9 +281,9 @@ static struct dentry *reiser4_get_dentry
+ 
+ struct export_operations reiser4_export_operations = {
+ 	.encode_fh = reiser4_encode_fh,
+-	.decode_fh = reiser4_decode_fh,
++//	.decode_fh = reiser4_decode_fh,
+ 	.get_parent = reiser4_get_dentry_parent,
+-	.get_dentry = reiser4_get_dentry
++//	.get_dentry = reiser4_get_dentry
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -227,6 +269,7 @@ powerpc-lock-bitops-fix.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 reiser4.patch
 git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
