@@ -1,129 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - mpt-fusion-fix-two-potential-mem-leaks.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:27:38 -0700
-Message-ID: <200709160927.l8G9Rc0W009274@imap1.linux-foundation.org>
+Subject: - message-fusion-remove-redundant-memset.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:27:40 -0700
+Message-ID: <200709160927.l8G9ReDE009277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48264 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751970AbXIPJiW (ORCPT
+	by vger.kernel.org with ESMTP id S1751970AbXIPJiY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:22 -0400
+	Sun, 16 Sep 2007 05:38:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, Eric.Moore@lsil.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, Eric.Moore@lsil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mpt-fusion: fix two potential mem leaks
+     message/fusion: remove redundant memset
 has been removed from the -mm tree.  Its filename was
-     mpt-fusion-fix-two-potential-mem-leaks.patch
+     message-fusion-remove-redundant-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mpt-fusion: fix two potential mem leaks
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: message/fusion: remove redundant memset
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-The Coverity checker spotted two potential memory leaks in
-drivers/message/fusion/mptbase.c::mpt_attach().
+alloc_fcdev() calls alloc_netdev() which uses kzalloc to alloc all the
+memory together with dev->priv region hence no zeroing of structs inside
+struct mpt_lan_priv needed.
 
-There are two returns that may leak the storage allocated for 'ioc'
-(sizeof(MPT_ADAPTER) bytes).
-
-A simple fix would be to simply add two kfree() calls before the return
-statements, but a better fix (that this patch implements) is to reorder the
-code so that if we hit the first return condition we don't have to do the
-allocation at all and then just add a kfree() call for the second case.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/message/fusion/mptlan.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/message/fusion/mptbase.c~mpt-fusion-fix-two-potential-mem-leaks drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~mpt-fusion-fix-two-potential-mem-leaks
-+++ a/drivers/message/fusion/mptbase.c
-@@ -1458,18 +1458,18 @@ mpt_attach(struct pci_dev *pdev, const s
- 	struct proc_dir_entry *dent, *ent;
- #endif
+diff -puN drivers/message/fusion/mptlan.c~message-fusion-remove-redundant-memset drivers/message/fusion/mptlan.c
+--- a/drivers/message/fusion/mptlan.c~message-fusion-remove-redundant-memset
++++ a/drivers/message/fusion/mptlan.c
+@@ -1345,10 +1345,11 @@ mpt_lan_post_receive_buckets_work(struct
+ static struct net_device *
+ mpt_register_lan_device (MPT_ADAPTER *mpt_dev, int pnum)
+ {
+-	struct net_device *dev = alloc_fcdev(sizeof(struct mpt_lan_priv));
+-	struct mpt_lan_priv *priv = NULL;
++	struct net_device *dev;
++	struct mpt_lan_priv *priv;
+ 	u8 HWaddr[FC_ALEN], *a;
  
-+	if (mpt_debug_level)
-+		printk(KERN_INFO MYNAM ": mpt_debug_level=%xh\n", mpt_debug_level);
-+
-+	if (pci_enable_device(pdev))
-+		return r;
-+
- 	ioc = kzalloc(sizeof(MPT_ADAPTER), GFP_ATOMIC);
- 	if (ioc == NULL) {
- 		printk(KERN_ERR MYNAM ": ERROR - Insufficient memory to add adapter!\n");
- 		return -ENOMEM;
- 	}
++	dev = alloc_fcdev(sizeof(struct mpt_lan_priv));
+ 	if (!dev)
+ 		return NULL;
+ 
+@@ -1360,7 +1361,6 @@ mpt_register_lan_device (MPT_ADAPTER *mp
+ 	priv->mpt_dev = mpt_dev;
+ 	priv->pnum = pnum;
+ 
+-	memset(&priv->post_buckets_task, 0, sizeof(priv->post_buckets_task));
+ 	INIT_DELAYED_WORK(&priv->post_buckets_task,
+ 			  mpt_lan_post_receive_buckets_work);
+ 	priv->post_buckets_active = 0;
+@@ -1385,8 +1385,6 @@ mpt_register_lan_device (MPT_ADAPTER *mp
+ 	spin_lock_init(&priv->txfidx_lock);
+ 	spin_lock_init(&priv->rxfidx_lock);
+ 
+-	memset(&priv->stats, 0, sizeof(priv->stats));
 -
- 	ioc->debug_level = mpt_debug_level;
--	if (mpt_debug_level)
--		printk(KERN_INFO MYNAM ": mpt_debug_level=%xh\n", mpt_debug_level);
--
--	if (pci_enable_device(pdev))
--		return r;
- 
- 	dinitprintk(ioc, printk(KERN_WARNING MYNAM ": mpt_adapter_install\n"));
- 
-@@ -1478,6 +1478,7 @@ mpt_attach(struct pci_dev *pdev, const s
- 			": 64 BIT PCI BUS DMA ADDRESSING SUPPORTED\n"));
- 	} else if (pci_set_dma_mask(pdev, DMA_32BIT_MASK)) {
- 		printk(KERN_WARNING MYNAM ": 32 BIT PCI BUS DMA ADDRESSING NOT SUPPORTED\n");
-+		kfree(ioc);
- 		return r;
- 	}
+ 	/*  Grab pre-fetched LANPage1 stuff. :-) */
+ 	a = (u8 *) &mpt_dev->lan_cnfg_page1.HardwareAddressLow;
  
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
+arm-unbalanced-parenthesis-fix.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
 git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
+git-mmc.patch
 git-mtd.patch
-git-ubi.patch
 git-net.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
 git-scsi-misc.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
