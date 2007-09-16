@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch added to -mm tree
-Date: Sun, 16 Sep 2007 03:33:19 -0700
-Message-ID: <200709161038.l8GAcxpa011615@imap1.linux-foundation.org>
+Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:48:42 -0700
+Message-ID: <200709161054.l8GAsMFr012101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45697 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750811AbXIPKjD (ORCPT
+	by vger.kernel.org with ESMTP id S1751159AbXIPKy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 06:39:03 -0400
+	Sun, 16 Sep 2007 06:54:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-dude.
-
-Cc: Greg KH <greg@kroah.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |    2 +-
+ fs/ecryptfs/main.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/sysfs/dir.c~fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
-+++ a/fs/sysfs/dir.c
-@@ -429,7 +429,7 @@ void sysfs_addrm_start(struct sysfs_addr
- int sysfs_add_one(struct sysfs_addrm_cxt *acxt, struct sysfs_dirent *sd)
- {
- 	if (sysfs_find_dirent(acxt->parent_sd, sd->s_name)) {
--		printk(KERN_WARNING, "sysfs: duplicate filename '%s' "
-+		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
- 		       "can not be created\n", sd->s_name);
- 		WARN_ON(1);
- 		return -EEXIST;
+diff -puN fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
++++ a/fs/ecryptfs/main.c
+@@ -590,7 +590,7 @@ static struct ecryptfs_cache_info {
+ 	struct kmem_cache **cache;
+ 	const char *name;
+ 	size_t size;
+-	void (*ctor)(void*, struct kmem_cache *, unsigned long);
++	void (*ctor)(struct kmem_cache *cache, void *obj);
+ } ecryptfs_cache_infos[] = {
+ 	{
+ 		.cache = &ecryptfs_auth_tok_list_item_cache,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,6 +143,7 @@ slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
 mm-mempolicyc-cleanups-fix.patch
 mm-bdi-init-hooks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
