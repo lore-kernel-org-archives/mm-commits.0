@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch added to -mm tree
-Date: Sun, 16 Sep 2007 03:54:36 -0700
-Message-ID: <200709161100.l8GB0GH4012282@imap1.linux-foundation.org>
+Subject: + keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:58:06 -0700
+Message-ID: <200709161103.l8GB3lN9012387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51669 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752920AbXIPLAU (ORCPT
+	by vger.kernel.org with ESMTP id S1750711AbXIPLEL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 07:00:20 -0400
+	Sun, 16 Sep 2007 07:04:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, drzeus@drzeus.cx
 
 
 The patch titled
-     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
 has been added to the -mm tree.  Its filename is
-     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mmc/core/bus.c: In function 'mmc_bus_uevent':
-drivers/mmc/core/bus.c:77: warning: unused variable 'length'
-drivers/mmc/core/bus.c:77: warning: unused variable 'i'
+drivers/mmc/core/lock.c: In function 'mmc_key_instantiate':
+drivers/mmc/core/lock.c:41: error: implicit declaration of function 'key_payload_reserve'
+drivers/mmc/core/lock.c: At top level:
+drivers/mmc/core/lock.c:80: error: variable 'mmc_key_type' has initializer but incomplete type
+drivers/mmc/core/lock.c:81: error: unknown field 'name' specified in initializer
+drivers/mmc/core/lock.c:81: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:81: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:82: error: unknown field 'def_datalen' specified in initializer
+drivers/mmc/core/lock.c:82: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:82: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:83: error: unknown field 'instantiate' specified in initializer
+drivers/mmc/core/lock.c:83: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:83: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:84: error: unknown field 'match' specified in initializer
+drivers/mmc/core/lock.c:84: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:84: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:85: error: unknown field 'destroy' specified in initializer
+drivers/mmc/core/lock.c:85: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:85: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c: In function 'mmc_register_key_type':
+drivers/mmc/core/lock.c:90: error: implicit declaration of function 'register_key_type'
+drivers/mmc/core/lock.c: In function 'mmc_unregister_key_type':
+drivers/mmc/core/lock.c:95: error: implicit declaration of function 'unregister_key_type'
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Whoever merges second needs this.
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/bus.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mmc/core/lock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/mmc/core/bus.c
-@@ -74,7 +74,6 @@ mmc_bus_uevent(struct device *dev, struc
- {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
- 	const char *type;
--	int i = 0, length = 0;
+diff -puN drivers/mmc/core/lock.c~keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc drivers/mmc/core/lock.c
+--- a/drivers/mmc/core/lock.c~keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
++++ a/drivers/mmc/core/lock.c
+@@ -13,6 +13,7 @@
  
- 	switch (card->type) {
- 	case MMC_TYPE_MMC:
+ #include <linux/device.h>
+ #include <linux/key.h>
++#include <linux/key-type.h>
+ #include <linux/err.h>
+ 
+ #include <linux/mmc/card.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +92,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 git-dvb-build-fix.patch
@@ -177,6 +200,7 @@ modpost-detect-unterminated-device-id-lists-fix.patch
 i2o-fix-defined-but-not-used-build-warnings-fix.patch
 procfs-detect-duplicate-names-fix.patch
 procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -226,4 +250,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
