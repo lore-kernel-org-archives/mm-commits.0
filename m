@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-u14-34f.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:56:47 -0700
-Message-ID: <200709162102.l8GL2RrI032435@imap1.linux-foundation.org>
+Subject: + iwl3945-is-bust.patch added to -mm tree
+Date: Sun, 16 Sep 2007 14:11:48 -0700
+Message-ID: <200709162117.l8GLHT8P000490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43298 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52243 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751541AbXIPVCj (ORCPT
+	by vger.kernel.org with ESMTP id S1753134AbXIPVSJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 17:02:39 -0400
+	Sun, 16 Sep 2007 17:18:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     git-block-fix-u14-34f
+     git-net-broke-git-wireless-2
 has been added to the -mm tree.  Its filename is
-     git-block-fix-u14-34f.patch
+     iwl3945-is-bust.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-fix-u14-34f
+Subject: git-net-broke-git-wireless-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+In file included from drivers/net/wireless/iwlwifi.h:168,
+                 from drivers/net/wireless/iwl-base.c:61:
+drivers/net/wireless/iwl-channel.h: In function 'is_channel_a_band':
+drivers/net/wireless/iwl-channel.h:140: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-channel.h:140: error: (Each undeclared identifier is reported only once
+drivers/net/wireless/iwl-channel.h:140: error: for each function it appears in.)
+drivers/net/wireless/iwl-channel.h: In function 'is_channel_bg_band':
+drivers/net/wireless/iwl-channel.h:147: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_set_rxon_channel':
+drivers/net/wireless/iwl-base.c:978: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_set_flags_for_phymode':
+drivers/net/wireless/iwl-base.c:2571: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_tx_skb':
+drivers/net/wireless/iwl-base.c:3017: warning: comparison is always true due to limited range of data type
+drivers/net/wireless/iwl-base.c: In function 'iwl_set_rate':
+drivers/net/wireless/iwl-base.c:3113: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_get_channel_info':
+drivers/net/wireless/iwl-base.c:5444: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c:5454: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
+drivers/net/wireless/iwl-base.c:5640: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_get_passive_dwell_time':
+drivers/net/wireless/iwl-base.c:5650: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_get_channels_for_scan':
+drivers/net/wireless/iwl-base.c:5732: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'iwl_pci_probe':
+drivers/net/wireless/iwl-base.c:9137: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
+drivers/net/wireless/iwl-base.c: In function 'is_channel_a_band':
+drivers/net/wireless/iwl-channel.h:141: warning: control reaches end of non-void function
+drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
+drivers/net/wireless/iwl-base.c:5644: warning: control reaches end of non-void function
+
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/u14-34f.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/u14-34f.c~git-block-fix-u14-34f drivers/scsi/u14-34f.c
---- a/drivers/scsi/u14-34f.c~git-block-fix-u14-34f
-+++ a/drivers/scsi/u14-34f.c
-@@ -450,7 +450,7 @@ static struct scsi_host_template driver_
-                 .slave_configure         = u14_34f_slave_configure,
-                 .this_id                 = 7,
-                 .unchecked_isa_dma       = 1,
--                .use_clustering          = ENABLE_CLUSTERING
-+                .use_clustering          = ENABLE_CLUSTERING,
-                 .use_sg_chaining         = ENABLE_SG_CHAINING,
-                 };
- 
+diff -puN drivers/net/wireless/Kconfig~iwl3945-is-bust drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~iwl3945-is-bust
++++ a/drivers/net/wireless/Kconfig
+@@ -767,6 +767,7 @@ config IWL4965
+ config IWL3945
+ 	tristate "Intel PRO/Wireless 3945ABG/BG Network Connection"
+ 	depends on m && IWLWIFI && EXPERIMENTAL
++	depends on BROKEN
+ 	default m
+ 	---help---
+ 	  Select to build the driver supporting the:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +159,7 @@ git-net-vs-git-wireless-2.patch
 net-add-ath5k-wireless-driver-fix.patch
 git-net-vs-git-wireless-3.patch
 git-net-broke-git-wireless.patch
+iwl3945-is-bust.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
