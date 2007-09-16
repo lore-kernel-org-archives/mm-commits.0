@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-jg-misc-revert-scsi-diff.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:40:39 -0700
-Message-ID: <200709160840.l8G8edfn007718@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-fixup.patch added to -mm tree
+Date: Sun, 16 Sep 2007 01:43:47 -0700
+Message-ID: <200709160843.l8G8hlDu007811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38791 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50601 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751359AbXIPIkr (ORCPT
+	by vger.kernel.org with ESMTP id S1751513AbXIPInw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:40:47 -0400
+	Sun, 16 Sep 2007 04:43:52 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8hlqr001968
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:43:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-jg-misc-revert-scsi-diff
+     git-scsi-misc-fixup
 has been added to the -mm tree.  Its filename is
-     git-jg-misc-revert-scsi-diff.patch
+     git-scsi-misc-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +30,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-jg-misc-revert-scsi-diff
+Subject: git-scsi-misc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Avoid trashing the scsi tree.
-
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/arcmsr/arcmsr_hba.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/scsi/scsi_sysfs.c |   46 ++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 20 deletions(-)
 
-diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~git-jg-misc-revert-scsi-diff drivers/scsi/arcmsr/arcmsr_hba.c
---- a/drivers/scsi/arcmsr/arcmsr_hba.c~git-jg-misc-revert-scsi-diff
-+++ a/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -159,12 +159,14 @@ static struct pci_driver arcmsr_pci_driv
- static irqreturn_t arcmsr_do_interrupt(int irq, void *dev_id)
- {
- 	irqreturn_t handle_state;
--	struct AdapterControlBlock *acb = dev_id;
-+	struct AdapterControlBlock *acb;
-+	unsigned long flags;
- 
--	spin_lock(acb->host->host_lock);
--	handle_state = arcmsr_interrupt(acb);
--	spin_unlock(acb->host->host_lock);
-+	acb = (struct AdapterControlBlock *)dev_id;
- 
-+	spin_lock_irqsave(acb->host->host_lock, flags);
-+	handle_state = arcmsr_interrupt(acb);
-+	spin_unlock_irqrestore(acb->host->host_lock, flags);
- 	return handle_state;
+diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -624,26 +624,32 @@ sdev_show_media_change_notify(struct dev
  }
+ static DEVICE_ATTR(media_change_notify, S_IRUGO, sdev_show_media_change_notify, NULL);
  
-@@ -329,7 +331,7 @@ static int arcmsr_probe(struct pci_dev *
- 		goto out_iounmap;
+-/* Default template for device attributes.  May NOT be modified */
+-static struct device_attribute *scsi_sysfs_sdev_attrs[] = {
+-	&dev_attr_device_blocked,
+-	&dev_attr_queue_depth,
+-	&dev_attr_queue_type,
+-	&dev_attr_type,
+-	&dev_attr_scsi_level,
+-	&dev_attr_vendor,
+-	&dev_attr_model,
+-	&dev_attr_rev,
+-	&dev_attr_rescan,
+-	&dev_attr_delete,
+-	&dev_attr_state,
+-	&dev_attr_timeout,
+-	&dev_attr_iocounterbits,
+-	&dev_attr_iorequest_cnt,
+-	&dev_attr_iodone_cnt,
+-	&dev_attr_ioerr_cnt,
+-	&dev_attr_modalias,
+-	&dev_attr_media_change_notify,
++static struct attribute *scsi_sdev_attrs[] = {
++	&dev_attr_device_blocked.attr,
++	&dev_attr_type.attr,
++	&dev_attr_scsi_level.attr,
++	&dev_attr_vendor.attr,
++	&dev_attr_model.attr,
++	&dev_attr_rev.attr,
++	&dev_attr_rescan.attr,
++	&dev_attr_delete.attr,
++	&dev_attr_state.attr,
++	&dev_attr_timeout.attr,
++	&dev_attr_iocounterbits.attr,
++	&dev_attr_iorequest_cnt.attr,
++	&dev_attr_iodone_cnt.attr,
++	&dev_attr_ioerr_cnt.attr,
++	&dev_attr_modalias.attr,
++	&dev_attr_media_change_notify.attr,
++	NULL
++};
++
++static struct attribute_group scsi_sdev_attr_group = {
++	.attrs =	scsi_sdev_attrs,
++};
++
++static struct attribute_group *scsi_sdev_attr_groups[] = {
++	&scsi_sdev_attr_group,
+ 	NULL
+ };
  
- 	error = request_irq(pdev->irq, arcmsr_do_interrupt,
--			    IRQF_SHARED, "arcmsr", acb);
-+			IRQF_DISABLED | IRQF_SHARED, "arcmsr", acb);
- 	if (error)
- 		goto out_free_ccb_pool;
- 
-@@ -419,7 +421,7 @@ static void arcmsr_remove(struct pci_dev
- 	for (poll_count = 0; poll_count < 256; poll_count++) {
- 		if (!atomic_read(&acb->ccboutstandingcount))
- 			break;
--		arcmsr_interrupt(acb);	/* FIXME: need spinlock */
-+		arcmsr_interrupt(acb);
- 		msleep(25);
- 	}
- 
-@@ -538,7 +540,7 @@ static uint8_t arcmsr_wait_msgint_ready(
- 					, &reg->outbound_intstatus);
- 				return 0x00;
- 			}
--			msleep(10);
-+			msleep_interruptible(10);
- 		}/*max 1 seconds*/
- 	} while (Retries++ < 20);/*max 20 sec*/
- 	return 0xff;
-@@ -1419,10 +1421,8 @@ static void arcmsr_iop_reset(struct Adap
- 	if (atomic_read(&acb->ccboutstandingcount) != 0) {
- 		/* talk to iop 331 outstanding command aborted */
- 		arcmsr_abort_allcmd(acb);
--
- 		/* wait for 3 sec for all command aborted*/
--		ssleep(3);
--
-+		msleep_interruptible(3000);
- 		/* disable all outbound interrupt */
- 		intmask_org = arcmsr_disable_outbound_ints(acb);
- 		/* clear all outbound posted Q */
-@@ -1450,7 +1450,7 @@ static int arcmsr_bus_reset(struct scsi_
- 	for (i = 0; i < 400; i++) {
- 		if (!atomic_read(&acb->ccboutstandingcount))
- 			break;
--		arcmsr_interrupt(acb);	/* FIXME: need spinlock */
-+		arcmsr_interrupt(acb);
- 		msleep(25);
- 	}
- 	arcmsr_iop_reset(acb);
-@@ -1468,7 +1468,7 @@ static void arcmsr_abort_one_cmd(struct 
- 	/*
- 	** Wait for 3 sec for all command done.
- 	*/
--	ssleep(3);
-+	msleep_interruptible(3000);
- 
- 	intmask = arcmsr_disable_outbound_ints(acb);
- 	arcmsr_polling_ccbdone(acb, ccb);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +148,7 @@ pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
 git-s390.patch
 git-scsi-misc.patch
+git-scsi-misc-fixup.patch
 advansys-printk-fix.patch
 git-block-fixup.patch
 git-block-fix-headers_check.patch
