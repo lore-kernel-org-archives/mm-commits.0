@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:55:09 -0700
-Message-ID: <200709162100.l8GL0nZp032420@imap1.linux-foundation.org>
+Subject: + git-block-fix-u14-34f.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:56:47 -0700
+Message-ID: <200709162102.l8GL2RrI032435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43298 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752126AbXIPVB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751541AbXIPVCj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 17:01:27 -0400
+	Sun, 16 Sep 2007 17:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, jesse@icplus.com.tw, romieu@fr.zoreil.com, s.l-h@gmx.de
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
+     git-block-fix-u14-34f
 has been added to the -mm tree.  Its filename is
-     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+     git-block-fix-u14-34f.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
+Subject: git-block-fix-u14-34f
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Jesse Huang <jesse@icplus.com.tw>
-Cc: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ipg.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/u14-34f.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree drivers/net/ipg.c
---- a/drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
-+++ a/drivers/net/ipg.c
-@@ -2259,7 +2259,6 @@ static int __devinit ipg_probe(struct pc
- 	dev->tx_timeout = ipg_tx_timeout;
- 	dev->change_mtu = &ipg_nic_change_mtu;
- 
--	SET_MODULE_OWNER(dev);
- 	SET_NETDEV_DEV(dev, &pdev->dev);
- 	SET_ETHTOOL_OPS(dev, &ipg_ethtool_ops);
+diff -puN drivers/scsi/u14-34f.c~git-block-fix-u14-34f drivers/scsi/u14-34f.c
+--- a/drivers/scsi/u14-34f.c~git-block-fix-u14-34f
++++ a/drivers/scsi/u14-34f.c
+@@ -450,7 +450,7 @@ static struct scsi_host_template driver_
+                 .slave_configure         = u14_34f_slave_configure,
+                 .this_id                 = 7,
+                 .unchecked_isa_dma       = 1,
+-                .use_clustering          = ENABLE_CLUSTERING
++                .use_clustering          = ENABLE_CLUSTERING,
+                 .use_sg_chaining         = ENABLE_SG_CHAINING,
+                 };
  
 _
 
@@ -118,6 +116,7 @@ git-scsi-misc-arcmsr-build-fix.patch
 advansys-printk-fix.patch
 git-block-fixup.patch
 git-block-fix-headers_check.patch
+git-block-fix-u14-34f.patch
 git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
