@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pvrusb2-hdw-terminate-usb-device-id-table-differently.patch added to -mm tree
-Date: Sun, 16 Sep 2007 15:07:34 -0700
-Message-ID: <200709162213.l8GMDE5P002322@imap1.linux-foundation.org>
+Subject: + p54pci-terminate-pci-table.patch added to -mm tree
+Date: Sun, 16 Sep 2007 15:08:37 -0700
+Message-ID: <200709162214.l8GMEHcf002420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34680 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753111AbXIPWNW (ORCPT
+	by vger.kernel.org with ESMTP id S1753326AbXIPWPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 18:13:22 -0400
+	Sun, 16 Sep 2007 18:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kees@ubuntu.com
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com
 
 
 The patch titled
-     pvrusb2-hdw: terminate usb device id table differently
+     p54pci: terminate pci table
 has been added to the -mm tree.  Its filename is
-     pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
+     p54pci-terminate-pci-table.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pvrusb2-hdw: terminate usb device id table differently
+Subject: p54pci: terminate pci table
 From: Andrew Morton <akpm@linux-foundation.org>
 
-rusb2/pvrusb2: struct usb_device_id is 20 bytes.  The last of 3 is:
-0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
-FATAL: drivers/media/video/pvrusb2/pvrusb2: struct usb_device_id is not terminated with a NULL entry!
-
-Cc: Kees Cook <kees@ubuntu.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-hdw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/p54pci.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently drivers/media/video/pvrusb2/pvrusb2-hdw.c
---- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently
-+++ a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-@@ -44,7 +44,7 @@
- struct usb_device_id pvr2_device_table[] = {
- 	[PVR2_HDW_TYPE_29XXX] = { USB_DEVICE(0x2040, 0x2900) },
- 	[PVR2_HDW_TYPE_24XXX] = { USB_DEVICE(0x2040, 0x2400) },
--	{ USB_DEVICE(0, 0) },
+diff -puN drivers/net/wireless/p54pci.c~p54pci-terminate-pci-table drivers/net/wireless/p54pci.c
+--- a/drivers/net/wireless/p54pci.c~p54pci-terminate-pci-table
++++ a/drivers/net/wireless/p54pci.c
+@@ -37,6 +37,7 @@ static struct pci_device_id p54p_table[]
+ 	{ PCI_DEVICE(0x1260, 0x3877) },
+ 	/* Intersil PRISM Javelin/Xbow Wireless LAN adapter */
+ 	{ PCI_DEVICE(0x1260, 0x3886) },
 +	{ },
  };
  
- MODULE_DEVICE_TABLE(usb, pvr2_device_table);
+ MODULE_DEVICE_TABLE(pci, p54p_table);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,6 +185,7 @@ console-events-and-accessibility-fix.patch
 send-quota-messages-via-netlink-fix-fix.patch
 dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
 modpost-detect-unterminated-device-id-lists-fix.patch
+pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
 i2o-fix-defined-but-not-used-build-warnings-fix.patch
 procfs-detect-duplicate-names-fix.patch
 procfs-detect-duplicate-names-fix-fix-2.patch
@@ -245,4 +241,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
+p54pci-terminate-pci-table.patch
