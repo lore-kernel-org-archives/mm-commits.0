@@ -1,120 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - fix-select-on-proc-files-without-poll.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:26:05 -0700
-Message-ID: <200709160926.l8G9Q5Qs009160@imap1.linux-foundation.org>
+Subject: - rtc-v3020-fixes.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:50 -0700
+Message-ID: <200709160925.l8G9PoJ3009134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39052 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751885AbXIPJ0f (ORCPT
+	by vger.kernel.org with ESMTP id S1751894AbXIPJ0j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:26:35 -0400
+	Sun, 16 Sep 2007 05:26:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, ebiederm@xmission.com, oleg@tv-sign.ru, vahakang@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mike@compulab.co.il, a.zummo@towertech.it, david-b@pacbell.net, raph@8d.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix select on /proc files without ->poll
+     RTC v3020 fixes
 has been removed from the -mm tree.  Its filename was
-     fix-select-on-proc-files-without-poll.patch
+     rtc-v3020-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix select on /proc files without ->poll
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: RTC v3020 fixes
+From: Mike Rapoport <mike@compulab.co.il>
 
-T Taneli Vahakangas <vahakang@cs.helsinki.fi> reported that
-commit 786d7e1612f0b0adb6046f19b906609e4fe8b1ba aka
-"Fix rmmod/read/write races in /proc entries"
-broke SBCL + SLIME combo.
+Fix off-by-one in month calculations
+Add delay for bus accesses to satisfy Tw > 500ns
 
-Old code in do_select() used DEFAULT_POLLMASK, if couldn't find ->poll
-handler. New code makes ->poll always there and returns 0 by default,
-which is not correct. Return DEFAULT_POLLMASK instead.
-
-Steps to reproduce:
-
-	install emacs, SBCL, SLIME
-	emacs
-	M-x slime	in *inferior-lisp* buffer
-	[watch it doing "Connecting to Swank on port X.."]
-
-Please, apply before 2.6.23.
-
-P.S.: why SBCL can't just read(2) /proc/cpuinfo is a mystery.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: T Taneli Vahakangas <vahakang@cs.helsinki.fi>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Acked-by: Raphael Assenat <raph@8d.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c      |    3 ++-
- fs/select.c          |    2 --
- include/linux/poll.h |    2 ++
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-v3020.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/inode.c~fix-select-on-proc-files-without-poll fs/proc/inode.c
---- a/fs/proc/inode.c~fix-select-on-proc-files-without-poll
-+++ a/fs/proc/inode.c
-@@ -11,6 +11,7 @@
- #include <linux/string.h>
- #include <linux/stat.h>
- #include <linux/completion.h>
-+#include <linux/poll.h>
- #include <linux/file.h>
- #include <linux/limits.h>
- #include <linux/init.h>
-@@ -232,7 +233,7 @@ static ssize_t proc_reg_write(struct fil
- static unsigned int proc_reg_poll(struct file *file, struct poll_table_struct *pts)
- {
- 	struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
--	unsigned int rv = 0;
-+	unsigned int rv = DEFAULT_POLLMASK;
- 	unsigned int (*poll)(struct file *, struct poll_table_struct *);
+diff -puN drivers/rtc/rtc-v3020.c~rtc-v3020-fixes drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-v3020-fixes
++++ a/drivers/rtc/rtc-v3020.c
+@@ -26,6 +26,7 @@
+ #include <linux/types.h>
+ #include <linux/bcd.h>
+ #include <linux/rtc-v3020.h>
++#include <linux/delay.h>
  
- 	spin_lock(&pde->pde_unload_lock);
-diff -puN fs/select.c~fix-select-on-proc-files-without-poll fs/select.c
---- a/fs/select.c~fix-select-on-proc-files-without-poll
-+++ a/fs/select.c
-@@ -26,8 +26,6 @@
+ #include <asm/io.h>
  
- #include <asm/uaccess.h>
+@@ -47,6 +48,7 @@ static void v3020_set_reg(struct v3020 *
+ 	for (i = 0; i < 4; i++) {
+ 		writel((tmp & 1) << chip->leftshift, chip->ioaddress);
+ 		tmp >>= 1;
++		udelay(1);
+ 	}
  
--#define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
--
- struct poll_table_page {
- 	struct poll_table_page * next;
- 	struct poll_table_entry * entry;
-diff -puN include/linux/poll.h~fix-select-on-proc-files-without-poll include/linux/poll.h
---- a/include/linux/poll.h~fix-select-on-proc-files-without-poll
-+++ a/include/linux/poll.h
-@@ -21,6 +21,8 @@
- #define WQUEUES_STACK_ALLOC	(MAX_STACK_ALLOC - FRONTEND_STACK_ALLOC)
- #define N_INLINE_POLL_ENTRIES	(WQUEUES_STACK_ALLOC / sizeof(struct poll_table_entry))
+ 	/* Commands dont have data */
+@@ -54,6 +56,7 @@ static void v3020_set_reg(struct v3020 *
+ 		for (i = 0; i < 8; i++) {
+ 			writel((data & 1) << chip->leftshift, chip->ioaddress);
+ 			data >>= 1;
++			udelay(1);
+ 		}
+ 	}
+ }
+@@ -66,12 +69,14 @@ static unsigned char v3020_get_reg(struc
+ 	for (i = 0; i < 4; i++) {
+ 		writel((address & 1) << chip->leftshift, chip->ioaddress);
+ 		address >>= 1;
++		udelay(1);
+ 	}
  
-+#define DEFAULT_POLLMASK (POLLIN | POLLOUT | POLLRDNORM | POLLWRNORM)
-+
- struct poll_table_struct;
+ 	for (i = 0; i < 8; i++) {
+ 		data >>= 1;
+ 		if (readl(chip->ioaddress) & (1 << chip->leftshift))
+ 			data |= 0x80;
++		udelay(1);
+ 	}
  
- /* 
+ 	return data;
+@@ -95,7 +100,7 @@ static int v3020_read_time(struct device
+ 	tmp = v3020_get_reg(chip, V3020_MONTH_DAY);
+ 	dt->tm_mday	= BCD2BIN(tmp);
+ 	tmp = v3020_get_reg(chip, V3020_MONTH);
+-	dt->tm_mon	= BCD2BIN(tmp);
++	dt->tm_mon    = BCD2BIN(tmp) - 1;
+ 	tmp = v3020_get_reg(chip, V3020_WEEK_DAY);
+ 	dt->tm_wday	= BCD2BIN(tmp);
+ 	tmp = v3020_get_reg(chip, V3020_YEAR);
+@@ -135,7 +140,7 @@ static int v3020_set_time(struct device 
+ 	v3020_set_reg(chip, V3020_MINUTES, 	BIN2BCD(dt->tm_min));
+ 	v3020_set_reg(chip, V3020_HOURS, 	BIN2BCD(dt->tm_hour));
+ 	v3020_set_reg(chip, V3020_MONTH_DAY,	BIN2BCD(dt->tm_mday));
+-	v3020_set_reg(chip, V3020_MONTH, 	BIN2BCD(dt->tm_mon));
++	v3020_set_reg(chip, V3020_MONTH,     BIN2BCD(dt->tm_mon + 1));
+ 	v3020_set_reg(chip, V3020_WEEK_DAY, 	BIN2BCD(dt->tm_wday));
+ 	v3020_set_reg(chip, V3020_YEAR, 	BIN2BCD(dt->tm_year % 100));
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from mike@compulab.co.il are
 
 origin.patch
-nfs-fix-oops-re-sysctls-and-v4-support.patch
-ifdef-struct-task_structsecurity.patch
-faster-ext2_clear_inode.patch
-fs-proc-mmuc-headers-butchery.patch
-remove-sysctlh-from-fsh.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-shrink-struct-task_structoomkilladj.patch
-remove-struct-task_structio_wait.patch
-drop-some-headers-from-mmh.patch
-modpost-detect-unterminated-device-id-lists.patch
-modpost-detect-unterminated-device-id-lists-fix.patch
-revert-faster-ext2_clear_inode.patch
+make-power-supply-class-available-for-arm-architecture.patch
