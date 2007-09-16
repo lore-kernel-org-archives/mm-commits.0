@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch added to -mm tree
-Date: Sun, 16 Sep 2007 03:22:56 -0700
-Message-ID: <200709161028.l8GASa8b011306@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:33:19 -0700
+Message-ID: <200709161038.l8GAcxpa011615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424AbXIPK3L (ORCPT
+	by vger.kernel.org with ESMTP id S1750811AbXIPKjD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 06:29:11 -0400
+	Sun, 16 Sep 2007 06:39:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, mszeredi@suse.cz
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters vs revoke
+     fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
 has been added to the -mm tree.  Its filename is
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+     fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters vs revoke
+Subject: fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Christoph Lameter <clameter@sgi.com>
+dude.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/revoke.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/sysfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/revoke.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke fs/revoke.c
---- a/fs/revoke.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke
-+++ a/fs/revoke.c
-@@ -731,8 +731,7 @@ static struct file_system_type revokefs_
- 	.kill_sb = kill_anon_super
- };
- 
--static void revokefs_init_inode(void *obj, struct kmem_cache *cache,
--				unsigned long flags)
-+static void revokefs_init_inode(struct kmem_cache *cache, void *obj)
+diff -puN fs/sysfs/dir.c~fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file
++++ a/fs/sysfs/dir.c
+@@ -429,7 +429,7 @@ void sysfs_addrm_start(struct sysfs_addr
+ int sysfs_add_one(struct sysfs_addrm_cxt *acxt, struct sysfs_dirent *sd)
  {
- 	struct revokefs_inode_info *info = obj;
- 
+ 	if (sysfs_find_dirent(acxt->parent_sd, sd->s_name)) {
+-		printk(KERN_WARNING, "sysfs: duplicate filename '%s' "
++		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
+ 		       "can not be created\n", sd->s_name);
+ 		WARN_ON(1);
+ 		return -EEXIST;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,6 +67,7 @@ alsa-procfs-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 git-dvb-build-fix.patch
