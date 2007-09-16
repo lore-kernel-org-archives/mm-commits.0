@@ -1,89 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - futex_compat-fix-list-traversal-bugs.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:57 -0700
-Message-ID: <200709160925.l8G9PvRl009145@imap1.linux-foundation.org>
+Subject: - sky2-fix-phy-setup-on-fe-p.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:27:15 -0700
+Message-ID: <200709160927.l8G9RFpU009244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46802 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751894AbXIPJ1b (ORCPT
+	by vger.kernel.org with ESMTP id S1750993AbXIPJiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:27:31 -0400
+	Sun, 16 Sep 2007 05:38:08 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G9c76O003816
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 02:38:08 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, davem@davemloft.net, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex_compat: fix list traversal bugs
+     sky2: fix PHY setup on FE-P
 has been removed from the -mm tree.  Its filename was
-     futex_compat-fix-list-traversal-bugs.patch
+     sky2-fix-phy-setup-on-fe-p.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: futex_compat: fix list traversal bugs
-From: Arnd Bergmann <arnd@arndb.de>
+Subject: sky2: fix PHY setup on FE-P
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-The futex list traversal on the compat side appears to have
-a bug.
+Marvell reported the following fix is necessary to get fe-plus chips to
+work.
 
-It's loop termination condition compares:
-
-        while (compat_ptr(uentry) != &head->list)
-
-But that can't be right because "uentry" has the special
-"pi" indicator bit still potentially set at bit 0.  This
-is cleared by fetch_robust_entry() into the "entry"
-return value.
-
-What this seems to mean is that the list won't terminate
-when list iteration gets back to the the head.  And we'll
-also process the list head like a normal entry, which could
-cause all kinds of problems.
-
-So we should check for equality with "entry".  That pointer
-is of the non-compat type so we have to do a little casting
-to keep the compiler and sparse happy.
-
-The same problem can in theory occur with the 'pending'
-variable, although that has not been reported from users
-so far.
-
-Based on the original patch from David Miller.
-
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Miller <davem@davemloft.net>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/sky2.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/futex_compat.c~futex_compat-fix-list-traversal-bugs kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex_compat-fix-list-traversal-bugs
-+++ a/kernel/futex_compat.c
-@@ -61,10 +61,10 @@ void compat_exit_robust_list(struct task
- 	if (fetch_robust_entry(&upending, &pending,
- 			       &head->list_op_pending, &pip))
- 		return;
--	if (upending)
-+	if (pending)
- 		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
+diff -puN drivers/net/sky2.c~sky2-fix-phy-setup-on-fe-p drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-fix-phy-setup-on-fe-p
++++ a/drivers/net/sky2.c
+@@ -488,11 +488,12 @@ static void sky2_phy_init(struct sky2_hw
  
--	while (compat_ptr(uentry) != &head->list) {
-+	while (entry != (struct robust_list __user *) &head->list) {
- 		/*
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
+ 	case CHIP_ID_YUKON_FE_P:
+ 		/* Enable Link Partner Next Page */
++		ctrl = gm_phy_read(hw, port, PHY_MARV_PHY_CTRL);
+ 		ctrl |= PHY_M_PC_ENA_LIP_NP;
+ 
+ 		/* disable Energy Detect and enable scrambler */
+ 		ctrl &= ~(PHY_M_PC_ENA_ENE_DT | PHY_M_PC_DIS_SCRAMB);
+-		gm_phy_write(hw, port, PHY_MARV_CTRL, ctrl);
++		gm_phy_write(hw, port, PHY_MARV_PHY_CTRL, ctrl);
+ 
+ 		/* set LED2 -> ACT, LED1 -> LINK, LED0 -> SPEED */
+ 		ctrl = PHY_M_FELP_LED2_CTRL(LED_PAR_CTRL_ACT_BL) |
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
-futex_compat-simplify-pointer-magic.patch
-futex_compat-update-to-match-native-version.patch
-whitespace-fixes-compat-syscalls.patch
+git-infiniband.patch
+git-input.patch
+git-net.patch
+pci-x-pci-express-read-control-interfaces-e1000.patch
+export-reciprocal_value-for-modules.patch
+sky2-avoid-divide-in-receive-path.patch
+sky2-118.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
