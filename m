@@ -1,153 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - remove-setup-of-platform-device-from-jazzsonicc.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:27:23 -0700
-Message-ID: <200709160927.l8G9RNhw009256@imap1.linux-foundation.org>
+Subject: - sparc64-and-others-fix-tty_ioctlc-build.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:26:35 -0700
+Message-ID: <200709160926.l8G9QZv2009193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752085AbXIPJip (ORCPT
+	by vger.kernel.org with ESMTP id S1752178AbXIPJin (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:45 -0400
+	Sun, 16 Sep 2007 05:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tsbogend@alpha.franken.de, greg@kroah.com, jeff@garzik.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: tony@bakeyournoodle.com, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, paulus@samba.org, torvalds@linux-foundation.org, mm-commit
 
 
 The patch titled
-     remove setup of platform device from jazzsonic.c
+     sparc64 (and others): fix tty_ioctl.c build
 has been removed from the -mm tree.  Its filename was
-     remove-setup-of-platform-device-from-jazzsonicc.patch
+     sparc64-and-others-fix-tty_ioctlc-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove setup of platform device from jazzsonic.c
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: sparc64 (and others): fix tty_ioctl.c build
+From: Tony Breeds <tony@bakeyournoodle.com>
 
-Remove setup platform device from jazzsonic, which is done in arch code now
+Add Guards around TIOCSLCKTRMIOS and TIOCGLCKTRMIOS.
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Several architectures are still broken.  Put temporary-for-2.6.23 ifdef guards
+around the offending code.
+
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/jazzsonic.c |   61 ++++----------------------------------
- 1 file changed, 7 insertions(+), 54 deletions(-)
+ drivers/char/tty_ioctl.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+)
 
-diff -puN drivers/net/jazzsonic.c~remove-setup-of-platform-device-from-jazzsonicc drivers/net/jazzsonic.c
---- a/drivers/net/jazzsonic.c~remove-setup-of-platform-device-from-jazzsonicc
-+++ a/drivers/net/jazzsonic.c
-@@ -45,7 +45,6 @@
- #include <asm/jazzdma.h>
+diff -puN drivers/char/tty_ioctl.c~sparc64-and-others-fix-tty_ioctlc-build drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~sparc64-and-others-fix-tty_ioctlc-build
++++ a/drivers/char/tty_ioctl.c
+@@ -795,6 +795,19 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (L_ICANON(tty))
+ 				retval = inq_canon(tty);
+ 			return put_user(retval, (unsigned int __user *) arg);
++#ifndef TCGETS2
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
++
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#else
+ 		case TIOCGLCKTRMIOS:
+ 			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
+ 				return -EFAULT;
+@@ -806,6 +819,7 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
+ 				return -EFAULT;
+ 			return 0;
++#endif
  
- static char jazz_sonic_string[] = "jazzsonic";
--static struct platform_device *jazz_sonic_device;
- 
- #define SONIC_MEM_SIZE	0x100
- 
-@@ -70,14 +69,6 @@ static unsigned int sonic_debug = 1;
- #endif
- 
- /*
-- * Base address and interrupt of the SONIC controller on JAZZ boards
-- */
--static struct {
--	unsigned int port;
--	unsigned int irq;
--} sonic_portlist[] = { {JAZZ_ETHERNET_BASE, JAZZ_ETHERNET_IRQ}, {0, 0}};
--
--/*
-  * We cannot use station (ethernet) address prefixes to detect the
-  * sonic controller since these are board manufacturer depended.
-  * So we check for known Silicon Revision IDs instead.
-@@ -215,13 +206,12 @@ static int __init jazz_sonic_probe(struc
- {
- 	struct net_device *dev;
- 	struct sonic_local *lp;
-+	struct resource *res;
- 	int err = 0;
- 	int i;
- 
--	/*
--	 * Don't probe if we're not running on a Jazz board.
--	 */
--	if (mips_machgroup != MACH_GROUP_JAZZ)
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res)
- 		return -ENODEV;
- 
- 	dev = alloc_etherdev(sizeof(struct sonic_local));
-@@ -235,20 +225,9 @@ static int __init jazz_sonic_probe(struc
- 
- 	netdev_boot_setup_check(dev);
- 
--	if (dev->base_addr >= KSEG0) { /* Check a single specified location. */
--		err = sonic_probe1(dev);
--	} else if (dev->base_addr != 0) { /* Don't probe at all. */
--		err = -ENXIO;
--	} else {
--		for (i = 0; sonic_portlist[i].port; i++) {
--			dev->base_addr = sonic_portlist[i].port;
--			dev->irq = sonic_portlist[i].irq;
--			if (sonic_probe1(dev) == 0)
--				break;
--		}
--		if (!sonic_portlist[i].port)
--			err = -ENODEV;
--	}
-+	dev->base_addr = res->start;
-+	dev->irq = platform_get_irq(pdev, 0);
-+	err = sonic_probe1(dev);
- 	if (err)
- 		goto out;
- 	err = register_netdev(dev);
-@@ -303,38 +282,12 @@ static struct platform_driver jazz_sonic
- 
- static int __init jazz_sonic_init_module(void)
- {
--	int err;
--
--	if ((err = platform_driver_register(&jazz_sonic_driver))) {
--		printk(KERN_ERR "Driver registration failed\n");
--		return err;
--	}
--
--	jazz_sonic_device = platform_device_alloc(jazz_sonic_string, 0);
--	if (!jazz_sonic_device)
--		goto out_unregister;
--
--	if (platform_device_add(jazz_sonic_device)) {
--		platform_device_put(jazz_sonic_device);
--		jazz_sonic_device = NULL;
--	}
--
--	return 0;
--
--out_unregister:
--	platform_driver_unregister(&jazz_sonic_driver);
--
--	return -ENOMEM;
-+	return platform_driver_register(&jazz_sonic_driver);
- }
- 
- static void __exit jazz_sonic_cleanup_module(void)
- {
- 	platform_driver_unregister(&jazz_sonic_driver);
--
--	if (jazz_sonic_device) {
--		platform_device_unregister(jazz_sonic_device);
--		jazz_sonic_device = NULL;
--	}
- }
- 
- module_init(jazz_sonic_init_module);
+ 		case TIOCPKT:
+ 		{
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
 origin.patch
-git-mips.patch
-git-net.patch
+mkmakefile-include-arch-on-o=-builds.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
