@@ -1,89 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - git-bluetooth-build-fix.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 01:34:05 -0700
-Message-ID: <200709160834.l8G8Y5ui007508@imap1.linux-foundation.org>
+Subject: + git-net-vs-git-nfs.patch added to -mm tree
+Date: Sun, 16 Sep 2007 01:36:43 -0700
+Message-ID: <200709160836.l8G8ahEp007563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50750 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751425AbXIPIeV (ORCPT
+	by vger.kernel.org with ESMTP id S1751636AbXIPIgq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:34:21 -0400
+	Sun, 16 Sep 2007 04:36:46 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8ah6w001773
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:36:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-bluetooth-build-fix
-has been removed from the -mm tree.  Its filename was
-     git-bluetooth-build-fix.patch
+     git-net-vs-git-nfs
+has been added to the -mm tree.  Its filename is
+     git-net-vs-git-nfs.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-bluetooth-build-fix
+Subject: git-net-vs-git-nfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- stupidly fix this:
-
-net/bluetooth/hci_sock.c: In function 'hci_sock_cmsg':
-net/bluetooth/hci_sock.c:352: error: storage size of 'ctv' isn't known
-net/bluetooth/hci_sock.c:352: warning: unused variable 'ctv'
-
-- remove pointless inline
-
-- cleanup gunk
-
-Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hci_sock.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ net/sunrpc/xprtsock.c |   67 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 49 insertions(+), 18 deletions(-)
 
-diff -puN net/bluetooth/hci_sock.c~git-bluetooth-build-fix net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~git-bluetooth-build-fix
-+++ a/net/bluetooth/hci_sock.c
-@@ -332,13 +332,15 @@ static int hci_sock_getname(struct socke
- 	return 0;
- }
+diff -puN net/sunrpc/xprtsock.c~git-net-vs-git-nfs net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-net-vs-git-nfs
++++ a/net/sunrpc/xprtsock.c
+@@ -1334,41 +1334,72 @@ static int xs_bind6(struct sock_xprt *tr
+ static struct lock_class_key xs_key[2];
+ static struct lock_class_key xs_slock_key[2];
  
--static inline void hci_sock_cmsg(struct sock *sk, struct msghdr *msg, struct sk_buff *skb)
-+static void hci_sock_cmsg(struct sock *sk, struct msghdr *msg,
-+				struct sk_buff *skb)
+-static inline void xs_reclassify_socket(struct socket *sock)
++static inline void xs_reclassify_socket4(struct socket *sock)
  {
- 	__u32 mask = hci_pi(sk)->cmsg_mask;
+ 	struct sock *sk = sock->sk;
++
+ 	BUG_ON(sock_owned_by_user(sk));
+-	switch (sk->sk_family) {
+-	case AF_INET:
+-		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
+-			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
+-		break;
++	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
++		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
++}
  
- 	if (mask & HCI_CMSG_DIR) {
- 		int incoming = bt_cb(skb)->incoming;
--		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming), &incoming);
-+		put_cmsg(msg, SOL_HCI, HCI_CMSG_DIR, sizeof(incoming),
-+				&incoming);
- 	}
+-	case AF_INET6:
+-		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
+-			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
+-		break;
++static inline void xs_reclassify_socket6(struct socket *sock)
++{
++	struct sock *sk = sock->sk;
  
- 	if (mask & HCI_CMSG_TSTAMP) {
-@@ -348,6 +350,7 @@ static inline void hci_sock_cmsg(struct 
+-	default:
+-		BUG();
+-	}
++	BUG_ON(sock_owned_by_user(sk));
++	sock_lock_init_class_and_name(sk, "slock-AF_INET6-RPC",
++		&xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
+ }
+ #else
+-static inline void xs_reclassify_socket(struct socket *sock)
++static inline void xs_reclassify_socket4(struct socket *sock)
++{
++}
++
++static inline void xs_reclassify_socket6(struct socket *sock)
+ {
+ }
+ #endif
  
- 		skb_get_timestamp(skb, &tv);
- 
-+#ifdef CONFIG_COMPAT
- 		if (msg->msg_flags & MSG_CMSG_COMPAT) {
- 			struct compat_timeval ctv;
- 			ctv.tv_sec = tv.tv_sec;
-@@ -355,9 +358,12 @@ static inline void hci_sock_cmsg(struct 
- 			data = &ctv;
- 			len = sizeof(ctv);
- 		} else {
-+#endif
- 			data = &tv;
- 			len = sizeof(tv);
-+#ifdef CONFIG_COMPAT
- 		}
-+#endif
- 
- 		put_cmsg(msg, SOL_HCI, HCI_CMSG_TSTAMP, len, data);
- 	}
++static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
++{
++	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
++
++	if (!transport->inet) {
++		struct sock *sk = sock->sk;
++
++		write_lock_bh(&sk->sk_callback_lock);
++
++		sk->sk_user_data = xprt;
++		transport->old_data_ready = sk->sk_data_ready;
++		transport->old_state_change = sk->sk_state_change;
++		transport->old_write_space = sk->sk_write_space;
++		sk->sk_data_ready = xs_udp_data_ready;
++		sk->sk_write_space = xs_udp_write_space;
++		sk->sk_no_check = UDP_CSUM_NORCV;
++		sk->sk_allocation = GFP_ATOMIC;
++
++		xprt_set_connected(xprt);
++
++		/* Reset to new socket */
++		transport->sock = sock;
++		transport->inet = sk;
++
++		write_unlock_bh(&sk->sk_callback_lock);
++	}
++	xs_udp_do_set_buffer_size(xprt);
++}
++
+ /**
+- * xs_udp_connect_worker - set up a UDP socket
++ * xs_udp_connect_worker4 - set up a UDP socket
+  * @work: RPC transport to connect
+  *
+  * Invoked by a work queue tasklet.
+  */
+-static void xs_udp_connect_worker(struct work_struct *work)
++static void xs_udp_connect_worker4(struct work_struct *work)
+ {
+-	struct sock_xprt *transport =
+-		container_of(work, struct sock_xprt, connect_worker.work);
++  	struct sock_xprt *transport =
++  		container_of(work, struct sock_xprt, connect_worker.work);
+ 	struct rpc_xprt *xprt = &transport->xprt;
+ 	struct socket *sock = transport->sock;
+ 	int err, status = -EIO;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,7 +176,7 @@ net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
 git-backlight-dependency-fix.patch
-git-bluetooth-build-fix.patch
+git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-ocfs2.patch
