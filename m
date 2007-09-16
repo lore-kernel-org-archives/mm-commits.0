@@ -1,60 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-fixup.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:54:28 -0700
-Message-ID: <200709160854.l8G8sSrw008136@imap1.linux-foundation.org>
+Subject: - git-kgdb-fixup-2.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:03:57 -0700
+Message-ID: <200709160903.l8G93v5Y008436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42392 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751756AbXIPIy7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751796AbXIPJEA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:54:59 -0400
+	Sun, 16 Sep 2007 05:04:00 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8sS8W002338
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G93wxS002645
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:54:29 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 02:03:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfsd-fixup
-has been added to the -mm tree.  Its filename is
-     git-nfsd-fixup.patch
+     git-kgdb-fixup-2
+has been removed from the -mm tree.  Its filename was
+     git-kgdb-fixup-2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-nfsd-fixup
+Subject: git-kgdb-fixup-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/asm-x86_64/kdebug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/sunrpc/svcsock.c~git-nfsd-fixup net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~git-nfsd-fixup
-+++ a/net/sunrpc/svcsock.c
-@@ -1594,12 +1594,8 @@ svc_age_temp_sockets(unsigned long closu
+diff -puN include/asm-x86_64/kdebug.h~git-kgdb-fixup-2 include/asm-x86_64/kdebug.h
+--- a/include/asm-x86_64/kdebug.h~git-kgdb-fixup-2
++++ a/include/asm-x86_64/kdebug.h
+@@ -17,6 +17,7 @@ enum die_val {
+ 	DIE_GPF,
+ 	DIE_CALL,
+ 	DIE_NMI_IPI,
++	DIE_PAGE_FAULT_NO_CONTEXT,
+ };
  
- 		if (!test_and_set_bit(SK_OLD, &svsk->sk_flags))
- 			continue;
--<<<<<<< HEAD/net/sunrpc/svcsock.c
--		if (atomic_read(&svsk->sk_inuse) > 1 || test_bit(SK_BUSY, &svsk->sk_flags))
--=======
- 		if (atomic_read(&svsk->sk_inuse) > 1
- 		    || test_bit(SK_BUSY, &svsk->sk_flags))
-->>>>>>> /net/sunrpc/svcsock.c
- 			continue;
- 		atomic_inc(&svsk->sk_inuse);
- 		list_move(le, &to_be_aged);
+ extern void printk_address(unsigned long address);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +117,6 @@ ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
 git-kgdb-fixup.patch
 git-kgdb-fixup-2.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
