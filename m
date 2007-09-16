@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iwl3945-is-bust.patch added to -mm tree
-Date: Sun, 16 Sep 2007 14:34:05 -0700
-Message-ID: <200709162139.l8GLdjvA001273@imap1.linux-foundation.org>
+Subject: + more-wireless-borkage.patch added to -mm tree
+Date: Sun, 16 Sep 2007 14:47:04 -0700
+Message-ID: <200709162152.l8GLqia8001641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53108 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752207AbXIPVka (ORCPT
+	by vger.kernel.org with ESMTP id S1753035AbXIPVyI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 17:40:30 -0400
+	Sun, 16 Sep 2007 17:54:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     git-net-broke-git-wireless-2
+     more-wireless-borkage
 has been added to the -mm tree.  Its filename is
-     iwl3945-is-bust.patch
+     more-wireless-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-broke-git-wireless-2
+Subject: more-wireless-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/net/wireless/iwlwifi.h:168,
-                 from drivers/net/wireless/iwl-base.c:61:
-drivers/net/wireless/iwl-channel.h: In function 'is_channel_a_band':
-drivers/net/wireless/iwl-channel.h:140: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-channel.h:140: error: (Each undeclared identifier is reported only once
-drivers/net/wireless/iwl-channel.h:140: error: for each function it appears in.)
-drivers/net/wireless/iwl-channel.h: In function 'is_channel_bg_band':
-drivers/net/wireless/iwl-channel.h:147: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_rxon_channel':
-drivers/net/wireless/iwl-base.c:978: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_flags_for_phymode':
-drivers/net/wireless/iwl-base.c:2571: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_tx_skb':
-drivers/net/wireless/iwl-base.c:3017: warning: comparison is always true due to limited range of data type
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_rate':
-drivers/net/wireless/iwl-base.c:3113: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_channel_info':
-drivers/net/wireless/iwl-base.c:5444: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c:5454: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
-drivers/net/wireless/iwl-base.c:5640: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_passive_dwell_time':
-drivers/net/wireless/iwl-base.c:5650: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_channels_for_scan':
-drivers/net/wireless/iwl-base.c:5732: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_pci_probe':
-drivers/net/wireless/iwl-base.c:9137: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'is_channel_a_band':
-drivers/net/wireless/iwl-channel.h:141: warning: control reaches end of non-void function
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
-drivers/net/wireless/iwl-base.c:5644: warning: control reaches end of non-void function
+drivers/net/wireless/p54common.c: In function 'p54_init_common':
+drivers/net/wireless/p54common.c:896: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
+drivers/net/wireless/p54common.c:896: error: (Each undeclared identifier is reported only once
+drivers/net/wireless/p54common.c:896: error: for each function it appears in.)
+
+starting to get desperate here.
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/wireless/p54common.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~iwl3945-is-bust drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~iwl3945-is-bust
-+++ a/drivers/net/wireless/Kconfig
-@@ -666,6 +666,7 @@ config P54_PCI
- config IWLWIFI
- 	bool "Intel Wireless WiFi Link Drivers"
- 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
-+	depends on BROKEN
- 	select FW_LOADER
- 	default n
- 	---help---
+diff -puN drivers/net/wireless/p54common.c~more-wireless-borkage drivers/net/wireless/p54common.c
+--- a/drivers/net/wireless/p54common.c~more-wireless-borkage
++++ a/drivers/net/wireless/p54common.c
+@@ -892,8 +892,7 @@ struct ieee80211_hw *p54_init_common(siz
+ 	priv->modes[0].num_channels = ARRAY_SIZE(p54_channels);
+ 	priv->modes[0].channels = priv->channels;
+ 	dev->flags = IEEE80211_HW_HOST_BROADCAST_PS_BUFFERING | /* not sure */
+-		    IEEE80211_HW_RX_INCLUDES_FCS |
+-		    IEEE80211_HW_WEP_INCLUDE_IV;
++		    IEEE80211_HW_RX_INCLUDES_FCS;
+ 	dev->channel_change_time = 1000;	/* TODO: find actual value */
+ 	dev->max_rssi = 100;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -268,3 +247,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+more-wireless-borkage.patch
