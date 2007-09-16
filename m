@@ -1,227 +1,547 @@
 From: akpm@linux-foundation.org
-Subject: - taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix.patch removed from -mm tree
-Date: Sat, 15 Sep 2007 22:39:57 -0700
-Message-ID: <200709160539.l8G5dvJf002167@imap1.linux-foundation.org>
+Subject: + taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4.patch added to -mm tree
+Date: Sat, 15 Sep 2007 22:41:23 -0700
+Message-ID: <200709160541.l8G5fNiL002211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44064 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38532 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751045AbXIPFk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751069AbXIPFlm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 01:40:26 -0400
+	Sun, 16 Sep 2007 01:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, guichaz@yahoo.fr, jlan@engr.sgi.com, jlim@sgi.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: guichaz@yahoo.fr, balbir@in.ibm.com, jlan@engr.sgi.com, jlim@sgi.com, oleg@tv-sign.ru
 
 
 The patch titled
-     taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix
-has been removed from the -mm tree.  Its filename was
-     taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix.patch
+     taskstats: add all thread stats for TASKSTATS_CMD_ATTR_TGID (v4)
+has been added to the -mm tree.  Its filename is
+     taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4.patch
 
-This patch was dropped because it was folded into taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: taskstats: add all thread stats for TASKSTATS_CMD_ATTR_TGID (v4)
+From: Guillaume Chazarain <guichaz@yahoo.fr>
 
+Changelog since V3 (http://lkml.org/lkml/2007/8/31/121):
+- Removed userspace example, either it gets accepted in util-linux-ng or I'll
+maintain it elsewhere.
+- Added kerneldoc for fill_threadgroup() and add_tsk().
+- Removed useless {get,put}_task_struct(leader) as spotted by Andrew Morton
+and Oleg Nesterov.
+- Use lock_task_sighand() instead of spin_lock_irqsave(&tsk->sighand->siglock)
+for consistency with the locking of task->signal->stats in fill_tgid().
+- Removed useless check for a NULL taskstats in fill_tgid_exit(). Thanks Oleg.
+- Documented double accounting race seen by Oleg.
+- Rephrased the fill_tgid_exit() comment as per Oleg's recommendation.
+- Documented the special case for the AFORK ac_flag.
+- Use the exit status (code >> 8) instead of the exit code as documented in
+Documentation/accounting/taskstats-struct.txt.
+- Use signal->group_exit_code if set for stats->ac_exitcode on a TGID as
+suggested by Oleg.
+
+Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Guillaume Chazarain <guichaz@yahoo.fr>
 Cc: Jay Lan <jlan@engr.sgi.com>
 Cc: Jonathan Lim <jlim@sgi.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    2 --
- 1 files changed, 2 deletions(-)
+ Documentation/accounting/dump-test.c |  314 -------------------------
+ include/linux/tsacct_kern.h          |   12 
+ kernel/taskstats.c                   |   38 +--
+ kernel/tsacct.c                      |   23 -
+ 4 files changed, 46 insertions(+), 341 deletions(-)
 
-diff -puN kernel/taskstats.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix
+diff -puN Documentation/accounting/dump-test.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4 /dev/null
+--- a/Documentation/accounting/dump-test.c
++++ /dev/null
+@@ -1,314 +0,0 @@
+-/*
+- * Create some threads with specific behaviours and dump all of their stats.
+- * This needs a libnl recent enough to support Generic Netlink, made with
+- * svn r102 of libnl.
+- *
+- * Compile with:
+- *	cc -Wall -I../../include -lnl -lpthread dump-test.c -o dump-test
+- */
+-
+-#define _GNU_SOURCE		/* for strndup() */
+-#include <sys/syscall.h>
+-#include <sys/socket.h>
+-#include <unistd.h>
+-#include <pthread.h>
+-#include <stdio.h>
+-#include <fcntl.h>
+-#include <sched.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <linux/types.h>
+-#include <linux/taskstats.h>
+-#include <linux/genetlink.h>
+-#include <netlink/genl/genl.h>
+-#include <netlink/genl/ctrl.h>
+-
+-/* Utility functions for the created threads */
+-
+-static void loop_reading(const char *filename)
+-{
+-	int fd = open(filename, O_RDONLY);
+-	char buffer[4096];
+-
+-	if (fd < 0) {
+-		perror(filename);
+-		return;
+-	}
+-
+-	for (;;) {
+-		lseek(fd, 0, SEEK_SET);
+-		while (read(fd, buffer, sizeof(buffer)) > 0) ;
+-	}
+-}
+-
+-/*
+- * We want to know the TID of the threads we launch, not to complicate the code
+- * with a real synchronization.
+- */
+-static volatile pid_t tid;
+-static void set_tid(void)
+-{
+-	if (tid) {
+-		fputs("Unexpected non null tid\n", stderr);
+-		exit(1);
+-	}
+-
+-	tid = syscall(SYS_gettid);
+-}
+-
+-static pid_t start_thread(void (*fun) (void), int wait)
+-{
+-	pthread_t thread;
+-
+-	tid = 0;
+-	if (pthread_create(&thread, NULL, (void *(*)(void *))fun, NULL) < 0) {
+-		perror("pthread_create");
+-		exit(1);
+-	}
+-
+-	/* Busy wait for the thread to update its tid. */
+-	while (!tid)
+-		sched_yield();
+-
+-	if (wait && pthread_join(thread, NULL) < 0) {
+-		perror("pthread_join");
+-		exit(1);
+-	}
+-
+-	/* Space the starting time of the threads */
+-	sleep(1);
+-
+-	return tid;
+-}
+-
+-/* The created threads */
+-
+-/*
+- * Should loop in kernel mode
+- */
+-static void niced_sys_thread(void)
+-{
+-	set_tid();
+-	nice(5);
+-	loop_reading("/proc/self/maps");
+-}
+-
+-/*
+- * Should loop in user mode
+- */
+-static void niced_user_thread(void)
+-{
+-	set_tid();
+-	nice(10);
+-	for (;;) ;
+-}
+-
+-/*
+- * Should show some I/O syscalls
+- */
+-static void cached_io_thread(void)
+-{
+-	set_tid();
+-	nice(15);
+-	loop_reading("/bin/ls");
+-}
+-
+-/*
+- * This thread terminates after doing some real I/O so it should be visible in
+- * the thread group stats.
+- */
+-#define TMP_PATH "/tmp/taskstats.test.tmp"
+-static void dead_thread_having_written(void)
+-{
+-	int fd, i;
+-	char buffer[1024];
+-
+-	set_tid();
+-	fd = creat(TMP_PATH, 0600);
+-	if (fd < 0) {
+-		perror(TMP_PATH);
+-		return;
+-	}
+-
+-	/* Write 32M */
+-	for (i = 0; i < 32 * 1024; i++) {
+-		int remaining = sizeof(buffer);
+-		while (remaining) {
+-			int written = write(fd, buffer, remaining);
+-			if (written > 0)
+-				remaining -= written;
+-			else {
+-				perror("write");
+-				close(fd);
+-				return;
+-			}
+-		}
+-	}
+-
+-	if (fsync(fd) < 0)
+-		perror("fsync");
+-
+-	if (close(fd) < 0)
+-		perror("close");
+-
+-	if (unlink(TMP_PATH))
+-		perror("unlink");
+-}
+-
+-/* taskstats reading using libnl */
+-
+-static int taskstats_netlink_family;
+-static struct nl_handle *netlink_handle;
+-
+-static void init_taskstats(void)
+-{
+-	netlink_handle = nl_handle_alloc();
+-	if (!netlink_handle) {
+-		nl_perror("nl_handle_alloc");
+-		exit(1);
+-	}
+-
+-	if (genl_connect(netlink_handle) < 0) {
+-		nl_perror("genl_connect");
+-		exit(1);
+-	}
+-
+-	taskstats_netlink_family = genl_ctrl_resolve(netlink_handle,
+-						     TASKSTATS_GENL_NAME);
+-	if (taskstats_netlink_family < 0) {
+-		nl_perror("genl_ctrl_resolve(TASKSTATS_GENL_NAME)");
+-		exit(1);
+-	}
+-}
+-
+-static struct taskstats get_taskstats(int attr, int pid)
+-{
+-	struct taskstats stats;
+-	int len;
+-	struct nl_msg *request;
+-	void *request_header;
+-	unsigned char *buf;
+-	struct nlattr *nlattr, *reply;
+-
+-	request = nlmsg_alloc();
+-	if (request == NULL) {
+-		nl_perror("nlmsg_alloc");
+-		exit(1);
+-	}
+-
+-	request_header = genlmsg_put(request, 0, 0, taskstats_netlink_family,
+-				     0, NLM_F_REQUEST, TASKSTATS_CMD_GET,
+-				     TASKSTATS_GENL_VERSION);
+-	if (request_header == NULL) {
+-		nl_perror("genlmsg_put");
+-		exit(1);
+-	}
+-
+-	if (nla_put_u32(request, attr, pid) < 0) {
+-		nl_perror("nla_put_u32");
+-		exit(1);
+-	}
+-
+-	len = nl_send_auto_complete(netlink_handle, request);
+-	if (len < 0) {
+-		nl_perror("nl_send_auto_complete");
+-		exit(1);
+-	}
+-	nlmsg_free(request);
+-
+-	len = nl_recv(netlink_handle, NULL, &buf, NULL);
+-	if (len < 0) {
+-		nl_perror("nl_recv");
+-		exit(1);
+-	}
+-	if (nl_wait_for_ack(netlink_handle) < 0) {
+-		nl_perror("nl_wait_for_ack");
+-		exit(1);
+-	}
+-
+-	len = 0;
+-	reply = (struct nlattr *)buf;
+-	nla_for_each_nested(nlattr, reply, len)
+-	    if (nlattr->nla_type == TASKSTATS_TYPE_STATS) {
+-		memcpy(&stats, nla_data(nlattr), sizeof(stats));
+-		free(buf);
+-		return stats;
+-	}
+-
+-	fputs("TASKSTATS_TYPE_STATS not found\n", stderr);
+-	free(buf);
+-	exit(1);
+-}
+-
+-/* Output formatting */
+-
+-#define LINE(fo, f) do {						    \
+-	char *stripped = strndup(#f, 14);				    \
+-	printf("%-14s|" fo "|" fo "|" fo "|" fo "|" fo "|\n", stripped,	    \
+-	       stats[0].f, stats[1].f, stats[2].f, stats[3].f, stats[4].f); \
+-	free(stripped);							    \
+-} while (0)
+-
+-static void show_table(struct taskstats stats[])
+-{
+-	puts("Name          |      System|        User|  Cached I/O"
+-	     "|        Self|       Group|");
+-	puts("--------------+------------+------------+------------"
+-	     "+------------+------------+");
+-	LINE("%12hu", version);
+-	LINE("%12u", ac_exitcode);
+-	LINE("%12x", ac_flag);
+-	LINE("%12u", ac_nice);
+-	LINE("%12llu", cpu_count);
+-	LINE("%12llu", cpu_delay_total);
+-	LINE("%12llu", blkio_delay_total);
+-	LINE("%12llu", swapin_count);
+-	LINE("%12llu", swapin_delay_total);
+-	LINE("%12llu", cpu_run_real_total);
+-	LINE("%12llu", cpu_run_virtual_total);
+-	LINE("%12s", ac_comm);
+-	LINE("%12u", ac_uid);
+-	LINE("%12u", ac_gid);
+-	LINE("%12u", ac_pid);
+-	LINE("%12u", ac_ppid);
+-	LINE("%12u", ac_btime);
+-	LINE("%12llu", ac_etime);
+-	LINE("%12llu", ac_utime);
+-	LINE("%12llu", ac_stime);
+-	LINE("%12llu", ac_minflt);
+-	LINE("%12llu", ac_majflt);
+-	LINE("%12llu", coremem);
+-	LINE("%12llu", virtmem);
+-	LINE("%12llu", hiwater_rss);
+-	LINE("%12llu", hiwater_vm);
+-	LINE("%12llu", read_char);
+-	LINE("%12llu", write_char);
+-	LINE("%12llu", read_syscalls);
+-	LINE("%12llu", write_syscalls);
+-	LINE("%12llu", read_bytes);
+-	LINE("%12llu", write_bytes);
+-	LINE("%12llu", cancelled_write_bytes);
+-	LINE("%12llu", nvcsw);
+-	LINE("%12llu", nivcsw);
+-}
+-
+-int main(int argc, char *argv[])
+-{
+-	struct taskstats stats[5];
+-	pid_t niced_sys = start_thread(niced_sys_thread, 0);
+-	pid_t niced_user = start_thread(niced_user_thread, 0);
+-	pid_t cached_io = start_thread(cached_io_thread, 0);
+-	start_thread(dead_thread_having_written, 1);
+-
+-	init_taskstats();
+-
+-	stats[0] = get_taskstats(TASKSTATS_CMD_ATTR_PID, niced_sys);
+-	stats[1] = get_taskstats(TASKSTATS_CMD_ATTR_PID, niced_user);
+-	stats[2] = get_taskstats(TASKSTATS_CMD_ATTR_PID, cached_io);
+-	stats[3] = get_taskstats(TASKSTATS_CMD_ATTR_PID, getpid());
+-	stats[4] = get_taskstats(TASKSTATS_CMD_ATTR_TGID, cached_io);
+-
+-	show_table(stats);
+-
+-	return 0;
+-}
+diff -puN include/linux/tsacct_kern.h~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4 include/linux/tsacct_kern.h
+--- a/include/linux/tsacct_kern.h~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4
++++ a/include/linux/tsacct_kern.h
+@@ -10,17 +10,23 @@
+ #include <linux/taskstats.h>
+ 
+ #ifdef CONFIG_TASKSTATS
+-extern void bacct_add_tsk(struct taskstats *stats, struct task_struct *tsk);
++void bacct_fill_threadgroup(struct taskstats *stats, struct task_struct *task);
++void bacct_add_tsk(struct taskstats *stats, struct task_struct *task);
+ #else
+-static inline void bacct_add_tsk(struct taskstats *stats, struct task_struct *tsk)
++static inline void bacct_fill_threadgroup(struct taskstats *stats, struct task_struct *task)
++{}
++static inline void bacct_add_tsk(struct taskstats *stats, struct task_struct *task)
+ {}
+ #endif /* CONFIG_TASKSTATS */
+ 
+ #ifdef CONFIG_TASK_XACCT
+-extern void xacct_add_tsk(struct taskstats *stats, struct task_struct *p);
++void xacct_fill_threadgroup(struct taskstats *stats, struct task_struct *task);
++void xacct_add_tsk(struct taskstats *stats, struct task_struct *p);
+ extern void acct_update_integrals(struct task_struct *tsk);
+ extern void acct_clear_integrals(struct task_struct *tsk);
+ #else
++static inline void xacct_fill_threadgroup(struct taskstats *stats, struct task_struct *task)
++{}
+ static inline void xacct_add_tsk(struct taskstats *stats, struct task_struct *p)
+ {}
+ static inline void acct_update_integrals(struct task_struct *tsk)
+diff -puN kernel/taskstats.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4 kernel/taskstats.c
+--- a/kernel/taskstats.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4
 +++ a/kernel/taskstats.c
-@@ -272,9 +272,7 @@ static int fill_tgid(pid_t tgid, struct 
+@@ -167,7 +167,11 @@ static void send_cpu_listeners(struct sk
+ 	up_write(&listeners->sem);
+ }
+ 
+-/*
++/**
++ * fill_threadgroup - initialize some common stats for the thread group
++ * @stats: the taskstats to write into
++ * @task: the thread representing the whole group
++ *
+  * There are two types of taskstats fields when considering a thread group:
+  *	- those that can be aggregated from each thread in the group (like CPU
+  *	times),
+@@ -194,7 +198,11 @@ static void fill_threadgroup(struct task
+ 	xacct_fill_threadgroup(stats, task);
+ }
+ 
+-/*
++/**
++ * add_tsk - combine some thread specific stats in a taskstats
++ * @stats: the taskstats to write into
++ * @task: the thread to combine
++ *
+  * Stats specific to each thread in the thread group. Stats of @task should be
+  * combined with those already present in @stats. add_tsk() works in
+  * conjunction with fill_threadgroup(), taskstats fields should not be touched
+@@ -251,7 +259,6 @@ static int fill_tgid(pid_t tgid, struct 
+ 		struct taskstats *stats)
+ {
+ 	struct task_struct *tsk;
+-	struct task_struct *leader;
+ 	unsigned long flags;
+ 	int rc = -ESRCH;
+ 
+@@ -271,15 +278,21 @@ static int fill_tgid(pid_t tgid, struct 
+ 	else
  		memset(stats, 0, sizeof(*stats));
  
- 	leader = first->group_leader;
--	get_task_struct(leader);
- 	fill_threadgroup(stats, leader);
--	put_task_struct(leader);
+-	leader = first->group_leader;
+-	fill_threadgroup(stats, leader);
++	fill_threadgroup(stats, first->group_leader);
  
  	tsk = first;
  	do
+ 		if (!tsk->exit_state)
++			/*
++			 * This check is racy as a thread could exit just right
++			 * now and have its statistics accounted twice.
++			 */
+ 			add_tsk(stats, tsk);
+ 	while_each_thread(first, tsk);
+ 
++	if (first->signal->group_exit_code >> 8)
++		stats->ac_exitcode = first->signal->group_exit_code >> 8;
++
+ 	unlock_task_sighand(first, &flags);
+ 	rc = 0;
+ out:
+@@ -291,19 +304,18 @@ out:
+ static void fill_tgid_exit(struct task_struct *tsk)
+ {
+ 	unsigned long flags;
+-	struct taskstats *tg_stats;
+ 
+-	spin_lock_irqsave(&tsk->sighand->siglock, flags);
+-	tg_stats = tsk->signal->stats;
++	rcu_read_lock();
++	lock_task_sighand(tsk, &flags);
+ 
+ 	/*
+-	 * fill_threadgroup() will be called by the stats requester,
+-	 * i.e. fill_tgid()
++	 * The fill_threadgroup() part of the statistics will be added by the
++	 * stats requester, i.e. fill_tgid()
+ 	 */
+-	if (tg_stats)
+-		add_tsk(tg_stats, tsk);
++	add_tsk(tsk->signal->stats, tsk);
+ 
+-	spin_unlock_irqrestore(&tsk->sighand->siglock, flags);
++	unlock_task_sighand(tsk, &flags);
++	rcu_read_unlock();
+ }
+ 
+ static int add_del_listener(pid_t pid, cpumask_t *maskp, int isadd)
+diff -puN kernel/tsacct.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4 kernel/tsacct.c
+--- a/kernel/tsacct.c~taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4
++++ a/kernel/tsacct.c
+@@ -50,19 +50,14 @@ void bacct_fill_threadgroup(struct tasks
+ 				rcu_dereference(task->real_parent)->tgid : 0;
+ 	rcu_read_unlock();
+ 
+-	if (thread_group_leader(task)) {
+-		stats->ac_exitcode = task->exit_code;
+-		if (task->flags & PF_FORKNOEXEC)
+-			stats->ac_flag |= AFORK;
+-	}
+-
+ 	fill_wall_times(stats, task);
+ 
+-	stats->ac_nice	= task_nice(task);
+-	stats->ac_sched	= task->policy;
+-	stats->ac_uid	= task->uid;
+-	stats->ac_gid	= task->gid;
+-	stats->ac_pid	= task->pid;
++	stats->ac_exitcode	= task->exit_code >> 8;
++	stats->ac_nice		= task_nice(task);
++	stats->ac_sched		= task->policy;
++	stats->ac_uid		= task->uid;
++	stats->ac_gid		= task->gid;
++	stats->ac_pid		= task->pid;
+ 
+ 	strncpy(stats->ac_comm, task->comm, sizeof(stats->ac_comm));
+ }
+@@ -75,6 +70,12 @@ void bacct_add_tsk(struct taskstats *sta
+ 		stats->ac_flag |= ACORE;
+ 	if (task->flags & PF_SIGNALED)
+ 		stats->ac_flag |= AXSIG;
++	if (thread_group_leader(task) && (task->flags & PF_FORKNOEXEC))
++		/*
++		 * Threads are created by do_fork() and don't exec but not in
++		 * the AFORK sense, as the latter involves fork(2).
++		 */
++		stats->ac_flag |= AFORK;
+ 
+ 	stats->ac_utime	 += cputime_to_msecs(task->utime) * USEC_PER_MSEC;
+ 	stats->ac_stime	 += cputime_to_msecs(task->stime) * USEC_PER_MSEC;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from guichaz@yahoo.fr are
 
-fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
-bug-in-at91-mci-suspend-routines.patch
-leases-can-be-hidden-by-flocks.patch
-revert-highmem-catch-illegal-nesting.patch
-slub-accurately-compare-debug-flags-during-slab-cache-merge.patch
-atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-alsa-procfs-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-powerpc-fixup.patch
-revert-gregkh-driver-block-device.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-kbuild.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-e1000e-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net.patch
-git-net-fixup.patch
-git-net-broke-ixgbe.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-git-bluetooth-build-fix.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-irq-irq-and-pci_ids-patch-for-intel-tolapai-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-xtensa.patch
-git-kgdb-fixup.patch
-git-kgdb-fixup-2.patch
-i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid.patch
-taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
-modpost-detect-unterminated-device-id-lists-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+taskstats-add-all-thread-stats-for-taskstats_cmd_attr_tgid-v4.patch
+sync_sb_inodes-propagate-errors.patch
