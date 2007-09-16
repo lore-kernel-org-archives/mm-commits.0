@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + more-wireless-borkage-2.patch added to -mm tree
-Date: Sun, 16 Sep 2007 14:50:47 -0700
-Message-ID: <200709162156.l8GLuRc3001801@imap1.linux-foundation.org>
+Subject: + more-wireless-borkage-3.patch added to -mm tree
+Date: Sun, 16 Sep 2007 14:54:26 -0700
+Message-ID: <200709162200.l8GM06QR001968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34673 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753097AbXIPV5p (ORCPT
+	by vger.kernel.org with ESMTP id S1752385AbXIPWBU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 17:57:45 -0400
+	Sun, 16 Sep 2007 18:01:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, l
 
 
 The patch titled
-     more-wireless-borkage-2
+     more-wireless-borkage-3
 has been added to the -mm tree.  Its filename is
-     more-wireless-borkage-2.patch
+     more-wireless-borkage-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: more-wireless-borkage-2
+Subject: more-wireless-borkage-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
@@ -35,33 +35,47 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c       |    2 +-
- drivers/net/wireless/b43legacy/main.c |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/wireless/ath5k_base.c               |    2 +-
+ drivers/net/wireless/iwl-base.c                 |    3 +--
+ drivers/net/wireless/zd1211rw-mac80211/zd_mac.c |    1 -
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/b43/main.c~more-wireless-borkage-2 drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~more-wireless-borkage-2
-+++ a/drivers/net/wireless/b43/main.c
-@@ -3918,7 +3918,7 @@ static int b43_wireless_init(struct ssb_
- 	/* fill hw info */
- 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
- 	    IEEE80211_HW_MONITOR_DURING_OPER |
--	    IEEE80211_HW_DEVICE_HIDES_WEP | IEEE80211_HW_WEP_INCLUDE_IV;
-+	    IEEE80211_HW_DEVICE_HIDES_WEP;
- 	hw->max_signal = 100;
- 	hw->max_rssi = -110;
- 	hw->max_noise = -110;
-diff -puN drivers/net/wireless/b43legacy/main.c~more-wireless-borkage-2 drivers/net/wireless/b43legacy/main.c
---- a/drivers/net/wireless/b43legacy/main.c~more-wireless-borkage-2
-+++ a/drivers/net/wireless/b43legacy/main.c
-@@ -3623,7 +3623,6 @@ static int b43legacy_wireless_init(struc
+diff -puN drivers/net/wireless/zd1211rw-mac80211/zd_mac.c~more-wireless-borkage-3 drivers/net/wireless/zd1211rw-mac80211/zd_mac.c
+--- a/drivers/net/wireless/zd1211rw-mac80211/zd_mac.c~more-wireless-borkage-3
++++ a/drivers/net/wireless/zd1211rw-mac80211/zd_mac.c
+@@ -879,7 +879,6 @@ struct ieee80211_hw *zd_mac_alloc_hw(str
+ 	mac->modes[1].channels = mac->channels;
  
- 	/* fill hw info */
- 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
--		    IEEE80211_HW_WEP_INCLUDE_IV |
- 		    IEEE80211_HW_RX_INCLUDES_FCS;
+ 	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS |
+-		     IEEE80211_HW_WEP_INCLUDE_IV |
+ 		     IEEE80211_HW_DEFAULT_REG_DOMAIN_CONFIGURED;
+ 	hw->max_rssi = 100;
  	hw->max_signal = 100;
- 	hw->max_rssi = -110;
+diff -puN drivers/net/wireless/iwl-base.c~more-wireless-borkage-3 drivers/net/wireless/iwl-base.c
+--- a/drivers/net/wireless/iwl-base.c~more-wireless-borkage-3
++++ a/drivers/net/wireless/iwl-base.c
+@@ -9134,8 +9134,7 @@ static int iwl_pci_probe(struct pci_dev 
+ 	hw->max_signal = 100;	/* link quality indication (%) */
+ 
+ 	/* Tell mac80211 our Tx characteristics */
+-	hw->flags = IEEE80211_HW_WEP_INCLUDE_IV |
+-	    IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE;
++	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE;
+ 
+ 	hw->queues = 4;
+ #if IWL == 4965
+diff -puN drivers/net/wireless/ath5k_base.c~more-wireless-borkage-3 drivers/net/wireless/ath5k_base.c
+--- a/drivers/net/wireless/ath5k_base.c~more-wireless-borkage-3
++++ a/drivers/net/wireless/ath5k_base.c
+@@ -2291,7 +2291,7 @@ static int __devinit ath_pci_probe(struc
+ 	}
+ 
+ 	SET_IEEE80211_DEV(hw, &pdev->dev);
+-	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS | IEEE80211_HW_WEP_INCLUDE_IV;
++	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS;
+ 	hw->extra_tx_headroom = 2;
+ 	hw->channel_change_time = 5000;
+ 	hw->max_rssi = 127; /* FIXME: get a real value for this. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -253,3 +267,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+more-wireless-borkage-3.patch
