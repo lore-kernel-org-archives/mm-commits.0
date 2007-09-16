@@ -1,58 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ptr_align.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:53 -0700
-Message-ID: <200709160925.l8G9PrCc009139@imap1.linux-foundation.org>
+Subject: - fix-typo-in-documentation-submittingpatches.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:55 -0700
+Message-ID: <200709160925.l8G9PtOE009142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46705 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751345AbXIPJZz (ORCPT
+	by vger.kernel.org with ESMTP id S1751799AbXIPJZ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:25:55 -0400
+	Sun, 16 Sep 2007 05:25:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, mm-commits@vger.kernel.org
+To: andre@finow14.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PTR_ALIGN
+     fix typo in Documentation/SubmittingPatches
 has been removed from the -mm tree.  Its filename was
-     ptr_align.patch
+     fix-typo-in-documentation-submittingpatches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PTR_ALIGN
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: fix typo in Documentation/SubmittingPatches
+From: Andre Haupt <andre@finow14.de>
 
-The AdvanSys driver wants to align some pointers, and the ALIGN macro
-doesn't work for pointers.  Rather than try to make it work, add a new
-PTR_ALIGN macro which is typesafe.
-
-Signed-off-by: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Andre Haupt <andre@finow14.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    1 +
- 1 files changed, 1 insertion(+)
+ Documentation/SubmittingPatches |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~ptr_align include/linux/kernel.h
---- a/include/linux/kernel.h~ptr_align
-+++ a/include/linux/kernel.h
-@@ -34,6 +34,7 @@ extern const char linux_proc_banner[];
+diff -puN Documentation/SubmittingPatches~fix-typo-in-documentation-submittingpatches Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~fix-typo-in-documentation-submittingpatches
++++ a/Documentation/SubmittingPatches
+@@ -126,7 +126,7 @@ the reviewers time and will get your pat
+ without even being read.
  
- #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
- #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
-+#define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+ At a minimum you should check your patches with the patch style
+-checker prior to submission (scripts/patchcheck.pl).  You should
++checker prior to submission (scripts/checkpatch.pl).  You should
+ be able to justify all violations that remain in your patch.
  
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
  
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from andre@finow14.de are
 
 origin.patch
-fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
-git-scsi-misc.patch
-drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch
-make-sure-nobodys-leaking-resources.patch
+git-cifs.patch
+fix-a-trivial-typo-in-scripts-checkstackpl.patch
