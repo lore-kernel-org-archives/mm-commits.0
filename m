@@ -1,191 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-lock-problem-in-generic-phy-code.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:27:09 -0700
-Message-ID: <200709160927.l8G9R9nd009238@imap1.linux-foundation.org>
+Subject: - correctly-close-old-nfsd-lockd-sockets.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:27:52 -0700
+Message-ID: <200709160927.l8G9Rqx1009289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752295AbXIPJjD (ORCPT
+	by vger.kernel.org with ESMTP id S1752208AbXIPJjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:39:03 -0400
+	Sun, 16 Sep 2007 05:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hjk@linutronix.de, jeff@garzik.org, mm-commits@vger.kernel.org
+To: neilb@suse.de, bfields@fieldses.org, stable@kernel.org, wolfgang.walter@studentenwerk.mhn.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a lock problem in generic phy code
+     Correctly close old nfsd/lockd sockets
 has been removed from the -mm tree.  Its filename was
-     fix-a-lock-problem-in-generic-phy-code.patch
+     correctly-close-old-nfsd-lockd-sockets.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix a lock problem in generic phy code
-=46rom: Hans J. Koch <hjk@linutronix.de>
+Subject: Correctly close old nfsd/lockd sockets
+From: Neil Brown <neilb@suse.de>
 
-I already sent this patch on August, 31. I never got an answer, so here=
- it
-is again.
+Commit aaf68cfbf2241d24d46583423f6bff5c47e088b3 added a bias to sk_inuse,
+so this test for an unused socket now fails.  So no sockets gets closed
+because they are old (they might get closed if the client closed them).
 
-Lock debugging finds a problem in phy.c and phy_device.c:
+This bug has existed since 2.6.21-rc1.
 
-[ =A0 =A03.420000] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[ =A0 =A03.420000] [ INFO: inconsistent lock state ]
-[ =A0 =A03.420000] 2.6.23-rc3-mm1 #21
-[ =A0 =A03.420000] ---------------------------------
-[ =A0 =A03.420000] inconsistent {softirq-on-W} -> {in-softirq-W} usage.
-[ =A0 =A03.420000] swapper/1 [HC0[0]:SC1[1]:HE1:SE0] takes:
-[ =A0 =A03.420000] =A0(&dev->lock){-+..}, at: [<c017da1c>] phy_timer+0x=
-1c/0x4c8
-[ =A0 =A03.420000] {softirq-on-W} state was registered at:
-[ =A0 =A03.420000] =A0 [<c006021c>] lock_acquire+0x94/0xac
-[ =A0 =A03.420000] =A0 [<c026423c>] _spin_lock+0x40/0x50
-[ =A0 =A03.420000] =A0 [<c017e2b4>] phy_probe+0x40/0x88
-[ =A0 =A03.420000] =A0 [<c017e60c>] phy_attach+0xc8/0xfc
-[ =A0 =A03.420000] =A0 [<c017e6c4>] phy_connect+0x1c/0x58
-[ =A0 =A03.420000] =A0 [<c017fc44>] macb_probe+0x4fc/0x5bc
-[ =A0 =A03.420000] =A0 [<c0177b44>] platform_drv_probe+0x20/0x24
-[ =A0 =A03.420000] =A0 [<c0176210>] driver_probe_device+0xb0/0x1bc
-[ =A0 =A03.420000] =A0 [<c01764dc>] __driver_attach+0xe4/0xe8
-[ =A0 =A03.420000] =A0 [<c017550c>] bus_for_each_dev+0x54/0x80
-[ =A0 =A03.420000] =A0 [<c0176074>] driver_attach+0x20/0x28
-[ =A0 =A03.420000] =A0 [<c01758d4>] bus_add_driver+0x84/0x1e0
-[ =A0 =A03.420000] =A0 [<c0176708>] driver_register+0x54/0x90
-[ =A0 =A03.420000] =A0 [<c0177de0>] platform_driver_register+0x6c/0x88
-[ =A0 =A03.420000] =A0 [<c00167ec>] macb_init+0x14/0x1c
-[ =A0 =A03.420000] =A0 [<c00087e4>] kernel_init+0x9c/0x2b4
-[ =A0 =A03.420000] =A0 [<c0040338>] do_exit+0x0/0x8e8
-[ =A0 =A03.420000] irq event stamp: 115025
-[ =A0 =A03.420000] hardirqs last =A0enabled at (115025): [<c0264958>] _=
-spin_unlock_irq+0x30/0x60
-[ =A0 =A03.420000] hardirqs last disabled at (115024): [<c02642c8>] _sp=
-in_lock_irq+0x28/0x60
-[ =A0 =A03.420000] softirqs last =A0enabled at (114999): [<c0042910>] _=
-_do_softirq+0xfc/0x12c
-[ =A0 =A03.420000] softirqs last disabled at (115022): [<c0042ee8>] irq=
-_exit+0x68/0x7c
-[ =A0 =A03.420000]
-[ =A0 =A03.420000] other info that might help us debug this:
-[ =A0 =A03.420000] no locks held by swapper/1.
-[ =A0 =A03.420000]
-[ =A0 =A03.420000] stack backtrace:
-[ =A0 =A03.420000] [<c0028af4>] (dump_stack+0x0/0x14) from [<c005d8e4>]=
- (print_usage_bug+0x120/0x150)
-[ =A0 =A03.420000] [<c005d7c4>] (print_usage_bug+0x0/0x150) from [<c005=
-e5e8>] (mark_lock+0x574/0x6bc)
-[ =A0 =A03.420000] [<c005e074>] (mark_lock+0x0/0x6bc) from [<c005f4c0>]=
- (__lock_acquire+0x4d0/0x1198)
-[ =A0 =A03.420000] [<c005eff0>] (__lock_acquire+0x0/0x1198) from [<c006=
-021c>] (lock_acquire+0x94/0xac)
-[ =A0 =A03.420000] [<c0060188>] (lock_acquire+0x0/0xac) from [<c026423c=
->] (_spin_lock+0x40/0x50)
-[ =A0 =A03.420000] [<c02641fc>] (_spin_lock+0x0/0x50) from [<c017da1c>]=
- (phy_timer+0x1c/0x4c8)
-[ =A0 =A03.420000] =A0r5:c098a800 r4:00000104
-[ =A0 =A03.420000] [<c017da00>] (phy_timer+0x0/0x4c8) from [<c0046ee4>]=
- (run_timer_softirq+0x1a0/0x218)
-[ =A0 =A03.420000] =A0r7:c081ddd0 r6:c0331e80 r5:c098aa50 r4:00000104
-[ =A0 =A03.420000] [<c0046d44>] (run_timer_softirq+0x0/0x218) from [<c0=
-0428a8>] (__do_softirq+0x94/0x12c)
-[ =A0 =A03.420000] [<c0042814>] (__do_softirq+0x0/0x12c) from [<c0042ee=
-8>] (irq_exit+0x68/0x7c)
-[ =A0 =A03.420000] [<c0042e80>] (irq_exit+0x0/0x7c) from [<c0023060>] (=
-__exception_text_start+0x60/0x74)
-[ =A0 =A03.420000] =A0r4:00000001
-[ =A0 =A03.420000] [<c0023000>] (__exception_text_start+0x0/0x74) from =
-[<c0023b28>] (__irq_svc+0x48/0x74)
-[ =A0 =A03.420000] Exception stack(0xc081de70 to 0xc081deb8)
-[ =A0 =A03.420000] de60: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 c030b2a8 c081a800 60000013 c081c000
-[ =A0 =A03.420000] de80: c032db40 c081dee0 c032d758 c081dece 00000012 c=
-030b398 00000034 c081df2c
-[ =A0 =A03.420000] dea0: c081deb8 c081deb8 c003d6f0 c003d6f8 60000013 f=
-fffffff
-[ =A0 =A03.420000] =A0r7:00000003 r6:00000001 r5:fefff000 r4:ffffffff
-[ =A0 =A03.420000] [<c003d494>] (vprintk+0x0/0x474) from [<c003d930>] (=
-printk+0x28/0x30)
-[ =A0 =A03.420000] [<c003d908>] (printk+0x0/0x30) from [<c01d3558>] (so=
-ck_register+0x64/0x84)
-[ =A0 =A03.420000] =A0r3:00000001 r2:00000002 r1:00000001 r0:c02e4c88
-[ =A0 =A03.420000] [<c01d34f4>] (sock_register+0x0/0x84) from [<c001b7b=
-c>] (af_unix_init+0x40/0x88)
-[ =A0 =A03.420000] =A0r5:00000000 r4:00000000
-[ =A0 =A03.420000] [<c001b77c>] (af_unix_init+0x0/0x88) from [<c00087e4=
->] (kernel_init+0x9c/0x2b4)
-[ =A0 =A03.420000] =A0r4:00000000
-[ =A0 =A03.420000] [<c0008748>] (kernel_init+0x0/0x2b4) from [<c0040338=
->] (do_exit+0x0/0x8e8)
+Thanks to Wolfgang Walter for finding and reporting the bug.
 
-The following patch fixes it. Tested on an AT91SAM9263-EK board, kernel=
- 2.6.23-rc4 and -rc3-mm1.
-
-Signed-off-by: Hans J. Koch <hjk@linutronix.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Wolfgang Walter <wolfgang.walter@studentenwerk.mhn.de>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/phy.c        |    4 ++--
- drivers/net/phy/phy_device.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ net/sunrpc/svcsock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code =
-drivers/net/phy/phy.c
---- a/drivers/net/phy/phy.c~fix-a-lock-problem-in-generic-phy-code
-+++ a/drivers/net/phy/phy.c
-@@ -755,7 +755,7 @@ out_unlock:
-  */
- void phy_start(struct phy_device *phydev)
- {
--	spin_lock(&phydev->lock);
-+	spin_lock_bh(&phydev->lock);
-=20
- 	switch (phydev->state) {
- 		case PHY_STARTING:
-@@ -769,7 +769,7 @@ void phy_start(struct phy_device *phydev
- 		default:
- 			break;
- 	}
--	spin_unlock(&phydev->lock);
-+	spin_unlock_bh(&phydev->lock);
- }
- EXPORT_SYMBOL(phy_stop);
- EXPORT_SYMBOL(phy_start);
-diff -puN drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-ph=
-y-code drivers/net/phy/phy_device.c
---- a/drivers/net/phy/phy_device.c~fix-a-lock-problem-in-generic-phy-co=
-de
-+++ a/drivers/net/phy/phy_device.c
-@@ -644,7 +644,7 @@ static int phy_probe(struct device *dev)
- 	if (!(phydrv->flags & PHY_HAS_INTERRUPT))
- 		phydev->irq =3D PHY_POLL;
-=20
--	spin_lock(&phydev->lock);
-+	spin_lock_bh(&phydev->lock);
-=20
- 	/* Start out supporting everything. Eventually,
- 	 * a controller will attach, and may modify one
-@@ -658,7 +658,7 @@ static int phy_probe(struct device *dev)
- 	if (phydev->drv->probe)
- 		err =3D phydev->drv->probe(phydev);
-=20
--	spin_unlock(&phydev->lock);
-+	spin_unlock_bh(&phydev->lock);
-=20
- 	return err;
-=20
+diff -puN net/sunrpc/svcsock.c~correctly-close-old-nfsd-lockd-sockets net/sunrpc/svcsock.c
+--- a/net/sunrpc/svcsock.c~correctly-close-old-nfsd-lockd-sockets
++++ a/net/sunrpc/svcsock.c
+@@ -1594,7 +1594,8 @@ svc_age_temp_sockets(unsigned long closu
+ 
+ 		if (!test_and_set_bit(SK_OLD, &svsk->sk_flags))
+ 			continue;
+-		if (atomic_read(&svsk->sk_inuse) || test_bit(SK_BUSY, &svsk->sk_flags))
++		if (atomic_read(&svsk->sk_inuse) > 1
++		    || test_bit(SK_BUSY, &svsk->sk_flags))
+ 			continue;
+ 		atomic_inc(&svsk->sk_inuse);
+ 		list_move(le, &to_be_aged);
 _
 
-Patches currently in -mm which might be from hjk@linutronix.de are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-git-dvb.patch
-git-hwmon.patch
-git-net.patch
-pxafb-add-support-for-other-palette-formats.patch
+git-nfsd.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
