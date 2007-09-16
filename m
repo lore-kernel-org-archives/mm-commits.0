@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - spi_mpc83xx-hang-fix.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:18 -0700
-Message-ID: <200709160925.l8G9PIVo009097@imap1.linux-foundation.org>
+Subject: - ptr_align.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:53 -0700
+Message-ID: <200709160925.l8G9PrCc009139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51287 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751787AbXIPJZt (ORCPT
+	by vger.kernel.org with ESMTP id S1751345AbXIPJZz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:25:49 -0400
+	Sun, 16 Sep 2007 05:25:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan@gaisler.com, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, galak@kernel.crashing.org, mm-commits@vger.kernel.org
+To: matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_mpc83xx: hang fix
+     PTR_ALIGN
 has been removed from the -mm tree.  Its filename was
-     spi_mpc83xx-hang-fix.patch
+     ptr_align.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi_mpc83xx: hang fix
-From: Jan Andersson <jan@gaisler.com>
+Subject: PTR_ALIGN
+From: Matthew Wilcox <matthew@wil.cx>
 
-When the spi_mpc83xx driver receives a tx_buf pointer which is NULL, it
-only writes one zero filled word to the transmit register.  If the driver
-expects to receive more than one word it will wait forever for a second
-receive interrupt.  With this patch the controller will shift out zeroes
-until all words have been received.
+The AdvanSys driver wants to align some pointers, and the ALIGN macro
+doesn't work for pointers.  Rather than try to make it work, add a new
+PTR_ALIGN macro which is typesafe.
 
-Signed-off-by: Jan Andersson <jan@gaisler.com>
-Tested-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Kumar Gala <galak@kernel.crashing.org>
+Signed-off-by: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_mpc83xx.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ include/linux/kernel.h |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -384,11 +384,8 @@ irqreturn_t mpc83xx_spi_irq(s32 irq, voi
+diff -puN include/linux/kernel.h~ptr_align include/linux/kernel.h
+--- a/include/linux/kernel.h~ptr_align
++++ a/include/linux/kernel.h
+@@ -34,6 +34,7 @@ extern const char linux_proc_banner[];
  
- 	mpc83xx_spi->count -= 1;
- 	if (mpc83xx_spi->count) {
--		if (mpc83xx_spi->tx) {
--			u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
--			mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit,
--					      word);
--		}
-+		u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
-+		mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
- 	} else {
- 		complete(&mpc83xx_spi->done);
- 	}
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+ #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
++#define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+ 
 _
 
-Patches currently in -mm which might be from jan@gaisler.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
+git-scsi-misc.patch
+drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch
+make-sure-nobodys-leaking-resources.patch
