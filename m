@@ -1,67 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - intel_agp-fix-gtt-map-size-on-g33.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:26:14 -0700
-Message-ID: <200709160926.l8G9QEPu009169@imap1.linux-foundation.org>
+Subject: - omap1-leds-innovatorc-remove-dead-code.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:26:54 -0700
+Message-ID: <200709160926.l8G9QsTe009217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57588 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752073AbXIPJii (ORCPT
+	by vger.kernel.org with ESMTP id S1752172AbXIPJim (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:38 -0400
+	Sun, 16 Sep 2007 05:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenyu.z.wang@intel.com, airlied@linux.ie, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: bunk@kernel.org, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel_agp: fix GTT map size on G33
+     omap1/leds-innovator.c: remove dead code
 has been removed from the -mm tree.  Its filename was
-     intel_agp-fix-gtt-map-size-on-g33.patch
+     omap1-leds-innovatorc-remove-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: intel_agp: fix GTT map size on G33
-From: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Subject: omap1/leds-innovator.c: remove dead code
+From: Adrian Bunk <bunk@kernel.org>
 
-G33 has 1MB GTT table range.  Fix GTT mapping in case like 512MB aperture
-size.
-
-Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Acked-by: Dave Airlie <airlied@linux.ie>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap1/leds-innovator.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-fix-gtt-map-size-on-g33 drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-fix-gtt-map-size-on-g33
-+++ a/drivers/char/agp/intel-agp.c
-@@ -919,6 +919,7 @@ static int intel_i915_create_gatt_table(
- 	struct aper_size_info_fixed *size;
- 	int num_entries;
- 	u32 temp, temp2;
-+	int gtt_map_size = 256 * 1024;
+diff -puN arch/arm/mach-omap1/leds-innovator.c~omap1-leds-innovatorc-remove-dead-code arch/arm/mach-omap1/leds-innovator.c
+--- a/arch/arm/mach-omap1/leds-innovator.c~omap1-leds-innovatorc-remove-dead-code
++++ a/arch/arm/mach-omap1/leds-innovator.c
+@@ -95,8 +95,5 @@ void innovator_leds_event(led_event_t ev
+ 		break;
+ 	}
  
- 	size = agp_bridge->current_size;
- 	page_order = size->page_order;
-@@ -928,7 +929,9 @@ static int intel_i915_create_gatt_table(
- 	pci_read_config_dword(intel_private.pcidev, I915_MMADDR, &temp);
- 	pci_read_config_dword(intel_private.pcidev, I915_PTEADDR,&temp2);
- 
--	intel_private.gtt = ioremap(temp2, 256 * 1024);
-+	if (IS_G33)
-+	    gtt_map_size = 1024 * 1024; /* 1M on G33 */
-+	intel_private.gtt = ioremap(temp2, gtt_map_size);
- 	if (!intel_private.gtt)
- 		return -ENOMEM;
- 
+-	if (led_state & LED_STATE_ENABLED)
+-		;
+-
+ 	local_irq_restore(flags);
+ }
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-intel-agp-fix-i830-mask-variable-that-changed-with-g33-support.patch
+git-alsa.patch
+git-arm.patch
+ppc-remove-apus-support.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+git-dvb.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
+git-net.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-nfsd.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-block.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
