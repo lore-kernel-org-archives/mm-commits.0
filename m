@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-wireless-2.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:17:01 -0700
-Message-ID: <200709162022.l8GKMfti031121@imap1.linux-foundation.org>
+Subject: + git-scsi-misc-arcmsr-build-fix.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:20:16 -0700
+Message-ID: <200709162025.l8GKPus2031271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752192AbXIPUXy (ORCPT
+	by vger.kernel.org with ESMTP id S1750893AbXIPU0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:23:54 -0400
+	Sun, 16 Sep 2007 16:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     git-net-vs-git-wireless-2
+     git-scsi-misc-arcmsr-build-fix
 has been added to the -mm tree.  Its filename is
-     git-net-vs-git-wireless-2.patch
+     git-scsi-misc-arcmsr-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless-2
+Subject: git-scsi-misc-arcmsr-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+drivers/scsi/arcmsr/arcmsr_hba.c:129: error: 'arcmsr_pci_error_detected' undeclared here (not in a function)
+drivers/scsi/arcmsr/arcmsr_hba.c:130: error: 'arcmsr_pci_slot_reset' undeclared here (not in a function)
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/arcmsr/arcmsr_hba.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN net/wireless/core.c~git-net-vs-git-wireless-2 net/wireless/core.c
---- a/net/wireless/core.c~git-net-vs-git-wireless-2
-+++ a/net/wireless/core.c
-@@ -69,7 +69,7 @@ __cfg80211_drv_from_info(struct genl_inf
- 
- 	if (info->attrs[NL80211_ATTR_IFINDEX]) {
- 		ifindex = nla_get_u32(info->attrs[NL80211_ATTR_IFINDEX]);
--		dev = dev_get_by_index(ifindex);
-+		dev = dev_get_by_index(&init_net, ifindex);
- 		if (dev) {
- 			if (dev->ieee80211_ptr)
- 				byifidx =
-@@ -120,7 +120,7 @@ cfg80211_get_dev_from_ifindex(int ifinde
- 	struct net_device *dev;
- 
- 	mutex_lock(&cfg80211_drv_mutex);
--	dev = dev_get_by_index(ifindex);
-+	dev = dev_get_by_index(&init_net, ifindex);
- 	if (!dev)
- 		goto out;
- 	if (dev->ieee80211_ptr) {
+diff -puN drivers/scsi/arcmsr/arcmsr_hba.c~git-scsi-misc-arcmsr-build-fix drivers/scsi/arcmsr/arcmsr_hba.c
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c~git-scsi-misc-arcmsr-build-fix
++++ a/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -125,6 +125,10 @@ static struct scsi_host_template arcmsr_
+ 	.shost_attrs		= arcmsr_host_attrs,
+ };
+ #ifdef CONFIG_SCSI_ARCMSR_AER
++static pci_ers_result_t arcmsr_pci_slot_reset(struct pci_dev *pdev);
++static pci_ers_result_t arcmsr_pci_error_detected(struct pci_dev *pdev,
++						pci_channel_state_t state);
++
+ static struct pci_error_handlers arcmsr_pci_error_handlers = {
+ 	.error_detected		= arcmsr_pci_error_detected,
+ 	.slot_reset		= arcmsr_pci_slot_reset,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,6 +114,7 @@ fix-ide-legacy-mode-resources-fix.patch
 git-s390.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
 advansys-printk-fix.patch
 git-block-fixup.patch
 git-block-fix-headers_check.patch
@@ -130,6 +125,7 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-net-vs-git-wireless.patch
+git-net-vs-git-wireless-2.patch
 net-add-ath5k-wireless-driver-fix.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
@@ -236,4 +232,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-vs-git-wireless-2.patch
