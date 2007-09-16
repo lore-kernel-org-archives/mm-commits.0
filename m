@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-jg-misc-fix.patch added to -mm tree
-Date: Sun, 16 Sep 2007 03:17:04 -0700
-Message-ID: <200709161022.l8GAMiGm011071@imap1.linux-foundation.org>
+Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:22:56 -0700
+Message-ID: <200709161028.l8GASa8b011306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751842AbXIPKWy (ORCPT
+	by vger.kernel.org with ESMTP id S1752424AbXIPK3L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 06:22:54 -0400
+	Sun, 16 Sep 2007 06:29:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, mszeredi@suse.cz
 
 
 The patch titled
-     git-jg-misc-fix
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters vs revoke
 has been added to the -mm tree.  Its filename is
-     git-jg-misc-fix.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-jg-misc-fix
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters vs revoke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/tsc.c:319: warning: initialization from incompatible pointer type
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/tsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/revoke.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/tsc.c~git-jg-misc-fix arch/i386/kernel/tsc.c
---- a/arch/i386/kernel/tsc.c~git-jg-misc-fix
-+++ a/arch/i386/kernel/tsc.c
-@@ -305,7 +305,7 @@ void mark_tsc_unstable(char *reason)
- }
- EXPORT_SYMBOL_GPL(mark_tsc_unstable);
+diff -puN fs/revoke.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke fs/revoke.c
+--- a/fs/revoke.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke
++++ a/fs/revoke.c
+@@ -731,8 +731,7 @@ static struct file_system_type revokefs_
+ 	.kill_sb = kill_anon_super
+ };
  
--static int __init dmi_mark_tsc_unstable(struct dmi_system_id *d)
-+static int __init dmi_mark_tsc_unstable(const struct dmi_system_id *d)
+-static void revokefs_init_inode(void *obj, struct kmem_cache *cache,
+-				unsigned long flags)
++static void revokefs_init_inode(struct kmem_cache *cache, void *obj)
  {
- 	printk(KERN_NOTICE "%s detected: marking TSC unstable.\n",
- 		       d->ident);
+ 	struct revokefs_inode_info *info = obj;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +193,7 @@ intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
 task-containersv11-basic-task-container-framework-fix.patch
