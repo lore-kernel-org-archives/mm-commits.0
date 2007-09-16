@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:50:28 -0700
-Message-ID: <200709162056.l8GKu8gK032244@imap1.linux-foundation.org>
+Subject: + git-net-vs-git-wireless-3.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:50:52 -0700
+Message-ID: <200709162056.l8GKuWDU032247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750716AbXIPU4M (ORCPT
+	by vger.kernel.org with ESMTP id S1752541AbXIPU5M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:56:12 -0400
+	Sun, 16 Sep 2007 16:57:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, linville@tuxdriver.com
 
 
 The patch titled
-     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+     git-net-vs-git-wireless-3
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+     git-net-vs-git-wireless-3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+Subject: git-net-vs-git-wireless-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/locking/dlm/sysfs.c |    2 +-
+ net/wireless/nl80211.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset fs/gfs2/locking/dlm/sysfs.c
---- a/fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
-+++ a/fs/gfs2/locking/dlm/sysfs.c
-@@ -223,7 +223,7 @@ int gdlm_sysfs_init(void)
- {
- 	int error;
+diff -puN net/wireless/nl80211.c~git-net-vs-git-wireless-3 net/wireless/nl80211.c
+--- a/net/wireless/nl80211.c~git-net-vs-git-wireless-3
++++ a/net/wireless/nl80211.c
+@@ -54,7 +54,7 @@ static int get_drv_dev_by_info_ifindex(s
+ 		return -EINVAL;
  
--	kobject_set_name(&gdlm_kset, "lock_dlm");
-+	kobject_set_name(&gdlm_kset.kobj, "lock_dlm");
- 	kobj_set_kset_s(&gdlm_kset, kernel_subsys);
- 	error = kset_register(&gdlm_kset);
- 	if (error)
+ 	ifindex = nla_get_u32(info->attrs[NL80211_ATTR_IFINDEX]);
+-	*dev = dev_get_by_index(ifindex);
++	*dev = dev_get_by_index(&init_net, ifindex);
+ 	if (!*dev)
+ 		return -ENODEV;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,6 +68,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 git-dvb-build-fix.patch
@@ -232,4 +235,3 @@ profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
 git-net-vs-git-wireless-3.patch
-fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
