@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-fixup.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:43:47 -0700
-Message-ID: <200709160843.l8G8hlDu007811@imap1.linux-foundation.org>
+Subject: + git-block-fix-headers_check.patch added to -mm tree
+Date: Sun, 16 Sep 2007 01:46:08 -0700
+Message-ID: <200709160846.l8G8k88u007878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50601 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751513AbXIPInw (ORCPT
+	by vger.kernel.org with ESMTP id S1751511AbXIPIqV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:43:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8hlqr001968
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:43:48 -0700
+	Sun, 16 Sep 2007 04:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-scsi-misc-fixup
+     git-block: fix headers_check
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-fixup.patch
+     git-block-fix-headers_check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,70 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: git-block: fix headers_check
 From: Andrew Morton <akpm@linux-foundation.org>
 
+- include/linux/net.h: remove need for splice.h inclusion
+
+- include/linux/skbuff.h: remove dependency on net.h (probably pointless,
+  given that it includes net.h anwyay).
+
+(akpm: still broken, still needed!)
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |   46 ++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+ include/linux/net.h    |    2 +-
+ include/linux/skbuff.h |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -624,26 +624,32 @@ sdev_show_media_change_notify(struct dev
- }
- static DEVICE_ATTR(media_change_notify, S_IRUGO, sdev_show_media_change_notify, NULL);
+diff -puN include/linux/net.h~git-block-fix-headers_check include/linux/net.h
+--- a/include/linux/net.h~git-block-fix-headers_check
++++ a/include/linux/net.h
+@@ -19,10 +19,10 @@
+ #define _LINUX_NET_H
  
--/* Default template for device attributes.  May NOT be modified */
--static struct device_attribute *scsi_sysfs_sdev_attrs[] = {
--	&dev_attr_device_blocked,
--	&dev_attr_queue_depth,
--	&dev_attr_queue_type,
--	&dev_attr_type,
--	&dev_attr_scsi_level,
--	&dev_attr_vendor,
--	&dev_attr_model,
--	&dev_attr_rev,
--	&dev_attr_rescan,
--	&dev_attr_delete,
--	&dev_attr_state,
--	&dev_attr_timeout,
--	&dev_attr_iocounterbits,
--	&dev_attr_iorequest_cnt,
--	&dev_attr_iodone_cnt,
--	&dev_attr_ioerr_cnt,
--	&dev_attr_modalias,
--	&dev_attr_media_change_notify,
-+static struct attribute *scsi_sdev_attrs[] = {
-+	&dev_attr_device_blocked.attr,
-+	&dev_attr_type.attr,
-+	&dev_attr_scsi_level.attr,
-+	&dev_attr_vendor.attr,
-+	&dev_attr_model.attr,
-+	&dev_attr_rev.attr,
-+	&dev_attr_rescan.attr,
-+	&dev_attr_delete.attr,
-+	&dev_attr_state.attr,
-+	&dev_attr_timeout.attr,
-+	&dev_attr_iocounterbits.attr,
-+	&dev_attr_iorequest_cnt.attr,
-+	&dev_attr_iodone_cnt.attr,
-+	&dev_attr_ioerr_cnt.attr,
-+	&dev_attr_modalias.attr,
-+	&dev_attr_media_change_notify.attr,
-+	NULL
-+};
+ #include <linux/wait.h>
+-#include <linux/splice.h>
+ #include <asm/socket.h>
+ 
+ struct poll_table_struct;
++struct pipe_inode_info;
+ struct inode;
+ struct net;
+ 
+diff -puN include/linux/skbuff.h~git-block-fix-headers_check include/linux/skbuff.h
+--- a/include/linux/skbuff.h~git-block-fix-headers_check
++++ a/include/linux/skbuff.h
+@@ -29,6 +29,8 @@
+ #include <linux/dmaengine.h>
+ #include <linux/hrtimer.h>
+ 
++struct pipe_inode_info;
 +
-+static struct attribute_group scsi_sdev_attr_group = {
-+	.attrs =	scsi_sdev_attrs,
-+};
-+
-+static struct attribute_group *scsi_sdev_attr_groups[] = {
-+	&scsi_sdev_attr_group,
- 	NULL
- };
+ #define HAVE_ALLOC_SKB		/* For the drivers to know */
+ #define HAVE_ALIGNABLE_SKB	/* Ditto 8)		   */
  
 _
 
