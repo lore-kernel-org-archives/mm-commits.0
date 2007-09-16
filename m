@@ -1,160 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: - arm-extern-inline-static-inline.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:26:50 -0700
-Message-ID: <200709160926.l8G9QoEG009211@imap1.linux-foundation.org>
+Subject: - revert-highmem-catch-illegal-nesting.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:26:25 -0700
+Message-ID: <200709160926.l8G9QPSh009181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46110 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50122 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752011AbXIPJi2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751984AbXIPJiZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:28 -0400
+	Sun, 16 Sep 2007 05:38:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: "extern inline" -> "static inline"
+     revert "highmem: catch illegal nesting"
 has been removed from the -mm tree.  Its filename was
-     arm-extern-inline-static-inline.patch
+     revert-highmem-catch-illegal-nesting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arm: "extern inline" -> "static inline"
-From: Adrian Bunk <bunk@kernel.org>
+Subject: revert "highmem: catch illegal nesting"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-"extern inline" will have different semantics with gcc 4.3.
+Revert
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+	commit 656dad312fb41ed95ef08325e9df9bece3aacbbb
+	Author: Ingo Molnar <mingo@elte.hu>
+	Date:   Sat Feb 10 01:46:36 2007 -0800
+
+	[PATCH] highmem: catch illegal nesting
+
+	Catch illegally nested kmap_atomic()s even if the page that is mapped by
+	the 'inner' instance is from lowmem.
+
+	This avoids spuriously zapped kmap-atomic ptes and turns hard to find
+	crashes into clear asserts at the bug site.
+
+Problem is, a get_zeroed_page(GFP_KERNEL) from interrupt context will trigger
+this check if non-irq code on this CPU holds a KM_USER0 mapping.  But that
+get_zeroed_page() will never be altering the kmap slot anyway due to the
+GFP_KERNEL.
+
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc :Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/nwfpe/ARM-gcc.h                |    2 +-
- arch/arm/nwfpe/fpa11.inl                |    8 ++++----
- include/asm-arm/arch-ixp23xx/platform.h |    6 +++---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ arch/i386/mm/highmem.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/nwfpe/ARM-gcc.h~arm-extern-inline-static-inline arch/arm/nwfpe/ARM-gcc.h
---- a/arch/arm/nwfpe/ARM-gcc.h~arm-extern-inline-static-inline
-+++ a/arch/arm/nwfpe/ARM-gcc.h
-@@ -68,7 +68,7 @@ a compiler does not support explicit inl
- to be `static'.
- -------------------------------------------------------------------------------
- */
--#define INLINE extern __inline__
-+#define INLINE static inline
+diff -puN arch/i386/mm/highmem.c~revert-highmem-catch-illegal-nesting arch/i386/mm/highmem.c
+--- a/arch/i386/mm/highmem.c~revert-highmem-catch-illegal-nesting
++++ a/arch/i386/mm/highmem.c
+@@ -34,17 +34,16 @@ void *kmap_atomic_prot(struct page *page
+ 	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
+ 	pagefault_disable();
  
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	BUG_ON(!pte_none(*(kmap_pte-idx)));
+-
+ 	if (!PageHighMem(page))
+ 		return page_address(page);
  
- /* For use as a GCC soft-float library we need some special function names. */
-diff -puN arch/arm/nwfpe/fpa11.inl~arm-extern-inline-static-inline arch/arm/nwfpe/fpa11.inl
---- a/arch/arm/nwfpe/fpa11.inl~arm-extern-inline-static-inline
-+++ a/arch/arm/nwfpe/fpa11.inl
-@@ -22,13 +22,13 @@
- #include "fpa11.h"
++	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
++	BUG_ON(!pte_none(*(kmap_pte-idx)));
+ 	set_pte(kmap_pte-idx, mk_pte(page, prot));
+ 	arch_flush_lazy_mmu_mode();
  
- /* Read and write floating point status register */
--extern __inline__ unsigned int readFPSR(void)
-+static inline unsigned int readFPSR(void)
- {
- 	FPA11 *fpa11 = GET_FPA11();
- 	return (fpa11->fpsr);
+-	return (void*) vaddr;
++	return (void *)vaddr;
  }
  
--extern __inline__ void writeFPSR(FPSR reg)
-+static inline void writeFPSR(FPSR reg)
- {
- 	FPA11 *fpa11 = GET_FPA11();
- 	/* the sysid byte in the status register is readonly */
-@@ -36,14 +36,14 @@ extern __inline__ void writeFPSR(FPSR re
- }
- 
- /* Read and write floating point control register */
--extern __inline__ FPCR readFPCR(void)
-+static inline FPCR readFPCR(void)
- {
- 	FPA11 *fpa11 = GET_FPA11();
- 	/* clear SB, AB and DA bits before returning FPCR */
- 	return (fpa11->fpcr & ~MASK_RFC);
- }
- 
--extern __inline__ void writeFPCR(FPCR reg)
-+static inline void writeFPCR(FPCR reg)
- {
- 	FPA11 *fpa11 = GET_FPA11();
- 	fpa11->fpcr &= ~MASK_WFC;		/* clear SB, AB and DA bits */
-diff -puN include/asm-arm/arch-ixp23xx/platform.h~arm-extern-inline-static-inline include/asm-arm/arch-ixp23xx/platform.h
---- a/include/asm-arm/arch-ixp23xx/platform.h~arm-extern-inline-static-inline
-+++ a/include/asm-arm/arch-ixp23xx/platform.h
-@@ -14,17 +14,17 @@
- 
- #ifndef __ASSEMBLY__
- 
--extern inline unsigned long ixp2000_reg_read(volatile void *reg)
-+static inline unsigned long ixp2000_reg_read(volatile void *reg)
- {
- 	return *((volatile unsigned long *)reg);
- }
- 
--extern inline void ixp2000_reg_write(volatile void *reg, unsigned long val)
-+static inline void ixp2000_reg_write(volatile void *reg, unsigned long val)
- {
- 	*((volatile unsigned long *)reg) = val;
- }
- 
--extern inline void ixp2000_reg_wrb(volatile void *reg, unsigned long val)
-+static inline void ixp2000_reg_wrb(volatile void *reg, unsigned long val)
- {
- 	*((volatile unsigned long *)reg) = val;
- }
+ void *kmap_atomic(struct page *page, enum km_type type)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
+atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
 git-alsa.patch
-git-arm.patch
-ppc-remove-apus-support.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-jg-misc-revert-scsi-diff.patch
 git-kbuild.patch
-pass-g-to-assembler-under-config_debug_info-fix.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
 git-net.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
+git-net-fixup.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
-drivers-scsi-immc-fix-check-after-use.patch
-git-block.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-wireless.patch
-fix-x86_64-mm-unwinder.patch
-i386-visws-extern-inline-static-inline.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-i-oat-add-support-for-msi-and-msi-x-fix.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-bitmaph-remove-dead-artifacts.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-kgdb-fixup.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
+modpost-detect-unterminated-device-id-lists-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
