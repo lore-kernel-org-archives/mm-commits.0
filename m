@@ -1,79 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - bcm1480-serial-build-fix.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:26 -0700
-Message-ID: <200709160925.l8G9PQDd009106@imap1.linux-foundation.org>
+Subject: - spi_mpc83xx-hang-fix.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:18 -0700
+Message-ID: <200709160925.l8G9PIVo009097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56839 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751668AbXIPJZr (ORCPT
+	by vger.kernel.org with ESMTP id S1751787AbXIPJZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:25:47 -0400
+	Sun, 16 Sep 2007 05:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ths@networkno.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jan@gaisler.com, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, galak@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BCM1480 serial build fix
+     spi_mpc83xx: hang fix
 has been removed from the -mm tree.  Its filename was
-     bcm1480-serial-build-fix.patch
+     spi_mpc83xx-hang-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: BCM1480 serial build fix
-From: Thiemo Seufer <ths@networkno.de>
+Subject: spi_mpc83xx: hang fix
+From: Jan Andersson <jan@gaisler.com>
 
-Restores serial functionality for the BCM1480.
+When the spi_mpc83xx driver receives a tx_buf pointer which is NULL, it
+only writes one zero filled word to the transmit register.  If the driver
+expects to receive more than one word it will wait forever for a second
+receive interrupt.  With this patch the controller will shift out zeroes
+until all words have been received.
 
-Signed-off-by: Thiemo Seufer <ths@networkno.de>
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jan Andersson <jan@gaisler.com>
+Tested-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/sb1250-duart.c          |    6 ++++++
- include/asm-mips/sibyte/bcm1480_regs.h |    5 +++++
- 2 files changed, 11 insertions(+)
+ drivers/spi/spi_mpc83xx.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/serial/sb1250-duart.c~bcm1480-serial-build-fix drivers/serial/sb1250-duart.c
---- a/drivers/serial/sb1250-duart.c~bcm1480-serial-build-fix
-+++ a/drivers/serial/sb1250-duart.c
-@@ -58,6 +58,12 @@
- #define SBD_CTRLREGS(line)	A_BCM1480_DUART_CTRLREG((line), 0)
- #define SBD_INT(line)		(K_BCM1480_INT_UART_0 + (line))
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-hang-fix
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -384,11 +384,8 @@ irqreturn_t mpc83xx_spi_irq(s32 irq, voi
  
-+#define DUART_CHANREG_SPACING	BCM1480_DUART_CHANREG_SPACING
-+
-+#define R_DUART_IMRREG(line)	R_BCM1480_DUART_IMRREG(line)
-+#define R_DUART_INCHREG(line)	R_BCM1480_DUART_INCHREG(line)
-+#define R_DUART_ISRREG(line)	R_BCM1480_DUART_ISRREG(line)
-+
- #elif defined(CONFIG_SIBYTE_SB1250) || defined(CONFIG_SIBYTE_BCM112X)
- #include <asm/sibyte/sb1250_regs.h>
- #include <asm/sibyte/sb1250_int.h>
-diff -puN include/asm-mips/sibyte/bcm1480_regs.h~bcm1480-serial-build-fix include/asm-mips/sibyte/bcm1480_regs.h
---- a/include/asm-mips/sibyte/bcm1480_regs.h~bcm1480-serial-build-fix
-+++ a/include/asm-mips/sibyte/bcm1480_regs.h
-@@ -227,10 +227,15 @@
- 	(A_BCM1480_DUART(chan) +					\
- 	 BCM1480_DUART_CHANREG_SPACING * 3 + (reg))
- 
-+#define DUART_IMRISR_SPACING	    0x20
-+#define DUART_INCHNG_SPACING	    0x10
-+
- #define R_BCM1480_DUART_IMRREG(chan)					\
- 	(R_DUART_IMR_A + ((chan) & 1) * DUART_IMRISR_SPACING)
- #define R_BCM1480_DUART_ISRREG(chan)					\
- 	(R_DUART_ISR_A + ((chan) & 1) * DUART_IMRISR_SPACING)
-+#define R_BCM1480_DUART_INCHREG(chan)					\
-+	(R_DUART_IN_CHNG_A + ((chan) & 1) * DUART_INCHNG_SPACING)
- 
- #define A_BCM1480_DUART_IMRREG(chan)					\
- 	(A_BCM1480_DUART_CTRLREG((chan), R_BCM1480_DUART_IMRREG(chan)))
+ 	mpc83xx_spi->count -= 1;
+ 	if (mpc83xx_spi->count) {
+-		if (mpc83xx_spi->tx) {
+-			u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
+-			mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit,
+-					      word);
+-		}
++		u32 word = mpc83xx_spi->get_tx(mpc83xx_spi);
++		mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
+ 	} else {
+ 		complete(&mpc83xx_spi->done);
+ 	}
 _
 
-Patches currently in -mm which might be from ths@networkno.de are
+Patches currently in -mm which might be from jan@gaisler.com are
 
 origin.patch
-git-mips.patch
