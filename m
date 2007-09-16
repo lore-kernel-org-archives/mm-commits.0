@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-8139too-clean-up-i-o-remapping.patch added to -mm tree
-Date: Sun, 16 Sep 2007 02:59:39 -0700
-Message-ID: <200709160959.l8G9xdTD010387@imap1.linux-foundation.org>
+Subject: + wake-up-mandatory-locks-waiter-on-chmod-fix.patch added to -mm tree
+Date: Sun, 16 Sep 2007 03:09:20 -0700
+Message-ID: <200709161015.l8GAF3nd010865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48291 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751395AbXIPJ7v (ORCPT
+	by vger.kernel.org with ESMTP id S1751274AbXIPKPR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:59:51 -0400
+	Sun, 16 Sep 2007 06:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, michal.k.k.piotrowski@gmail.com
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, xemul@openvz.org
 
 
 The patch titled
-     revert "8139too: clean up I/O remapping"
+     wake-up-mandatory-locks-waiter-on-chmod-fix
 has been added to the -mm tree.  Its filename is
-     revert-8139too-clean-up-i-o-remapping.patch
+     wake-up-mandatory-locks-waiter-on-chmod-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,145 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "8139too: clean up I/O remapping"
+Subject: wake-up-mandatory-locks-waiter-on-chmod-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert git-netdev-all's 9ee6b32a47b9abc565466a9c3b127a5246b452e5.  Michal was
-getting oopses.
+eh?
 
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: David S. Miller" <davem@davemloft.net>
+fs/locks.c: In function 'locks_mandatory_area':
+fs/locks.c:1112: error: implicit declaration of function '__MANDATORY_LOCK'
+
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/8139too.c |   50 +++++++++++++++++++++++-----------------
- 1 file changed, 29 insertions(+), 21 deletions(-)
+ fs/locks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/8139too.c~revert-8139too-clean-up-i-o-remapping drivers/net/8139too.c
---- a/drivers/net/8139too.c~revert-8139too-clean-up-i-o-remapping
-+++ a/drivers/net/8139too.c
-@@ -121,15 +121,8 @@
- 
- 
- /* enable PIO instead of MMIO, if CONFIG_8139TOO_PIO is selected */
--enum rtl_bar_map_info {
--	rtl_pio_bar	= 0,	/* PCI BAR #0: PIO */
--	rtl_mmio_bar	= 1,	/* PCI BAR #1: MMIO */
--};
--
- #ifdef CONFIG_8139TOO_PIO
--static int use_pio	= 1;
--#else
--static int use_pio;
-+#define USE_IO_OPS 1
- #endif
- 
- /* define to 1, 2 or 3 to enable copious debugging info */
-@@ -622,17 +615,14 @@ MODULE_DESCRIPTION ("RealTek RTL-8139 Fa
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
- 
--module_param(multicast_filter_limit, int, 0444);
-+module_param(multicast_filter_limit, int, 0);
- module_param_array(media, int, NULL, 0);
- module_param_array(full_duplex, int, NULL, 0);
--module_param(debug, int, 0444);
--module_param(use_pio, int, 0444);
--
-+module_param(debug, int, 0);
-+MODULE_PARM_DESC (debug, "8139too bitmapped message enable number");
- MODULE_PARM_DESC (multicast_filter_limit, "8139too maximum number of filtered multicast addresses");
- MODULE_PARM_DESC (media, "8139too: Bits 4+9: force full duplex, bit 5: 100Mbps");
- MODULE_PARM_DESC (full_duplex, "8139too: Force full duplex for board(s) (1)");
--MODULE_PARM_DESC (debug, "8139too bitmapped message enable number");
--MODULE_PARM_DESC (use_pio, "Non-zero to enable PIO (rather than MMIO) register mapping");
- 
- static int read_eeprom (void __iomem *ioaddr, int location, int addr_len);
- static int rtl8139_open (struct net_device *dev);
-@@ -720,7 +710,13 @@ static void __rtl8139_cleanup_dev (struc
- 	assert (tp->pci_dev != NULL);
- 	pdev = tp->pci_dev;
- 
--	pci_iounmap (pdev, tp->mmio_addr);
-+#ifdef USE_IO_OPS
-+	if (tp->mmio_addr)
-+		ioport_unmap (tp->mmio_addr);
-+#else
-+	if (tp->mmio_addr)
-+		pci_iounmap (pdev, tp->mmio_addr);
-+#endif /* USE_IO_OPS */
- 
- 	/* it's ok to call this even if we have no regions to free */
- 	pci_release_regions (pdev);
-@@ -795,32 +791,32 @@ static int __devinit rtl8139_init_board 
- 	DPRINTK("PIO region size == 0x%02X\n", pio_len);
- 	DPRINTK("MMIO region size == 0x%02lX\n", mmio_len);
- 
-+#ifdef USE_IO_OPS
- 	/* make sure PCI base addr 0 is PIO */
- 	if (!(pio_flags & IORESOURCE_IO)) {
- 		dev_err(&pdev->dev, "region #0 not a PIO resource, aborting\n");
- 		rc = -ENODEV;
- 		goto err_out;
- 	}
--
- 	/* check for weird/broken PCI region reporting */
- 	if (pio_len < RTL_MIN_IO_SIZE) {
- 		dev_err(&pdev->dev, "Invalid PCI I/O region size(s), aborting\n");
- 		rc = -ENODEV;
- 		goto err_out;
- 	}
--
-+#else
- 	/* make sure PCI base addr 1 is MMIO */
- 	if (!(mmio_flags & IORESOURCE_MEM)) {
- 		dev_err(&pdev->dev, "region #1 not an MMIO resource, aborting\n");
- 		rc = -ENODEV;
- 		goto err_out;
- 	}
--
- 	if (mmio_len < RTL_MIN_IO_SIZE) {
- 		dev_err(&pdev->dev, "Invalid PCI mem region size(s), aborting\n");
- 		rc = -ENODEV;
- 		goto err_out;
- 	}
-+#endif
- 
- 	rc = pci_request_regions (pdev, DRV_NAME);
- 	if (rc)
-@@ -830,16 +826,28 @@ static int __devinit rtl8139_init_board 
- 	/* enable PCI bus-mastering */
- 	pci_set_master (pdev);
- 
--	/* iomap MMIO region */
--	ioaddr = pci_iomap(pdev, use_pio ? rtl_pio_bar : rtl_mmio_bar, 0);
-+#ifdef USE_IO_OPS
-+	ioaddr = ioport_map(pio_start, pio_len);
-+	if (!ioaddr) {
-+		dev_err(&pdev->dev, "cannot map PIO, aborting\n");
-+		rc = -EIO;
-+		goto err_out;
-+	}
-+	dev->base_addr = pio_start;
-+	tp->mmio_addr = ioaddr;
-+	tp->regs_len = pio_len;
-+#else
-+	/* ioremap MMIO region */
-+	ioaddr = pci_iomap(pdev, 1, 0);
- 	if (ioaddr == NULL) {
--		dev_err(&pdev->dev, "cannot map I/O regions, aborting\n");
-+		dev_err(&pdev->dev, "cannot remap MMIO, aborting\n");
- 		rc = -EIO;
- 		goto err_out;
- 	}
- 	dev->base_addr = (long) ioaddr;
- 	tp->mmio_addr = ioaddr;
- 	tp->regs_len = mmio_len;
-+#endif /* USE_IO_OPS */
- 
- 	/* Bring old chips out of low-power mode. */
- 	RTL_W8 (HltClk, 'R');
+diff -puN fs/locks.c~wake-up-mandatory-locks-waiter-on-chmod-fix fs/locks.c
+--- a/fs/locks.c~wake-up-mandatory-locks-waiter-on-chmod-fix
++++ a/fs/locks.c
+@@ -1108,7 +1108,7 @@ int locks_mandatory_area(int read_write,
+ 		if (!(fl.fl_flags & FL_SLEEP))
+ 			break;
+ 		error = wait_event_interruptible(fl.fl_wait,
+-				!fl.fl_next || !__MANDATORY_LOCK(inode));
++				!fl.fl_next || !MANDATORY_LOCK(inode));
+ 		if (!error) {
+ 			/*
+ 			 * If we've been sleeping someone might have
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -172,6 +61,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
 atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+wake-up-mandatory-locks-waiter-on-chmod-fix.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
