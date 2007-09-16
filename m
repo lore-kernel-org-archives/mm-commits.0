@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-broke-git-wireless.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:53:09 -0700
-Message-ID: <200709162058.l8GKwovV032275@imap1.linux-foundation.org>
+Subject: + git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:55:09 -0700
+Message-ID: <200709162100.l8GL0nZp032420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752923AbXIPU7c (ORCPT
+	by vger.kernel.org with ESMTP id S1752126AbXIPVB1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:59:32 -0400
+	Sun, 16 Sep 2007 17:01:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, jirislaby@gmail.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, jesse@icplus.com.tw, romieu@fr.zoreil.com, s.l-h@gmx.de
 
 
 The patch titled
-     git-net-broke-git-wireless
+     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
 has been added to the -mm tree.  Its filename is
-     git-net-broke-git-wireless.patch
+     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-broke-git-wireless
+Subject: git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/ath5k_base.c: In function 'ath_tx_bf':
-drivers/net/wireless/ath5k_base.c:1203: error: 'HW_KEY_IDX_INVALID' undeclared (first use in this function)
-drivers/net/wireless/ath5k_base.c:1203: error: (Each undeclared identifier is reported only once
-drivers/net/wireless/ath5k_base.c:1203: error: for each function it appears in.)
-drivers/net/wireless/ath5k_base.c: In function 'ath_copy_channels':
-drivers/net/wireless/ath5k_base.c:1735: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/ath5k_base.c:1735: error: array index in initializer not of integer type
-drivers/net/wireless/ath5k_base.c:1735: error: (near initialization for 'map')
-drivers/net/wireless/ath5k_base.c:1738: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/ath5k_base.c:1738: error: array index in initializer not of integer type
-drivers/net/wireless/ath5k_base.c:1738: error: (near initialization for 'map')
-drivers/net/wireless/ath5k_base.c: In function 'ath_getchannels':
-drivers/net/wireless/ath5k_base.c:1843: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/ath5k_base.c:1844: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/ath5k_base.c:1847: error: size of array 'type name' is negative
-drivers/scsi/advansys.c:72:2: warning: #warning this driver is still not properly converted to the DMA API
-drivers/net/wireless/ath5k_base.c: In function 'ath_pci_probe':
-drivers/net/wireless/ath5k_base.c:2294: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
-
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Jesse Huang <jesse@icplus.com.tw>
+Cc: Stefan Lippers-Hollmann <s.l-h@gmx.de>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ipg.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/net/wireless/Kconfig~git-net-broke-git-wireless drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-net-broke-git-wireless
-+++ a/drivers/net/wireless/Kconfig
-@@ -639,6 +639,7 @@ config ATH5K
- 	tristate "Atheros 5xxx wireless cards support"
- 	depends on MAC80211
- 	depends on PCI
-+	depends on BROKEN
- 	default m
- 	---help---
- 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
+diff -puN drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree drivers/net/ipg.c
+--- a/drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
++++ a/drivers/net/ipg.c
+@@ -2259,7 +2259,6 @@ static int __devinit ipg_probe(struct pc
+ 	dev->tx_timeout = ipg_tx_timeout;
+ 	dev->change_mtu = &ipg_nic_change_mtu;
+ 
+-	SET_MODULE_OWNER(dev);
+ 	SET_NETDEV_DEV(dev, &pdev->dev);
+ 	SET_ETHTOOL_OPS(dev, &ipg_ethtool_ops);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +99,7 @@ git-net-fixup.patch
 nit-net-skge-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 net-atm-lecc-printk-warning-fix.patch
+git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
 git-backlight.patch
 git-backlight-build-fix.patch
 git-backlight-dependency-fix.patch
@@ -144,6 +127,8 @@ git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.
 git-net-vs-git-wireless.patch
 git-net-vs-git-wireless-2.patch
 net-add-ath5k-wireless-driver-fix.patch
+git-net-vs-git-wireless-3.patch
+git-net-broke-git-wireless.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
@@ -252,5 +237,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-vs-git-wireless-3.patch
-git-net-broke-git-wireless.patch
