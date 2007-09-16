@@ -1,57 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: + git-input-fixup.patch added to -mm tree
-Date: Sun, 16 Sep 2007 01:21:45 -0700
-Message-ID: <200709160821.l8G8LjUs007100@imap1.linux-foundation.org>
+Subject: - e1000e-build-fix.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 01:23:33 -0700
+Message-ID: <200709160823.l8G8NYxt007190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751486AbXIPIVs (ORCPT
+	by vger.kernel.org with ESMTP id S1751578AbXIPIXn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 04:21:48 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8G8Lj6B001207
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 16 Sep 2007 01:21:46 -0700
+	Sun, 16 Sep 2007 04:23:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-input-fixup
-has been added to the -mm tree.  Its filename is
-     git-input-fixup.patch
+     e1000e build fix
+has been removed from the -mm tree.  Its filename was
+     e1000e-build-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-input-fixup
+Subject: e1000e build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Lots of code uses mdelay without including delay.h
+
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/e1000e/e1000.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/hwmon/applesmc.c~git-input-fixup drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~git-input-fixup
-+++ a/drivers/hwmon/applesmc.c
-@@ -125,8 +125,7 @@ static const int debug;
- static struct platform_device *pdev;
- static s16 rest_x;
- static s16 rest_y;
--static struct timer_list applesmc_timer;
--static struct input_dev *applesmc_idev;
-+static struct input_polled_dev *applesmc_idev;
- static struct device *hwmon_dev;
+diff -puN drivers/net/e1000e/e1000.h~e1000e-build-fix drivers/net/e1000e/e1000.h
+--- a/drivers/net/e1000e/e1000.h~e1000e-build-fix
++++ a/drivers/net/e1000e/e1000.h
+@@ -36,6 +36,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/io.h>
+ #include <linux/netdevice.h>
++#include <linux/delay.h>
  
- /* Indicates whether this computer has an accelerometer. */
+ #include "hw.h"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
