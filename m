@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + iwl3945-is-bust.patch added to -mm tree
-Date: Sun, 16 Sep 2007 14:11:48 -0700
-Message-ID: <200709162117.l8GLHT8P000490@imap1.linux-foundation.org>
+Date: Sun, 16 Sep 2007 14:34:05 -0700
+Message-ID: <200709162139.l8GLdjvA001273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53108 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753134AbXIPVSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752207AbXIPVka (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 17:18:09 -0400
+	Sun, 16 Sep 2007 17:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -71,14 +71,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN drivers/net/wireless/Kconfig~iwl3945-is-bust drivers/net/wireless/Kconfig
 --- a/drivers/net/wireless/Kconfig~iwl3945-is-bust
 +++ a/drivers/net/wireless/Kconfig
-@@ -767,6 +767,7 @@ config IWL4965
- config IWL3945
- 	tristate "Intel PRO/Wireless 3945ABG/BG Network Connection"
- 	depends on m && IWLWIFI && EXPERIMENTAL
+@@ -666,6 +666,7 @@ config P54_PCI
+ config IWLWIFI
+ 	bool "Intel Wireless WiFi Link Drivers"
+ 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
 +	depends on BROKEN
- 	default m
+ 	select FW_LOADER
+ 	default n
  	---help---
- 	  Select to build the driver supporting the:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
