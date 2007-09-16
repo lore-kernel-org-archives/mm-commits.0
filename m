@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-hack-hack.patch added to -mm tree
-Date: Sun, 16 Sep 2007 14:58:58 -0700
-Message-ID: <200709162204.l8GM4c8t002112@imap1.linux-foundation.org>
+Subject: + pvrusb2-hdw-terminate-usb-device-id-table-differently.patch added to -mm tree
+Date: Sun, 16 Sep 2007 15:07:34 -0700
+Message-ID: <200709162213.l8GMDE5P002322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752494AbXIPWGH (ORCPT
+	by vger.kernel.org with ESMTP id S1753111AbXIPWNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 18:06:07 -0400
+	Sun, 16 Sep 2007 18:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, kees@ubuntu.com
 
 
 The patch titled
-     net-hack-hack
+     pvrusb2-hdw: terminate usb device id table differently
 has been added to the -mm tree.  Its filename is
-     net-hack-hack.patch
+     pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net-hack-hack
+Subject: pvrusb2-hdw: terminate usb device id table differently
 From: Andrew Morton <akpm@linux-foundation.org>
 
-wtf is going on?
+rusb2/pvrusb2: struct usb_device_id is 20 bytes.  The last of 3 is:
+0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+FATAL: drivers/media/video/pvrusb2/pvrusb2: struct usb_device_id is not terminated with a NULL entry!
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kees Cook <kees@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c               |    1 -
- drivers/net/wireless/b43/main.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/b44.c~net-hack-hack drivers/net/b44.c
---- a/drivers/net/b44.c~net-hack-hack
-+++ a/drivers/net/b44.c
-@@ -2101,7 +2101,6 @@ static int __devinit b44_init_one(struct
- 		goto out;
- 	}
+diff -puN drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently drivers/media/video/pvrusb2/pvrusb2-hdw.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently
++++ a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+@@ -44,7 +44,7 @@
+ struct usb_device_id pvr2_device_table[] = {
+ 	[PVR2_HDW_TYPE_29XXX] = { USB_DEVICE(0x2040, 0x2900) },
+ 	[PVR2_HDW_TYPE_24XXX] = { USB_DEVICE(0x2040, 0x2400) },
+-	{ USB_DEVICE(0, 0) },
++	{ },
+ };
  
--	SET_MODULE_OWNER(dev);
- 	SET_NETDEV_DEV(dev, sdev->dev);
- 
- 	/* No interesting netdevice features in this card... */
-diff -puN drivers/net/wireless/b43/main.c~net-hack-hack drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~net-hack-hack
-+++ a/drivers/net/wireless/b43/main.c
-@@ -3917,8 +3917,7 @@ static int b43_wireless_init(struct ssb_
- 
- 	/* fill hw info */
- 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
--	    IEEE80211_HW_MONITOR_DURING_OPER |
--	    IEEE80211_HW_DEVICE_HIDES_WEP;
-+	    IEEE80211_HW_MONITOR_DURING_OPER;
- 	hw->max_signal = 100;
- 	hw->max_rssi = -110;
- 	hw->max_noise = -110;
+ MODULE_DEVICE_TABLE(usb, pvr2_device_table);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +136,7 @@ iwl3945-is-bust.patch
 more-wireless-borkage.patch
 more-wireless-borkage-2.patch
 more-wireless-borkage-3.patch
+net-hack-hack.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
@@ -257,4 +245,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-net-hack-hack.patch
+pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
