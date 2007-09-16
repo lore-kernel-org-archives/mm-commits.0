@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch added to -mm tree
-Date: Sun, 16 Sep 2007 13:35:49 -0700
-Message-ID: <200709162041.l8GKfTCn031778@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch added to -mm tree
+Date: Sun, 16 Sep 2007 13:50:28 -0700
+Message-ID: <200709162056.l8GKu8gK032244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55524 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751053AbXIPUmO (ORCPT
+	by vger.kernel.org with ESMTP id S1750716AbXIPU4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 16:42:14 -0400
+	Sun, 16 Sep 2007 16:56:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, jsipek@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
+     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
 has been added to the -mm tree.  Its filename is
-     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
+Subject: fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/unionfs/super.c: In function 'unionfs_init_inode_cache':
-fs/unionfs/super.c:874: warning: passing argument 5 of 'kmem_cache_create' from incompatible pointer type
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/gfs2/locking/dlm/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs fs/unionfs/super.c
---- a/fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
-+++ a/fs/unionfs/super.c
-@@ -857,9 +857,9 @@ static void unionfs_destroy_inode(struct
- }
- 
- /* unionfs inode cache constructor */
--static void init_once(void *v, struct kmem_cache *cachep, unsigned long flags)
-+static void init_once(struct kmem_cache *cachep, void *obj)
+diff -puN fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset fs/gfs2/locking/dlm/sysfs.c
+--- a/fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
++++ a/fs/gfs2/locking/dlm/sysfs.c
+@@ -223,7 +223,7 @@ int gdlm_sysfs_init(void)
  {
--	struct unionfs_inode_info *i = v;
-+	struct unionfs_inode_info *i = obj;
+ 	int error;
  
- 	inode_init_once(&i->vfs_inode);
- }
+-	kobject_set_name(&gdlm_kset, "lock_dlm");
++	kobject_set_name(&gdlm_kset.kobj, "lock_dlm");
+ 	kobj_set_kset_s(&gdlm_kset, kernel_subsys);
+ 	error = kset_register(&gdlm_kset);
+ 	if (error)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -156,6 +149,7 @@ hugetlbfs-read-support-fix.patch
 mm-mempolicyc-cleanups-fix.patch
 mm-bdi-init-hooks.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
@@ -237,4 +231,5 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-net-vs-git-wireless-3.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
