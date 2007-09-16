@@ -1,53 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - fix-typo-in-documentation-submittingpatches.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:25:55 -0700
-Message-ID: <200709160925.l8G9PtOE009142@imap1.linux-foundation.org>
+Subject: - documentation-00-index-notice-ecryptfstxt-moved.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:25:42 -0700
+Message-ID: <200709160925.l8G9PgdC009127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751799AbXIPJZ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751804AbXIPJZ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:25:59 -0400
+	Sun, 16 Sep 2007 05:25:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre@finow14.de, mm-commits@vger.kernel.org
+To: rob@landley.net, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix typo in Documentation/SubmittingPatches
+     Documentation/00-INDEX: notice ecryptfs.txt moved
 has been removed from the -mm tree.  Its filename was
-     fix-typo-in-documentation-submittingpatches.patch
+     documentation-00-index-notice-ecryptfstxt-moved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix typo in Documentation/SubmittingPatches
-From: Andre Haupt <andre@finow14.de>
+Subject: Documentation/00-INDEX: notice ecryptfs.txt moved
+From: Rob Landley <rob@landley.net>
 
-Signed-off-by: Andre Haupt <andre@finow14.de>
+ecryptfs.txt moved into filesystems, make 00-INDEX follow.
+
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ Documentation/00-INDEX             |    2 --
+ Documentation/filesystems/00-INDEX |    2 ++
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~fix-typo-in-documentation-submittingpatches Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~fix-typo-in-documentation-submittingpatches
-+++ a/Documentation/SubmittingPatches
-@@ -126,7 +126,7 @@ the reviewers time and will get your pat
- without even being read.
- 
- At a minimum you should check your patches with the patch style
--checker prior to submission (scripts/patchcheck.pl).  You should
-+checker prior to submission (scripts/checkpatch.pl).  You should
- be able to justify all violations that remain in your patch.
- 
- 
+diff -puN Documentation/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved Documentation/00-INDEX
+--- a/Documentation/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved
++++ a/Documentation/00-INDEX
+@@ -134,8 +134,6 @@ dvb/
+ 	- info on Linux Digital Video Broadcast (DVB) subsystem.
+ early-userspace/
+ 	- info about initramfs, klibc, and userspace early during boot.
+-ecryptfs.txt
+-	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ eisa.txt
+ 	- info on EISA bus support.
+ exception.txt
+diff -puN Documentation/filesystems/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~documentation-00-index-notice-ecryptfstxt-moved
++++ a/Documentation/filesystems/00-INDEX
+@@ -32,6 +32,8 @@ directory-locking
+ 	- info about the locking scheme used for directory operations.
+ dlmfs.txt
+ 	- info on the userspace interface to the OCFS2 DLM.
++ecryptfs.txt
++	- docs on eCryptfs: stacked cryptographic filesystem for Linux.
+ ext2.txt
+ 	- info, mount options and specifications for the Ext2 filesystem.
+ ext3.txt
 _
 
-Patches currently in -mm which might be from andre@finow14.de are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-git-cifs.patch
-fix-a-trivial-typo-in-scripts-checkstackpl.patch
+documentation-arm-00-index-add-missing-entries.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
