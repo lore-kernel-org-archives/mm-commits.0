@@ -1,137 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - sgiseeq-replace-use-of-dma_cache_wback_inv.patch removed from -mm tree
-Date: Sun, 16 Sep 2007 02:27:26 -0700
-Message-ID: <200709160927.l8G9RQeC009259@imap1.linux-foundation.org>
+Subject: - fix-serial_core_console-driver-dependencies.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 02:26:32 -0700
+Message-ID: <200709160926.l8G9QWPQ009190@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43902 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752027AbXIPJid (ORCPT
+	by vger.kernel.org with ESMTP id S1752072AbXIPJim (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 16 Sep 2007 05:38:33 -0400
+	Sun, 16 Sep 2007 05:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, bryan.wu@analog.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgiseeq: replace use of dma_cache_wback_inv
+     fix SERIAL_CORE_CONSOLE driver dependencies
 has been removed from the -mm tree.  Its filename was
-     sgiseeq-replace-use-of-dma_cache_wback_inv.patch
+     fix-serial_core_console-driver-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sgiseeq: replace use of dma_cache_wback_inv
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: fix SERIAL_CORE_CONSOLE driver dependencies
+From: Adrian Bunk <bunk@kernel.org>
 
-The sgiseeq driver is one of the few remaining users of the ancient cache
-banging DMA API.  Replaced with the modern days DMA API.
+SERIAL_BFIN=m or SERIAL_MUX=m shouldn't allow SERIAL_CORE_CONSOLE=y.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Additionally, this patch fixes whitespace instead of tabs at the
+SERIAL_MUX_CONSOLE option.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sgiseeq.c |   26 +++++++++++---------------
- 1 files changed, 11 insertions(+), 15 deletions(-)
+ drivers/serial/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv drivers/net/sgiseeq.c
---- a/drivers/net/sgiseeq.c~sgiseeq-replace-use-of-dma_cache_wback_inv
-+++ a/drivers/net/sgiseeq.c
-@@ -75,6 +75,7 @@ struct sgiseeq_init_block { /* Note the 
+diff -puN drivers/serial/Kconfig~fix-serial_core_console-driver-dependencies drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~fix-serial_core_console-driver-dependencies
++++ a/drivers/serial/Kconfig
+@@ -611,7 +611,7 @@ config SERIAL_BFIN
  
- struct sgiseeq_private {
- 	struct sgiseeq_init_block *srings;
-+	dma_addr_t srings_dma;
+ config SERIAL_BFIN_CONSOLE
+ 	bool "Console on Blackfin serial port"
+-	depends on SERIAL_BFIN
++	depends on SERIAL_BFIN=y
+ 	select SERIAL_CORE_CONSOLE
  
- 	/* Ptrs to the descriptors in uncached space. */
- 	struct sgiseeq_rx_desc *rx_desc;
-@@ -634,13 +635,20 @@ static int __init sgiseeq_probe(struct p
- 	sp = netdev_priv(dev);
+ choice
+@@ -832,10 +832,10 @@ config SERIAL_MUX
+ 	    4. Change the kernel command console parameter to: console=ttyB0
  
- 	/* Make private data page aligned */
--	sr = (struct sgiseeq_init_block *) get_zeroed_page(GFP_KERNEL);
-+	sr = dma_alloc_coherent(&pdev->dev, sizeof(*sp->srings),
-+				&sp->srings_dma, GFP_KERNEL);
- 	if (!sr) {
- 		printk(KERN_ERR "Sgiseeq: Page alloc failed, aborting.\n");
- 		err = -ENOMEM;
- 		goto err_out_free_dev;
- 	}
- 	sp->srings = sr;
-+	sp->rx_desc = sp->srings->rxvector;
-+	sp->tx_desc = sp->srings->txvector;
-+
-+	/* A couple calculations now, saves many cycles later. */
-+	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
-+	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
+ config SERIAL_MUX_CONSOLE
+-        bool "Support for console on serial MUX"
+-        depends on SERIAL_MUX
++	bool "Support for console on serial MUX"
++	depends on SERIAL_MUX=y
+ 	select SERIAL_CORE_CONSOLE
+-        default y
++	default y
  
- 	memcpy(dev->dev_addr, pd->mac, ETH_ALEN);
- 
-@@ -653,19 +661,6 @@ static int __init sgiseeq_probe(struct p
- 	sp->name = sgiseeqstr;
- 	sp->mode = SEEQ_RCMD_RBCAST;
- 
--	sp->rx_desc = (struct sgiseeq_rx_desc *)
--	              CKSEG1ADDR(ALIGNED(&sp->srings->rxvector[0]));
--	dma_cache_wback_inv((unsigned long)&sp->srings->rxvector,
--	                    sizeof(sp->srings->rxvector));
--	sp->tx_desc = (struct sgiseeq_tx_desc *)
--	              CKSEG1ADDR(ALIGNED(&sp->srings->txvector[0]));
--	dma_cache_wback_inv((unsigned long)&sp->srings->txvector,
--	                    sizeof(sp->srings->txvector));
--
--	/* A couple calculations now, saves many cycles later. */
--	setup_rx_ring(sp->rx_desc, SEEQ_RX_BUFFERS);
--	setup_tx_ring(sp->tx_desc, SEEQ_TX_BUFFERS);
--
- 	/* Setup PIO and DMA transfer timing */
- 	sp->hregs->pconfig = 0x161;
- 	sp->hregs->dconfig = HPC3_EDCFG_FIRQ | HPC3_EDCFG_FEOP |
-@@ -722,7 +717,8 @@ static int __exit sgiseeq_remove(struct 
- 	struct sgiseeq_private *sp = netdev_priv(dev);
- 
- 	unregister_netdev(dev);
--	free_page((unsigned long) sp->srings);
-+	dma_free_coherent(&pdev->dev, sizeof(*sp->srings), sp->srings,
-+	                  sp->srings_dma);
- 	free_netdev(dev);
- 	platform_set_drvdata(pdev, NULL);
- 
+ config PDC_CONSOLE
+ 	bool "PDC software console support"
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-mips.patch
-mips-add-gpio-support-to-the-bcm947xx-platform.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-mips-gpio-led-driver-for-the-wgt634u-machine.patch
-mips-move-platform-independent-cfe-code-into-arch-mips-cfe.patch
-mips-add-cfe-support-to-bcm947xx-code.patch
-mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
-git-mtd.patch
+git-alsa.patch
+git-arm.patch
+ppc-remove-apus-support.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+git-dvb.patch
+git-kbuild.patch
+pass-g-to-assembler-under-config_debug_info-fix.patch
+fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
+fix-ide-ide-remove-ide-dma-check.patch
 git-net.patch
-sb1250-macc-de-typedef-de-volatile-de-etc.patch
-net_sb1250_mac-update-kconfig-entry.patch
-net_sb1250_mac-rename-to-sb1250_mac.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-nfsd.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-block.patch
+git-wireless.patch
+fix-x86_64-mm-unwinder.patch
+i386-visws-extern-inline-static-inline.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+security-cleanups.patch
+make-kernel-power-maincsuspend_enter-static.patch
+uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
+kconfig-syntax-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
