@@ -1,63 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-fixup.patch added to -mm tree
-Date: Mon, 17 Sep 2007 03:17:15 -0700
-Message-ID: <200709171017.l8HAHFkS007281@imap1.linux-foundation.org>
+Subject: - git-wireless-fixup.patch removed from -mm tree
+Date: Mon, 17 Sep 2007 03:19:55 -0700
+Message-ID: <200709171019.l8HAJtLA007623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753335AbXIQKRS (ORCPT
+	by vger.kernel.org with ESMTP id S1753335AbXIQKUB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 06:17:18 -0400
+	Mon, 17 Sep 2007 06:20:01 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAHF6h022326
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAJt3R022431
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:17:16 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:19:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-fixup
-has been added to the -mm tree.  Its filename is
-     git-mips-fixup.patch
+     git-wireless-fixup
+has been removed from the -mm tree.  Its filename was
+     git-wireless-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/lemote/lm2e/Makefile   |    1 -
- arch/mips/sibyte/common/Makefile |    1 -
- 2 files changed, 2 deletions(-)
+ MAINTAINERS                   |    9 +--------
+ drivers/net/b44.c             |    4 ----
+ drivers/net/wireless/Kconfig  |    6 ------
+ drivers/net/wireless/Makefile |    3 ---
+ scripts/mod/file2alias.c      |    4 ++++
+ 5 files changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN arch/mips/lemote/lm2e/Makefile~git-mips-fixup arch/mips/lemote/lm2e/Makefile
---- a/arch/mips/lemote/lm2e/Makefile~git-mips-fixup
-+++ a/arch/mips/lemote/lm2e/Makefile
-@@ -4,5 +4,4 @@
+diff -puN scripts/mod/file2alias.c~git-wireless-fixup scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~git-wireless-fixup
++++ a/scripts/mod/file2alias.c
+@@ -623,6 +623,10 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct sdio_device_id), "sdio",
+ 			 do_sdio_entry, mod);
++	else if (sym_is(symname, "__mod_ssb_device_table"))
++		do_table(symval, sym->st_size,
++			 sizeof(struct ssb_device_id), "ssb",
++			 do_ssb_entry, mod);
+ }
  
- obj-y += setup.o prom.o reset.o irq.o pci.o bonito-irq.o dbg_io.o mem.o
+ /* Now add out buffered information to the generated C source */
+diff -puN MAINTAINERS~git-wireless-fixup MAINTAINERS
+--- a/MAINTAINERS~git-wireless-fixup
++++ a/MAINTAINERS
+@@ -284,7 +284,6 @@ M:	corentin.labbe@geomatys.fr
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
  
--EXTRA_AFLAGS := $(KBUILD_CFLAGS)
- EXTRA_CFLAGS += -Werror
-diff -puN arch/mips/sibyte/common/Makefile~git-mips-fixup arch/mips/sibyte/common/Makefile
---- a/arch/mips/sibyte/common/Makefile~git-mips-fixup
-+++ a/arch/mips/sibyte/common/Makefile
-@@ -2,5 +2,4 @@ obj-y :=
+-<<<<<<< HEAD/MAINTAINERS
+ ADM8211 WIRELESS DRIVER
+ P:	Michael Wu
+ M:	flamingice@sourmilk.net
+@@ -293,7 +292,6 @@ W:	http://linuxwireless.org/
+ T:	git kernel.org:/pub/scm/linux/kernel/git/mwu/mac80211-drivers.git
+ S:	Maintained
  
- obj-$(CONFIG_SIBYTE_TBPROF)		+= sb_tbprof.o
+-=======
+ ADM8211 WIRELESS DRIVER
+ P:	Michael Wu
+ M:	flamingice@sourmilk.net
+@@ -302,7 +300,6 @@ W:	http://aluminum.sourmilk.net/adm8211/
+ T:	git kernel.org:/pub/scm/linux/kernel/git/mwu/mac80211-drivers.git
+ S:	Maintained
  
--EXTRA_AFLAGS := $(KBUILD_CFLAGS)
- EXTRA_CFLAGS += -Werror
+->>>>>>> /MAINTAINERS
+ ADT746X FAN DRIVER
+ P:	Colin Leroy
+ M:	colin@colino.net
+@@ -2111,9 +2108,6 @@ L:	http://lists.sourceforge.net/mailman/
+ W:	http://ipw2200.sourceforge.net
+ S:	Supported
+ 
+-<<<<<<< HEAD/MAINTAINERS
+-IOC3 ETHERNET DRIVER
+-=======
+ INTEL WIRELESS WIFI LINK (iwlwifi)
+ P:	Zhu Yi
+ M:	yi.zhu@intel.com
+@@ -2124,8 +2118,7 @@ W:	http://intellinuxwireless.org
+ T:	git git://intellinuxwireless.org/repos/iwlwifi
+ S:	Supported
+ 
+-IOC3 DRIVER
+->>>>>>> /MAINTAINERS
++IOC3 ETHERNET DRIVER
+ P:	Ralf Baechle
+ M:	ralf@linux-mips.org
+ L:	linux-mips@linux-mips.org
+diff -puN drivers/net/b44.c~git-wireless-fixup drivers/net/b44.c
+--- a/drivers/net/b44.c~git-wireless-fixup
++++ a/drivers/net/b44.c
+@@ -2101,12 +2101,8 @@ static int __devinit b44_init_one(struct
+ 		goto out;
+ 	}
+ 
+-<<<<<<< HEAD/drivers/net/b44.c
+-	SET_NETDEV_DEV(dev,&pdev->dev);
+-=======
+ 	SET_MODULE_OWNER(dev);
+ 	SET_NETDEV_DEV(dev, sdev->dev);
+->>>>>>> /drivers/net/b44.c
+ 
+ 	/* No interesting netdevice features in this card... */
+ 	dev->features |= 0;
+diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-fixup
++++ a/drivers/net/wireless/Kconfig
+@@ -381,8 +381,6 @@ config PCI_HERMES
+ 	  common.  Some of the built-in wireless adaptors in laptops are of
+ 	  this variety.
+ 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+-=======
+ config ATMEL
+       tristate "Atmel at76c50x chipset  802.11b support"
+       depends on (PCI || PCMCIA) && WLAN_80211
+@@ -415,7 +413,6 @@ config USB_ATMEL
+ 	  Enable support for USB Wireless devices using Atmel at76c503,
+ 	  at76c505 or at76c505a chips.
+ 
+->>>>>>> /drivers/net/wireless/Kconfig
+ config PCMCIA_HERMES
+ 	tristate "Hermes PCMCIA card support"
+ 	depends on PCMCIA && HERMES
+@@ -585,7 +582,6 @@ config RTL8187
+ 
+ 	  Thanks to Realtek for their support!
+ 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+ config ADM8211
+ 	tristate "ADMtek ADM8211 support"
+ 	depends on MAC80211 && PCI && WLAN_80211 && EXPERIMENTAL
+@@ -613,7 +609,6 @@ config ADM8211
+ 
+ 	  Thanks to Infineon-ADMtek for their support of this driver.
+ 
+-=======
+ config ADM8211
+ 	tristate "ADMtek ADM8211 support"
+ 	depends on PCI && WLAN_80211 && MAC80211 && EXPERIMENTAL
+@@ -796,7 +791,6 @@ config IWL3945
+ 	  say M here and read <file:Documentation/modules.txt>.  The module
+ 	  will be called iwl3945.ko.
+ 
+->>>>>>> /drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/bcm43xx/Kconfig"
+ source "drivers/net/wireless/b43/Kconfig"
+diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
+--- a/drivers/net/wireless/Makefile~git-wireless-fixup
++++ a/drivers/net/wireless/Makefile
+@@ -52,10 +52,8 @@ obj-$(CONFIG_LIBERTAS)      += libertas/
+ 
+ rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
+ obj-$(CONFIG_RTL8187)	+= rtl8187.o
+-<<<<<<< HEAD/drivers/net/wireless/Makefile
+ 
+ obj-$(CONFIG_ADM8211)	+= adm8211.o
+-=======
+ 
+ obj-$(CONFIG_ADM8211)		+= adm8211.o
+ 
+@@ -96,4 +94,3 @@ CFLAGS_iwl-base-4965.o	= -DIWL=4965 -D"K
+ $(obj)/iwl-base-4965.o: $(src)/iwl-base.c FORCE
+ 	$(call cmd,force_checksrc)
+ 	$(call if_changed_rule,cc_o_c)
+->>>>>>> /drivers/net/wireless/Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
