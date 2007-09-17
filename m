@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export-font_vga_8x16.patch added to -mm tree
-Date: Mon, 17 Sep 2007 15:19:53 -0700
-Message-ID: <200709172225.l8HMPZaw008126@imap1.linux-foundation.org>
+Subject: + mm-per-device-dirty-threshold-warning-fix.patch added to -mm tree
+Date: Mon, 17 Sep 2007 15:26:36 -0700
+Message-ID: <200709172232.l8HMWIhO008328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58775 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759868AbXIQWZx (ORCPT
+	by vger.kernel.org with ESMTP id S1754709AbXIQWc0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 18:25:53 -0400
+	Mon, 17 Sep 2007 18:32:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     export font_vga_8x16
+     mm-per-device-dirty-threshold warning fix
 has been added to the -mm tree.  Its filename is
-     export-font_vga_8x16.patch
+     mm-per-device-dirty-threshold-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: export font_vga_8x16
+Subject: mm-per-device-dirty-threshold warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips allmodconfig:
+sh allmodconfig:
 
-ERROR: "font_vga_8x16" [drivers/video/console/newport_con.ko] undefined!
+mm/page-writeback.c: In function `task_dirty_limit':
+mm/page-writeback.c:230: warning: comparison of distinct pointer types lacks a cast
+mm/page-writeback.c: In function `get_dirty_limits':
+mm/page-writeback.c:340: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/font_8x16.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/console/font_8x16.c~export-font_vga_8x16 drivers/video/console/font_8x16.c
---- a/drivers/video/console/font_8x16.c~export-font_vga_8x16
-+++ a/drivers/video/console/font_8x16.c
-@@ -5,6 +5,7 @@
- /**********************************************/
+diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold-warning-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-per-device-dirty-threshold-warning-fix
++++ a/mm/page-writeback.c
+@@ -223,7 +223,7 @@ void task_dirty_limit(struct task_struct
+ {
+ 	long numerator, denominator;
+ 	long dirty = *pdirty;
+-	long long inv = dirty >> 3;
++	u64 inv = dirty >> 3;
  
- #include <linux/font.h>
-+#include <linux/module.h>
+ 	task_dirties_fraction(tsk, &numerator, &denominator);
+ 	inv *= numerator;
+@@ -328,7 +328,7 @@ get_dirty_limits(long *pbackground, long
+ 	*pdirty = dirty;
  
- #define FONTDATAMAX 4096
+ 	if (bdi) {
+-		long long bdi_dirty = dirty;
++		u64 bdi_dirty = dirty;
+ 		long numerator, denominator;
  
-@@ -4629,3 +4630,4 @@ const struct font_desc font_vga_8x16 = {
- 	.data	= fontdata_8x16,
- 	.pref	= 0,
- };
-+EXPORT_SYMBOL(font_vga_8x16);
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -225,6 +232,7 @@ ecryptfs-printk-warning-fixes.patch
 tdfxfb-mtrr-support-fix.patch
 fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
 intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
 md-software-raid-autodetect-dev-list-not-array-fix.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-iova-allocation-and-management-routines.patch
@@ -262,4 +270,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-export-font_vga_8x16.patch
+mm-per-device-dirty-threshold-warning-fix.patch
