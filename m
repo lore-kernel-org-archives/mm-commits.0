@@ -1,50 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-tehuti-vs-git-net-fix.patch removed from -mm tree
-Date: Mon, 17 Sep 2007 16:55:31 -0700
-Message-ID: <200709172355.l8HNtVtr011230@imap1.linux-foundation.org>
+Subject: + git-block-fix-qlogicpti-build.patch added to -mm tree
+Date: Mon, 17 Sep 2007 16:55:34 -0700
+Message-ID: <200709180001.l8I01I2d011436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34689 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754227AbXIQXzw (ORCPT
+	by vger.kernel.org with ESMTP id S1752412AbXIRABp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 19:55:52 -0400
+	Mon, 17 Sep 2007 20:01:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, baum@tehutinetworks.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-tehuti-vs-git-net-fix
-has been removed from the -mm tree.  Its filename was
-     git-tehuti-vs-git-net-fix.patch
+     git-block: fix qlogicpti build
+has been added to the -mm tree.  Its filename is
+     git-block-fix-qlogicpti-build.patch
 
-This patch was dropped because it was folded into git-tehuti-vs-git-net.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-tehuti-vs-git-net-fix
+Subject: git-block: fix qlogicpti build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/tehuti.c:89: warning: 'bdx_reload_vlan' declared 'static' but never defined
-
-Cc: "Alexander Indenbaum" <baum@tehutinetworks.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tehuti.c |    1 -
- 1 files changed, 1 deletion(-)
+ drivers/scsi/qlogicpti.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tehuti.c~git-tehuti-vs-git-net-fix drivers/net/tehuti.c
---- a/drivers/net/tehuti.c~git-tehuti-vs-git-net-fix
-+++ a/drivers/net/tehuti.c
-@@ -86,7 +86,6 @@ static void bdx_tx_push_desc_safe(struct
- static int bdx_tx_init(struct bdx_priv *priv);
- static int bdx_rx_init(struct bdx_priv *priv);
- static void bdx_setmulti(struct net_device *ndev);
--static void bdx_reload_vlan(struct net_device *ndev);
- 
- /* Definitions needed by bdx_close */
- static void bdx_rx_free(struct bdx_priv *priv);
+diff -puN drivers/scsi/qlogicpti.c~git-block-fix-qlogicpti-build drivers/scsi/qlogicpti.c
+--- a/drivers/scsi/qlogicpti.c~git-block-fix-qlogicpti-build
++++ a/drivers/scsi/qlogicpti.c
+@@ -888,7 +888,7 @@ static inline int load_cmd(struct scsi_c
+ 			n = 4;
+ 		for_each_sg(sg, s, n, i) {
+ 			ds[i].d_base = sg_dma_address(s);
+-			ds[i].d_count = sg_dma_len(g);
++			ds[i].d_count = sg_dma_len(s);
+ 		}
+ 		sg_count -= 4;
+ 		sg = s;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,8 +105,6 @@ net-atm-lecc-printk-warning-fix.patch
 git-net-af_iucv-fixes.patch
 git-net-sgiseeq-fix.patch
 git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
-git-tehuti-vs-git-net.patch
-git-tehuti-vs-git-net-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
 git-backlight-dependency-fix.patch
@@ -124,6 +125,7 @@ advansys-printk-fix.patch
 git-block-fixup.patch
 git-block-fix-headers_check.patch
 git-block-fix-u14-34f.patch
+git-block-fix-qlogicpti-build.patch
 git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
@@ -242,6 +244,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
