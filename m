@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-2.patch added to -mm tree
-Date: Mon, 17 Sep 2007 03:42:44 -0700
-Message-ID: <200709171048.l8HAmPdY008882@imap1.linux-foundation.org>
+Subject: + git-wireless-fix-99.patch added to -mm tree
+Date: Mon, 17 Sep 2007 03:43:59 -0700
+Message-ID: <200709171049.l8HAnerj008911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55509 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751001AbXIQKs2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750892AbXIQKtn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 06:48:28 -0400
+	Mon, 17 Sep 2007 06:49:43 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAmPdY023755
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAneZt023835
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:48:26 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:49:41 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net-fix-2
+     git-wireless-fix-99
 has been added to the -mm tree.  Its filename is
-     git-net-fix-2.patch
+     git-wireless-fix-99.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,27 +30,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-fix-2
+Subject: git-wireless-fix-99
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/sock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/b43/main.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/core/sock.c~git-net-fix-2 net/core/sock.c
---- a/net/core/sock.c~git-net-fix-2
-+++ a/net/core/sock.c
-@@ -395,7 +395,7 @@ static int sock_bindtodevice(struct sock
- 	if (devname[0] == '\0') {
- 		index = 0;
- 	} else {
--		struct net_device *dev = dev_get_by_name(devname);
-+		struct net_device *dev = dev_get_by_name(&init_net, devname);
+diff -puN drivers/net/wireless/b43/main.c~git-wireless-fix-99 drivers/net/wireless/b43/main.c
+--- a/drivers/net/wireless/b43/main.c~git-wireless-fix-99
++++ a/drivers/net/wireless/b43/main.c
+@@ -3917,8 +3917,7 @@ static int b43_wireless_init(struct ssb_
  
- 		ret = -ENODEV;
- 		if (!dev)
+ 	/* fill hw info */
+ 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
+-	    IEEE80211_HW_MONITOR_DURING_OPER |
+-	    IEEE80211_HW_DEVICE_HIDES_WEP;
++	    IEEE80211_HW_MONITOR_DURING_OPER;
+ 	hw->max_signal = 100;
+ 	hw->max_rssi = -110;
+ 	hw->max_noise = -110;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +101,7 @@ gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-net.patch
 git-net-fixup.patch
+git-net-fix-2.patch
 nit-net-skge-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 net-atm-lecc-printk-warning-fix.patch
@@ -140,6 +142,7 @@ more-wireless-borkage.patch
 more-wireless-borkage-2.patch
 more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
+git-wireless-fix-99.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
@@ -250,4 +253,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-fix-2.patch
