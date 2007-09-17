@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch added to -mm tree
-Date: Mon, 17 Sep 2007 00:55:28 -0700
-Message-ID: <200709170801.l8H819sm029700@imap1.linux-foundation.org>
+Subject: + git-kbuild-fixup.patch added to -mm tree
+Date: Mon, 17 Sep 2007 03:14:24 -0700
+Message-ID: <200709171014.l8HAEPNr006844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51323 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55652 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752210AbXIQIBN (ORCPT
+	by vger.kernel.org with ESMTP id S1753208AbXIQKOc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 04:01:13 -0400
+	Mon, 17 Sep 2007 06:14:32 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAES7u022095
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:14:30 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     fix gregkh-driver-kobject-remove-the-static-array-for-the-name
+     git-kbuild-fixup
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+     git-kbuild-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +30,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-kobject-remove-the-static-array-for-the-name
+Subject: git-kbuild-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/setup-irq.c: In function 'pdev_fixup_irq':
-drivers/pci/setup-irq.c:50: error: 'struct kobject' has no member named 'name'
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/Makefile |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name drivers/pci/setup-irq.c
---- a/drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name
-+++ a/drivers/pci/setup-irq.c
-@@ -48,7 +48,7 @@ pdev_fixup_irq(struct pci_dev *dev,
- 	dev->irq = irq;
+diff -puN arch/powerpc/Makefile~git-kbuild-fixup arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~git-kbuild-fixup
++++ a/arch/powerpc/Makefile
+@@ -71,10 +71,10 @@ CPPFLAGS-$(CONFIG_PPC32) := -Iarch/$(ARC
+ AFLAGS-$(CONFIG_PPC32)	:= -Iarch/$(ARCH)
+ CFLAGS-$(CONFIG_PPC64)	:= -mminimal-toc -mtraceback=none  -mcall-aixdesc
+ CFLAGS-$(CONFIG_PPC32)	:= -Iarch/$(ARCH) -ffixed-r2 -mmultiple
+-CPPFLAGS	+= $(CPPFLAGS-y)
+-AFLAGS		+= $(AFLAGS-y)
+-CFLAGS		+= -msoft-float -pipe $(CFLAGS-y)
+-CPP		= $(CC) -E $(CFLAGS)
++KBUILD_CPPFLAGS	+= $(CPPFLAGS-y)
++KBUILD_AFLAGS	+= $(AFLAGS-y)
++KBUILD_CFLAGS	+= -msoft-float -pipe $(CFLAGS-y)
++CPP		= $(CC) -E $(KBUILD_CFLAGS)
  
- 	pr_debug("PCI: fixup irq: (%s) got %d\n",
--		dev->dev.kobj.name, dev->irq);
-+		dev->dev.kobj.k_name, dev->irq);
+ CHECKFLAGS	+= -m$(SZ) -D__powerpc__ -D__powerpc$(SZ)__
  
- 	/* Always tell the device, so the driver knows what is
- 	   the real IRQ to use; the device does not use it. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +70,6 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 alsa-procfs-fix.patch
-git-alsa-sc6000-build-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
@@ -82,9 +86,9 @@ git-input-fixup.patch
 adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility-fix.patch
 console-keyboard-events-and-accessibility-fix-2.patch
-git-jg-misc-revert-scsi-diff.patch
 git-jg-misc-fix.patch
 git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
 git-libata-all.patch
 ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
@@ -113,7 +117,6 @@ git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
 git-s390.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
@@ -145,6 +148,7 @@ ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
 git-kgdb-fixup.patch
 i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
@@ -249,4 +253,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
