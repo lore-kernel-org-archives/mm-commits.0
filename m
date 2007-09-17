@@ -1,77 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch added to -mm tree
-Date: Mon, 17 Sep 2007 16:23:04 -0700
-Message-ID: <200709172328.l8HNSl1J010199@imap1.linux-foundation.org>
+Subject: - git-tehuti-vs-git-net-fix.patch removed from -mm tree
+Date: Mon, 17 Sep 2007 16:55:31 -0700
+Message-ID: <200709172355.l8HNtVtr011230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754905AbXIQX35 (ORCPT
+	by vger.kernel.org with ESMTP id S1754227AbXIQXzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 19:29:57 -0400
+	Mon, 17 Sep 2007 19:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+To: akpm@linux-foundation.org, baum@tehutinetworks.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2
-has been added to the -mm tree.  Its filename is
-     memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+     git-tehuti-vs-git-net-fix
+has been removed from the -mm tree.  Its filename was
+     git-tehuti-vs-git-net-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into git-tehuti-vs-git-net.patch
 
 ------------------------------------------------------
-Subject: memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2
+Subject: git-tehuti-vs-git-net-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
+drivers/net/tehuti.c:89: warning: 'bdx_reload_vlan' declared 'static' but never defined
 
-In file included from include/linux/mm.h:38,
-                 from include/linux/memcontrol.h:23,
-                 from include/linux/swap.h:9,
-                 from include/linux/suspend.h:7,
-                 from init/do_mounts.c:6:
-include/asm/pgtable.h:344: warning: parameter names (without types) in function declaration
-include/asm/pgtable.h:345: warning: parameter names (without types) in function declaration
-include/asm/pgtable.h:346: error: expected '=', ',', ';', 'asm' or '__attribute__' before '___f___swp_entry'
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: "Alexander Indenbaum" <baum@tehutinetworks.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/tehuti.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2
-+++ a/include/linux/memcontrol.h
-@@ -20,10 +20,10 @@
- #ifndef _LINUX_MEMCONTROL_H
- #define _LINUX_MEMCONTROL_H
+diff -puN drivers/net/tehuti.c~git-tehuti-vs-git-net-fix drivers/net/tehuti.c
+--- a/drivers/net/tehuti.c~git-tehuti-vs-git-net-fix
++++ a/drivers/net/tehuti.c
+@@ -86,7 +86,6 @@ static void bdx_tx_push_desc_safe(struct
+ static int bdx_tx_init(struct bdx_priv *priv);
+ static int bdx_rx_init(struct bdx_priv *priv);
+ static void bdx_setmulti(struct net_device *ndev);
+-static void bdx_reload_vlan(struct net_device *ndev);
  
--#include <linux/mm.h>
--
- struct mem_container;
- struct page_container;
-+struct page;
-+struct mm_struct;
- 
- #ifdef CONFIG_CONTAINER_MEM_CONT
- 
+ /* Definitions needed by bdx_close */
+ static void bdx_rx_free(struct bdx_priv *priv);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +102,7 @@ net-atm-lecc-printk-warning-fix.patch
 git-net-af_iucv-fixes.patch
 git-net-sgiseeq-fix.patch
 git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+git-tehuti-vs-git-net.patch
 git-tehuti-vs-git-net-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
@@ -268,7 +242,6 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
@@ -282,4 +255,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-sparc-build-fixes.patch
