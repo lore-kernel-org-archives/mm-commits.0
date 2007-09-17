@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-fixup.patch added to -mm tree
-Date: Mon, 17 Sep 2007 03:23:52 -0700
-Message-ID: <200709171023.l8HANqxY008099@imap1.linux-foundation.org>
+Subject: + git-net-fix-2.patch added to -mm tree
+Date: Mon, 17 Sep 2007 03:42:44 -0700
+Message-ID: <200709171048.l8HAmPdY008882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50481 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54000 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753845AbXIQKXz (ORCPT
+	by vger.kernel.org with ESMTP id S1751001AbXIQKs2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 06:23:55 -0400
+	Mon, 17 Sep 2007 06:48:28 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HANqxu022625
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAmPdY023755
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:23:53 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:48:26 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-acpi-fixup
+     git-net-fix-2
 has been added to the -mm tree.  Its filename is
-     git-acpi-fixup.patch
+     git-net-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,132 +30,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: git-net-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/thinkpad-acpi.txt |   75 ------------------------------
- 1 file changed, 75 deletions(-)
+ net/core/sock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/thinkpad-acpi.txt~git-acpi-fixup Documentation/thinkpad-acpi.txt
---- a/Documentation/thinkpad-acpi.txt~git-acpi-fixup
-+++ a/Documentation/thinkpad-acpi.txt
-@@ -173,17 +173,10 @@ below), the driver will report HKEY even
+diff -puN net/core/sock.c~git-net-fix-2 net/core/sock.c
+--- a/net/core/sock.c~git-net-fix-2
++++ a/net/core/sock.c
+@@ -395,7 +395,7 @@ static int sock_bindtodevice(struct sock
+ 	if (devname[0] == '\0') {
+ 		index = 0;
+ 	} else {
+-		struct net_device *dev = dev_get_by_name(devname);
++		struct net_device *dev = dev_get_by_name(&init_net, devname);
  
- Some of these events refer to hot key presses, but not all.
- 
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--The driver will generate events over the input layer for hot keys and
--radio switches, and over the ACPI netlink layer for other events.  The
--input layer support accepts the standard IOCTLs to remap the keycodes
--assigned to each hot key.
--=======
- The driver will generate events over the input layer for hot keys and
- radio switches, and over the netlink layer for other events.  The input
- layer support accepts the standard IOCTLs to remap the keycodes assigned
- to each hot key.
-->>>>>>> /Documentation/thinkpad-acpi.txt
- 
- The hot key bit mask allows some control over which hot keys generate
- events.  If a key is "masked" (bit set to 0 in the mask), the firmware
-@@ -265,22 +258,6 @@ sysfs notes:
- 		disabled" postition, and 1 if the switch is in the
- 		"radios enabled" position.
- 
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--	hotkey_report_mode:
--		Returns the state of the procfs ACPI event report mode
--		filter for hot keys.  If it is set to 1 (the default),
--		all hot key presses are reported both through the input
--		layer and also as ACPI events through procfs (but not
--		through netlink).  If it is set to 2, hot key presses
--		are reported only through the input layer.
--
--		This attribute is read-only in kernels 2.6.23 or later,
--		and read-write on earlier kernels.
--
--		May return -EPERM (write access locked out by module
--		parameter) or -EACCES (read-only).
--
--=======
- 	hotkey_report_mode:
- 		Returns the state of the procfs ACPI event report mode
- 		filter for hot keys.  If 1, all hot key presses are
-@@ -294,7 +271,6 @@ sysfs notes:
- 		May return -EPERM (write access locked out by module
- 		parameter) or -EACCES (read-only).
- 
-->>>>>>> /Documentation/thinkpad-acpi.txt
- input layer notes:
- 
- A Hot key is mapped to a single input layer EV_KEY event, possibly
-@@ -442,55 +418,6 @@ Non hot-key ACPI HKEY event map:
- 0x5002		Lid opened
- 0x7000		Radio Switch may have changed state
- 
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--The above events are not propagated by the driver, except for legacy
--compatibility purposes when hotkey_report_mode is set to 1.
--
--Compatibility notes:
--
--ibm-acpi and thinkpad-acpi 0.15 (mainline kernels before 2.6.23) never
--supported the input layer, and sent events over the procfs ACPI event
--interface.
--
--To avoid sending duplicate events over the input layer and the ACPI
--event interface, thinkpad-acpi 0.16 implements a module parameter
--(hotkey_report_mode), and also a sysfs device attribute with the same
--name.
--
--Make no mistake here: userspace is expected to switch to using the input
--layer interface of thinkpad-acpi, together with the ACPI netlink event
--interface in kernels 2.6.23 and later, or with the ACPI procfs event
--interface in kernels 2.6.22 and earlier.
--
--If no hotkey_report_mode module parameter is specified (or it is set to
--zero), the driver defaults to mode 1 (see below), and on kernels 2.6.22
--and earlier, also allows one to change the hotkey_report_mode through
--sysfs.  In kernels 2.6.23 and later, where the netlink ACPI event
--interface is available, hotkey_report_mode cannot be changed through
--sysfs (it is read-only).
--
--If the hotkey_report_mode module parameter is set to 1 or 2, it cannot
--be changed later through sysfs (any writes will return -EPERM to signal
--that hotkey_report_mode was locked.  On 2.6.23 and later, where
--hotkey_report_mode cannot be changed at all, writes will return -EACES).
--
--hotkey_report_mode set to 1 makes the driver export through the procfs
--ACPI event interface all hot key presses (which are *also* sent to the
--input layer).  This is a legacy compatibility behaviour, and it is also
--the default mode of operation for the driver.
--
--hotkey_report_mode set to 2 makes the driver filter out the hot key
--presses from the procfs ACPI event interface, so these events will only
--be sent through the input layer.  Userspace that has been updated to use
--the thinkpad-acpi input layer interface should set hotkey_report_mode to
--2.
--
--Hot key press events are never sent to the ACPI netlink event interface.
--Really up-to-date userspace under kernel 2.6.23 and later is to use the
--netlink interface and the input layer interface, and don't bother at all
--with hotkey_report_mode.
--
--=======
- The above events are not propagated by the driver, except for legacy
- compatibility purposes when hotkey_report_mode is set to 1.
- 
-@@ -534,8 +461,6 @@ Really up-to-date userspace under kernel
- netlink interface and the input layer interface, and don't bother at all
- with hotkey_report_mode.
- 
-->>>>>>> /Documentation/thinkpad-acpi.txt
--
- Bluetooth
- ---------
- 
+ 		ret = -ENODEV;
+ 		if (!dev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,13 +61,16 @@ atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
+git-acpi-fixup.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 alsa-procfs-fix.patch
+git-alsa-sc6000-build-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
 fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
@@ -217,6 +115,7 @@ git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
 git-s390.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
@@ -229,6 +128,7 @@ git-unionfs.patch
 git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-wireless.patch
+git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 git-net-vs-git-wireless.patch
 git-net-vs-git-wireless-2.patch
@@ -294,7 +194,6 @@ binfmt_flat-warning-fixes.patch
 console-events-and-accessibility-fix.patch
 send-quota-messages-via-netlink-fix-fix.patch
 dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
-modpost-detect-unterminated-device-id-lists-fix.patch
 pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
 i2o-fix-defined-but-not-used-build-warnings-fix.patch
 procfs-detect-duplicate-names-fix.patch
@@ -351,4 +250,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-acpi-fixup.patch
+git-net-fix-2.patch
