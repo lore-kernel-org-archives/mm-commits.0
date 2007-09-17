@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-af_iucv-fixes.patch added to -mm tree
-Date: Mon, 17 Sep 2007 15:02:22 -0700
-Message-ID: <200709172208.l8HM86i2007417@imap1.linux-foundation.org>
+Subject: + git-net-sgiseeq-fix.patch added to -mm tree
+Date: Mon, 17 Sep 2007 15:11:58 -0700
+Message-ID: <200709172217.l8HMHert007791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754542AbXIQWIY (ORCPT
+	by vger.kernel.org with ESMTP id S1756957AbXIQWRw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 18:08:24 -0400
+	Mon, 17 Sep 2007 18:17:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, jenhunt@us.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     git-net: af_iucv fixes
+     git-net: sgiseeq fix
 has been added to the -mm tree.  Its filename is
-     git-net-af_iucv-fixes.patch
+     git-net-sgiseeq-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,66 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: af_iucv fixes
+Subject: git-net: sgiseeq fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/iucv/af_iucv.c: In function 'iucv_sock_alloc':
-net/iucv/af_iucv.c:216: warning: passing argument 1 of 'sk_alloc' makes pointer from integer without a cast
-net/iucv/af_iucv.c:216: warning: passing argument 3 of 'sk_alloc' makes integer from pointer without a cast
-net/iucv/af_iucv.c:216: warning: passing argument 4 of 'sk_alloc' makes pointer from integer without a cast
-net/iucv/af_iucv.c:216: error: too few arguments to function 'sk_alloc'
-net/iucv/af_iucv.c: At top level:
-net/iucv/af_iucv.c:1137: warning: initialization from incompatible pointer type
+drivers/net/sgiseeq.c: In function `record_rx_errors':
+drivers/net/sgiseeq.c:273: error: `dev' undeclared (first use in this function)
+drivers/net/sgiseeq.c:273: error: (Each undeclared identifier is reported only once
+drivers/net/sgiseeq.c:273: error: for each function it appears in.)
 
-(include/net/iucv/af_iucv.h has a bunch of static decalrations which is pretty
-pointless - they should all be deleted.  Any which are still needed by
-net/iucv/af_iucv.c should be placed in that file).
-
-Cc: Jennifer Hunt <jenhunt@us.ibm.com>
-Cc: Frank Pavlic <fpavlic@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/iucv/af_iucv.h |    1 -
- net/iucv/af_iucv.c         |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/sgiseeq.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN net/iucv/af_iucv.c~git-net-af_iucv-fixes net/iucv/af_iucv.c
---- a/net/iucv/af_iucv.c~git-net-af_iucv-fixes
-+++ a/net/iucv/af_iucv.c
-@@ -213,7 +213,7 @@ static struct sock *iucv_sock_alloc(stru
- {
- 	struct sock *sk;
- 
--	sk = sk_alloc(PF_IUCV, prio, &iucv_proto, 1);
-+	sk = sk_alloc(&init_net, PF_IUCV, prio, &iucv_proto, 1);
- 	if (!sk)
- 		return NULL;
- 
-@@ -240,7 +240,7 @@ static struct sock *iucv_sock_alloc(stru
+diff -puN drivers/net/sgiseeq.c~git-net-sgiseeq-fix drivers/net/sgiseeq.c
+--- a/drivers/net/sgiseeq.c~git-net-sgiseeq-fix
++++ a/drivers/net/sgiseeq.c
+@@ -265,8 +265,7 @@ static int init_seeq(struct net_device *
+ 	return 0;
  }
  
- /* Create an IUCV socket */
--static int iucv_sock_create(struct socket *sock, int protocol)
-+static int iucv_sock_create(struct net *net, struct socket *sock, int protocol)
+-static inline void record_rx_errors(struct sgiseeq_private *sp,
+-				    unsigned char status)
++static void record_rx_errors(struct net_device *dev, unsigned char status)
  {
- 	struct sock *sk;
+ 	if (status & SEEQ_RSTAT_OVERF ||
+ 	    status & SEEQ_RSTAT_SFRAME)
+@@ -338,7 +337,7 @@ static inline void sgiseeq_rx(struct net
+ 				dev->stats.rx_dropped++;
+ 			}
+ 		} else {
+-			record_rx_errors(sp, pkt_status);
++			record_rx_errors(dev, pkt_status);
+ 		}
  
-diff -puN include/net/iucv/af_iucv.h~git-net-af_iucv-fixes include/net/iucv/af_iucv.h
---- a/include/net/iucv/af_iucv.h~git-net-af_iucv-fixes
-+++ a/include/net/iucv/af_iucv.h
-@@ -78,7 +78,6 @@ static void iucv_sock_destruct(struct so
- static void iucv_sock_cleanup_listen(struct sock *parent);
- static void iucv_sock_kill(struct sock *sk);
- static void iucv_sock_close(struct sock *sk);
--static int  iucv_sock_create(struct socket *sock, int proto);
- static int  iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
- 			int addr_len);
- static int  iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
+ 		/* Return the entry to the ring pool. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +118,7 @@ nit-net-skge-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 net-atm-lecc-printk-warning-fix.patch
 git-net-af_iucv-fixes.patch
+git-net-sgiseeq-fix.patch
 git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
 git-tehuti-vs-git-net-fix.patch
 git-backlight.patch
