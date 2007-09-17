@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-fix-99.patch added to -mm tree
-Date: Mon, 17 Sep 2007 03:43:59 -0700
-Message-ID: <200709171049.l8HAnerj008911@imap1.linux-foundation.org>
+Subject: + git-wireless-b44-is-bust.patch added to -mm tree
+Date: Mon, 17 Sep 2007 03:50:56 -0700
+Message-ID: <200709171056.l8HAubZL009161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750892AbXIQKtn (ORCPT
+	by vger.kernel.org with ESMTP id S1751581AbXIQK5z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 06:49:43 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HAneZt023835
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:49:41 -0700
+	Mon, 17 Sep 2007 06:57:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     git-wireless-fix-99
+     git-wireless-b44-is-bust
 has been added to the -mm tree.  Its filename is
-     git-wireless-fix-99.patch
+     git-wireless-b44-is-bust.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,28 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-fix-99
+Subject: git-wireless-b44-is-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/net/b44.c: In function 'b44_get_invariants':
+drivers/net/b44.c:2073: error: 'eeprom' undeclared (first use in this function)
+drivers/net/b44.c:2073: error: (Each undeclared identifier is reported only once
+drivers/net/b44.c:2073: error: for each function it appears in.)
+drivers/net/b44.c:2077: error: 'struct b44' has no member named 'core_unit'
+drivers/net/b44.c:2077: error: implicit declaration of function 'ssb_core_unit'
+drivers/net/b44.c:2078: error: 'SB_PCI_DMA' undeclared (first use in this function)
+drivers/net/b44.c:2084: error: implicit declaration of function 'ssb_get_core_rev'
+drivers/net/b44.c:2087: warning: label 'out' defined but not used
+drivers/net/b44.c: In function 'b44_init_one':
+drivers/net/b44.c:2155: error: 'struct b44' has no member named 'pdev'
+drivers/net/b44.c:2162: error: 'struct b44' has no member named 'regs'
+drivers/net/b44.c:2163: error: 'struct b44' has no member named 'regs'
+drivers/net/b44.c:2186: error: 'sdev' undeclared (first use in this function)
+drivers/net/b44.c:2250: warning: label 'out' defined but not used
+drivers/net/b44.c:2130: error: label 'err_out_free_res' used but not defined
+drivers/net/b44.c:2115: error: label 'err_out_disable_pdev' used but not defined
+drivers/net/b44.c: At top level:
+drivers/net/b44.c:2332: warning: initialization from incompatible pointer type
+
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/b43/main.c~git-wireless-fix-99 drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~git-wireless-fix-99
-+++ a/drivers/net/wireless/b43/main.c
-@@ -3917,8 +3917,7 @@ static int b43_wireless_init(struct ssb_
- 
- 	/* fill hw info */
- 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
--	    IEEE80211_HW_MONITOR_DURING_OPER |
--	    IEEE80211_HW_DEVICE_HIDES_WEP;
-+	    IEEE80211_HW_MONITOR_DURING_OPER;
- 	hw->max_signal = 100;
- 	hw->max_rssi = -110;
- 	hw->max_noise = -110;
+diff -puN drivers/net/Kconfig~git-wireless-b44-is-bust drivers/net/Kconfig
+--- a/drivers/net/Kconfig~git-wireless-b44-is-bust
++++ a/drivers/net/Kconfig
+@@ -1446,6 +1446,7 @@ config APRICOT
+ config B44
+ 	tristate "Broadcom 440x/47xx ethernet support"
+ 	depends on SSB_POSSIBLE
++	depends on BROKEN
+ 	select SSB
+ 	select MII
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +159,7 @@ more-wireless-borkage-2.patch
 more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
+git-wireless-b44-is-bust.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
