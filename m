@@ -1,66 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - net-hack-hack.patch removed from -mm tree
-Date: Mon, 17 Sep 2007 03:20:14 -0700
-Message-ID: <200709171020.l8HAKEXL007699@imap1.linux-foundation.org>
+Subject: + git-acpi-fixup.patch added to -mm tree
+Date: Mon, 17 Sep 2007 03:23:52 -0700
+Message-ID: <200709171023.l8HANqxY008099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58429 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50481 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753765AbXIQKVm (ORCPT
+	by vger.kernel.org with ESMTP id S1753845AbXIQKXz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 06:21:42 -0400
+	Mon, 17 Sep 2007 06:23:55 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8HANqxu022625
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2007 03:23:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     net-hack-hack
-has been removed from the -mm tree.  Its filename was
-     net-hack-hack.patch
+     git-acpi-fixup
+has been added to the -mm tree.  Its filename is
+     git-acpi-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: net-hack-hack
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-wtf is going on?
-
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/b44.c               |    1 -
- drivers/net/wireless/b43/main.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ Documentation/thinkpad-acpi.txt |   75 ------------------------------
+ 1 file changed, 75 deletions(-)
 
-diff -puN drivers/net/b44.c~net-hack-hack drivers/net/b44.c
---- a/drivers/net/b44.c~net-hack-hack
-+++ a/drivers/net/b44.c
-@@ -2101,7 +2101,6 @@ static int __devinit b44_init_one(struct
- 		goto out;
- 	}
+diff -puN Documentation/thinkpad-acpi.txt~git-acpi-fixup Documentation/thinkpad-acpi.txt
+--- a/Documentation/thinkpad-acpi.txt~git-acpi-fixup
++++ a/Documentation/thinkpad-acpi.txt
+@@ -173,17 +173,10 @@ below), the driver will report HKEY even
  
--	SET_MODULE_OWNER(dev);
- 	SET_NETDEV_DEV(dev, sdev->dev);
+ Some of these events refer to hot key presses, but not all.
  
- 	/* No interesting netdevice features in this card... */
-diff -puN drivers/net/wireless/b43/main.c~net-hack-hack drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~net-hack-hack
-+++ a/drivers/net/wireless/b43/main.c
-@@ -3917,8 +3917,7 @@ static int b43_wireless_init(struct ssb_
+-<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
+-The driver will generate events over the input layer for hot keys and
+-radio switches, and over the ACPI netlink layer for other events.  The
+-input layer support accepts the standard IOCTLs to remap the keycodes
+-assigned to each hot key.
+-=======
+ The driver will generate events over the input layer for hot keys and
+ radio switches, and over the netlink layer for other events.  The input
+ layer support accepts the standard IOCTLs to remap the keycodes assigned
+ to each hot key.
+->>>>>>> /Documentation/thinkpad-acpi.txt
  
- 	/* fill hw info */
- 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
--	    IEEE80211_HW_MONITOR_DURING_OPER |
--	    IEEE80211_HW_DEVICE_HIDES_WEP;
-+	    IEEE80211_HW_MONITOR_DURING_OPER;
- 	hw->max_signal = 100;
- 	hw->max_rssi = -110;
- 	hw->max_noise = -110;
+ The hot key bit mask allows some control over which hot keys generate
+ events.  If a key is "masked" (bit set to 0 in the mask), the firmware
+@@ -265,22 +258,6 @@ sysfs notes:
+ 		disabled" postition, and 1 if the switch is in the
+ 		"radios enabled" position.
+ 
+-<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
+-	hotkey_report_mode:
+-		Returns the state of the procfs ACPI event report mode
+-		filter for hot keys.  If it is set to 1 (the default),
+-		all hot key presses are reported both through the input
+-		layer and also as ACPI events through procfs (but not
+-		through netlink).  If it is set to 2, hot key presses
+-		are reported only through the input layer.
+-
+-		This attribute is read-only in kernels 2.6.23 or later,
+-		and read-write on earlier kernels.
+-
+-		May return -EPERM (write access locked out by module
+-		parameter) or -EACCES (read-only).
+-
+-=======
+ 	hotkey_report_mode:
+ 		Returns the state of the procfs ACPI event report mode
+ 		filter for hot keys.  If 1, all hot key presses are
+@@ -294,7 +271,6 @@ sysfs notes:
+ 		May return -EPERM (write access locked out by module
+ 		parameter) or -EACCES (read-only).
+ 
+->>>>>>> /Documentation/thinkpad-acpi.txt
+ input layer notes:
+ 
+ A Hot key is mapped to a single input layer EV_KEY event, possibly
+@@ -442,55 +418,6 @@ Non hot-key ACPI HKEY event map:
+ 0x5002		Lid opened
+ 0x7000		Radio Switch may have changed state
+ 
+-<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
+-The above events are not propagated by the driver, except for legacy
+-compatibility purposes when hotkey_report_mode is set to 1.
+-
+-Compatibility notes:
+-
+-ibm-acpi and thinkpad-acpi 0.15 (mainline kernels before 2.6.23) never
+-supported the input layer, and sent events over the procfs ACPI event
+-interface.
+-
+-To avoid sending duplicate events over the input layer and the ACPI
+-event interface, thinkpad-acpi 0.16 implements a module parameter
+-(hotkey_report_mode), and also a sysfs device attribute with the same
+-name.
+-
+-Make no mistake here: userspace is expected to switch to using the input
+-layer interface of thinkpad-acpi, together with the ACPI netlink event
+-interface in kernels 2.6.23 and later, or with the ACPI procfs event
+-interface in kernels 2.6.22 and earlier.
+-
+-If no hotkey_report_mode module parameter is specified (or it is set to
+-zero), the driver defaults to mode 1 (see below), and on kernels 2.6.22
+-and earlier, also allows one to change the hotkey_report_mode through
+-sysfs.  In kernels 2.6.23 and later, where the netlink ACPI event
+-interface is available, hotkey_report_mode cannot be changed through
+-sysfs (it is read-only).
+-
+-If the hotkey_report_mode module parameter is set to 1 or 2, it cannot
+-be changed later through sysfs (any writes will return -EPERM to signal
+-that hotkey_report_mode was locked.  On 2.6.23 and later, where
+-hotkey_report_mode cannot be changed at all, writes will return -EACES).
+-
+-hotkey_report_mode set to 1 makes the driver export through the procfs
+-ACPI event interface all hot key presses (which are *also* sent to the
+-input layer).  This is a legacy compatibility behaviour, and it is also
+-the default mode of operation for the driver.
+-
+-hotkey_report_mode set to 2 makes the driver filter out the hot key
+-presses from the procfs ACPI event interface, so these events will only
+-be sent through the input layer.  Userspace that has been updated to use
+-the thinkpad-acpi input layer interface should set hotkey_report_mode to
+-2.
+-
+-Hot key press events are never sent to the ACPI netlink event interface.
+-Really up-to-date userspace under kernel 2.6.23 and later is to use the
+-netlink interface and the input layer interface, and don't bother at all
+-with hotkey_report_mode.
+-
+-=======
+ The above events are not propagated by the driver, except for legacy
+ compatibility purposes when hotkey_report_mode is set to 1.
+ 
+@@ -534,8 +461,6 @@ Really up-to-date userspace under kernel
+ netlink interface and the input layer interface, and don't bother at all
+ with hotkey_report_mode.
+ 
+->>>>>>> /Documentation/thinkpad-acpi.txt
+-
+ Bluetooth
+ ---------
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,7 +239,6 @@ iwl3945-is-bust.patch
 more-wireless-borkage.patch
 more-wireless-borkage-2.patch
 more-wireless-borkage-3.patch
-net-hack-hack.patch
 p54pci-terminate-pci-table.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
@@ -257,3 +351,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+git-acpi-fixup.patch
