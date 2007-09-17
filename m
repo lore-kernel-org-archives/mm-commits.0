@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + disable-sys_timerfd-for-2623.patch added to -mm tree
-Date: Mon, 17 Sep 2007 14:21:09 -0700
-Message-ID: <200709172121.l8HLL9RD005485@imap1.linux-foundation.org>
+Subject: + git-net-af_iucv-fixes.patch added to -mm tree
+Date: Mon, 17 Sep 2007 15:02:22 -0700
+Message-ID: <200709172208.l8HM86i2007417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37448 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753907AbXIQVVP (ORCPT
+	by vger.kernel.org with ESMTP id S1754542AbXIQWIY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 17:21:15 -0400
+	Mon, 17 Sep 2007 18:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, jenhunt@us.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     disable sys_timerfd() for 2.6.23
+     git-net: af_iucv fixes
 has been added to the -mm tree.  Its filename is
-     disable-sys_timerfd-for-2623.patch
+     git-net-af_iucv-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: disable sys_timerfd() for 2.6.23
+Subject: git-net: af_iucv fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-There is still some confusion and disagreement over what this interface should
-actually do.  So it is best that we disable it in 2.6.23 until we get that
-fully sorted out.
+net/iucv/af_iucv.c: In function 'iucv_sock_alloc':
+net/iucv/af_iucv.c:216: warning: passing argument 1 of 'sk_alloc' makes pointer from integer without a cast
+net/iucv/af_iucv.c:216: warning: passing argument 3 of 'sk_alloc' makes integer from pointer without a cast
+net/iucv/af_iucv.c:216: warning: passing argument 4 of 'sk_alloc' makes pointer from integer without a cast
+net/iucv/af_iucv.c:216: error: too few arguments to function 'sk_alloc'
+net/iucv/af_iucv.c: At top level:
+net/iucv/af_iucv.c:1137: warning: initialization from incompatible pointer type
 
-(sys_timerfd() was present in 2.6.22 but it was apparently broken, so here we
-assume that nobody is using it yet).
+(include/net/iucv/af_iucv.h has a bunch of static decalrations which is pretty
+pointless - they should all be deleted.  Any which are still needed by
+net/iucv/af_iucv.c should be placed in that file).
 
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jennifer Hunt <jenhunt@us.ibm.com>
+Cc: Frank Pavlic <fpavlic@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- 1 files changed, 1 insertion(+)
+ include/net/iucv/af_iucv.h |    1 -
+ net/iucv/af_iucv.c         |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/Kconfig~disable-sys_timerfd-for-2623 fs/Kconfig
-diff -puN init/Kconfig~disable-sys_timerfd-for-2623 init/Kconfig
---- a/init/Kconfig~disable-sys_timerfd-for-2623
-+++ a/init/Kconfig
-@@ -545,6 +545,7 @@ config SIGNALFD
- config TIMERFD
- 	bool "Enable timerfd() system call" if EMBEDDED
- 	select ANON_INODES
-+	depends on BROKEN
- 	default y
- 	help
- 	  Enable the timerfd() system call that allows to receive timer
+diff -puN net/iucv/af_iucv.c~git-net-af_iucv-fixes net/iucv/af_iucv.c
+--- a/net/iucv/af_iucv.c~git-net-af_iucv-fixes
++++ a/net/iucv/af_iucv.c
+@@ -213,7 +213,7 @@ static struct sock *iucv_sock_alloc(stru
+ {
+ 	struct sock *sk;
+ 
+-	sk = sk_alloc(PF_IUCV, prio, &iucv_proto, 1);
++	sk = sk_alloc(&init_net, PF_IUCV, prio, &iucv_proto, 1);
+ 	if (!sk)
+ 		return NULL;
+ 
+@@ -240,7 +240,7 @@ static struct sock *iucv_sock_alloc(stru
+ }
+ 
+ /* Create an IUCV socket */
+-static int iucv_sock_create(struct socket *sock, int protocol)
++static int iucv_sock_create(struct net *net, struct socket *sock, int protocol)
+ {
+ 	struct sock *sk;
+ 
+diff -puN include/net/iucv/af_iucv.h~git-net-af_iucv-fixes include/net/iucv/af_iucv.h
+--- a/include/net/iucv/af_iucv.h~git-net-af_iucv-fixes
++++ a/include/net/iucv/af_iucv.h
+@@ -78,7 +78,6 @@ static void iucv_sock_destruct(struct so
+ static void iucv_sock_cleanup_listen(struct sock *parent);
+ static void iucv_sock_kill(struct sock *sk);
+ static void iucv_sock_close(struct sock *sk);
+-static int  iucv_sock_create(struct socket *sock, int proto);
+ static int  iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
+ 			int addr_len);
+ static int  iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +93,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
 atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+disable-sys_timerfd-for-2623.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 git-acpi.patch
@@ -110,6 +140,7 @@ git-net-fix-2.patch
 nit-net-skge-build-fix.patch
 revert-8139too-clean-up-i-o-remapping.patch
 net-atm-lecc-printk-warning-fix.patch
+git-net-af_iucv-fixes.patch
 git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
 git-tehuti-vs-git-net-fix.patch
 git-backlight.patch
@@ -259,4 +290,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-disable-sys_timerfd-for-2623.patch
