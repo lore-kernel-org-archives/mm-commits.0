@@ -1,50 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-advansysc-linkage-fix.patch added to -mm tree
-Date: Sun, 16 Sep 2007 23:36:55 -0700
-Message-ID: <200709170636.l8H6atCB026935@imap1.linux-foundation.org>
+Subject: - drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch removed from -mm tree
+Date: Sun, 16 Sep 2007 23:52:12 -0700
+Message-ID: <200709170657.l8H6vuja027630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbXIQGhi (ORCPT
+	by vger.kernel.org with ESMTP id S1752031AbXIQG6D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 02:37:38 -0400
+	Mon, 17 Sep 2007 02:58:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, James.Bottomley@steeleye.com, nix.or.die@googlemail.com
+To: matthew@wil.cx, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/advansys.c: linkage fix
-has been added to the -mm tree.  Its filename is
-     drivers-scsi-advansysc-linkage-fix.patch
+     drivers/scsi/advansys.c: ld error
+has been removed from the -mm tree.  Its filename was
+     drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was a dupe
 
 ------------------------------------------------------
-Subject: drivers/scsi/advansys.c: linkage fix
+Subject: drivers/scsi/advansys.c: ld error
 From: Matthew Wilcox <matthew@wil.cx>
-
-advansys.c:(.init.text+0x38ea): undefined reference to `isa_register_driver'
 
 When CONFIG_ISA is disabled, the isa_driver support will not be compiled
 in.  Define stubs so that we don't get link-time errors.
 
 Signed-off-by: Matthew Wilcox <matthew@wil.cx>
-Cc: Gabriel C <nix.or.die@googlemail.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/isa.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ 1 files changed, 11 insertions(+)
 
-diff -puN include/linux/isa.h~drivers-scsi-advansysc-linkage-fix include/linux/isa.h
---- a/include/linux/isa.h~drivers-scsi-advansysc-linkage-fix
+diff -puN include/linux/isa.h~drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1 include/linux/isa.h
+--- a/include/linux/isa.h~drivers-scsi-advansysc-ld-error-re-2623-rc3-mm1
 +++ a/include/linux/isa.h
 @@ -22,7 +22,18 @@ struct isa_driver {
  
