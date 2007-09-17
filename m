@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch added to -mm tree
-Date: Mon, 17 Sep 2007 00:10:27 -0700
-Message-ID: <200709170716.l8H7G8ZI028247@imap1.linux-foundation.org>
+Subject: + i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch added to -mm tree
+Date: Mon, 17 Sep 2007 00:25:24 -0700
+Message-ID: <200709170731.l8H7V54s028712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45930 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750839AbXIQHQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751800AbXIQHbT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 03:16:25 -0400
+	Mon, 17 Sep 2007 03:31:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, hch@lst.de
+Cc: akpm@linux-foundation.org, Juha.Laiho@iki.fi, ak@suse.de, greg@kroah.com
 
 
 The patch titled
-     fix-x86_64-mm-honor-notify_die-returning-notify_stop
+     i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
 has been added to the -mm tree.  Its filename is
-     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+     i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-honor-notify_die-returning-notify_stop
+Subject: i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/kdebug.h:4,
-                 from kernel/notifier.c:1:
-include/asm/kdebug.h:25: error: syntax error before '__die'
-include/asm/kdebug.h:25: warning: type defaults to 'int' in declaration of '__die'
-include/asm/kdebug.h:25: warning: data definition has no type or storage class
+fix x86_64 build.
 
-Missing __must_check since the notfier.h include was removed.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Juha Laiho <Juha.Laiho@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86_64/kdebug.h |    2 ++
+ arch/i386/pci/common.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/asm-x86_64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix include/asm-x86_64/kdebug.h
---- a/include/asm-x86_64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix
-+++ a/include/asm-x86_64/kdebug.h
-@@ -1,6 +1,8 @@
- #ifndef _X86_64_KDEBUG_H
- #define _X86_64_KDEBUG_H 1
+diff -puN arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
++++ a/arch/i386/pci/common.c
+@@ -289,6 +289,7 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL685c G1"),
+ 		},
+ 	},
++#ifdef __i386__
+ 	{
+ 		.callback = assign_all_busses,
+ 		.ident = "Compaq EVO N800c",
+@@ -297,6 +298,7 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "EVO N800c"),
+ 		},
+ 	},
++#endif
+ 	{}
+ };
  
-+#include <linux/compiler.h>
-+
- struct pt_regs;
- 
- /* Grossly misnamed. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +119,7 @@ git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
 git-s390.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
