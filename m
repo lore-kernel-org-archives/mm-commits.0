@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-sc6000-build-fix.patch added to -mm tree
-Date: Mon, 17 Sep 2007 00:49:38 -0700
-Message-ID: <200709170755.l8H7tJw0029407@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch added to -mm tree
+Date: Mon, 17 Sep 2007 00:55:28 -0700
+Message-ID: <200709170801.l8H819sm029700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228AbXIQH4Y (ORCPT
+	by vger.kernel.org with ESMTP id S1752210AbXIQIBN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 03:56:24 -0400
+	Mon, 17 Sep 2007 04:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     git-alsa-sc6000-build-fix
+     fix gregkh-driver-kobject-remove-the-static-array-for-the-name
 has been added to the -mm tree.  Its filename is
-     git-alsa-sc6000-build-fix.patch
+     fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa-sc6000-build-fix
+Subject: fix gregkh-driver-kobject-remove-the-static-array-for-the-name
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sound/isa/sc6000.c: In function 'sc6000_dsp_reset':
-sound/isa/sc6000.c:270: error: implicit declaration of function 'udelay'        sound/isa/sc6000.c: In function 'sc6000_init_mss':
-sound/isa/sc6000.c:327: error: implicit declaration of function 'msleep'
-{standard input}: Assembler messages:
+drivers/pci/setup-irq.c: In function 'pdev_fixup_irq':
+drivers/pci/setup-irq.c:50: error: 'struct kobject' has no member named 'name'
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/isa/sc6000.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/setup-irq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/isa/sc6000.c~git-alsa-sc6000-build-fix sound/isa/sc6000.c
---- a/sound/isa/sc6000.c~git-alsa-sc6000-build-fix
-+++ a/sound/isa/sc6000.c
-@@ -25,6 +25,7 @@
+diff -puN drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name drivers/pci/setup-irq.c
+--- a/drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name
++++ a/drivers/pci/setup-irq.c
+@@ -48,7 +48,7 @@ pdev_fixup_irq(struct pci_dev *dev,
+ 	dev->irq = irq;
  
- #include <sound/driver.h>
- #include <linux/module.h>
-+#include <linux/delay.h>
- #include <linux/isa.h>
- #include <linux/io.h>
- #include <asm/dma.h>
+ 	pr_debug("PCI: fixup irq: (%s) got %d\n",
+-		dev->dev.kobj.name, dev->irq);
++		dev->dev.kobj.k_name, dev->irq);
+ 
+ 	/* Always tell the device, so the driver knows what is
+ 	   the real IRQ to use; the device does not use it. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,6 +65,7 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 alsa-procfs-fix.patch
+git-alsa-sc6000-build-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
@@ -250,4 +249,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-alsa-sc6000-build-fix.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
