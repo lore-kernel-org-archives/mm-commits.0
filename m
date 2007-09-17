@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-per-device-dirty-threshold-warning-fix.patch added to -mm tree
-Date: Mon, 17 Sep 2007 15:26:36 -0700
-Message-ID: <200709172232.l8HMWIhO008328@imap1.linux-foundation.org>
+Subject: + mm-dirty-balancing-for-tasks-warning-fix.patch added to -mm tree
+Date: Mon, 17 Sep 2007 15:36:03 -0700
+Message-ID: <200709172241.l8HMfkdN008679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58775 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42917 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754709AbXIQWc0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756101AbXIQWmT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 18:32:26 -0400
+	Mon, 17 Sep 2007 18:42:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     mm-per-device-dirty-threshold warning fix
+     mm-dirty-balancing-for-tasks-warning-fix
 has been added to the -mm tree.  Its filename is
-     mm-per-device-dirty-threshold-warning-fix.patch
+     mm-dirty-balancing-for-tasks-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,25 +26,18 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-per-device-dirty-threshold warning fix
+Subject: mm-dirty-balancing-for-tasks-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-sh allmodconfig:
-
-mm/page-writeback.c: In function `task_dirty_limit':
-mm/page-writeback.c:230: warning: comparison of distinct pointer types lacks a cast
-mm/page-writeback.c: In function `get_dirty_limits':
-mm/page-writeback.c:340: warning: comparison of distinct pointer types lacks a cast
 
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold-warning-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-per-device-dirty-threshold-warning-fix
+diff -puN mm/page-writeback.c~mm-dirty-balancing-for-tasks-warning-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-dirty-balancing-for-tasks-warning-fix
 +++ a/mm/page-writeback.c
 @@ -223,7 +223,7 @@ void task_dirty_limit(struct task_struct
  {
@@ -55,15 +48,6 @@ diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold-warning-fix mm/page-
  
  	task_dirties_fraction(tsk, &numerator, &denominator);
  	inv *= numerator;
-@@ -328,7 +328,7 @@ get_dirty_limits(long *pbackground, long
- 	*pdirty = dirty;
- 
- 	if (bdi) {
--		long long bdi_dirty = dirty;
-+		u64 bdi_dirty = dirty;
- 		long numerator, denominator;
- 
- 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,7 +171,10 @@ slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support-fix.patch
 mm-mempolicyc-cleanups-fix.patch
 mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
@@ -270,4 +257,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-mm-per-device-dirty-threshold-warning-fix.patch
