@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-tehuti-vs-git-net.patch added to -mm tree
-Date: Mon, 17 Sep 2007 13:39:08 -0700
-Message-ID: <200709172039.l8HKd8xe003494@imap1.linux-foundation.org>
+Subject: + convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch added to -mm tree
+Date: Mon, 17 Sep 2007 13:50:43 -0700
+Message-ID: <200709172050.l8HKoh9V004050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45639 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756069AbXIQUjZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754798AbXIQUvZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 16:39:25 -0400
+	Mon, 17 Sep 2007 16:51:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: baum@tehutinetworks.net
+Cc: travis@sgi.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     git-tehuti-vs-git-net
+     ppc64: Convert cpu_sibling_map to a per_cpu data array ppc64 v2
 has been added to the -mm tree.  Its filename is
-     git-tehuti-vs-git-net.patch
+     convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,182 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-tehuti-vs-git-net
-From: "Alexander Indenbaum" <baum@tehutinetworks.net>
+Subject: ppc64: Convert cpu_sibling_map to a per_cpu data array ppc64 v2
+From: Mike Travis <travis@sgi.com>
 
+This patch applies after:
+
+	convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+
+and should fix the "reference cpu_sibling_map before setup_per_cpu_areas()
+has been called" problem.  In addtion, the cpu_sibiling_map macro has been
+removed [this was missed in my original submission.]
+
+Original Notes:
+
+Convert cpu_sibling_map to a per_cpu cpumask_t array for the ppc64
+architecture.  This fixes build errors in block/blktrace.c and
+kernel/sched.c when CONFIG_SCHED_SMT is defined.
+
+Note: these changes have not been built nor tested.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tehuti.c |   41 ++++++++++++++++++++---------------------
- drivers/net/tehuti.h |    1 +
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ arch/powerpc/kernel/setup-common.c        |   20 ++++++++++++++++----
+ arch/powerpc/kernel/setup_64.c            |    3 +++
+ arch/powerpc/platforms/cell/cbe_cpufreq.c |    2 +-
+ include/asm-powerpc/smp.h                 |    2 +-
+ include/asm-powerpc/topology.h            |    2 +-
+ 5 files changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/tehuti.c~git-tehuti-vs-git-net drivers/net/tehuti.c
---- a/drivers/net/tehuti.c~git-tehuti-vs-git-net
-+++ a/drivers/net/tehuti.c
-@@ -77,7 +77,7 @@ MODULE_DEVICE_TABLE(pci, bdx_pci_tbl);
- /* Definitions needed by ISR or NAPI functions */
- static void bdx_rx_alloc_skbs(struct bdx_priv *priv, struct rxf_fifo *f);
- static void bdx_tx_cleanup(struct bdx_priv *priv);
--static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int *budget);
-+static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int budget);
- 
- /* Definitions needed by FW loading */
- static void bdx_tx_push_desc_safe(struct bdx_priv *priv, void *data, int size);
-@@ -85,6 +85,8 @@ static void bdx_tx_push_desc_safe(struct
- /* Definitions needed by hw_start */
- static int bdx_tx_init(struct bdx_priv *priv);
- static int bdx_rx_init(struct bdx_priv *priv);
-+static void bdx_setmulti(struct net_device *ndev);
-+static void bdx_reload_vlan(struct net_device *ndev);
- 
- /* Definitions needed by bdx_close */
- static void bdx_rx_free(struct bdx_priv *priv);
-@@ -265,8 +267,8 @@ static irqreturn_t bdx_isr_napi(int irq,
- 		bdx_isr_extra(priv, isr);
- 
- 	if (isr & (IR_RX_DESC_0 | IR_TX_FREE_0)) {
--		if (likely(netif_rx_schedule_prep(ndev))) {
--			__netif_rx_schedule(ndev);
-+		if (likely(netif_rx_schedule_prep(ndev, &priv->napi))) {
-+			__netif_rx_schedule(ndev, &priv->napi);
- 			RET(IRQ_HANDLED);
- 		} else {
- 			/* NOTE: we get here if intr has slipped into window
-@@ -286,24 +288,26 @@ static irqreturn_t bdx_isr_napi(int irq,
- 	RET(IRQ_HANDLED);
- }
- 
--static int bdx_poll(struct net_device *ndev, int *budget)
-+static int bdx_poll(struct napi_struct *napi, int budget)
- {
--	struct bdx_priv *priv = ndev->priv;
-+	struct bdx_priv *priv = container_of(napi, struct bdx_priv, napi);
-+	struct net_device *ndev = priv->ndev;
-+	int work_done = 0;
- 	ENTER;
- 	bdx_tx_cleanup(priv);
--	if (!bdx_rx_receive(priv, &priv->rxd_fifo0, budget)
--	    || (priv->napi_stop++ >= 30)) {
-+	work_done = bdx_rx_receive(priv, &priv->rxd_fifo0, budget);
-+	if ((work_done == 0) || (priv->napi_stop++ >= 30)) {
- 		DBG("rx poll is done. backing to isr-driven\n");
- 
- 		/* from time to time we exit to let NAPI layer release
- 		 * device lock and allow waiting tasks (eg rmmod) to advance) */
- 		priv->napi_stop = 0;
- 
--		netif_rx_complete(ndev);
-+		netif_rx_complete(ndev, napi);
- 		bdx_enable_interrupts(priv);
- 		return 0;
- 	}
--	return 1;
-+	return work_done;
- }
- 
- /* bdx_fw_load - loads firmware to NIC
-@@ -411,7 +415,7 @@ static int bdx_hw_start(struct bdx_priv 
- 		goto err_irq;
- 	bdx_enable_interrupts(priv);
- 
--	netif_poll_enable(priv->ndev);
-+	napi_enable(&priv->napi);
- 
- 	RET(0);
- 
-@@ -425,7 +429,7 @@ static void bdx_hw_stop(struct bdx_priv 
- 	bdx_disable_interrupts(priv);
- 	free_irq(priv->pdev->irq, priv->ndev);
- 
--	netif_poll_disable(priv->ndev);
-+	napi_disable(&priv->napi);
- 	netif_carrier_off(priv->ndev);
- 	netif_stop_queue(priv->ndev);
- 
-@@ -1200,7 +1204,7 @@ static void bdx_recycle_skb(struct bdx_p
- 
- /* TBD: replace memcpy func call by explicite inline asm */
- 
--static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int *budget)
-+static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int budget)
- {
- 	struct sk_buff *skb, *skb2;
- 	struct rxd_desc *rxdd;
-@@ -1208,7 +1212,6 @@ static int bdx_rx_receive(struct bdx_pri
- 	struct rxf_fifo *rxf_fifo;
- 	int tmp_len, size;
- 	int done = 0;
--	int max_done = BDX_MAX_RX_DONE;
- 	struct rxdb *db = NULL;
- 	/* Unmarshalled descriptor - copy of descriptor in host order */
- 	u32 rxd_val1;
-@@ -1216,7 +1219,6 @@ static int bdx_rx_receive(struct bdx_pri
- 	u16 rxd_vlan;
- 
- 	ENTER;
--	max_done = min(*budget, priv->ndev->quota);
- 
- 	priv->ndev->last_rx = jiffies;
- 	f->m.wptr = READ_REG(priv, f->m.reg_WPTR) & TXF_WPTR_WR_PTR;
-@@ -1296,7 +1298,7 @@ static int bdx_rx_receive(struct bdx_pri
- 
- 		NETIF_RX_MUX(priv, rxd_val1, rxd_vlan, skb);
- 
--		if (++done >= max_done)
-+		if (++done >= budget)
- 			break;
+diff -puN arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix arch/powerpc/kernel/setup-common.c
+--- a/arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -411,16 +411,28 @@ void __init smp_setup_cpu_maps(void)
+ 		of_node_put(dn);
  	}
  
-@@ -1307,9 +1309,7 @@ static int bdx_rx_receive(struct bdx_pri
- 
- 	bdx_rx_alloc_skbs(priv, &priv->rxf_fifo0);
- 
--	*budget -= done;
--	priv->ndev->quota -= done;
--	RET(done == max_done);
-+	return done;
- }
- 
- /*************************************************************************
-@@ -1991,8 +1991,6 @@ bdx_probe(struct pci_dev *pdev, const st
- 		ndev->vlan_rx_register = bdx_vlan_rx_register;
- 		ndev->vlan_rx_add_vid = bdx_vlan_rx_add_vid;
- 		ndev->vlan_rx_kill_vid = bdx_vlan_rx_kill_vid;
--		ndev->poll = bdx_poll;
--		ndev->weight = 64;
- 
- 		bdx_ethtool_ops(ndev);	/* ethtool interface */
- 
-@@ -2050,12 +2048,13 @@ bdx_probe(struct pci_dev *pdev, const st
- #endif
- 		spin_lock_init(&priv->tx_lock);
- 
-+		netif_napi_add(ndev, &priv->napi, bdx_poll, 64);
++	vdso_data->processorCount = num_present_cpus();
++#endif /* CONFIG_PPC64 */
++}
 +
- 		/*bdx_hw_reset(priv); */
- 		if (bdx_read_mac(priv)) {
- 			printk(KERN_ERR "tehuti: load MAC address failed\n");
- 			goto err_out_iomap;
- 		}
--		SET_MODULE_OWNER(ndev);
- 		SET_NETDEV_DEV(ndev, &pdev->dev);
- 		if ((err = register_netdev(ndev))) {
- 			printk(KERN_ERR "tehuti: register_netdev failed\n");
-diff -puN drivers/net/tehuti.h~git-tehuti-vs-git-net drivers/net/tehuti.h
---- a/drivers/net/tehuti.h~git-tehuti-vs-git-net
-+++ a/drivers/net/tehuti.h
-@@ -251,6 +251,7 @@ struct bdx_priv {
- 	void __iomem *pBdxRegs;
- 	struct net_device *ndev;
++/*
++ * Being that cpu_sibling_map is now a per_cpu array, then it cannot
++ * be initialized until the per_cpu areas have been created.  This
++ * function is now called from setup_per_cpu_areas().
++ */
++void __init smp_setup_cpu_sibling_map(void)
++{
++#if defined(CONFIG_PPC64)
++	int cpu;
++
+ 	/*
+ 	 * Do the sibling map; assume only two threads per processor.
+ 	 */
+ 	for_each_possible_cpu(cpu) {
+-		cpu_set(cpu, cpu_sibling_map(cpu));
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		if (cpu_has_feature(CPU_FTR_SMT))
+-			cpu_set(cpu ^ 0x1, cpu_sibling_map(cpu));
++			cpu_set(cpu ^ 0x1, per_cpu(cpu_sibling_map, cpu));
+ 	}
+-
+-	vdso_data->processorCount = num_present_cpus();
+ #endif /* CONFIG_PPC64 */
+ }
+ #endif /* CONFIG_SMP */
+diff -puN arch/powerpc/kernel/setup_64.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -596,6 +596,9 @@ void __init setup_per_cpu_areas(void)
+ 		paca[i].data_offset = ptr - __per_cpu_start;
+ 		memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
+ 	}
++
++	/* Now that per_cpu is setup, initialize cpu_sibling_map */
++	smp_setup_cpu_sibling_map();
+ }
+ #endif
  
-+	struct napi_struct		napi;
- 	/* RX FIFOs: 1 for data (full) descs, and 2 for free descs */
- 	struct rxd_fifo rxd_fifo0;
- 	struct rxf_fifo rxf_fifo0;
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -117,7 +117,7 @@ static int cbe_cpufreq_cpu_init(struct c
+ 	policy->cur = cbe_freqs[cur_pmode].frequency;
+ 
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map(policy->cpu);
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
+diff -puN include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix include/asm-powerpc/smp.h
+--- a/include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix
++++ a/include/asm-powerpc/smp.h
+@@ -60,7 +60,6 @@ extern int smp_hw_index[];
+ #endif
+ 
+ DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+-#define cpu_sibling_map(cpu) per_cpu(cpu_sibling_map, cpu)
+ 
+ /* Since OpenPIC has only 4 IPIs, we use slightly different message numbers.
+  *
+@@ -79,6 +78,7 @@ void smp_init_pSeries(void);
+ void smp_init_cell(void);
+ void smp_init_celleb(void);
+ void smp_setup_cpu_maps(void);
++void smp_setup_cpu_sibling_map(void);
+ 
+ extern int __cpu_disable(void);
+ extern void __cpu_die(unsigned int cpu);
+diff -puN include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix
++++ a/include/asm-powerpc/topology.h
+@@ -108,7 +108,7 @@ static inline void sysfs_remove_device_f
+ #ifdef CONFIG_PPC64
+ #include <asm/smp.h>
+ 
+-#define topology_thread_siblings(cpu)	(cpu_sibling_map(cpu))
++#define topology_thread_siblings(cpu)	(per_cpu(cpu_sibling_map, cpu))
+ #endif
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from baum@tehutinetworks.net are
+Patches currently in -mm which might be from travis@sgi.com are
 
-git-tehuti-vs-git-net.patch
-git-tehuti-vs-git-net-fix.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
