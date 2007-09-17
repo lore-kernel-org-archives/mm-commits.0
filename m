@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-sgiseeq-fix.patch added to -mm tree
-Date: Mon, 17 Sep 2007 15:11:58 -0700
-Message-ID: <200709172217.l8HMHert007791@imap1.linux-foundation.org>
+Subject: + export-font_vga_8x16.patch added to -mm tree
+Date: Mon, 17 Sep 2007 15:19:53 -0700
+Message-ID: <200709172225.l8HMPZaw008126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42829 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756957AbXIQWRw (ORCPT
+	by vger.kernel.org with ESMTP id S1759868AbXIQWZx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 18:17:52 -0400
+	Mon, 17 Sep 2007 18:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, adaplas@pol.net, ralf@linux-mips.org
 
 
 The patch titled
-     git-net: sgiseeq fix
+     export font_vga_8x16
 has been added to the -mm tree.  Its filename is
-     git-net-sgiseeq-fix.patch
+     export-font_vga_8x16.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: sgiseeq fix
+Subject: export font_vga_8x16
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/sgiseeq.c: In function `record_rx_errors':
-drivers/net/sgiseeq.c:273: error: `dev' undeclared (first use in this function)
-drivers/net/sgiseeq.c:273: error: (Each undeclared identifier is reported only once
-drivers/net/sgiseeq.c:273: error: for each function it appears in.)
+mips allmodconfig:
 
-Cc: "David S. Miller" <davem@davemloft.net>
+ERROR: "font_vga_8x16" [drivers/video/console/newport_con.ko] undefined!
+
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sgiseeq.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/video/console/font_8x16.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/sgiseeq.c~git-net-sgiseeq-fix drivers/net/sgiseeq.c
---- a/drivers/net/sgiseeq.c~git-net-sgiseeq-fix
-+++ a/drivers/net/sgiseeq.c
-@@ -265,8 +265,7 @@ static int init_seeq(struct net_device *
- 	return 0;
- }
+diff -puN drivers/video/console/font_8x16.c~export-font_vga_8x16 drivers/video/console/font_8x16.c
+--- a/drivers/video/console/font_8x16.c~export-font_vga_8x16
++++ a/drivers/video/console/font_8x16.c
+@@ -5,6 +5,7 @@
+ /**********************************************/
  
--static inline void record_rx_errors(struct sgiseeq_private *sp,
--				    unsigned char status)
-+static void record_rx_errors(struct net_device *dev, unsigned char status)
- {
- 	if (status & SEEQ_RSTAT_OVERF ||
- 	    status & SEEQ_RSTAT_SFRAME)
-@@ -338,7 +337,7 @@ static inline void sgiseeq_rx(struct net
- 				dev->stats.rx_dropped++;
- 			}
- 		} else {
--			record_rx_errors(sp, pkt_status);
-+			record_rx_errors(dev, pkt_status);
- 		}
+ #include <linux/font.h>
++#include <linux/module.h>
  
- 		/* Return the entry to the ring pool. */
+ #define FONTDATAMAX 4096
+ 
+@@ -4629,3 +4630,4 @@ const struct font_desc font_vga_8x16 = {
+ 	.data	= fontdata_8x16,
+ 	.pref	= 0,
+ };
++EXPORT_SYMBOL(font_vga_8x16);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -268,3 +262,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+export-font_vga_8x16.patch
