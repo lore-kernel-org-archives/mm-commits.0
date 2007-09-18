@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch added to -mm tree
-Date: Mon, 17 Sep 2007 21:20:25 -0600
-Message-ID: <200709180320.l8I3KQ4P017979@imap1.linux-foundation.org>
+Subject: + git-net-fix-ibmveth.patch added to -mm tree
+Date: Mon, 17 Sep 2007 21:23:59 -0600
+Message-ID: <200709180323.l8I3NxYw018030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59191 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbXIRDUd (ORCPT
+	by vger.kernel.org with ESMTP id S1752394AbXIRDYE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 23:20:33 -0400
+	Mon, 17 Sep 2007 23:24:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+     git-net-fix-ibmveth
 has been added to the -mm tree.  Its filename is
-     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+     git-net-fix-ibmveth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+Subject: git-net-fix-ibmveth
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ibmveth.c: In function `ibmveth_probe':
-drivers/net/ibmveth.c:1047: error: structure has no member named `name'
-drivers/net/ibmveth.c:1049: warning: ignoring return value of `kobject_register', declared with attribute warn_unused_result
-
-Not a fix!  Leaks k_name!  Needs a kobject release handler!
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ibmveth.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+diff -puN drivers/net/ibmveth.c~git-net-fix-ibmveth drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~git-net-fix-ibmveth
 +++ a/drivers/net/ibmveth.c
-@@ -1044,7 +1044,7 @@ static int __devinit ibmveth_probe(struc
- 					 pool_count[i], pool_size[i],
- 					 pool_active[i]);
- 		kobj->parent = &dev->dev.kobj;
--		sprintf(kobj->name, "pool%d", i);
-+		kobj->k_name = kasprintf(GFP_KERNEL, "pool%d", i);
- 		kobj->ktype = &ktype_veth_pool;
- 		kobject_register(kobj);
- 	}
+@@ -904,9 +904,9 @@ static int ibmveth_start_xmit(struct sk_
+ 			 skb->len, DMA_TO_DEVICE);
+ 
+ out:	spin_lock_irqsave(&adapter->stats_lock, flags);
+-	dev->stats.tx_dropped += tx_dropped;
+-	dev->stats.tx_bytes += tx_bytes;
+-	dev->stats.tx_packets += tx_packets;
++	netdev->stats.tx_dropped += tx_dropped;
++	netdev->stats.tx_bytes += tx_bytes;
++	netdev->stats.tx_packets += tx_packets;
+ 	adapter->tx_send_failed += tx_send_failed;
+ 	adapter->tx_map_failed += tx_map_failed;
+ 	spin_unlock_irqrestore(&adapter->stats_lock, flags);
+@@ -952,8 +952,8 @@ static int ibmveth_poll(struct napi_stru
+ 
+ 			netif_receive_skb(skb);	/* send it up */
+ 
+-			dev->stats.rx_packets++;
+-			dev->stats.rx_bytes += length;
++			netdev->stats.rx_packets++;
++			netdev->stats.rx_bytes += length;
+ 			frames_processed++;
+ 			netdev->last_rx = jiffies;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -266,3 +274,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+git-net-fix-ibmveth.patch
