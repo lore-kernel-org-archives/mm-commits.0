@@ -1,101 +1,336 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-clflush_cache_range-now-takes-size-param.patch removed from -mm tree
-Date: Tue, 18 Sep 2007 01:12:36 -0600
-Message-ID: <200709180712.l8I7CcqG025361@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-cpa-arch-macro.patch removed from -mm tree
+Date: Tue, 18 Sep 2007 01:17:06 -0600
+Message-ID: <200709180717.l8I7H7pF025520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753912AbXIRHNK (ORCPT
+	by vger.kernel.org with ESMTP id S1754017AbXIRHRo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 03:13:10 -0400
+	Tue, 18 Sep 2007 03:17:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.coms
+To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Intel IOMMU: clflush_cache_range now takes size param
+     revert x86_64-mm-cpa-arch-macro
 has been removed from the -mm tree.  Its filename was
-     intel-iommu-clflush_cache_range-now-takes-size-param.patch
+     revert-x86_64-mm-cpa-arch-macro.patch
 
-This patch was dropped because I dropped the clflush patches which it depends on
+This patch was dropped because the iommu patches depend on the busted stuff
 
 ------------------------------------------------------
-Subject: Intel IOMMU: clflush_cache_range now takes size param
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: revert x86_64-mm-cpa-arch-macro
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce the size param for clflush_cache_range().
+Needed for revert-x86_64-mm-cpa-clflush.patch
 
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/pageattr.c       |    6 +++---
- include/asm-x86_64/cacheflush.h |    1 +
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/i386/mm/pageattr.c   |   10 +++-------
+ arch/x86_64/mm/pageattr.c |   11 +++--------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86_64/mm/pageattr.c~intel-iommu-clflush_cache_range-now-takes-size-param arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~intel-iommu-clflush_cache_range-now-takes-size-param
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -75,10 +75,10 @@ struct flush_arg {
- 	struct list_head l;
- };
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
++++ a/arch/i386/mm/pageattr.c
+@@ -17,10 +17,6 @@
+ #define PageFlush(p) test_bit(PG_owner_priv_1, &(p)->flags)
+ #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+ #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
+-#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
+-#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
+-#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
+-#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
  
--static void cache_flush_page(void *adr)
-+void clflush_cache_range(void *adr, int size)
+ static DEFINE_SPINLOCK(cpa_lock);
+ /* Both protected by cpa_lock */
+@@ -154,7 +150,7 @@ static inline void revert_page(struct pa
+ 
+ static inline void save_page(struct page *fpage, int data)
  {
- 	int i;
--	for (i = 0; i < PAGE_SIZE; i += boot_cpu_data.x86_clflush_size)
-+	for (i = 0; i < size; i += boot_cpu_data.x86_clflush_size)
- 		clflush(adr+i);
+-	if (TestSetPageDeferred(fpage))
++	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+ 		return;
+ 	BUG_ON(PageFlush(fpage));
+ 	if (data) {
+@@ -171,7 +167,7 @@ static struct page *flush_page(unsigned 
+ 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+ 		return NULL;
+ 	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
++	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+ 		return NULL;
+ 	return p;
  }
+@@ -289,7 +285,7 @@ void global_flush_tlb(void)
+ 	on_each_cpu(flush_kernel_map, &arg, 1, 1);
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
+-		ClearPageDeferred(pg);
++		clear_bit(PG_arch_1, &pg->flags);
+ 		if (TestClearPageFlush(pg))
+ 			continue;
+ 		if (PageReserved(pg) || !cpu_has_pse || page_private(pg) != 0)
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
++++ a/arch/x86_64/mm/pageattr.c
+@@ -17,11 +17,6 @@
+ #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+ #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
  
-@@ -93,7 +93,7 @@ static void flush_kernel_map(void *arg)
- 		asm volatile("wbinvd" ::: "memory");
- 	else list_for_each_entry(pg, &a->l, lru) {
- 		if (PageFlush(pg))
--			cache_flush_page(page_address(pg));
-+			clflush_cache_range(page_address(pg), PAGE_SIZE);
- 	}
- 	__flush_tlb_all();
+-#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
+-#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
+-#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
+-#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
+-
+ pte_t *lookup_address(unsigned long address)
+ { 
+ 	pgd_t *pgd = pgd_offset_k(address);
+@@ -104,7 +99,7 @@ static LIST_HEAD(deferred_pages);
+ 
+ static inline void save_page(struct page *fpage, int data)
+ {
+-	if (TestSetPageDeferred(fpage))
++	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+ 		return;
+ 	BUG_ON(PageFlush(fpage));
+ 	if (data) {
+@@ -145,7 +140,7 @@ static struct page *flush_page(unsigned 
+ 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+ 		return NULL;
+ 	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
++	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+ 		return NULL;
+ 	return p;
  }
-diff -puN include/asm-x86_64/cacheflush.h~intel-iommu-clflush_cache_range-now-takes-size-param include/asm-x86_64/cacheflush.h
---- a/include/asm-x86_64/cacheflush.h~intel-iommu-clflush_cache_range-now-takes-size-param
-+++ a/include/asm-x86_64/cacheflush.h
-@@ -27,6 +27,7 @@
- void global_flush_tlb(void); 
- int change_page_attr(struct page *page, int numpages, pgprot_t prot);
- int change_page_attr_addr(unsigned long addr, int numpages, pgprot_t prot);
-+void clflush_cache_range(void *addr, int size);
+@@ -280,7 +275,7 @@ void global_flush_tlb(void)
  
- #ifdef CONFIG_DEBUG_RODATA
- void mark_rodata_ro(void);
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
+-		ClearPageDeferred(pg);
++		clear_bit(PG_arch_1, &pg->flags);
+ 		if (TestClearPageFlush(pg))
+ 			continue;
+ 		if (page_private(pg) != 0)
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-kprobes-support-kretprobe-blacklist.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
+atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+disable-sys_timerfd-for-2623.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+git-alsa-sc6000-build-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-2.patch
+nit-net-skge-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-net-af_iucv-fixes.patch
+git-net-sgiseeq-fix.patch
+git-net-fix-ibmveth.patch
+git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-u14-34f.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-net-vs-git-wireless.patch
+git-net-vs-git-wireless-2.patch
+net-add-ath5k-wireless-driver-fix.patch
+git-net-vs-git-wireless-3.patch
+git-net-broke-git-wireless.patch
+iwl3945-is-bust.patch
+more-wireless-borkage.patch
+more-wireless-borkage-2.patch
+more-wireless-borkage-3.patch
+p54pci-terminate-pci-table.patch
+git-wireless-fix-99.patch
+git-wireless-b44-is-bust.patch
+revert-x86_64-mm-cpa-arch-macro.patch
+revert-x86_64-mm-cpa-einval.patch
+revert-x86_64-mm-cpa-cleanup.patch
+revert-x86_64-mm-cpa-clflush.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
 intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
