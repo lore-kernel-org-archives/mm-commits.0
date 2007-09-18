@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + build-failure-on-ppc64-drivers-net-ehea-ehea_mainc.patch added to -mm tree
-Date: Tue, 18 Sep 2007 10:11:20 -0700
-Message-ID: <200709181711.l8IHBKNZ014403@imap1.linux-foundation.org>
+Subject: + git-kgdb-ia64-fix.patch added to -mm tree
+Date: Tue, 18 Sep 2007 11:04:44 -0700
+Message-ID: <200709181804.l8II4itv016434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35495 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759831AbXIRRQc (ORCPT
+	by vger.kernel.org with ESMTP id S1759834AbXIRSEu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 13:16:32 -0400
+	Tue, 18 Sep 2007 14:04:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, davem@davemloft.net
+Cc: mel@csn.ul.ie, jason.wessel@windriver.com
 
 
 The patch titled
-     Build failure on ppc64 drivers/net/ehea/ehea_main.c
+     git-kgdb ia64 fix
 has been added to the -mm tree.  Its filename is
-     build-failure-on-ppc64-drivers-net-ehea-ehea_mainc.patch
+     git-kgdb-ia64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Build failure on ppc64 drivers/net/ehea/ehea_main.c
+Subject: git-kgdb ia64 fix
 From: mel@skynet.ie (Mel Gorman)
 
-PPC64 failed to build with the driver drivers/net/ehea with the
-following error
+IA64 failed to build in kgdb with the messages
 
-  CC [M]  drivers/net/ehea/ehea_main.o
-drivers/net/ehea/ehea_main.c: In function `ehea_open':
-drivers/net/ehea/ehea_main.c:2322: error: implicit declaration of function `port_napi_enable'
-drivers/net/ehea/ehea_main.c: At top level:
-drivers/net/ehea/ehea_main.c:2340: error: conflicting types for 'port_napi_enable'
-drivers/net/ehea/ehea_main.c:2322: error: previous implicit declaration of 'port_napi_enable' was here
-make[1]: *** [drivers/net/ehea/ehea_main.o] Error 1
+arch/ia64/kernel/kgdb.c: In function 'kgdb_arch_set_breakpoint':
+arch/ia64/kernel/kgdb.c:555: warning: large integer implicitly truncated to unsigned type
+arch/ia64/kernel/kgdb.c: At top level:
+arch/ia64/kernel/kgdb.c:673: error: static declaration of 'kgdb_hwbreak_sstep' follows non-static declaration
+include/asm/kgdb.h:33: error: previous declaration of 'kgdb_hwbreak_sstep' was here
+make[1]: *** [arch/ia64/kernel/kgdb.o] Error 1
+make: *** [arch/ia64/kernel] Error 2
+make: *** Waiting for unfinished jobs....
 
-It's buried in git-net.patch and I've cc'd a potential owner based simply
-on the mention of EHEA in a leader. I've included a candidate fix for the
-error. It seems to be a simple case of port_napi_enable being defined in
-the wrong place.
+It's buried in git-kgdb.patch and I've cc'd who might be the owner. A candidate
+fix is below. The build error seems to be a simple case of a badly placed
+static. The warning about large integer truncating does not have an obvious
+fix and I didn't want to hide the warning with a real bug.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ arch/ia64/kernel/kgdb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~build-failure-on-ppc64-drivers-net-ehea-ehea_mainc drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~build-failure-on-ppc64-drivers-net-ehea-ehea_mainc
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -2307,6 +2307,22 @@ out:
- 	return ret;
+diff -puN arch/ia64/kernel/kgdb.c~git-kgdb-ia64-fix arch/ia64/kernel/kgdb.c
+--- a/arch/ia64/kernel/kgdb.c~git-kgdb-ia64-fix
++++ a/arch/ia64/kernel/kgdb.c
+@@ -670,7 +670,7 @@ void kgdb_roundup_cpus(unsigned long fla
+ 		smp_send_nmi_allbutself();
  }
  
-+static void port_napi_disable(struct ehea_port *port)
-+{
-+	int i;
-+
-+	for (i = 0; i < port->num_def_qps; i++)
-+		napi_disable(&port->port_res[i].napi);
-+}
-+
-+static void port_napi_enable(struct ehea_port *port)
-+{
-+	int i;
-+
-+	for (i = 0; i < port->num_def_qps; i++)
-+		napi_enable(&port->port_res[i].napi);
-+}
-+
- static int ehea_open(struct net_device *dev)
- {
- 	int ret;
-@@ -2328,22 +2344,6 @@ static int ehea_open(struct net_device *
- 	return ret;
- }
+-static volatile int kgdb_hwbreak_sstep[NR_CPUS];
++volatile int kgdb_hwbreak_sstep[NR_CPUS];
  
--static void port_napi_disable(struct ehea_port *port)
--{
--	int i;
--
--	for (i = 0; i < port->num_def_qps; i++)
--		napi_disable(&port->port_res[i].napi);
--}
--
--static void port_napi_enable(struct ehea_port *port)
--{
--	int i;
--
--	for (i = 0; i < port->num_def_qps; i++)
--		napi_enable(&port->port_res[i].napi);
--}
--
- static int ehea_down(struct net_device *dev)
- {
- 	int ret;
+ static int kgdb_notify(struct notifier_block *self, unsigned long cmd,
+ 	void *ptr)
 _
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
 
 fix-numa-memory-policy-reference-counting.patch
 build-failure-on-ppc64-drivers-net-ehea-ehea_mainc.patch
+git-kgdb-ia64-fix.patch
 sparsemem-clean-up-spelling-error-in-comments.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 generic-virtual-memmap-support-for-sparsemem.patch
