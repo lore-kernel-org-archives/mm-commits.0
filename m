@@ -1,451 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: - config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch removed from -mm tree
-Date: Mon, 17 Sep 2007 19:48:15 -0700
-Message-ID: <200709180248.l8I2mFB4016867@imap1.linux-foundation.org>
+Subject: + fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch added to -mm tree
+Date: Mon, 17 Sep 2007 21:20:25 -0600
+Message-ID: <200709180320.l8I3KQ4P017979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757033AbXIRCs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750710AbXIRDUd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 22:48:27 -0400
+	Mon, 17 Sep 2007 23:20:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     CONFIG_ZONE_MOVABLE: zone ifdef cleanup by renumbering
-has been removed from the -mm tree.  Its filename was
-     config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
+     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+has been added to the -mm tree.  Its filename is
+     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: CONFIG_ZONE_MOVABLE: zone ifdef cleanup by renumbering
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Two patches to make ZONE_MOVABLE configurable.
+drivers/net/ibmveth.c: In function `ibmveth_probe':
+drivers/net/ibmveth.c:1047: error: structure has no member named `name'
+drivers/net/ibmveth.c:1049: warning: ignoring return value of `kobject_register', declared with attribute warn_unused_result
 
-This patch defines zone_idx for not-configured-zones.  like
+Not a fix!  Leaks k_name!  Needs a kobject release handler!
 
-	enum_zone_type {
-		(ZONE_DMA configured)
-		(ZONE_DMA32 configured)
-		ZONE_NORMAL
-		(ZONE_HIGHMEM configured)
-		ZONE_MOVABLE
-		MAX_NR_ZONES,
-		(ZONE_DMA not-configured)
-		(ZONE_DMA32 not-configured)
-		(ZONE_HIGHMEM not-configured)
-	};
-
-By this, we can determine zone is configured or not by
-
-	zone_idx < MAX_NR_ZONES.
-
-We can avoid #ifdef for CONFIG_ZONE_xxx to some extent.
-
-This patch also replaces CONFIG_ZONE_DMA_FLAG by is_configured_zone(ZONE_DMA).
-
-Changelog: v2 -> v3
-	- updated against 2.6.23-rc3-mm1.
-Changelog: v1 -> v2
-	- rebased to 2.6.23-rc1
-	- Removed MAX_POSSIBLE_ZONES
-	- Added comments
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   18 +++-----
- include/linux/mmzone.h |   79 ++++++++++++++++++++++++---------------
- include/linux/vmstat.h |   24 +++++------
- mm/Kconfig             |    5 --
- mm/page-writeback.c    |    7 +--
- mm/page_alloc.c        |   37 +++++++-----------
- mm/slab.c              |    4 -
- 7 files changed, 89 insertions(+), 85 deletions(-)
+ drivers/net/ibmveth.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/gfp.h
---- a/include/linux/gfp.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/include/linux/gfp.h
-@@ -121,26 +121,22 @@ static inline enum zone_type gfp_zone(gf
- {
- 	int base = 0;
- 
--#ifdef CONFIG_NUMA
- 	if (flags & __GFP_THISNODE)
- 		base = MAX_NR_ZONES;
--#endif
- 
--#ifdef CONFIG_ZONE_DMA
--	if (flags & __GFP_DMA)
-+	if (is_configured_zone(ZONE_DMA) && (flags & __GFP_DMA))
- 		return base + ZONE_DMA;
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	if (flags & __GFP_DMA32)
-+
-+	if (is_configured_zone(ZONE_DMA32) && (flags & __GFP_DMA32))
- 		return base + ZONE_DMA32;
--#endif
-+
- 	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
- 			(__GFP_HIGHMEM | __GFP_MOVABLE))
- 		return base + ZONE_MOVABLE;
--#ifdef CONFIG_HIGHMEM
--	if (flags & __GFP_HIGHMEM)
-+
-+	if (is_configured_zone(ZONE_HIGHMEM) && (flags & __GFP_HIGHMEM))
- 		return base + ZONE_HIGHMEM;
--#endif
-+
- 	return base + ZONE_NORMAL;
- }
- 
-diff -puN include/linux/mmzone.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/mmzone.h
---- a/include/linux/mmzone.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/include/linux/mmzone.h
-@@ -178,10 +178,36 @@ enum zone_type {
- 	ZONE_HIGHMEM,
- #endif
- 	ZONE_MOVABLE,
--	MAX_NR_ZONES
-+	MAX_NR_ZONES,
-+#ifndef CONFIG_ZONE_DMA
-+	ZONE_DMA,
-+#endif
-+#ifndef CONFIG_ZONE_DMA32
-+	ZONE_DMA32,
-+#endif
-+#ifndef CONFIG_HIGHMEM
-+	ZONE_HIGHMEM,
-+#endif
- };
- 
- /*
-+ * Test zone type is configured or not.
-+ * You can use this function for avoiding #ifdef.
-+ *
-+ * #ifdef CONFIG_ZONE_DMA
-+ *	do_something...
-+ * #endif
-+ * can be written as
-+ * if (is_configured_zone(ZONE_DMA)) {
-+ *	do_something..
-+ * }
-+ */
-+static inline int is_configured_zone(enum zone_type zoneidx)
-+{
-+	return (zoneidx < MAX_NR_ZONES);
-+}
-+
-+/*
-  * When a memory allocation must conform to specific limitations (such
-  * as being suitable for DMA) the caller will pass in hints to the
-  * allocator in the gfp_mask, in the zone modifier bits.  These bits
-@@ -573,28 +599,35 @@ static inline int populated_zone(struct 
- 
- extern int movable_zone;
- 
--static inline int zone_movable_is_highmem(void)
-+/*
-+ * Check zone is configured && specified "idx" is equal to target zone type.
-+ * Zone's index is calucalted by above zone_idx().
-+ */
-+static inline int zone_idx_is(enum zone_type idx, enum zone_type target)
- {
--#if defined(CONFIG_HIGHMEM) && defined(CONFIG_ARCH_POPULATES_NODE_MAP)
--	return movable_zone == ZONE_HIGHMEM;
--#else
-+	if (is_configured_zone(target) && (idx == target))
-+		return 1;
- 	return 0;
-+}
-+
-+static inline int zone_movable_is_highmem(void)
-+{
-+#if CONFIG_ARCH_POPULATES_NODE_MAP
-+	if (is_configured_zone(ZONE_HIGHMEM))
-+		return movable_zone == ZONE_HIGHMEM;
- #endif
-+	return 0;
- }
- 
- static inline int is_highmem_idx(enum zone_type idx)
- {
--#ifdef CONFIG_HIGHMEM
--	return (idx == ZONE_HIGHMEM ||
--		(idx == ZONE_MOVABLE && zone_movable_is_highmem()));
--#else
--	return 0;
--#endif
-+	return (zone_idx_is(idx, ZONE_HIGHMEM) ||
-+	       (zone_idx_is(idx, ZONE_MOVABLE) && zone_movable_is_highmem()));
- }
- 
- static inline int is_normal_idx(enum zone_type idx)
- {
--	return (idx == ZONE_NORMAL);
-+	return zone_idx_is(idx, ZONE_NORMAL);
- }
- 
- /**
-@@ -605,36 +638,22 @@ static inline int is_normal_idx(enum zon
-  */
- static inline int is_highmem(struct zone *zone)
- {
--#ifdef CONFIG_HIGHMEM
--	int zone_idx = zone - zone->zone_pgdat->node_zones;
--	return zone_idx == ZONE_HIGHMEM ||
--		(zone_idx == ZONE_MOVABLE && zone_movable_is_highmem());
--#else
--	return 0;
--#endif
-+	return is_highmem_idx(zone_idx(zone));
- }
- 
- static inline int is_normal(struct zone *zone)
- {
--	return zone == zone->zone_pgdat->node_zones + ZONE_NORMAL;
-+	return zone_idx_is(zone_idx(zone), ZONE_NORMAL);
- }
- 
- static inline int is_dma32(struct zone *zone)
- {
--#ifdef CONFIG_ZONE_DMA32
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA32;
--#else
--	return 0;
--#endif
-+	return zone_idx_is(zone_idx(zone), ZONE_DMA32);
- }
- 
- static inline int is_dma(struct zone *zone)
- {
--#ifdef CONFIG_ZONE_DMA
--	return zone == zone->zone_pgdat->node_zones + ZONE_DMA;
--#else
--	return 0;
--#endif
-+	return zone_idx_is(zone_idx(zone), ZONE_DMA);
- }
- 
- /* These two functions are used to setup the per zone pages min values */
-diff -puN include/linux/vmstat.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering include/linux/vmstat.h
---- a/include/linux/vmstat.h~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/include/linux/vmstat.h
-@@ -159,19 +159,19 @@ static inline unsigned long node_page_st
- 				 enum zone_stat_item item)
- {
- 	struct zone *zones = NODE_DATA(node)->node_zones;
-+	unsigned long val = zone_page_state(&zones[ZONE_NORMAL],item);
- 
--	return
--#ifdef CONFIG_ZONE_DMA
--		zone_page_state(&zones[ZONE_DMA], item) +
--#endif
--#ifdef CONFIG_ZONE_DMA32
--		zone_page_state(&zones[ZONE_DMA32], item) +
--#endif
--#ifdef CONFIG_HIGHMEM
--		zone_page_state(&zones[ZONE_HIGHMEM], item) +
--#endif
--		zone_page_state(&zones[ZONE_NORMAL], item) +
--		zone_page_state(&zones[ZONE_MOVABLE], item);
-+	if (is_configured_zone(ZONE_DMA))
-+		val += zone_page_state(&zones[ZONE_DMA], item);
-+
-+	if (is_configured_zone(ZONE_DMA32))
-+		val += zone_page_state(&zones[ZONE_DMA32], item);
-+
-+	if (is_configured_zone(ZONE_HIGHMEM))
-+		val += zone_page_state(&zones[ZONE_HIGHMEM], item);
-+
-+	val += zone_page_state(&zones[ZONE_MOVABLE], item);
-+	return val;
- }
- 
- extern void zone_statistics(struct zonelist *, struct zone *);
-diff -puN mm/Kconfig~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/Kconfig
---- a/mm/Kconfig~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/Kconfig
-@@ -176,11 +176,6 @@ config RESOURCES_64BIT
- 	help
- 	  This option allows memory and IO resources to be 64 bit.
- 
--config ZONE_DMA_FLAG
--	int
--	default "0" if !ZONE_DMA
--	default "1"
--
- config BOUNCE
- 	def_bool y
- 	depends on BLOCK && MMU && (ZONE_DMA || HIGHMEM)
-diff -puN mm/page-writeback.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/page-writeback.c
---- a/mm/page-writeback.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/page-writeback.c
-@@ -122,10 +122,12 @@ static void background_writeout(unsigned
- 
- static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
--#ifdef CONFIG_HIGHMEM
- 	int node;
- 	unsigned long x = 0;
- 
-+	if (!is_configured_zone(ZONE_HIGHMEM))
-+		return 0;
-+
- 	for_each_node_state(node, N_HIGH_MEMORY) {
- 		struct zone *z =
- 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
-@@ -141,9 +143,6 @@ static unsigned long highmem_dirtyable_m
- 	 * that this does not occur.
- 	 */
- 	return min(x, total);
--#else
--	return 0;
--#endif
- }
- 
- static unsigned long determine_dirtyable_memory(void)
-diff -puN mm/page_alloc.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/page_alloc.c
---- a/mm/page_alloc.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/page_alloc.c
-@@ -100,18 +100,12 @@ int sysctl_lowmem_reserve_ratio[MAX_NR_Z
- 
- EXPORT_SYMBOL(totalram_pages);
- 
--static char * const zone_names[MAX_NR_ZONES] = {
--#ifdef CONFIG_ZONE_DMA
--	 "DMA",
--#endif
--#ifdef CONFIG_ZONE_DMA32
--	 "DMA32",
--#endif
--	 "Normal",
--#ifdef CONFIG_HIGHMEM
--	 "HighMem",
--#endif
--	 "Movable",
-+static char * const zone_names[] = {
-+	[ZONE_DMA] = "DMA",
-+	[ZONE_DMA32] = "DMA32",
-+	[ZONE_NORMAL] = "Normal",
-+	[ZONE_HIGHMEM] = "HighMem",
-+	[ZONE_MOVABLE] =  "Movable",
- };
- 
- int min_free_kbytes = 1024;
-@@ -1795,14 +1789,15 @@ void si_meminfo_node(struct sysinfo *val
- 
- 	val->totalram = pgdat->node_present_pages;
- 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
--#ifdef CONFIG_HIGHMEM
--	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
--	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
-+	if (is_configured_zone(ZONE_HIGHMEM)) {
-+		val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].present_pages;
-+		val->freehigh =
-+			zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
- 			NR_FREE_PAGES);
--#else
--	val->totalhigh = 0;
--	val->freehigh = 0;
--#endif
-+	} else {
-+		val->totalhigh = 0;
-+		val->freehigh = 0;
-+	}
- 	val->mem_unit = PAGE_SIZE;
- }
- #endif
-@@ -3824,15 +3819,15 @@ restart:
- /* Any regular memory on that node ? */
- static void check_for_regular_memory(pg_data_t *pgdat)
- {
--#ifdef CONFIG_HIGHMEM
- 	enum zone_type zone_type;
-+	if (!is_configured_zone(ZONE_HIGHMEM))
-+		return;
- 
- 	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
- 		struct zone *zone = &pgdat->node_zones[zone_type];
- 		if (zone->present_pages)
- 			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
+diff -puN drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
++++ a/drivers/net/ibmveth.c
+@@ -1044,7 +1044,7 @@ static int __devinit ibmveth_probe(struc
+ 					 pool_count[i], pool_size[i],
+ 					 pool_active[i]);
+ 		kobj->parent = &dev->dev.kobj;
+-		sprintf(kobj->name, "pool%d", i);
++		kobj->k_name = kasprintf(GFP_KERNEL, "pool%d", i);
+ 		kobj->ktype = &ktype_veth_pool;
+ 		kobject_register(kobj);
  	}
--#endif
- }
- 
- /**
-diff -puN mm/slab.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering mm/slab.c
---- a/mm/slab.c~config_zone_movable-zone-ifdef-cleanup-by-renumbering
-+++ a/mm/slab.c
-@@ -2342,7 +2342,7 @@ kmem_cache_create (const char *name, siz
- 	cachep->slab_size = slab_size;
- 	cachep->flags = flags;
- 	cachep->gfpflags = 0;
--	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
-+	if (is_configured_zone(ZONE_DMA) && (flags & SLAB_CACHE_DMA))
- 		cachep->gfpflags |= GFP_DMA;
- 	cachep->buffer_size = size;
- 	cachep->reciprocal_buffer_size = reciprocal_value(size);
-@@ -2663,7 +2663,7 @@ static void cache_init_objs(struct kmem_
- 
- static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
- {
--	if (CONFIG_ZONE_DMA_FLAG) {
-+	if (is_configured_zone(ZONE_DMA)) {
- 		if (flags & GFP_DMA)
- 			BUG_ON(!(cachep->gfpflags & GFP_DMA));
- 		else
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
+atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
+disable-sys_timerfd-for-2623.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+git-alsa-sc6000-build-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
 git-net.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+git-net-fixup.patch
+git-net-fix-2.patch
+nit-net-skge-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-net-af_iucv-fixes.patch
+git-net-sgiseeq-fix.patch
+git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-u14-34f.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-net-vs-git-wireless.patch
+git-net-vs-git-wireless-2.patch
+net-add-ath5k-wireless-driver-fix.patch
+git-net-vs-git-wireless-3.patch
+git-net-broke-git-wireless.patch
+iwl3945-is-bust.patch
+more-wireless-borkage.patch
+more-wireless-borkage-2.patch
+more-wireless-borkage-3.patch
+p54pci-terminate-pci-table.patch
+git-wireless-fix-99.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-update-n_high_memory-node-state-for-memory-hotadd.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-ia64-interface.patch
-config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
