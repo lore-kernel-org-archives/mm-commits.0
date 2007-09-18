@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-cpa-cleanup.patch added to -mm tree
-Date: Mon, 17 Sep 2007 23:50:17 -0700
-Message-ID: <200709180650.l8I6oH32024678@imap1.linux-foundation.org>
+Subject: + revert-x86_64-mm-cpa-arch-macro.patch added to -mm tree
+Date: Mon, 17 Sep 2007 23:50:05 -0700
+Message-ID: <200709180650.l8I6o8D5024672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49836 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754003AbXIRGuW (ORCPT
+	by vger.kernel.org with ESMTP id S1753716AbXIRGuU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 02:50:22 -0400
+	Tue, 18 Sep 2007 02:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     revert x86_64-mm-cpa-cleanup
+     revert x86_64-mm-cpa-arch-macro
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-cpa-cleanup.patch
+     revert-x86_64-mm-cpa-arch-macro.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-cpa-cleanup
+Subject: revert x86_64-mm-cpa-arch-macro
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Needed for revert-x86_64-mm-cpa-clflush.patch
@@ -35,58 +35,93 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pageattr.c   |    7 ++++++-
- arch/x86_64/mm/pageattr.c |    7 ++++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ arch/i386/mm/pageattr.c   |   10 +++-------
+ arch/x86_64/mm/pageattr.c |   11 +++--------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/i386/mm/pageattr.c
---- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
 +++ a/arch/i386/mm/pageattr.c
-@@ -241,6 +241,11 @@ __change_page_attr(struct page *page, pg
- 	return 0;
- } 
+@@ -17,10 +17,6 @@
+ #define PageFlush(p) test_bit(PG_owner_priv_1, &(p)->flags)
+ #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+ #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
+-#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
+-#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
+-#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
+-#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
  
-+static inline void flush_map(struct list_head *l)
-+{
-+	on_each_cpu(flush_kernel_map, l, 1, 1);
-+}
-+
- /*
-  * Change the page attributes of an page in the linear mapping.
-  *
-@@ -282,7 +287,7 @@ void global_flush_tlb(void)
- 	full_flush = 0;
- 	list_replace_init(&df_list, &arg.l);
- 	spin_unlock_irq(&cpa_lock);
--	on_each_cpu(flush_kernel_map, &arg, 1, 1);
-+	flush_map(&arg);
- 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
- 		list_del(&pg->lru);
- 		clear_bit(PG_arch_1, &pg->flags);
-diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -93,6 +93,11 @@ static void flush_kernel_map(void *arg)
- 	__flush_tlb_all();
+ static DEFINE_SPINLOCK(cpa_lock);
+ /* Both protected by cpa_lock */
+@@ -154,7 +150,7 @@ static inline void revert_page(struct pa
+ 
+ static inline void save_page(struct page *fpage, int data)
+ {
+-	if (TestSetPageDeferred(fpage))
++	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+ 		return;
+ 	BUG_ON(PageFlush(fpage));
+ 	if (data) {
+@@ -171,7 +167,7 @@ static struct page *flush_page(unsigned 
+ 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+ 		return NULL;
+ 	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
++	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+ 		return NULL;
+ 	return p;
  }
+@@ -289,7 +285,7 @@ void global_flush_tlb(void)
+ 	on_each_cpu(flush_kernel_map, &arg, 1, 1);
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
+-		ClearPageDeferred(pg);
++		clear_bit(PG_arch_1, &pg->flags);
+ 		if (TestClearPageFlush(pg))
+ 			continue;
+ 		if (PageReserved(pg) || !cpu_has_pse || page_private(pg) != 0)
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
++++ a/arch/x86_64/mm/pageattr.c
+@@ -17,11 +17,6 @@
+ #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+ #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
  
-+static inline void flush_map(struct list_head *l)
-+{
-+	on_each_cpu(flush_kernel_map, l, 1, 1);
-+}
-+
- /* both protected by init_mm.mmap_sem */
- static int full_flush;
- static LIST_HEAD(deferred_pages);
-@@ -269,7 +274,7 @@ void global_flush_tlb(void)
- 	list_replace_init(&deferred_pages, &arg.l);
- 	up_read(&init_mm.mmap_sem);
+-#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
+-#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
+-#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
+-#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
+-
+ pte_t *lookup_address(unsigned long address)
+ { 
+ 	pgd_t *pgd = pgd_offset_k(address);
+@@ -104,7 +99,7 @@ static LIST_HEAD(deferred_pages);
  
--	on_each_cpu(flush_kernel_map, &arg, 1, 1);
-+	flush_map(&arg);
+ static inline void save_page(struct page *fpage, int data)
+ {
+-	if (TestSetPageDeferred(fpage))
++	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+ 		return;
+ 	BUG_ON(PageFlush(fpage));
+ 	if (data) {
+@@ -145,7 +140,7 @@ static struct page *flush_page(unsigned 
+ 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+ 		return NULL;
+ 	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
++	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+ 		return NULL;
+ 	return p;
+ }
+@@ -280,7 +275,7 @@ void global_flush_tlb(void)
  
  	list_for_each_entry_safe(pg, next, &arg.l, lru) {
  		list_del(&pg->lru);
+-		ClearPageDeferred(pg);
++		clear_bit(PG_arch_1, &pg->flags);
+ 		if (TestClearPageFlush(pg))
+ 			continue;
+ 		if (page_private(pg) != 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
