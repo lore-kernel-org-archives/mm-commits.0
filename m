@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-ibmveth.patch added to -mm tree
-Date: Mon, 17 Sep 2007 21:24:08 -0600
-Message-ID: <200709180324.l8I3O9MC018039@imap1.linux-foundation.org>
+Subject: + revert-x86_64-mm-cpa-cleanup.patch added to -mm tree
+Date: Mon, 17 Sep 2007 23:50:17 -0700
+Message-ID: <200709180650.l8I6oH32024678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752582AbXIRDYM (ORCPT
+	by vger.kernel.org with ESMTP id S1754003AbXIRGuW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 23:24:12 -0400
+	Tue, 18 Sep 2007 02:50:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     git-net: fix ibmveth
+     revert x86_64-mm-cpa-cleanup
 has been added to the -mm tree.  Its filename is
-     git-net-fix-ibmveth.patch
+     revert-x86_64-mm-cpa-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix ibmveth
+Subject: revert x86_64-mm-cpa-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ibmveth.c: In function `ibmveth_start_xmit':
-drivers/net/ibmveth.c:907: error: `dev' undeclared (first use in this function)
-drivers/net/ibmveth.c:907: error: (Each undeclared identifier is reported only once
-drivers/net/ibmveth.c:907: error: for each function it appears in.)
-drivers/net/ibmveth.c: In function `ibmveth_poll':
-drivers/net/ibmveth.c:955: error: `dev' undeclared (first use in this function)
-drivers/net/ibmveth.c: In function `ibmveth_probe':
+Needed for revert-x86_64-mm-cpa-clflush.patch
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/i386/mm/pageattr.c   |    7 ++++++-
+ arch/x86_64/mm/pageattr.c |    7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ibmveth.c~git-net-fix-ibmveth drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~git-net-fix-ibmveth
-+++ a/drivers/net/ibmveth.c
-@@ -904,9 +904,9 @@ static int ibmveth_start_xmit(struct sk_
- 			 skb->len, DMA_TO_DEVICE);
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
++++ a/arch/i386/mm/pageattr.c
+@@ -241,6 +241,11 @@ __change_page_attr(struct page *page, pg
+ 	return 0;
+ } 
  
- out:	spin_lock_irqsave(&adapter->stats_lock, flags);
--	dev->stats.tx_dropped += tx_dropped;
--	dev->stats.tx_bytes += tx_bytes;
--	dev->stats.tx_packets += tx_packets;
-+	netdev->stats.tx_dropped += tx_dropped;
-+	netdev->stats.tx_bytes += tx_bytes;
-+	netdev->stats.tx_packets += tx_packets;
- 	adapter->tx_send_failed += tx_send_failed;
- 	adapter->tx_map_failed += tx_map_failed;
- 	spin_unlock_irqrestore(&adapter->stats_lock, flags);
-@@ -952,8 +952,8 @@ static int ibmveth_poll(struct napi_stru
++static inline void flush_map(struct list_head *l)
++{
++	on_each_cpu(flush_kernel_map, l, 1, 1);
++}
++
+ /*
+  * Change the page attributes of an page in the linear mapping.
+  *
+@@ -282,7 +287,7 @@ void global_flush_tlb(void)
+ 	full_flush = 0;
+ 	list_replace_init(&df_list, &arg.l);
+ 	spin_unlock_irq(&cpa_lock);
+-	on_each_cpu(flush_kernel_map, &arg, 1, 1);
++	flush_map(&arg);
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
+ 		clear_bit(PG_arch_1, &pg->flags);
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
++++ a/arch/x86_64/mm/pageattr.c
+@@ -93,6 +93,11 @@ static void flush_kernel_map(void *arg)
+ 	__flush_tlb_all();
+ }
  
- 			netif_receive_skb(skb);	/* send it up */
++static inline void flush_map(struct list_head *l)
++{
++	on_each_cpu(flush_kernel_map, l, 1, 1);
++}
++
+ /* both protected by init_mm.mmap_sem */
+ static int full_flush;
+ static LIST_HEAD(deferred_pages);
+@@ -269,7 +274,7 @@ void global_flush_tlb(void)
+ 	list_replace_init(&deferred_pages, &arg.l);
+ 	up_read(&init_mm.mmap_sem);
  
--			dev->stats.rx_packets++;
--			dev->stats.rx_bytes += length;
-+			netdev->stats.rx_packets++;
-+			netdev->stats.rx_bytes += length;
- 			frames_processed++;
- 			netdev->last_rx = jiffies;
- 		}
+-	on_each_cpu(flush_kernel_map, &arg, 1, 1);
++	flush_map(&arg);
+ 
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +108,6 @@ powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
 fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
-fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
@@ -168,6 +183,10 @@ more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
 git-wireless-b44-is-bust.patch
+revert-x86_64-mm-cpa-arch-macro.patch
+revert-x86_64-mm-cpa-einval.patch
+revert-x86_64-mm-cpa-cleanup.patch
+revert-x86_64-mm-cpa-clflush.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
@@ -282,4 +301,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-fix-ibmveth.patch
