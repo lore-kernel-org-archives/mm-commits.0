@@ -1,260 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-qlogicpti-build.patch added to -mm tree
-Date: Mon, 17 Sep 2007 16:55:34 -0700
-Message-ID: <200709180001.l8I01I2d011436@imap1.linux-foundation.org>
+Subject: - config_zone_movable-config-zone-movable.patch removed from -mm tree
+Date: Mon, 17 Sep 2007 19:48:01 -0700
+Message-ID: <200709180248.l8I2m5LS016863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34689 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752412AbXIRABp (ORCPT
+	by vger.kernel.org with ESMTP id S1756831AbXIRCsV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 20:01:45 -0400
+	Mon, 17 Sep 2007 22:48:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: fix qlogicpti build
-has been added to the -mm tree.  Its filename is
-     git-block-fix-qlogicpti-build.patch
+     CONFIG_ZONE_MOVABLE: config zone movable
+has been removed from the -mm tree.  Its filename was
+     config_zone_movable-config-zone-movable.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: git-block: fix qlogicpti build
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: CONFIG_ZONE_MOVABLE: config zone movable
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Makes ZONE_MOVABLE as configurable
+
+Based on "zone_ifdef_cleanup_by_renumbering.patch"
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qlogicpti.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h    |    3 ++-
+ include/linux/mmzone.h |   15 +++++++++++----
+ include/linux/vmstat.h |   13 +++++++++++--
+ mm/Kconfig             |   12 ++++++++++++
+ mm/page_alloc.c        |    6 ++++++
+ mm/vmstat.c            |    8 +++++++-
+ 6 files changed, 49 insertions(+), 8 deletions(-)
 
-diff -puN drivers/scsi/qlogicpti.c~git-block-fix-qlogicpti-build drivers/scsi/qlogicpti.c
---- a/drivers/scsi/qlogicpti.c~git-block-fix-qlogicpti-build
-+++ a/drivers/scsi/qlogicpti.c
-@@ -888,7 +888,7 @@ static inline int load_cmd(struct scsi_c
- 			n = 4;
- 		for_each_sg(sg, s, n, i) {
- 			ds[i].d_base = sg_dma_address(s);
--			ds[i].d_count = sg_dma_len(g);
-+			ds[i].d_count = sg_dma_len(s);
- 		}
- 		sg_count -= 4;
- 		sg = s;
+diff -puN include/linux/gfp.h~config_zone_movable-config-zone-movable include/linux/gfp.h
+--- a/include/linux/gfp.h~config_zone_movable-config-zone-movable
++++ a/include/linux/gfp.h
+@@ -130,7 +130,8 @@ static inline enum zone_type gfp_zone(gf
+ 	if (is_configured_zone(ZONE_DMA32) && (flags & __GFP_DMA32))
+ 		return base + ZONE_DMA32;
+ 
+-	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
++	if (is_configured_zone(ZONE_MOVABLE) &&
++	    (flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
+ 			(__GFP_HIGHMEM | __GFP_MOVABLE))
+ 		return base + ZONE_MOVABLE;
+ 
+diff -puN include/linux/mmzone.h~config_zone_movable-config-zone-movable include/linux/mmzone.h
+--- a/include/linux/mmzone.h~config_zone_movable-config-zone-movable
++++ a/include/linux/mmzone.h
+@@ -177,7 +177,9 @@ enum zone_type {
+ 	 */
+ 	ZONE_HIGHMEM,
+ #endif
++#ifdef CONFIG_ZONE_MOVABLE
+ 	ZONE_MOVABLE,
++#endif
+ 	MAX_NR_ZONES,
+ #ifndef CONFIG_ZONE_DMA
+ 	ZONE_DMA,
+@@ -188,6 +190,9 @@ enum zone_type {
+ #ifndef CONFIG_HIGHMEM
+ 	ZONE_HIGHMEM,
+ #endif
++#ifndef CONFIG_ZONE_MOVABLE
++	ZONE_MOVABLE,
++#endif
+ };
+ 
+ /*
+@@ -612,11 +617,13 @@ static inline int zone_idx_is(enum zone_
+ 
+ static inline int zone_movable_is_highmem(void)
+ {
+-#if CONFIG_ARCH_POPULATES_NODE_MAP
+-	if (is_configured_zone(ZONE_HIGHMEM))
+-		return movable_zone == ZONE_HIGHMEM;
+-#endif
++#ifdef CONFIG_ARCH_POPULATES_NODE_MAP
++	return is_configured_zone(ZONE_HIGHMEM) &&
++	       is_configured_zone(ZONE_MOVABLE) &&
++		(movable_zone == ZONE_HIGHMEM);
++#else
+ 	return 0;
++#endif
+ }
+ 
+ static inline int is_highmem_idx(enum zone_type idx)
+diff -puN include/linux/vmstat.h~config_zone_movable-config-zone-movable include/linux/vmstat.h
+--- a/include/linux/vmstat.h~config_zone_movable-config-zone-movable
++++ a/include/linux/vmstat.h
+@@ -25,7 +25,14 @@
+ #define HIGHMEM_ZONE(xx)
+ #endif
+ 
+-#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
++#ifdef CONFIG_ZONE_MOVABLE
++#define MOVABLE_ZONE(xx) , xx##_MOVABLE
++#else
++#define MOVABLE_ZONE(xx)
++#endif
++
++
++#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) MOVABLE_ZONE(xx)
+ 
+ enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
+ 		FOR_ALL_ZONES(PGALLOC),
+@@ -170,7 +177,9 @@ static inline unsigned long node_page_st
+ 	if (is_configured_zone(ZONE_HIGHMEM))
+ 		val += zone_page_state(&zones[ZONE_HIGHMEM], item);
+ 
+-	val += zone_page_state(&zones[ZONE_MOVABLE], item);
++	if (is_configured_zone(ZONE_MOVABLE))
++		val += zone_page_state(&zones[ZONE_MOVABLE], item);
++
+ 	return val;
+ }
+ 
+diff -puN mm/Kconfig~config_zone_movable-config-zone-movable mm/Kconfig
+--- a/mm/Kconfig~config_zone_movable-config-zone-movable
++++ a/mm/Kconfig
+@@ -125,6 +125,18 @@ config SPARSEMEM_VMEMMAP
+ 	depends on SPARSEMEM
+ 	default y if (SPARSEMEM_VMEMMAP_ENABLE)
+ 
++
++config ZONE_MOVABLE
++	bool	"Zone for movable pages"
++	depends on ARCH_POPULATES_NODE_MAP
++	help
++	  Allows creating a zone type only for movable pages, e.g. page cache
++	  and anonymous memory. Because movable pages are easily reclaimed
++	  and page migration technique can move them, your chance for allocating
++	  contiguous memory such as huge pages will be better than other zones.
++	  To use this zone, please see "kernelcore=" or "movablecore=" in
++	  Documentation/kernel-parameters.txt
++
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+diff -puN mm/page_alloc.c~config_zone_movable-config-zone-movable mm/page_alloc.c
+--- a/mm/page_alloc.c~config_zone_movable-config-zone-movable
++++ a/mm/page_alloc.c
+@@ -95,7 +95,9 @@ int sysctl_lowmem_reserve_ratio[MAX_NR_Z
+ #ifdef CONFIG_HIGHMEM
+ 	 32,
+ #endif
++#ifdef CONFIG_ZONE_MOVABLE
+ 	 32,
++#endif
+ };
+ 
+ EXPORT_SYMBOL(totalram_pages);
+@@ -3918,6 +3920,10 @@ static int __init cmdline_parse_core(cha
+ 	if (!p)
+ 		return -EINVAL;
+ 
++	if (!is_configured_zone(ZONE_MOVABLE)) {
++		printk ("ZONE_MOVABLE is not configured, %s is ignored.\n",p);
++		return 0;
++	}
+ 	coremem = memparse(p, &p);
+ 	*core = coremem >> PAGE_SHIFT;
+ 
+diff -puN mm/vmstat.c~config_zone_movable-config-zone-movable mm/vmstat.c
+--- a/mm/vmstat.c~config_zone_movable-config-zone-movable
++++ a/mm/vmstat.c
+@@ -585,8 +585,14 @@ const struct seq_operations pagetypeinfo
+ #define TEXT_FOR_HIGHMEM(xx)
+ #endif
+ 
++#ifdef CONFIG_ZONE_MOVABLE
++#define TEXT_FOR_MOVABLE(xx) xx "_movable",
++#else
++#define TEXT_FOR_MOVABLE(xx)
++#endif
++
+ #define TEXTS_FOR_ZONES(xx) TEXT_FOR_DMA(xx) TEXT_FOR_DMA32(xx) xx "_normal", \
+-					TEXT_FOR_HIGHMEM(xx) xx "_movable",
++					TEXT_FOR_HIGHMEM(xx) xx TEXT_FOR_MOVABLE(xx)
+ 
+ static const char * const vmstat_text[] = {
+ 	/* Zoned VM counters */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
-atyfb-force-29mhz-xtal-on-g3-powerbooks.patch
-disable-sys_timerfd-for-2623.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-alsa-procfs-fix.patch
-git-alsa-sc6000-build-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
-fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
-fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-git-jg-misc-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mips-fixup.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
 git-net.patch
-git-net-fixup.patch
-git-net-fix-2.patch
-nit-net-skge-build-fix.patch
-revert-8139too-clean-up-i-o-remapping.patch
-net-atm-lecc-printk-warning-fix.patch
-git-net-af_iucv-fixes.patch
-git-net-sgiseeq-fix.patch
-git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-block-fix-u14-34f.patch
-git-block-fix-qlogicpti-build.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-net-vs-git-wireless.patch
-git-net-vs-git-wireless-2.patch
-net-add-ath5k-wireless-driver-fix.patch
-git-net-vs-git-wireless-3.patch
-git-net-broke-git-wireless.patch
-iwl3945-is-bust.patch
-more-wireless-borkage.patch
-more-wireless-borkage-2.patch
-more-wireless-borkage-3.patch
-p54pci-terminate-pci-table.patch
-git-wireless-fix-99.patch
-git-wireless-b44-is-bust.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+update-n_high_memory-node-state-for-memory-hotadd.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-ia64-interface.patch
+config_zone_movable-zone-ifdef-cleanup-by-renumbering.patch
+config_zone_movable-config-zone-movable.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
