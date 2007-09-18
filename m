@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-cpa-einval.patch removed from -mm tree
-Date: Tue, 18 Sep 2007 01:17:11 -0600
-Message-ID: <200709180717.l8I7HCvO025523@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-cpa-cleanup.patch removed from -mm tree
+Date: Tue, 18 Sep 2007 01:17:15 -0600
+Message-ID: <200709180717.l8I7HGp8025526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44759 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754229AbXIRHRr (ORCPT
+	by vger.kernel.org with ESMTP id S1754534AbXIRHRu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 03:17:47 -0400
+	Tue, 18 Sep 2007 03:17:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-cpa-einval
+     revert x86_64-mm-cpa-cleanup
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-cpa-einval.patch
+     revert-x86_64-mm-cpa-cleanup.patch
 
 This patch was dropped because the iommu patches depend on the busted stuff
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-cpa-einval
+Subject: revert x86_64-mm-cpa-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Needed for revert-x86_64-mm-cpa-clflush.patch
@@ -31,23 +31,58 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/pageattr.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/i386/mm/pageattr.c   |    7 ++++++-
+ arch/x86_64/mm/pageattr.c |    7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -154,9 +154,7 @@ __change_page_attr(unsigned long address
- 	pgprot_t ref_prot2;
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
++++ a/arch/i386/mm/pageattr.c
+@@ -241,6 +241,11 @@ __change_page_attr(struct page *page, pg
+ 	return 0;
+ } 
  
- 	kpte = lookup_address(address);
--	if (!kpte)
--		return -EINVAL;
--
-+	if (!kpte) return 0;
- 	kpte_page = virt_to_page(((unsigned long)kpte) & PAGE_MASK);
- 	BUG_ON(PageCompound(kpte_page));
- 	BUG_ON(PageLRU(kpte_page));
++static inline void flush_map(struct list_head *l)
++{
++	on_each_cpu(flush_kernel_map, l, 1, 1);
++}
++
+ /*
+  * Change the page attributes of an page in the linear mapping.
+  *
+@@ -282,7 +287,7 @@ void global_flush_tlb(void)
+ 	full_flush = 0;
+ 	list_replace_init(&df_list, &arg.l);
+ 	spin_unlock_irq(&cpa_lock);
+-	on_each_cpu(flush_kernel_map, &arg, 1, 1);
++	flush_map(&arg);
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
+ 		clear_bit(PG_arch_1, &pg->flags);
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-cleanup
++++ a/arch/x86_64/mm/pageattr.c
+@@ -93,6 +93,11 @@ static void flush_kernel_map(void *arg)
+ 	__flush_tlb_all();
+ }
+ 
++static inline void flush_map(struct list_head *l)
++{
++	on_each_cpu(flush_kernel_map, l, 1, 1);
++}
++
+ /* both protected by init_mm.mmap_sem */
+ static int full_flush;
+ static LIST_HEAD(deferred_pages);
+@@ -269,7 +274,7 @@ void global_flush_tlb(void)
+ 	list_replace_init(&deferred_pages, &arg.l);
+ 	up_read(&init_mm.mmap_sem);
+ 
+-	on_each_cpu(flush_kernel_map, &arg, 1, 1);
++	flush_map(&arg);
+ 
+ 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
+ 		list_del(&pg->lru);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -146,7 +181,6 @@ more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
 git-wireless-b44-is-bust.patch
-revert-x86_64-mm-cpa-einval.patch
 revert-x86_64-mm-cpa-cleanup.patch
 revert-x86_64-mm-cpa-clflush.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
