@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + git-net-fix-ibmveth.patch added to -mm tree
-Date: Mon, 17 Sep 2007 21:23:59 -0600
-Message-ID: <200709180323.l8I3NxYw018030@imap1.linux-foundation.org>
+Date: Mon, 17 Sep 2007 21:24:08 -0600
+Message-ID: <200709180324.l8I3O9MC018039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752394AbXIRDYE (ORCPT
+	by vger.kernel.org with ESMTP id S1752582AbXIRDYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Sep 2007 23:24:04 -0400
+	Mon, 17 Sep 2007 23:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     git-net-fix-ibmveth
+     git-net: fix ibmveth
 has been added to the -mm tree.  Its filename is
      git-net-fix-ibmveth.patch
 
@@ -26,8 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-fix-ibmveth
+Subject: git-net: fix ibmveth
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/net/ibmveth.c: In function `ibmveth_start_xmit':
+drivers/net/ibmveth.c:907: error: `dev' undeclared (first use in this function)
+drivers/net/ibmveth.c:907: error: (Each undeclared identifier is reported only once
+drivers/net/ibmveth.c:907: error: for each function it appears in.)
+drivers/net/ibmveth.c: In function `ibmveth_poll':
+drivers/net/ibmveth.c:955: error: `dev' undeclared (first use in this function)
+drivers/net/ibmveth.c: In function `ibmveth_probe':
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
