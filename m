@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - revert-x86_64-mm-cpa-arch-macro.patch removed from -mm tree
-Date: Tue, 18 Sep 2007 01:17:06 -0600
-Message-ID: <200709180717.l8I7H7pF025520@imap1.linux-foundation.org>
+Subject: - revert-x86_64-mm-cpa-einval.patch removed from -mm tree
+Date: Tue, 18 Sep 2007 01:17:11 -0600
+Message-ID: <200709180717.l8I7HCvO025523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754017AbXIRHRo (ORCPT
+	by vger.kernel.org with ESMTP id S1754229AbXIRHRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 03:17:44 -0400
+	Tue, 18 Sep 2007 03:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert x86_64-mm-cpa-arch-macro
+     revert x86_64-mm-cpa-einval
 has been removed from the -mm tree.  Its filename was
-     revert-x86_64-mm-cpa-arch-macro.patch
+     revert-x86_64-mm-cpa-einval.patch
 
 This patch was dropped because the iommu patches depend on the busted stuff
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-cpa-arch-macro
+Subject: revert x86_64-mm-cpa-einval
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Needed for revert-x86_64-mm-cpa-clflush.patch
@@ -31,93 +31,23 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mm/pageattr.c   |   10 +++-------
- arch/x86_64/mm/pageattr.c |   11 +++--------
- 2 files changed, 6 insertions(+), 15 deletions(-)
+ arch/x86_64/mm/pageattr.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/i386/mm/pageattr.c
---- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
-+++ a/arch/i386/mm/pageattr.c
-@@ -17,10 +17,6 @@
- #define PageFlush(p) test_bit(PG_owner_priv_1, &(p)->flags)
- #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
- #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
--#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
--#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
--#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
--#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
- 
- static DEFINE_SPINLOCK(cpa_lock);
- /* Both protected by cpa_lock */
-@@ -154,7 +150,7 @@ static inline void revert_page(struct pa
- 
- static inline void save_page(struct page *fpage, int data)
- {
--	if (TestSetPageDeferred(fpage))
-+	if (test_and_set_bit(PG_arch_1, &fpage->flags))
- 		return;
- 	BUG_ON(PageFlush(fpage));
- 	if (data) {
-@@ -171,7 +167,7 @@ static struct page *flush_page(unsigned 
- 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
- 		return NULL;
- 	p = virt_to_page(address);
--	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
-+	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
- 		return NULL;
- 	return p;
- }
-@@ -289,7 +285,7 @@ void global_flush_tlb(void)
- 	on_each_cpu(flush_kernel_map, &arg, 1, 1);
- 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
- 		list_del(&pg->lru);
--		ClearPageDeferred(pg);
-+		clear_bit(PG_arch_1, &pg->flags);
- 		if (TestClearPageFlush(pg))
- 			continue;
- 		if (PageReserved(pg) || !cpu_has_pse || page_private(pg) != 0)
-diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-arch-macro
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval
 +++ a/arch/x86_64/mm/pageattr.c
-@@ -17,11 +17,6 @@
- #define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
- #define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
+@@ -154,9 +154,7 @@ __change_page_attr(unsigned long address
+ 	pgprot_t ref_prot2;
  
--#define PageDeferred(p) test_bit(PG_arch_1, &(p)->flags)
--#define SetPageDeferred(p) set_bit(PG_arch_1, &(p)->flags)
--#define ClearPageDeferred(p) clear_bit(PG_arch_1, &(p)->flags)
--#define TestSetPageDeferred(p) test_and_set_bit(PG_arch_1, &(p)->flags)
+ 	kpte = lookup_address(address);
+-	if (!kpte)
+-		return -EINVAL;
 -
- pte_t *lookup_address(unsigned long address)
- { 
- 	pgd_t *pgd = pgd_offset_k(address);
-@@ -104,7 +99,7 @@ static LIST_HEAD(deferred_pages);
- 
- static inline void save_page(struct page *fpage, int data)
- {
--	if (TestSetPageDeferred(fpage))
-+	if (test_and_set_bit(PG_arch_1, &fpage->flags))
- 		return;
- 	BUG_ON(PageFlush(fpage));
- 	if (data) {
-@@ -145,7 +140,7 @@ static struct page *flush_page(unsigned 
- 	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
- 		return NULL;
- 	p = virt_to_page(address);
--	if ((PageFlush(p) || PageLRU(p)) && !PageDeferred(p))
-+	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
- 		return NULL;
- 	return p;
- }
-@@ -280,7 +275,7 @@ void global_flush_tlb(void)
- 
- 	list_for_each_entry_safe(pg, next, &arg.l, lru) {
- 		list_del(&pg->lru);
--		ClearPageDeferred(pg);
-+		clear_bit(PG_arch_1, &pg->flags);
- 		if (TestClearPageFlush(pg))
- 			continue;
- 		if (page_private(pg) != 0)
++	if (!kpte) return 0;
+ 	kpte_page = virt_to_page(((unsigned long)kpte) & PAGE_MASK);
+ 	BUG_ON(PageCompound(kpte_page));
+ 	BUG_ON(PageLRU(kpte_page));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -216,7 +146,6 @@ more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
 git-wireless-b44-is-bust.patch
-revert-x86_64-mm-cpa-arch-macro.patch
 revert-x86_64-mm-cpa-einval.patch
 revert-x86_64-mm-cpa-cleanup.patch
 revert-x86_64-mm-cpa-clflush.patch
