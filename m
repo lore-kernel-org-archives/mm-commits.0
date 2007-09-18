@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-x86_64-mm-cpa-einval.patch added to -mm tree
-Date: Mon, 17 Sep 2007 23:50:15 -0700
-Message-ID: <200709180650.l8I6oFZ2024675@imap1.linux-foundation.org>
+Subject: + revert-x86_64-mm-cpa-clflush.patch added to -mm tree
+Date: Mon, 17 Sep 2007 23:50:19 -0700
+Message-ID: <200709180650.l8I6oJrg024681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56248 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753720AbXIRGuU (ORCPT
+	by vger.kernel.org with ESMTP id S1754203AbXIRGu1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 02:50:20 -0400
+	Tue, 18 Sep 2007 02:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@suse.de
 
 
 The patch titled
-     revert x86_64-mm-cpa-einval
+     revert x86_64-mm-cpa-clflush
 has been added to the -mm tree.  Its filename is
-     revert-x86_64-mm-cpa-einval.patch
+     revert-x86_64-mm-cpa-clflush.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,330 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert x86_64-mm-cpa-einval
+Subject: revert x86_64-mm-cpa-clflush
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Needed for revert-x86_64-mm-cpa-clflush.patch
+This makes the Vaio hang when exitting X
 
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/pageattr.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/i386/mm/pageattr.c      |   72 +++++-------------------------
+ arch/x86_64/mm/pageattr.c    |   77 +++++++--------------------------
+ include/asm-i386/pgtable.h   |    2 
+ include/asm-x86_64/pgtable.h |    1 
+ 4 files changed, 30 insertions(+), 122 deletions(-)
 
-diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval arch/x86_64/mm/pageattr.c
---- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-einval
-+++ a/arch/x86_64/mm/pageattr.c
-@@ -154,9 +154,7 @@ __change_page_attr(unsigned long address
- 	pgprot_t ref_prot2;
+diff -puN arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-clflush arch/i386/mm/pageattr.c
+--- a/arch/i386/mm/pageattr.c~revert-x86_64-mm-cpa-clflush
++++ a/arch/i386/mm/pageattr.c
+@@ -14,13 +14,7 @@
+ #include <asm/pgalloc.h>
+ #include <asm/sections.h>
  
- 	kpte = lookup_address(address);
--	if (!kpte)
--		return -EINVAL;
+-#define PageFlush(p) test_bit(PG_owner_priv_1, &(p)->flags)
+-#define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+-#define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
 -
-+	if (!kpte) return 0;
- 	kpte_page = virt_to_page(((unsigned long)kpte) & PAGE_MASK);
- 	BUG_ON(PageCompound(kpte_page));
+ static DEFINE_SPINLOCK(cpa_lock);
+-/* Both protected by cpa_lock */
+-static int full_flush;
+ static struct list_head df_list = LIST_HEAD_INIT(df_list);
+ 
+ 
+@@ -74,11 +68,6 @@ static struct page *split_large_page(uns
+ 	return base;
+ } 
+ 
+-struct flush_arg {
+-	int full_flush;
+-	struct list_head l;
+-};
+-
+ static void cache_flush_page(struct page *p)
+ { 
+ 	void *adr = page_address(p);
+@@ -89,14 +78,13 @@ static void cache_flush_page(struct page
+ 
+ static void flush_kernel_map(void *arg)
+ {
+-	struct flush_arg *a = (struct flush_arg *)arg;
++	struct list_head *lh = (struct list_head *)arg;
+ 	struct page *p;
+ 
+-	if (!a->full_flush && cpu_has_clflush) {
+-		list_for_each_entry (p, &a->l, lru) {
+-			if (PageFlush(p))
+-				cache_flush_page(p);
+-		}
++	/* High level code is not ready for clflush yet */
++	if (0 && cpu_has_clflush) {
++		list_for_each_entry (p, lh, lru)
++			cache_flush_page(p);
+ 	} else if (boot_cpu_data.x86_model >= 4)
+ 		wbinvd();
+ 
+@@ -148,28 +136,10 @@ static inline void revert_page(struct pa
+ 			    ref_prot));
+ }
+ 
+-static inline void save_page(struct page *fpage, int data)
++static inline void save_page(struct page *kpte_page)
+ {
+-	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+-		return;
+-	BUG_ON(PageFlush(fpage));
+-	if (data) {
+-		if (!cpu_has_clflush)
+-			return;
+-		SetPageFlush(fpage);
+-	}
+-	list_add(&fpage->lru, &df_list);
+-}
+-
+-static struct page *flush_page(unsigned long address)
+-{
+-	struct page *p;
+-	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+-		return NULL;
+-	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+-		return NULL;
+-	return p;
++	if (!test_and_set_bit(PG_arch_1, &kpte_page->flags))
++		list_add(&kpte_page->lru, &df_list);
+ }
+ 
+ static int
+@@ -188,18 +158,6 @@ __change_page_attr(struct page *page, pg
+ 	kpte_page = virt_to_page(kpte);
  	BUG_ON(PageLRU(kpte_page));
+ 	BUG_ON(PageCompound(kpte_page));
+-	BUG_ON(PageLRU(kpte_page));
+-
+-	/* Do caching attributes change?
+-	   Note: this will need changes if the PAT bit is used (it isn't
+-   	   currently) because that one varies between 2MB and 4K pages. */
+-	if ((pte_val(*kpte)&_PAGE_CACHE) != (pgprot_val(prot)&_PAGE_CACHE)) {
+-		struct page *p = flush_page(address);
+-		if (!p)
+-			full_flush = 1;
+-		else
+-			save_page(p, 1);
+-	}
+ 
+ 	if (pgprot_val(prot) != pgprot_val(PAGE_KERNEL)) { 
+ 		if (!pte_huge(*kpte)) {
+@@ -231,7 +189,7 @@ __change_page_attr(struct page *page, pg
+ 	 * replace it with a largepage.
+ 	 */
+ 
+-	save_page(kpte_page, 0);
++	save_page(kpte_page);
+ 	if (!PageReserved(kpte_page)) {
+ 		if (cpu_has_pse && (page_private(kpte_page) == 0)) {
+ 			paravirt_release_pt(page_to_pfn(kpte_page));
+@@ -277,22 +235,18 @@ int change_page_attr(struct page *page, 
+ 
+ void global_flush_tlb(void)
+ {
+-	struct flush_arg arg;
++	struct list_head l;
+ 	struct page *pg, *next;
+ 
+ 	BUG_ON(irqs_disabled());
+ 
+ 	spin_lock_irq(&cpa_lock);
+-	arg.full_flush = full_flush;
+-	full_flush = 0;
+-	list_replace_init(&df_list, &arg.l);
++	list_replace_init(&df_list, &l);
+ 	spin_unlock_irq(&cpa_lock);
+-	flush_map(&arg);
+-	list_for_each_entry_safe(pg, next, &arg.l, lru) {
++	flush_map(&l);
++	list_for_each_entry_safe(pg, next, &l, lru) {
+ 		list_del(&pg->lru);
+ 		clear_bit(PG_arch_1, &pg->flags);
+-		if (TestClearPageFlush(pg))
+-			continue;
+ 		if (PageReserved(pg) || !cpu_has_pse || page_private(pg) != 0)
+ 			continue;
+ 		ClearPagePrivate(pg);
+diff -puN arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-clflush arch/x86_64/mm/pageattr.c
+--- a/arch/x86_64/mm/pageattr.c~revert-x86_64-mm-cpa-clflush
++++ a/arch/x86_64/mm/pageattr.c
+@@ -13,10 +13,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/io.h>
+ 
+-#define PageFlush(p) test_bit(PG_owner_priv_1, &(p)->flags)
+-#define SetPageFlush(p) set_bit(PG_owner_priv_1, &(p)->flags)
+-#define TestClearPageFlush(p) test_and_clear_bit(PG_owner_priv_1, &(p)->flags)
+-
+ pte_t *lookup_address(unsigned long address)
+ { 
+ 	pgd_t *pgd = pgd_offset_k(address);
+@@ -65,11 +61,6 @@ static struct page *split_large_page(uns
+ 	return base;
+ } 
+ 
+-struct flush_arg {
+-	int full_flush;
+-	struct list_head l;
+-};
+-
+ static void cache_flush_page(void *adr)
+ {
+ 	int i;
+@@ -79,16 +70,17 @@ static void cache_flush_page(void *adr)
+ 
+ static void flush_kernel_map(void *arg)
+ {
+-	struct flush_arg *a = (struct flush_arg *)arg;
++	struct list_head *l = (struct list_head *)arg;
+ 	struct page *pg;
+ 
+-	/* When clflush is available use it because it is
++	/* When clflush is available always use it because it is
+ 	   much cheaper than WBINVD. */
+-	if (a->full_flush || !cpu_has_clflush)
++	/* clflush is still broken. Disable for now. */
++	if (1 || !cpu_has_clflush)
+ 		asm volatile("wbinvd" ::: "memory");
+-	else list_for_each_entry(pg, &a->l, lru) {
+-		if (PageFlush(pg))
+-			cache_flush_page(page_address(pg));
++	else list_for_each_entry(pg, l, lru) {
++		void *adr = page_address(pg);
++		cache_flush_page(adr);
+ 	}
+ 	__flush_tlb_all();
+ }
+@@ -98,21 +90,12 @@ static inline void flush_map(struct list
+ 	on_each_cpu(flush_kernel_map, l, 1, 1);
+ }
+ 
+-/* both protected by init_mm.mmap_sem */
+-static int full_flush;
+-static LIST_HEAD(deferred_pages);
++static LIST_HEAD(deferred_pages); /* protected by init_mm.mmap_sem */
+ 
+-static inline void save_page(struct page *fpage, int data)
++static inline void save_page(struct page *fpage)
+ {
+-	if (test_and_set_bit(PG_arch_1, &fpage->flags))
+-		return;
+-	BUG_ON(PageFlush(fpage));
+-	if (data) {
+-		if (!cpu_has_clflush)
+-			return;
+-		SetPageFlush(fpage);
+-	}
+-	list_add(&fpage->lru, &deferred_pages);
++	if (!test_and_set_bit(PG_arch_1, &fpage->flags))
++		list_add(&fpage->lru, &deferred_pages);
+ }
+ 
+ /* 
+@@ -139,17 +122,6 @@ static void revert_page(unsigned long ad
+ 	set_pte((pte_t *)pmd, large_pte);
+ }      
+ 
+-static struct page *flush_page(unsigned long address)
+-{
+-	struct page *p;
+-	if (!(pfn_valid(__pa(address) >> PAGE_SHIFT)))
+-		return NULL;
+-	p = virt_to_page(address);
+-	if ((PageFlush(p) || PageLRU(p)) && !test_bit(PG_arch_1, &p->flags))
+-		return NULL;
+-	return p;
+-}
+-
+ static int
+ __change_page_attr(unsigned long address, unsigned long pfn, pgprot_t prot,
+ 				   pgprot_t ref_prot)
+@@ -161,19 +133,8 @@ __change_page_attr(unsigned long address
+ 	kpte = lookup_address(address);
+ 	if (!kpte) return 0;
+ 	kpte_page = virt_to_page(((unsigned long)kpte) & PAGE_MASK);
+-	BUG_ON(PageCompound(kpte_page));
+ 	BUG_ON(PageLRU(kpte_page));
+-
+-	/* Do caching attributes change?
+-	   Note: this will need changes if the PAT bit is used (it isn't
+-   	   currently) because that one varies between 2MB and 4K pages. */
+-	if ((pte_val(*kpte)&_PAGE_CACHE) != (pgprot_val(prot)&_PAGE_CACHE)) {
+-		struct page *p = flush_page(address);
+-		if (!p)
+-			full_flush = 1;
+-		else
+-			save_page(p, 1);
+-	}
++	BUG_ON(PageCompound(kpte_page));
+ 	if (pgprot_val(prot) != pgprot_val(ref_prot)) { 
+ 		if (!pte_huge(*kpte)) {
+ 			set_pte(kpte, pfn_pte(pfn, prot));
+@@ -201,7 +162,7 @@ __change_page_attr(unsigned long address
+ 	/* on x86-64 the direct mapping set at boot is not using 4k pages */
+  	BUG_ON(PageReserved(kpte_page));
+ 
+-	save_page(kpte_page, 0);
++	save_page(kpte_page);
+ 	if (page_private(kpte_page) == 0)
+ 		revert_page(address, ref_prot);
+ 	return 0;
+@@ -266,21 +227,17 @@ int change_page_attr(struct page *page, 
+ void global_flush_tlb(void)
+ { 
+ 	struct page *pg, *next;
+-	struct flush_arg arg;
++	struct list_head l;
+ 
+ 	down_read(&init_mm.mmap_sem);
+-	arg.full_flush = full_flush;
+-	full_flush = 0;
+-	list_replace_init(&deferred_pages, &arg.l);
++	list_replace_init(&deferred_pages, &l);
+ 	up_read(&init_mm.mmap_sem);
+ 
+-	flush_map(&arg);
++	flush_map(&l);
+ 
+-	list_for_each_entry_safe(pg, next, &arg.l, lru) {
++	list_for_each_entry_safe(pg, next, &l, lru) {
+ 		list_del(&pg->lru);
+ 		clear_bit(PG_arch_1, &pg->flags);
+-		if (TestClearPageFlush(pg))
+-			continue;
+ 		if (page_private(pg) != 0)
+ 			continue;
+ 		ClearPagePrivate(pg);
+diff -puN include/asm-i386/pgtable.h~revert-x86_64-mm-cpa-clflush include/asm-i386/pgtable.h
+--- a/include/asm-i386/pgtable.h~revert-x86_64-mm-cpa-clflush
++++ a/include/asm-i386/pgtable.h
+@@ -128,8 +128,6 @@ void paging_init(void);
+ #else
+ #define _PAGE_NX	0
+ #endif
+-#define _PAGE_CACHE	(_PAGE_PCD|_PAGE_PWT)
+-
+ 
+ #define _PAGE_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | _PAGE_ACCESSED | _PAGE_DIRTY)
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
+diff -puN include/asm-x86_64/pgtable.h~revert-x86_64-mm-cpa-clflush include/asm-x86_64/pgtable.h
+--- a/include/asm-x86_64/pgtable.h~revert-x86_64-mm-cpa-clflush
++++ a/include/asm-x86_64/pgtable.h
+@@ -165,7 +165,6 @@ static inline pte_t ptep_get_and_clear_f
+ 
+ #define _PAGE_PROTNONE	0x080	/* If not present */
+ #define _PAGE_NX        (_AC(1,UL)<<_PAGE_BIT_NX)
+-#define _PAGE_CACHE	(_PAGE_PCD|_PAGE_PWT)
+ 
+ #define _PAGE_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER | _PAGE_ACCESSED | _PAGE_DIRTY)
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
