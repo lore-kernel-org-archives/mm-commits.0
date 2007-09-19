@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-documentation-for-extended-crashkernel-syntax.patch added to -mm tree
-Date: Wed, 19 Sep 2007 15:35:53 -0700
-Message-ID: <200709192235.l8JMZrV0014702@imap1.linux-foundation.org>
+Subject: + first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch added to -mm tree
+Date: Wed, 19 Sep 2007 15:41:13 -0700
+Message-ID: <200709192241.l8JMfD9B014932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49316 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49036 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753317AbXISWgH (ORCPT
+	by vger.kernel.org with ESMTP id S1754738AbXISWm3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 18:36:07 -0400
+	Wed, 19 Sep 2007 18:42:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, ak@suse.de, benh@kernel.crashing.org, ebiederm@xmission.com, lethal@linux-sh.org, paulus@samba.org, tony.luck@intel.com, vgoyal@in.ibm.com
+Cc: akpm@linux-foundation.org, arjan@opmeer.net, dtor@mail.ru, jkosina@suse.cz
 
 
 The patch titled
-     Add documentation for extended crashkernel syntax
+     first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
 has been added to the -mm tree.  Its filename is
-     add-documentation-for-extended-crashkernel-syntax.patch
+     first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,289 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add documentation for extended crashkernel syntax
-From: Bernhard Walle <bwalle@suse.de>
+Subject: first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds the documentation for the extended crashkernel syntax into
-Documentation/kdump/kdump.txt.
+- fix a few of the checkpatch warnigns
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+- make those stub functions static inline
+
+Cc: Arjan Opmeer <arjan@opmeer.net>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+)
+ drivers/input/mouse/elantech.c |    8 ++++----
+ drivers/input/mouse/elantech.h |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~add-documentation-for-extended-crashkernel-syntax Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~add-documentation-for-extended-crashkernel-syntax
-+++ a/Documentation/kdump/kdump.txt
-@@ -231,6 +231,32 @@ Dump-capture kernel config options (Arch
-   any space below the alignment point will be wasted.
+diff -puN drivers/input/mouse/elantech.c~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix drivers/input/mouse/elantech.c
+--- a/drivers/input/mouse/elantech.c~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
++++ a/drivers/input/mouse/elantech.c
+@@ -53,7 +53,7 @@ static int elantech_write_reg(struct psm
+ 	    psmouse_sliced_command(psmouse, reg) ||
+ 	    psmouse_sliced_command(psmouse, val) ||
+ 	    ps2_command(&psmouse->ps2dev, NULL, PSMOUSE_CMD_SETSCALE11)) {
+-	     	return -1;
++		return -1;
+ 	}
  
+ 	return 0;
+@@ -69,9 +69,8 @@ static psmouse_ret_t elantech_process_by
+ 	unsigned char 		*packet = psmouse->packet;
+ 	unsigned int 		z;
  
-+Extended crashkernel syntax
-+===========================
-+
-+While the "crashkernel=size[@offset]" syntax is sufficient for most
-+configurations, sometimes it's handy to have the reserved memory dependent
-+on the value of System RAM -- that's mostly for distributors that pre-setup
-+the kernel command line to avoid a unbootable system after some memory has
-+been removed from the machine.
-+
-+The syntax is:
-+
-+    crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
-+    range=start-[end]
-+
-+For example:
-+
-+    crashkernel=512M-2G:64M,2G-:128M
-+
-+This would mean:
-+
-+    1) if the RAM is smaller than 512M, then don't reserve anything
-+       (this is the "rescue" case)
-+    2) if the RAM size is between 512M and 2G, then reserve 64M
-+    3) if the RAM size is larger than 2G, then reserve 128M
-+
-+
- Boot into System Kernel
- =======================
+-	if (psmouse->pktcnt < 4) {
++	if (psmouse->pktcnt < 4)
+ 		return PSMOUSE_GOOD_DATA;
+-	}
+ 
+ 	if (etd->reg_10 & ETP_RAW_MODE) {
+ 		/*
+@@ -340,7 +339,8 @@ int elantech_init(struct psmouse *psmous
+ 	struct elantech_data 	*priv;
+ 	int			error;
+ 
+-	psmouse->private = priv = kzalloc(sizeof(struct elantech_data), GFP_KERNEL);
++	priv = kzalloc(sizeof(struct elantech_data), GFP_KERNEL);
++	psmouse->private = priv;
+ 	if (!priv)
+ 		return -1;
+ 
+diff -puN drivers/input/mouse/elantech.h~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix drivers/input/mouse/elantech.h
+--- a/drivers/input/mouse/elantech.h~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
++++ a/drivers/input/mouse/elantech.h
+@@ -31,13 +31,13 @@ struct elantech_data {
+ int elantech_detect(struct psmouse *psmouse, int set_properties);
+ int elantech_init(struct psmouse *psmouse);
+ #else
+-inline int elantech_detect(struct psmouse *psmouse, int set_properties)
++static inline int elantech_detect(struct psmouse *psmouse, int set_properties)
+ {
+- 	return -ENOSYS;
++	return -ENOSYS;
+ }
+-inline int elantech_init(struct psmouse *psmouse)
++static inline int elantech_init(struct psmouse *psmouse)
+ {
+- 	return -ENOSYS;
++	return -ENOSYS;
+ }
+ #endif /* CONFIG_MOUSE_PS2_ELANTECH */
  
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-vmcoreinfo.patch
-express-relocatability-of-kernel-on-x86_64-in-documentation.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-express-new-elf32-mechanisms-in-documentation.patch
-add-reset_devices-to-the-recommended-parameters.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-sh.patch
-add-documentation-for-extended-crashkernel-syntax.patch
+origin.patch
+fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
+disable-sys_timerfd-for-2623.patch
+uml-fix-irqstack-crash.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+git-alsa-sc6000-build-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-sysfs-spit-a-warning-to-users-when-they-try-to-create-a-duplicate-sysfs-file.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-2.patch
+nit-net-skge-build-fix.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-net-af_iucv-fixes.patch
+git-net-sgiseeq-fix.patch
+git-net-fix-ibmveth.patch
+git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-u14-34f.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+git-net-vs-git-wireless.patch
+git-net-vs-git-wireless-2.patch
+net-add-ath5k-wireless-driver-fix.patch
+git-net-vs-git-wireless-3.patch
+git-net-broke-git-wireless.patch
+iwl3945-is-bust.patch
+more-wireless-borkage.patch
+more-wireless-borkage-2.patch
+more-wireless-borkage-3.patch
+p54pci-terminate-pci-table.patch
+git-wireless-fix-99.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
