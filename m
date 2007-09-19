@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch added to -mm tree
-Date: Wed, 19 Sep 2007 16:40:17 -0700
-Message-ID: <200709192340.l8JNeHX2018446@imap1.linux-foundation.org>
+Subject: + 9pfs-cleanup-explicit-check-for-mandatory-locks.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:51:13 -0700
+Message-ID: <200709192351.l8JNpD6p019007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54423 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47330 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644AbXISXlV (ORCPT
+	by vger.kernel.org with ESMTP id S1750909AbXISXvu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 19:41:21 -0400
+	Wed, 19 Sep 2007 19:51:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ytht.net@gmail.com, chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com
+Cc: xemul@openvz.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     reiserfs: workaround for dead loop in finish_unfinished
+     9PFS: clean up explicit check for mandatory locks
 has been added to the -mm tree.  Its filename is
-     reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+     9pfs-cleanup-explicit-check-for-mandatory-locks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,111 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: workaround for dead loop in finish_unfinished
-From: Lepton Wu <ytht.net@gmail.com>
+Subject: 9PFS: clean up explicit check for mandatory locks
+From: Pavel Emelyanov <xemul@openvz.org>
 
-There is possible dead loop in finish_unfinished function.
+The __mandatory_lock(inode) macro makes the same check, but makes the code
+more readable.
 
-In most situation, the call chain iput -> ...  -> reiserfs_delete_inode ->
-remove_save_link will success.  But for some reason such as data
-corruption, reiserfs_delete_inode fails on reiserfs_do_truncate ->
-search_for_position_by_key.
-
-Then remove_save_link won't be called.  We always get the same
-"save_link_key" in the while loop in finish_unfinished function.  The
-following patch adds a check for the possible dead loop and just remove
-save link when deap loop.
-
-Signed-off-by: Lepton Wu <ytht.net@gmail.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+ fs/9p/vfs_file.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished
-+++ a/fs/reiserfs/super.c
-@@ -145,7 +145,7 @@ static int finish_unfinished(struct supe
- {
- 	INITIALIZE_PATH(path);
- 	struct cpu_key max_cpu_key, obj_key;
--	struct reiserfs_key save_link_key;
-+	struct reiserfs_key save_link_key, last_inode_key;
- 	int retval = 0;
- 	struct item_head *ih;
- 	struct buffer_head *bh;
-@@ -166,6 +166,8 @@ static int finish_unfinished(struct supe
- 	set_cpu_key_k_offset(&max_cpu_key, ~0U);
- 	max_cpu_key.key_length = 3;
+diff -puN fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks
++++ a/fs/9p/vfs_file.c
+@@ -105,7 +105,7 @@ static int v9fs_file_lock(struct file *f
+ 	P9_DPRINTK(P9_DEBUG_VFS, "filp: %p lock: %p\n", filp, fl);
  
-+	memset(&last_inode_key, 0, sizeof(last_inode_key));
-+
- #ifdef CONFIG_QUOTA
- 	/* Needed for iput() to work correctly and not trash data */
- 	if (s->s_flags & MS_ACTIVE) {
-@@ -278,8 +280,16 @@ static int finish_unfinished(struct supe
- 			REISERFS_I(inode)->i_flags |= i_link_saved_unlink_mask;
- 			/* not completed unlink (rmdir) found */
- 			reiserfs_info(s, "Removing %k..", INODE_PKEY(inode));
--			/* removal gets completed in iput */
--			retval = 0;
-+			if(memcmp(&last_inode_key, INODE_PKEY(inode),
-+				  sizeof(last_inode_key))){
-+				last_inode_key = *INODE_PKEY(inode);
-+				/* removal gets completed in iput */
-+				retval = 0;
-+			} else {
-+				reiserfs_warning(s, "Dead loop in finish_unfinished detected, just remove save link\n");
-+				retval = remove_save_link_only(s,
-+							       &save_link_key, 0);
-+			}
- 		}
+ 	/* No mandatory locks */
+-	if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
++	if (__mandatory_lock(inode))
+ 		return -ENOLCK;
  
- 		iput(inode);
+ 	if ((IS_SETLK(cmd) || IS_SETLKW(cmd)) && fl->fl_type != F_UNLCK) {
 _
 
-Patches currently in -mm which might be from ytht.net@gmail.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-reiserfs-fix-kernel-panic-on-corrupted-directory.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+origin.patch
+convert-uid-hash-to-hlist.patch
+fix-user-namespace-exiting-oops.patch
+git-net.patch
+git-nfsd.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+isolate-some-explicit-usage-of-task-tgid-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+cleanup-macros-for-distinguishing-mandatory-locks.patch
+gfs2-cleanup-explicit-check-for-mandatory-locks.patch
+9pfs-cleanup-explicit-check-for-mandatory-locks.patch
+afs-cleanup-explicit-check-for-mandatory-locks.patch
+nfs-cleanup-explicit-check-for-mandatory-locks.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
