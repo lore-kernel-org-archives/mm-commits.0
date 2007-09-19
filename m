@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gfs2-cleanup-explicit-check-for-mandatory-locks.patch added to -mm tree
-Date: Wed, 19 Sep 2007 16:51:11 -0700
-Message-ID: <200709192351.l8JNpBF7019004@imap1.linux-foundation.org>
+Subject: + afs-cleanup-explicit-check-for-mandatory-locks.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:51:15 -0700
+Message-ID: <200709192351.l8JNpFh8019010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46583 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33743 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753835AbXISXvz (ORCPT
+	by vger.kernel.org with ESMTP id S1755759AbXISXwD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 19:51:55 -0400
+	Wed, 19 Sep 2007 19:52:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, swhiteho@redhat.com
+Cc: xemul@openvz.org, dhowells@redhat.com
 
 
 The patch titled
-     GFS2: clean up explicit check for mandatory locks
+     AFS: clean up explicit check for mandatory locks
 has been added to the -mm tree.  Its filename is
-     gfs2-cleanup-explicit-check-for-mandatory-locks.patch
+     afs-cleanup-explicit-check-for-mandatory-locks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: GFS2: clean up explicit check for mandatory locks
+Subject: AFS: clean up explicit check for mandatory locks
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The __mandatory_lock(inode) function makes the same check, but makes the code
+The __mandatory_lock(inode) macro makes the same check, but makes the code
 more readable.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_file.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ fs/afs/flock.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/gfs2/ops_file.c~gfs2-cleanup-explicit-check-for-mandatory-locks fs/gfs2/ops_file.c
---- a/fs/gfs2/ops_file.c~gfs2-cleanup-explicit-check-for-mandatory-locks
-+++ a/fs/gfs2/ops_file.c
-@@ -535,7 +535,7 @@ static int gfs2_lock(struct file *file, 
+diff -puN fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks fs/afs/flock.c
+--- a/fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks
++++ a/fs/afs/flock.c
+@@ -524,8 +524,7 @@ int afs_lock(struct file *file, int cmd,
+ 	       (long long) fl->fl_start, (long long) fl->fl_end);
  
- 	if (!(fl->fl_flags & FL_POSIX))
- 		return -ENOLCK;
--	if ((ip->i_inode.i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
-+	if (__mandatory_lock(&ip->i_inode))
- 		return -ENOLCK;
- 
- 	if (sdp->sd_args.ar_localflocks) {
-@@ -636,7 +636,7 @@ static int gfs2_flock(struct file *file,
- 
- 	if (!(fl->fl_flags & FL_FLOCK))
- 		return -ENOLCK;
--	if ((ip->i_inode.i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
-+	if (__mandatory_lock(&ip->i_inode))
+ 	/* AFS doesn't support mandatory locks */
+-	if ((vnode->vfs_inode.i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
+-	    fl->fl_type != F_UNLCK)
++	if (__mandatory_lock(&vnode->vfs_inode) && fl->fl_type != F_UNLCK)
  		return -ENOLCK;
  
- 	if (sdp->sd_args.ar_localflocks)
+ 	if (IS_GETLK(cmd))
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
