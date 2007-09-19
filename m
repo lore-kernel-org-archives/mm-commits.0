@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-rename-pt_regs-general-purpose-register-file-fix.patch added to -mm tree
-Date: Tue, 18 Sep 2007 19:21:18 -0700
-Message-ID: <200709190221.l8J2LI30002479@imap1.linux-foundation.org>
+Subject: + fix-memory-hot-remove-not-configured-case.patch added to -mm tree
+Date: Tue, 18 Sep 2007 19:24:55 -0700
+Message-ID: <200709190224.l8J2OtOr002599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45006 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58392 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751571AbXISCVu (ORCPT
+	by vger.kernel.org with ESMTP id S1751359AbXISCZd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Sep 2007 22:21:50 -0400
+	Tue, 18 Sep 2007 22:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     uml: refix ELF_CORE_COPY_REGS
+     fix memory hot remove not configured case.
 has been added to the -mm tree.  Its filename is
-     uml-rename-pt_regs-general-purpose-register-file-fix.patch
+     fix-memory-hot-remove-not-configured-case.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,128 +26,258 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: refix ELF_CORE_COPY_REGS
-From: Jeff Dike <jdike@addtoit.com>
+Subject: fix memory hot remove not configured case.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The former uml-fix-x86_64-core-dump-crash.patch expressed
-ELF_CORE_COPY_REGS in terms of the pt_regs struct currently in -mm.  I
-fast-tracked this to mainline, where it was wrong because the pt_regs
-struct there hadn't been changed.  Fixing that then made the patch wrong
-for -mm when it was rebased on -rc6.
+Now, arch dependent code around CONFIG_MEMORY_HOTREMOVE is a mess.
+This patch cleans up them. This is against 2.6.23-rc6-mm1.
 
-This patch changes things back again to be right for -mm.  This should
-go to mainline after uml-rename-pt_regs-general-purpose-register-file.patch
+ - fix compile failure on ia64/ CONFIG_MEMORY_HOTPLUG && !CONFIG_MEMORY_HOTREMOVE case.
+ - For !CONFIG_MEMORY_HOTREMOVE, add generic no-op remove_memory(),
+   which returns -EINVAL.
+ - removed remove_pages() only used in powerpc.
+ - removed no-op remove_memory() in i386, sh, sparc64, x86_64.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+ - only powerpc returns -ENOSYS at memory hot remove(no-op). changes it
+   to return -EINVAL.
+
+Note:
+Currently, only ia64 supports CONFIG_MEMORY_HOTREMOVE. I welcome other
+archs if there are requirements and testers.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/elf-x86_64.h |   42 +++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ arch/i386/mm/init.c            |    5 ---
+ arch/ia64/mm/init.c            |    3 +-
+ arch/powerpc/mm/mem.c          |   45 -------------------------------
+ arch/sh/mm/init.c              |    6 ----
+ arch/sparc64/mm/init.c         |    5 ---
+ arch/x86_64/mm/init.c          |    6 ----
+ include/linux/memory_hotplug.h |   12 +-------
+ mm/memory_hotplug.c            |    6 ++++
+ 8 files changed, 10 insertions(+), 78 deletions(-)
 
-diff -puN include/asm-um/elf-x86_64.h~uml-rename-pt_regs-general-purpose-register-file-fix include/asm-um/elf-x86_64.h
---- a/include/asm-um/elf-x86_64.h~uml-rename-pt_regs-general-purpose-register-file-fix
-+++ a/include/asm-um/elf-x86_64.h
-@@ -67,27 +67,27 @@ typedef struct { } elf_fpregset_t;
- } while (0)
+diff -puN arch/i386/mm/init.c~fix-memory-hot-remove-not-configured-case arch/i386/mm/init.c
+--- a/arch/i386/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/i386/mm/init.c
+@@ -735,11 +735,6 @@ int arch_add_memory(int nid, u64 start, 
+ 	return __add_pages(zone, start_pfn, nr_pages);
+ }
  
- #define ELF_CORE_COPY_REGS(pr_reg, regs)		\
--	(pr_reg)[0] = (regs)->regs.skas.regs[0];			\
--	(pr_reg)[1] = (regs)->regs.skas.regs[1];			\
--	(pr_reg)[2] = (regs)->regs.skas.regs[2];			\
--	(pr_reg)[3] = (regs)->regs.skas.regs[3];			\
--	(pr_reg)[4] = (regs)->regs.skas.regs[4];			\
--	(pr_reg)[5] = (regs)->regs.skas.regs[5];			\
--	(pr_reg)[6] = (regs)->regs.skas.regs[6];			\
--	(pr_reg)[7] = (regs)->regs.skas.regs[7];			\
--	(pr_reg)[8] = (regs)->regs.skas.regs[8];			\
--	(pr_reg)[9] = (regs)->regs.skas.regs[9];			\
--	(pr_reg)[10] = (regs)->regs.skas.regs[10];			\
--	(pr_reg)[11] = (regs)->regs.skas.regs[11];			\
--	(pr_reg)[12] = (regs)->regs.skas.regs[12];			\
--	(pr_reg)[13] = (regs)->regs.skas.regs[13];			\
--	(pr_reg)[14] = (regs)->regs.skas.regs[14];			\
--	(pr_reg)[15] = (regs)->regs.skas.regs[15];			\
--	(pr_reg)[16] = (regs)->regs.skas.regs[16];			\
--	(pr_reg)[17] = (regs)->regs.skas.regs[17];			\
--	(pr_reg)[18] = (regs)->regs.skas.regs[18];			\
--	(pr_reg)[19] = (regs)->regs.skas.regs[19];			\
--	(pr_reg)[20] = (regs)->regs.skas.regs[20];			\
-+	(pr_reg)[0] = (regs)->regs.gp[0];			\
-+	(pr_reg)[1] = (regs)->regs.gp[1];			\
-+	(pr_reg)[2] = (regs)->regs.gp[2];			\
-+	(pr_reg)[3] = (regs)->regs.gp[3];			\
-+	(pr_reg)[4] = (regs)->regs.gp[4];			\
-+	(pr_reg)[5] = (regs)->regs.gp[5];			\
-+	(pr_reg)[6] = (regs)->regs.gp[6];			\
-+	(pr_reg)[7] = (regs)->regs.gp[7];			\
-+	(pr_reg)[8] = (regs)->regs.gp[8];			\
-+	(pr_reg)[9] = (regs)->regs.gp[9];			\
-+	(pr_reg)[10] = (regs)->regs.gp[10];			\
-+	(pr_reg)[11] = (regs)->regs.gp[11];			\
-+	(pr_reg)[12] = (regs)->regs.gp[12];			\
-+	(pr_reg)[13] = (regs)->regs.gp[13];			\
-+	(pr_reg)[14] = (regs)->regs.gp[14];			\
-+	(pr_reg)[15] = (regs)->regs.gp[15];			\
-+	(pr_reg)[16] = (regs)->regs.gp[16];			\
-+	(pr_reg)[17] = (regs)->regs.gp[17];			\
-+	(pr_reg)[18] = (regs)->regs.gp[18];			\
-+	(pr_reg)[19] = (regs)->regs.gp[19];			\
-+	(pr_reg)[20] = (regs)->regs.gp[20];			\
- 	(pr_reg)[21] = current->thread.arch.fs;			\
- 	(pr_reg)[22] = 0;					\
- 	(pr_reg)[23] = 0;					\
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+ #endif
+ 
+ struct kmem_cache *pmd_cache;
+diff -puN arch/ia64/mm/init.c~fix-memory-hot-remove-not-configured-case arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/ia64/mm/init.c
+@@ -719,7 +719,7 @@ int arch_add_memory(int nid, u64 start, 
+ 
+ 	return ret;
+ }
+-
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ int remove_memory(u64 start, u64 size)
+ {
+ 	unsigned long start_pfn, end_pfn;
+@@ -735,4 +735,5 @@ out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(remove_memory);
++#endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif
+diff -puN arch/powerpc/mm/mem.c~fix-memory-hot-remove-not-configured-case arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/powerpc/mm/mem.c
+@@ -129,51 +129,6 @@ int __devinit arch_add_memory(int nid, u
+ 	return __add_pages(zone, start_pfn, nr_pages);
+ }
+ 
+-/*
+- * First pass at this code will check to determine if the remove
+- * request is within the RMO.  Do not allow removal within the RMO.
+- */
+-int __devinit remove_memory(u64 start, u64 size)
+-{
+-	struct zone *zone;
+-	unsigned long start_pfn, end_pfn, nr_pages;
+-
+-	start_pfn = start >> PAGE_SHIFT;
+-	nr_pages = size >> PAGE_SHIFT;
+-	end_pfn = start_pfn + nr_pages;
+-
+-	printk("%s(): Attempting to remove memoy in range "
+-			"%lx to %lx\n", __func__, start, start+size);
+-	/*
+-	 * check for range within RMO
+-	 */
+-	zone = page_zone(pfn_to_page(start_pfn));
+-
+-	printk("%s(): memory will be removed from "
+-			"the %s zone\n", __func__, zone->name);
+-
+-	/*
+-	 * not handling removing memory ranges that
+-	 * overlap multiple zones yet
+-	 */
+-	if (end_pfn > (zone->zone_start_pfn + zone->spanned_pages))
+-		goto overlap;
+-
+-	/* make sure it is NOT in RMO */
+-	if ((start < lmb.rmo_size) || ((start+size) < lmb.rmo_size)) {
+-		printk("%s(): range to be removed must NOT be in RMO!\n",
+-			__func__);
+-		goto in_rmo;
+-	}
+-
+-	return __remove_pages(zone, start_pfn, nr_pages);
+-
+-overlap:
+-	printk("%s(): memory range to be removed overlaps "
+-		"multiple zones!!!\n", __func__);
+-in_rmo:
+-	return -1;
+-}
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ void show_mem(void)
+diff -puN arch/sh/mm/init.c~fix-memory-hot-remove-not-configured-case arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/sh/mm/init.c
+@@ -294,12 +294,6 @@ int arch_add_memory(int nid, u64 start, 
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-
+ #ifdef CONFIG_NUMA
+ int memory_add_physaddr_to_nid(u64 addr)
+ {
+diff -puN arch/sparc64/mm/init.c~fix-memory-hot-remove-not-configured-case arch/sparc64/mm/init.c
+--- a/arch/sparc64/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/sparc64/mm/init.c
+@@ -1963,9 +1963,4 @@ void online_page(struct page *page)
+ 	num_physpages++;
+ }
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+diff -puN arch/x86_64/mm/init.c~fix-memory-hot-remove-not-configured-case arch/x86_64/mm/init.c
+--- a/arch/x86_64/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/x86_64/mm/init.c
+@@ -474,12 +474,6 @@ error:
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-
+ #if !defined(CONFIG_ACPI_NUMA) && defined(CONFIG_NUMA)
+ int memory_add_physaddr_to_nid(u64 start)
+ {
+diff -puN include/linux/memory_hotplug.h~fix-memory-hot-remove-not-configured-case include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~fix-memory-hot-remove-not-configured-case
++++ a/include/linux/memory_hotplug.h
+@@ -58,10 +58,9 @@ extern int add_one_highpage(struct page 
+ extern void online_page(struct page *page);
+ /* VM interface that may be used by firmware interface */
+ extern int online_pages(unsigned long, unsigned long);
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-extern int offline_pages(unsigned long, unsigned long, unsigned long);
+ extern void __offline_isolated_pages(unsigned long, unsigned long);
+-#endif
++extern int offline_pages(unsigned long, unsigned long, unsigned long);
++
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
+@@ -171,13 +170,6 @@ static inline int mhp_notimplemented(con
+ }
+ 
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+-static inline int __remove_pages(struct zone *zone, unsigned long start_pfn,
+-	unsigned long nr_pages)
+-{
+-	printk(KERN_WARNING "%s() called, not yet supported\n", __FUNCTION__);
+-	dump_stack();
+-	return -ENOSYS;
+-}
+ 
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+diff -puN mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case
++++ a/mm/memory_hotplug.c
+@@ -555,4 +555,10 @@ failed_removal:
+ 	undo_isolate_page_range(start_pfn, end_pfn);
+ 	return ret;
+ }
++#else
++int remove_memory(u64 start, u64 size)
++{
++	return -ENOSYS;
++}
++EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-uml-use-correct-type-in-blkgetsize-ioctl.patch
-uml-fix-irqstack-crash.patch
-uml-fix-irqstack-crash-fix.patch
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-stop-saving-process-fp-state-fix.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-rename-pt_regs-general-purpose-register-file-fix.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
-uml-dont-use-glibc-asm-userh.patch
-uml-floating-point-signal-delivery-fixes.patch
-uml-ptrace-floating-point-fixes.patch
-uml-coredumping-floating-point-fixes.patch
-uml-sysrq-and-mconsole-fixes.patch
-uml-style-fixes-in-fp-code.patch
-uml-eliminate-floating-point-state-from-register-file.patch
-uml-remove-unused-file.patch
-uml-more-idiomatic-parameter-parsing.patch
-bitops-introduce-lock-ops.patch
+git-net.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+update-n_high_memory-node-state-for-memory-hotadd.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-ia64-interface.patch
+fix-memory-hot-remove-not-configured-case.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
