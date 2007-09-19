@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + menuconfig-distinguish-between-selected-by-another-options-and-comments.patch added to -mm tree
-Date: Wed, 19 Sep 2007 16:01:07 -0700
-Message-ID: <200709192301.l8JN170E015713@imap1.linux-foundation.org>
+Subject: + make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:04:33 -0700
+Message-ID: <200709192304.l8JN4XUq015874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51619 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758120AbXISXBh (ORCPT
+	by vger.kernel.org with ESMTP id S1751977AbXISXFC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 19:01:37 -0400
+	Wed, 19 Sep 2007 19:05:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: strohel@gmail.com, randy.dunlap@oracle.com, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: bero@arklinux.org, cathectic@gmail.com, dtor@mail.ru, jkosina@suse.cz, mitr@volny.cz
 
 
 The patch titled
-     menuconfig: distinguish between selected-by-another options and comments
+     Make wistron-btns recognize special keys on Medion WIM2160 notebooks
 has been added to the -mm tree.  Its filename is
-     menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+     make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: menuconfig: distinguish between selected-by-another options and comments
-From: Matej Laitl <strohel@gmail.com>
+Subject: Make wistron-btns recognize special keys on Medion WIM2160 notebooks
+From: Bernhard Rosenkraenzer <bero@arklinux.org>
 
-menuconfig currently represents options implied by another option ('select'
-directive in Kconfig) by prefixing them with '---'.  Unfortunately the same
-notation is used for comments.  If the implied option is module capable,
-user can still switch between Y and M, all without any feedback until she
-visits option's help.  (try saying M to MAC80211 and then toggling
-CFG80211)
+Add support for Medion WIM2160 notebooks to the wistron-btns driver.
 
-This patch changes notation of selected-by-another items by introducing 2
-new representations for implied options: {*} or {M} for options selected by
-another modularized one, thus builtin or module capable, -*- or -M- for
-options that cannot be at the moment changed by user.
-
-The idea is to represent actual capability of the option by braces (dashes)
-around and to always report actual state by * or M inside.
-
-Signed-off-by: Matej Laitl <strohel@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Bernhard Rosenkraenzer <bero@arklinux.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Carlos Corbacho <cathectic@gmail.com>
+Cc: Miloslav Trmac <mitr@volny.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/mconf.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+ drivers/input/misc/wistron_btns.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+)
 
-diff -puN scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments scripts/kconfig/mconf.c
---- a/scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments
-+++ a/scripts/kconfig/mconf.c
-@@ -35,9 +35,13 @@ static const char mconf_readme[] = N_(
- "kernel parameters which are not really features, but must be\n"
- "entered in as decimal or hexadecimal numbers or possibly text.\n"
- "\n"
--"Menu items beginning with [*], <M> or [ ] represent features\n"
--"configured to be built in, modularized or removed respectively.\n"
--"Pointed brackets <> represent module capable features.\n"
-+"Menu items beginning with following braces represent features that\n"
-+"  [ ] can be built in or removed\n"
-+"  < > can be built in, modularized or removed\n"
-+"  { } can be built in or modularized (selected by other feature)\n"
-+"  - - are selected by other feature,\n"
-+"while *, M or whitespace inside braces means to build in, build as\n"
-+"a module or to exclude the feature respectively.\n"
- "\n"
- "To change any of these features, highlight it with the cursor\n"
- "keys and press <Y> to build it in, <M> to make it a module or\n"
-@@ -560,7 +564,7 @@ static void build_conf(struct menu *menu
- 				if (sym_is_changable(sym))
- 					item_make("[%c]", val == no ? ' ' : '*');
- 				else
--					item_make("---");
-+					item_make("-%c-", val == no ? ' ' : '*');
- 				item_set_tag('t');
- 				item_set_data(menu);
- 				break;
-@@ -570,10 +574,13 @@ static void build_conf(struct menu *menu
- 				case mod: ch = 'M'; break;
- 				default:  ch = ' '; break;
- 				}
--				if (sym_is_changable(sym))
--					item_make("<%c>", ch);
--				else
--					item_make("---");
-+				if (sym_is_changable(sym)) {
-+					if (sym->rev_dep.tri == mod)
-+						item_make("{%c}", ch);
-+					else
-+						item_make("<%c>", ch);
-+				} else
-+					item_make("-%c-", ch);
- 				item_set_tag('t');
- 				item_set_data(menu);
- 				break;
+diff -puN drivers/input/misc/wistron_btns.c~make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks drivers/input/misc/wistron_btns.c
+--- a/drivers/input/misc/wistron_btns.c~make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks
++++ a/drivers/input/misc/wistron_btns.c
+@@ -533,6 +533,13 @@ static struct key_entry keymap_fs_amilo_
+ 	{ KE_END, FE_MAIL_LED | FE_WIFI_LED | FE_UNTESTED }
+ };
+ 
++static struct key_entry keymap_medion_wim2160[] __initdata = {
++	{ KE_WIFI, 0x30 },
++	{ KE_KEY, 0x11, {KEY_PROG1} },
++	{ KE_KEY, 0x12, {KEY_PROG2} },
++	{ KE_END, 0 }
++};
++
+ static struct key_entry keymap_wistron_md2900[] __initdata = {
+ 	{ KE_KEY, 0x01, {KEY_HELP} },
+ 	{ KE_KEY, 0x02, {KEY_CONFIG} },
+@@ -914,6 +921,15 @@ static struct dmi_system_id dmi_ids[] __
+ 		},
+ 		.driver_data = keymap_fs_amilo_d88x0
+ 	},
++	{
++		.callback = dmi_matched,
++		.ident = "Medion WIM2160",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "MEDION"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "WIM2160"),
++		},
++		.driver_data = keymap_medion_wim2160
++	},
+ 	{ NULL, }
+ };
+ 
 _
 
-Patches currently in -mm which might be from strohel@gmail.com are
+Patches currently in -mm which might be from bero@arklinux.org are
 
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch
