@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-cleanup-explicit-check-for-mandatory-locks.patch added to -mm tree
-Date: Wed, 19 Sep 2007 16:51:15 -0700
-Message-ID: <200709192351.l8JNpFh8019010@imap1.linux-foundation.org>
+Subject: + nfs-cleanup-explicit-check-for-mandatory-locks.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:51:17 -0700
+Message-ID: <200709192351.l8JNpHBZ019013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33743 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45250 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755759AbXISXwD (ORCPT
+	by vger.kernel.org with ESMTP id S1753143AbXISXwo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 19:52:03 -0400
+	Wed, 19 Sep 2007 19:52:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, dhowells@redhat.com
+Cc: xemul@openvz.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     AFS: clean up explicit check for mandatory locks
+     NFS: clean up explicit check for mandatory locks
 has been added to the -mm tree.  Its filename is
-     afs-cleanup-explicit-check-for-mandatory-locks.patch
+     nfs-cleanup-explicit-check-for-mandatory-locks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: AFS: clean up explicit check for mandatory locks
+Subject: NFS: clean up explicit check for mandatory locks
 From: Pavel Emelyanov <xemul@openvz.org>
 
 The __mandatory_lock(inode) macro makes the same check, but makes the code
 more readable.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/flock.c |    3 +--
+ fs/nfs/file.c |    3 +--
  1 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks fs/afs/flock.c
---- a/fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks
-+++ a/fs/afs/flock.c
-@@ -524,8 +524,7 @@ int afs_lock(struct file *file, int cmd,
- 	       (long long) fl->fl_start, (long long) fl->fl_end);
+diff -puN fs/nfs/file.c~nfs-cleanup-explicit-check-for-mandatory-locks fs/nfs/file.c
+--- a/fs/nfs/file.c~nfs-cleanup-explicit-check-for-mandatory-locks
++++ a/fs/nfs/file.c
+@@ -605,8 +605,7 @@ static int nfs_lock(struct file *filp, i
+ 	nfs_inc_stats(inode, NFSIOS_VFSLOCK);
  
- 	/* AFS doesn't support mandatory locks */
--	if ((vnode->vfs_inode.i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
+ 	/* No mandatory locks over NFS */
+-	if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
 -	    fl->fl_type != F_UNLCK)
-+	if (__mandatory_lock(&vnode->vfs_inode) && fl->fl_type != F_UNLCK)
++	if (__mandatory_lock(inode) && fl->fl_type != F_UNLCK)
  		return -ENOLCK;
  
  	if (IS_GETLK(cmd))
