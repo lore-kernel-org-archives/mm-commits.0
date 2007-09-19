@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + amd-5536-udc-remove-unneeded-memset.patch added to -mm tree
-Date: Wed, 19 Sep 2007 15:24:27 -0700
-Message-ID: <200709192224.l8JMORlW014266@imap1.linux-foundation.org>
+Subject: + dgrs-remove-from-build-config-and-maintainer-list.patch added to -mm tree
+Date: Wed, 19 Sep 2007 15:23:38 -0700
+Message-ID: <200709192223.l8JMNcmW014168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41380 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752534AbXISWZC (ORCPT
+	by vger.kernel.org with ESMTP id S1752409AbXISWZi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 18:25:02 -0400
+	Wed, 19 Sep 2007 18:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com
+Cc: neroden@fastmail.fm, davem@davemloft.net, jeff@garzik.org, neroden@gcc.gnu.org
 
 
 The patch titled
-     AMD 5536 UDC - Remove unneeded memset()
+     dgrs: remove from build, config, and maintainer list
 has been added to the -mm tree.  Its filename is
-     amd-5536-udc-remove-unneeded-memset.patch
+     dgrs-remove-from-build-config-and-maintainer-list.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,12943 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: AMD 5536 UDC - Remove unneeded memset()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: dgrs: remove from build, config, and maintainer list
+From: Nathanael Nerode <neroden@fastmail.fm>
 
-In drivers/usb/gadget/amd5536udc.c::udc_pci_probe() - We allocate storage
-for 'dev' with kzalloc(), so it is already zero, no need for an extra
-memset().
+Stop building and configuring driver for Digi RightSwitch, which was
+never actually sold to anyone, and remove it from MAINTAINERS.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+In response to an investigation into the firmware of the "Digi Rightswitch"
+driver, Andres Salomon discovered:
+>
+> Dear Andres:
+>
+> After further research, we found that this product was killed in place
+> and never reached the market.  We would like to request that this not be
+> included.
+
+Since the product never reached market, clearly nobody is using this orphaned
+driver.
+
+Signed-off-by: Nathanael Nerode <neroden@gcc.gnu.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/amd5536udc.c |    1 -
- 1 files changed, 1 deletion(-)
+ Documentation/networking/dgrs.txt |   52 
+ MAINTAINERS                       |    6 
+ drivers/net/Kconfig               |   15 
+ drivers/net/Makefile              |    1 
+ drivers/net/dgrs.c                | 1597 ----
+ drivers/net/dgrs.h                |   38 
+ drivers/net/dgrs_asstruct.h       |   37 
+ drivers/net/dgrs_bcomm.h          |  148 
+ drivers/net/dgrs_es4h.h           |  183 
+ drivers/net/dgrs_ether.h          |  135 
+ drivers/net/dgrs_firmware.c       | 9966 ----------------------------
+ drivers/net/dgrs_i82596.h         |  473 -
+ drivers/net/dgrs_plx9060.h        |  175 
+ 13 files changed, 12826 deletions(-)
 
-diff -puN drivers/usb/gadget/amd5536udc.c~amd-5536-udc-remove-unneeded-memset drivers/usb/gadget/amd5536udc.c
---- a/drivers/usb/gadget/amd5536udc.c~amd-5536-udc-remove-unneeded-memset
-+++ a/drivers/usb/gadget/amd5536udc.c
-@@ -3244,7 +3244,6 @@ static int udc_pci_probe(
- 		retval = -ENOMEM;
- 		goto finished;
- 	}
--	memset(dev, 0, sizeof(struct udc));
+diff -puN MAINTAINERS~dgrs-remove-from-build-config-and-maintainer-list MAINTAINERS
+--- a/MAINTAINERS~dgrs-remove-from-build-config-and-maintainer-list
++++ a/MAINTAINERS
+@@ -1258,12 +1258,6 @@ L:	Eng.Linux@digi.com
+ W:	http://www.digi.com
+ S:	Orphaned
  
- 	/* pci setup */
- 	if (pci_enable_device(pdev) < 0) {
+-DIGI RIGHTSWITCH NETWORK DRIVER
+-P:	Rick Richardson
+-L:	netdev@vger.kernel.org
+-W:	http://www.digi.com
+-S:	Orphaned
+-
+ DIRECTORY NOTIFICATION
+ P:	Stephen Rothwell
+ M:	sfr@canb.auug.org.au
+diff -puN drivers/net/Kconfig~dgrs-remove-from-build-config-and-maintainer-list drivers/net/Kconfig
+--- a/drivers/net/Kconfig~dgrs-remove-from-build-config-and-maintainer-list
++++ a/drivers/net/Kconfig
+@@ -1499,21 +1499,6 @@ config TC35815
+ 	depends on NET_PCI && PCI && MIPS
+ 	select MII
+ 
+-config DGRS
+-	tristate "Digi Intl. RightSwitch SE-X support"
+-	depends on NET_PCI && (PCI || EISA)
+-	---help---
+-	  This is support for the Digi International RightSwitch series of
+-	  PCI/EISA Ethernet switch cards. These include the SE-4 and the SE-6
+-	  models.  If you have a network card of this type, say Y and read the
+-	  Ethernet-HOWTO, available from
+-	  <http://www.tldp.org/docs.html#howto>.  More specific
+-	  information is contained in <file:Documentation/networking/dgrs.txt>.
+-
+-	  To compile this driver as a module, choose M here and read
+-	  <file:Documentation/networking/net-modules.txt>.  The module
+-	  will be called dgrs.
+-
+ config EEPRO100
+ 	tristate "EtherExpressPro/100 support (eepro100, original Becker driver)"
+ 	depends on NET_PCI && PCI
+diff -puN drivers/net/Makefile~dgrs-remove-from-build-config-and-maintainer-list drivers/net/Makefile
+--- a/drivers/net/Makefile~dgrs-remove-from-build-config-and-maintainer-list
++++ a/drivers/net/Makefile
+@@ -41,7 +41,6 @@ obj-$(CONFIG_SUNVNET) += sunvnet.o
+ obj-$(CONFIG_MACE) += mace.o
+ obj-$(CONFIG_BMAC) += bmac.o
+ 
+-obj-$(CONFIG_DGRS) += dgrs.o
+ obj-$(CONFIG_VORTEX) += 3c59x.o
+ obj-$(CONFIG_TYPHOON) += typhoon.o
+ obj-$(CONFIG_NE2K_PCI) += ne2k-pci.o 8390.o
+diff -puN Documentation/networking/dgrs.txt~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/Documentation/networking/dgrs.txt
++++ /dev/null
+@@ -1,52 +0,0 @@
+-    The Digi International RightSwitch SE-X (dgrs) Device Driver
+-
+-This is a Linux driver for the Digi International RightSwitch SE-X
+-EISA and PCI boards.  These are 4 (EISA) or 6 (PCI) port Ethernet
+-switches and a NIC combined into a single board.  This driver can
+-be compiled into the kernel statically or as a loadable module.
+-
+-There is also a companion management tool, called "xrightswitch".
+-The management tool lets you watch the performance graphically,
+-as well as set the SNMP agent IP and IPX addresses, IEEE Spanning
+-Tree, and Aging time.  These can also be set from the command line
+-when the driver is loaded.  The driver command line options are:
+-
+-	debug=NNN		Debug printing level
+-	dma=0/1			Disable/Enable DMA on PCI card
+-	spantree=0/1		Disable/Enable IEEE spanning tree
+-	hashexpire=NNN		Change address aging time (default 300 seconds)
+-	ipaddr=A,B,C,D		Set SNMP agent IP address i.e. 199,86,8,221
+-	iptrap=A,B,C,D		Set SNMP agent IP trap address i.e. 199,86,8,221
+-	ipxnet=NNN		Set SNMP agent IPX network number
+-	nicmode=0/1		Disable/Enable multiple NIC mode
+-
+-There is also a tool for setting up input and output packet filters
+-on each port, called "dgrsfilt".
+-
+-Both the management tool and the filtering tool are available
+-separately from the following FTP site:
+-
+-	ftp://ftp.dgii.com/drivers/rightswitch/linux/
+-
+-When nicmode=1, the board and driver operate as 4 or 6 individual
+-NIC ports (eth0...eth5) instead of as a switch.  All switching
+-functions are disabled.  In the future, the board firmware may include
+-a routing cache when in this mode.
+-
+-Copyright 1995-1996 Digi International Inc.
+-
+-This software may be used and distributed according to the terms
+-of the GNU General Public License, incorporated herein by reference.
+-
+-For information on purchasing a RightSwitch SE-4 or SE-6
+-board, please contact Digi's sales department at 1-612-912-3444
+-or 1-800-DIGIBRD.  Outside the U.S., please check our Web page at:
+-
+-	http://www.dgii.com
+-
+-for sales offices worldwide.  Tech support is also available through
+-the channels listed on the Web site, although as long as I am
+-employed on networking products at Digi I will be happy to provide
+-any bug fixes that may be needed.
+-
+--Rick Richardson, rick@dgii.com
+diff -puN drivers/net/dgrs.c~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs.c
++++ /dev/null
+@@ -1,1597 +0,0 @@
+-/*
+- *	Digi RightSwitch SE-X loadable device driver for Linux
+- *
+- *	The RightSwitch is a 4 (EISA) or 6 (PCI) port etherswitch and
+- *	a NIC on an internal board.
+- *
+- *	Author: Rick Richardson, rick@remotepoint.com
+- *	Derived from the SVR4.2 (UnixWare) driver for the same card.
+- *
+- *	Copyright 1995-1996 Digi International Inc.
+- *
+- *	This software may be used and distributed according to the terms
+- *	of the GNU General Public License, incorporated herein by reference.
+- *
+- *	For information on purchasing a RightSwitch SE-4 or SE-6
+- *	board, please contact Digi's sales department at 1-612-912-3444
+- *	or 1-800-DIGIBRD.  Outside the U.S., please check our Web page
+- *	at http://www.dgii.com for sales offices worldwide.
+- *
+- *	OPERATION:
+- *	When compiled as a loadable module, this driver can operate
+- *	the board as either a 4/6 port switch with a 5th or 7th port
+- *	that is a conventional NIC interface as far as the host is
+- *	concerned, OR as 4/6 independent NICs.  To select multi-NIC
+- *	mode, add "nicmode=1" on the insmod load line for the driver.
+- *
+- *	This driver uses the "dev" common ethernet device structure
+- *	and a private "priv" (dev->priv) structure that contains
+- *	mostly DGRS-specific information and statistics.  To keep
+- *	the code for both the switch mode and the multi-NIC mode
+- *	as similar as possible, I have introduced the concept of
+- *	"dev0"/"priv0" and "devN"/"privN"  pointer pairs in subroutines
+- *	where needed.  The first pair of pointers points to the
+- *	"dev" and "priv" structures of the zeroth (0th) device
+- *	interface associated with a board.  The second pair of
+- *	pointers points to the current (Nth) device interface
+- *	for the board: the one for which we are processing data.
+- *
+- *	In switch mode, the pairs of pointers are always the same,
+- *	that is, dev0 == devN and priv0 == privN.  This is just
+- *	like previous releases of this driver which did not support
+- *	NIC mode.
+- *
+- *	In multi-NIC mode, the pairs of pointers may be different.
+- *	We use the devN and privN pointers to reference just the
+- *	name, port number, and statistics for the current interface.
+- *	We use the dev0 and priv0 pointers to access the variables
+- *	that control access to the board, such as board address
+- *	and simulated 82596 variables.  This is because there is
+- *	only one "fake" 82596 that serves as the interface to
+- *	the board.  We do not want to try to keep the variables
+- *	associated with this 82596 in sync across all devices.
+- *
+- *	This scheme works well.  As you will see, except for
+- *	initialization, there is very little difference between
+- *	the two modes as far as this driver is concerned.  On the
+- *	receive side in NIC mode, the interrupt *always* comes in on
+- *	the 0th interface (dev0/priv0).  We then figure out which
+- *	real 82596 port it came in on from looking at the "chan"
+- *	member that the board firmware adds at the end of each
+- *	RBD (a.k.a. TBD). We get the channel number like this:
+- *		int chan = ((I596_RBD *) S2H(cbp->xmit.tbdp))->chan;
+- *
+- *	On the transmit side in multi-NIC mode, we specify the
+- *	output 82596 port by setting the new "dstchan" structure
+- *	member that is at the end of the RFD, like this:
+- *		priv0->rfdp->dstchan = privN->chan;
+- *
+- *	TODO:
+- *	- Multi-NIC mode is not yet supported when the driver is linked
+- *	  into the kernel.
+- *	- Better handling of multicast addresses.
+- *
+- *	Fixes:
+- *	Arnaldo Carvalho de Melo <acme@conectiva.com.br> - 11/01/2001
+- *	- fix dgrs_found_device wrt checking kmalloc return and
+- *	rollbacking the partial steps of the whole process when
+- *	one of the devices can't be allocated. Fix SET_MODULE_OWNER
+- *	on the loop to use devN instead of repeated calls to dev.
+- *
+- *	davej <davej@suse.de> - 9/2/2001
+- *	- Enable PCI device before reading ioaddr/irq
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/eisa.h>
+-#include <linux/kernel.h>
+-#include <linux/string.h>
+-#include <linux/delay.h>
+-#include <linux/errno.h>
+-#include <linux/ioport.h>
+-#include <linux/slab.h>
+-#include <linux/interrupt.h>
+-#include <linux/pci.h>
+-#include <linux/init.h>
+-#include <linux/netdevice.h>
+-#include <linux/etherdevice.h>
+-#include <linux/skbuff.h>
+-#include <linux/bitops.h>
+-
+-#include <asm/io.h>
+-#include <asm/byteorder.h>
+-#include <asm/uaccess.h>
+-
+-static char version[] __initdata =
+-	"$Id: dgrs.c,v 1.13 2000/06/06 04:07:00 rick Exp $";
+-
+-/*
+- *	DGRS include files
+- */
+-typedef unsigned char uchar;
+-#define vol volatile
+-
+-#include "dgrs.h"
+-#include "dgrs_es4h.h"
+-#include "dgrs_plx9060.h"
+-#include "dgrs_i82596.h"
+-#include "dgrs_ether.h"
+-#include "dgrs_asstruct.h"
+-#include "dgrs_bcomm.h"
+-
+-#ifdef CONFIG_PCI
+-static struct pci_device_id dgrs_pci_tbl[] = {
+-	{ SE6_PCI_VENDOR_ID, SE6_PCI_DEVICE_ID, PCI_ANY_ID, PCI_ANY_ID, },
+-	{ }			/* Terminating entry */
+-};
+-MODULE_DEVICE_TABLE(pci, dgrs_pci_tbl);
+-#endif
+-
+-#ifdef CONFIG_EISA
+-static struct eisa_device_id dgrs_eisa_tbl[] = {
+-	{ "DBI0A01" },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(eisa, dgrs_eisa_tbl);
+-#endif
+-
+-MODULE_LICENSE("GPL");
+-
+-
+-/*
+- *	Firmware.  Compiled separately for local compilation,
+- *	but #included for Linux distribution.
+- */
+-#ifndef NOFW
+-	#include "dgrs_firmware.c"
+-#else
+-	extern int	dgrs_firmnum;
+-	extern char	dgrs_firmver[];
+-	extern char	dgrs_firmdate[];
+-	extern uchar	dgrs_code[];
+-	extern int	dgrs_ncode;
+-#endif
+-
+-/*
+- *	Linux out*() is backwards from all other operating systems
+- */
+-#define	OUTB(ADDR, VAL)	outb(VAL, ADDR)
+-#define	OUTW(ADDR, VAL)	outw(VAL, ADDR)
+-#define	OUTL(ADDR, VAL)	outl(VAL, ADDR)
+-
+-/*
+- *	Macros to convert switch to host and host to switch addresses
+- *	(assumes a local variable priv points to board dependent struct)
+- */
+-#define	S2H(A)	( ((unsigned long)(A)&0x00ffffff) + priv0->vmem )
+-#define	S2HN(A)	( ((unsigned long)(A)&0x00ffffff) + privN->vmem )
+-#define	H2S(A)	( ((char *) (A) - priv0->vmem) + 0xA3000000 )
+-
+-/*
+- *	Convert a switch address to a "safe" address for use with the
+- *	PLX 9060 DMA registers and the associated HW kludge that allows
+- *	for host access of the DMA registers.
+- */
+-#define	S2DMA(A)	( (unsigned long)(A) & 0x00ffffff)
+-
+-/*
+- *	"Space.c" variables, now settable from module interface
+- *	Use the name below, minus the "dgrs_" prefix.  See init_module().
+- */
+-static int	dgrs_debug = 1;
+-static int	dgrs_dma = 1;
+-static int	dgrs_spantree = -1;
+-static int	dgrs_hashexpire = -1;
+-static uchar	dgrs_ipaddr[4] = { 0xff, 0xff, 0xff, 0xff};
+-static uchar	dgrs_iptrap[4] = { 0xff, 0xff, 0xff, 0xff};
+-static __u32	dgrs_ipxnet = -1;
+-static int	dgrs_nicmode;
+-
+-/*
+- *	Private per-board data structure (dev->priv)
+- */
+-typedef struct
+-{
+-	/*
+-	 *	DGRS specific data
+-	 */
+-	char		*vmem;
+-
+-        struct bios_comm *bcomm;        /* Firmware BIOS comm structure */
+-        PORT            *port;          /* Ptr to PORT[0] struct in VM */
+-        I596_SCB        *scbp;          /* Ptr to SCB struct in VM */
+-        I596_RFD        *rfdp;          /* Current RFD list */
+-        I596_RBD        *rbdp;          /* Current RBD list */
+-
+-        volatile int    intrcnt;        /* Count of interrupts */
+-
+-        /*
+-         *      SE-4 (EISA) board variables
+-         */
+-        uchar		is_reg;		/* EISA: Value for ES4H_IS reg */
+-
+-        /*
+-         *      SE-6 (PCI) board variables
+-         *
+-         *      The PLX "expansion rom" space is used for DMA register
+-         *      access from the host on the SE-6.  These are the physical
+-         *      and virtual addresses of that space.
+-         */
+-        ulong		plxreg;		/* Phys address of PLX chip */
+-        char            *vplxreg;	/* Virtual address of PLX chip */
+-        ulong		plxdma;		/* Phys addr of PLX "expansion rom" */
+-        ulong volatile  *vplxdma;	/* Virtual addr of "expansion rom" */
+-        int             use_dma;        /* Flag: use DMA */
+-	DMACHAIN	*dmadesc_s;	/* area for DMA chains (SW addr.) */
+-	DMACHAIN	*dmadesc_h;	/* area for DMA chains (Host Virtual) */
+-
+-	/*
+-	 *	Multi-NIC mode variables
+-	 *
+-	 *	All entries of the devtbl[] array are valid for the 0th
+-	 *	device (i.e. eth0, but not eth1...eth5).  devtbl[0] is
+-	 *	valid for all devices (i.e. eth0, eth1, ..., eth5).
+-	 */
+-	int		nports;		/* Number of physical ports (4 or 6) */
+-	int		chan;		/* Channel # (1-6) for this device */
+-	struct net_device	*devtbl[6];	/* Ptrs to N device structs */
+-
+-} DGRS_PRIV;
+-
+-
+-/*
+- *	reset or un-reset the IDT processor
+- */
+-static void
+-proc_reset(struct net_device *dev0, int reset)
+-{
+-	DGRS_PRIV	*priv0 = (DGRS_PRIV *) dev0->priv;
+-
+-	if (priv0->plxreg)
+-	{
+-		ulong		val;
+-		val = inl(dev0->base_addr + PLX_MISC_CSR);
+-		if (reset)
+-			val |= SE6_RESET;
+-		else
+-			val &= ~SE6_RESET;
+-		OUTL(dev0->base_addr + PLX_MISC_CSR, val);
+-	}
+-	else
+-	{
+-		OUTB(dev0->base_addr + ES4H_PC, reset ? ES4H_PC_RESET : 0);
+-	}
+-}
+-
+-/*
+- *	See if the board supports bus master DMA
+- */
+-static int
+-check_board_dma(struct net_device *dev0)
+-{
+-	DGRS_PRIV	*priv0 = (DGRS_PRIV *) dev0->priv;
+-	ulong	x;
+-
+-	/*
+-	 *	If Space.c says not to use DMA, or if it's not a PLX based
+-	 *	PCI board, or if the expansion ROM space is not PCI
+-	 *	configured, then return false.
+-	 */
+-	if (!dgrs_dma || !priv0->plxreg || !priv0->plxdma)
+-		return (0);
+-
+-	/*
+-	 *	Set the local address remap register of the "expansion rom"
+-	 *	area to 0x80000000 so that we can use it to access the DMA
+-	 *	registers from the host side.
+-	 */
+-	OUTL(dev0->base_addr + PLX_ROM_BASE_ADDR, 0x80000000);
+-
+-	/*
+-	 * Set the PCI region descriptor to:
+-	 *      Space 0:
+-	 *              disable read-prefetch
+-	 *              enable READY
+-	 *              enable BURST
+-	 *              0 internal wait states
+-	 *      Expansion ROM: (used for host DMA register access)
+-	 *              disable read-prefetch
+-	 *              enable READY
+-	 *              disable BURST
+-	 *              0 internal wait states
+-	 */
+-	OUTL(dev0->base_addr + PLX_BUS_REGION, 0x49430343);
+-
+-	/*
+-	 *	Now map the DMA registers into our virtual space
+-	 */
+-	priv0->vplxdma = (ulong *) ioremap (priv0->plxdma, 256);
+-	if (!priv0->vplxdma)
+-	{
+-		printk("%s: can't *remap() the DMA regs\n", dev0->name);
+-		return (0);
+-	}
+-
+-	/*
+-	 *	Now test to see if we can access the DMA registers
+-	 *	If we write -1 and get back 1FFF, then we accessed the
+-	 *	DMA register.  Otherwise, we probably have an old board
+-	 *	and wrote into regular RAM.
+-	 */
+-	priv0->vplxdma[PLX_DMA0_MODE/4] = 0xFFFFFFFF;
+-	x = priv0->vplxdma[PLX_DMA0_MODE/4];
+-	if (x != 0x00001FFF) {
+-		iounmap((void *)priv0->vplxdma);
+-		return (0);
+-	}
+-
+-	return (1);
+-}
+-
+-/*
+- *	Initiate DMA using PLX part on PCI board.  Spin the
+- *	processor until completed.  All addresses are physical!
+- *
+- *	If pciaddr is NULL, then it's a chaining DMA, and lcladdr is
+- *	the address of the first DMA descriptor in the chain.
+- *
+- *	If pciaddr is not NULL, then it's a single DMA.
+- *
+- *	In either case, "lcladdr" must have been fixed up to make
+- *	sure the MSB isn't set using the S2DMA macro before passing
+- *	the address to this routine.
+- */
+-static int
+-do_plx_dma(
+-	struct net_device *dev,
+-	ulong pciaddr,
+-	ulong lcladdr,
+-	int len,
+-	int to_host
+-)
+-{
+-        int     	i;
+-        ulong   	csr = 0;
+-	DGRS_PRIV	*priv = (DGRS_PRIV *) dev->priv;
+-
+-	if (pciaddr)
+-	{
+-		/*
+-		 *	Do a single, non-chain DMA
+-		 */
+-		priv->vplxdma[PLX_DMA0_PCI_ADDR/4] = pciaddr;
+-		priv->vplxdma[PLX_DMA0_LCL_ADDR/4] = lcladdr;
+-		priv->vplxdma[PLX_DMA0_SIZE/4] = len;
+-		priv->vplxdma[PLX_DMA0_DESCRIPTOR/4] = to_host
+-					? PLX_DMA_DESC_TO_HOST
+-					: PLX_DMA_DESC_TO_BOARD;
+-		priv->vplxdma[PLX_DMA0_MODE/4] =
+-					  PLX_DMA_MODE_WIDTH32
+-					| PLX_DMA_MODE_WAITSTATES(0)
+-					| PLX_DMA_MODE_READY
+-					| PLX_DMA_MODE_NOBTERM
+-					| PLX_DMA_MODE_BURST
+-					| PLX_DMA_MODE_NOCHAIN;
+-	}
+-	else
+-	{
+-		/*
+-		 *	Do a chaining DMA
+-		 */
+-		priv->vplxdma[PLX_DMA0_MODE/4] =
+-					  PLX_DMA_MODE_WIDTH32
+-					| PLX_DMA_MODE_WAITSTATES(0)
+-					| PLX_DMA_MODE_READY
+-					| PLX_DMA_MODE_NOBTERM
+-					| PLX_DMA_MODE_BURST
+-					| PLX_DMA_MODE_CHAIN;
+-		priv->vplxdma[PLX_DMA0_DESCRIPTOR/4] = lcladdr;
+-	}
+-
+-	priv->vplxdma[PLX_DMA_CSR/4] =
+-				PLX_DMA_CSR_0_ENABLE | PLX_DMA_CSR_0_START;
+-
+-        /*
+-	 *	Wait for DMA to complete
+-	 */
+-        for (i = 0; i < 1000000; ++i)
+-        {
+-		/*
+-		 *	Spin the host CPU for 1 usec, so we don't thrash
+-		 *	the PCI bus while the PLX 9060 is doing DMA.
+-		 */
+-		udelay(1);
+-
+-		csr = (volatile unsigned long) priv->vplxdma[PLX_DMA_CSR/4];
+-
+-                if (csr & PLX_DMA_CSR_0_DONE)
+-                        break;
+-        }
+-
+-        if ( ! (csr & PLX_DMA_CSR_0_DONE) )
+-        {
+-		printk("%s: DMA done never occurred. DMA disabled.\n",
+-			dev->name);
+-		priv->use_dma = 0;
+-                return 1;
+-        }
+-        return 0;
+-}
+-
+-/*
+- *	dgrs_rcv_frame()
+- *
+- *	Process a received frame.  This is called from the interrupt
+- *	routine, and works for both switch mode and multi-NIC mode.
+- *
+- *	Note that when in multi-NIC mode, we want to always access the
+- *	hardware using the dev and priv structures of the first port,
+- *	so that we are using only one set of variables to maintain
+- *	the board interface status, but we want to use the Nth port
+- *	dev and priv structures to maintain statistics and to pass
+- *	the packet up.
+- *
+- *	Only the first device structure is attached to the interrupt.
+- *	We use the special "chan" variable at the end of the first RBD
+- *	to select the Nth device in multi-NIC mode.
+- *
+- *	We currently do chained DMA on a per-packet basis when the
+- *	packet is "long", and we spin the CPU a short time polling
+- *	for DMA completion.  This avoids a second interrupt overhead,
+- *	and gives the best performance for light traffic to the host.
+- *
+- *	However, a better scheme that could be implemented would be
+- *	to see how many packets are outstanding for the host, and if
+- *	the number is "large", create a long chain to DMA several
+- *	packets into the host in one go.  In this case, we would set
+- *	up some state variables to let the host CPU continue doing
+- *	other things until a DMA completion interrupt comes along.
+- */
+-static void
+-dgrs_rcv_frame(
+-	struct net_device	*dev0,
+-	DGRS_PRIV	*priv0,
+-	I596_CB		*cbp
+-)
+-{
+-	int		len;
+-	I596_TBD	*tbdp;
+-	struct sk_buff	*skb;
+-	uchar		*putp;
+-	uchar		*p;
+-	struct net_device	*devN;
+-	DGRS_PRIV	*privN;
+-
+-	/*
+-	 *	Determine Nth priv and dev structure pointers
+-	 */
+-	if (dgrs_nicmode)
+-	{	/* Multi-NIC mode */
+-		int chan = ((I596_RBD *) S2H(cbp->xmit.tbdp))->chan;
+-
+-		devN = priv0->devtbl[chan-1];
+-		/*
+-		 * If devN is null, we got an interrupt before the I/F
+-		 * has been initialized.  Pitch the packet.
+-		 */
+-		if (devN == NULL)
+-			goto out;
+-		privN = (DGRS_PRIV *) devN->priv;
+-	}
+-	else
+-	{	/* Switch mode */
+-		devN = dev0;
+-		privN = priv0;
+-	}
+-
+-	if (0) printk("%s: rcv len=%ld\n", devN->name, cbp->xmit.count);
+-
+-	/*
+-	 *	Allocate a message block big enough to hold the whole frame
+-	 */
+-	len = cbp->xmit.count;
+-	if ((skb = dev_alloc_skb(len+5)) == NULL)
+-	{
+-		printk("%s: dev_alloc_skb failed for rcv buffer\n", devN->name);
+-		++dev0->stats.rx_dropped;
+-		/* discarding the frame */
+-		goto out;
+-	}
+-	skb_reserve(skb, 2);	/* Align IP header */
+-
+-again:
+-	putp = p = skb_put(skb, len);
+-
+-	/*
+-	 *	There are three modes here for doing the packet copy.
+-	 *	If we have DMA, and the packet is "long", we use the
+-	 *	chaining mode of DMA.  If it's shorter, we use single
+-	 *	DMA's.  Otherwise, we use memcpy().
+-	 */
+-	if (priv0->use_dma && priv0->dmadesc_h && len > 64)
+-	{
+-		/*
+-		 *	If we can use DMA and it's a long frame, copy it using
+-		 *	DMA chaining.
+-		 */
+-		DMACHAIN	*ddp_h;	/* Host virtual DMA desc. pointer */
+-		DMACHAIN	*ddp_s;	/* Switch physical DMA desc. pointer */
+-		uchar		*phys_p;
+-
+-		/*
+-		 *	Get the physical address of the STREAMS buffer.
+-		 *	NOTE: allocb() guarantees that the whole buffer
+-		 *	is in a single page if the length < 4096.
+-		 */
+-		phys_p = (uchar *) virt_to_phys(putp);
+-
+-		ddp_h = priv0->dmadesc_h;
+-		ddp_s = priv0->dmadesc_s;
+-		tbdp = (I596_TBD *) S2H(cbp->xmit.tbdp);
+-		for (;;)
+-		{
+-			int	count;
+-			int	amt;
+-
+-			count = tbdp->count;
+-			amt = count & 0x3fff;
+-			if (amt == 0)
+-				break; /* For safety */
+-			if ( (p-putp) >= len)
+-			{
+-				printk("%s: cbp = %lx\n", devN->name, (long) H2S(cbp));
+-				proc_reset(dev0, 1);	/* Freeze IDT */
+-				break; /* For Safety */
+-			}
+-
+-			ddp_h->pciaddr = (ulong) phys_p;
+-			ddp_h->lcladdr = S2DMA(tbdp->buf);
+-			ddp_h->len = amt;
+-
+-			phys_p += amt;
+-			p += amt;
+-
+-			if (count & I596_TBD_EOF)
+-			{
+-				ddp_h->next = PLX_DMA_DESC_TO_HOST
+-						| PLX_DMA_DESC_EOC;
+-				++ddp_h;
+-				break;
+-			}
+-			else
+-			{
+-				++ddp_s;
+-				ddp_h->next = PLX_DMA_DESC_TO_HOST
+-						| (ulong) ddp_s;
+-				tbdp = (I596_TBD *) S2H(tbdp->next);
+-				++ddp_h;
+-			}
+-		}
+-		if (ddp_h - priv0->dmadesc_h)
+-		{
+-			int	rc;
+-
+-			rc = do_plx_dma(dev0,
+-				0, (ulong) priv0->dmadesc_s, len, 0);
+-			if (rc)
+-			{
+-				printk("%s: Chained DMA failure\n", devN->name);
+-				goto again;
+-			}
+-		}
+-	}
+-	else if (priv0->use_dma)
+-	{
+-		/*
+-		 *	If we can use DMA and it's a shorter frame, copy it
+-		 *	using single DMA transfers.
+-		 */
+-		uchar		*phys_p;
+-
+-		/*
+-		 *	Get the physical address of the STREAMS buffer.
+-		 *	NOTE: allocb() guarantees that the whole buffer
+-		 *	is in a single page if the length < 4096.
+-		 */
+-		phys_p = (uchar *) virt_to_phys(putp);
+-
+-		tbdp = (I596_TBD *) S2H(cbp->xmit.tbdp);
+-		for (;;)
+-		{
+-			int	count;
+-			int	amt;
+-			int	rc;
+-
+-			count = tbdp->count;
+-			amt = count & 0x3fff;
+-			if (amt == 0)
+-				break; /* For safety */
+-			if ( (p-putp) >= len)
+-			{
+-				printk("%s: cbp = %lx\n", devN->name, (long) H2S(cbp));
+-				proc_reset(dev0, 1);	/* Freeze IDT */
+-				break; /* For Safety */
+-			}
+-			rc = do_plx_dma(dev0, (ulong) phys_p,
+-						S2DMA(tbdp->buf), amt, 1);
+-			if (rc)
+-			{
+-				memcpy(p, S2H(tbdp->buf), amt);
+-				printk("%s: Single DMA failed\n", devN->name);
+-			}
+-			phys_p += amt;
+-			p += amt;
+-			if (count & I596_TBD_EOF)
+-				break;
+-			tbdp = (I596_TBD *) S2H(tbdp->next);
+-		}
+-	}
+-	else
+-	{
+-		/*
+-		 *	Otherwise, copy it piece by piece using memcpy()
+-		 */
+-		tbdp = (I596_TBD *) S2H(cbp->xmit.tbdp);
+-		for (;;)
+-		{
+-			int	count;
+-			int	amt;
+-
+-			count = tbdp->count;
+-			amt = count & 0x3fff;
+-			if (amt == 0)
+-				break; /* For safety */
+-			if ( (p-putp) >= len)
+-			{
+-				printk("%s: cbp = %lx\n", devN->name, (long) H2S(cbp));
+-				proc_reset(dev0, 1);	/* Freeze IDT */
+-				break; /* For Safety */
+-			}
+-			memcpy(p, S2H(tbdp->buf), amt);
+-			p += amt;
+-			if (count & I596_TBD_EOF)
+-				break;
+-			tbdp = (I596_TBD *) S2H(tbdp->next);
+-		}
+-	}
+-
+-	/*
+-	 *	Pass the frame to upper half
+-	 */
+-	skb->protocol = eth_type_trans(skb, devN);
+-	netif_rx(skb);
+-	devN->last_rx = jiffies;
+-	++devN->stats.rx_packets;
+-	devN->stats.rx_bytes += len;
+-
+-out:
+-	cbp->xmit.status = I596_CB_STATUS_C | I596_CB_STATUS_OK;
+-}
+-
+-/*
+- *	Start transmission of a frame
+- *
+- *	The interface to the board is simple: we pretend that we are
+- *	a fifth 82596 ethernet controller 'receiving' data, and copy the
+- *	data into the same structures that a real 82596 would.  This way,
+- *	the board firmware handles the host 'port' the same as any other.
+- *
+- *	NOTE: we do not use Bus master DMA for this routine.  Turns out
+- *	that it is not needed.  Slave writes over the PCI bus are about
+- *	as fast as DMA, due to the fact that the PLX part can do burst
+- *	writes.  The same is not true for data being read from the board.
+- *
+- *	For multi-NIC mode, we tell the firmware the desired 82596
+- *	output port by setting the special "dstchan" member at the
+- *	end of the traditional 82596 RFD structure.
+- */
+-
+-static int dgrs_start_xmit(struct sk_buff *skb, struct net_device *devN)
+-{
+-	DGRS_PRIV	*privN = (DGRS_PRIV *) devN->priv;
+-	struct net_device	*dev0;
+-	DGRS_PRIV	*priv0;
+-	I596_RBD	*rbdp;
+-	int		count;
+-	int		i, len, amt;
+-
+-	/*
+-	 *	Determine 0th priv and dev structure pointers
+-	 */
+-	if (dgrs_nicmode)
+-	{
+-		dev0 = privN->devtbl[0];
+-		priv0 = (DGRS_PRIV *) dev0->priv;
+-	}
+-	else
+-	{
+-		dev0 = devN;
+-		priv0 = privN;
+-	}
+-
+-	if (dgrs_debug > 1)
+-		printk("%s: xmit len=%d\n", devN->name, (int) skb->len);
+-
+-	devN->trans_start = jiffies;
+-	netif_start_queue(devN);
+-
+-	if (priv0->rfdp->cmd & I596_RFD_EL)
+-	{	/* Out of RFD's */
+-		if (0) printk("%s: NO RFD's\n", devN->name);
+-		goto no_resources;
+-	}
+-
+-	rbdp = priv0->rbdp;
+-	count = 0;
+-	priv0->rfdp->rbdp = (I596_RBD *) H2S(rbdp);
+-
+-	i = 0; len = skb->len;
+-	for (;;)
+-	{
+-		if (rbdp->size & I596_RBD_EL)
+-		{	/* Out of RBD's */
+-			if (0) printk("%s: NO RBD's\n", devN->name);
+-			goto no_resources;
+-		}
+-
+-		amt = min_t(unsigned int, len, rbdp->size - count);
+-		skb_copy_from_linear_data_offset(skb, i, S2H(rbdp->buf) + count, amt);
+-		i += amt;
+-		count += amt;
+-		len -= amt;
+-		if (len == 0)
+-		{
+-			if (skb->len < 60)
+-				rbdp->count = 60 | I596_RBD_EOF;
+-			else
+-				rbdp->count = count | I596_RBD_EOF;
+-			rbdp = (I596_RBD *) S2H(rbdp->next);
+-			goto frame_done;
+-		}
+-		else if (count < 32)
+-		{
+-			/* More data to come, but we used less than 32
+-			 * bytes of this RBD.  Keep filling this RBD.
+-			 */
+-			{}	/* Yes, we do nothing here */
+-		}
+-		else
+-		{
+-			rbdp->count = count;
+-			rbdp = (I596_RBD *) S2H(rbdp->next);
+-			count = 0;
+-		}
+-	}
+-
+-frame_done:
+-	priv0->rbdp = rbdp;
+-	if (dgrs_nicmode)
+-		priv0->rfdp->dstchan = privN->chan;
+-	priv0->rfdp->status = I596_RFD_C | I596_RFD_OK;
+-	priv0->rfdp = (I596_RFD *) S2H(priv0->rfdp->next);
+-
+-	++devN->stats.tx_packets;
+-
+-	dev_kfree_skb (skb);
+-	return (0);
+-
+-no_resources:
+-	priv0->scbp->status |= I596_SCB_RNR;	/* simulate I82596 */
+-	return (-EAGAIN);
+-}
+-
+-/*
+- *	Open the interface
+- */
+-static int
+-dgrs_open( struct net_device *dev )
+-{
+-	netif_start_queue(dev);
+-	return (0);
+-}
+-
+-/*
+- *	Close the interface
+- */
+-static int dgrs_close( struct net_device *dev )
+-{
+-	netif_stop_queue(dev);
+-	return (0);
+-}
+-
+-/*
+- *	Set multicast list and/or promiscuous mode
+- */
+-
+-static void dgrs_set_multicast_list( struct net_device *dev)
+-{
+-	DGRS_PRIV	*priv = (DGRS_PRIV *) dev->priv;
+-
+-	priv->port->is_promisc = (dev->flags & IFF_PROMISC) ? 1 : 0;
+-}
+-
+-/*
+- *	Unique ioctl's
+- */
+-static int dgrs_ioctl(struct net_device *devN, struct ifreq *ifr, int cmd)
+-{
+-	DGRS_PRIV	*privN = (DGRS_PRIV *) devN->priv;
+-	DGRS_IOCTL	ioc;
+-	int		i;
+-
+-	if (cmd != DGRSIOCTL)
+-		return -EINVAL;
+-
+-	if(copy_from_user(&ioc, ifr->ifr_data, sizeof(DGRS_IOCTL)))
+-		return -EFAULT;
+-
+-	switch (ioc.cmd)
+-	{
+-		case DGRS_GETMEM:
+-			if (ioc.len != sizeof(ulong))
+-				return -EINVAL;
+-			if(copy_to_user(ioc.data, &devN->mem_start, ioc.len))
+-				return -EFAULT;
+-			return (0);
+-		case DGRS_SETFILTER:
+-			if (!capable(CAP_NET_ADMIN))
+-				return -EPERM;
+-			if (ioc.port > privN->bcomm->bc_nports)
+-				return -EINVAL;
+-			if (ioc.filter >= NFILTERS)
+-				return -EINVAL;
+-			if (ioc.len > privN->bcomm->bc_filter_area_len)
+-				return -EINVAL;
+-
+-			/* Wait for old command to finish */
+-			for (i = 0; i < 1000; ++i)
+-			{
+-				if ( (volatile long) privN->bcomm->bc_filter_cmd <= 0 )
+-					break;
+-				udelay(1);
+-			}
+-			if (i >= 1000)
+-				return -EIO;
+-
+-			privN->bcomm->bc_filter_port = ioc.port;
+-			privN->bcomm->bc_filter_num = ioc.filter;
+-			privN->bcomm->bc_filter_len = ioc.len;
+-
+-			if (ioc.len)
+-			{
+-				if(copy_from_user(S2HN(privN->bcomm->bc_filter_area),
+-					ioc.data, ioc.len))
+-					return -EFAULT;
+-				privN->bcomm->bc_filter_cmd = BC_FILTER_SET;
+-			}
+-			else
+-				privN->bcomm->bc_filter_cmd = BC_FILTER_CLR;
+-			return(0);
+-		default:
+-			return -EOPNOTSUPP;
+-	}
+-}
+-
+-/*
+- *	Process interrupts
+- *
+- *	dev, priv will always refer to the 0th device in Multi-NIC mode.
+- */
+-
+-static irqreturn_t dgrs_intr(int irq, void *dev_id)
+-{
+-	struct net_device	*dev0 = dev_id;
+-	DGRS_PRIV	*priv0 = dev0->priv;
+-	I596_CB		*cbp;
+-	int		cmd;
+-	int		i;
+-
+-	++priv0->intrcnt;
+-	if (1) ++priv0->bcomm->bc_cnt[4];
+-	if (0)
+-	{
+-		static int cnt = 100;
+-		if (--cnt > 0)
+-		printk("%s: interrupt: irq %d\n", dev0->name, irq);
+-	}
+-
+-	/*
+-	 *	Get 596 command
+-	 */
+-	cmd = priv0->scbp->cmd;
+-
+-	/*
+-	 *	See if RU has been restarted
+-	 */
+-	if ( (cmd & I596_SCB_RUC) == I596_SCB_RUC_START)
+-	{
+-		if (0) printk("%s: RUC start\n", dev0->name);
+-		priv0->rfdp = (I596_RFD *) S2H(priv0->scbp->rfdp);
+-		priv0->rbdp = (I596_RBD *) S2H(priv0->rfdp->rbdp);
+-		priv0->scbp->status &= ~(I596_SCB_RNR|I596_SCB_RUS);
+-		/*
+-		 * Tell upper half (halves)
+-		 */
+-		if (dgrs_nicmode)
+-		{
+-			for (i = 0; i < priv0->nports; ++i)
+-				netif_wake_queue (priv0->devtbl[i]);
+-		}
+-		else
+-			netif_wake_queue (dev0);
+-		/* if (bd->flags & TX_QUEUED)
+-			DL_sched(bd, bdd); */
+-	}
+-
+-	/*
+-	 *	See if any CU commands to process
+-	 */
+-	if ( (cmd & I596_SCB_CUC) != I596_SCB_CUC_START)
+-	{
+-		priv0->scbp->cmd = 0;	/* Ignore all other commands */
+-		goto ack_intr;
+-	}
+-	priv0->scbp->status &= ~(I596_SCB_CNA|I596_SCB_CUS);
+-
+-	/*
+-	 *	Process a command
+-	 */
+-	cbp = (I596_CB *) S2H(priv0->scbp->cbp);
+-	priv0->scbp->cmd = 0;	/* Safe to clear the command */
+-	for (;;)
+-	{
+-		switch (cbp->nop.cmd & I596_CB_CMD)
+-		{
+-		case I596_CB_CMD_XMIT:
+-			dgrs_rcv_frame(dev0, priv0, cbp);
+-			break;
+-		default:
+-			cbp->nop.status = I596_CB_STATUS_C | I596_CB_STATUS_OK;
+-			break;
+-		}
+-		if (cbp->nop.cmd & I596_CB_CMD_EL)
+-			break;
+-		cbp = (I596_CB *) S2H(cbp->nop.next);
+-	}
+-	priv0->scbp->status |= I596_SCB_CNA;
+-
+-	/*
+-	 * Ack the interrupt
+-	 */
+-ack_intr:
+-	if (priv0->plxreg)
+-		OUTL(dev0->base_addr + PLX_LCL2PCI_DOORBELL, 1);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-/*
+- *	Download the board firmware
+- */
+-static int __init
+-dgrs_download(struct net_device *dev0)
+-{
+-	DGRS_PRIV	*priv0 = (DGRS_PRIV *) dev0->priv;
+-	int		is;
+-	unsigned long	i;
+-
+-	static const int iv2is[16] = {
+-				0, 0, 0, ES4H_IS_INT3,
+-				0, ES4H_IS_INT5, 0, ES4H_IS_INT7,
+-				0, 0, ES4H_IS_INT10, ES4H_IS_INT11,
+-				ES4H_IS_INT12, 0, 0, ES4H_IS_INT15 };
+-
+-	/*
+-	 * Map in the dual port memory
+-	 */
+-	priv0->vmem = ioremap(dev0->mem_start, 2048*1024);
+-	if (!priv0->vmem)
+-	{
+-		printk("%s: cannot map in board memory\n", dev0->name);
+-		return -ENXIO;
+-	}
+-
+-	/*
+-	 *	Hold the processor and configure the board addresses
+-	 */
+-	if (priv0->plxreg)
+-	{	/* PCI bus */
+-		proc_reset(dev0, 1);
+-	}
+-	else
+-	{	/* EISA bus */
+-		is = iv2is[dev0->irq & 0x0f];
+-		if (!is)
+-		{
+-			printk("%s: Illegal IRQ %d\n", dev0->name, dev0->irq);
+-			iounmap(priv0->vmem);
+-			priv0->vmem = NULL;
+-			return -ENXIO;
+-		}
+-		OUTB(dev0->base_addr + ES4H_AS_31_24,
+-			(uchar) (dev0->mem_start >> 24) );
+-		OUTB(dev0->base_addr + ES4H_AS_23_16,
+-			(uchar) (dev0->mem_start >> 16) );
+-		priv0->is_reg = ES4H_IS_LINEAR | is |
+-			((uchar) (dev0->mem_start >> 8) & ES4H_IS_AS15);
+-		OUTB(dev0->base_addr + ES4H_IS, priv0->is_reg);
+-		OUTB(dev0->base_addr + ES4H_EC, ES4H_EC_ENABLE);
+-		OUTB(dev0->base_addr + ES4H_PC, ES4H_PC_RESET);
+-		OUTB(dev0->base_addr + ES4H_MW, ES4H_MW_ENABLE | 0x00);
+-	}
+-
+-	/*
+-	 *	See if we can do DMA on the SE-6
+-	 */
+-	priv0->use_dma = check_board_dma(dev0);
+-	if (priv0->use_dma)
+-		printk("%s: Bus Master DMA is enabled.\n", dev0->name);
+-
+-	/*
+-	 * Load and verify the code at the desired address
+-	 */
+-	memcpy(priv0->vmem, dgrs_code, dgrs_ncode);	/* Load code */
+-	if (memcmp(priv0->vmem, dgrs_code, dgrs_ncode))
+-	{
+-		iounmap(priv0->vmem);
+-		priv0->vmem = NULL;
+-		printk("%s: download compare failed\n", dev0->name);
+-		return -ENXIO;
+-	}
+-
+-	/*
+-	 * Configurables
+-	 */
+-	priv0->bcomm = (struct bios_comm *) (priv0->vmem + 0x0100);
+-	priv0->bcomm->bc_nowait = 1;	/* Tell board to make printf not wait */
+-	priv0->bcomm->bc_squelch = 0;	/* Flag from Space.c */
+-	priv0->bcomm->bc_150ohm = 0;	/* Flag from Space.c */
+-
+-	priv0->bcomm->bc_spew = 0;	/* Debug flag from Space.c */
+-	priv0->bcomm->bc_maxrfd = 0;	/* Debug flag from Space.c */
+-	priv0->bcomm->bc_maxrbd = 0;	/* Debug flag from Space.c */
+-
+-	/*
+-	 * Tell board we are operating in switch mode (1) or in
+-	 * multi-NIC mode (2).
+-	 */
+-	priv0->bcomm->bc_host = dgrs_nicmode ? BC_MULTINIC : BC_SWITCH;
+-
+-	/*
+-	 * Request memory space on board for DMA chains
+-	 */
+-	if (priv0->use_dma)
+-		priv0->bcomm->bc_hostarea_len = (2048/64) * 16;
+-
+-	/*
+-	 * NVRAM configurables from Space.c
+-	 */
+-	priv0->bcomm->bc_spantree = dgrs_spantree;
+-	priv0->bcomm->bc_hashexpire = dgrs_hashexpire;
+-	memcpy(priv0->bcomm->bc_ipaddr, dgrs_ipaddr, 4);
+-	memcpy(priv0->bcomm->bc_iptrap, dgrs_iptrap, 4);
+-	memcpy(priv0->bcomm->bc_ipxnet, &dgrs_ipxnet, 4);
+-
+-	/*
+-	 * Release processor, wait 8 seconds for board to initialize
+-	 */
+-	proc_reset(dev0, 0);
+-
+-	for (i = jiffies + 8 * HZ; time_after(i, jiffies); )
+-	{
+-		barrier();		/* Gcc 2.95 needs this */
+-		if (priv0->bcomm->bc_status >= BC_RUN)
+-			break;
+-	}
+-
+-	if (priv0->bcomm->bc_status < BC_RUN)
+-	{
+-		printk("%s: board not operating\n", dev0->name);
+-		iounmap(priv0->vmem);
+-		priv0->vmem = NULL;
+-		return -ENXIO;
+-	}
+-
+-	priv0->port = (PORT *) S2H(priv0->bcomm->bc_port);
+-	priv0->scbp = (I596_SCB *) S2H(priv0->port->scbp);
+-	priv0->rfdp = (I596_RFD *) S2H(priv0->scbp->rfdp);
+-	priv0->rbdp = (I596_RBD *) S2H(priv0->rfdp->rbdp);
+-
+-	priv0->scbp->status = I596_SCB_CNA;	/* CU is idle */
+-
+-	/*
+-	 *	Get switch physical and host virtual pointers to DMA
+-	 *	chaining area.  NOTE: the MSB of the switch physical
+-	 *	address *must* be turned off.  Otherwise, the HW kludge
+-	 *	that allows host access of the PLX DMA registers will
+-	 *	erroneously select the PLX registers.
+-	 */
+-	priv0->dmadesc_s = (DMACHAIN *) S2DMA(priv0->bcomm->bc_hostarea);
+-	if (priv0->dmadesc_s)
+-		priv0->dmadesc_h = (DMACHAIN *) S2H(priv0->dmadesc_s);
+-	else
+-		priv0->dmadesc_h = NULL;
+-
+-	/*
+-	 *	Enable board interrupts
+-	 */
+-	if (priv0->plxreg)
+-	{	/* PCI bus */
+-		OUTL(dev0->base_addr + PLX_INT_CSR,
+-			inl(dev0->base_addr + PLX_INT_CSR)
+-			| PLX_PCI_DOORBELL_IE);	/* Enable intr to host */
+-		OUTL(dev0->base_addr + PLX_LCL2PCI_DOORBELL, 1);
+-	}
+-	else
+-	{	/* EISA bus */
+-	}
+-
+-	return (0);
+-}
+-
+-/*
+- *	Probe (init) a board
+- */
+-static int __init
+-dgrs_probe1(struct net_device *dev)
+-{
+-	DGRS_PRIV	*priv = (DGRS_PRIV *) dev->priv;
+-	unsigned long	i;
+-	int		rc;
+-
+-	printk("%s: Digi RightSwitch io=%lx mem=%lx irq=%d plx=%lx dma=%lx\n",
+-		dev->name, dev->base_addr, dev->mem_start, dev->irq,
+-		priv->plxreg, priv->plxdma);
+-
+-	/*
+-	 *	Download the firmware and light the processor
+-	 */
+-	rc = dgrs_download(dev);
+-	if (rc)
+-		goto err_out;
+-
+-	/*
+-	 * Get ether address of board
+-	 */
+-	printk("%s: Ethernet address", dev->name);
+-	memcpy(dev->dev_addr, priv->port->ethaddr, 6);
+-	for (i = 0; i < 6; ++i)
+-		printk("%c%2.2x", i ? ':' : ' ', dev->dev_addr[i]);
+-	printk("\n");
+-
+-	if (dev->dev_addr[0] & 1)
+-	{
+-		printk("%s: Illegal Ethernet Address\n", dev->name);
+-		rc = -ENXIO;
+-		goto err_out;
+-	}
+-
+-	/*
+-	 *	ACK outstanding interrupts, hook the interrupt,
+-	 *	and verify that we are getting interrupts from the board.
+-	 */
+-	if (priv->plxreg)
+-		OUTL(dev->base_addr + PLX_LCL2PCI_DOORBELL, 1);
+-
+-	rc = request_irq(dev->irq, &dgrs_intr, IRQF_SHARED, "RightSwitch", dev);
+-	if (rc)
+-		goto err_out;
+-
+-	priv->intrcnt = 0;
+-	for (i = jiffies + 2*HZ + HZ/2; time_after(i, jiffies); )
+-	{
+-		cpu_relax();
+-		if (priv->intrcnt >= 2)
+-			break;
+-	}
+-	if (priv->intrcnt < 2)
+-	{
+-		printk(KERN_ERR "%s: Not interrupting on IRQ %d (%d)\n",
+-				dev->name, dev->irq, priv->intrcnt);
+-		rc = -ENXIO;
+-		goto err_free_irq;
+-	}
+-
+-	/*
+-	 *	Entry points...
+-	 */
+-	dev->open = &dgrs_open;
+-	dev->stop = &dgrs_close;
+-	dev->hard_start_xmit = &dgrs_start_xmit;
+-	dev->set_multicast_list = &dgrs_set_multicast_list;
+-	dev->do_ioctl = &dgrs_ioctl;
+-
+-	return rc;
+-
+-err_free_irq:
+-	free_irq(dev->irq, dev);
+-err_out:
+-       	return rc;
+-}
+-
+-static int __init
+-dgrs_initclone(struct net_device *dev)
+-{
+-	DGRS_PRIV	*priv = (DGRS_PRIV *) dev->priv;
+-	int		i;
+-
+-	printk("%s: Digi RightSwitch port %d ",
+-		dev->name, priv->chan);
+-	for (i = 0; i < 6; ++i)
+-		printk("%c%2.2x", i ? ':' : ' ', dev->dev_addr[i]);
+-	printk("\n");
+-
+-	return (0);
+-}
+-
+-static struct net_device * __init
+-dgrs_found_device(
+-	int		io,
+-	ulong		mem,
+-	int		irq,
+-	ulong		plxreg,
+-	ulong		plxdma,
+-	struct device   *pdev
+-)
+-{
+-	DGRS_PRIV *priv;
+-	struct net_device *dev;
+-	int i, ret = -ENOMEM;
+-
+-	dev = alloc_etherdev(sizeof(DGRS_PRIV));
+-	if (!dev)
+-		goto err0;
+-
+-	priv = (DGRS_PRIV *)dev->priv;
+-
+-	dev->base_addr = io;
+-	dev->mem_start = mem;
+-	dev->mem_end = mem + 2048 * 1024 - 1;
+-	dev->irq = irq;
+-	priv->plxreg = plxreg;
+-	priv->plxdma = plxdma;
+-	priv->vplxdma = NULL;
+-
+-	priv->chan = 1;
+-	priv->devtbl[0] = dev;
+-
+-	SET_NETDEV_DEV(dev, pdev);
+-
+-	ret = dgrs_probe1(dev);
+-	if (ret)
+-		goto err1;
+-
+-	ret = register_netdev(dev);
+-	if (ret)
+-		goto err2;
+-
+-	if ( !dgrs_nicmode )
+-		return dev;	/* Switch mode, we are done */
+-
+-	/*
+-	 * Operating card as N separate NICs
+-	 */
+-
+-	priv->nports = priv->bcomm->bc_nports;
+-
+-	for (i = 1; i < priv->nports; ++i)
+-	{
+-		struct net_device	*devN;
+-		DGRS_PRIV	*privN;
+-			/* Allocate new dev and priv structures */
+-		devN = alloc_etherdev(sizeof(DGRS_PRIV));
+-		ret = -ENOMEM;
+-		if (!devN)
+-			goto fail;
+-
+-		/* Don't copy the network device structure! */
+-
+-		/* copy the priv structure of dev[0] */
+-		privN = (DGRS_PRIV *)devN->priv;
+-		*privN = *priv;
+-
+-			/* ... and zero out VM areas */
+-		privN->vmem = NULL;
+-		privN->vplxdma = NULL;
+-			/* ... and zero out IRQ */
+-		devN->irq = 0;
+-			/* ... and base MAC address off address of 1st port */
+-		devN->dev_addr[5] += i;
+-
+-		ret = dgrs_initclone(devN);
+-		if (ret)
+-			goto fail;
+-
+-		SET_NETDEV_DEV(dev, pdev);
+-
+-		ret = register_netdev(devN);
+-		if (ret) {
+-			free_netdev(devN);
+-			goto fail;
+-		}
+-		privN->chan = i+1;
+-		priv->devtbl[i] = devN;
+-	}
+-	return dev;
+-
+- fail:
+-	while (i >= 0) {
+-		struct net_device *d = priv->devtbl[i--];
+-		unregister_netdev(d);
+-		free_netdev(d);
+-	}
+-
+- err2:
+-	free_irq(dev->irq, dev);
+- err1:
+-	free_netdev(dev);
+- err0:
+-	return ERR_PTR(ret);
+-}
+-
+-static void __devexit dgrs_remove(struct net_device *dev)
+-{
+-	DGRS_PRIV *priv = dev->priv;
+-	int i;
+-
+-	unregister_netdev(dev);
+-
+-	for (i = 1; i < priv->nports; ++i) {
+-		struct net_device *d = priv->devtbl[i];
+-		if (d) {
+-			unregister_netdev(d);
+-			free_netdev(d);
+-		}
+-	}
+-
+-	proc_reset(priv->devtbl[0], 1);
+-
+-	if (priv->vmem)
+-		iounmap(priv->vmem);
+-	if (priv->vplxdma)
+-		iounmap((uchar *) priv->vplxdma);
+-
+-	if (dev->irq)
+-		free_irq(dev->irq, dev);
+-
+-	for (i = 1; i < priv->nports; ++i) {
+-		if (priv->devtbl[i])
+-			unregister_netdev(priv->devtbl[i]);
+-	}
+-}
+-
+-#ifdef CONFIG_PCI
+-static int __init dgrs_pci_probe(struct pci_dev *pdev,
+-				 const struct pci_device_id *ent)
+-{
+-	struct net_device *dev;
+-	int err;
+-	uint	io;
+-	uint	mem;
+-	uint	irq;
+-	uint	plxreg;
+-	uint	plxdma;
+-
+-	/*
+-	 * Get and check the bus-master and latency values.
+-	 * Some PCI BIOSes fail to set the master-enable bit,
+-	 * and the latency timer must be set to the maximum
+-	 * value to avoid data corruption that occurs when the
+-	 * timer expires during a transfer.  Yes, it's a bug.
+-	 */
+-	err = pci_enable_device(pdev);
+-	if (err)
+-		return err;
+-	err = pci_request_regions(pdev, "RightSwitch");
+-	if (err)
+-		return err;
+-
+-	pci_set_master(pdev);
+-
+-	plxreg = pci_resource_start (pdev, 0);
+-	io = pci_resource_start (pdev, 1);
+-	mem = pci_resource_start (pdev, 2);
+-	pci_read_config_dword(pdev, 0x30, &plxdma);
+-	irq = pdev->irq;
+-	plxdma &= ~15;
+-
+-	/*
+-	 * On some BIOSES, the PLX "expansion rom" (used for DMA)
+-	 * address comes up as "0".  This is probably because
+-	 * the BIOS doesn't see a valid 55 AA ROM signature at
+-	 * the "ROM" start and zeroes the address.  To get
+-	 * around this problem the SE-6 is configured to ask
+-	 * for 4 MB of space for the dual port memory.  We then
+-	 * must set its range back to 2 MB, and use the upper
+-	 * half for DMA register access
+-	 */
+-	OUTL(io + PLX_SPACE0_RANGE, 0xFFE00000L);
+-	if (plxdma == 0)
+-		plxdma = mem + (2048L * 1024L);
+-	pci_write_config_dword(pdev, 0x30, plxdma + 1);
+-	pci_read_config_dword(pdev, 0x30, &plxdma);
+-	plxdma &= ~15;
+-
+-	dev = dgrs_found_device(io, mem, irq, plxreg, plxdma, &pdev->dev);
+-	if (IS_ERR(dev)) {
+-		pci_release_regions(pdev);
+-		return PTR_ERR(dev);
+-	}
+-
+-	pci_set_drvdata(pdev, dev);
+-	return 0;
+-}
+-
+-static void __devexit dgrs_pci_remove(struct pci_dev *pdev)
+-{
+-	struct net_device *dev = pci_get_drvdata(pdev);
+-
+-	dgrs_remove(dev);
+-	pci_release_regions(pdev);
+-	free_netdev(dev);
+-}
+-
+-static struct pci_driver dgrs_pci_driver = {
+-	.name = "dgrs",
+-	.id_table = dgrs_pci_tbl,
+-	.probe = dgrs_pci_probe,
+-	.remove = __devexit_p(dgrs_pci_remove),
+-};
+-#else
+-static struct pci_driver dgrs_pci_driver = {};
+-#endif
+-
+-
+-#ifdef CONFIG_EISA
+-static int is2iv[8] __initdata = { 0, 3, 5, 7, 10, 11, 12, 15 };
+-
+-static int __init dgrs_eisa_probe (struct device *gendev)
+-{
+-	struct net_device *dev;
+-	struct eisa_device *edev = to_eisa_device(gendev);
+-	uint	io = edev->base_addr;
+-	uint	mem;
+-	uint	irq;
+-	int 	rc = -ENODEV; /* Not EISA configured */
+-
+-	if (!request_region(io, 256, "RightSwitch")) {
+-		printk(KERN_ERR "dgrs: eisa io 0x%x, which is busy.\n", io);
+-		return -EBUSY;
+-	}
+-
+-	if ( ! (inb(io+ES4H_EC) & ES4H_EC_ENABLE) )
+-		goto err_out;
+-
+-	mem = (inb(io+ES4H_AS_31_24) << 24)
+-		+ (inb(io+ES4H_AS_23_16) << 16);
+-
+-	irq = is2iv[ inb(io+ES4H_IS) & ES4H_IS_INTMASK ];
+-
+-	dev = dgrs_found_device(io, mem, irq, 0L, 0L, gendev);
+-	if (IS_ERR(dev)) {
+-		rc = PTR_ERR(dev);
+-		goto err_out;
+-	}
+-
+-	gendev->driver_data = dev;
+-	return 0;
+- err_out:
+-	release_region(io, 256);
+-	return rc;
+-}
+-
+-static int __devexit dgrs_eisa_remove(struct device *gendev)
+-{
+-	struct net_device *dev = gendev->driver_data;
+-
+-	dgrs_remove(dev);
+-
+-	release_region(dev->base_addr, 256);
+-
+-	free_netdev(dev);
+-	return 0;
+-}
+-
+-
+-static struct eisa_driver dgrs_eisa_driver = {
+-	.id_table = dgrs_eisa_tbl,
+-	.driver = {
+-		.name = "dgrs",
+-		.probe = dgrs_eisa_probe,
+-		.remove = __devexit_p(dgrs_eisa_remove),
+-	}
+-};
+-#endif
+-
+-/*
+- *	Variables that can be overriden from module command line
+- */
+-static int	debug = -1;
+-static int	dma = -1;
+-static int	hashexpire = -1;
+-static int	spantree = -1;
+-static int	ipaddr[4] = { -1 };
+-static int	iptrap[4] = { -1 };
+-static __u32	ipxnet = -1;
+-static int	nicmode = -1;
+-
+-module_param(debug, int, 0);
+-module_param(dma, int, 0);
+-module_param(hashexpire, int, 0);
+-module_param(spantree, int, 0);
+-module_param_array(ipaddr, int, NULL, 0);
+-module_param_array(iptrap, int, NULL, 0);
+-module_param(ipxnet, int, 0);
+-module_param(nicmode, int, 0);
+-MODULE_PARM_DESC(debug, "Digi RightSwitch enable debugging (0-1)");
+-MODULE_PARM_DESC(dma, "Digi RightSwitch enable BM DMA (0-1)");
+-MODULE_PARM_DESC(nicmode, "Digi RightSwitch operating mode (1: switch, 2: multi-NIC)");
+-
+-static int __init dgrs_init_module (void)
+-{
+-	int	i;
+-	int	err;
+-
+-	/*
+-	 *	Command line variable overrides
+-	 *		debug=NNN
+-	 *		dma=0/1
+-	 *		spantree=0/1
+-	 *		hashexpire=NNN
+-	 *		ipaddr=A,B,C,D
+-	 *		iptrap=A,B,C,D
+-	 *		ipxnet=NNN
+-	 *		nicmode=NNN
+-	 */
+-	if (debug >= 0)
+-		dgrs_debug = debug;
+-	if (dma >= 0)
+-		dgrs_dma = dma;
+-	if (nicmode >= 0)
+-		dgrs_nicmode = nicmode;
+-	if (hashexpire >= 0)
+-		dgrs_hashexpire = hashexpire;
+-	if (spantree >= 0)
+-		dgrs_spantree = spantree;
+-	if (ipaddr[0] != -1)
+-		for (i = 0; i < 4; ++i)
+-			dgrs_ipaddr[i] = ipaddr[i];
+-	if (iptrap[0] != -1)
+-		for (i = 0; i < 4; ++i)
+-			dgrs_iptrap[i] = iptrap[i];
+-	if (ipxnet != -1)
+-		dgrs_ipxnet = htonl( ipxnet );
+-
+-	if (dgrs_debug)
+-	{
+-		printk(KERN_INFO "dgrs: SW=%s FW=Build %d %s\nFW Version=%s\n",
+-		       version, dgrs_firmnum, dgrs_firmdate, dgrs_firmver);
+-	}
+-
+-	/*
+-	 *	Find and configure all the cards
+-	 */
+-#ifdef CONFIG_EISA
+-	err = eisa_driver_register(&dgrs_eisa_driver);
+-	if (err)
+-		return err;
+-#endif
+-	err = pci_register_driver(&dgrs_pci_driver);
+-	if (err)
+-		return err;
+-	return 0;
+-}
+-
+-static void __exit dgrs_cleanup_module (void)
+-{
+-#ifdef CONFIG_EISA
+-	eisa_driver_unregister (&dgrs_eisa_driver);
+-#endif
+-#ifdef CONFIG_PCI
+-	pci_unregister_driver (&dgrs_pci_driver);
+-#endif
+-}
+-
+-module_init(dgrs_init_module);
+-module_exit(dgrs_cleanup_module);
+diff -puN drivers/net/dgrs.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- *	ioctl's for the Digi Intl. RightSwitch
+- *
+- *	These network driver ioctl's are a bit obtuse compared to the usual
+- *	ioctl's for a "normal" device driver.  Hey, I didn't invent it.
+- *
+- *	Typical use:
+- *
+- *	struct ifreq	ifr;
+- *	DGRS_IOCTL	ioc;
+- *	int		x;
+- *
+- *	strcpy(ifr.ifr_name, "eth1");
+- *	ifr.ifr_data = (caddr_t) &ioc;
+- *	ioc.cmd = DGRS_GETMEM;
+- *	ioc.len = sizeof(x);
+- *	ioc.data = (caddr_t) &x;
+- *	rc = ioctl(fd, DGRSIOCTL, &ifr);
+- *	printf("rc=%d mem=%x\n", rc, x);
+- *
+- */
+-#include <linux/sockios.h>
+-
+-#define DGRSIOCTL      SIOCDEVPRIVATE
+-
+-typedef struct dgrs_ioctl {
+-	unsigned short cmd;	/* Command to run */
+-	unsigned short len;	/* Length of the data buffer */
+-	unsigned char  __user *data;	/* Pointer to the data buffer */
+-	unsigned short	port;	/* port number for command, if needed */
+-	unsigned short	filter;	/* filter number for command, if needed */
+-} DGRS_IOCTL;
+-
+-/*
+- *	Commands for the driver
+- */
+-#define	DGRS_GETMEM		0x01	/* Get the dual port memory address */
+-#define	DGRS_SETFILTER		0x02	/* Set a filter */
+diff -puN drivers/net/dgrs_asstruct.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_asstruct.h
++++ /dev/null
+@@ -1,37 +0,0 @@
+-/*
+- *	For declaring structures shared with assembly routines
+- *
+- *	$Id: asstruct.h,v 1.1.1.1 1994/10/23 05:08:32 rick Exp $
+- */
+-
+-#ifdef ASSEMBLER
+-
+-#	define MO(t,a)		(a)
+-#	define VMO(t,a)		(a)
+-
+-#	define	BEGIN_STRUCT(x)	_Off=0
+-#	define	S1A(t,x,n)	_Off=(_Off+0)&~0; x=_Off; _Off=_Off+(1*n)
+-#	define	S2A(t,x,n)	_Off=(_Off+1)&~1; x=_Off; _Off=_Off+(2*n)
+-#	define	S4A(t,x,n)	_Off=(_Off+3)&~3; x=_Off; _Off=_Off+(4*n)
+-#	define	WORD(x)		_Off=(_Off+3)&~3; x=_Off; _Off=_Off+4
+-#	define	WORDA(x,n)	_Off=(_Off+3)&~3; x=_Off; _Off=_Off+(4*n)
+-#	define	VWORD(x)	_Off=(_Off+3)&~3; x=_Off; _Off=_Off+4
+-#	define	S1(t,x)		_Off=(_Off+0)&~0; x=_Off; _Off=_Off+1
+-#	define	S2(t,x)		_Off=(_Off+1)&~1; x=_Off; _Off=_Off+2
+-#	define	S4(t,x)		_Off=(_Off+3)&~3; x=_Off; _Off=_Off+4
+-#	define	END_STRUCT(x)	_Off=(_Off+3)&~3; x=_Off
+-
+-#else	/* C */
+-
+-#define VMO(t,a)        (*(volatile t *)(a))
+-
+-#	define BEGIN_STRUCT(x) struct x {
+-#	define S1(t,x)         t x ;
+-#	define S1A(t,x,n)      t x[n] ;
+-#	define S2(t,x)         t x ;
+-#	define S2A(t,x,n)      t x[n] ;
+-#	define S4(t,x)         t x ;
+-#	define S4A(t,x,n)      t x[n] ;
+-#	define END_STRUCT(x)   } ;
+-
+-#endif
+diff -puN drivers/net/dgrs_bcomm.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_bcomm.h
++++ /dev/null
+@@ -1,148 +0,0 @@
+-/*
+- * The bios low-memory structure
+- *
+- * Some of the variables in here can be used to set parameters that
+- * are stored in NVRAM and will retain their old values the next time
+- * the card is brought up.  To use the values stored in NVRAM, the
+- * parameter should be set to "all ones".  This tells the firmware to
+- * use the NVRAM value or a suitable default.  The value that is used
+- * will be stored back into this structure by the firmware.  If the
+- * value of the variable is not "all ones", then that value will be
+- * used and will be stored into NVRAM if it isn't already there.
+- * The variables this applies to are the following:
+- *	Variable	Set to:		Gets default of:
+- *	bc_hashexpire	-1		300	(5 minutes)
+- *	bc_spantree	-1		1	(spanning tree on)
+- *	bc_ipaddr	FF:FF:FF:FF	0	(no SNMP IP address)
+- *	bc_ipxnet	FF:FF:FF:FF	0	(no SNMP IPX net)
+- *	bc_iptrap	FF:FF:FF:FF	0	(no SNMP IP trap address)
+- *
+- * Some variables MUST have their value set after the firmware
+- * is loaded onto the board, but before the processor is released.
+- * These are:
+- *	bc_host		0 means no host "port", run as standalone switch.
+- *			1 means run as a switch, with a host port. (normal)
+- *			2 means run as multiple NICs, not as a switch.
+- *			-1 means run in diagnostics mode.
+- *	bc_nowait
+- *	bc_hostarea_len
+- *	bc_filter_len
+- *
+- */
+-BEGIN_STRUCT(bios_comm)
+-	S4(ulong, bc_intflag)	/* Count of all interrupts */
+-	S4(ulong, bc_lbolt)	/* Count of timer interrupts */
+-	S4(ulong, bc_maincnt)	/* Count of main loops */
+-	S4(ulong, bc_hashcnt)	/* Count of entries in hash table */
+-	S4A(ulong, bc_cnt, 8)	/* Misc counters, for debugging */
+-	S4A(ulong, bc_flag, 8)	/* Misc flags, for debugging */
+-	S4(ulong, bc_memsize)	/* Size of memory */
+-	S4(ulong, bc_dcache)	/* Size of working dcache */
+-	S4(ulong, bc_icache)	/* Size of working icache */
+-	S4(long, bc_status)	/* Firmware status */
+-	S1A(char, bc_file, 8)	/* File name of assertion failure */
+-	S4(ulong, bc_line)	/* Line # of assertion failure */
+-	S4(uchar *, bc_ramstart)
+-	S4(uchar *, bc_ramend)
+-	S4(uchar *, bc_heapstart) /* Start of heap (end of loaded memory) */
+-	S4(uchar *, bc_heapend)	/* End of heap */
+-
+-	/* Configurable Parameters */
+-	S4(long, bc_host)	/* 1=Host Port, 0=No Host Port, -1=Test Mode */
+-	S4(long, bc_nowait)	/* Don't wait for 2host circ buffer to empty*/
+-	S4(long, bc_150ohm)	/* 0 == 100 ohm UTP, 1 == 150 ohm STP */
+-	S4(long, bc_squelch)	/* 0 == normal squelch, 1 == reduced squelch */
+-	S4(ulong, bc_hashexpire) /* Expiry time in seconds for hash table */
+-	S4(long, bc_spantree)	/* 1 == enable IEEE spanning tree */
+-
+-	S2A(ushort, bc_eaddr, 3) /* New ether address */
+-	S2(ushort, bc_dummy1)	/* padding for DOS compilers */
+-
+-	/* Various debugging aids */
+-	S4(long, bc_debug)	/* Debugging is turned on */
+-	S4(long, bc_spew)	/* Spew data on port 4 for bs_spew seconds */
+-	S4(long, bc_spewlen)	/* Length of spewed data packets */
+-	S4(long, bc_maxrfd)	/* If != 0, max number of RFD's to allocate */
+-	S4(long, bc_maxrbd)	/* If != 0, max number of RBD's to allocate */
+-
+-	/* Circular buffers for messages to/from host */
+-	S4(ulong, bc_2host_head)
+-	S4(ulong, bc_2host_tail)
+-	S4(ulong, bc_2host_mask)
+-	S1A(char, bc_2host, 0x200)	/* Circ buff to host */
+-
+-	S4(ulong, bc_2idt_head)
+-	S4(ulong, bc_2idt_tail)
+-	S4(ulong, bc_2idt_mask)
+-	S1A(char, bc_2idt, 0x200)	/* Circ buff to idt */
+-
+-	/* Pointers to structures for driver access */
+-	S4(uchar *, bc_port)	/* pointer to Port[] structures */
+-	S4(long, bc_nports)	/* Number of ports */
+-	S4(long, bc_portlen)	/* sizeof(PORT) */
+-	S4(uchar *, bc_hash)	/* Pointer to hash table */
+-	S4(long, bc_hashlen)	/* sizeof(Table) */
+-
+-	/* SNMP agent addresses */
+-	S1A(uchar, bc_ipaddr, 4) /* IP address for SNMP */
+-	S1A(uchar, bc_ipxnet, 4) /* IPX net address for SNMP */
+-
+-	S4(long, bc_nohostintr) /* Do not cause periodic host interrupts */
+-
+-	S4(uchar *, bc_dmaaddr) /* Physical addr of host DMA buf for diags */
+-	S4(ulong, bc_dmalen)	/* Length of DMA buffer 0..2048 */
+-
+-	/*
+-	 *	Board memory allocated on startup for use by host, usually
+-	 *	for the purposes of creating DMA chain descriptors.  The
+-	 *	"len" must be set before the processor is released.  The
+-	 *	address of the area is returned in bc_hostarea.  The area
+-	 *	is guaranteed to be aligned on a 16 byte boundary.
+-	 */
+-	S4(ulong, bc_hostarea_len)	/* RW: Number of bytes to allocate */
+-	S4(uchar *, bc_hostarea)	/* RO: Address of allocated memory */
+-
+-	/*
+-	 *	Variables for communicating filters into the board
+-	 */
+-	S4(ulong *, bc_filter_area)	/* RO: Space to put filter into */
+-	S4(ulong, bc_filter_area_len)	/* RO: Length of area, in bytes */
+-	S4(long, bc_filter_cmd)		/* RW: Filter command, see below */
+-	S4(ulong, bc_filter_len)	/* RW: Actual length of filter */
+-	S4(ulong, bc_filter_port)	/* RW: Port # for filter 0..6 */
+-	S4(ulong, bc_filter_num)	/* RW: Filter #, 0=input, 1=output */
+-
+-	/* more SNMP agent addresses */
+-	S1A(uchar, bc_iptrap, 4) /* IP address for SNMP */
+-
+-	S4A(long, bc_spare, 2)	/* spares */
+-END_STRUCT(bios_comm)
+-
+-#define	bc	VMO(struct bios_comm, 0xa3000100)
+-
+-/*
+- *	bc_status values
+- */
+-#define	BC_INIT	0
+-#define	BC_RUN	100
+-
+-/*
+- *	bc_host values
+- */
+-#define	BC_DIAGS	-1
+-#define BC_SASWITCH	0
+-#define	BC_SWITCH	1
+-#define	BC_MULTINIC	2
+-
+-/*
+- *	Values for spew (debugging)
+- */
+-#define	BC_SPEW_ENABLE	0x80000000
+-
+-/*
+- *	filter commands
+- */
+-#define	BC_FILTER_ERR	-1
+-#define	BC_FILTER_OK	0
+-#define	BC_FILTER_SET	1
+-#define	BC_FILTER_CLR	2
+diff -puN drivers/net/dgrs_es4h.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_es4h.h
++++ /dev/null
+@@ -1,183 +0,0 @@
+-/************************************************************************/
+-/*									*/
+-/*	es4h.h:	Hardware definition of the ES/4h Ethernet Switch, from	*/
+-/*		both the host and the 3051's point of view.		*/
+-/*		NOTE: this name is a misnomer now that there is a PCI	*/
+-/*		board.  Everything that says "es4h" should really be	*/
+-/*		"se4".  But we'll keep the old name for now.		*/
+-/*									*/
+-/*	$Id: es4h.h,v 1.10 1996/08/22 17:16:53 rick Exp $		*/
+-/*									*/
+-/************************************************************************/
+-
+-/************************************************************************/
+-/*									*/
+-/*	EISA I/O Registers.  These are located at 0x1000 * slot-number	*/
+-/*	plus the indicated address.  I.E. 0x4000-0x4009 for slot 4.	*/
+-/*									*/
+-/************************************************************************/
+-
+-#define	ES4H_MANUFmsb	0x00		/* Read-only */
+-#define	ES4H_MANUFlsb	0x01		/* Read-only */
+-#	define ES4H_MANUF_CODE		0x1049	/* = "DBI" */
+-
+-#define	ES4H_PRODUCT	0x02		/* Read-only */
+-#	define ES4H_PRODUCT_CODE	0x0A
+-#	define EPC_PRODUCT_CODE		0x03
+-
+-#define	ES4H_REVISION	0x03		/* Read-only */
+-#	define ES4H_REVISION_CODE	0x01
+-
+-#define	ES4H_EC		0x04		/* EISA Control */
+-#	define ES4H_EC_RESET		0x04	/* WO, EISA reset */
+-#	define ES4H_EC_ENABLE		0x01	/* RW, EISA enable - set to */
+-						/* 1 before memory enable */
+-#define	ES4H_PC		0x05		/* Processor Control */
+-#	define ES4H_PC_RESET		0x04	/* RW, 3051 reset */
+-#	define ES4H_PC_INT		0x08	/* WO, assert 3051 intr. 3 */
+-
+-#define	ES4H_MW		0x06		/* Memory Window select and enable */
+-#	define ES4H_MW_ENABLE		0x80	/* WO, enable memory */
+-#	define ES4H_MW_SELECT_MASK	0x1f	/* WO, 32k window selected */
+-
+-#define	ES4H_IS		0x07		/* Interrupt, addr select */
+-#	define ES4H_IS_INTMASK		0x07	/* WO, interrupt select */
+-#	define ES4H_IS_INTOFF		0x00		/* No IRQ */
+-#	define ES4H_IS_INT3		0x03		/* IRQ 3 */
+-#	define ES4H_IS_INT5		0x02		/* IRQ 5 */
+-#	define ES4H_IS_INT7		0x01		/* IRQ 7 */
+-#	define ES4H_IS_INT10		0x04		/* IRQ 10 */
+-#	define ES4H_IS_INT11		0x05		/* IRQ 11 */
+-#	define ES4H_IS_INT12		0x06		/* IRQ 12 */
+-#	define ES4H_IS_INT15		0x07		/* IRQ 15 */
+-#	define ES4H_IS_INTACK		0x10	/* WO, interrupt ack */
+-#	define ES4H_IS_INTPEND		0x10	/* RO, interrupt pending */
+-#	define ES4H_IS_LINEAR		0x40	/* WO, no memory windowing */
+-#	define ES4H_IS_AS15		0x80	/* RW, address select bit 15 */
+-
+-#define	ES4H_AS_23_16	0x08		/* Address select bits 23-16 */
+-#define	ES4H_AS_31_24	0x09		/* Address select bits 31-24 */
+-
+-#define ES4H_IO_MAX		0x09		/* Size of I/O space */
+-
+-/*
+- * PCI
+- */
+-#define SE6_RESET		PLX_USEROUT
+-
+-/************************************************************************/
+-/*									*/
+-/*	3051 Memory Map							*/
+-/*									*/
+-/*	Note: 3051 has 4K I-cache, 2K D-cache.  1 cycle is 50 nsec.	*/
+-/*									*/
+-/************************************************************************/
+-#define	SE4_NPORTS		4		/* # of ethernet ports */
+-#define	SE6_NPORTS		6		/* # of ethernet ports */
+-#define	SE_NPORTS		6		/* Max # of ethernet ports */
+-
+-#define	ES4H_RAM_BASE		0x83000000	/* Base address of RAM */
+-#define	ES4H_RAM_SIZE		0x00200000	/* Size of RAM (2MB) */
+-#define	ES4H_RAM_INTBASE	0x83800000	/* Base of int-on-write RAM */
+-						/* a.k.a. PKT RAM */
+-
+-						/* Ethernet controllers */
+-						/* See: i82596.h */
+-#define	ES4H_ETHER0_PORT	0xA2000000
+-#define	ES4H_ETHER0_CMD		0xA2000100
+-#define	ES4H_ETHER1_PORT	0xA2000200
+-#define	ES4H_ETHER1_CMD		0xA2000300
+-#define	ES4H_ETHER2_PORT	0xA2000400
+-#define	ES4H_ETHER2_CMD		0xA2000500
+-#define	ES4H_ETHER3_PORT	0xA2000600
+-#define	ES4H_ETHER3_CMD		0xA2000700
+-#define	ES4H_ETHER4_PORT	0xA2000800	/* RS SE-6 only */
+-#define	ES4H_ETHER4_CMD		0xA2000900	/* RS SE-6 only */
+-#define	ES4H_ETHER5_PORT	0xA2000A00	/* RS SE-6 only */
+-#define	ES4H_ETHER5_CMD		0xA2000B00	/* RS SE-6 only */
+-
+-#define	ES4H_I8254		0xA2040000	/* 82C54 timers */
+-						/* See: i8254.h */
+-
+-#define	SE4_I8254_HZ		(23000000/4)	/* EISA clock input freq. */
+-#define	SE4_IDT_HZ		(46000000)	/* EISA CPU freq. */
+-#define	SE6_I8254_HZ		(20000000/4)	/* PCI clock input freq. */
+-#define	SE6_IDT_HZ		(50000000)	/* PCI CPU freq. */
+-#define	ES4H_I8254_HZ		(23000000/4)	/* EISA clock input freq. */
+-
+-#define	ES4H_GPP		0xA2050000	/* General purpose port */
+-	/*
+-	 * SE-4 (EISA) GPP bits
+-	 */
+-#	define ES4H_GPP_C0_100		0x0001	/* WO, Chan 0: 100 ohm TP */
+-#	define ES4H_GPP_C0_SQE		0x0002	/* WO, Chan 0: normal squelch */
+-#	define ES4H_GPP_C1_100		0x0004	/* WO, Chan 1: 100 ohm TP */
+-#	define ES4H_GPP_C1_SQE		0x0008	/* WO, Chan 1: normal squelch */
+-#	define ES4H_GPP_C2_100		0x0010	/* WO, Chan 2: 100 ohm TP */
+-#	define ES4H_GPP_C2_SQE		0x0020	/* WO, Chan 2: normal squelch */
+-#	define ES4H_GPP_C3_100		0x0040	/* WO, Chan 3: 100 ohm TP */
+-#	define ES4H_GPP_C3_SQE		0x0080	/* WO, Chan 3: normal squelch */
+-#	define ES4H_GPP_SQE		0x00AA	/* WO, All: normal squelch */
+-#	define ES4H_GPP_100		0x0055	/* WO, All: 100 ohm TP */
+-#	define ES4H_GPP_HOSTINT		0x0100	/* RO, cause intr. to host */
+-						/* Hold high > 250 nsec */
+-#	define SE4_GPP_EED		0x0200	/* RW, EEPROM data bit */
+-#	define SE4_GPP_EECS		0x0400	/* RW, EEPROM chip select */
+-#	define SE4_GPP_EECK		0x0800	/* RW, EEPROM clock */
+-
+-	/*
+-	 * SE-6 (PCI) GPP bits
+-	 */
+-#	define SE6_GPP_EED		0x0001	/* RW, EEPROM data bit */
+-#	define SE6_GPP_EECS		0x0002	/* RW, EEPROM chip select */
+-#	define SE6_GPP_EECK		0x0004	/* RW, EEPROM clock */
+-#	define SE6_GPP_LINK		0x00fc	/* R, Link status LEDs */
+-
+-#define	ES4H_INTVEC		0xA2060000	/* RO: Interrupt Vector */
+-#	define ES4H_IV_DMA0		0x01	/* Chan 0 DMA interrupt */
+-#	define ES4H_IV_PKT0		0x02	/* Chan 0 PKT interrupt */
+-#	define ES4H_IV_DMA1		0x04	/* Chan 1 DMA interrupt */
+-#	define ES4H_IV_PKT1		0x08	/* Chan 1 PKT interrupt */
+-#	define ES4H_IV_DMA2		0x10	/* Chan 2 DMA interrupt */
+-#	define ES4H_IV_PKT2		0x20	/* Chan 2 PKT interrupt */
+-#	define ES4H_IV_DMA3		0x40	/* Chan 3 DMA interrupt */
+-#	define ES4H_IV_PKT3		0x80	/* Chan 3 PKT interrupt */
+-
+-#define	ES4H_INTACK		0xA2060000	/* WO: Interrupt Ack */
+-#	define ES4H_INTACK_8254		0x01	/* Real Time Clock (int 0) */
+-#	define ES4H_INTACK_HOST		0x02	/* Host (int 1) */
+-#	define ES4H_INTACK_PKT0		0x04	/* Chan 0 Pkt (int 2) */
+-#	define ES4H_INTACK_PKT1		0x08	/* Chan 1 Pkt (int 3) */
+-#	define ES4H_INTACK_PKT2		0x10	/* Chan 2 Pkt (int 4) */
+-#	define ES4H_INTACK_PKT3		0x20	/* Chan 3 Pkt (int 5) */
+-
+-#define	SE6_PLX			0xA2070000	/* PLX 9060, SE-6 (PCI) only */
+-						/* see plx9060.h */
+-
+-#define	SE6_PCI_VENDOR_ID	0x114F		/* Digi PCI vendor ID */
+-#define	SE6_PCI_DEVICE_ID	0x0003		/* RS SE-6 device ID */
+-#define	SE6_PCI_ID		((SE6_PCI_DEVICE_ID<<16) | SE6_PCI_VENDOR_ID)
+-
+-/*
+- *	IDT Interrupts
+- */
+-#define	ES4H_INT_8254		IDT_INT0
+-#define	ES4H_INT_HOST		IDT_INT1
+-#define	ES4H_INT_ETHER0		IDT_INT2
+-#define	ES4H_INT_ETHER1		IDT_INT3
+-#define	ES4H_INT_ETHER2		IDT_INT4
+-#define	ES4H_INT_ETHER3		IDT_INT5
+-
+-/*
+- *	Because there are differences between the SE-4 and the SE-6,
+- *	we assume that the following globals will be set up at init
+- *	time in main.c to containt the appropriate constants from above
+- */
+-extern ushort	Gpp;		/* Softcopy of GPP register */
+-extern ushort	EEck;		/* Clock bit */
+-extern ushort	EEcs;		/* CS bit */
+-extern ushort	EEd;		/* Data bit */
+-extern ulong	I8254_Hz;	/* i8254 input frequency */
+-extern ulong	IDT_Hz;		/* IDT CPU frequency */
+-extern int	Nports;		/* Number of ethernet controllers */
+-extern int	Nchan;		/* Nports+1 */
+diff -puN drivers/net/dgrs_ether.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_ether.h
++++ /dev/null
+@@ -1,135 +0,0 @@
+-/*
+- *	A filtering function.  There are two filters/port.  Filter "0"
+- *	is the input filter, and filter "1" is the output filter.
+- */
+-typedef int (FILTER_FUNC)(uchar *pktp, int pktlen, ulong *scratch, int port);
+-#define	NFILTERS	2
+-
+-/*
+- *	The per port structure
+- */
+-typedef struct
+-{
+-	int		chan;		/* Channel number (0-3) */
+-	ulong		portaddr;	/* address of 596 port register */
+-	volatile ulong	*ca;		/* address of 596 chan attention */
+-	ulong		intmask;	/* Interrupt mask for this port */
+-	ulong		intack;		/* Ack bit for this port */
+-
+-	uchar		ethaddr[6];	/* Ethernet address of this port */
+-	int		is_promisc;	/* Port is promiscuous */
+-
+-	int		debug;		/* Debugging turned on */
+-
+-	I596_ISCP	*iscpp;		/* Uncached ISCP pointer */
+-	I596_SCP	*scpp;		/* Uncached SCP pointer */
+-	I596_SCB	*scbp;		/* Uncached SCB pointer */
+-
+-	I596_ISCP	iscp;
+-	I596_SCB	scb;
+-
+-	/* Command Queue */
+-	I596_CB		*cb0;
+-	I596_CB		*cbN;
+-	I596_CB		*cb_head;
+-	I596_CB		*cb_tail;
+-
+-	/* Receive Queue */
+-	I596_RFD	*rfd0;
+-	I596_RFD	*rfdN;
+-	I596_RFD	*rfd_head;
+-	I596_RFD	*rfd_tail;
+-
+-	/* Receive Buffers */
+-	I596_RBD	*rbd0;
+-	I596_RBD	*rbdN;
+-	I596_RBD	*rbd_head;
+-	I596_RBD	*rbd_tail;
+-	int		buf_size;	/* Size of an RBD buffer */
+-	int		buf_cnt;	/* Total RBD's allocated */
+-
+-	/* Rx Statistics */
+-	ulong		cnt_rx_cnt;	/* Total packets rcvd, good and bad */
+-	ulong		cnt_rx_good;	/* Total good packets rcvd */
+-	ulong		cnt_rx_bad;	/* Total of all bad packets rcvd */
+-					/* Subtotals can be gotten from SCB */
+-	ulong		cnt_rx_nores;	/* No resources */
+-	ulong		cnt_rx_bytes;	/* Total bytes rcvd */
+-
+-	/* Tx Statistics */
+-	ulong		cnt_tx_queued;
+-	ulong		cnt_tx_done;
+-	ulong		cnt_tx_freed;
+-	ulong		cnt_tx_nores;	/* No resources */
+-
+-	ulong		cnt_tx_bad;
+-	ulong		cnt_tx_err_late;
+-	ulong		cnt_tx_err_nocrs;
+-	ulong		cnt_tx_err_nocts;
+-	ulong		cnt_tx_err_under;
+-	ulong		cnt_tx_err_maxcol;
+-	ulong		cnt_tx_collisions;
+-
+-	/* Special stuff for host */
+-#	define		rfd_freed	cnt_rx_cnt
+-	ulong		rbd_freed;
+-	int		host_timer;
+-
+-	/* Added after first beta */
+-	ulong		cnt_tx_races;	/* Counts race conditions */
+-	int		spanstate;
+-	ulong		cnt_st_tx;	/* send span tree pkts */
+-	ulong		cnt_st_fail_tx;	/* Failures to send span tree pkts */
+-	ulong		cnt_st_fail_rbd;/* Failures to send span tree pkts */
+-	ulong		cnt_st_rx;	/* rcv span tree pkts */
+-	ulong		cnt_st_rx_bad;	/* bogus st packets rcvd */
+-	ulong		cnt_rx_fwd;	/* Rcvd packets that were forwarded */
+-
+-	ulong		cnt_rx_mcast;	/* Multicast pkts received */
+-	ulong		cnt_tx_mcast;	/* Multicast pkts transmitted */
+-	ulong		cnt_tx_bytes;	/* Bytes transmitted */
+-
+-	/*
+-	 *	Packet filtering
+-	 *	Filter 0: input filter
+-	 *	Filter 1: output filter
+-	 */
+-
+-	ulong		*filter_space[NFILTERS];
+-	FILTER_FUNC	*filter_func[NFILTERS];
+-	ulong		filter_cnt[NFILTERS];
+-	ulong		filter_len[NFILTERS];
+-
+-	ulong		pad[ (512-300) / 4];
+-} PORT;
+-
+-/*
+- *	Port[0]			is host interface
+- *	Port[1..SE_NPORTS]	are external 10 Base T ports.  Fewer may be in
+- *				use, depending on whether this is an SE-4 or
+- *				an SE-6.
+- *	Port[SE_NPORTS]		Pseudo-port for Spanning tree and SNMP
+- */
+-extern PORT	Port[1+SE_NPORTS+1];
+-
+-extern int	Nports;		/* Number of genuine ethernet controllers */
+-extern int	Nchan;		/* ... plus one for host interface */
+-
+-extern int	FirstChan;	/* 0 or 1, depedning on whether host is used */
+-extern int	NumChan;	/* 4 or 5 */
+-
+-/*
+- *	A few globals
+- */
+-extern int	IsPromisc;
+-extern int	MultiNicMode;
+-
+-/*
+- *	Functions
+- */
+-extern void	eth_xmit_spew_on(PORT *p, int cnt);
+-extern void	eth_xmit_spew_off(PORT *p);
+-
+-extern I596_RBD	*alloc_rbds(PORT *p, int num);
+-
+-extern I596_CB * eth_cb_alloc(PORT *p);
+diff -puN drivers/net/dgrs_firmware.c~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_firmware.c
++++ /dev/null
+@@ -1,9966 +0,0 @@
+-static const int dgrs_firmnum = 550;
+-static char dgrs_firmver[] = "$Version$";
+-static char dgrs_firmdate[] = "11/16/96 03:45:15";
+-static unsigned char dgrs_code[] __initdata = {
+-	213,5,192,8,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,64,40,35,41,
+-	101,115,52,104,46,98,105,110,32,32,32,32,
+-	32,32,49,46,48,32,48,48,47,48,48,47,
+-	57,52,0,64,40,35,41,67,111,112,121,114,
+-	105,103,104,116,32,49,57,57,53,44,32,68,
+-	105,103,105,32,73,110,116,101,114,110,97,116,
+-	105,111,110,97,108,46,32,32,65,108,108,32,
+-	82,105,103,104,116,115,32,82,101,115,101,114,
+-	118,101,100,46,0,0,0,0,97,5,192,8,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,255,255,0,16,0,0,0,0,
+-	0,0,0,0,8,0,224,3,0,0,0,0,
+-	148,255,189,39,16,0,161,175,20,0,162,175,
+-	24,0,163,175,28,0,164,175,32,0,165,175,
+-	36,0,166,175,40,0,167,175,44,0,168,175,
+-	48,0,169,175,52,0,170,175,56,0,171,175,
+-	60,0,172,175,64,0,173,175,68,0,174,175,
+-	72,0,175,175,76,0,184,175,80,0,185,175,
+-	88,0,190,175,92,0,191,175,0,112,8,64,
+-	18,72,0,0,16,80,0,0,0,96,11,64,
+-	84,0,168,175,96,0,169,175,100,0,170,175,
+-	104,0,171,175,33,56,0,1,0,131,24,60,
+-	0,1,24,39,0,0,8,143,0,0,0,0,
+-	1,0,8,33,0,0,8,175,0,104,5,64,
+-	0,96,6,64,124,0,168,48,212,255,0,21,
+-	0,0,0,0,36,64,166,0,0,255,8,49,
+-	27,0,0,17,0,0,0,0,130,65,8,0,
+-	2,131,9,60,33,72,40,1,0,220,41,141,
+-	66,64,8,0,2,131,10,60,33,80,72,1,
+-	0,224,74,141,0,0,0,0,38,80,70,1,
+-	1,255,74,49,33,40,192,0,38,48,202,0,
+-	0,96,134,64,66,64,8,0,2,131,4,60,
+-	33,32,136,0,0,226,132,144,9,248,32,1,
+-	0,0,0,0,104,0,166,143,0,0,0,0,
+-	0,96,134,64,0,104,5,64,227,255,0,16,
+-	0,0,0,0,104,0,168,143,96,0,169,143,
+-	100,0,170,143,0,0,0,0,0,96,136,64,
+-	19,0,32,1,17,0,64,1,20,0,162,143,
+-	24,0,163,143,28,0,164,143,32,0,165,143,
+-	36,0,166,143,40,0,167,143,44,0,168,143,
+-	48,0,169,143,52,0,170,143,56,0,171,143,
+-	60,0,172,143,64,0,173,143,68,0,174,143,
+-	72,0,175,143,76,0,184,143,80,0,185,143,
+-	88,0,190,143,92,0,191,143,0,0,0,0,
+-	84,0,186,143,16,0,161,143,108,0,189,39,
+-	8,0,64,3,16,0,0,66,0,96,26,64,
+-	0,0,0,0,255,255,27,60,254,0,123,55,
+-	0,0,0,0,36,208,91,3,0,0,0,0,
+-	0,96,154,64,0,0,0,0,0,112,26,64,
+-	0,0,0,0,16,0,0,66,0,0,0,0,
+-	8,0,64,3,0,0,0,0,255,255,8,36,
+-	133,255,0,17,0,0,0,0,1,0,8,37,
+-	130,255,0,21,0,0,0,0,255,255,8,36,
+-	33,8,0,1,126,255,40,20,0,0,0,0,
+-	1,0,33,36,123,255,32,20,0,0,0,0,
+-	255,255,2,36,120,255,72,20,0,0,0,0,
+-	1,0,66,36,117,255,64,20,0,0,0,0,
+-	255,255,3,36,114,255,104,20,0,0,0,0,
+-	1,0,99,36,111,255,96,20,0,0,0,0,
+-	255,255,4,36,108,255,136,20,0,0,0,0,
+-	1,0,132,36,105,255,128,20,0,0,0,0,
+-	255,255,5,36,102,255,168,20,0,0,0,0,
+-	1,0,165,36,99,255,160,20,0,0,0,0,
+-	255,255,6,36,96,255,200,20,0,0,0,0,
+-	1,0,198,36,93,255,192,20,0,0,0,0,
+-	255,255,7,36,90,255,232,20,0,0,0,0,
+-	1,0,231,36,87,255,224,20,0,0,0,0,
+-	255,255,9,36,84,255,40,21,0,0,0,0,
+-	1,0,41,37,81,255,32,21,0,0,0,0,
+-	255,255,10,36,78,255,72,21,0,0,0,0,
+-	1,0,74,37,75,255,64,21,0,0,0,0,
+-	255,255,11,36,72,255,104,21,0,0,0,0,
+-	1,0,107,37,69,255,96,21,0,0,0,0,
+-	255,255,12,36,66,255,136,21,0,0,0,0,
+-	1,0,140,37,63,255,128,21,0,0,0,0,
+-	255,255,13,36,60,255,168,21,0,0,0,0,
+-	1,0,173,37,57,255,160,21,0,0,0,0,
+-	255,255,14,36,54,255,200,21,0,0,0,0,
+-	1,0,206,37,51,255,192,21,0,0,0,0,
+-	255,255,15,36,48,255,232,21,0,0,0,0,
+-	1,0,239,37,45,255,224,21,0,0,0,0,
+-	255,255,24,36,42,255,8,23,0,0,0,0,
+-	1,0,24,39,39,255,0,23,0,0,0,0,
+-	255,255,16,36,36,255,8,22,0,0,0,0,
+-	1,0,16,38,33,255,0,22,0,0,0,0,
+-	255,255,17,36,30,255,40,22,0,0,0,0,
+-	1,0,49,38,27,255,32,22,0,0,0,0,
+-	255,255,18,36,24,255,72,22,0,0,0,0,
+-	1,0,82,38,21,255,64,22,0,0,0,0,
+-	255,255,19,36,18,255,104,22,0,0,0,0,
+-	1,0,115,38,15,255,96,22,0,0,0,0,
+-	255,255,20,36,12,255,136,22,0,0,0,0,
+-	1,0,148,38,9,255,128,22,0,0,0,0,
+-	255,255,21,36,6,255,168,22,0,0,0,0,
+-	1,0,181,38,3,255,160,22,0,0,0,0,
+-	255,255,22,36,0,255,200,22,0,0,0,0,
+-	1,0,214,38,253,254,192,22,0,0,0,0,
+-	255,255,23,36,250,254,232,22,0,0,0,0,
+-	1,0,247,38,247,254,224,22,0,0,0,0,
+-	255,255,26,36,244,254,72,23,0,0,0,0,
+-	1,0,90,39,241,254,64,23,0,0,0,0,
+-	255,255,27,36,238,254,104,23,0,0,0,0,
+-	1,0,123,39,235,254,96,23,0,0,0,0,
+-	255,255,28,36,232,254,136,23,0,0,0,0,
+-	1,0,156,39,229,254,128,23,0,0,0,0,
+-	255,255,29,36,226,254,168,23,0,0,0,0,
+-	1,0,189,39,223,254,160,23,0,0,0,0,
+-	255,255,30,36,220,254,200,23,0,0,0,0,
+-	1,0,222,39,217,254,192,23,0,0,0,0,
+-	255,255,31,36,214,254,232,23,0,0,0,0,
+-	1,0,255,39,211,254,224,23,0,0,0,0,
+-	0,131,24,60,0,1,24,39,0,32,1,60,
+-	37,192,1,3,0,96,8,64,0,0,0,0,
+-	1,0,1,60,37,64,1,1,0,96,136,64,
+-	33,16,0,0,165,165,3,60,165,165,99,52,
+-	0,128,1,60,0,0,35,172,0,128,9,60,
+-	0,0,41,141,0,0,0,0,0,96,10,64,
+-	0,0,0,0,8,0,1,60,36,80,65,1,
+-	29,0,64,21,0,0,0,0,27,0,105,20,
+-	0,0,0,0,0,1,2,36,0,128,1,60,
+-	33,8,34,0,0,0,32,172,64,16,2,0,
+-	1,0,1,60,1,0,33,52,43,8,65,0,
+-	248,255,32,20,0,0,0,0,255,255,3,36,
+-	0,128,1,60,0,0,35,172,0,1,2,36,
+-	0,128,3,60,33,24,98,0,0,0,99,140,
+-	0,0,0,0,7,0,96,20,0,0,0,0,
+-	64,16,2,0,1,0,1,60,1,0,33,52,
+-	43,8,65,0,245,255,32,20,0,0,0,0,
+-	0,96,128,64,0,0,0,0,84,0,2,175,
+-	0,96,8,64,0,0,0,0,3,0,1,60,
+-	37,64,1,1,0,96,136,64,33,16,0,0,
+-	165,165,3,60,165,165,99,52,0,128,1,60,
+-	0,0,35,172,0,128,9,60,0,0,41,141,
+-	0,0,0,0,0,96,10,64,0,0,0,0,
+-	8,0,1,60,36,80,65,1,29,0,64,21,
+-	0,0,0,0,27,0,105,20,0,0,0,0,
+-	0,1,2,36,0,128,1,60,33,8,34,0,
+-	0,0,32,172,64,16,2,0,1,0,1,60,
+-	1,0,33,52,43,8,65,0,248,255,32,20,
+-	0,0,0,0,255,255,3,36,0,128,1,60,
+-	0,0,35,172,0,1,2,36,0,128,3,60,
+-	33,24,98,0,0,0,99,140,0,0,0,0,
+-	7,0,96,20,0,0,0,0,64,16,2,0,
+-	1,0,1,60,1,0,33,52,43,8,65,0,
+-	245,255,32,20,0,0,0,0,0,96,128,64,
+-	0,0,0,0,88,0,2,175,88,0,9,143,
+-	0,0,0,0,17,0,32,17,0,0,0,0,
+-	0,0,0,0,3,0,2,60,0,0,0,0,
+-	0,96,130,64,0,128,8,60,37,72,40,1,
+-	0,0,0,161,4,0,0,161,8,0,0,161,
+-	12,0,0,161,16,0,0,161,20,0,0,161,
+-	24,0,0,161,32,0,8,37,247,255,9,21,
+-	252,255,0,161,84,0,9,143,0,0,0,0,
+-	17,0,32,17,0,0,0,0,0,0,0,0,
+-	1,0,2,60,0,0,0,0,0,96,130,64,
+-	0,128,8,60,37,72,40,1,0,0,0,161,
+-	4,0,0,161,8,0,0,161,12,0,0,161,
+-	16,0,0,161,20,0,0,161,24,0,0,161,
+-	32,0,8,37,247,255,9,21,252,255,0,161,
+-	32,0,8,60,0,96,136,64,0,104,128,64,
+-	0,131,2,60,152,28,66,36,255,31,9,60,
+-	255,255,41,53,36,16,73,0,0,128,9,60,
+-	37,16,73,0,8,0,64,0,0,0,0,0,
+-	2,131,8,60,224,210,8,37,252,255,1,36,
+-	36,64,1,1,3,131,9,60,124,18,41,37,
+-	252,255,1,36,36,72,33,1,0,0,10,36,
+-	0,0,10,173,254,255,9,21,4,0,8,37,
+-	3,131,8,60,128,18,8,37,252,255,1,36,
+-	36,64,1,1,31,131,9,60,252,255,41,53,
+-	252,255,1,36,36,72,33,1,237,254,10,60,
+-	175,222,74,53,0,0,10,173,254,255,9,21,
+-	4,0,8,37,2,131,8,60,0,212,8,37,
+-	252,255,1,36,36,64,1,1,2,131,9,60,
+-	252,219,41,37,252,255,1,36,36,72,33,1,
+-	173,222,10,60,239,190,74,53,0,0,10,173,
+-	254,255,9,21,4,0,8,37,0,4,8,60,
+-	0,0,0,0,0,24,136,64,0,0,0,0,
+-	2,131,29,60,0,220,189,39,0,0,30,36,
+-	2,131,28,60,51,8,192,12,16,78,156,39,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	232,255,189,39,16,0,191,175,8,128,132,39,
+-	15,63,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,16,0,191,175,12,128,132,39,
+-	15,63,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,16,0,191,175,16,128,132,39,
+-	15,63,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,16,0,191,175,20,128,132,39,
+-	15,63,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,24,133,131,143,6,0,2,36,
+-	20,0,191,175,6,0,98,20,16,0,176,175,
+-	7,162,3,60,228,0,99,52,1,0,2,36,
+-	184,7,192,8,0,0,98,172,0,128,130,151,
+-	5,162,16,60,0,1,66,52,120,63,192,12,
+-	0,0,2,166,0,128,130,151,0,0,0,0,
+-	255,254,66,48,0,0,2,166,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	232,255,189,39,33,16,128,0,3,0,64,4,
+-	16,0,191,175,254,255,2,60,192,29,66,52,
+-	0,163,4,60,96,1,132,52,0,163,1,60,
+-	92,1,34,172,0,163,1,60,104,1,38,172,
+-	204,63,192,12,8,0,6,36,228,63,192,12,
+-	255,255,4,36,204,7,192,8,0,0,0,0,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,216,255,189,39,1,0,6,36,
+-	3,131,2,60,143,18,66,36,240,255,3,36,
+-	36,16,67,0,0,163,1,60,120,1,34,172,
+-	0,163,2,60,120,1,66,140,33,56,0,0,
+-	32,0,191,175,28,0,177,175,24,0,176,175,
+-	16,0,160,175,0,163,1,60,116,1,34,172,
+-	0,163,3,60,112,1,99,140,0,163,2,60,
+-	116,1,66,140,0,163,4,60,116,1,132,140,
+-	35,136,98,0,84,64,192,12,33,40,32,2,
+-	13,0,64,16,0,0,0,0,1,131,4,60,
+-	96,127,132,36,24,128,144,39,33,40,0,2,
+-	1,131,7,60,128,127,231,36,15,63,192,12,
+-	148,0,6,36,1,0,4,36,33,40,0,2,
+-	188,7,192,12,148,0,6,36,2,0,33,6,
+-	33,16,32,2,3,0,34,38,131,136,2,0,
+-	0,163,2,60,116,1,66,140,0,0,0,0,
+-	6,0,32,18,237,254,3,60,175,222,99,52,
+-	0,0,67,172,255,255,49,38,253,255,32,22,
+-	4,0,66,36,32,0,191,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,40,0,189,39,
+-	224,255,189,39,15,0,132,36,240,255,3,36,
+-	20,0,177,175,0,163,17,60,120,1,49,142,
+-	0,163,2,60,120,1,66,140,36,32,131,0,
+-	33,16,68,0,0,163,1,60,120,1,34,172,
+-	0,163,3,60,120,1,99,140,0,163,2,60,
+-	112,1,66,140,24,0,191,175,43,16,67,0,
+-	13,0,64,16,16,0,176,175,1,131,4,60,
+-	96,127,132,36,24,128,144,39,33,40,0,2,
+-	1,131,7,60,176,127,231,36,15,63,192,12,
+-	171,0,6,36,1,0,4,36,33,40,0,2,
+-	188,7,192,12,171,0,6,36,33,16,32,2,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,216,255,189,39,
+-	3,0,2,60,7,162,3,60,36,0,191,175,
+-	32,0,176,175,0,163,1,60,92,1,32,172,
+-	0,0,99,140,79,17,66,52,32,0,98,20,
+-	87,0,4,60,76,0,8,60,64,75,8,53,
+-	250,2,7,60,128,240,231,52,7,162,6,60,
+-	152,0,198,52,67,73,3,60,67,3,99,52,
+-	7,162,4,60,48,1,132,52,7,162,5,60,
+-	0,1,165,52,6,0,2,36,24,133,130,175,
+-	0,163,1,60,204,5,34,172,4,0,2,36,
+-	50,133,130,167,2,0,2,36,48,133,130,167,
+-	1,0,2,36,20,133,130,167,119,119,2,36,
+-	28,133,136,175,16,133,135,175,0,0,195,172,
+-	0,0,130,172,67,1,2,36,0,0,162,172,
+-	109,8,192,8,31,131,4,60,240,188,132,52,
+-	189,2,3,60,128,231,99,52,4,0,2,36,
+-	24,133,130,175,0,163,1,60,204,5,34,172,
+-	0,8,2,36,50,133,130,167,0,4,2,36,
+-	48,133,130,167,0,2,2,36,20,133,130,167,
+-	28,133,132,175,16,133,131,175,31,131,4,60,
+-	0,240,132,52,24,133,131,143,0,131,2,60,
+-	0,163,1,60,108,1,34,172,0,163,1,60,
+-	112,1,36,172,1,0,99,36,32,133,131,175,
+-	210,7,192,12,0,0,0,0,0,163,2,60,
+-	132,1,66,140,0,128,128,167,2,0,64,20,
+-	85,0,2,36,0,128,130,167,0,163,2,60,
+-	136,1,66,140,0,0,0,0,5,0,64,20,
+-	0,0,0,0,0,128,130,151,0,0,0,0,
+-	170,0,66,52,0,128,130,167,0,128,131,151,
+-	5,162,2,60,0,0,67,164,188,64,192,12,
+-	1,0,16,36,2,131,4,60,0,220,132,36,
+-	2,131,5,60,0,224,165,36,2,131,6,60,
+-	0,226,198,36,8,0,7,36,2,131,2,60,
+-	112,154,66,36,16,0,162,175,2,131,2,60,
+-	144,154,66,36,20,0,162,175,2,131,2,60,
+-	176,154,66,36,24,0,162,175,0,131,2,60,
+-	36,30,66,36,0,163,1,60,92,1,48,172,
+-	240,64,192,12,28,0,162,175,0,163,3,60,
+-	124,1,99,140,40,133,128,175,2,0,98,40,
+-	7,0,64,16,2,0,2,36,18,0,97,4,
+-	255,255,2,36,7,0,98,16,0,0,0,0,
+-	196,8,192,8,0,0,0,0,16,0,98,16,
+-	0,0,0,0,196,8,192,8,0,0,0,0,
+-	24,133,133,143,1,131,4,60,15,63,192,12,
+-	208,127,132,36,0,163,1,60,112,25,192,12,
+-	124,1,32,172,207,8,192,8,0,0,0,0,
+-	211,8,192,12,0,0,0,0,207,8,192,8,
+-	0,0,0,0,40,133,144,175,31,10,192,12,
+-	0,0,0,0,207,8,192,8,0,0,0,0,
+-	1,131,4,60,96,127,132,36,24,128,144,39,
+-	33,40,0,2,32,128,135,39,15,63,192,12,
+-	58,1,6,36,1,0,4,36,33,40,0,2,
+-	188,7,192,12,58,1,6,36,36,0,191,143,
+-	32,0,176,143,8,0,224,3,40,0,189,39,
+-	192,255,189,39,56,0,191,175,52,0,181,175,
+-	48,0,180,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,180,10,192,12,32,0,176,175,
+-	33,32,0,0,2,0,2,36,0,163,1,60,
+-	244,57,192,12,92,1,34,172,3,0,2,36,
+-	0,163,1,60,0,12,192,12,92,1,34,172,
+-	1,0,4,36,4,0,2,36,0,163,1,60,
+-	34,11,192,12,92,1,34,172,5,0,2,36,
+-	0,163,1,60,92,1,34,172,0,163,19,60,
+-	124,1,115,142,0,163,3,60,160,1,99,140,
+-	1,0,98,46,80,133,130,175,0,128,2,60,
+-	5,0,98,20,0,0,0,0,32,133,130,143,
+-	0,0,0,0,252,8,192,8,255,255,66,36,
+-	32,133,130,143,0,0,0,0,84,133,130,175,
+-	130,11,192,12,0,0,0,0,33,32,64,0,
+-	2,0,5,36,232,3,6,36,0,131,7,60,
+-	196,37,231,36,156,11,192,12,16,0,160,175,
+-	35,35,192,12,0,0,0,0,6,0,2,36,
+-	0,163,1,60,84,35,192,12,92,1,34,172,
+-	7,0,2,36,0,163,1,60,141,47,192,12,
+-	92,1,34,172,8,0,2,36,0,163,1,60,
+-	120,50,192,12,92,1,34,172,9,0,2,36,
+-	0,163,1,60,92,1,34,172,0,163,2,60,
+-	240,5,66,140,0,0,0,0,8,0,64,16,
+-	10,0,2,36,0,163,4,60,240,5,132,140,
+-	13,8,192,12,0,0,0,0,0,163,1,60,
+-	244,5,34,172,10,0,2,36,0,163,1,60,
+-	92,1,34,172,157,15,192,12,1,0,21,36,
+-	2,131,2,60,192,246,66,36,33,160,64,0,
+-	80,133,131,143,11,0,2,36,0,163,1,60,
+-	92,1,34,172,100,0,2,36,0,163,1,60,
+-	92,1,34,172,84,133,130,143,64,26,3,0,
+-	33,136,116,0,64,18,2,0,33,144,84,0,
+-	0,163,2,60,8,1,66,140,0,0,0,0,
+-	1,0,66,36,0,163,1,60,8,1,34,172,
+-	0,163,2,60,8,1,66,140,0,163,2,60,
+-	124,1,66,140,0,0,0,0,14,0,83,16,
+-	0,0,0,0,4,0,64,16,33,152,64,0,
+-	80,133,128,175,76,9,192,8,0,0,0,0,
+-	80,133,149,175,2,131,4,60,163,23,192,12,
+-	192,246,132,36,80,133,130,143,0,0,0,0,
+-	64,18,2,0,33,136,84,0,0,163,2,60,
+-	0,6,66,140,0,0,0,0,3,0,64,24,
+-	33,128,32,2,239,15,192,12,0,0,0,0,
+-	43,16,18,2,11,0,64,16,33,32,0,2,
+-	151,18,192,12,10,0,5,36,27,22,192,12,
+-	33,32,0,2,142,22,192,12,33,32,0,2,
+-	0,2,16,38,43,16,18,2,247,255,64,20,
+-	33,32,0,2,184,11,192,12,0,0,0,0,
+-	54,9,192,8,0,0,0,0,56,0,191,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,64,0,189,39,4,128,130,143,
+-	232,255,189,39,20,0,191,175,16,0,176,175,
+-	1,0,67,36,4,128,131,175,255,255,3,36,
+-	4,0,67,20,255,31,4,60,0,163,1,60,
+-	8,1,32,172,255,31,4,60,255,255,132,52,
+-	0,163,16,60,0,163,2,60,8,1,66,140,
+-	208,132,131,143,220,5,16,54,35,16,67,0,
+-	0,163,1,60,16,1,34,172,2,131,2,60,
+-	192,246,66,36,36,16,68,0,0,160,3,60,
+-	37,16,67,0,0,163,3,60,8,1,99,140,
+-	28,0,68,140,0,0,5,142,3,131,2,60,
+-	20,18,66,140,208,132,131,175,36,133,132,175,
+-	18,0,162,16,0,163,4,60,99,59,192,12,
+-	220,5,132,52,255,0,5,60,255,0,165,52,
+-	0,255,6,60,0,0,4,142,0,255,198,52,
+-	0,20,4,0,2,28,4,0,37,16,67,0,
+-	2,26,2,0,36,24,101,0,0,18,2,0,
+-	36,16,70,0,37,24,98,0,176,133,132,175,
+-	184,133,131,175,0,163,16,60,16,6,16,54,
+-	0,0,3,142,3,131,2,60,68,18,66,140,
+-	0,0,0,0,18,0,98,16,0,163,4,60,
+-	119,59,192,12,16,6,132,52,255,0,5,60,
+-	255,0,165,52,0,255,6,60,0,0,4,142,
+-	0,255,198,52,0,20,4,0,2,28,4,0,
+-	37,16,67,0,2,26,2,0,36,24,101,0,
+-	0,18,2,0,36,16,70,0,37,24,98,0,
+-	196,133,132,175,192,133,131,175,0,163,16,60,
+-	224,5,16,54,0,0,3,142,3,131,2,60,
+-	24,18,66,140,0,0,0,0,18,0,98,16,
+-	0,163,4,60,139,59,192,12,224,5,132,52,
+-	255,0,5,60,255,0,165,52,0,255,6,60,
+-	0,0,4,142,0,255,198,52,0,20,4,0,
+-	2,28,4,0,37,16,67,0,2,26,2,0,
+-	36,24,101,0,0,18,2,0,36,16,70,0,
+-	37,24,98,0,188,133,132,175,180,133,131,175,
+-	44,133,131,143,0,163,2,60,144,1,66,140,
+-	0,0,0,0,5,0,98,16,0,0,0,0,
+-	0,163,4,60,144,1,132,140,159,59,192,12,
+-	0,0,0,0,0,163,3,60,140,1,99,140,
+-	3,131,2,60,64,18,66,140,0,0,0,0,
+-	5,0,98,16,0,0,0,0,0,163,4,60,
+-	140,1,132,140,51,60,192,12,0,0,0,0,
+-	44,133,130,143,0,0,0,0,3,0,64,16,
+-	0,0,0,0,116,38,192,12,0,0,0,0,
+-	164,7,192,12,0,0,0,0,36,128,130,143,
+-	0,0,0,0,1,0,66,36,36,128,130,175,
+-	60,0,66,40,8,0,64,20,0,0,0,0,
+-	3,131,2,60,24,18,66,140,36,128,128,175,
+-	3,0,64,16,0,0,0,0,222,48,192,12,
+-	0,0,0,0,0,163,2,60,48,1,66,140,
+-	0,0,0,0,20,0,64,16,0,0,0,0,
+-	0,163,1,60,48,1,32,172,0,163,1,60,
+-	16,1,32,172,0,163,1,60,20,1,32,172,
+-	0,163,1,60,24,1,32,172,0,163,1,60,
+-	28,1,32,172,0,163,1,60,32,1,32,172,
+-	0,163,1,60,36,1,32,172,0,163,1,60,
+-	40,1,32,172,0,163,1,60,201,13,192,12,
+-	44,1,32,172,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,216,255,189,39,
+-	36,0,191,175,32,0,178,175,28,0,177,175,
+-	180,10,192,12,24,0,176,175,33,32,0,0,
+-	2,0,2,36,0,163,1,60,244,57,192,12,
+-	92,1,34,172,3,0,2,36,0,163,1,60,
+-	0,12,192,12,92,1,34,172,1,0,4,36,
+-	4,0,2,36,0,163,1,60,34,11,192,12,
+-	92,1,34,172,32,133,131,143,5,0,2,36,
+-	0,163,1,60,92,1,34,172,80,133,128,175,
+-	84,133,131,175,130,11,192,12,0,0,0,0,
+-	33,32,64,0,2,0,5,36,232,3,6,36,
+-	0,131,7,60,196,37,231,36,156,11,192,12,
+-	16,0,160,175,0,163,2,60,240,5,66,140,
+-	0,0,0,0,8,0,64,16,10,0,2,36,
+-	0,163,4,60,240,5,132,140,13,8,192,12,
+-	0,0,0,0,0,163,1,60,244,5,34,172,
+-	10,0,2,36,0,163,1,60,92,1,34,172,
+-	100,0,2,36,80,133,131,143,2,131,4,60,
+-	192,246,132,36,0,163,1,60,92,1,34,172,
+-	84,133,130,143,64,26,3,0,33,144,100,0,
+-	64,18,2,0,33,136,68,0,0,163,2,60,
+-	8,1,66,140,33,128,64,2,1,0,66,36,
+-	0,163,1,60,8,1,34,172,0,163,2,60,
+-	8,1,66,140,43,16,17,2,11,0,64,16,
+-	33,32,0,2,151,18,192,12,10,0,5,36,
+-	27,22,192,12,33,32,0,2,142,22,192,12,
+-	33,32,0,2,0,2,16,38,43,16,17,2,
+-	247,255,64,20,33,32,0,2,184,11,192,12,
+-	0,0,0,0,91,10,192,8,0,0,0,0,
+-	36,0,191,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,40,0,189,39,
+-	4,128,130,143,232,255,189,39,16,0,191,175,
+-	1,0,67,36,4,128,131,175,255,255,3,36,
+-	4,0,67,20,255,31,4,60,0,163,1,60,
+-	8,1,32,172,255,31,4,60,0,163,2,60,
+-	8,1,66,140,212,132,131,143,255,255,132,52,
+-	35,16,67,0,0,163,1,60,16,1,34,172,
+-	2,131,2,60,192,246,66,36,36,16,68,0,
+-	0,160,3,60,37,16,67,0,0,163,3,60,
+-	8,1,99,140,28,0,66,140,212,132,131,175,
+-	36,133,130,175,164,7,192,12,0,0,0,0,
+-	0,163,2,60,48,1,66,140,0,0,0,0,
+-	20,0,64,16,0,0,0,0,0,163,1,60,
+-	48,1,32,172,0,163,1,60,16,1,32,172,
+-	0,163,1,60,20,1,32,172,0,163,1,60,
+-	24,1,32,172,0,163,1,60,28,1,32,172,
+-	0,163,1,60,32,1,32,172,0,163,1,60,
+-	36,1,32,172,0,163,1,60,40,1,32,172,
+-	0,163,1,60,201,13,192,12,44,1,32,172,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,224,255,189,39,24,0,191,175,
+-	20,0,177,175,120,63,192,12,16,0,176,175,
+-	52,0,2,36,4,162,1,60,12,0,34,160,
+-	120,63,192,12,232,3,16,36,28,133,130,143,
+-	0,0,0,0,27,0,80,0,2,0,0,22,
+-	0,0,0,0,13,0,7,0,18,16,0,0,
+-	4,162,17,60,120,63,192,12,0,0,34,162,
+-	28,133,130,143,0,0,0,0,27,0,80,0,
+-	2,0,0,22,0,0,0,0,13,0,7,0,
+-	18,16,0,0,33,40,0,0,33,32,0,0,
+-	6,162,3,60,2,18,2,0,0,0,34,162,
+-	1,0,2,36,0,163,1,60,4,1,32,172,
+-	0,0,98,172,2,131,1,60,33,8,36,0,
+-	8,245,32,172,1,0,165,36,22,0,162,44,
+-	250,255,64,20,20,0,132,36,31,131,4,60,
+-	0,240,132,52,52,128,131,143,1,0,2,36,
+-	68,133,128,175,48,128,130,175,64,133,128,175,
+-	32,131,1,60,252,239,36,172,8,0,96,16,
+-	31,131,5,60,252,239,165,52,31,131,6,60,
+-	1,131,4,60,224,127,132,36,15,63,192,12,
+-	0,240,198,52,52,128,128,175,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,16,0,176,175,
+-	116,0,2,36,20,0,191,175,4,162,1,60,
+-	12,0,34,160,130,63,192,12,33,128,128,0,
+-	4,162,1,60,4,0,48,160,130,63,192,12,
+-	3,130,16,0,4,162,1,60,130,63,192,12,
+-	4,0,48,160,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,224,255,189,39,
+-	64,0,2,36,24,0,191,175,20,0,177,175,
+-	16,0,176,175,4,162,1,60,130,63,192,12,
+-	12,0,34,160,4,162,17,60,4,0,49,146,
+-	0,0,0,0,130,63,192,12,255,0,49,50,
+-	4,162,16,60,4,0,16,146,0,0,0,0,
+-	130,63,192,12,255,0,16,50,0,130,16,0,
+-	37,16,17,2,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	48,128,130,143,232,255,189,39,16,0,176,175,
+-	33,128,128,0,3,0,64,20,20,0,191,175,
+-	180,10,192,12,0,0,0,0,5,0,0,18,
+-	0,0,0,0,236,63,192,12,1,4,4,36,
+-	50,11,192,8,0,0,0,0,228,63,192,12,
+-	0,4,4,36,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,216,255,189,39,
+-	6,162,3,60,1,0,2,36,32,0,191,175,
+-	28,0,177,175,24,0,176,175,0,0,98,172,
+-	0,163,2,60,4,1,66,140,33,136,224,0,
+-	1,0,66,36,0,163,1,60,4,1,34,172,
+-	56,128,130,143,0,163,3,60,4,1,99,140,
+-	1,0,66,36,56,128,130,175,232,3,66,40,
+-	21,0,64,20,255,127,3,60,68,133,130,143,
+-	254,255,99,52,56,128,128,175,1,0,66,36,
+-	43,24,98,0,68,133,130,175,13,0,96,16,
+-	0,0,0,0,2,131,4,60,28,128,132,36,
+-	60,128,144,39,33,40,0,2,2,131,7,60,
+-	60,128,231,36,15,63,192,12,144,0,6,36,
+-	1,0,4,36,33,40,0,2,188,7,192,12,
+-	144,0,6,36,64,133,134,143,0,0,0,0,
+-	14,0,192,24,33,24,0,0,2,131,5,60,
+-	0,245,165,36,33,32,0,0,2,131,2,60,
+-	33,16,68,0,0,245,66,140,20,0,132,36,
+-	1,0,99,36,255,255,66,36,0,0,162,172,
+-	42,16,102,0,247,255,64,20,20,0,165,36,
+-	31,131,4,60,252,239,132,52,31,131,2,60,
+-	0,0,131,140,255,255,66,52,0,0,113,172,
+-	4,0,99,36,43,16,67,0,3,0,64,16,
+-	0,0,0,0,31,131,3,60,0,240,99,52,
+-	0,0,131,172,32,0,191,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,40,0,189,39,
+-	64,133,130,143,232,255,189,39,20,0,191,175,
+-	22,0,66,40,13,0,64,20,16,0,176,175,
+-	2,131,4,60,28,128,132,36,60,128,144,39,
+-	33,40,0,2,2,131,7,60,84,128,231,36,
+-	15,63,192,12,173,0,6,36,1,0,4,36,
+-	33,40,0,2,188,7,192,12,173,0,6,36,
+-	64,133,130,143,0,0,0,0,1,0,67,36,
+-	64,133,131,175,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,128,16,4,0,
+-	33,16,68,0,16,0,163,143,128,16,2,0,
+-	2,131,1,60,33,8,34,0,4,245,38,172,
+-	2,131,1,60,33,8,34,0,12,245,39,172,
+-	2,131,1,60,33,8,34,0,0,245,38,172,
+-	2,131,1,60,33,8,34,0,8,245,37,172,
+-	2,131,1,60,33,8,34,0,16,245,35,172,
+-	8,0,224,3,33,16,0,1,128,16,4,0,
+-	33,16,68,0,128,16,2,0,2,131,1,60,
+-	33,8,34,0,8,0,224,3,8,245,32,172,
+-	64,133,130,143,192,255,189,39,40,0,180,175,
+-	33,160,0,0,56,0,191,175,52,0,183,175,
+-	48,0,182,175,44,0,181,175,36,0,179,175,
+-	32,0,178,175,28,0,177,175,48,0,64,24,
+-	24,0,176,175,1,0,23,36,2,0,22,36,
+-	2,131,16,60,12,245,16,38,4,0,19,38,
+-	244,255,17,38,252,255,18,38,33,168,0,0,
+-	0,0,67,142,0,0,0,0,7,0,119,16,
+-	2,0,98,40,25,0,64,20,0,0,0,0,
+-	9,0,118,16,0,0,0,0,236,11,192,8,
+-	20,0,16,38,0,0,34,142,0,0,0,0,
+-	17,0,64,28,0,0,0,0,230,11,192,8,
+-	0,0,64,174,0,0,34,142,0,0,0,0,
+-	11,0,64,28,0,0,0,0,2,131,2,60,
+-	33,16,85,0,4,245,66,140,0,0,0,0,
+-	0,0,34,174,0,0,100,142,0,0,2,142,
+-	0,0,0,0,9,248,64,0,0,0,0,0,
+-	20,0,16,38,20,0,115,38,20,0,49,38,
+-	20,0,82,38,64,133,130,143,1,0,148,38,
+-	42,16,130,2,218,255,64,20,20,0,181,38,
+-	56,0,191,143,52,0,183,143,48,0,182,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,64,0,189,39,0,0,0,0,
+-	2,131,3,60,192,246,99,36,0,2,2,36,
+-	0,163,1,60,200,5,35,172,0,163,1,60,
+-	208,5,34,172,0,163,2,60,124,1,66,140,
+-	216,255,189,39,16,0,176,175,33,128,0,0,
+-	28,0,179,175,255,255,19,36,24,0,178,175,
+-	21,0,114,36,20,0,177,175,32,0,191,175,
+-	1,0,66,44,80,133,130,175,139,14,192,12,
+-	20,0,113,36,184,24,192,12,0,0,0,0,
+-	27,67,192,12,33,32,0,2,6,0,83,20,
+-	1,0,16,38,2,131,4,60,15,63,192,12,
+-	112,128,132,36,126,12,192,8,1,0,2,36,
+-	0,0,34,162,3,18,2,0,0,0,66,162,
+-	2,0,82,38,3,0,2,42,241,255,64,20,
+-	2,0,49,38,2,131,17,60,212,246,49,38,
+-	33,32,32,2,33,40,0,0,255,127,6,60,
+-	247,24,192,12,255,255,198,52,255,31,3,60,
+-	255,255,99,52,236,255,48,38,36,0,34,38,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	0,32,3,36,236,255,32,174,2,131,1,60,
+-	220,246,32,172,2,131,1,60,204,246,32,172,
+-	2,131,1,60,236,246,34,172,0,0,67,164,
+-	222,21,192,12,33,32,0,2,122,15,192,12,
+-	33,32,0,2,242,21,192,12,33,32,0,2,
+-	32,133,130,143,1,0,16,36,42,16,2,2,
+-	12,0,64,16,255,31,3,60,236,1,49,38,
+-	133,12,192,12,33,32,0,2,242,21,192,12,
+-	33,32,32,2,32,133,130,143,1,0,16,38,
+-	42,16,2,2,248,255,64,20,0,2,49,38,
+-	255,31,3,60,255,255,99,52,2,131,16,60,
+-	192,4,16,38,7,0,2,36,0,0,2,174,
+-	56,0,2,38,36,16,67,0,0,160,3,60,
+-	37,16,67,0,0,32,3,36,2,131,1,60,
+-	220,4,32,172,2,131,1,60,204,4,32,172,
+-	2,131,1,60,236,4,34,172,0,0,67,164,
+-	2,131,2,60,212,246,66,140,2,131,3,60,
+-	216,246,99,132,20,0,2,174,24,0,3,166,
+-	2,131,2,60,217,4,66,144,0,0,0,0,
+-	7,0,66,36,2,131,1,60,217,4,34,160,
+-	112,15,192,12,33,32,0,2,33,32,0,2,
+-	19,15,192,12,32,0,5,36,20,0,16,38,
+-	33,32,0,2,7,0,5,36,255,127,6,60,
+-	247,24,192,12,255,255,198,52,33,16,0,0,
+-	32,0,191,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,200,255,189,39,48,0,180,175,
+-	33,160,128,0,255,31,6,60,255,255,198,52,
+-	64,26,20,0,2,131,2,60,192,246,66,36,
+-	40,0,178,175,33,144,98,0,255,255,132,38,
+-	64,18,4,0,0,162,3,60,33,16,67,0,
+-	52,0,191,175,44,0,179,175,36,0,177,175,
+-	32,0,176,175,4,0,66,174,0,1,66,36,
+-	8,0,66,174,0,16,2,36,4,16,130,0,
+-	12,0,66,174,4,0,2,36,4,16,130,0,
+-	0,160,5,60,16,0,66,174,48,0,66,38,
+-	36,16,70,0,37,16,69,0,36,0,66,174,
+-	64,16,4,0,33,16,68,0,128,16,2,0,
+-	2,131,3,60,240,231,99,36,33,16,67,0,
+-	36,16,70,0,37,16,69,0,40,0,66,174,
+-	56,0,66,38,36,16,70,0,37,16,69,0,
+-	0,0,84,174,44,0,66,174,32,0,64,174,
+-	2,131,2,60,212,246,66,140,2,131,3,60,
+-	216,246,99,132,20,0,66,174,24,0,67,166,
+-	25,0,66,146,0,0,0,0,33,32,84,0,
+-	2,131,2,60,0,227,66,36,36,16,70,0,
+-	37,128,69,0,2,131,2,60,32,227,66,36,
+-	36,16,70,0,25,0,68,162,40,133,131,143,
+-	0,0,0,0,3,0,96,16,37,136,69,0,
+-	255,255,130,36,25,0,66,162,12,0,68,142,
+-	28,0,64,174,228,63,192,12,1,0,132,52,
+-	4,0,68,142,0,0,0,0,76,67,192,12,
+-	33,40,0,0,76,63,192,12,0,0,0,0,
+-	76,63,192,12,0,0,0,0,255,255,2,36,
+-	4,0,2,174,4,0,2,142,0,0,0,0,
+-	0,0,2,174,4,0,68,142,0,0,0,0,
+-	76,67,192,12,1,0,5,54,4,0,4,38,
+-	33,40,0,0,255,255,6,36,211,67,192,12,
+-	208,7,7,36,8,0,64,20,255,255,2,52,
+-	2,131,4,60,184,128,132,36,4,0,6,142,
+-	0,0,0,0,15,63,192,12,33,40,128,2,
+-	255,255,2,52,48,1,34,174,4,0,68,142,
+-	0,0,0,0,76,67,192,12,3,0,37,54,
+-	48,1,36,38,33,40,0,0,255,255,6,52,
+-	211,67,192,12,208,7,7,36,7,0,64,20,
+-	0,0,0,0,2,131,4,60,8,129,132,36,
+-	48,1,38,142,0,0,0,0,15,63,192,12,
+-	33,40,128,2,143,63,192,12,0,0,0,0,
+-	40,0,69,142,4,0,68,142,0,0,0,0,
+-	76,67,192,12,2,0,165,52,44,0,81,142,
+-	84,128,131,143,80,128,132,143,100,0,2,36,
+-	0,0,32,166,2,0,32,166,4,0,32,174,
+-	8,0,32,174,12,0,32,174,16,0,32,174,
+-	24,0,32,174,20,0,32,174,28,0,32,174,
+-	32,0,32,174,36,0,34,166,38,0,34,166,
+-	36,0,35,166,38,0,36,166,36,0,83,142,
+-	1,0,2,36,0,0,98,174,44,0,66,142,
+-	0,0,0,0,4,0,98,174,40,0,67,142,
+-	116,0,2,60,0,0,98,172,40,0,67,142,
+-	36,0,66,142,0,0,0,0,8,0,98,172,
+-	8,0,66,142,0,0,0,0,0,0,64,172,
+-	0,0,98,142,0,0,0,0,10,0,64,16,
+-	33,128,0,0,208,7,2,42,7,0,64,16,
+-	0,0,0,0,143,63,192,12,0,0,0,0,
+-	0,0,98,142,0,0,0,0,248,255,64,20,
+-	1,0,16,38,0,0,98,142,0,0,0,0,
+-	6,0,64,16,33,32,32,2,2,131,4,60,
+-	76,129,132,36,15,63,192,12,33,40,128,2,
+-	33,32,32,2,8,0,5,36,0,0,34,150,
+-	8,0,6,36,0,240,66,48,0,6,66,52,
+-	2,0,34,166,8,0,66,142,208,7,7,36,
+-	129,67,192,12,0,0,64,172,6,0,64,20,
+-	2,0,36,38,2,131,4,60,160,129,132,36,
+-	15,63,192,12,33,40,128,2,2,0,36,38,
+-	33,40,0,0,0,0,34,150,33,48,0,0,
+-	0,240,66,48,2,0,34,166,8,0,66,142,
+-	208,7,7,36,129,67,192,12,0,0,64,172,
+-	4,0,64,20,0,0,0,0,2,131,4,60,
+-	15,63,192,12,248,129,132,36,143,63,192,12,
+-	0,0,0,0,108,0,80,142,0,128,2,52,
+-	0,0,0,166,2,0,2,166,44,0,66,142,
+-	0,32,5,36,4,0,80,172,44,0,67,142,
+-	0,241,2,52,2,0,98,164,8,0,66,142,
+-	0,32,6,36,0,0,64,172,44,0,68,142,
+-	0,0,0,0,129,67,192,12,208,7,7,36,
+-	12,0,64,20,0,0,0,0,44,0,66,142,
+-	0,0,0,0,0,0,69,148,2,131,4,60,
+-	15,63,192,12,16,130,132,36,254,255,4,36,
+-	2,131,5,60,44,130,165,36,188,7,192,12,
+-	1,1,6,36,108,0,80,142,2,128,2,52,
+-	0,0,0,166,2,0,2,166,14,0,2,36,
+-	8,0,2,162,200,0,2,36,9,0,2,162,
+-	65,0,2,36,10,0,2,162,46,0,2,36,
+-	11,0,2,162,87,0,2,36,12,0,0,162,
+-	13,0,2,162,242,0,2,36,14,0,0,162,
+-	15,0,2,162,1,0,2,36,16,0,2,162,
+-	8,0,2,36,17,0,2,162,88,128,130,143,
+-	0,0,0,0,6,0,64,16,64,0,2,36,
+-	2,131,4,60,15,63,192,12,56,130,132,36,
+-	88,128,128,175,64,0,2,36,18,0,2,162,
+-	255,0,2,36,19,0,2,162,63,0,2,36,
+-	20,0,0,162,21,0,2,162,44,0,66,142,
+-	0,32,5,36,4,0,80,172,44,0,67,142,
+-	0,33,2,36,2,0,98,164,8,0,66,142,
+-	0,32,6,36,0,0,64,172,44,0,68,142,
+-	0,0,0,0,129,67,192,12,208,7,7,36,
+-	12,0,64,20,0,0,0,0,44,0,66,142,
+-	0,0,0,0,0,0,69,148,2,131,4,60,
+-	15,63,192,12,16,130,132,36,253,255,4,36,
+-	2,131,5,60,44,130,165,36,188,7,192,12,
+-	85,1,6,36,222,21,192,12,33,32,64,2,
+-	122,15,192,12,33,32,64,2,52,0,191,143,
+-	48,0,180,143,44,0,179,143,40,0,178,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	56,0,189,39,248,255,189,39,32,133,133,143,
+-	0,0,0,0,50,0,160,24,33,32,0,0,
+-	2,131,3,60,192,246,99,36,44,0,98,140,
+-	152,0,96,172,156,0,96,172,160,0,96,172,
+-	164,0,96,172,168,0,96,172,172,0,96,172,
+-	176,0,96,172,180,0,96,172,184,0,96,172,
+-	188,0,96,172,192,0,96,172,196,0,96,172,
+-	200,0,96,172,204,0,96,172,208,0,96,172,
+-	212,0,96,172,216,0,96,172,224,0,96,172,
+-	232,0,96,172,236,0,96,172,240,0,96,172,
+-	244,0,96,172,248,0,96,172,252,0,96,172,
+-	0,1,96,172,4,1,96,172,8,1,96,172,
+-	12,0,64,172,44,0,98,140,0,0,0,0,
+-	16,0,64,172,44,0,98,140,0,0,0,0,
+-	24,0,64,172,44,0,98,140,0,0,0,0,
+-	20,0,64,172,44,0,98,140,1,0,132,36,
+-	28,0,64,172,44,0,98,140,0,2,99,36,
+-	32,0,64,172,42,16,133,0,210,255,64,20,
+-	0,0,0,0,33,32,0,0,0,163,3,60,
+-	0,1,99,52,32,0,5,36,33,16,131,0,
+-	188,0,69,160,1,0,132,36,0,2,130,44,
+-	251,255,64,20,0,0,0,0,8,0,224,3,
+-	8,0,189,39,0,0,0,0,124,133,130,143,
+-	232,255,189,39,20,0,191,175,17,0,64,20,
+-	16,0,176,175,208,7,16,36,7,0,0,26,
+-	0,0,0,0,143,63,192,12,255,255,16,38,
+-	124,133,130,143,0,0,0,0,249,255,64,16,
+-	0,0,0,0,6,0,0,22,0,0,0,0,
+-	2,131,4,60,15,63,192,12,80,130,132,36,
+-	45,14,192,8,33,16,0,0,220,63,192,12,
+-	33,32,0,0,33,32,64,0,124,133,144,143,
+-	128,133,130,143,4,0,3,142,255,255,66,36,
+-	128,133,130,175,124,133,131,175,220,63,192,12,
+-	0,0,0,0,33,16,0,2,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	232,255,189,39,96,133,130,143,33,40,128,0,
+-	43,16,162,0,6,0,64,20,16,0,191,175,
+-	100,133,130,143,0,0,0,0,43,16,162,0,
+-	6,0,64,20,0,0,0,0,2,131,4,60,
+-	15,63,192,12,116,130,132,36,71,14,192,8,
+-	0,0,0,0,124,133,131,143,128,133,130,143,
+-	124,133,133,175,1,0,66,36,4,0,163,172,
+-	128,133,130,175,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,108,133,130,143,
+-	232,255,189,39,20,0,191,175,17,0,64,20,
+-	16,0,176,175,208,7,16,36,7,0,0,26,
+-	0,0,0,0,143,63,192,12,255,255,16,38,
+-	108,133,130,143,0,0,0,0,249,255,64,16,
+-	0,0,0,0,6,0,0,22,0,0,0,0,
+-	2,131,4,60,15,63,192,12,148,130,132,36,
+-	108,14,192,8,33,16,0,0,220,63,192,12,
+-	33,32,0,0,33,32,64,0,108,133,144,143,
+-	120,133,130,143,0,0,3,142,255,255,66,36,
+-	120,133,130,175,108,133,131,175,220,63,192,12,
+-	0,0,0,0,33,16,0,2,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	232,255,189,39,104,133,130,143,33,40,128,0,
+-	43,16,162,0,6,0,64,20,16,0,191,175,
+-	112,133,130,143,0,0,0,0,43,16,162,0,
+-	6,0,64,20,0,0,0,0,2,131,4,60,
+-	15,63,192,12,184,130,132,36,135,14,192,8,
+-	0,0,0,0,108,133,130,143,0,0,0,0,
+-	0,0,162,172,120,133,130,143,108,133,133,175,
+-	1,0,66,36,120,133,130,175,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,20,0,191,175,16,0,176,175,
+-	124,133,128,175,13,8,192,12,0,32,4,36,
+-	255,31,3,60,255,255,99,52,255,1,16,36,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	96,133,130,175,0,32,66,36,100,133,130,175,
+-	0,17,16,0,96,133,132,143,255,255,16,38,
+-	49,14,192,12,33,32,130,0,251,255,1,6,
+-	0,17,16,0,0,2,2,36,132,133,130,175,
+-	108,133,128,175,13,8,192,12,18,0,4,60,
+-	255,31,3,60,255,255,99,52,255,17,16,36,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	18,0,3,60,104,133,130,175,33,16,67,0,
+-	112,133,130,175,0,18,16,0,104,133,132,143,
+-	255,255,16,38,112,14,192,12,33,32,130,0,
+-	251,255,1,6,0,18,16,0,0,18,2,36,
+-	116,133,130,175,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,163,2,60,
+-	168,1,66,140,216,255,189,39,28,0,177,175,
+-	33,136,128,0,32,0,178,175,33,144,160,0,
+-	36,0,191,175,17,0,64,16,24,0,176,175,
+-	0,163,2,60,168,1,66,140,0,0,0,0,
+-	42,16,82,0,12,0,64,16,128,128,18,0,
+-	0,0,34,142,0,163,18,60,168,1,82,142,
+-	0,0,0,0,6,0,64,20,128,128,18,0,
+-	2,131,4,60,224,130,132,36,15,63,192,12,
+-	33,40,64,2,128,128,18,0,33,128,18,2,
+-	128,128,16,0,13,8,192,12,33,32,0,2,
+-	255,31,3,60,255,255,99,52,33,32,0,0,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	112,0,34,174,112,0,35,142,33,16,80,0,
+-	15,0,64,26,116,0,34,174,8,0,5,36,
+-	1,0,132,36,20,0,98,36,4,0,98,172,
+-	2,0,101,164,0,0,96,164,8,0,96,172,
+-	14,0,96,164,12,0,96,164,33,24,64,0,
+-	42,16,146,0,246,255,64,20,1,0,132,36,
+-	255,255,132,36,116,0,35,142,112,0,34,142,
+-	0,0,0,0,240,255,98,172,116,0,35,142,
+-	0,0,0,0,218,255,98,148,0,0,0,0,
+-	0,128,66,52,218,255,98,164,116,0,35,142,
+-	0,0,0,0,238,255,98,148,0,0,0,0,
+-	0,128,66,52,238,255,98,164,116,0,34,142,
+-	112,0,35,142,216,255,66,36,120,0,35,174,
+-	124,0,34,174,36,0,191,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	40,0,189,39,200,255,189,39,32,0,178,175,
+-	33,144,128,0,0,1,2,36,48,0,191,175,
+-	44,0,181,175,40,0,180,175,36,0,179,175,
+-	28,0,177,175,24,0,176,175,144,0,66,174,
+-	0,163,2,60,172,1,66,140,0,0,0,0,
+-	17,0,64,16,33,160,160,0,0,163,2,60,
+-	172,1,66,140,0,0,0,0,42,16,84,0,
+-	12,0,64,16,128,128,20,0,0,0,66,142,
+-	0,163,20,60,172,1,148,142,0,0,0,0,
+-	6,0,64,20,128,128,20,0,2,131,4,60,
+-	236,130,132,36,15,63,192,12,33,40,128,2,
+-	128,128,20,0,33,128,20,2,128,128,16,0,
+-	33,32,0,2,13,8,192,12,148,0,84,174,
+-	255,31,3,60,255,255,99,52,33,152,0,0,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	128,0,66,174,128,0,81,142,33,16,80,0,
+-	15,0,128,26,132,0,66,174,0,1,21,36,
+-	20,0,48,38,4,0,48,174,75,14,192,12,
+-	0,0,32,174,8,0,34,174,12,0,53,174,
+-	0,0,66,142,1,0,115,38,16,0,34,162,
+-	17,0,32,162,42,16,116,2,244,255,64,20,
+-	33,136,0,2,132,0,67,142,128,0,66,142,
+-	0,0,0,0,240,255,98,172,132,0,67,142,
+-	0,0,0,0,228,255,98,140,0,0,0,0,
+-	0,128,66,52,228,255,98,172,132,0,67,142,
+-	0,0,0,0,248,255,98,140,0,0,0,0,
+-	0,128,66,52,248,255,98,172,132,0,66,142,
+-	128,0,67,142,216,255,66,36,136,0,67,174,
+-	140,0,66,174,48,0,191,143,44,0,181,143,
+-	40,0,180,143,36,0,179,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	56,0,189,39,152,0,128,172,156,0,128,172,
+-	160,0,128,172,164,0,128,172,168,0,128,172,
+-	252,0,128,172,0,1,128,172,152,0,128,172,
+-	8,0,224,3,216,0,128,172,232,255,189,39,
+-	16,0,176,175,20,0,191,175,112,15,192,12,
+-	33,128,128,0,33,32,0,2,192,14,192,12,
+-	0,4,5,36,33,32,0,2,19,15,192,12,
+-	128,2,5,36,120,0,3,142,136,0,2,142,
+-	0,0,0,0,8,0,98,172,44,0,3,142,
+-	120,0,2,142,0,0,0,0,8,0,98,172,
+-	0,0,2,142,0,0,0,0,255,255,66,36,
+-	6,0,66,44,7,0,64,16,16,0,3,36,
+-	44,0,2,142,0,0,0,0,2,0,67,164,
+-	8,0,2,142,0,0,0,0,0,0,64,172,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,184,255,189,39,0,32,6,36,
+-	68,0,191,175,64,0,190,175,60,0,183,175,
+-	56,0,182,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,0,163,1,60,252,5,38,172,
+-	13,8,192,12,0,32,4,36,255,31,4,60,
+-	255,255,132,52,33,168,0,0,255,31,6,60,
+-	255,255,198,52,2,131,3,60,212,247,99,36,
+-	16,0,101,36,8,0,126,36,248,255,119,36,
+-	33,176,96,0,36,16,68,0,0,160,3,60,
+-	37,16,67,0,16,0,166,175,0,163,1,60,
+-	248,5,34,172,0,163,1,60,0,6,32,172,
+-	33,160,0,0,33,128,224,2,33,152,160,0,
+-	33,144,192,3,33,136,192,2,32,133,130,143,
+-	0,0,32,174,0,0,0,174,0,0,64,174,
+-	42,16,162,2,10,0,64,16,0,0,96,174,
+-	0,32,4,36,13,8,192,12,24,0,165,175,
+-	16,0,166,143,0,128,3,60,36,16,70,0,
+-	37,16,67,0,0,0,2,174,24,0,165,143,
+-	4,0,16,38,4,0,115,38,4,0,82,38,
+-	1,0,148,38,2,0,130,42,234,255,64,20,
+-	4,0,49,38,0,2,165,36,0,2,222,39,
+-	0,2,247,38,1,0,181,38,7,0,162,42,
+-	222,255,64,20,0,2,214,38,68,0,191,143,
+-	64,0,190,143,60,0,183,143,56,0,182,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,72,0,189,39,0,163,4,60,
+-	0,6,132,140,0,163,3,60,8,6,99,140,
+-	32,133,130,143,224,255,189,39,16,0,176,175,
+-	0,163,16,60,12,6,16,142,20,0,177,175,
+-	0,163,17,60,4,6,49,142,43,16,98,0,
+-	42,0,64,16,24,0,191,175,2,0,2,46,
+-	40,0,64,16,255,255,2,36,0,163,2,60,
+-	252,5,66,140,0,0,0,0,43,16,81,0,
+-	34,0,64,20,255,255,2,36,64,18,3,0,
+-	2,131,3,60,192,246,99,36,33,24,67,0,
+-	1,0,2,36,5,0,130,16,2,0,2,36,
+-	18,0,130,16,128,16,16,0,36,16,192,8,
+-	0,0,0,0,128,128,16,0,33,128,3,2,
+-	12,1,4,142,0,163,5,60,248,5,165,140,
+-	33,48,32,2,80,68,192,12,36,1,17,174,
+-	12,1,4,142,12,1,2,142,33,40,32,2,
+-	114,68,192,12,20,1,2,174,36,16,192,8,
+-	0,0,0,0,33,16,67,0,20,1,64,172,
+-	36,1,64,172,0,163,1,60,42,16,192,8,
+-	0,6,32,172,255,255,2,36,0,163,1,60,
+-	0,6,34,172,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	176,133,136,143,188,133,137,143,232,255,189,39,
+-	3,0,0,21,16,0,191,175,124,0,32,17,
+-	0,0,0,0,12,0,194,148,0,0,0,0,
+-	0,26,2,0,2,18,2,0,37,56,98,0,
+-	255,255,227,48,221,5,98,44,36,0,64,20,
+-	170,170,2,52,0,8,2,36,23,0,98,20,
+-	6,8,2,36,21,0,0,17,0,0,0,0,
+-	32,0,194,148,30,0,195,148,0,20,2,0,
+-	37,56,67,0,36,0,195,148,0,161,2,52,
+-	5,0,98,16,8,0,2,36,34,0,195,148,
+-	0,0,0,0,98,0,98,20,0,0,0,0,
+-	3,0,232,16,255,255,2,36,94,0,226,20,
+-	0,0,0,0,226,46,192,12,14,0,6,36,
+-	177,16,192,8,0,0,0,0,7,0,98,20,
+-	255,255,227,48,71,0,0,17,55,129,2,52,
+-	108,43,192,12,14,0,6,36,177,16,192,8,
+-	0,0,0,0,162,16,192,8,55,129,2,52,
+-	14,0,195,148,0,0,0,0,61,0,98,20,
+-	255,255,2,52,16,0,195,144,3,0,2,36,
+-	55,0,98,20,255,255,2,52,20,0,194,148,
+-	0,0,0,0,0,26,2,0,2,18,2,0,
+-	37,56,98,0,255,255,227,48,0,8,2,36,
+-	23,0,98,20,6,8,2,36,21,0,0,17,
+-	0,0,0,0,40,0,194,148,38,0,195,148,
+-	0,20,2,0,37,56,67,0,44,0,195,148,
+-	0,161,2,52,5,0,98,16,8,0,2,36,
+-	42,0,195,148,0,0,0,0,49,0,98,20,
+-	0,0,0,0,3,0,232,16,255,255,2,36,
+-	45,0,226,20,0,0,0,0,226,46,192,12,
+-	22,0,6,36,177,16,192,8,0,0,0,0,
+-	7,0,98,20,255,255,227,48,6,0,0,17,
+-	55,129,2,52,108,43,192,12,22,0,6,36,
+-	177,16,192,8,0,0,0,0,55,129,2,52,
+-	30,0,98,20,0,0,0,0,28,0,32,17,
+-	144,15,3,36,38,0,194,148,28,0,198,140,
+-	24,0,67,20,0,0,0,0,3,0,201,16,
+-	0,0,0,0,20,0,192,20,0,0,0,0,
+-	175,16,192,8,22,0,6,36,14,0,195,148,
+-	0,0,0,0,14,0,98,20,0,0,0,0,
+-	12,0,32,17,144,15,3,36,30,0,194,148,
+-	20,0,198,140,8,0,67,20,0,0,0,0,
+-	3,0,201,16,0,0,0,0,4,0,192,20,
+-	0,0,0,0,14,0,6,36,126,49,192,12,
+-	0,0,0,0,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,128,255,189,39,
+-	116,0,183,175,33,184,128,0,3,0,3,36,
+-	124,0,191,175,120,0,190,175,112,0,182,175,
+-	108,0,181,175,104,0,180,175,100,0,179,175,
+-	96,0,178,175,92,0,177,175,88,0,176,175,
+-	0,0,245,142,8,0,178,140,192,17,21,0,
+-	3,131,4,60,33,32,130,0,20,13,132,140,
+-	8,0,84,142,0,0,0,0,59,0,131,16,
+-	5,0,130,44,57,0,64,16,128,16,4,0,
+-	2,131,1,60,33,8,34,0,104,131,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	44,133,130,143,0,0,0,0,48,0,64,16,
+-	6,0,132,38,4,0,131,150,2,131,2,60,
+-	68,207,66,148,0,0,0,0,6,0,98,20,
+-	33,32,0,0,0,0,130,142,48,129,131,143,
+-	0,0,0,0,38,16,67,0,1,0,68,44,
+-	72,1,128,16,33,32,160,2,114,42,192,12,
+-	33,40,128,2,45,18,192,8,33,32,64,2,
+-	44,133,130,143,0,0,0,0,27,0,64,16,
+-	6,0,132,38,4,0,131,150,2,131,2,60,
+-	68,207,66,148,0,0,0,0,6,0,98,20,
+-	33,32,0,0,0,0,130,142,48,129,131,143,
+-	0,0,0,0,38,16,67,0,1,0,68,44,
+-	5,0,128,16,33,32,160,2,114,42,192,12,
+-	33,40,128,2,45,18,192,8,33,32,64,2,
+-	6,0,132,38,0,163,6,60,140,1,198,140,
+-	0,0,0,0,247,24,192,12,33,40,160,2,
+-	45,18,192,8,33,32,64,2,6,0,132,38,
+-	0,163,6,60,140,1,198,140,0,0,0,0,
+-	247,24,192,12,33,40,160,2,203,24,192,12,
+-	33,32,128,2,20,1,227,142,0,0,0,0,
+-	14,0,96,16,33,240,64,0,33,32,128,2,
+-	16,0,166,39,18,0,69,150,0,0,0,0,
+-	9,248,96,0,33,56,192,3,6,0,64,16,
+-	33,32,64,2,28,1,226,142,0,0,0,0,
+-	1,0,66,36,45,18,192,8,28,1,226,174,
+-	132,0,193,7,7,0,2,36,4,0,131,150,
+-	2,131,2,60,68,207,66,148,0,0,0,0,
+-	6,0,98,20,33,32,0,0,0,0,130,142,
+-	48,129,131,143,0,0,0,0,38,16,67,0,
+-	1,0,68,44,9,0,128,16,255,255,2,36,
+-	44,133,130,143,0,0,0,0,251,0,64,16,
+-	33,32,160,2,114,42,192,12,33,40,128,2,
+-	45,18,192,8,33,32,64,2,10,0,194,23,
+-	0,0,0,0,8,0,160,18,0,0,0,0,
+-	36,133,130,143,0,0,0,0,8,0,64,16,
+-	1,0,19,36,80,133,147,143,69,17,192,8,
+-	0,0,0,0,0,1,226,142,80,133,147,143,
+-	1,0,66,36,0,1,226,174,84,133,130,143,
+-	0,0,0,0,35,16,83,0,255,255,66,36,
+-	17,0,66,162,84,133,130,143,33,128,96,2,
+-	42,16,2,2,15,0,64,16,64,18,16,0,
+-	2,131,3,60,192,246,99,36,33,136,67,0,
+-	5,0,21,18,0,0,0,0,247,22,192,12,
+-	33,32,32,2,217,0,64,16,33,16,0,0,
+-	84,133,130,143,1,0,16,38,42,16,2,2,
+-	246,255,64,20,0,2,49,38,84,133,130,143,
+-	33,128,96,2,42,16,2,2,55,0,64,16,
+-	64,18,16,0,2,131,3,60,192,246,99,36,
+-	33,152,67,0,33,136,64,0,192,177,16,0,
+-	41,0,21,18,0,0,0,0,2,131,2,60,
+-	33,16,81,0,216,247,66,140,0,0,0,0,
+-	15,0,64,16,33,32,128,2,16,0,166,39,
+-	18,0,69,150,0,0,0,0,9,248,64,0,
+-	33,56,160,2,8,0,64,16,0,0,0,0,
+-	2,131,2,60,33,16,81,0,224,247,66,140,
+-	0,0,0,0,1,0,66,36,140,17,192,8,
+-	32,1,98,174,44,133,130,143,0,0,0,0,
+-	7,0,64,16,3,0,8,36,3,131,2,60,
+-	33,16,86,0,20,13,66,140,0,0,0,0,
+-	6,0,72,20,0,0,0,0,33,32,96,2,
+-	6,23,192,12,33,40,64,2,146,17,192,8,
+-	0,2,115,38,17,0,66,146,0,0,0,0,
+-	255,255,66,36,17,0,66,162,17,0,66,146,
+-	0,2,115,38,0,2,49,38,84,133,130,143,
+-	1,0,16,38,42,16,2,2,208,255,64,20,
+-	128,0,214,38,254,255,2,36,4,0,194,23,
+-	33,32,224,2,33,40,64,2,47,16,192,12,
+-	33,48,128,2,17,0,66,146,0,0,0,0,
+-	140,0,64,16,33,32,64,2,36,18,192,8,
+-	0,0,0,0,26,0,194,23,0,0,0,0,
+-	36,133,130,143,0,0,0,0,11,0,64,16,
+-	33,32,224,2,9,0,160,18,1,0,2,36,
+-	17,0,66,162,2,131,4,60,192,246,132,36,
+-	6,23,192,12,33,40,64,2,126,0,64,16,
+-	33,16,0,0,33,32,224,2,33,40,64,2,
+-	47,16,192,12,33,48,128,2,36,133,130,143,
+-	0,0,0,0,115,0,64,16,33,32,64,2,
+-	116,0,160,22,1,0,2,36,45,18,192,8,
+-	0,0,0,0,87,0,213,19,64,130,30,0,
+-	2,131,2,60,33,16,80,0,216,247,66,140,
+-	0,0,0,0,18,0,64,16,33,32,128,2,
+-	16,0,166,39,18,0,69,150,0,0,0,0,
+-	9,248,64,0,33,56,160,2,11,0,64,16,
+-	33,32,64,2,2,131,2,60,33,16,80,0,
+-	224,247,66,140,0,0,0,0,1,0,66,36,
+-	2,131,1,60,33,8,48,0,224,247,34,172,
+-	45,18,192,8,17,0,128,160,36,133,130,143,
+-	0,0,0,0,43,0,64,16,0,0,0,0,
+-	41,0,192,19,0,0,0,0,39,0,160,18,
+-	64,18,30,0,2,131,16,60,192,246,16,38,
+-	33,136,80,0,247,22,192,12,33,32,32,2,
+-	74,0,64,16,33,16,0,0,247,22,192,12,
+-	33,32,0,2,63,0,64,16,2,0,2,36,
+-	17,0,66,162,44,133,130,143,0,0,0,0,
+-	7,0,64,16,192,17,30,0,3,131,3,60,
+-	33,24,98,0,20,13,99,140,3,0,2,36,
+-	6,0,98,20,0,0,0,0,33,32,32,2,
+-	6,23,192,12,33,40,64,2,0,18,192,8,
+-	0,0,0,0,17,0,66,146,0,0,0,0,
+-	255,255,66,36,17,0,66,162,17,0,66,146,
+-	2,131,4,60,192,246,132,36,6,23,192,12,
+-	33,40,64,2,36,18,192,8,0,0,0,0,
+-	44,133,130,143,0,0,0,0,7,0,64,16,
+-	192,17,30,0,3,131,3,60,33,24,98,0,
+-	20,13,99,140,3,0,2,36,28,0,98,20,
+-	0,0,0,0,1,0,2,36,17,0,66,162,
+-	64,18,30,0,2,131,4,60,192,246,132,36,
+-	32,18,192,8,33,32,68,0,36,133,130,143,
+-	0,0,0,0,17,0,64,16,0,0,0,0,
+-	15,0,192,19,1,0,2,36,17,0,66,162,
+-	2,131,4,60,192,246,132,36,6,23,192,12,
+-	33,40,64,2,13,0,64,16,33,16,0,0,
+-	252,0,226,142,0,0,0,0,1,0,66,36,
+-	47,18,192,8,252,0,226,174,48,18,192,8,
+-	33,16,0,0,17,0,64,162,33,32,64,2,
+-	152,21,192,12,0,0,0,0,1,0,2,36,
+-	124,0,191,143,120,0,190,143,116,0,183,143,
+-	112,0,182,143,108,0,181,143,104,0,180,143,
+-	100,0,179,143,96,0,178,143,92,0,177,143,
+-	88,0,176,143,8,0,224,3,128,0,189,39,
+-	216,255,189,39,24,0,178,175,33,144,128,0,
+-	32,0,191,175,28,0,179,175,20,0,177,175,
+-	16,0,176,175,8,0,177,140,0,0,66,142,
+-	8,0,38,142,36,0,64,16,0,0,0,0,
+-	28,0,66,142,0,0,0,0,18,0,64,20,
+-	1,0,2,36,0,0,194,144,0,0,0,0,
+-	1,0,66,48,13,0,64,20,1,0,2,36,
+-	4,0,195,148,24,0,66,150,0,0,0,0,
+-	6,0,98,20,33,32,0,0,0,0,194,140,
+-	20,0,67,142,0,0,0,0,38,16,67,0,
+-	1,0,68,44,10,0,128,16,1,0,2,36,
+-	17,0,34,162,2,131,4,60,192,246,132,36,
+-	6,23,192,12,33,40,32,2,45,0,64,16,
+-	33,16,0,0,139,18,192,8,0,0,0,0,
+-	17,0,32,162,152,21,192,12,33,32,32,2,
+-	144,18,192,8,1,0,2,36,16,0,179,140,
+-	0,0,0,0,6,0,96,26,0,0,0,0,
+-	32,133,130,143,0,0,0,0,42,16,98,2,
+-	15,0,64,20,1,0,2,36,2,131,4,60,
+-	248,130,132,36,2,131,16,60,24,131,16,38,
+-	33,40,0,2,2,131,7,60,36,131,231,36,
+-	15,63,192,12,188,2,6,36,1,0,4,36,
+-	33,40,0,2,188,7,192,12,188,2,6,36,
+-	1,0,2,36,17,0,34,162,64,18,19,0,
+-	2,131,4,60,192,246,132,36,33,32,68,0,
+-	6,23,192,12,33,40,32,2,6,0,64,16,
+-	33,16,0,0,252,0,66,142,0,0,0,0,
+-	1,0,66,36,252,0,66,174,1,0,2,36,
+-	32,0,191,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,72,255,189,39,164,0,181,175,
+-	33,168,128,0,180,0,191,175,176,0,190,175,
+-	172,0,183,175,168,0,182,175,160,0,180,175,
+-	156,0,179,175,152,0,178,175,148,0,177,175,
+-	144,0,176,175,88,0,165,175,120,0,160,175,
+-	120,0,168,142,0,0,0,0,96,0,168,175,
+-	124,0,169,142,0,0,0,0,15,2,160,24,
+-	104,0,169,175,96,0,168,143,0,0,0,0,
+-	0,0,4,149,0,0,0,0,0,128,130,48,
+-	9,2,64,16,0,0,0,0,128,0,160,175,
+-	8,0,2,141,136,0,169,142,255,255,8,36,
+-	18,0,72,16,112,0,169,175,112,0,169,143,
+-	0,0,0,0,0,0,35,141,4,0,40,141,
+-	128,0,169,143,255,63,98,48,33,72,34,1,
+-	0,128,99,48,112,0,168,175,246,255,96,16,
+-	128,0,169,175,96,0,168,143,0,0,0,0,
+-	8,0,2,141,128,0,169,151,0,0,0,0,
+-	18,0,73,164,0,32,130,48,200,1,64,16,
+-	0,0,0,0,40,133,130,143,0,0,0,0,
+-	75,0,64,16,3,0,8,36,96,0,168,143,
+-	0,0,0,0,8,0,16,141,0,0,162,142,
+-	8,0,5,142,30,0,64,16,0,0,0,0,
+-	28,0,162,142,0,0,0,0,18,0,64,20,
+-	1,0,9,36,0,0,162,144,0,0,0,0,
+-	1,0,66,48,13,0,64,20,0,0,0,0,
+-	4,0,163,148,24,0,162,150,0,0,0,0,
+-	6,0,98,20,33,32,0,0,0,0,162,140,
+-	20,0,163,142,0,0,0,0,38,16,67,0,
+-	1,0,68,44,6,0,128,16,1,0,9,36,
+-	17,0,9,162,2,131,4,60,192,246,132,36,
+-	18,19,192,8,33,40,0,2,17,0,0,162,
+-	130,20,192,8,33,32,0,2,16,0,17,141,
+-	0,0,0,0,6,0,32,26,0,0,0,0,
+-	32,133,130,143,0,0,0,0,42,16,34,2,
+-	15,0,64,20,1,0,9,36,2,131,4,60,
+-	248,130,132,36,2,131,5,60,24,131,165,36,
+-	2,131,7,60,36,131,231,36,15,63,192,12,
+-	188,2,6,36,1,0,4,36,2,131,5,60,
+-	24,131,165,36,188,7,192,12,188,2,6,36,
+-	1,0,9,36,17,0,9,162,64,34,17,0,
+-	2,131,8,60,192,246,8,37,33,32,136,0,
+-	33,40,0,2,6,23,192,12,0,0,0,0,
+-	112,1,64,16,33,16,0,0,252,0,162,142,
+-	0,0,0,0,1,0,66,36,132,20,192,8,
+-	252,0,162,174,0,0,182,142,96,0,169,143,
+-	192,17,22,0,8,0,50,141,3,131,3,60,
+-	33,24,98,0,20,13,99,140,8,0,84,142,
+-	0,0,0,0,59,0,104,16,5,0,98,44,
+-	57,0,64,16,128,16,3,0,2,131,1,60,
+-	33,8,34,0,128,131,34,140,0,0,0,0,
+-	8,0,64,0,0,0,0,0,44,133,130,143,
+-	0,0,0,0,48,0,64,16,6,0,132,38,
+-	4,0,131,150,2,131,2,60,68,207,66,148,
+-	0,0,0,0,6,0,98,20,33,32,0,0,
+-	0,0,130,142,48,129,131,143,0,0,0,0,
+-	38,16,67,0,1,0,68,44,67,1,128,16,
+-	33,32,192,2,114,42,192,12,33,40,128,2,
+-	130,20,192,8,33,32,64,2,44,133,130,143,
+-	0,0,0,0,27,0,64,16,6,0,132,38,
+-	4,0,131,150,2,131,2,60,68,207,66,148,
+-	0,0,0,0,6,0,98,20,33,32,0,0,
+-	0,0,130,142,48,129,131,143,0,0,0,0,
+-	38,16,67,0,1,0,68,44,5,0,128,16,
+-	33,32,192,2,114,42,192,12,33,40,128,2,
+-	130,20,192,8,33,32,64,2,6,0,132,38,
+-	0,163,6,60,140,1,198,140,0,0,0,0,
+-	247,24,192,12,33,40,192,2,130,20,192,8,
+-	33,32,64,2,6,0,132,38,0,163,6,60,
+-	140,1,198,140,0,0,0,0,247,24,192,12,
+-	33,40,192,2,203,24,192,12,33,32,128,2,
+-	20,1,163,142,0,0,0,0,14,0,96,16,
+-	33,240,64,0,33,32,128,2,16,0,166,39,
+-	18,0,69,150,0,0,0,0,9,248,96,0,
+-	33,56,192,3,6,0,64,16,33,32,64,2,
+-	28,1,162,142,0,0,0,0,1,0,66,36,
+-	130,20,192,8,28,1,162,174,132,0,193,7,
+-	7,0,2,36,4,0,131,150,2,131,2,60,
+-	68,207,66,148,0,0,0,0,6,0,98,20,
+-	33,32,0,0,0,0,130,142,48,129,131,143,
+-	0,0,0,0,38,16,67,0,1,0,68,44,
+-	9,0,128,16,255,255,9,36,44,133,130,143,
+-	0,0,0,0,246,0,64,16,33,32,192,2,
+-	114,42,192,12,33,40,128,2,130,20,192,8,
+-	33,32,64,2,10,0,201,23,0,0,0,0,
+-	8,0,192,18,0,0,0,0,36,133,130,143,
+-	0,0,0,0,8,0,64,16,1,0,19,36,
+-	80,133,147,143,159,19,192,8,0,0,0,0,
+-	0,1,162,142,80,133,147,143,1,0,66,36,
+-	0,1,162,174,84,133,130,143,0,0,0,0,
+-	35,16,83,0,255,255,66,36,17,0,66,162,
+-	84,133,130,143,33,136,96,2,42,16,34,2,
+-	15,0,64,16,64,18,17,0,2,131,8,60,
+-	192,246,8,37,33,128,72,0,5,0,54,18,
+-	0,0,0,0,247,22,192,12,33,32,0,2,
+-	212,0,64,16,33,16,0,0,84,133,130,143,
+-	1,0,49,38,42,16,34,2,246,255,64,20,
+-	0,2,16,38,84,133,130,143,33,136,96,2,
+-	42,16,34,2,55,0,64,16,64,18,17,0,
+-	2,131,9,60,192,246,41,37,33,152,73,0,
+-	33,128,64,0,192,185,17,0,41,0,54,18,
+-	0,0,0,0,2,131,2,60,33,16,80,0,
+-	216,247,66,140,0,0,0,0,15,0,64,16,
+-	33,32,128,2,16,0,166,39,18,0,69,150,
+-	0,0,0,0,9,248,64,0,33,56,192,2,
+-	8,0,64,16,0,0,0,0,2,131,2,60,
+-	33,16,80,0,224,247,66,140,0,0,0,0,
+-	1,0,66,36,230,19,192,8,32,1,98,174,
+-	44,133,130,143,0,0,0,0,7,0,64,16,
+-	3,0,8,36,3,131,2,60,33,16,87,0,
+-	20,13,66,140,0,0,0,0,6,0,72,20,
+-	0,0,0,0,33,32,96,2,6,23,192,12,
+-	33,40,64,2,236,19,192,8,0,2,115,38,
+-	17,0,66,146,0,0,0,0,255,255,66,36,
+-	17,0,66,162,17,0,66,146,0,2,115,38,
+-	0,2,16,38,84,133,130,143,1,0,49,38,
+-	42,16,34,2,208,255,64,20,128,0,247,38,
+-	254,255,2,36,4,0,194,23,33,32,160,2,
+-	33,40,64,2,47,16,192,12,33,48,128,2,
+-	17,0,66,146,0,0,0,0,135,0,64,16,
+-	33,32,64,2,22,19,192,8,0,0,0,0,
+-	26,0,194,23,0,0,0,0,36,133,130,143,
+-	0,0,0,0,11,0,64,16,33,32,160,2,
+-	9,0,192,18,1,0,9,36,17,0,73,162,
+-	2,131,4,60,192,246,132,36,6,23,192,12,
+-	33,40,64,2,121,0,64,16,33,16,0,0,
+-	33,32,160,2,33,40,64,2,47,16,192,12,
+-	33,48,128,2,36,133,130,143,0,0,0,0,
+-	110,0,64,16,33,32,64,2,111,0,192,22,
+-	1,0,2,36,130,20,192,8,0,0,0,0,
+-	89,0,214,19,64,130,30,0,2,131,2,60,
+-	33,16,80,0,216,247,66,140,0,0,0,0,
+-	18,0,64,16,33,32,128,2,16,0,166,39,
+-	18,0,69,150,0,0,0,0,9,248,64,0,
+-	33,56,192,2,11,0,64,16,33,32,64,2,
+-	2,131,8,60,192,246,8,37,2,131,2,60,
+-	33,16,80,0,224,247,66,140,33,24,8,2,
+-	1,0,66,36,32,1,98,172,130,20,192,8,
+-	17,0,128,160,36,133,130,143,0,0,0,0,
+-	44,0,64,16,0,0,0,0,42,0,192,19,
+-	0,0,0,0,40,0,192,18,64,18,30,0,
+-	2,131,9,60,192,246,41,37,33,128,73,0,
+-	247,22,192,12,33,32,0,2,69,0,64,16,
+-	33,16,0,0,2,131,4,60,247,22,192,12,
+-	192,246,132,36,57,0,64,16,2,0,2,36,
+-	17,0,66,162,44,133,130,143,0,0,0,0,
+-	7,0,64,16,192,17,30,0,3,131,1,60,
+-	33,8,34,0,20,13,34,140,3,0,8,36,
+-	6,0,72,20,0,0,0,0,33,32,0,2,
+-	6,23,192,12,33,40,64,2,91,20,192,8,
+-	0,0,0,0,17,0,66,146,0,0,0,0,
+-	255,255,66,36,17,0,66,162,17,0,66,146,
+-	2,131,4,60,192,246,132,36,6,23,192,12,
+-	33,40,64,2,22,19,192,8,0,0,0,0,
+-	44,133,130,143,0,0,0,0,7,0,64,16,
+-	192,17,30,0,3,131,1,60,33,8,34,0,
+-	20,13,34,140,3,0,9,36,22,0,73,20,
+-	0,0,0,0,1,0,8,36,17,0,72,162,
+-	64,34,30,0,2,131,9,60,192,246,41,37,
+-	33,32,137,0,18,19,192,8,33,40,64,2,
+-	36,133,130,143,0,0,0,0,10,0,64,16,
+-	0,0,0,0,8,0,192,19,1,0,8,36,
+-	17,0,72,162,2,131,4,60,192,246,132,36,
+-	18,19,192,8,33,40,64,2,133,20,192,8,
+-	33,16,0,0,17,0,64,162,33,32,64,2,
+-	152,21,192,12,0,0,0,0,1,0,2,36,
+-	52,0,64,16,0,0,0,0,152,0,162,142,
+-	0,0,0,0,1,0,66,36,152,0,162,174,
+-	156,0,162,142,168,0,163,142,1,0,66,36,
+-	156,0,162,174,128,0,169,143,0,0,0,0,
+-	33,24,105,0,163,20,192,8,168,0,163,174,
+-	152,0,162,142,160,0,163,142,1,0,66,36,
+-	1,0,99,36,152,0,162,174,160,0,163,174,
+-	96,0,168,143,0,0,0,0,8,0,2,141,
+-	255,255,9,36,4,0,73,16,0,0,0,0,
+-	8,0,4,141,152,21,192,12,0,0,0,0,
+-	120,0,168,143,112,0,169,143,1,0,8,37,
+-	120,0,168,175,136,0,169,174,96,0,168,143,
+-	8,128,2,52,0,0,0,165,2,0,2,165,
+-	104,0,169,143,8,0,2,36,2,0,34,165,
+-	4,0,40,141,96,0,169,143,104,0,168,175,
+-	4,0,41,141,120,0,168,143,96,0,169,175,
+-	88,0,169,143,0,0,0,0,42,16,9,1,
+-	243,253,64,20,0,0,0,0,96,0,168,143,
+-	44,0,163,142,120,0,168,174,104,0,169,143,
+-	0,0,0,0,124,0,169,174,0,0,98,148,
+-	0,0,0,0,0,16,66,48,43,0,64,16,
+-	0,0,0,0,2,0,98,148,0,0,0,0,
+-	39,0,64,20,0,0,0,0,0,0,2,149,
+-	0,0,0,0,35,0,64,20,0,0,0,0,
+-	2,0,2,149,8,0,3,36,255,255,66,48,
+-	30,0,67,20,0,0,0,0,136,0,162,142,
+-	0,0,0,0,12,0,66,140,0,0,0,0,
+-	0,128,66,48,23,0,64,20,0,0,0,0,
+-	164,0,162,142,44,0,163,142,1,0,66,36,
+-	164,0,162,174,8,0,104,172,136,0,162,142,
+-	0,0,0,0,8,0,2,173,44,0,163,142,
+-	16,16,2,36,2,0,98,164,0,0,162,142,
+-	0,0,0,0,5,0,64,20,0,0,0,0,
+-	164,7,192,12,0,0,0,0,239,20,192,8,
+-	0,0,0,0,8,0,162,142,0,0,0,0,
+-	0,0,64,172,180,0,191,143,176,0,190,143,
+-	172,0,183,143,168,0,182,143,164,0,181,143,
+-	160,0,180,143,156,0,179,143,152,0,178,143,
+-	148,0,177,143,144,0,176,143,8,0,224,3,
+-	184,0,189,39,216,255,189,39,28,0,177,175,
+-	33,136,128,0,32,0,178,175,33,144,160,0,
+-	96,128,132,39,6,0,37,38,24,0,176,175,
+-	104,128,144,39,36,0,191,175,31,21,192,12,
+-	33,48,0,2,108,128,132,39,33,40,32,2,
+-	31,21,192,12,33,48,0,2,10,0,64,26,
+-	33,128,0,0,116,128,132,39,33,16,17,2,
+-	12,0,69,144,0,0,0,0,15,63,192,12,
+-	1,0,16,38,42,16,18,2,248,255,64,20,
+-	0,0,0,0,124,128,132,39,15,63,192,12,
+-	0,0,0,0,36,0,191,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	40,0,189,39,208,255,189,39,40,0,191,175,
+-	2,0,162,144,0,0,163,144,1,0,167,144,
+-	16,0,162,175,3,0,162,144,33,64,128,0,
+-	20,0,162,175,4,0,162,144,2,131,4,60,
+-	68,131,132,36,24,0,162,175,5,0,162,144,
+-	33,40,0,1,32,0,166,175,33,48,96,0,
+-	15,63,192,12,28,0,162,175,40,0,191,143,
+-	48,0,189,39,8,0,224,3,0,0,0,0,
+-	248,255,189,39,136,0,135,140,255,255,163,36,
+-	12,0,160,16,33,48,224,0,255,255,5,36,
+-	12,0,194,140,0,0,0,0,0,128,66,48,
+-	8,0,64,20,33,16,0,0,255,255,99,36,
+-	0,0,192,172,4,0,198,140,247,255,101,20,
+-	0,0,0,0,136,0,134,172,33,16,224,0,
+-	8,0,224,3,8,0,189,39,224,255,189,39,
+-	16,0,176,175,33,128,160,0,28,0,191,175,
+-	24,0,178,175,33,0,128,20,20,0,177,175,
+-	84,133,130,143,80,133,131,143,0,0,0,0,
+-	35,16,67,0,17,0,2,162,80,133,145,143,
+-	84,133,130,143,0,0,0,0,42,16,34,2,
+-	19,0,64,16,64,18,17,0,2,131,3,60,
+-	192,246,99,36,33,144,67,0,33,32,64,2,
+-	6,23,192,12,33,40,0,2,6,0,64,20,
+-	0,0,0,0,17,0,2,146,0,0,0,0,
+-	255,255,66,36,17,0,2,162,17,0,2,146,
+-	84,133,130,143,1,0,49,38,42,16,34,2,
+-	242,255,64,20,0,2,82,38,17,0,2,146,
+-	144,21,192,8,0,0,0,0,36,133,130,143,
+-	0,0,0,0,25,0,64,16,1,0,2,36,
+-	0,0,130,140,0,0,0,0,20,0,64,16,
+-	2,0,2,36,17,0,2,162,6,23,192,12,
+-	33,40,0,2,19,0,64,16,33,16,0,0,
+-	2,131,4,60,192,246,132,36,6,23,192,12,
+-	33,40,0,2,7,0,64,20,0,0,0,0,
+-	17,0,2,146,0,0,0,0,255,255,66,36,
+-	17,0,2,162,17,0,2,146,0,0,0,0,
+-	144,21,192,8,1,0,2,36,1,0,2,36,
+-	17,0,2,162,6,23,192,12,33,40,0,2,
+-	28,0,191,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	0,0,0,0,0,0,0,0,0,129,9,52,
+-	16,0,130,144,2,131,3,60,192,246,99,36,
+-	64,18,2,0,33,56,67,0,140,0,230,140,
+-	0,1,8,36,4,0,197,140,0,0,131,140,
+-	0,0,128,172,12,0,137,172,4,0,164,172,
+-	12,0,200,172,33,48,160,0,216,0,226,140,
+-	33,40,128,0,1,0,66,36,0,128,99,48,
+-	4,0,96,20,216,0,226,172,4,0,132,140,
+-	161,21,192,8,0,0,0,0,8,0,224,3,
+-	140,0,230,172,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,8,0,224,3,0,0,0,0,
+-	172,0,128,172,176,0,128,172,180,0,128,172,
+-	184,0,128,172,188,0,128,172,192,0,128,172,
+-	196,0,128,172,200,0,128,172,204,0,128,172,
+-	208,0,128,172,212,0,128,172,224,0,128,172,
+-	8,1,128,172,4,1,128,172,236,0,128,172,
+-	240,0,128,172,232,0,128,172,244,0,128,172,
+-	8,0,224,3,248,0,128,172,224,255,189,39,
+-	16,0,176,175,33,128,128,0,20,0,177,175,
+-	0,2,17,36,24,0,191,175,13,8,192,12,
+-	0,48,4,36,255,31,3,60,255,255,99,52,
+-	33,32,0,0,36,16,67,0,0,128,3,60,
+-	37,40,67,0,33,24,160,0,0,128,6,52,
+-	1,0,132,36,24,0,98,36,0,0,96,164,
+-	2,0,102,164,4,0,98,172,33,24,64,0,
+-	42,16,145,0,249,255,64,20,1,0,132,36,
+-	255,255,132,36,64,16,17,0,33,16,81,0,
+-	192,16,2,0,33,16,69,0,48,0,163,36,
+-	236,255,69,172,108,0,3,174,104,0,3,174,
+-	96,0,5,174,100,0,2,174,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,248,255,189,39,0,32,14,60,
+-	4,0,177,175,7,0,17,60,0,0,176,175,
+-	4,0,16,60,2,131,25,60,192,246,57,39,
+-	0,1,15,36,108,0,152,140,104,0,137,140,
+-	176,0,140,140,180,0,141,140,94,0,56,17,
+-	0,0,0,0,4,0,43,141,0,0,0,0,
+-	37,16,110,1,0,0,66,148,0,0,0,0,
+-	0,128,66,48,86,0,64,16,37,16,46,1,
+-	0,0,67,140,0,0,0,0,36,16,113,0,
+-	76,0,80,20,0,32,98,48,41,0,64,20,
+-	15,0,98,48,188,0,130,140,0,0,0,0,
+-	1,0,66,36,188,0,130,172,0,8,98,48,
+-	6,0,64,16,0,4,98,48,192,0,130,140,
+-	0,0,0,0,1,0,66,36,192,0,130,172,
+-	0,4,98,48,6,0,64,16,0,2,98,48,
+-	196,0,130,140,0,0,0,0,1,0,66,36,
+-	196,0,130,172,0,2,98,48,6,0,64,16,
+-	0,1,98,48,200,0,130,140,0,0,0,0,
+-	1,0,66,36,200,0,130,172,0,1,98,48,
+-	6,0,64,16,32,0,98,48,204,0,130,140,
+-	0,0,0,0,1,0,66,36,204,0,130,172,
+-	32,0,98,48,6,0,64,16,15,0,98,48,
+-	208,0,130,140,0,0,0,0,1,0,66,36,
+-	208,0,130,172,15,0,98,48,212,0,131,140,
+-	8,0,37,141,33,24,98,0,212,0,131,172,
+-	17,0,162,144,1,0,140,37,255,255,66,36,
+-	17,0,162,160,25,0,64,20,37,24,46,1,
+-	16,0,162,144,1,0,173,37,64,18,2,0,
+-	33,64,89,0,140,0,7,141,0,129,10,52,
+-	4,0,230,140,0,0,163,140,0,0,160,172,
+-	12,0,170,172,4,0,197,172,12,0,239,172,
+-	33,56,192,0,216,0,2,141,33,48,160,0,
+-	1,0,66,36,0,128,99,48,4,0,96,20,
+-	216,0,2,173,4,0,165,140,114,22,192,8,
+-	0,0,0,0,140,0,7,173,37,24,46,1,
+-	0,128,2,60,0,0,98,172,40,22,192,8,
+-	33,72,96,1,104,0,137,172,176,0,140,172,
+-	180,0,141,172,4,0,177,143,0,0,176,143,
+-	8,0,224,3,8,0,189,39,224,255,189,39,
+-	16,0,176,175,33,128,128,0,24,0,191,175,
+-	20,0,177,175,44,0,17,142,0,0,0,0,
+-	0,0,34,150,0,0,0,0,0,32,66,48,
+-	89,0,64,16,0,0,0,0,2,0,34,150,
+-	0,0,0,0,0,1,66,48,84,0,64,20,
+-	0,0,0,0,27,22,192,12,0,0,0,0,
+-	104,0,4,142,0,0,0,0,2,0,130,148,
+-	0,128,3,52,255,255,66,48,75,0,67,16,
+-	0,0,0,0,224,0,2,142,0,0,0,0,
+-	1,0,66,36,224,0,2,174,4,0,36,174,
+-	0,0,128,164,4,0,130,140,0,0,0,0,
+-	0,0,64,164,0,0,2,142,0,0,0,0,
+-	51,0,64,16,0,33,2,36,2,0,34,150,
+-	0,0,0,0,47,0,64,16,0,33,2,36,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	2,0,34,150,0,0,0,0,211,255,64,20,
+-	0,33,2,36,2,0,34,166,0,0,2,142,
+-	0,0,0,0,5,0,64,16,0,0,0,0,
+-	8,0,2,142,0,0,0,0,242,22,192,8,
+-	0,0,64,172,164,7,192,12,0,0,0,0,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,108,0,133,140,
+-	0,0,0,0,4,0,162,140,0,0,0,0,
+-	4,0,67,140,104,0,130,140,0,0,0,0,
+-	5,0,98,20,33,16,160,0,184,0,131,140,
+-	33,16,0,0,1,0,99,36,184,0,131,172,
+-	8,0,224,3,0,0,0,0,224,255,189,39,
+-	16,0,176,175,33,128,128,0,28,0,191,175,
+-	24,0,178,175,20,0,177,175,108,0,18,142,
+-	8,1,6,142,44,0,17,142,4,0,66,142,
+-	104,0,7,142,4,0,66,140,18,0,163,148,
+-	172,0,4,142,0,0,0,0,6,0,71,20,
+-	255,255,99,48,184,0,3,142,33,16,0,0,
+-	1,0,99,36,157,23,192,8,184,0,3,174,
+-	33,48,195,0,1,0,130,36,172,0,2,174,
+-	8,1,6,174,8,0,162,140,4,1,3,142,
+-	0,0,70,144,33,32,64,2,8,0,69,174,
+-	12,0,64,174,1,0,194,48,2,0,64,16,
+-	1,0,98,36,4,1,2,174,0,0,2,142,
+-	0,0,0,0,35,0,64,20,0,0,0,0,
+-	18,0,162,148,0,0,0,0,255,255,66,48,
+-	12,0,66,174,0,0,34,150,0,0,0,0,
+-	0,32,66,48,24,0,64,16,12,0,2,36,
+-	2,0,34,150,0,0,0,0,0,1,66,48,
+-	19,0,64,20,12,0,2,36,4,0,242,16,
+-	0,0,0,0,27,22,192,12,33,32,0,2,
+-	12,0,2,36,2,0,66,166,104,0,4,142,
+-	0,0,0,0,0,0,128,164,4,0,130,140,
+-	0,0,0,0,0,0,64,164,0,33,2,36,
+-	4,0,36,174,164,7,192,12,2,0,34,166,
+-	154,23,192,8,0,0,0,0,154,23,192,8,
+-	2,0,130,164,0,0,34,150,0,0,0,0,
+-	0,32,66,48,69,0,64,16,12,0,2,36,
+-	4,0,242,16,0,0,0,0,27,22,192,12,
+-	33,32,0,2,12,0,2,36,2,0,66,166,
+-	104,0,4,142,0,0,0,0,0,0,128,164,
+-	4,0,130,140,0,0,0,0,0,0,64,164,
+-	4,0,36,174,2,0,34,150,0,0,0,0,
+-	47,0,64,16,0,33,2,36,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,2,0,34,150,
+-	0,0,0,0,211,255,64,20,0,33,2,36,
+-	2,0,34,166,8,0,2,142,0,0,0,0,
+-	154,23,192,8,0,0,64,172,2,0,66,166,
+-	4,0,67,142,1,0,2,36,108,0,3,174,
+-	28,0,191,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	216,255,189,39,20,0,177,175,33,136,128,0,
+-	24,0,178,175,2,131,18,60,192,131,82,38,
+-	28,0,179,175,0,1,19,36,32,0,191,175,
+-	16,0,176,175,104,0,48,142,108,0,34,142,
+-	0,0,0,0,4,0,2,22,0,0,0,0,
+-	2,0,2,150,245,23,192,8,0,0,0,0,
+-	2,0,2,150,0,0,0,0,7,0,66,48,
+-	11,0,64,20,33,40,64,2,2,131,4,60,
+-	160,131,132,36,2,131,7,60,252,131,231,36,
+-	15,63,192,12,0,2,6,36,1,0,4,36,
+-	33,40,64,2,188,7,192,12,0,2,6,36,
+-	2,0,2,150,4,0,3,36,7,0,66,48,
+-	40,0,67,20,0,128,2,52,8,0,3,142,
+-	0,0,0,0,17,0,98,144,0,0,0,0,
+-	255,255,66,36,17,0,98,160,17,0,98,144,
+-	0,0,0,0,30,0,64,20,0,128,2,52,
+-	180,0,34,142,33,32,96,0,1,0,66,36,
+-	180,0,34,174,16,0,130,144,2,131,3,60,
+-	192,246,99,36,64,18,2,0,33,56,67,0,
+-	140,0,230,140,0,129,8,52,4,0,197,140,
+-	0,0,131,140,0,0,128,172,12,0,136,172,
+-	4,0,164,172,12,0,211,172,33,48,160,0,
+-	216,0,226,140,33,40,128,0,1,0,66,36,
+-	0,128,99,48,4,0,96,20,216,0,226,172,
+-	4,0,132,140,223,23,192,8,0,0,0,0,
+-	140,0,230,172,0,128,2,52,2,0,2,166,
+-	0,0,0,166,4,0,16,142,174,23,192,8,
+-	0,0,0,0,44,0,35,142,104,0,48,174,
+-	0,0,98,148,0,0,0,0,0,32,66,52,
+-	0,0,98,164,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,0,163,2,60,
+-	0,1,66,52,0,0,66,140,2,131,3,60,
+-	192,6,99,36,255,3,66,48,60,0,66,36,
+-	0,128,66,52,8,0,224,3,0,0,98,172,
+-	208,255,189,39,28,0,177,175,33,136,128,0,
+-	32,0,178,175,33,144,160,0,24,0,176,175,
+-	0,163,16,60,0,163,2,60,164,1,66,140,
+-	0,1,16,54,44,0,191,175,40,0,180,175,
+-	4,0,64,20,36,0,179,175,60,0,2,36,
+-	0,163,1,60,164,1,34,172,0,163,2,60,
+-	164,1,66,140,0,0,0,0,221,5,66,40,
+-	3,0,64,20,220,5,2,36,0,163,1,60,
+-	164,1,34,172,0,163,3,60,164,1,99,140,
+-	255,255,2,36,21,0,98,20,0,0,0,0,
+-	128,128,130,143,0,0,0,0,5,0,67,20,
+-	2,0,5,36,130,11,192,12,0,0,0,0,
+-	128,128,130,175,2,0,5,36,10,0,6,36,
+-	128,128,132,143,0,131,7,60,8,96,231,36,
+-	156,11,192,12,16,0,160,175,0,0,2,142,
+-	2,131,3,60,192,6,99,36,255,3,66,48,
+-	66,24,192,8,64,0,66,36,0,163,2,60,
+-	164,1,66,140,2,131,3,60,192,6,99,36,
+-	0,128,66,52,0,0,98,172,255,31,4,60,
+-	255,255,132,52,2,131,2,60,208,6,66,36,
+-	36,16,68,0,0,160,5,60,37,16,69,0,
+-	2,131,3,60,176,12,99,36,2,131,1,60,
+-	196,6,32,172,2,131,1,60,200,6,34,172,
+-	12,0,2,36,0,0,96,164,2,131,1,60,
+-	178,12,34,164,6,0,65,6,36,16,100,0,
+-	37,16,69,0,2,131,1,60,180,12,34,172,
+-	99,24,192,8,255,31,18,60,2,131,2,60,
+-	178,12,66,148,0,0,0,0,0,128,66,52,
+-	2,131,1,60,178,12,34,164,255,31,18,60,
+-	255,255,82,54,2,131,2,60,192,6,66,36,
+-	36,16,82,0,0,160,20,60,37,16,84,0,
+-	2,131,1,60,184,12,34,172,2,131,1,60,
+-	188,12,32,172,44,0,34,142,0,0,0,0,
+-	0,0,66,148,2,131,19,60,176,12,115,38,
+-	0,32,66,48,15,0,64,20,33,40,0,0,
+-	2,131,4,60,160,131,132,36,2,131,16,60,
+-	192,131,16,38,33,40,0,2,2,131,7,60,
+-	24,132,231,36,15,63,192,12,71,2,6,36,
+-	1,0,4,36,33,40,0,2,188,7,192,12,
+-	71,2,6,36,33,40,0,0,33,48,0,0,
+-	36,16,114,2,44,0,35,142,37,16,84,0,
+-	4,0,98,172,44,0,36,142,208,7,7,36,
+-	129,67,192,12,2,0,132,36,12,0,64,20,
+-	0,0,0,0,44,0,34,142,0,0,0,0,
+-	2,0,69,148,2,131,4,60,15,63,192,12,
+-	56,132,132,36,255,255,4,36,2,131,5,60,
+-	192,131,165,36,188,7,192,12,79,2,6,36,
+-	44,0,34,142,0,33,3,36,2,0,67,164,
+-	8,0,34,142,0,0,0,0,0,0,64,172,
+-	44,0,191,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,48,0,189,39,232,255,189,39,
+-	128,128,132,143,0,128,2,52,16,0,191,175,
+-	2,131,1,60,3,0,128,4,178,12,34,164,
+-	177,11,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	8,0,224,3,0,0,0,0,0,0,0,0,
+-	0,0,0,0,240,255,2,52,2,131,1,60,
+-	33,8,34,0,208,12,32,172,240,255,66,36,
+-	251,255,65,4,0,0,0,0,2,131,2,60,
+-	208,12,66,36,0,163,1,60,12,1,32,172,
+-	0,163,1,60,212,5,34,172,1,0,2,60,
+-	148,133,128,175,144,133,128,175,0,163,1,60,
+-	8,0,224,3,216,5,34,172,0,0,136,148,
+-	4,0,138,148,1,0,2,49,34,0,64,20,
+-	2,0,137,148,0,25,10,0,38,24,106,0,
+-	38,24,105,0,240,255,99,48,2,131,15,60,
+-	208,12,239,37,33,40,111,0,68,133,142,143,
+-	128,0,3,36,0,0,162,140,4,0,171,148,
+-	23,0,64,16,43,16,194,1,9,0,64,16,
+-	6,0,172,148,7,0,11,21,8,0,173,148,
+-	5,0,44,21,0,0,0,0,3,0,77,21,
+-	10,0,162,148,8,0,224,3,0,0,0,0,
+-	255,255,99,36,10,0,96,16,240,255,165,36,
+-	43,16,175,0,238,255,64,16,0,0,162,140,
+-	248,127,229,37,248,127,165,36,218,24,192,8,
+-	0,0,162,140,8,0,224,3,254,255,2,36,
+-	8,0,224,3,255,255,2,36,8,0,224,3,
+-	0,0,0,0,0,0,136,148,68,133,142,143,
+-	1,0,2,49,53,0,64,20,2,0,137,148,
+-	0,131,2,60,4,0,138,148,12,1,89,140,
+-	0,25,10,0,38,24,106,0,38,24,105,0,
+-	240,255,99,48,2,131,15,60,208,12,239,37,
+-	33,56,111,0,128,0,3,36,0,0,248,140,
+-	4,0,235,148,43,16,216,1,14,0,64,16,
+-	6,0,236,148,24,0,11,21,8,0,237,148,
+-	22,0,44,21,255,127,2,60,20,0,77,21,
+-	255,255,66,52,43,16,2,3,2,0,64,16,
+-	33,16,198,1,0,0,226,172,10,0,229,164,
+-	8,0,224,3,0,0,2,36,3,0,0,23,
+-	1,0,57,35,0,131,2,60,12,1,89,172,
+-	33,16,198,1,0,0,226,172,10,0,229,164,
+-	4,0,232,164,6,0,233,164,8,0,234,164,
+-	8,0,224,3,1,0,2,36,255,255,99,36,
+-	11,0,96,16,0,0,0,0,240,255,231,36,
+-	43,16,239,0,221,255,64,16,0,0,248,140,
+-	248,127,231,37,248,127,231,36,8,25,192,8,
+-	0,0,248,140,8,0,224,3,0,0,2,36,
+-	144,133,130,143,0,0,0,0,1,0,66,32,
+-	144,133,130,175,8,0,224,3,255,255,2,36,
+-	8,0,224,3,0,0,0,0,164,128,130,143,
+-	0,0,0,0,7,0,130,20,232,255,189,39,
+-	160,128,130,143,2,131,3,60,208,12,99,36,
+-	0,17,2,0,108,25,192,8,33,16,67,0,
+-	42,16,130,0,3,0,64,16,255,255,2,36,
+-	164,128,128,175,160,128,130,175,164,128,130,143,
+-	160,128,131,143,35,48,130,0,1,0,101,36,
+-	0,16,162,40,25,0,64,16,0,25,5,0,
+-	68,133,135,143,2,131,2,60,33,16,67,0,
+-	208,12,66,140,0,0,0,0,43,16,226,0,
+-	4,0,64,16,0,0,0,0,255,255,198,36,
+-	6,0,192,16,0,16,162,40,1,0,165,36,
+-	0,16,162,40,243,255,64,20,16,0,99,36,
+-	0,16,162,40,7,0,64,16,0,25,5,0,
+-	2,131,2,60,208,12,66,36,160,128,133,175,
+-	164,128,132,175,108,25,192,8,33,16,98,0,
+-	33,16,0,0,255,255,3,36,164,128,128,175,
+-	160,128,131,175,8,0,224,3,24,0,189,39,
+-	0,0,0,0,0,0,0,0,24,255,189,39,
+-	228,0,191,175,224,0,190,175,220,0,183,175,
+-	216,0,182,175,212,0,181,175,208,0,180,175,
+-	204,0,179,175,200,0,178,175,196,0,177,175,
+-	192,0,176,175,44,28,192,12,0,0,0,0,
+-	176,128,132,39,15,63,192,12,1,0,17,36,
+-	24,0,176,39,164,68,192,12,33,32,0,2,
+-	24,0,162,131,0,0,0,0,137,25,192,8,
+-	32,0,8,36,0,0,2,130,32,0,8,36,
+-	253,255,72,16,1,0,16,38,255,255,16,38,
+-	9,0,8,36,249,255,72,16,1,0,16,38,
+-	255,255,16,38,0,0,2,146,0,0,0,0,
+-	208,255,66,36,10,0,66,44,27,0,64,16,
+-	33,32,0,2,33,40,0,0,212,68,192,12,
+-	33,48,0,0,0,0,3,146,0,0,0,0,
+-	208,255,99,36,10,0,99,44,9,0,96,16,
+-	33,136,64,0,1,0,16,38,0,0,2,146,
+-	0,0,0,0,208,255,66,36,10,0,66,44,
+-	251,255,64,20,1,0,16,38,255,255,16,38,
+-	0,0,2,130,32,0,8,36,253,255,72,16,
+-	1,0,16,38,255,255,16,38,9,0,8,36,
+-	249,255,72,16,1,0,16,38,255,255,16,38,
+-	0,0,2,130,0,0,3,146,0,0,0,0,
+-	22,0,64,16,104,0,180,39,32,0,8,36,
+-	19,0,72,16,9,0,8,36,17,0,72,16,
+-	32,0,5,36,9,0,4,36,208,255,98,36,
+-	10,0,66,44,12,0,64,20,0,0,0,0,
+-	1,0,16,38,0,0,131,162,0,0,2,130,
+-	0,0,3,146,0,0,0,0,5,0,64,16,
+-	1,0,148,38,3,0,69,16,0,0,0,0,
+-	243,255,68,20,208,255,98,36,0,0,128,162,
+-	104,0,180,39,0,0,2,130,32,0,8,36,
+-	253,255,72,16,1,0,16,38,255,255,16,38,
+-	9,0,8,36,249,255,72,16,1,0,16,38,
+-	255,255,16,38,33,240,0,2,0,0,196,131,
+-	0,0,0,0,32,69,192,12,144,0,190,175,
+-	11,0,64,16,33,32,192,3,33,40,0,0,
+-	212,68,192,12,33,48,0,0,33,152,64,0,
+-	33,32,192,3,33,40,0,0,44,69,192,12,
+-	16,0,6,36,232,25,192,8,33,144,64,0,
+-	255,255,18,36,255,255,19,36,0,0,3,130,
+-	0,0,2,146,0,0,0,0,17,0,96,16,
+-	32,0,8,36,15,0,104,16,1,0,16,38,
+-	255,255,16,38,32,0,4,36,0,22,2,0,
+-	3,22,2,0,9,0,8,36,8,0,72,16,
+-	0,0,0,0,1,0,16,38,0,0,3,130,
+-	0,0,2,146,3,0,96,16,0,0,0,0,
+-	246,255,100,20,0,22,2,0,0,0,2,130,
+-	32,0,8,36,253,255,72,16,1,0,16,38,
+-	255,255,16,38,9,0,8,36,249,255,72,16,
+-	1,0,16,38,255,255,16,38,33,184,0,2,
+-	33,32,224,2,33,40,0,0,212,68,192,12,
+-	33,48,0,0,33,32,224,2,33,40,0,0,
+-	16,0,6,36,44,69,192,12,33,176,64,0,
+-	0,0,227,130,0,0,0,0,15,0,96,16,
+-	33,168,64,0,32,0,8,36,12,0,104,16,
+-	32,0,3,36,0,0,2,130,9,0,8,36,
+-	8,0,72,16,0,0,0,0,1,0,16,38,
+-	0,0,2,130,0,0,0,0,3,0,64,16,
+-	0,0,0,0,248,255,67,20,0,0,0,0,
+-	0,0,131,130,0,0,0,0,121,0,98,44,
+-	244,1,64,16,128,16,3,0,2,131,1,60,
+-	33,8,34,0,160,138,34,140,0,0,0,0,
+-	8,0,64,0,0,0,0,0,1,0,131,130,
+-	104,0,2,36,26,0,98,16,105,0,98,40,
+-	7,0,64,16,116,0,2,36,34,0,96,16,
+-	98,0,2,36,11,0,98,16,0,0,0,0,
+-	26,28,192,8,0,0,0,0,5,0,98,16,
+-	119,0,8,36,27,0,104,16,33,16,32,2,
+-	26,28,192,8,0,0,0,0,4,162,2,60,
+-	33,144,66,2,2,0,130,130,0,0,0,0,
+-	214,1,64,20,0,0,0,0,2,131,4,60,
+-	108,132,132,36,0,0,70,146,82,26,192,8,
+-	0,0,0,0,2,0,130,130,0,0,0,0,
+-	205,1,64,20,0,0,0,0,2,131,4,60,
+-	120,132,132,36,0,0,70,150,0,0,0,0,
+-	15,63,192,12,33,40,64,2,125,25,192,8,
+-	0,0,0,0,33,16,32,2,37,255,64,16,
+-	255,255,49,38,0,0,80,142,2,131,4,60,
+-	132,132,132,36,33,40,64,2,4,0,82,38,
+-	15,63,192,12,33,48,0,2,33,16,32,2,
+-	247,255,64,20,255,255,49,38,125,25,192,8,
+-	0,0,0,0,1,0,131,130,104,0,2,36,
+-	23,0,98,16,105,0,98,40,7,0,64,16,
+-	116,0,2,36,25,0,96,16,98,0,2,36,
+-	11,0,98,16,0,0,0,0,26,28,192,8,
+-	0,0,0,0,5,0,98,16,119,0,8,36,
+-	17,0,104,16,0,0,0,0,26,28,192,8,
+-	0,0,0,0,4,162,2,60,33,144,66,2,
+-	2,0,130,130,0,0,0,0,158,1,64,20,
+-	0,0,0,0,125,25,192,8,0,0,85,162,
+-	2,0,130,130,0,0,0,0,152,1,64,20,
+-	0,0,0,0,125,25,192,8,0,0,85,166,
+-	125,25,192,8,0,0,85,174,0,163,16,60,
+-	31,163,17,60,255,255,49,54,0,0,2,142,
+-	0,0,0,0,4,0,82,20,0,0,0,0,
+-	180,128,132,39,15,63,192,12,33,40,0,2,
+-	4,0,16,38,43,16,48,2,246,255,64,16,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	33,16,32,2,228,254,64,16,255,255,49,38,
+-	33,32,96,2,164,32,192,12,33,40,192,2,
+-	33,16,32,2,251,255,64,20,255,255,49,38,
+-	125,25,192,8,0,0,0,0,1,0,130,130,
+-	0,0,0,0,117,1,64,20,33,32,32,2,
+-	133,29,192,12,33,40,96,2,125,25,192,8,
+-	0,0,0,0,33,32,96,2,33,40,32,2,
+-	234,31,192,12,33,48,192,2,125,25,192,8,
+-	0,0,0,0,1,0,130,130,0,0,0,0,
+-	103,1,64,20,33,16,32,2,200,254,64,16,
+-	255,255,49,38,33,32,96,2,33,40,192,2,
+-	182,29,192,12,33,48,0,2,33,16,32,2,
+-	250,255,64,20,255,255,49,38,125,25,192,8,
+-	0,0,0,0,33,32,32,2,33,40,96,2,
+-	33,48,192,2,38,30,192,12,33,56,0,2,
+-	125,25,192,8,0,0,0,0,5,162,2,60,
+-	0,0,69,144,2,131,4,60,15,63,192,12,
+-	144,132,132,36,125,25,192,8,0,0,0,0,
+-	0,163,1,60,20,1,32,172,14,0,32,18,
+-	33,128,0,0,164,7,192,12,1,0,16,38,
+-	143,63,192,12,0,0,0,0,143,63,192,12,
+-	0,0,0,0,143,63,192,12,0,0,0,0,
+-	143,63,192,12,0,0,0,0,43,16,17,2,
+-	244,255,64,20,0,0,0,0,184,63,192,12,
+-	0,0,0,0,0,163,16,60,20,1,16,142,
+-	0,0,0,0,7,0,17,22,33,40,32,2,
+-	2,131,4,60,164,132,132,36,15,63,192,12,
+-	33,40,32,2,125,25,192,8,0,0,0,0,
+-	2,131,4,60,188,132,132,36,15,63,192,12,
+-	33,48,0,2,125,25,192,8,0,0,0,0,
+-	0,0,226,130,7,162,8,60,16,0,64,16,
+-	33,144,72,2,33,16,32,2,134,254,64,16,
+-	255,255,49,38,0,0,85,174,2,131,4,60,
+-	132,132,132,36,33,40,64,2,15,63,192,12,
+-	33,48,160,2,4,0,82,38,33,16,32,2,
+-	247,255,64,20,255,255,49,38,125,25,192,8,
+-	0,0,0,0,33,16,32,2,119,254,64,16,
+-	255,255,49,38,0,0,80,142,2,131,4,60,
+-	132,132,132,36,33,40,64,2,4,0,82,38,
+-	15,63,192,12,33,48,0,2,33,16,32,2,
+-	247,255,64,20,255,255,49,38,125,25,192,8,
+-	0,0,0,0,7,162,16,60,64,0,17,38,
+-	2,131,4,60,228,132,132,36,33,40,0,2,
+-	0,0,6,142,0,0,0,0,15,63,192,12,
+-	4,0,16,38,42,16,17,2,247,255,64,20,
+-	7,162,8,60,128,0,16,37,176,0,17,37,
+-	2,131,4,60,228,132,132,36,33,40,0,2,
+-	0,0,6,142,0,0,0,0,15,63,192,12,
+-	4,0,16,38,42,16,17,2,247,255,64,20,
+-	7,162,8,60,192,0,16,37,240,0,17,37,
+-	2,131,4,60,228,132,132,36,33,40,0,2,
+-	0,0,6,142,0,0,0,0,15,63,192,12,
+-	4,0,16,38,42,16,17,2,247,255,64,20,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	1,0,130,130,0,0,0,0,222,0,64,20,
+-	33,16,32,2,63,254,64,16,255,255,49,38,
+-	33,32,96,2,213,29,192,12,33,40,160,2,
+-	33,16,32,2,251,255,64,20,255,255,49,38,
+-	125,25,192,8,0,0,0,0,1,0,130,130,
+-	0,0,0,0,208,0,64,20,33,16,32,2,
+-	49,254,64,16,255,255,49,38,33,32,96,2,
+-	161,31,192,12,33,40,192,2,33,16,32,2,
+-	251,255,64,20,255,255,49,38,125,25,192,8,
+-	0,0,0,0,33,16,32,2,38,254,64,16,
+-	255,255,49,38,208,32,192,12,33,32,0,0,
+-	33,32,0,0,164,32,192,12,33,40,0,0,
+-	40,29,192,12,0,0,0,0,133,29,192,12,
+-	255,255,4,36,33,16,32,2,245,255,64,20,
+-	255,255,49,38,125,25,192,8,0,0,0,0,
+-	1,0,131,130,87,0,2,36,27,0,98,16,
+-	88,0,98,40,7,0,64,16,114,0,2,36,
+-	37,0,96,16,82,0,2,36,9,0,98,16,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	5,0,98,16,119,0,8,36,15,0,104,16,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	2,0,130,130,0,0,0,0,159,0,64,20,
+-	0,0,0,0,60,65,192,12,33,32,96,2,
+-	184,128,132,39,33,40,96,2,15,63,192,12,
+-	33,48,64,0,125,25,192,8,0,0,0,0,
+-	2,0,130,130,0,0,0,0,147,0,64,20,
+-	33,32,96,2,162,65,192,12,33,40,160,2,
+-	242,253,64,20,33,40,160,2,2,131,4,60,
+-	8,133,132,36,15,63,192,12,33,48,96,2,
+-	125,25,192,8,0,0,0,0,33,16,32,2,
+-	233,253,64,16,255,255,49,38,40,29,192,12,
+-	0,0,0,0,33,16,32,2,252,255,64,20,
+-	255,255,49,38,125,25,192,8,0,0,0,0,
+-	1,0,133,130,87,0,2,36,29,0,162,16,
+-	88,0,162,40,5,0,64,16,82,0,2,36,
+-	11,0,162,16,33,16,32,2,125,25,192,8,
+-	0,0,0,0,114,0,2,36,5,0,162,16,
+-	119,0,8,36,19,0,168,16,33,32,64,2,
+-	125,25,192,8,0,0,0,0,33,16,32,2,
+-	206,253,64,16,255,255,49,38,168,69,192,12,
+-	33,32,64,2,184,128,132,39,33,40,64,2,
+-	15,63,192,12,33,48,64,0,1,0,82,38,
+-	33,16,32,2,247,255,64,20,255,255,49,38,
+-	125,25,192,8,0,0,0,0,33,32,64,2,
+-	29,70,192,12,33,40,160,2,189,253,64,20,
+-	33,40,160,2,2,131,4,60,40,133,132,36,
+-	15,63,192,12,33,48,64,2,125,25,192,8,
+-	0,0,0,0,144,0,164,143,122,28,192,12,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	33,16,96,2,175,253,64,16,255,255,115,38,
+-	143,63,192,12,0,0,0,0,33,16,96,2,
+-	252,255,64,20,255,255,115,38,125,25,192,8,
+-	0,0,0,0,33,16,32,2,165,253,64,16,
+-	255,255,49,38,33,32,96,2,208,32,192,12,
+-	33,40,192,2,33,16,32,2,251,255,64,20,
+-	255,255,49,38,125,25,192,8,0,0,0,0,
+-	1,0,130,146,0,0,0,0,159,255,66,36,
+-	0,22,2,0,3,30,2,0,24,0,98,44,
+-	27,0,64,16,128,16,3,0,2,131,1,60,
+-	33,8,34,0,136,140,34,140,0,0,0,0,
+-	8,0,64,0,0,0,0,0,12,33,192,12,
+-	33,32,64,2,125,25,192,8,0,0,0,0,
+-	15,33,192,12,33,32,96,2,125,25,192,8,
+-	0,0,0,0,18,33,192,12,33,32,96,2,
+-	125,25,192,8,0,0,0,0,22,33,192,12,
+-	33,32,96,2,125,25,192,8,0,0,0,0,
+-	25,33,192,12,33,32,64,2,125,25,192,8,
+-	0,0,0,0,33,32,64,2,7,33,192,12,
+-	33,40,192,2,125,25,192,8,0,0,0,0,
+-	16,0,182,175,33,32,32,2,33,40,192,3,
+-	33,48,224,2,161,33,192,12,33,56,160,2,
+-	125,25,192,8,0,0,0,0,33,136,0,0,
+-	2,131,4,60,72,133,132,36,15,63,192,12,
+-	1,0,49,38,32,0,34,46,250,255,64,20,
+-	0,0,0,0,125,25,192,8,0,0,0,0,
+-	2,131,4,60,92,133,132,36,15,63,192,12,
+-	33,40,128,2,123,25,192,8,0,0,0,0,
+-	228,0,191,143,224,0,190,143,220,0,183,143,
+-	216,0,182,143,212,0,181,143,208,0,180,143,
+-	204,0,179,143,200,0,178,143,196,0,177,143,
+-	192,0,176,143,8,0,224,3,232,0,189,39,
+-	232,255,189,39,2,131,5,60,192,154,165,36,
+-	20,0,191,175,16,0,176,175,0,0,162,140,
+-	0,0,0,0,9,0,64,16,33,128,160,0,
+-	0,0,5,142,192,128,132,39,15,63,192,12,
+-	4,0,16,38,0,0,2,142,0,0,0,0,
+-	249,255,64,20,0,0,0,0,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	0,0,132,144,0,0,0,0,208,255,130,36,
+-	10,0,66,44,4,0,64,16,0,22,4,0,
+-	3,22,2,0,89,28,192,8,208,255,66,36,
+-	159,255,130,36,6,0,66,44,4,0,64,16,
+-	0,22,4,0,3,22,2,0,89,28,192,8,
+-	169,255,66,36,191,255,130,36,6,0,66,44,
+-	3,0,64,20,0,22,4,0,89,28,192,8,
+-	255,255,2,36,3,22,2,0,201,255,66,36,
+-	8,0,224,3,0,0,0,0,216,255,189,39,
+-	24,0,178,175,33,144,128,0,32,0,191,175,
+-	28,0,179,175,20,0,177,175,16,0,176,175,
+-	0,0,81,142,0,0,0,0,65,28,192,12,
+-	33,32,32,2,33,24,64,0,255,255,19,36,
+-	9,0,115,16,0,129,3,0,65,28,192,12,
+-	1,0,36,38,33,24,64,0,4,0,115,16,
+-	2,0,34,38,0,0,66,174,115,28,192,8,
+-	37,16,3,2,255,255,2,36,32,0,191,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,40,0,189,39,
+-	176,255,189,39,64,0,180,175,33,160,128,0,
+-	72,0,191,175,68,0,181,175,60,0,179,175,
+-	56,0,178,175,52,0,177,175,48,0,176,175,
+-	0,0,130,130,0,0,0,0,53,0,64,20,
+-	33,128,0,0,27,67,192,12,33,32,0,0,
+-	1,0,4,36,27,67,192,12,33,128,64,0,
+-	2,0,4,36,27,67,192,12,33,136,64,0,
+-	33,24,64,0,255,255,2,36,5,0,2,18,
+-	0,0,0,0,3,0,34,18,0,0,0,0,
+-	6,0,98,20,255,255,2,52,2,131,4,60,
+-	15,63,192,12,60,137,132,36,29,29,192,8,
+-	0,0,0,0,5,0,2,18,0,0,0,0,
+-	3,0,34,18,0,0,0,0,6,0,98,20,
+-	1,0,2,50,2,131,4,60,15,63,192,12,
+-	104,137,132,36,29,29,192,8,0,0,0,0,
+-	6,0,64,16,255,0,5,50,2,131,4,60,
+-	15,63,192,12,132,137,132,36,29,29,192,8,
+-	0,0,0,0,2,131,4,60,176,137,132,36,
+-	3,50,16,0,3,18,17,0,16,0,162,175,
+-	255,0,98,48,20,0,162,175,3,18,3,0,
+-	255,0,39,50,15,63,192,12,24,0,162,175,
+-	29,29,192,8,0,0,0,0,40,0,180,175,
+-	58,0,21,36,32,0,19,36,255,255,18,36,
+-	32,0,177,39,40,0,162,143,0,0,0,0,
+-	0,0,67,128,0,0,0,0,3,0,117,16,
+-	0,0,0,0,3,0,115,20,0,0,0,0,
+-	1,0,66,36,40,0,162,175,91,28,192,12,
+-	40,0,164,39,33,24,64,0,75,0,114,16,
+-	0,0,0,0,40,0,162,143,0,0,35,166,
+-	0,0,67,128,0,0,0,0,3,0,117,16,
+-	0,0,0,0,3,0,115,20,0,0,0,0,
+-	1,0,66,36,40,0,162,175,91,28,192,12,
+-	40,0,164,39,33,24,64,0,60,0,114,16,
+-	1,0,16,38,0,0,34,150,0,26,3,0,
+-	37,16,67,0,0,0,34,166,3,0,2,42,
+-	220,255,64,20,2,0,49,38,32,0,165,151,
+-	0,0,0,0,1,0,162,48,7,0,64,16,
+-	0,0,0,0,2,131,4,60,208,137,132,36,
+-	15,63,192,12,255,0,165,48,25,29,192,8,
+-	0,0,0,0,36,0,162,151,0,0,0,0,
+-	0,7,66,48,6,0,64,16,0,0,0,0,
+-	2,131,4,60,15,63,192,12,0,138,132,36,
+-	25,29,192,8,0,0,0,0,255,66,192,12,
+-	33,32,0,0,1,0,4,36,34,0,165,151,
+-	0,0,0,0,255,66,192,12,33,128,0,0,
+-	36,0,165,151,0,0,0,0,255,66,192,12,
+-	2,0,4,36,2,131,4,60,15,63,192,12,
+-	32,138,132,36,2,131,4,60,80,138,132,36,
+-	15,63,192,12,33,40,0,2,196,128,132,39,
+-	200,128,134,39,31,21,192,12,32,0,165,39,
+-	36,0,162,151,1,0,16,38,0,1,66,36,
+-	36,0,162,167,8,0,2,42,7,0,64,16,
+-	0,0,0,0,8,29,192,8,0,0,0,0,
+-	2,131,4,60,116,138,132,36,15,63,192,12,
+-	33,40,128,2,72,0,191,143,68,0,181,143,
+-	64,0,180,143,60,0,179,143,56,0,178,143,
+-	52,0,177,143,48,0,176,143,8,0,224,3,
+-	80,0,189,39,0,0,0,0,0,0,0,0,
+-	224,255,189,39,16,0,176,175,33,128,0,0,
+-	20,0,177,175,33,136,0,0,24,0,191,175,
+-	33,32,0,2,162,65,192,12,33,40,0,0,
+-	43,0,64,16,0,0,0,0,1,0,16,38,
+-	64,0,2,42,249,255,64,20,33,32,0,2,
+-	33,128,0,0,85,85,17,36,33,32,0,2,
+-	162,65,192,12,85,85,5,36,32,0,64,16,
+-	0,0,0,0,1,0,16,38,64,0,2,42,
+-	249,255,64,20,33,32,0,2,33,128,0,0,
+-	170,170,17,52,33,32,0,2,162,65,192,12,
+-	170,170,5,52,21,0,64,16,0,0,0,0,
+-	1,0,16,38,64,0,2,42,249,255,64,20,
+-	33,32,0,2,33,128,0,0,255,255,17,52,
+-	33,32,0,2,162,65,192,12,255,255,5,52,
+-	10,0,64,16,0,0,0,0,1,0,16,38,
+-	64,0,2,42,249,255,64,20,33,32,0,2,
+-	2,131,4,60,15,63,192,12,240,140,132,36,
+-	101,29,192,8,0,0,0,0,60,65,192,12,
+-	33,32,0,2,2,131,4,60,4,141,132,36,
+-	33,40,32,2,33,48,0,2,15,63,192,12,
+-	33,56,64,0,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	0,0,0,0,0,0,0,0,232,255,189,39,
+-	16,0,191,175,210,7,192,12,0,0,0,0,
+-	139,14,192,12,0,0,0,0,180,10,192,12,
+-	0,0,0,0,32,133,132,143,1,0,2,36,
+-	42,16,68,0,9,0,64,16,0,2,3,36,
+-	64,34,4,0,2,131,1,60,33,8,35,0,
+-	196,246,32,172,0,2,99,36,42,16,100,0,
+-	250,255,64,20,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	208,255,189,39,24,0,178,175,33,144,128,0,
+-	32,0,180,175,33,160,160,0,44,0,191,175,
+-	40,0,182,175,36,0,181,175,28,0,179,175,
+-	20,0,177,175,3,0,128,26,16,0,176,175,
+-	149,29,192,8,1,0,147,38,1,0,20,36,
+-	32,133,147,143,255,255,82,38,255,255,2,36,
+-	20,0,66,18,255,255,21,36,2,131,22,60,
+-	192,246,214,38,108,29,192,12,33,128,128,2,
+-	42,16,19,2,10,0,64,16,64,18,16,0,
+-	33,136,86,0,242,21,192,12,33,32,32,2,
+-	133,12,192,12,33,32,0,2,1,0,16,38,
+-	42,16,19,2,249,255,64,20,0,2,49,38,
+-	255,255,82,38,240,255,85,22,0,0,0,0,
+-	44,0,191,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	48,0,189,39,216,255,189,39,24,0,178,175,
+-	33,144,160,0,28,0,179,175,33,152,192,0,
+-	32,0,191,175,20,0,177,175,3,0,128,24,
+-	16,0,176,175,195,29,192,8,1,0,145,36,
+-	1,0,4,36,32,133,145,143,33,128,128,0,
+-	42,16,17,2,8,0,64,16,33,32,0,2,
+-	33,40,64,2,250,29,192,12,33,48,96,2,
+-	1,0,16,38,42,16,17,2,250,255,64,20,
+-	33,32,0,2,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,224,255,189,39,
+-	24,0,191,175,20,0,177,175,3,0,128,24,
+-	16,0,176,175,222,29,192,8,1,0,145,36,
+-	1,0,4,36,32,133,145,143,33,128,128,0,
+-	42,16,17,2,7,0,64,16,0,0,0,0,
+-	237,29,192,12,33,32,0,2,1,0,16,38,
+-	42,16,17,2,251,255,64,20,0,0,0,0,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,64,34,4,0,
+-	2,131,2,60,192,246,66,36,33,32,130,0,
+-	44,0,131,140,1,0,2,36,32,0,130,172,
+-	16,0,2,36,2,0,98,164,8,0,130,140,
+-	0,0,0,0,8,0,224,3,0,0,64,172,
+-	208,255,189,39,33,48,128,0,64,18,6,0,
+-	2,131,3,60,192,246,99,36,36,0,177,175,
+-	33,136,67,0,40,0,191,175,32,0,176,175,
+-	4,0,34,142,0,0,0,0,4,0,64,20,
+-	33,128,160,0,1,0,4,36,133,29,192,12,
+-	33,40,192,0,3,0,0,30,221,5,2,42,
+-	17,30,192,8,1,0,16,36,3,0,64,20,
+-	33,32,32,2,220,5,16,36,33,32,32,2,
+-	208,7,5,36,108,0,131,140,12,0,2,36,
+-	2,0,98,164,16,0,162,39,8,0,98,172,
+-	0,128,2,54,12,0,96,172,16,0,162,175,
+-	255,255,2,36,20,0,162,175,2,131,2,60,
+-	0,155,66,36,98,31,192,12,24,0,162,175,
+-	40,0,191,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,48,0,189,39,56,254,189,39,
+-	160,1,176,175,33,128,192,0,48,1,164,175,
+-	33,32,224,0,64,18,5,0,2,131,3,60,
+-	192,246,99,36,33,16,67,0,56,1,162,175,
+-	64,18,16,0,33,16,67,0,40,0,168,39,
+-	196,1,191,175,192,1,190,175,188,1,183,175,
+-	184,1,182,175,180,1,181,175,176,1,180,175,
+-	172,1,179,175,168,1,178,175,164,1,177,175,
+-	64,1,162,175,12,0,160,24,96,1,168,175,
+-	32,133,131,143,0,0,0,0,42,16,163,0,
+-	19,1,64,16,1,0,2,36,5,0,0,26,
+-	42,16,3,2,15,1,64,16,1,0,2,36,
+-	3,0,176,20,33,40,0,0,86,31,192,8,
+-	1,0,2,36,212,68,192,12,33,48,0,0,
+-	6,0,65,4,104,1,162,175,33,72,64,0,
+-	35,72,9,0,104,1,169,175,87,30,192,8,
+-	112,1,160,175,1,0,8,36,112,1,168,175,
+-	1,0,4,36,133,29,192,12,33,40,0,0,
+-	237,29,192,12,33,32,0,2,24,0,169,39,
+-	56,1,168,143,255,0,2,36,80,1,169,175,
+-	108,0,8,141,43,1,163,39,72,1,168,175,
+-	0,0,98,160,255,255,66,36,253,255,65,4,
+-	255,255,99,36,64,1,169,143,0,0,0,0,
+-	120,0,41,141,64,1,168,143,128,1,169,175,
+-	124,0,8,141,64,1,169,143,136,1,168,175,
+-	44,0,34,141,0,0,0,0,12,0,64,172,
+-	44,0,34,141,0,0,0,0,16,0,64,172,
+-	44,0,34,141,120,1,160,175,32,0,64,172,
+-	44,0,34,141,88,1,160,175,24,0,64,172,
+-	48,1,168,143,0,0,0,0,168,0,0,25,
+-	40,0,169,39,144,1,169,175,88,1,168,143,
+-	0,0,0,0,255,0,2,49,4,0,86,36,
+-	60,0,194,42,2,0,64,16,0,0,0,0,
+-	60,0,22,36,104,1,169,143,0,0,0,0,
+-	2,0,32,17,0,0,0,0,104,1,182,143,
+-	56,1,164,143,72,1,168,143,12,0,2,36,
+-	2,0,2,165,80,1,169,143,0,128,194,54,
+-	8,0,9,173,12,0,0,173,0,0,34,173,
+-	255,255,8,36,4,0,40,173,144,1,168,143,
+-	0,0,0,0,8,0,40,173,88,1,168,143,
+-	96,1,169,143,208,7,5,36,98,31,192,12,
+-	0,0,40,173,0,128,5,52,0,128,6,52,
+-	128,1,164,143,0,0,0,0,129,67,192,12,
+-	2,0,7,36,13,0,64,20,0,0,0,0,
+-	88,1,165,143,2,131,4,60,15,63,192,12,
+-	64,141,132,36,120,1,169,143,0,0,0,0,
+-	1,0,41,37,20,0,34,41,117,0,64,16,
+-	120,1,169,175,32,31,192,8,0,0,0,0,
+-	128,1,168,143,64,1,169,143,8,0,2,141,
+-	255,255,8,36,136,0,53,141,0,0,0,0,
+-	50,0,72,16,33,184,0,0,1,0,4,36,
+-	4,0,18,36,4,0,3,36,0,0,190,142,
+-	8,0,166,142,112,1,169,143,255,63,212,51,
+-	30,0,32,17,33,184,244,2,42,16,116,0,
+-	27,0,64,16,33,152,96,0,144,1,168,143,
+-	0,0,0,0,33,136,72,2,33,128,102,0,
+-	15,0,128,16,0,0,0,0,0,0,2,146,
+-	0,0,35,146,0,0,0,0,10,0,67,16,
+-	33,48,192,2,2,131,4,60,92,141,132,36,
+-	88,1,165,143,16,0,163,175,0,0,2,146,
+-	33,56,64,2,15,63,192,12,20,0,162,175,
+-	33,32,0,0,1,0,115,38,1,0,16,38,
+-	1,0,49,38,42,16,116,2,235,255,64,20,
+-	1,0,82,38,33,24,0,0,4,0,181,142,
+-	0,128,194,51,217,255,64,16,0,0,0,0,
+-	128,1,169,143,0,0,0,0,8,0,34,141,
+-	0,0,0,0,25,0,128,16,18,0,87,164,
+-	9,0,246,18,33,48,192,2,2,131,4,60,
+-	140,141,132,36,88,1,165,143,0,0,0,0,
+-	15,63,192,12,33,56,224,2,5,31,192,8,
+-	0,0,0,0,64,1,168,143,0,0,0,0,
+-	136,0,2,141,96,1,169,143,8,0,70,140,
+-	0,0,34,141,0,0,198,140,0,0,0,0,
+-	7,0,194,16,0,0,0,0,88,1,165,143,
+-	2,131,4,60,15,63,192,12,184,141,132,36,
+-	64,1,168,143,0,0,0,0,136,0,4,141,
+-	152,21,192,12,0,0,0,0,64,1,169,143,
+-	0,0,0,0,136,0,53,173,128,1,168,143,
+-	8,128,2,52,0,0,0,165,2,0,2,165,
+-	8,0,0,173,12,0,0,165,136,1,169,143,
+-	8,0,2,36,2,0,34,165,4,0,40,141,
+-	128,1,169,143,136,1,168,175,4,0,41,141,
+-	64,1,168,143,128,1,169,175,120,0,9,173,
+-	136,1,169,143,0,0,0,0,124,0,9,173,
+-	88,1,168,143,48,1,169,143,1,0,8,37,
+-	42,16,9,1,91,255,64,20,88,1,168,175,
+-	64,1,168,143,0,0,0,0,44,0,3,141,
+-	0,0,0,0,12,0,98,140,0,0,0,0,
+-	5,0,64,16,0,0,0,0,12,0,101,140,
+-	2,131,4,60,15,63,192,12,212,141,132,36,
+-	64,1,169,143,0,0,0,0,44,0,35,141,
+-	0,0,0,0,16,0,98,140,0,0,0,0,
+-	5,0,64,16,0,0,0,0,16,0,101,140,
+-	2,131,4,60,15,63,192,12,240,141,132,36,
+-	64,1,168,143,0,0,0,0,44,0,3,141,
+-	0,0,0,0,32,0,98,140,0,0,0,0,
+-	5,0,64,16,0,0,0,0,32,0,101,140,
+-	2,131,4,60,15,63,192,12,16,142,132,36,
+-	64,1,169,143,0,0,0,0,44,0,35,141,
+-	0,0,0,0,24,0,98,140,0,0,0,0,
+-	5,0,64,16,0,0,0,0,24,0,101,140,
+-	2,131,4,60,15,63,192,12,48,142,132,36,
+-	196,1,191,143,192,1,190,143,188,1,183,143,
+-	184,1,182,143,180,1,181,143,176,1,180,143,
+-	172,1,179,143,168,1,178,143,164,1,177,143,
+-	160,1,176,143,8,0,224,3,200,1,189,39,
+-	224,255,189,39,16,0,176,175,33,128,128,0,
+-	24,0,191,175,20,0,177,175,44,0,4,142,
+-	0,0,0,0,0,0,130,148,0,0,0,0,
+-	0,32,66,48,7,0,64,20,33,136,160,0,
+-	0,0,133,148,2,131,4,60,15,63,192,12,
+-	80,142,132,36,156,31,192,8,3,0,2,36,
+-	2,0,132,36,33,40,0,0,33,48,0,0,
+-	129,67,192,12,33,56,32,2,13,0,64,16,
+-	33,40,0,0,44,0,3,142,0,33,2,36,
+-	2,0,98,164,8,0,2,142,33,48,0,0,
+-	0,0,64,172,44,0,4,142,33,56,32,2,
+-	129,67,192,12,2,0,132,36,9,0,64,20,
+-	0,32,5,36,44,0,2,142,0,0,0,0,
+-	2,0,69,148,2,131,4,60,15,63,192,12,
+-	108,142,132,36,156,31,192,8,1,0,2,36,
+-	44,0,4,142,0,32,6,36,129,67,192,12,
+-	33,56,32,2,8,0,64,20,33,16,0,0,
+-	44,0,2,142,0,0,0,0,0,0,69,148,
+-	2,131,4,60,15,63,192,12,132,142,132,36,
+-	2,0,2,36,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	224,255,189,39,24,0,178,175,33,144,160,0,
+-	28,0,191,175,20,0,177,175,7,0,128,4,
+-	16,0,176,175,24,133,130,143,0,0,0,0,
+-	255,255,66,36,42,16,68,0,4,0,64,16,
+-	33,136,128,0,24,133,130,143,33,32,0,0,
+-	255,255,81,36,33,128,128,0,42,16,48,2,
+-	7,0,64,20,33,32,0,2,193,31,192,12,
+-	33,40,64,2,1,0,16,38,42,16,48,2,
+-	251,255,64,16,33,32,0,2,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,8,0,224,3,
+-	0,0,0,0,232,255,189,39,16,0,191,175,
+-	236,63,192,12,1,16,4,36,85,0,2,36,
+-	131,131,1,60,128,18,34,160,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	216,255,189,39,28,0,177,175,33,136,128,0,
+-	32,0,178,175,33,144,160,0,212,128,132,39,
+-	36,0,191,175,15,63,192,12,24,0,176,175,
+-	9,0,64,26,33,128,0,0,0,0,37,146,
+-	1,0,49,38,220,128,132,39,15,63,192,12,
+-	1,0,16,38,42,16,18,2,249,255,64,20,
+-	0,0,0,0,228,128,132,39,15,63,192,12,
+-	0,0,0,0,36,0,191,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	40,0,189,39,48,255,189,39,33,56,128,0,
+-	192,0,178,175,33,144,160,0,200,0,180,175,
+-	33,160,192,0,255,255,226,36,6,0,66,44,
+-	204,0,191,175,196,0,179,175,188,0,177,175,
+-	2,0,64,20,184,0,176,175,1,0,7,36,
+-	2,0,64,30,0,0,0,0,1,0,18,36,
+-	2,0,128,30,64,18,7,0,60,0,20,36,
+-	2,131,3,60,192,246,99,36,33,136,67,0,
+-	4,0,34,142,0,0,0,0,4,0,64,20,
+-	33,152,64,2,1,0,4,36,133,29,192,12,
+-	33,40,224,0,255,31,4,60,255,255,132,52,
+-	0,128,133,54,120,0,162,39,36,16,68,0,
+-	0,160,3,60,37,16,67,0,104,0,165,175,
+-	108,0,160,175,112,0,162,175,12,0,2,36,
+-	80,0,160,167,82,0,162,167,80,0,162,39,
+-	36,16,68,0,37,128,67,0,104,0,162,39,
+-	36,16,68,0,232,128,132,143,37,16,67,0,
+-	84,0,176,175,88,0,162,175,92,0,160,175,
+-	5,0,128,16,4,0,2,36,82,0,162,167,
+-	255,255,2,36,92,0,165,175,88,0,162,175,
+-	44,0,34,142,0,0,0,0,0,0,66,148,
+-	0,0,0,0,0,32,66,48,7,0,64,20,
+-	33,40,0,0,255,255,4,36,2,131,5,60,
+-	184,142,165,36,188,7,192,12,208,1,6,36,
+-	33,40,0,0,44,0,34,142,33,48,0,0,
+-	4,0,80,172,44,0,36,142,208,7,7,36,
+-	129,67,192,12,2,0,132,36,12,0,64,20,
+-	0,0,0,0,44,0,34,142,0,0,0,0,
+-	2,0,69,148,2,131,4,60,15,63,192,12,
+-	108,142,132,36,255,255,4,36,2,131,5,60,
+-	184,142,165,36,188,7,192,12,216,1,6,36,
+-	34,11,192,12,1,0,4,36,0,163,16,60,
+-	4,1,16,142,0,163,2,60,4,1,66,140,
+-	0,0,0,0,252,255,2,18,0,33,3,36,
+-	44,0,34,142,0,0,0,0,2,0,67,164,
+-	8,0,34,142,0,0,0,0,0,0,64,172,
+-	0,163,16,60,4,1,16,142,44,0,36,142,
+-	0,0,0,0,4,0,130,140,0,0,0,0,
+-	0,0,66,148,0,0,0,0,0,128,66,48,
+-	10,0,64,20,0,0,0,0,44,0,35,142,
+-	0,0,0,0,4,0,98,140,0,0,0,0,
+-	0,0,66,148,0,0,0,0,0,128,66,48,
+-	250,255,64,16,0,0,0,0,255,255,115,38,
+-	19,0,96,18,33,40,64,2,44,0,35,142,
+-	0,0,0,0,4,0,98,140,0,0,0,0,
+-	0,0,66,148,0,0,0,0,0,128,66,48,
+-	229,255,64,16,0,0,0,0,4,0,98,140,
+-	0,0,0,0,0,0,66,148,0,0,0,0,
+-	0,128,66,48,250,255,64,20,0,0,0,0,
+-	89,32,192,8,0,0,0,0,2,131,4,60,
+-	200,142,132,36,33,48,128,2,0,163,3,60,
+-	4,1,99,140,0,128,2,52,82,0,162,167,
+-	35,128,112,0,15,63,192,12,33,56,0,2,
+-	19,0,0,18,64,41,18,0,35,40,178,0,
+-	128,40,5,0,33,40,178,0,192,40,5,0,
+-	26,0,176,0,2,0,0,22,0,0,0,0,
+-	13,0,7,0,255,255,1,36,4,0,1,22,
+-	0,128,1,60,2,0,161,20,0,0,0,0,
+-	13,0,6,0,18,40,0,0,236,128,132,39,
+-	15,63,192,12,0,0,0,0,204,0,191,143,
+-	200,0,180,143,196,0,179,143,192,0,178,143,
+-	188,0,177,143,184,0,176,143,8,0,224,3,
+-	208,0,189,39,224,255,189,39,20,0,177,175,
+-	33,136,128,0,24,0,191,175,180,10,192,12,
+-	16,0,176,175,34,11,192,12,1,0,4,36,
+-	16,133,132,143,0,163,16,60,4,1,16,142,
+-	193,63,192,12,0,0,0,0,0,163,2,60,
+-	4,1,66,140,0,0,0,0,35,40,80,0,
+-	73,252,162,36,99,0,66,44,4,0,64,16,
+-	0,0,0,0,2,131,4,60,196,32,192,8,
+-	0,143,132,36,5,0,160,20,0,0,0,0,
+-	2,131,4,60,36,143,132,36,196,32,192,8,
+-	33,40,0,0,2,131,4,60,76,143,132,36,
+-	15,63,192,12,1,0,16,36,3,0,48,18,
+-	0,0,0,0,34,11,192,12,33,32,0,0,
+-	0,129,144,175,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	200,255,189,39,32,0,178,175,33,144,128,0,
+-	33,48,64,2,44,0,181,175,1,131,21,60,
+-	60,252,181,38,33,56,160,2,40,0,180,175,
+-	2,131,20,60,144,143,148,38,36,0,179,175,
+-	0,163,19,60,120,1,115,142,0,163,3,60,
+-	120,1,99,140,32,131,2,60,48,0,191,175,
+-	28,0,177,175,24,0,176,175,16,0,180,175,
+-	33,32,96,2,35,136,67,0,84,64,192,12,
+-	33,40,32,2,3,0,64,18,33,128,64,0,
+-	10,0,0,22,0,0,0,0,16,0,180,175,
+-	33,32,96,2,33,40,32,2,33,48,64,2,
+-	244,63,192,12,33,56,160,2,33,128,2,2,
+-	5,0,0,18,33,40,96,2,2,131,4,60,
+-	168,143,132,36,252,32,192,8,33,40,96,2,
+-	2,131,4,60,204,143,132,36,15,63,192,12,
+-	33,48,177,0,48,0,191,143,44,0,181,143,
+-	40,0,180,143,36,0,179,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	56,0,189,39,0,163,1,60,232,5,36,172,
+-	0,163,1,60,8,0,224,3,236,5,37,172,
+-	28,129,132,175,8,0,224,3,0,0,0,0,
+-	16,129,132,175,8,0,224,3,0,0,0,0,
+-	15,0,132,48,20,129,132,175,8,0,224,3,
+-	0,0,0,0,24,129,132,175,8,0,224,3,
+-	0,0,0,0,32,129,132,175,8,0,224,3,
+-	0,0,0,0,33,72,128,0,33,80,160,0,
+-	33,88,192,0,7,162,4,60,48,1,132,52,
+-	7,162,8,60,0,1,8,53,20,129,130,143,
+-	24,129,131,143,128,48,2,0,28,129,130,143,
+-	3,0,197,52,2,0,96,16,0,0,130,172,
+-	67,0,197,52,16,129,130,143,0,0,0,0,
+-	2,0,64,16,33,24,160,0,0,1,99,52,
+-	36,129,130,143,0,0,0,0,2,0,64,16,
+-	0,0,0,0,0,4,99,52,32,129,130,143,
+-	0,0,3,173,3,0,64,16,7,162,5,60,
+-	0,0,2,173,7,162,5,60,4,1,165,52,
+-	7,162,6,60,8,1,198,52,255,0,2,60,
+-	255,255,66,52,7,162,3,60,12,1,99,52,
+-	7,162,4,60,16,1,132,52,36,16,66,1,
+-	0,0,169,172,0,0,194,172,43,16,7,0,
+-	192,16,2,0,0,0,107,172,8,0,224,3,
+-	0,0,130,172,7,162,3,60,40,1,99,52,
+-	3,0,2,36,0,163,1,60,20,1,32,172,
+-	8,0,224,3,0,0,98,172,232,255,189,39,
+-	16,0,191,175,33,24,0,0,7,162,6,60,
+-	40,1,198,52,15,0,4,60,63,66,132,52,
+-	0,0,197,140,0,0,0,0,16,0,162,48,
+-	7,0,64,20,1,0,99,36,42,16,131,0,
+-	249,255,64,16,0,0,0,0,2,131,4,60,
+-	122,33,192,8,240,143,132,36,36,129,130,143,
+-	0,0,0,0,3,0,64,20,33,24,0,0,
+-	125,33,192,8,33,16,0,0,1,0,5,36,
+-	15,0,4,60,63,66,132,52,0,163,2,60,
+-	20,1,66,140,0,0,0,0,247,255,69,16,
+-	1,0,99,36,42,16,131,0,249,255,64,16,
+-	0,0,0,0,0,163,5,60,20,1,165,140,
+-	2,131,4,60,24,144,132,36,15,63,192,12,
+-	0,0,0,0,1,0,2,36,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	224,255,189,39,24,0,191,175,33,72,192,0,
+-	255,31,3,60,255,255,99,52,33,64,0,0,
+-	36,32,131,0,0,160,2,60,37,32,130,0,
+-	36,40,163,0,16,0,32,25,37,40,162,0,
+-	0,0,134,144,0,0,167,144,0,0,0,0,
+-	7,0,199,16,1,0,165,36,2,131,4,60,
+-	72,144,132,36,15,63,192,12,33,40,0,1,
+-	157,33,192,8,1,0,2,36,1,0,8,37,
+-	42,16,9,1,242,255,64,20,1,0,132,36,
+-	33,16,0,0,24,0,191,143,32,0,189,39,
+-	8,0,224,3,0,0,0,0,0,163,2,60,
+-	232,5,66,140,152,255,189,39,80,0,180,175,
+-	120,0,180,143,64,0,176,175,33,128,160,0,
+-	68,0,177,175,33,136,192,0,72,0,178,175,
+-	33,144,224,0,100,0,191,175,96,0,190,175,
+-	92,0,183,175,88,0,182,175,84,0,181,175,
+-	76,0,179,175,12,0,64,16,16,0,164,175,
+-	0,163,2,60,236,5,66,140,0,0,0,0,
+-	7,0,64,16,0,0,0,0,0,163,2,60,
+-	236,5,66,140,0,0,0,0,1,8,66,44,
+-	10,0,64,20,16,0,2,60,0,163,5,60,
+-	232,5,165,140,0,163,6,60,236,5,198,140,
+-	2,131,4,60,15,63,192,12,124,144,132,36,
+-	7,35,192,8,0,0,0,0,16,0,168,143,
+-	0,0,0,0,43,16,72,0,6,0,64,16,
+-	0,0,0,0,2,131,4,60,15,63,192,12,
+-	172,144,132,36,7,35,192,8,0,0,0,0,
+-	224,132,130,143,0,0,0,0,11,0,64,20,
+-	0,0,0,0,0,163,4,60,236,5,132,140,
+-	13,8,192,12,0,0,0,0,255,31,3,60,
+-	255,255,99,52,36,16,67,0,0,160,3,60,
+-	37,16,67,0,224,132,130,175,228,132,130,143,
+-	0,0,0,0,11,0,64,20,0,0,0,0,
+-	0,163,4,60,236,5,132,140,13,8,192,12,
+-	0,0,0,0,255,31,3,60,255,255,99,52,
+-	36,16,67,0,0,160,3,60,37,16,67,0,
+-	228,132,130,175,224,132,133,143,0,163,6,60,
+-	232,5,198,140,228,132,135,143,2,131,4,60,
+-	15,63,192,12,208,144,132,36,16,129,133,143,
+-	20,129,134,143,2,131,4,60,15,63,192,12,
+-	8,145,132,36,7,162,2,60,232,0,66,52,
+-	0,0,83,140,1,0,3,130,105,0,2,36,
+-	7,0,98,20,251,255,2,60,1,0,2,36,
+-	36,129,130,175,4,0,2,60,0,8,66,52,
+-	10,34,192,8,37,152,98,2,36,129,128,175,
+-	255,247,66,52,36,152,98,2,7,162,2,60,
+-	232,0,66,52,0,0,83,172,0,0,5,130,
+-	114,0,2,36,3,0,162,16,82,0,2,36,
+-	3,0,162,20,119,0,2,36,42,34,192,8,
+-	33,176,0,0,3,0,162,16,87,0,2,36,
+-	3,0,162,20,108,0,2,36,42,34,192,8,
+-	1,0,22,36,3,0,162,16,76,0,2,36,
+-	3,0,162,20,116,0,2,36,42,34,192,8,
+-	2,0,22,36,118,0,162,16,84,0,2,36,
+-	116,0,162,16,0,0,0,0,2,131,4,60,
+-	15,63,192,12,52,145,132,36,7,35,192,8,
+-	0,0,0,0,0,0,38,130,0,0,0,0,
+-	12,0,192,16,99,0,2,36,3,0,194,16,
+-	67,0,2,36,4,0,194,20,33,152,0,0,
+-	5,0,19,36,61,34,192,8,5,0,21,36,
+-	2,131,1,60,80,155,50,160,61,34,192,8,
+-	33,168,0,0,33,168,0,0,5,0,19,36,
+-	2,131,1,60,80,155,32,160,16,0,168,143,
+-	0,163,18,60,236,5,82,142,0,0,0,0,
+-	197,0,0,17,255,255,20,37,255,255,194,38,
+-	2,0,87,44,2,0,30,36,33,128,160,2,
+-	42,16,112,2,73,0,64,20,0,0,0,0,
+-	42,0,224,18,5,0,2,36,13,0,2,22,
+-	0,0,0,0,25,0,64,26,33,136,0,0,
+-	224,132,130,143,0,0,0,0,33,16,81,0,
+-	0,0,81,160,1,0,49,38,42,16,50,2,
+-	249,255,64,20,33,48,64,2,105,34,192,8,
+-	0,0,0,0,2,131,3,60,33,24,112,0,
+-	80,155,99,144,0,0,0,0,9,0,64,26,
+-	33,136,0,0,224,132,130,143,0,0,0,0,
+-	33,16,81,0,1,0,49,38,0,0,67,160,
+-	42,16,50,2,249,255,64,20,0,0,0,0,
+-	33,48,64,2,0,163,4,60,232,5,132,140,
+-	224,132,133,143,0,0,0,0,28,33,192,12,
+-	1,0,7,36,76,33,192,12,0,0,0,0,
+-	83,33,192,12,0,0,0,0,147,0,64,20,
+-	0,0,0,0,3,0,192,18,33,48,64,2,
+-	22,0,222,22,0,0,0,0,0,163,4,60,
+-	232,5,132,140,228,132,133,143,0,0,0,0,
+-	28,33,192,12,33,56,0,0,76,33,192,12,
+-	0,0,0,0,83,33,192,12,0,0,0,0,
+-	131,0,64,20,0,0,0,0,8,0,222,22,
+-	0,0,0,0,224,132,132,143,228,132,133,143,
+-	0,0,0,0,129,33,192,12,33,48,64,2,
+-	122,0,64,20,0,0,0,0,1,0,16,38,
+-	42,16,112,2,185,255,64,16,0,0,0,0,
+-	255,255,148,38,255,255,2,36,178,255,130,22,
+-	33,128,160,2,7,35,192,8,0,0,0,0,
+-	180,10,192,12,0,0,0,0,34,11,192,12,
+-	1,0,4,36,0,0,34,130,0,0,0,0,
+-	6,0,64,16,33,184,0,0,24,0,160,175,
+-	2,131,1,60,88,155,52,164,171,34,192,8,
+-	33,176,0,0,6,0,23,36,4,0,2,36,
+-	24,0,160,175,2,131,1,60,88,155,34,164,
+-	33,176,0,0,0,8,30,36,24,0,177,143,
+-	0,0,0,0,42,16,241,2,83,0,64,20,
+-	64,16,17,0,2,131,8,60,88,155,8,37,
+-	33,168,72,0,0,0,178,150,0,0,0,0,
+-	26,0,210,3,2,0,64,22,0,0,0,0,
+-	13,0,7,0,255,255,1,36,4,0,65,22,
+-	0,128,1,60,2,0,193,23,0,0,0,0,
+-	13,0,6,0,18,16,0,0,16,0,168,143,
+-	0,0,0,0,24,0,72,0,33,56,192,2,
+-	33,128,0,0,0,163,19,60,4,1,115,142,
+-	0,163,4,60,232,5,132,140,224,132,133,143,
+-	18,160,0,0,0,0,0,0,0,0,0,0,
+-	28,33,192,12,33,48,64,2,10,0,128,26,
+-	0,0,0,0,76,33,192,12,0,0,0,0,
+-	83,33,192,12,0,0,0,0,48,0,64,20,
+-	1,0,16,38,42,16,20,2,248,255,64,20,
+-	0,0,0,0,2,131,5,60,140,145,165,36,
+-	0,163,16,60,4,1,16,142,3,0,192,18,
+-	0,0,0,0,2,131,5,60,128,145,165,36,
+-	2,131,4,60,96,145,132,36,15,63,192,12,
+-	33,48,64,2,19,0,19,18,24,0,146,2,
+-	18,24,0,0,35,16,19,2,0,0,0,0,
+-	27,0,98,0,2,0,64,20,0,0,0,0,
+-	13,0,7,0,18,16,0,0,2,131,4,60,
+-	152,145,132,36,64,41,2,0,35,40,162,0,
+-	128,40,5,0,33,40,162,0,15,63,192,12,
+-	192,40,5,0,255,34,192,8,2,0,181,38,
+-	2,131,4,60,168,145,132,36,15,63,192,12,
+-	2,0,181,38,1,0,49,38,42,16,241,2,
+-	178,255,64,16,0,0,0,0,1,0,214,38,
+-	2,0,194,42,166,255,64,20,0,0,0,0,
+-	100,0,191,143,96,0,190,143,92,0,183,143,
+-	88,0,182,143,84,0,181,143,80,0,180,143,
+-	76,0,179,143,72,0,178,143,68,0,177,143,
+-	64,0,176,143,8,0,224,3,104,0,189,39,
+-	0,0,0,0,43,16,134,0,0,0,164,175,
+-	4,0,165,175,8,0,166,175,7,0,64,20,
+-	12,0,167,175,43,16,196,0,5,0,64,20,
+-	1,0,2,36,43,16,167,0,2,0,64,16,
+-	43,16,229,0,255,255,2,36,8,0,224,3,
+-	0,0,0,0,232,255,189,39,3,131,4,60,
+-	208,12,132,36,170,0,5,36,16,0,191,175,
+-	144,71,192,12,60,0,6,36,2,131,6,60,
+-	112,155,198,36,2,131,2,60,212,246,66,140,
+-	2,131,3,60,216,246,99,132,0,0,194,172,
+-	4,0,195,164,2,131,2,60,138,155,66,148,
+-	2,131,3,60,132,155,99,148,2,131,4,60,
+-	134,155,132,148,2,131,5,60,136,155,165,148,
+-	3,131,1,60,216,12,34,164,2,131,2,60,
+-	130,155,66,148,3,131,10,60,218,12,74,37,
+-	3,0,199,136,0,0,199,152,4,0,200,128,
+-	5,0,201,128,3,0,71,169,0,0,71,185,
+-	4,0,72,161,5,0,73,161,3,131,1,60,
+-	238,12,35,164,3,131,1,60,242,12,36,164,
+-	3,131,1,60,246,12,37,164,3,131,1,60,
+-	240,12,34,164,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,3,131,2,60,
+-	216,12,66,140,3,131,3,60,220,12,99,140,
+-	3,131,1,60,208,12,34,172,3,131,1,60,
+-	212,12,35,172,3,131,2,60,238,12,66,148,
+-	3,131,3,60,240,12,99,148,3,131,4,60,
+-	242,12,132,148,232,255,189,39,16,0,176,175,
+-	3,131,1,60,234,12,35,164,24,133,131,143,
+-	20,0,191,175,3,131,1,60,224,12,32,172,
+-	3,131,1,60,228,12,32,172,3,131,1,60,
+-	248,12,32,172,3,131,1,60,252,12,32,172,
+-	3,131,1,60,8,13,32,164,3,131,1,60,
+-	4,13,32,164,3,131,1,60,232,12,34,164,
+-	33,16,68,0,3,131,1,60,236,12,36,164,
+-	3,131,1,60,244,12,34,164,8,0,96,24,
+-	1,0,16,36,150,35,192,12,33,32,0,2,
+-	24,133,130,143,1,0,16,38,42,16,80,0,
+-	250,255,64,16,0,0,0,0,206,35,192,12,
+-	0,0,0,0,52,36,192,12,0,0,0,0,
+-	1,0,2,36,3,131,1,60,0,13,34,164,
+-	3,0,2,36,3,131,1,60,2,13,32,164,
+-	3,131,1,60,20,13,34,172,2,131,1,60,
+-	164,247,34,172,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,224,255,189,39,
+-	20,0,177,175,33,136,128,0,16,0,176,175,
+-	192,129,17,0,3,131,4,60,16,13,132,36,
+-	33,32,4,2,187,0,5,36,24,0,191,175,
+-	144,71,192,12,128,0,6,36,2,131,2,60,
+-	140,155,66,148,100,0,3,36,3,131,1,60,
+-	33,8,48,0,24,13,35,172,0,18,2,0,
+-	37,16,34,2,3,131,1,60,33,8,48,0,
+-	16,13,34,164,22,36,192,12,33,32,32,2,
+-	4,0,2,36,64,138,17,0,3,131,1,60,
+-	33,8,48,0,20,13,34,172,2,131,1,60,
+-	33,8,49,0,164,247,34,172,3,131,1,60,
+-	33,8,48,0,52,13,32,172,3,131,1,60,
+-	33,8,48,0,56,13,32,172,3,131,1,60,
+-	33,8,48,0,106,13,32,164,3,131,1,60,
+-	33,8,48,0,110,13,32,164,3,131,1,60,
+-	33,8,48,0,114,13,32,164,3,131,1,60,
+-	33,8,48,0,120,13,32,172,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,24,133,130,143,216,255,189,39,
+-	20,0,177,175,1,0,17,36,36,0,191,175,
+-	32,0,180,175,28,0,179,175,24,0,178,175,
+-	55,0,64,24,16,0,176,175,3,131,20,60,
+-	228,12,148,38,3,131,2,60,56,13,66,36,
+-	128,0,83,36,124,0,82,36,128,0,16,36,
+-	0,0,130,142,0,0,0,0,6,0,34,22,
+-	33,32,32,2,0,0,64,174,101,36,192,12,
+-	0,0,96,174,8,36,192,8,128,0,115,38,
+-	3,131,4,60,33,32,144,0,40,13,132,140,
+-	3,131,5,60,33,40,176,0,44,13,165,140,
+-	244,255,134,142,248,255,135,142,20,35,192,12,
+-	0,0,0,0,17,0,64,20,33,32,32,2,
+-	3,131,3,60,33,24,112,0,48,13,99,148,
+-	3,131,2,60,33,16,80,0,16,13,66,148,
+-	0,0,0,0,8,0,98,20,0,0,0,0,
+-	3,131,1,60,33,8,48,0,106,13,32,164,
+-	101,36,192,12,33,32,32,2,8,36,192,8,
+-	128,0,115,38,0,0,64,174,125,36,192,12,
+-	0,0,96,174,128,0,115,38,128,0,82,38,
+-	24,133,130,143,1,0,49,38,42,16,81,0,
+-	210,255,64,16,128,0,16,38,36,0,191,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,192,33,4,0,3,131,2,60,
+-	28,13,66,36,33,24,130,0,3,131,5,60,
+-	208,12,165,140,3,131,6,60,212,12,198,140,
+-	0,0,101,172,4,0,102,172,12,0,66,36,
+-	3,131,3,60,224,12,99,140,33,16,130,0,
+-	3,131,1,60,33,8,36,0,36,13,35,172,
+-	3,131,3,60,216,12,99,140,3,131,5,60,
+-	220,12,165,140,0,0,67,172,4,0,69,172,
+-	3,131,2,60,33,16,68,0,16,13,66,148,
+-	3,131,1,60,33,8,36,0,8,0,224,3,
+-	48,13,34,164,24,133,130,143,224,255,189,39,
+-	20,0,177,175,1,0,17,36,24,0,191,175,
+-	38,0,64,24,16,0,176,175,128,0,16,36,
+-	3,131,4,60,33,32,144,0,40,13,132,140,
+-	3,131,5,60,33,40,176,0,44,13,165,140,
+-	3,131,6,60,216,12,198,140,3,131,7,60,
+-	220,12,231,140,20,35,192,12,0,0,0,0,
+-	18,0,64,20,0,0,0,0,3,131,3,60,
+-	33,24,112,0,48,13,99,148,3,131,2,60,
+-	33,16,80,0,16,13,66,148,0,0,0,0,
+-	9,0,98,20,0,0,0,0,3,131,2,60,
+-	33,16,80,0,20,13,66,140,0,0,0,0,
+-	3,0,64,16,0,0,0,0,203,36,192,12,
+-	33,32,32,2,24,133,130,143,1,0,49,38,
+-	42,16,81,0,221,255,64,16,128,0,16,38,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,192,41,4,0,
+-	3,131,3,60,33,24,101,0,20,13,99,140,
+-	4,0,2,36,16,0,98,20,240,255,189,39,
+-	1,0,2,36,64,26,4,0,3,131,1,60,
+-	33,8,37,0,20,13,34,172,2,131,1,60,
+-	33,8,35,0,164,247,34,172,1,0,2,36,
+-	3,131,1,60,33,8,37,0,110,13,34,164,
+-	3,131,1,60,33,8,37,0,112,13,32,164,
+-	8,0,224,3,16,0,189,39,224,255,189,39,
+-	24,0,178,175,33,144,128,0,16,0,176,175,
+-	192,129,18,0,28,0,191,175,20,0,177,175,
+-	3,131,2,60,33,16,80,0,20,13,66,140,
+-	0,0,0,0,18,0,64,16,4,0,17,36,
+-	16,0,81,16,254,255,66,36,2,0,66,44,
+-	4,0,64,16,64,18,18,0,161,36,192,12,
+-	0,0,0,0,64,18,18,0,3,131,1,60,
+-	33,8,48,0,20,13,49,172,2,131,1,60,
+-	33,8,34,0,164,247,49,172,3,131,1,60,
+-	33,8,48,0,110,13,32,164,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,3,131,4,60,
+-	208,12,132,140,3,131,5,60,212,12,165,140,
+-	3,131,6,60,216,12,198,140,3,131,7,60,
+-	220,12,231,140,232,255,189,39,16,0,191,175,
+-	20,35,192,12,0,0,0,0,10,0,64,20,
+-	1,0,2,36,3,131,1,60,252,12,34,172,
+-	1,0,2,36,3,131,1,60,4,13,34,164,
+-	3,131,1,60,6,13,32,164,197,36,192,8,
+-	1,0,2,36,3,131,2,60,248,12,66,140,
+-	0,0,0,0,9,0,64,20,1,0,2,36,
+-	72,37,192,12,0,0,0,0,1,0,2,36,
+-	3,131,1,60,8,13,34,164,3,131,1,60,
+-	10,13,32,164,1,0,2,36,3,131,1,60,
+-	248,12,34,172,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,224,255,189,39,
+-	20,0,177,175,33,136,128,0,16,0,176,175,
+-	192,129,17,0,24,0,191,175,3,131,2,60,
+-	33,16,80,0,114,13,66,132,0,0,0,0,
+-	5,0,64,16,1,0,2,36,3,131,1,60,
+-	33,8,48,0,67,37,192,8,56,13,34,172,
+-	3,131,4,60,208,12,132,36,3,131,2,60,
+-	64,13,66,36,33,24,2,2,3,131,1,60,
+-	33,8,48,0,60,13,32,164,0,0,133,140,
+-	4,0,134,140,0,0,101,172,4,0,102,172,
+-	12,0,66,36,3,131,3,60,224,12,99,140,
+-	33,16,2,2,3,131,1,60,33,8,48,0,
+-	72,13,35,172,3,131,3,60,216,12,99,140,
+-	3,131,5,60,220,12,165,140,0,0,67,172,
+-	4,0,69,172,3,131,2,60,33,16,80,0,
+-	16,13,66,148,3,131,1,60,33,8,48,0,
+-	84,13,34,164,0,0,132,140,3,131,5,60,
+-	212,12,165,140,3,131,6,60,216,12,198,140,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,5,0,64,20,0,0,0,0,
+-	3,131,1,60,33,8,48,0,22,37,192,8,
+-	86,13,32,164,3,131,2,60,228,12,66,140,
+-	2,131,3,60,128,155,99,148,192,17,2,0,
+-	3,131,1,60,33,8,34,0,108,13,34,148,
+-	0,0,0,0,33,16,67,0,3,131,1,60,
+-	33,8,48,0,86,13,34,164,3,131,2,60,
+-	232,12,66,148,192,129,17,0,3,131,1,60,
+-	33,8,48,0,88,13,34,164,3,131,2,60,
+-	234,12,66,148,33,32,32,2,3,131,1,60,
+-	33,8,48,0,90,13,34,164,3,131,3,60,
+-	236,12,99,148,3,131,2,60,33,16,80,0,
+-	52,13,66,140,3,131,5,60,60,13,165,36,
+-	3,131,1,60,33,8,48,0,52,13,32,172,
+-	3,131,1,60,33,8,48,0,96,13,34,172,
+-	3,131,1,60,33,8,48,0,92,13,35,164,
+-	3,131,2,60,252,12,66,140,3,131,1,60,
+-	33,8,48,0,100,13,34,172,80,40,192,12,
+-	33,40,5,2,1,0,2,36,3,131,1,60,
+-	33,8,48,0,56,13,32,172,3,131,1,60,
+-	33,8,48,0,114,13,34,164,3,131,1,60,
+-	33,8,48,0,116,13,32,164,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,128,0,2,36,
+-	3,131,4,60,228,12,132,140,3,131,5,60,
+-	104,13,165,36,16,0,191,175,192,25,4,0,
+-	3,131,1,60,33,8,35,0,104,13,34,164,
+-	151,40,192,12,33,40,101,0,2,131,4,60,
+-	15,63,192,12,12,146,132,36,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,16,0,191,175,102,37,192,12,
+-	0,0,0,0,13,38,192,12,0,0,0,0,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,24,133,130,143,208,255,189,39,
+-	24,0,178,175,33,144,0,0,28,0,179,175,
+-	1,0,19,36,44,0,191,175,40,0,182,175,
+-	36,0,181,175,32,0,180,175,20,0,177,175,
+-	110,0,64,24,16,0,176,175,3,131,21,60,
+-	216,12,181,38,3,131,22,60,16,13,214,38,
+-	128,0,208,38,128,0,20,36,192,17,18,0,
+-	3,131,4,60,33,32,148,0,40,13,132,140,
+-	3,131,5,60,33,40,180,0,44,13,165,140,
+-	0,0,166,142,3,131,7,60,220,12,231,140,
+-	0,0,0,0,20,35,192,12,33,136,86,0,
+-	10,0,64,20,0,0,0,0,3,131,3,60,
+-	33,24,116,0,48,13,99,148,3,131,2,60,
+-	33,16,84,0,16,13,66,148,0,0,0,0,
+-	74,0,98,16,0,0,0,0,4,0,2,142,
+-	0,0,0,0,70,0,64,16,0,0,0,0,
+-	12,0,4,142,16,0,5,142,0,0,166,142,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,61,0,65,4,0,0,0,0,
+-	58,0,64,18,0,0,0,0,12,0,4,142,
+-	16,0,5,142,12,0,38,142,16,0,39,142,
+-	20,35,192,12,0,0,0,0,50,0,64,4,
+-	0,0,0,0,12,0,4,142,16,0,5,142,
+-	12,0,38,142,16,0,39,142,20,35,192,12,
+-	0,0,0,0,43,0,64,20,0,0,0,0,
+-	20,0,5,142,8,0,3,142,20,0,36,142,
+-	8,0,34,142,33,40,163,0,33,32,130,0,
+-	43,16,164,0,33,0,64,20,0,0,0,0,
+-	32,0,164,20,0,0,0,0,24,0,4,142,
+-	28,0,5,142,24,0,38,142,28,0,39,142,
+-	20,35,192,12,0,0,0,0,23,0,64,4,
+-	0,0,0,0,24,0,4,142,28,0,5,142,
+-	24,0,38,142,28,0,39,142,20,35,192,12,
+-	0,0,0,0,16,0,64,20,0,0,0,0,
+-	32,0,4,150,32,0,35,150,0,0,0,0,
+-	43,16,131,0,9,0,64,20,0,0,0,0,
+-	8,0,131,20,0,0,0,0,0,0,2,150,
+-	0,0,35,150,0,0,0,0,43,16,67,0,
+-	2,0,64,16,0,0,0,0,33,144,96,2,
+-	128,0,16,38,24,133,130,143,1,0,115,38,
+-	42,16,83,0,154,255,64,16,128,0,148,38,
+-	3,131,1,60,228,12,50,172,12,0,64,22,
+-	192,17,18,0,3,131,2,60,216,12,66,140,
+-	3,131,3,60,220,12,99,140,3,131,1,60,
+-	208,12,34,172,3,131,1,60,212,12,35,172,
+-	3,131,1,60,3,38,192,8,224,12,32,172,
+-	3,131,3,60,33,24,98,0,28,13,99,140,
+-	3,131,4,60,33,32,130,0,32,13,132,140,
+-	3,131,1,60,208,12,35,172,3,131,1,60,
+-	212,12,36,172,3,131,3,60,33,24,98,0,
+-	36,13,99,140,3,131,1,60,33,8,34,0,
+-	24,13,34,140,0,0,0,0,33,24,98,0,
+-	3,131,1,60,224,12,35,172,44,0,191,143,
+-	40,0,182,143,36,0,181,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,48,0,189,39,
+-	24,133,130,143,208,255,189,39,36,0,181,175,
+-	1,0,21,36,44,0,191,175,40,0,182,175,
+-	32,0,180,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,82,0,64,24,16,0,176,175,
+-	3,131,22,60,216,12,214,38,3,131,2,60,
+-	48,13,66,36,128,0,84,36,96,0,83,36,
+-	124,0,82,36,120,0,81,36,128,0,16,36,
+-	0,0,36,142,0,0,69,142,0,0,198,142,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,55,0,64,20,0,0,0,0,
+-	0,0,131,150,0,0,98,150,0,0,0,0,
+-	50,0,98,20,0,0,0,0,3,131,4,60,
+-	33,32,144,0,28,13,132,140,3,131,5,60,
+-	33,40,176,0,32,13,165,140,248,255,198,142,
+-	3,131,7,60,212,12,231,140,20,35,192,12,
+-	0,0,0,0,37,0,64,16,0,0,0,0,
+-	8,0,196,142,3,131,3,60,33,24,112,0,
+-	36,13,99,140,0,0,0,0,43,16,131,0,
+-	29,0,64,20,0,0,0,0,27,0,131,20,
+-	0,0,0,0,0,0,196,142,3,131,5,60,
+-	220,12,165,140,0,0,38,142,0,0,71,142,
+-	20,35,192,12,0,0,0,0,16,0,64,4,
+-	0,0,0,0,0,0,196,142,3,131,5,60,
+-	220,12,165,140,0,0,38,142,0,0,71,142,
+-	20,35,192,12,0,0,0,0,9,0,64,20,
+-	0,0,0,0,0,0,99,150,0,0,130,150,
+-	0,0,0,0,43,16,67,0,3,0,64,20,
+-	0,0,0,0,22,36,192,12,33,32,160,2,
+-	128,0,148,38,128,0,115,38,128,0,82,38,
+-	128,0,49,38,24,133,130,143,1,0,181,38,
+-	42,16,85,0,185,255,64,16,128,0,16,38,
+-	44,0,191,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	48,0,189,39,216,255,189,39,3,131,4,60,
+-	0,13,132,36,32,0,191,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	0,0,130,132,0,0,0,0,14,0,64,16,
+-	0,0,0,0,3,131,2,60,2,13,66,148,
+-	3,131,3,60,234,12,99,148,1,0,66,36,
+-	3,131,1,60,2,13,34,164,255,255,66,48,
+-	43,16,67,0,3,0,64,20,0,0,0,0,
+-	11,39,192,12,0,0,128,164,3,131,4,60,
+-	8,13,132,36,0,0,130,132,0,0,0,0,
+-	14,0,64,16,0,0,0,0,3,131,2,60,
+-	10,13,66,148,3,131,3,60,234,12,99,148,
+-	1,0,66,36,3,131,1,60,10,13,34,164,
+-	255,255,66,48,43,16,67,0,3,0,64,20,
+-	0,0,0,0,24,39,192,12,0,0,128,164,
+-	3,131,4,60,4,13,132,36,0,0,130,132,
+-	0,0,0,0,14,0,64,16,0,0,0,0,
+-	3,131,2,60,6,13,66,148,3,131,3,60,
+-	244,12,99,148,1,0,66,36,3,131,1,60,
+-	6,13,34,164,255,255,66,48,43,16,67,0,
+-	3,0,64,20,0,0,0,0,37,39,192,12,
+-	0,0,128,164,24,133,130,143,0,0,0,0,
+-	78,0,64,24,1,0,17,36,3,131,2,60,
+-	16,13,66,36,226,0,83,36,128,0,82,36,
+-	128,0,16,36,3,131,2,60,33,16,80,0,
+-	110,13,66,132,0,0,0,0,18,0,64,16,
+-	0,0,0,0,3,131,2,60,33,16,80,0,
+-	112,13,66,148,0,0,0,0,1,0,66,36,
+-	96,0,66,166,3,131,3,60,236,12,99,148,
+-	255,255,66,48,43,16,67,0,6,0,64,20,
+-	0,0,0,0,3,131,1,60,33,8,48,0,
+-	110,13,32,164,79,39,192,12,33,32,32,2,
+-	3,131,2,60,33,16,80,0,106,13,66,132,
+-	0,0,0,0,18,0,64,16,0,0,0,0,
+-	3,131,2,60,33,16,80,0,108,13,66,148,
+-	0,0,0,0,1,0,66,36,92,0,66,166,
+-	3,131,3,60,232,12,99,148,255,255,66,48,
+-	43,16,67,0,6,0,64,20,0,0,0,0,
+-	3,131,1,60,33,8,48,0,106,13,32,164,
+-	129,39,192,12,33,32,32,2,0,0,98,134,
+-	0,0,0,0,16,0,64,16,0,0,0,0,
+-	3,131,2,60,33,16,80,0,116,13,66,148,
+-	0,0,0,0,1,0,66,36,100,0,66,166,
+-	3,131,3,60,246,12,99,148,255,255,66,48,
+-	43,16,67,0,4,0,64,20,0,0,0,0,
+-	0,0,96,166,191,39,192,12,33,32,32,2,
+-	128,0,115,38,128,0,82,38,24,133,130,143,
+-	1,0,49,38,42,16,81,0,185,255,64,16,
+-	128,0,16,38,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,232,255,189,39,
+-	16,0,191,175,52,36,192,12,0,0,0,0,
+-	1,0,2,36,3,131,1,60,0,13,34,164,
+-	3,131,1,60,2,13,32,164,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,16,0,191,175,72,37,192,12,
+-	0,0,0,0,1,0,2,36,3,131,1,60,
+-	8,13,34,164,3,131,1,60,10,13,32,164,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,240,255,189,39,3,131,1,60,
+-	248,12,32,172,3,131,1,60,252,12,32,172,
+-	8,0,224,3,16,0,189,39,24,133,130,143,
+-	224,255,189,39,20,0,177,175,1,0,17,36,
+-	24,0,191,175,23,0,64,24,16,0,176,175,
+-	128,0,16,36,3,131,4,60,33,32,144,0,
+-	40,13,132,140,3,131,5,60,33,40,176,0,
+-	44,13,165,140,3,131,6,60,216,12,198,140,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,3,0,64,20,1,0,49,38,
+-	74,39,192,8,1,0,2,36,24,133,130,143,
+-	0,0,0,0,42,16,81,0,236,255,64,16,
+-	128,0,16,38,33,16,0,0,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,192,41,4,0,
+-	16,0,191,175,3,131,3,60,33,24,101,0,
+-	20,13,99,140,1,0,2,36,16,0,98,20,
+-	2,0,2,36,64,26,4,0,3,131,1,60,
+-	33,8,37,0,20,13,34,172,2,131,1,60,
+-	33,8,35,0,164,247,34,172,1,0,2,36,
+-	3,131,1,60,33,8,37,0,110,13,34,164,
+-	3,131,1,60,33,8,37,0,125,39,192,8,
+-	112,13,32,164,21,0,98,20,3,0,3,36,
+-	64,18,4,0,3,131,1,60,33,8,37,0,
+-	20,13,35,172,2,131,1,60,33,8,34,0,
+-	164,247,35,172,3,131,2,60,33,16,69,0,
+-	120,13,66,140,0,0,0,0,1,0,66,36,
+-	3,131,1,60,33,8,37,0,44,39,192,12,
+-	120,13,34,172,3,0,64,16,0,0,0,0,
+-	161,36,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	224,255,189,39,16,0,176,175,33,128,128,0,
+-	20,0,177,175,3,131,17,60,208,12,49,38,
+-	24,0,191,175,0,0,36,142,3,131,5,60,
+-	212,12,165,140,3,131,6,60,216,12,198,140,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,33,32,0,2,22,36,192,12,
+-	1,0,80,44,92,37,192,12,0,0,0,0,
+-	206,35,192,12,0,0,0,0,33,0,0,22,
+-	0,0,0,0,0,0,36,142,3,131,5,60,
+-	212,12,165,140,3,131,6,60,216,12,198,140,
+-	3,131,7,60,220,12,231,140,20,35,192,12,
+-	0,0,0,0,22,0,64,20,0,0,0,0,
+-	3,131,2,60,238,12,66,148,3,131,3,60,
+-	240,12,99,148,3,131,4,60,242,12,132,148,
+-	3,131,1,60,232,12,34,164,3,131,1,60,
+-	234,12,35,164,3,131,1,60,161,36,192,12,
+-	236,12,36,164,3,131,1,60,52,36,192,12,
+-	8,13,32,164,1,0,2,36,3,131,1,60,
+-	0,13,34,164,3,131,1,60,2,13,32,164,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,232,255,189,39,
+-	192,17,4,0,16,0,191,175,3,131,1,60,
+-	33,8,34,0,56,13,34,140,0,0,0,0,
+-	3,0,64,16,0,0,0,0,203,36,192,12,
+-	0,0,0,0,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,3,131,1,60,
+-	248,12,32,172,3,131,1,60,8,0,224,3,
+-	8,13,32,164,232,255,189,39,192,25,4,0,
+-	1,0,2,36,16,0,191,175,3,131,1,60,
+-	33,8,35,0,203,36,192,12,52,13,34,172,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,192,33,4,0,3,131,2,60,
+-	28,13,66,36,33,24,130,0,4,0,166,140,
+-	8,0,167,140,0,0,102,172,4,0,103,172,
+-	12,0,66,36,12,0,163,140,33,16,130,0,
+-	3,131,1,60,33,8,36,0,36,13,35,172,
+-	16,0,163,140,20,0,166,140,0,0,67,172,
+-	4,0,70,172,24,0,163,148,1,0,2,36,
+-	3,131,1,60,33,8,36,0,106,13,34,164,
+-	3,131,1,60,33,8,36,0,48,13,35,164,
+-	26,0,162,148,3,131,1,60,33,8,36,0,
+-	8,0,224,3,108,13,34,164,28,0,130,148,
+-	3,131,1,60,232,12,34,164,30,0,130,148,
+-	3,131,1,60,234,12,34,164,32,0,130,148,
+-	3,131,1,60,236,12,34,164,40,0,130,140,
+-	3,131,1,60,8,0,224,3,252,12,34,172,
+-	224,255,189,39,16,0,176,175,33,128,160,0,
+-	192,25,4,0,3,131,2,60,16,13,66,36,
+-	20,0,177,175,33,136,98,0,24,0,191,175,
+-	4,0,4,142,8,0,5,142,12,0,38,142,
+-	16,0,39,142,20,35,192,12,0,0,0,0,
+-	48,0,64,4,1,0,2,36,4,0,4,142,
+-	8,0,5,142,12,0,38,142,16,0,39,142,
+-	20,35,192,12,0,0,0,0,40,0,64,20,
+-	33,16,0,0,12,0,4,142,20,0,35,142,
+-	0,0,0,0,43,16,131,0,34,0,64,20,
+-	1,0,2,36,32,0,131,20,33,16,0,0,
+-	16,0,4,142,20,0,5,142,24,0,38,142,
+-	28,0,39,142,20,35,192,12,0,0,0,0,
+-	24,0,64,4,1,0,2,36,16,0,4,142,
+-	20,0,5,142,24,0,38,142,28,0,39,142,
+-	20,35,192,12,0,0,0,0,16,0,64,20,
+-	33,16,0,0,16,0,4,142,20,0,5,142,
+-	3,131,6,60,216,12,198,140,3,131,7,60,
+-	220,12,231,140,20,35,192,12,0,0,0,0,
+-	6,0,64,20,1,0,2,36,24,0,3,150,
+-	32,0,34,150,0,0,0,0,43,16,67,0,
+-	1,0,66,56,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	44,133,130,143,216,255,189,39,20,0,177,175,
+-	33,136,128,0,32,0,180,175,33,160,160,0,
+-	36,0,191,175,28,0,179,175,24,0,178,175,
+-	53,0,64,16,16,0,176,175,2,131,19,60,
+-	192,4,115,38,33,32,96,2,54,21,192,12,
+-	1,0,5,36,33,128,64,0,8,0,0,22,
+-	64,26,17,0,2,131,2,60,33,16,67,0,
+-	176,247,66,140,33,24,99,2,1,0,66,36,
+-	143,40,192,8,240,242,98,172,8,0,4,142,
+-	64,146,17,0,20,242,101,38,33,40,69,2,
+-	172,41,192,12,33,48,128,2,33,24,64,0,
+-	60,0,98,40,2,0,64,16,0,242,98,38,
+-	60,0,3,36,33,136,66,2,33,32,32,2,
+-	33,40,0,2,1,0,2,36,17,0,2,162,
+-	0,128,98,52,0,0,2,174,6,23,192,12,
+-	18,0,3,166,10,0,64,20,33,32,0,2,
+-	2,131,2,60,33,16,82,0,172,247,66,140,
+-	0,0,0,0,1,0,66,36,152,21,192,12,
+-	236,0,34,174,143,40,192,8,0,0,0,0,
+-	2,131,2,60,33,16,82,0,168,247,66,140,
+-	0,0,0,0,1,0,66,36,232,0,34,174,
+-	36,0,191,143,32,0,180,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,44,133,130,143,
+-	216,255,189,39,20,0,177,175,33,136,128,0,
+-	32,0,180,175,33,160,160,0,36,0,191,175,
+-	28,0,179,175,24,0,178,175,53,0,64,16,
+-	16,0,176,175,2,131,19,60,192,4,115,38,
+-	33,32,96,2,54,21,192,12,1,0,5,36,
+-	33,128,64,0,8,0,0,22,64,26,17,0,
+-	2,131,2,60,33,16,67,0,176,247,66,140,
+-	33,24,99,2,1,0,66,36,214,40,192,8,
+-	240,242,98,172,8,0,4,142,64,146,17,0,
+-	20,242,101,38,33,40,69,2,74,42,192,12,
+-	33,48,128,2,33,24,64,0,60,0,98,40,
+-	2,0,64,16,0,242,98,38,60,0,3,36,
+-	33,136,66,2,33,32,32,2,33,40,0,2,
+-	1,0,2,36,17,0,2,162,0,128,98,52,
+-	0,0,2,174,6,23,192,12,18,0,3,166,
+-	10,0,64,20,33,32,0,2,2,131,2,60,
+-	33,16,82,0,172,247,66,140,0,0,0,0,
+-	1,0,66,36,152,21,192,12,236,0,34,174,
+-	214,40,192,8,0,0,0,0,2,131,2,60,
+-	33,16,82,0,168,247,66,140,0,0,0,0,
+-	1,0,66,36,232,0,34,174,36,0,191,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,216,255,189,39,24,0,178,175,
+-	33,144,128,0,20,0,177,175,33,136,160,0,
+-	16,0,176,175,33,128,192,0,36,0,191,175,
+-	32,0,180,175,28,0,179,175,4,0,36,142,
+-	8,0,37,142,160,133,134,143,2,131,7,60,
+-	180,211,231,140,20,35,192,12,0,0,0,0,
+-	11,0,64,20,0,0,0,0,2,131,4,60,
+-	144,146,132,36,15,63,192,12,33,40,0,2,
+-	100,129,132,39,108,129,134,39,31,21,192,12,
+-	6,0,5,38,92,41,192,8,0,0,0,0,
+-	3,131,20,60,208,12,148,38,0,0,132,142,
+-	3,131,5,60,212,12,165,140,3,131,6,60,
+-	216,12,198,140,3,131,7,60,220,12,231,140,
+-	0,0,0,0,20,35,192,12,192,129,18,0,
+-	3,131,3,60,33,24,112,0,20,13,99,140,
+-	0,0,0,0,80,0,96,16,1,0,83,44,
+-	33,32,64,2,11,40,192,12,33,40,32,2,
+-	50,0,64,16,33,32,64,2,223,39,192,12,
+-	33,40,32,2,92,37,192,12,0,0,0,0,
+-	206,35,192,12,0,0,0,0,0,0,132,142,
+-	3,131,5,60,212,12,165,140,3,131,6,60,
+-	216,12,198,140,3,131,7,60,220,12,231,140,
+-	20,35,192,12,0,0,0,0,16,0,64,16,
+-	0,0,0,0,14,0,96,18,0,0,0,0,
+-	3,131,2,60,248,12,66,140,3,131,1,60,
+-	9,0,64,16,0,13,32,164,3,131,1,60,
+-	72,37,192,12,4,13,32,164,1,0,2,36,
+-	3,131,1,60,8,13,34,164,3,131,1,60,
+-	10,13,32,164,3,131,2,60,228,12,66,140,
+-	0,0,0,0,38,0,66,22,0,0,0,0,
+-	254,39,192,12,33,32,32,2,52,36,192,12,
+-	0,0,0,0,36,0,34,142,0,0,0,0,
+-	30,0,64,16,0,0,0,0,206,39,192,12,
+-	0,0,0,0,92,41,192,8,0,0,0,0,
+-	3,131,4,60,33,32,144,0,40,13,132,140,
+-	3,131,5,60,33,40,176,0,44,13,165,140,
+-	3,131,6,60,216,12,198,140,3,131,7,60,
+-	220,12,231,140,20,35,192,12,0,0,0,0,
+-	12,0,64,20,0,0,0,0,3,131,3,60,
+-	33,24,112,0,48,13,99,148,3,131,2,60,
+-	33,16,80,0,16,13,66,148,0,0,0,0,
+-	3,0,98,20,0,0,0,0,203,36,192,12,
+-	33,32,64,2,36,0,191,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,40,0,189,39,
+-	224,255,189,39,20,0,177,175,33,136,128,0,
+-	16,0,176,175,192,129,17,0,24,0,191,175,
+-	3,131,2,60,33,16,80,0,20,13,66,140,
+-	0,0,0,0,28,0,64,16,0,0,0,0,
+-	3,131,4,60,33,32,144,0,40,13,132,140,
+-	3,131,5,60,33,40,176,0,44,13,165,140,
+-	3,131,6,60,216,12,198,140,3,131,7,60,
+-	220,12,231,140,20,35,192,12,0,0,0,0,
+-	14,0,64,20,0,0,0,0,3,131,3,60,
+-	33,24,112,0,48,13,99,148,3,131,2,60,
+-	33,16,80,0,16,13,66,148,0,0,0,0,
+-	5,0,98,20,0,0,0,0,161,36,192,12,
+-	0,0,0,0,211,39,192,12,33,32,32,2,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,2,18,5,0,
+-	0,0,130,160,8,0,224,3,1,0,133,160,
+-	2,22,5,0,0,0,130,160,2,20,5,0,
+-	1,0,130,160,2,18,5,0,2,0,130,160,
+-	8,0,224,3,3,0,133,160,0,0,130,144,
+-	1,0,131,144,0,18,2,0,8,0,224,3,
+-	37,16,98,0,0,0,130,144,1,0,131,144,
+-	2,0,133,144,0,22,2,0,0,28,3,0,
+-	33,16,67,0,0,42,5,0,3,0,131,144,
+-	33,16,69,0,8,0,224,3,37,16,67,0,
+-	224,255,189,39,16,0,176,175,33,128,128,0,
+-	24,0,191,175,20,0,177,175,48,129,135,39,
+-	3,0,226,136,0,0,226,152,4,0,227,128,
+-	5,0,228,128,3,0,2,170,0,0,2,186,
+-	4,0,3,162,5,0,4,162,3,0,162,136,
+-	0,0,162,152,4,0,163,128,5,0,164,128,
+-	9,0,2,170,6,0,2,186,10,0,3,162,
+-	11,0,4,162,12,0,4,38,38,0,5,36,
+-	144,41,192,12,33,136,192,0,14,0,4,38,
+-	144,41,192,12,66,66,5,36,17,0,4,38,
+-	33,40,0,0,3,0,2,36,144,41,192,12,
+-	16,0,2,162,19,0,0,162,20,0,0,162,
+-	40,0,34,142,0,0,0,0,43,32,2,0,
+-	36,0,34,142,0,0,0,0,3,0,64,16,
+-	33,24,128,0,218,41,192,8,128,0,130,52,
+-	33,16,96,0,21,0,2,162,4,0,37,150,
+-	0,0,0,0,144,41,192,12,22,0,4,38,
+-	9,0,34,138,6,0,34,154,10,0,35,130,
+-	11,0,36,130,27,0,2,170,24,0,2,186,
+-	28,0,3,162,29,0,4,162,12,0,37,142,
+-	0,0,0,0,148,41,192,12,30,0,4,38,
+-	16,0,37,150,0,0,0,0,144,41,192,12,
+-	34,0,4,38,21,0,34,138,18,0,34,154,
+-	22,0,35,130,23,0,36,130,39,0,2,170,
+-	36,0,2,186,40,0,3,162,41,0,4,162,
+-	24,0,37,150,0,0,0,0,144,41,192,12,
+-	42,0,4,38,26,0,37,150,0,0,0,0,
+-	144,41,192,12,44,0,4,38,28,0,37,150,
+-	0,0,0,0,144,41,192,12,46,0,4,38,
+-	30,0,37,150,0,0,0,0,144,41,192,12,
+-	48,0,4,38,32,0,37,150,0,0,0,0,
+-	144,41,192,12,50,0,4,38,52,0,2,36,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,224,255,189,39,
+-	16,0,176,175,33,128,160,0,24,0,191,175,
+-	20,0,177,175,21,0,2,146,33,136,128,0,
+-	1,0,66,48,40,0,34,174,22,0,2,146,
+-	22,0,4,38,128,0,66,48,156,41,192,12,
+-	36,0,34,174,4,0,34,166,27,0,2,138,
+-	24,0,2,154,28,0,3,130,29,0,4,130,
+-	9,0,34,170,6,0,34,186,10,0,35,162,
+-	11,0,36,162,161,41,192,12,30,0,4,38,
+-	34,0,4,38,156,41,192,12,12,0,34,174,
+-	16,0,34,166,39,0,2,138,36,0,2,154,
+-	40,0,3,130,41,0,4,130,21,0,34,170,
+-	18,0,34,186,22,0,35,162,23,0,36,162,
+-	156,41,192,12,42,0,4,38,44,0,4,38,
+-	156,41,192,12,24,0,34,166,46,0,4,38,
+-	156,41,192,12,26,0,34,166,48,0,4,38,
+-	156,41,192,12,28,0,34,166,50,0,4,38,
+-	156,41,192,12,30,0,34,166,32,0,34,166,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,232,255,189,39,
+-	16,0,176,175,33,128,128,0,20,0,191,175,
+-	48,129,134,39,3,0,194,136,0,0,194,152,
+-	4,0,195,128,5,0,196,128,3,0,2,170,
+-	0,0,2,186,4,0,3,162,5,0,4,162,
+-	3,0,162,136,0,0,162,152,4,0,163,128,
+-	5,0,164,128,9,0,2,170,6,0,2,186,
+-	10,0,3,162,11,0,4,162,12,0,4,38,
+-	144,41,192,12,7,0,5,36,14,0,4,38,
+-	144,41,192,12,66,66,5,36,17,0,4,38,
+-	33,40,0,0,3,0,2,36,144,41,192,12,
+-	16,0,2,162,21,0,2,36,128,0,3,36,
+-	19,0,0,162,20,0,3,162,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	176,255,189,39,68,0,177,175,64,0,176,175,
+-	33,128,160,0,72,0,191,175,14,0,3,146,
+-	66,0,2,36,9,0,98,20,33,136,128,0,
+-	15,0,2,146,0,0,0,0,6,0,67,20,
+-	64,26,17,0,16,0,3,146,3,0,2,36,
+-	11,0,98,16,0,0,0,0,64,26,17,0,
+-	2,131,2,60,33,16,67,0,184,247,66,140,
+-	0,0,0,0,1,0,66,36,2,131,1,60,
+-	33,8,35,0,182,42,192,8,184,247,34,172,
+-	20,0,3,146,0,0,0,0,5,0,96,16,
+-	128,0,2,36,21,0,98,16,64,26,17,0,
+-	179,42,192,8,0,0,0,0,16,0,164,39,
+-	64,26,17,0,2,131,2,60,33,16,67,0,
+-	180,247,66,140,0,0,0,0,1,0,66,36,
+-	2,131,1,60,33,8,35,0,180,247,34,172,
+-	17,42,192,12,33,40,0,2,33,32,32,2,
+-	16,0,165,39,222,40,192,12,33,48,0,2,
+-	182,42,192,8,0,0,0,0,2,131,2,60,
+-	33,16,67,0,180,247,66,140,0,0,0,0,
+-	1,0,66,36,2,131,1,60,33,8,35,0,
+-	180,247,34,172,100,41,192,12,33,32,32,2,
+-	182,42,192,8,0,0,0,0,112,129,132,39,
+-	15,63,192,12,0,0,0,0,72,0,191,143,
+-	68,0,177,143,64,0,176,143,8,0,224,3,
+-	80,0,189,39,8,0,224,3,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,162,48,8,0,64,16,255,255,198,48,
+-	67,40,5,0,64,16,5,0,33,16,68,0,
+-	0,0,66,144,0,0,0,0,203,42,192,8,
+-	33,48,194,0,67,40,5,0,255,255,165,36,
+-	255,255,2,36,6,0,162,16,255,255,3,36,
+-	0,0,130,148,2,0,132,36,255,255,165,36,
+-	252,255,163,20,33,48,194,0,255,255,195,48,
+-	2,20,6,0,33,48,98,0,255,255,195,48,
+-	2,20,6,0,33,48,98,0,8,0,224,3,
+-	255,255,194,48,208,255,189,39,16,0,176,175,
+-	33,128,128,0,28,0,179,175,33,152,160,0,
+-	24,0,178,175,33,144,192,0,36,0,181,175,
+-	33,168,0,2,32,0,180,175,33,160,0,0,
+-	40,0,191,175,20,0,177,175,12,0,3,142,
+-	0,0,2,142,0,0,0,0,35,24,98,0,
+-	42,16,114,0,2,0,64,16,33,136,64,2,
+-	33,136,96,0,13,0,32,18,33,40,96,2,
+-	35,144,81,2,8,0,2,142,0,0,4,142,
+-	33,48,32,2,80,68,192,12,33,32,68,0,
+-	8,0,2,142,0,0,2,142,0,0,2,142,
+-	33,152,113,2,33,16,81,0,0,0,2,174,
+-	0,0,2,142,0,0,0,0,4,0,64,18,
+-	33,160,130,2,4,0,16,142,233,42,192,8,
+-	0,0,0,0,18,0,180,166,33,16,0,2,
+-	40,0,191,143,36,0,181,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,48,0,189,39,
+-	224,255,189,39,24,0,178,175,33,144,128,0,
+-	2,131,4,60,192,4,132,36,36,0,165,175,
+-	1,0,5,36,28,0,191,175,20,0,177,175,
+-	54,21,192,12,16,0,176,175,33,136,64,0,
+-	8,0,32,22,33,40,0,0,2,131,2,60,
+-	176,5,66,140,0,0,0,0,1,0,66,36,
+-	2,131,1,60,102,43,192,8,176,5,34,172,
+-	0,1,3,36,8,0,48,142,8,0,2,36,
+-	16,0,2,166,6,0,2,36,18,0,2,162,
+-	4,0,2,36,14,0,3,166,19,0,2,162,
+-	20,0,3,166,2,131,6,60,212,4,198,36,
+-	3,0,194,136,0,0,194,152,4,0,195,132,
+-	25,0,2,170,22,0,2,186,26,0,3,166,
+-	2,131,1,60,195,211,34,136,176,133,130,155,
+-	0,0,0,0,31,0,2,170,28,0,2,186,
+-	32,0,4,38,144,71,192,12,6,0,6,36,
+-	39,0,162,139,36,0,162,155,0,0,0,0,
+-	41,0,2,170,38,0,2,186,132,129,133,39,
+-	3,0,162,136,0,0,162,152,4,0,163,128,
+-	5,0,164,128,3,0,2,170,0,0,2,186,
+-	4,0,3,162,5,0,4,162,2,131,5,60,
+-	212,4,165,36,3,0,162,136,0,0,162,152,
+-	4,0,163,128,5,0,164,128,9,0,2,170,
+-	6,0,2,186,10,0,3,162,11,0,4,162,
+-	33,32,64,2,8,6,2,36,12,0,2,166,
+-	60,128,2,52,0,0,34,174,60,0,2,36,
+-	18,0,34,166,74,21,192,12,33,40,32,2,
+-	3,0,64,20,0,0,0,0,152,21,192,12,
+-	33,32,32,2,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,216,255,189,39,32,0,180,175,
+-	33,160,128,0,16,0,176,175,33,128,160,0,
+-	36,0,191,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,8,0,2,142,33,152,192,0,
+-	33,136,83,0,6,0,35,150,0,1,4,36,
+-	5,0,100,16,0,2,2,36,113,0,98,16,
+-	0,0,0,0,15,44,192,8,0,0,0,0,
+-	24,0,35,150,176,133,130,151,0,0,0,0,
+-	139,0,98,20,0,0,0,0,26,0,35,150,
+-	2,131,2,60,194,211,66,148,0,0,0,0,
+-	133,0,98,20,0,0,0,0,0,0,34,150,
+-	0,0,0,0,129,0,68,20,8,0,2,36,
+-	2,0,35,150,0,0,0,0,125,0,98,20,
+-	6,4,2,36,4,0,35,150,0,0,0,0,
+-	121,0,98,20,0,0,0,0,2,131,4,60,
+-	192,4,132,36,54,21,192,12,1,0,5,36,
+-	33,144,64,0,8,0,64,22,0,0,0,0,
+-	2,131,2,60,176,5,66,140,0,0,0,0,
+-	1,0,66,36,2,131,1,60,15,44,192,8,
+-	176,5,34,172,8,0,5,142,8,0,80,142,
+-	9,0,162,136,6,0,162,152,10,0,163,128,
+-	11,0,164,128,3,0,2,170,0,0,2,186,
+-	4,0,3,162,5,0,4,162,2,131,6,60,
+-	212,4,198,36,3,0,194,136,0,0,194,152,
+-	4,0,195,128,5,0,196,128,9,0,2,170,
+-	6,0,2,186,10,0,3,162,11,0,4,162,
+-	12,0,4,38,12,0,165,36,33,128,19,2,
+-	80,68,192,12,244,255,102,38,0,1,2,36,
+-	0,0,2,166,8,0,2,36,2,0,2,166,
+-	6,0,2,36,4,0,2,162,4,0,2,36,
+-	5,0,2,162,0,2,2,36,6,0,2,166,
+-	2,131,5,60,212,4,165,36,3,0,162,136,
+-	0,0,162,152,4,0,163,132,11,0,2,170,
+-	8,0,2,186,12,0,3,166,2,131,1,60,
+-	195,211,34,136,176,133,130,155,0,0,0,0,
+-	17,0,2,170,14,0,2,186,11,0,34,138,
+-	8,0,34,154,12,0,35,134,21,0,2,170,
+-	18,0,2,186,22,0,3,166,17,0,34,138,
+-	14,0,34,154,0,0,0,0,27,0,2,170,
+-	24,0,2,186,33,32,128,2,33,40,64,2,
+-	60,128,2,52,0,0,66,174,60,0,2,36,
+-	74,21,192,12,18,0,66,166,38,0,64,20,
+-	0,0,0,0,152,21,192,12,33,32,64,2,
+-	15,44,192,8,0,0,0,0,14,0,35,150,
+-	196,133,130,151,0,0,0,0,29,0,98,20,
+-	0,0,0,0,16,0,35,150,2,131,2,60,
+-	214,211,66,148,0,0,0,0,23,0,98,20,
+-	0,0,0,0,0,0,34,150,0,0,0,0,
+-	19,0,68,20,8,0,2,36,2,0,35,150,
+-	0,0,0,0,15,0,98,20,6,4,2,36,
+-	4,0,35,150,0,0,0,0,11,0,98,20,
+-	0,0,0,0,68,133,130,143,140,129,134,39,
+-	11,0,35,138,8,0,35,154,12,0,36,134,
+-	3,0,195,168,0,0,195,184,4,0,196,164,
+-	20,0,66,36,152,129,130,175,36,0,191,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,192,255,189,39,80,0,169,143,
+-	84,0,168,143,56,0,180,175,33,160,128,0,
+-	44,0,177,175,88,0,177,143,16,0,164,39,
+-	52,0,179,175,92,0,179,143,3,131,3,60,
+-	32,17,99,36,40,0,176,175,33,128,192,0,
+-	60,0,191,175,48,0,178,175,0,0,98,140,
+-	8,0,50,142,1,0,66,36,0,0,98,172,
+-	3,0,162,136,0,0,162,152,4,0,163,128,
+-	5,0,170,128,3,0,66,170,0,0,66,186,
+-	4,0,67,162,5,0,74,162,2,131,10,60,
+-	212,4,74,37,3,0,66,137,0,0,66,153,
+-	4,0,67,129,5,0,69,129,9,0,66,170,
+-	6,0,66,186,10,0,67,162,11,0,69,162,
+-	69,0,2,36,16,0,162,163,17,0,168,163,
+-	18,0,34,150,240,132,131,143,33,48,0,0,
+-	25,0,169,163,20,0,66,36,0,66,2,0,
+-	255,255,66,48,2,18,2,0,37,64,2,1,
+-	0,74,3,0,255,255,98,48,2,18,2,0,
+-	37,72,34,1,3,131,2,60,0,17,66,140,
+-	22,0,160,167,26,0,160,167,18,0,168,167,
+-	176,133,136,143,1,0,99,36,240,132,131,175,
+-	20,0,169,167,24,0,162,163,28,0,168,175,
+-	3,0,226,136,0,0,226,152,0,0,0,0,
+-	35,0,162,171,32,0,162,187,192,42,192,12,
+-	20,0,5,36,39,16,2,0,26,0,162,167,
+-	14,0,2,36,44,0,2,22,8,0,2,36,
+-	12,0,66,166,19,0,162,139,16,0,162,155,
+-	23,0,163,139,20,0,163,155,27,0,164,139,
+-	24,0,164,155,31,0,165,139,28,0,165,155,
+-	17,0,66,170,14,0,66,186,21,0,67,170,
+-	18,0,67,186,25,0,68,170,22,0,68,186,
+-	29,0,69,170,26,0,69,186,35,0,162,139,
+-	32,0,162,155,0,0,0,0,33,0,66,170,
+-	30,0,66,186,34,0,2,36,0,0,34,174,
+-	0,0,35,142,18,0,34,150,0,0,0,0,
+-	33,16,67,0,18,0,34,166,18,0,34,150,
+-	0,0,0,0,60,0,66,44,68,0,64,16,
+-	33,32,128,2,0,0,98,142,18,0,35,150,
+-	60,0,66,36,35,16,67,0,0,0,98,174,
+-	60,0,2,36,18,0,34,166,201,44,192,8,
+-	33,32,128,2,164,129,133,39,3,0,162,136,
+-	0,0,162,152,4,0,163,128,5,0,164,128,
+-	17,0,66,170,14,0,66,186,18,0,67,162,
+-	19,0,68,162,8,0,2,36,20,0,66,166,
+-	19,0,162,139,16,0,162,155,23,0,163,139,
+-	20,0,163,155,27,0,164,139,24,0,164,155,
+-	31,0,165,139,28,0,165,155,25,0,66,170,
+-	22,0,66,186,29,0,67,170,26,0,67,186,
+-	33,0,68,170,30,0,68,186,37,0,69,170,
+-	34,0,69,186,35,0,162,139,32,0,162,155,
+-	0,0,0,0,41,0,66,170,38,0,66,186,
+-	42,0,2,36,0,0,34,174,0,0,35,142,
+-	18,0,34,150,0,0,0,0,33,16,67,0,
+-	18,0,34,166,18,0,34,150,0,0,0,0,
+-	60,0,66,44,8,0,64,16,0,0,0,0,
+-	0,0,98,142,18,0,35,150,60,0,66,36,
+-	35,16,67,0,0,0,98,174,60,0,2,36,
+-	18,0,34,166,18,0,34,150,0,0,0,0,
+-	0,26,2,0,2,18,2,0,37,24,98,0,
+-	12,0,67,166,33,32,128,2,74,21,192,12,
+-	33,40,32,2,8,0,64,20,33,32,32,2,
+-	3,131,3,60,36,17,99,36,0,0,98,140,
+-	0,0,0,0,1,0,66,36,152,21,192,12,
+-	0,0,98,172,60,0,191,143,56,0,180,143,
+-	52,0,179,143,48,0,178,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,64,0,189,39,
+-	176,255,189,39,56,0,180,175,112,0,180,143,
+-	48,0,178,175,100,0,178,143,52,0,179,175,
+-	104,0,179,143,64,0,182,175,33,176,128,0,
+-	72,0,190,175,33,240,160,0,60,0,181,175,
+-	33,168,224,0,68,0,183,175,108,0,183,143,
+-	2,131,4,60,192,4,132,36,76,0,191,175,
+-	44,0,177,175,40,0,176,175,32,0,166,175,
+-	7,2,130,38,2,130,2,0,54,21,192,12,
+-	33,40,0,2,33,136,64,0,8,0,32,22,
+-	0,74,18,0,2,131,4,60,232,146,132,36,
+-	33,40,128,2,15,63,192,12,33,48,0,2,
+-	74,45,192,8,0,0,0,0,255,255,66,50,
+-	2,18,2,0,37,72,34,1,0,66,19,0,
+-	255,255,98,50,2,18,2,0,37,64,2,1,
+-	8,0,130,38,0,58,2,0,255,255,66,48,
+-	2,18,2,0,37,56,226,0,0,163,4,60,
+-	220,5,132,52,4,0,5,36,4,0,34,142,
+-	0,17,6,36,8,0,80,140,4,0,35,142,
+-	8,0,2,36,0,0,98,172,0,0,9,166,
+-	2,0,8,166,6,0,0,166,192,42,192,12,
+-	4,0,7,166,33,32,160,2,4,0,5,36,
+-	192,42,192,12,255,255,70,48,4,0,4,38,
+-	2,0,5,36,192,42,192,12,255,255,70,48,
+-	33,32,0,2,8,0,5,36,192,42,192,12,
+-	255,255,70,48,33,32,224,2,33,40,128,2,
+-	192,42,192,12,255,255,70,48,39,24,2,0,
+-	255,255,98,48,2,0,64,20,33,40,224,2,
+-	255,255,3,52,6,0,3,166,4,0,36,142,
+-	0,0,0,0,220,42,192,12,33,48,128,2,
+-	33,32,192,2,0,0,67,140,33,40,192,3,
+-	0,128,99,52,0,0,67,172,4,0,35,142,
+-	32,0,166,143,18,0,99,148,33,56,160,2,
+-	18,0,35,166,96,0,170,143,17,0,3,36,
+-	16,0,163,175,24,0,177,175,28,0,162,175,
+-	23,44,192,12,20,0,170,175,3,131,3,60,
+-	124,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,76,0,191,143,
+-	72,0,190,143,68,0,183,143,64,0,182,143,
+-	60,0,181,143,56,0,180,143,52,0,179,143,
+-	48,0,178,143,44,0,177,143,40,0,176,143,
+-	8,0,224,3,80,0,189,39,128,255,189,39,
+-	116,0,183,175,33,184,128,0,112,0,182,175,
+-	33,176,160,0,104,0,180,175,33,160,192,0,
+-	108,0,181,175,33,168,224,0,40,0,164,39,
+-	96,0,178,175,144,0,178,143,33,40,0,0,
+-	100,0,179,175,148,0,179,143,16,0,6,36,
+-	120,0,191,175,92,0,177,175,144,71,192,12,
+-	88,0,176,175,56,0,177,39,33,32,32,2,
+-	33,40,0,0,2,0,16,36,40,0,176,167,
+-	2,0,162,150,0,0,0,0,42,0,162,167,
+-	19,0,130,138,16,0,130,154,0,0,0,0,
+-	47,0,162,171,44,0,162,187,144,71,192,12,
+-	16,0,6,36,33,32,64,2,33,40,96,2,
+-	40,0,166,39,33,56,32,2,56,0,176,167,
+-	0,0,162,150,2,131,16,60,8,239,16,38,
+-	58,0,162,167,15,0,130,138,12,0,130,154,
+-	0,0,0,0,63,0,162,171,60,0,162,187,
+-	242,5,2,36,84,0,162,167,72,0,162,39,
+-	72,0,160,167,76,0,176,175,80,0,176,175,
+-	247,71,192,12,16,0,162,175,255,255,3,36,
+-	22,0,67,16,12,0,145,38,33,32,224,2,
+-	6,0,197,38,35,48,150,2,0,0,163,150,
+-	4,0,2,36,16,0,162,175,161,0,2,36,
+-	20,0,162,175,28,0,176,175,0,18,3,0,
+-	2,26,3,0,37,16,67,0,255,255,66,48,
+-	24,0,162,175,80,0,162,143,76,0,163,143,
+-	33,56,32,2,35,16,67,0,255,255,66,48,
+-	220,44,192,12,32,0,162,175,120,0,191,143,
+-	116,0,183,143,112,0,182,143,108,0,181,143,
+-	104,0,180,143,100,0,179,143,96,0,178,143,
+-	92,0,177,143,88,0,176,143,8,0,224,3,
+-	128,0,189,39,196,133,130,143,184,255,189,39,
+-	64,0,191,175,60,0,177,175,109,0,64,16,
+-	56,0,176,175,255,255,3,36,106,0,67,16,
+-	0,0,0,0,176,133,130,143,176,133,145,39,
+-	102,0,64,16,0,0,0,0,100,0,67,16,
+-	0,0,0,0,2,131,2,60,8,239,66,36,
+-	44,0,162,175,48,0,162,175,242,5,2,36,
+-	40,0,160,167,6,0,128,16,52,0,162,167,
+-	1,0,2,36,23,0,130,16,0,0,0,0,
+-	36,46,192,8,0,0,0,0,2,131,16,60,
+-	160,204,16,38,156,71,192,12,33,32,0,2,
+-	0,163,4,60,4,1,132,140,204,204,3,60,
+-	205,204,99,52,25,0,131,0,33,40,32,2,
+-	33,48,0,2,33,56,64,0,40,0,164,39,
+-	16,64,0,0,194,16,8,0,0,0,0,0,
+-	104,56,192,12,16,0,162,175,251,45,192,8,
+-	33,24,64,0,3,131,2,60,28,18,66,148,
+-	0,0,0,0,2,0,66,48,61,0,64,16,
+-	0,0,0,0,2,131,16,60,160,204,16,38,
+-	156,71,192,12,33,32,0,2,0,163,4,60,
+-	4,1,132,140,204,204,3,60,205,204,99,52,
+-	25,0,131,0,33,40,32,2,33,48,0,2,
+-	33,56,64,0,40,0,164,39,16,64,0,0,
+-	194,16,8,0,0,0,0,0,105,57,192,12,
+-	16,0,162,175,33,24,64,0,255,255,2,36,
+-	39,0,98,16,0,0,0,0,140,129,130,147,
+-	0,0,0,0,1,0,66,48,7,0,64,20,
+-	0,0,0,0,68,133,131,143,152,129,130,143,
+-	0,0,0,0,43,16,67,0,11,0,64,16,
+-	33,32,0,0,68,133,131,143,148,129,130,143,
+-	0,0,0,0,6,0,98,16,33,32,0,0,
+-	196,133,133,143,148,129,131,175,17,43,192,12,
+-	33,32,0,0,33,32,0,0,140,129,133,39,
+-	14,0,6,36,4,0,2,36,16,0,162,175,
+-	162,0,2,36,20,0,162,175,24,0,162,175,
+-	2,131,2,60,8,239,66,36,28,0,162,175,
+-	48,0,162,143,44,0,163,143,196,133,135,39,
+-	35,16,67,0,255,255,66,48,220,44,192,12,
+-	32,0,162,175,64,0,191,143,60,0,177,143,
+-	56,0,176,143,8,0,224,3,72,0,189,39,
+-	208,255,189,39,36,0,179,175,33,152,128,0,
+-	40,0,180,175,33,160,160,0,32,0,178,175,
+-	24,0,176,175,33,128,224,0,44,0,191,175,
+-	28,0,177,175,6,0,2,150,64,0,177,143,
+-	0,0,0,0,20,0,64,16,33,144,192,0,
+-	12,0,68,38,8,0,5,36,192,42,192,12,
+-	0,17,6,36,4,0,4,38,2,0,5,36,
+-	192,42,192,12,255,255,70,48,33,32,0,2,
+-	33,40,32,2,192,42,192,12,255,255,70,48,
+-	255,255,66,48,255,255,3,52,4,0,67,16,
+-	0,0,0,0,3,131,3,60,111,46,192,8,
+-	120,17,99,36,4,0,2,150,0,0,0,0,
+-	0,26,2,0,2,18,2,0,37,24,98,0,
+-	255,255,99,48,4,0,113,16,8,0,7,38,
+-	3,131,3,60,111,46,192,8,120,17,99,36,
+-	2,0,2,150,0,0,0,0,0,26,2,0,
+-	2,18,2,0,37,24,98,0,255,255,99,48,
+-	161,0,2,36,15,0,98,20,248,255,40,38,
+-	33,32,96,2,33,40,128,2,3,131,3,60,
+-	112,17,99,36,0,0,98,140,33,48,64,2,
+-	16,0,167,175,33,56,0,2,20,0,168,175,
+-	1,0,66,36,86,45,192,12,0,0,98,172,
+-	115,46,192,8,0,0,0,0,3,131,3,60,
+-	116,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,44,0,191,143,
+-	40,0,180,143,36,0,179,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	48,0,189,39,192,255,189,39,52,0,181,175,
+-	33,168,128,0,44,0,179,175,33,152,160,0,
+-	48,0,180,175,33,160,192,0,32,0,176,175,
+-	33,128,224,0,33,32,0,2,33,48,0,0,
+-	40,0,178,175,80,0,178,143,3,131,3,60,
+-	144,16,99,36,56,0,191,175,36,0,177,175,
+-	0,0,98,140,33,40,64,2,1,0,66,36,
+-	192,42,192,12,0,0,98,172,255,255,66,48,
+-	255,255,3,52,8,0,67,16,8,0,2,36,
+-	3,131,2,60,148,16,66,140,0,0,0,0,
+-	1,0,66,36,3,131,1,60,217,46,192,8,
+-	148,16,34,172,0,0,3,150,0,0,0,0,
+-	58,0,98,20,255,1,69,38,2,131,4,60,
+-	192,4,132,36,3,131,2,60,172,16,66,140,
+-	3,131,3,60,196,16,99,140,1,0,66,36,
+-	1,0,99,36,3,131,1,60,172,16,34,172,
+-	3,131,1,60,196,16,35,172,54,21,192,12,
+-	2,42,5,0,33,136,64,0,8,0,32,22,
+-	33,32,0,2,3,131,2,60,200,16,66,140,
+-	0,0,0,0,1,0,66,36,3,131,1,60,
+-	217,46,192,8,200,16,34,172,33,40,64,2,
+-	33,48,0,0,0,0,0,162,192,42,192,12,
+-	2,0,0,166,33,40,0,2,39,16,2,0,
+-	2,0,162,164,4,0,36,142,0,0,0,0,
+-	220,42,192,12,33,48,64,2,33,32,160,2,
+-	6,0,101,38,35,48,147,2,0,0,67,140,
+-	12,0,135,38,0,128,99,52,0,0,67,172,
+-	1,0,3,36,18,0,50,166,16,0,163,175,
+-	4,0,3,36,20,0,163,175,24,0,177,175,
+-	23,44,192,12,28,0,162,175,3,131,2,60,
+-	228,16,66,140,0,0,0,0,1,0,66,36,
+-	3,131,1,60,228,16,34,172,56,0,191,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,64,0,189,39,200,255,189,39,
+-	44,0,181,175,33,168,128,0,3,131,3,60,
+-	4,17,99,36,48,0,191,175,40,0,180,175,
+-	36,0,179,175,32,0,178,175,28,0,177,175,
+-	24,0,176,175,0,0,98,140,33,136,160,0,
+-	1,0,66,36,0,0,98,172,18,0,34,150,
+-	0,0,0,0,255,255,84,48,243,5,130,46,
+-	8,0,64,20,33,152,192,0,3,131,2,60,
+-	8,17,66,140,0,0,0,0,1,0,66,36,
+-	3,131,1,60,132,47,192,8,8,17,34,172,
+-	2,131,18,60,18,233,82,38,33,32,64,2,
+-	0,0,48,142,8,0,37,142,255,63,16,50,
+-	80,68,192,12,33,48,0,2,0,0,34,142,
+-	0,0,0,0,0,128,66,48,5,0,64,20,
+-	33,144,80,2,4,0,49,142,0,0,0,0,
+-	1,47,192,8,33,32,64,2,2,131,18,60,
+-	18,233,82,38,33,128,114,2,16,0,17,38,
+-	33,32,32,2,176,133,133,39,168,71,192,12,
+-	4,0,6,36,9,0,64,16,33,32,32,2,
+-	128,129,133,39,168,71,192,12,4,0,6,36,
+-	4,0,64,16,0,0,0,0,3,131,3,60,
+-	128,47,192,8,12,17,99,36,0,0,4,146,
+-	64,0,2,36,240,0,131,48,4,0,98,16,
+-	15,0,130,48,3,131,3,60,128,47,192,8,
+-	8,17,99,36,128,136,2,0,20,0,34,42,
+-	4,0,64,16,33,32,0,2,3,131,3,60,
+-	128,47,192,8,8,17,99,36,33,40,32,2,
+-	192,42,192,12,33,48,0,0,255,255,66,48,
+-	255,255,3,52,4,0,67,16,0,0,0,0,
+-	3,131,3,60,128,47,192,8,8,17,99,36,
+-	6,0,2,150,0,0,0,0,63,255,66,48,
+-	18,0,64,16,33,56,17,2,3,131,3,60,
+-	48,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,3,131,2,60,
+-	56,17,66,140,3,131,3,60,24,17,99,140,
+-	1,0,66,36,1,0,99,36,3,131,1,60,
+-	56,17,34,172,3,131,1,60,132,47,192,8,
+-	24,17,35,172,2,0,2,150,0,0,0,0,
+-	0,26,2,0,2,18,2,0,37,24,98,0,
+-	255,255,99,48,35,64,113,0,35,16,242,0,
+-	35,16,130,2,42,16,72,0,4,0,64,16,
+-	1,0,2,36,3,131,3,60,128,47,192,8,
+-	24,17,99,36,9,0,3,146,0,0,0,0,
+-	5,0,98,16,17,0,2,36,15,0,98,16,
+-	33,32,160,2,126,47,192,8,0,0,0,0,
+-	33,32,160,2,33,40,64,2,3,131,3,60,
+-	28,17,99,36,0,0,98,140,33,48,0,2,
+-	16,0,168,175,1,0,66,36,123,46,192,12,
+-	0,0,98,172,132,47,192,8,0,0,0,0,
+-	33,40,64,2,3,131,3,60,28,17,99,36,
+-	0,0,98,140,33,48,0,2,16,0,168,175,
+-	1,0,66,36,41,46,192,12,0,0,98,172,
+-	132,47,192,8,0,0,0,0,3,131,3,60,
+-	20,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,48,0,191,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,56,0,189,39,232,255,189,39,
+-	255,0,12,60,255,0,140,53,0,255,13,60,
+-	0,255,173,53,16,0,176,175,3,131,16,60,
+-	0,17,16,38,33,32,0,2,33,40,0,0,
+-	0,163,9,60,220,5,41,141,0,163,10,60,
+-	16,6,74,141,0,163,11,60,224,5,107,141,
+-	20,0,191,175,0,28,9,0,2,20,9,0,
+-	37,24,98,0,0,60,10,0,2,20,10,0,
+-	37,56,226,0,0,68,11,0,2,20,11,0,
+-	37,64,2,1,2,18,3,0,36,16,76,0,
+-	0,26,3,0,36,24,109,0,37,16,67,0,
+-	184,133,130,175,2,18,7,0,36,16,76,0,
+-	0,58,7,0,36,56,237,0,37,16,71,0,
+-	192,133,130,175,2,18,8,0,36,16,76,0,
+-	0,66,8,0,36,64,13,1,37,16,72,0,
+-	176,133,137,175,196,133,138,175,188,133,139,175,
+-	180,133,130,175,144,71,192,12,76,0,6,36,
+-	3,131,4,60,144,16,132,36,33,40,0,0,
+-	32,0,2,36,0,0,2,174,10,0,2,36,
+-	3,131,1,60,44,17,34,172,144,71,192,12,
+-	104,0,6,36,3,131,4,60,112,17,132,36,
+-	33,40,0,0,144,71,192,12,16,0,6,36,
+-	3,131,4,60,80,17,132,36,33,40,0,0,
+-	144,71,192,12,32,0,6,36,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	176,255,189,39,100,0,162,143,96,0,169,143,
+-	72,0,182,175,33,176,128,0,48,0,176,175,
+-	104,0,176,143,34,0,164,39,60,0,179,175,
+-	108,0,179,143,3,131,3,60,104,17,99,36,
+-	56,0,178,175,2,131,18,60,212,4,82,38,
+-	52,0,177,175,33,136,192,0,68,0,181,175,
+-	112,0,181,143,4,0,6,36,76,0,191,175,
+-	64,0,180,175,0,66,2,0,255,255,66,48,
+-	2,18,2,0,37,64,2,1,0,0,98,140,
+-	8,0,116,142,1,0,66,36,0,0,98,172,
+-	3,0,162,136,0,0,162,152,4,0,163,128,
+-	5,0,170,128,3,0,130,170,0,0,130,186,
+-	4,0,131,162,5,0,138,162,3,0,66,138,
+-	0,0,66,154,4,0,67,130,5,0,69,130,
+-	9,0,130,170,6,0,130,186,10,0,131,162,
+-	11,0,133,162,255,255,2,52,16,0,162,167,
+-	18,0,98,150,33,40,0,0,20,0,160,163,
+-	21,0,160,163,30,0,66,36,0,26,2,0,
+-	255,255,66,48,2,18,2,0,37,24,98,0,
+-	18,0,163,167,3,0,226,136,0,0,226,152,
+-	0,0,0,0,25,0,162,171,22,0,162,187,
+-	3,0,34,137,0,0,34,153,4,0,35,129,
+-	5,0,39,129,29,0,162,171,26,0,162,187,
+-	30,0,163,163,31,0,167,163,144,71,192,12,
+-	32,0,168,167,3,0,66,138,0,0,66,154,
+-	4,0,67,134,41,0,162,171,38,0,162,187,
+-	42,0,163,167,33,16,0,2,0,130,16,0,
+-	255,255,66,48,2,18,2,0,37,128,2,2,
+-	14,0,2,36,58,0,34,22,44,0,176,167,
+-	18,0,162,151,0,0,0,0,12,0,130,166,
+-	19,0,162,139,16,0,162,155,23,0,163,139,
+-	20,0,163,155,27,0,164,139,24,0,164,155,
+-	31,0,165,139,28,0,165,155,17,0,130,170,
+-	14,0,130,186,21,0,131,170,18,0,131,186,
+-	25,0,132,170,22,0,132,186,29,0,133,170,
+-	26,0,133,186,35,0,162,139,32,0,162,155,
+-	39,0,163,139,36,0,163,155,43,0,164,139,
+-	40,0,164,155,44,0,165,131,33,0,130,170,
+-	30,0,130,186,37,0,131,170,34,0,131,186,
+-	41,0,132,170,38,0,132,186,42,0,133,162,
+-	45,0,162,131,0,0,0,0,43,0,130,162,
+-	44,0,2,36,0,0,98,174,0,0,99,142,
+-	18,0,98,150,0,0,0,0,33,16,67,0,
+-	18,0,98,166,18,0,98,150,0,0,0,0,
+-	60,0,66,44,80,0,64,16,33,32,192,2,
+-	0,0,162,142,18,0,99,150,60,0,66,36,
+-	35,16,67,0,0,0,162,174,60,0,2,36,
+-	18,0,98,166,172,48,192,8,33,32,192,2,
+-	208,129,133,39,3,0,162,136,0,0,162,152,
+-	4,0,163,128,5,0,164,128,17,0,130,170,
+-	14,0,130,186,18,0,131,162,19,0,132,162,
+-	129,55,2,36,20,0,130,166,19,0,162,139,
+-	16,0,162,155,23,0,163,139,20,0,163,155,
+-	27,0,164,139,24,0,164,155,31,0,165,139,
+-	28,0,165,155,25,0,130,170,22,0,130,186,
+-	29,0,131,170,26,0,131,186,33,0,132,170,
+-	30,0,132,186,37,0,133,170,34,0,133,186,
+-	35,0,162,139,32,0,162,155,39,0,163,139,
+-	36,0,163,155,43,0,164,139,40,0,164,155,
+-	44,0,165,131,41,0,130,170,38,0,130,186,
+-	45,0,131,170,42,0,131,186,49,0,132,170,
+-	46,0,132,186,50,0,133,162,45,0,162,131,
+-	0,0,0,0,51,0,130,162,52,0,2,36,
+-	0,0,98,174,0,0,99,142,18,0,98,150,
+-	0,0,0,0,33,16,67,0,18,0,98,166,
+-	18,0,98,150,0,0,0,0,60,0,66,44,
+-	8,0,64,16,0,0,0,0,0,0,162,142,
+-	18,0,99,150,60,0,66,36,35,16,67,0,
+-	0,0,162,174,60,0,2,36,18,0,98,166,
+-	18,0,98,150,0,0,0,0,0,26,2,0,
+-	2,18,2,0,37,24,98,0,12,0,131,166,
+-	33,32,192,2,74,21,192,12,33,40,96,2,
+-	8,0,64,20,33,32,96,2,3,131,3,60,
+-	108,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,152,21,192,12,0,0,98,172,
+-	76,0,191,143,72,0,182,143,68,0,181,143,
+-	64,0,180,143,60,0,179,143,56,0,178,143,
+-	52,0,177,143,48,0,176,143,8,0,224,3,
+-	80,0,189,39,33,24,0,0,5,0,7,36,
+-	58,0,6,36,0,0,162,144,0,0,0,0,
+-	2,17,2,0,2,131,1,60,33,8,34,0,
+-	176,155,34,144,0,0,0,0,0,0,130,160,
+-	0,0,162,144,1,0,132,36,15,0,66,48,
+-	2,131,1,60,33,8,34,0,176,155,34,144,
+-	1,0,165,36,0,0,130,160,3,0,103,16,
+-	1,0,132,36,0,0,134,160,1,0,132,36,
+-	1,0,99,36,6,0,98,40,233,255,64,20,
+-	0,0,0,0,8,0,224,3,0,0,0,0,
+-	128,255,189,39,2,101,2,36,0,2,3,36,
+-	112,0,176,175,44,0,176,39,33,32,0,2,
+-	33,40,0,0,48,0,6,36,120,0,191,175,
+-	116,0,177,175,40,0,162,167,144,71,192,12,
+-	42,0,163,167,3,131,17,60,96,18,49,38,
+-	2,131,5,60,224,147,165,36,188,71,192,12,
+-	33,32,32,2,18,0,64,20,33,32,0,2,
+-	2,131,5,60,236,147,165,36,0,0,162,140,
+-	4,0,163,140,8,0,164,140,44,0,162,175,
+-	48,0,163,175,52,0,164,175,12,0,162,128,
+-	0,0,0,0,56,0,162,163,2,131,5,60,
+-	212,4,165,36,193,48,192,12,56,0,164,39,
+-	8,49,192,8,92,0,177,39,33,40,32,2,
+-	204,63,192,12,48,0,6,36,92,0,177,39,
+-	33,32,32,2,33,40,0,0,144,71,192,12,
+-	4,0,6,36,2,131,4,60,212,4,132,36,
+-	0,0,130,140,4,0,131,132,96,0,162,175,
+-	100,0,163,167,4,82,2,36,0,1,3,36,
+-	236,255,132,36,2,0,5,36,102,0,162,167,
+-	54,21,192,12,104,0,163,167,33,128,64,0,
+-	22,0,0,18,40,0,165,39,4,0,4,142,
+-	0,0,0,0,220,42,192,12,66,0,6,36,
+-	33,32,0,0,0,0,67,140,132,129,133,39,
+-	0,128,99,52,0,0,67,172,4,0,3,142,
+-	14,0,6,36,18,0,99,148,33,56,32,2,
+-	18,0,3,166,82,4,3,36,16,0,165,175,
+-	20,0,163,175,24,0,163,175,28,0,176,175,
+-	214,47,192,12,32,0,162,175,120,0,191,143,
+-	116,0,177,143,112,0,176,143,8,0,224,3,
+-	128,0,189,39,144,255,189,39,104,0,180,175,
+-	33,160,128,0,100,0,179,175,33,152,160,0,
+-	92,0,177,175,33,136,192,0,33,32,224,0,
+-	40,0,166,39,56,0,167,39,96,0,178,175,
+-	2,131,18,60,8,239,82,38,88,0,176,175,
+-	128,0,176,143,242,5,2,36,84,0,162,167,
+-	72,0,162,39,108,0,191,175,72,0,160,167,
+-	76,0,178,175,80,0,178,175,16,0,162,175,
+-	247,71,192,12,33,40,0,2,255,255,3,36,
+-	37,0,67,16,255,1,5,38,2,131,4,60,
+-	192,4,132,36,54,21,192,12,2,42,5,0,
+-	33,128,64,0,30,0,0,18,33,40,64,2,
+-	80,0,166,143,76,0,162,143,4,0,4,142,
+-	35,48,194,0,220,42,192,12,255,255,198,48,
+-	33,32,128,2,0,0,67,140,6,0,101,38,
+-	0,128,99,52,0,0,67,172,4,0,3,142,
+-	35,48,51,2,18,0,99,148,18,0,39,38,
+-	18,0,3,166,28,0,40,150,22,0,35,38,
+-	16,0,163,175,15,144,3,52,24,0,163,175,
+-	28,0,176,175,32,0,162,175,0,18,8,0,
+-	2,66,8,0,37,16,72,0,255,255,66,48,
+-	214,47,192,12,20,0,162,175,108,0,191,143,
+-	104,0,180,143,100,0,179,143,96,0,178,143,
+-	92,0,177,143,88,0,176,143,8,0,224,3,
+-	112,0,189,39,200,255,189,39,44,0,181,175,
+-	33,168,128,0,28,0,177,175,33,136,160,0,
+-	48,0,191,175,40,0,180,175,36,0,179,175,
+-	32,0,178,175,24,0,176,175,18,0,34,150,
+-	0,0,0,0,255,255,84,48,243,5,130,46,
+-	4,0,64,20,33,152,192,0,3,131,3,60,
+-	241,49,192,8,84,17,99,36,2,131,18,60,
+-	16,233,82,38,33,32,64,2,0,0,48,142,
+-	8,0,37,142,255,63,16,50,80,68,192,12,
+-	33,48,0,2,0,0,34,142,0,0,0,0,
+-	0,128,66,48,5,0,64,20,33,144,80,2,
+-	4,0,49,142,0,0,0,0,148,49,192,8,
+-	33,32,64,2,2,131,2,60,16,233,66,36,
+-	33,128,98,2,6,0,17,38,33,32,32,2,
+-	0,163,5,60,224,5,165,52,168,71,192,12,
+-	4,0,6,36,9,0,64,16,33,32,32,2,
+-	224,129,133,39,168,71,192,12,4,0,6,36,
+-	5,0,64,16,10,0,17,38,3,131,3,60,
+-	241,49,192,8,88,17,99,36,10,0,17,38,
+-	33,32,32,2,2,131,5,60,212,4,165,36,
+-	168,71,192,12,6,0,6,36,9,0,64,16,
+-	33,32,32,2,228,129,133,39,168,71,192,12,
+-	6,0,6,36,4,0,64,16,0,0,0,0,
+-	3,131,3,60,241,49,192,8,88,17,99,36,
+-	0,0,3,150,255,255,2,52,4,0,98,16,
+-	30,0,7,38,3,131,3,60,241,49,192,8,
+-	88,17,99,36,2,0,2,150,2,131,5,60,
+-	16,233,165,36,0,26,2,0,2,18,2,0,
+-	37,24,98,0,255,255,99,48,226,255,104,36,
+-	35,16,229,0,35,16,130,2,42,16,72,0,
+-	4,0,64,16,0,0,0,0,3,131,3,60,
+-	241,49,192,8,96,17,99,36,16,0,2,150,
+-	0,0,0,0,0,26,2,0,2,18,2,0,
+-	37,24,98,0,255,255,99,48,15,144,2,52,
+-	11,0,98,20,33,32,160,2,3,131,3,60,
+-	100,17,99,36,0,0,98,140,33,48,0,2,
+-	16,0,168,175,1,0,66,36,54,49,192,12,
+-	0,0,98,172,245,49,192,8,0,0,0,0,
+-	3,131,3,60,92,17,99,36,0,0,98,140,
+-	0,0,0,0,1,0,66,36,0,0,98,172,
+-	48,0,191,143,44,0,181,143,40,0,180,143,
+-	36,0,179,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,56,0,189,39,
+-	0,0,0,0,0,0,0,0,232,255,189,39,
+-	16,0,191,175,13,8,192,12,0,8,4,36,
+-	8,133,130,175,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,232,255,189,39,
+-	45,0,128,16,16,0,191,175,240,129,133,143,
+-	7,0,130,36,194,16,2,0,10,0,160,20,
+-	1,0,70,36,8,133,133,143,0,133,130,39,
+-	0,133,133,175,0,0,162,172,0,8,2,36,
+-	240,129,133,175,2,131,1,60,20,211,32,172,
+-	4,0,162,172,0,0,164,140,0,0,0,0,
+-	4,0,131,140,0,0,0,0,43,16,102,0,
+-	14,0,64,20,0,0,0,0,5,0,102,20,
+-	35,16,102,0,0,0,130,140,0,0,0,0,
+-	43,50,192,8,0,0,162,172,4,0,130,172,
+-	192,16,2,0,33,32,130,0,4,0,134,172,
+-	240,129,133,175,57,50,192,8,8,0,130,36,
+-	240,129,130,143,0,0,0,0,4,0,130,16,
+-	33,40,128,0,0,0,132,140,28,50,192,8,
+-	0,0,0,0,2,131,4,60,15,63,192,12,
+-	64,148,132,36,33,16,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	56,0,128,16,248,255,132,36,240,129,133,143,
+-	0,0,0,0,78,50,192,8,43,16,164,0,
+-	0,0,163,140,0,0,0,0,43,16,163,0,
+-	5,0,64,20,43,16,164,0,12,0,64,20,
+-	43,16,131,0,10,0,64,20,0,0,0,0,
+-	33,40,96,0,43,16,164,0,244,255,64,16,
+-	0,0,0,0,0,0,162,140,0,0,0,0,
+-	43,16,130,0,239,255,64,16,0,0,0,0,
+-	4,0,134,140,0,0,163,140,192,16,6,0,
+-	33,16,130,0,11,0,67,20,0,0,0,0,
+-	4,0,98,140,0,0,0,0,33,16,194,0,
+-	4,0,130,172,0,0,162,140,0,0,0,0,
+-	0,0,66,140,0,0,0,0,102,50,192,8,
+-	0,0,130,172,0,0,131,172,4,0,163,140,
+-	0,0,0,0,192,16,3,0,33,16,162,0,
+-	9,0,68,20,0,0,0,0,4,0,130,140,
+-	0,0,0,0,33,16,98,0,4,0,162,172,
+-	0,0,130,140,0,0,0,0,117,50,192,8,
+-	0,0,162,172,0,0,164,172,240,129,133,175,
+-	8,0,224,3,0,0,0,0,232,255,189,39,
+-	16,0,191,175,0,50,192,12,0,0,0,0,
+-	178,45,192,12,33,32,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	1,0,3,36,5,0,195,20,255,255,2,36,
+-	0,0,226,140,0,0,0,0,43,16,2,0,
+-	35,16,2,0,8,0,224,3,0,0,0,0,
+-	224,255,189,39,16,0,176,175,33,128,224,0,
+-	20,0,177,175,48,0,177,143,1,0,2,36,
+-	5,0,162,20,24,0,191,175,0,0,194,140,
+-	0,0,0,0,8,0,64,16,0,0,0,0,
+-	11,0,2,36,33,32,0,2,33,40,32,2,
+-	48,72,192,12,96,0,2,174,1,0,66,36,
+-	100,0,2,174,17,0,34,146,0,0,0,0,
+-	1,0,66,52,17,0,34,162,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,8,0,224,3,0,0,0,0,
+-	16,0,163,143,0,0,0,0,17,0,98,144,
+-	0,0,0,0,2,0,66,52,8,0,224,3,
+-	17,0,98,160,8,0,224,3,0,0,0,0,
+-	224,255,189,39,16,0,176,175,33,128,128,0,
+-	244,129,131,151,255,0,2,36,28,0,191,175,
+-	24,0,178,175,20,0,177,175,4,0,2,174,
+-	60,0,0,174,1,0,98,36,244,129,130,167,
+-	10,0,3,166,3,0,162,136,0,0,162,152,
+-	7,0,163,136,4,0,163,152,11,0,164,136,
+-	8,0,164,152,15,0,167,136,12,0,167,152,
+-	15,0,2,170,12,0,2,186,19,0,3,170,
+-	16,0,3,186,23,0,4,170,20,0,4,186,
+-	27,0,7,170,24,0,7,186,3,0,194,136,
+-	0,0,194,152,7,0,195,136,4,0,195,152,
+-	11,0,196,136,8,0,196,152,15,0,197,136,
+-	12,0,197,152,31,0,2,170,28,0,2,186,
+-	35,0,3,170,32,0,3,186,39,0,4,170,
+-	36,0,4,186,43,0,5,170,40,0,5,186,
+-	80,0,2,142,76,0,3,142,0,0,0,0,
+-	35,16,67,0,255,255,81,48,88,0,3,150,
+-	3,0,2,36,13,0,98,16,0,0,0,0,
+-	2,131,18,60,160,204,82,38,156,71,192,12,
+-	33,32,64,2,7,0,81,20,33,32,64,2,
+-	76,0,5,142,0,0,0,0,168,71,192,12,
+-	33,48,32,2,21,0,64,16,33,16,0,0,
+-	2,131,18,60,192,204,82,38,156,71,192,12,
+-	33,32,64,2,7,0,81,20,33,32,64,2,
+-	76,0,5,142,0,0,0,0,168,71,192,12,
+-	33,48,32,2,9,0,64,16,33,16,0,0,
+-	3,131,3,60,132,17,99,36,0,0,98,140,
+-	1,0,4,36,1,0,66,36,178,45,192,12,
+-	0,0,98,172,1,0,2,36,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,0,0,0,0,
+-	0,0,0,0,224,255,189,39,20,0,177,175,
+-	33,136,224,0,16,0,176,175,48,0,176,143,
+-	24,0,191,175,156,71,192,12,33,32,32,2,
+-	0,0,2,174,33,16,32,2,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,8,0,224,3,33,16,224,0,
+-	0,0,227,140,204,204,2,60,205,204,66,52,
+-	25,0,98,0,16,32,0,0,0,0,0,0,
+-	0,0,0,0,8,0,224,3,194,16,4,0,
+-	224,255,189,39,16,0,176,175,33,128,224,0,
+-	33,32,0,2,33,40,0,0,20,0,177,175,
+-	48,0,177,143,24,0,191,175,208,71,192,12,
+-	16,0,6,36,2,0,64,20,35,16,80,0,
+-	16,0,2,36,0,0,34,174,33,16,0,2,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,232,255,189,39,
+-	40,0,164,143,44,0,165,143,16,0,191,175,
+-	205,59,192,12,0,0,0,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,40,0,164,143,44,0,165,143,
+-	16,0,191,175,239,59,192,12,0,0,0,0,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,232,255,189,39,40,0,164,143,
+-	44,0,165,143,16,0,191,175,17,60,192,12,
+-	0,0,0,0,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,8,0,224,3,
+-	33,16,224,0,0,0,226,140,8,0,224,3,
+-	0,0,0,0,216,255,189,39,24,0,176,175,
+-	56,0,176,143,32,0,191,175,28,0,177,175,
+-	36,0,2,142,1,0,3,36,20,0,81,140,
+-	187,0,163,20,0,0,0,0,0,0,195,140,
+-	0,0,0,0,183,0,96,16,0,0,0,0,
+-	32,133,130,143,0,0,0,0,43,16,67,0,
+-	178,0,64,20,255,255,104,36,64,18,8,0,
+-	2,131,3,60,192,246,99,36,33,40,67,0,
+-	255,255,132,36,22,0,130,44,170,0,64,16,
+-	128,16,4,0,2,131,1,60,33,8,34,0,
+-	144,148,34,140,0,0,0,0,8,0,64,0,
+-	0,0,0,0,2,0,2,36,16,0,2,162,
+-	17,0,2,146,0,0,195,140,0,0,0,0,
+-	15,52,192,8,2,0,66,52,33,32,32,2,
+-	17,0,3,146,4,0,2,36,16,0,2,162,
+-	40,0,0,166,44,0,17,174,2,0,99,52,
+-	156,71,192,12,17,0,3,162,255,255,66,48,
+-	33,16,34,2,48,0,2,174,40,52,192,8,
+-	52,0,0,166,17,0,3,146,2,0,2,36,
+-	16,0,2,162,243,51,192,8,40,0,17,174,
+-	17,0,3,146,2,0,2,36,16,0,2,162,
+-	243,51,192,8,40,0,17,174,66,0,2,36,
+-	13,0,0,21,16,0,2,162,24,133,132,143,
+-	0,0,0,0,64,25,4,0,35,24,100,0,
+-	128,17,3,0,35,16,67,0,192,16,2,0,
+-	33,16,68,0,128,24,2,0,33,16,67,0,
+-	178,51,192,8,192,17,2,0,152,0,2,60,
+-	128,150,66,52,40,0,2,174,17,0,2,146,
+-	0,0,0,0,199,51,192,8,2,0,66,52,
+-	17,0,3,146,4,0,2,36,16,0,2,162,
+-	20,0,162,36,44,0,2,174,26,0,162,36,
+-	40,0,0,166,48,0,2,174,243,51,192,8,
+-	52,0,0,166,2,0,2,36,16,0,2,162,
+-	17,0,2,146,1,0,3,36,40,0,3,174,
+-	2,0,66,52,40,52,192,8,17,0,2,162,
+-	17,0,3,146,0,0,0,0,241,51,192,8,
+-	67,0,2,36,65,0,2,36,16,0,2,162,
+-	17,0,2,146,168,0,163,140,0,0,0,0,
+-	15,52,192,8,2,0,66,52,65,0,2,36,
+-	16,0,2,162,156,0,162,140,0,1,164,140,
+-	22,52,192,8,0,0,0,0,65,0,2,36,
+-	16,0,2,162,17,0,2,146,0,1,163,140,
+-	0,0,0,0,15,52,192,8,2,0,66,52,
+-	65,0,2,36,16,0,2,162,17,0,2,146,
+-	164,0,163,140,0,0,0,0,15,52,192,8,
+-	2,0,66,52,65,0,2,36,16,0,2,162,
+-	17,0,2,146,160,0,163,140,0,0,0,0,
+-	15,52,192,8,2,0,66,52,17,0,3,146,
+-	65,0,2,36,16,0,2,162,40,0,0,174,
+-	2,0,99,52,40,52,192,8,17,0,3,162,
+-	65,0,2,36,16,0,2,162,172,0,162,140,
+-	4,1,164,140,22,52,192,8,0,0,0,0,
+-	65,0,2,36,16,0,2,162,17,0,2,146,
+-	4,1,163,140,0,0,0,0,15,52,192,8,
+-	2,0,66,52,65,0,2,36,16,0,2,162,
+-	17,0,2,146,184,0,163,140,0,0,0,0,
+-	15,52,192,8,2,0,66,52,65,0,2,36,
+-	16,0,2,162,17,0,2,146,188,0,163,140,
+-	2,0,66,52,40,0,3,174,40,52,192,8,
+-	17,0,2,162,66,0,2,36,16,0,2,162,
+-	172,0,162,140,176,0,164,140,17,0,3,146,
+-	35,16,68,0,2,0,99,52,40,0,2,174,
+-	40,52,192,8,17,0,3,162,16,0,160,175,
+-	33,32,224,0,33,40,0,2,2,131,7,60,
+-	96,204,231,36,226,76,192,12,2,0,6,36,
+-	40,52,192,8,0,0,0,0,33,32,224,0,
+-	200,76,192,12,33,40,0,2,32,0,191,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	40,0,189,39,224,255,189,39,16,0,176,175,
+-	33,128,224,0,20,0,177,175,48,0,177,143,
+-	1,0,2,36,10,0,162,20,24,0,191,175,
+-	0,0,198,140,0,0,0,0,6,0,192,16,
+-	0,0,0,0,32,133,130,143,0,0,0,0,
+-	43,16,70,0,5,0,64,16,7,0,2,36,
+-	33,32,0,2,33,40,32,2,70,52,192,8,
+-	11,0,2,36,7,0,130,16,33,32,0,2,
+-	33,40,32,2,17,0,2,36,48,72,192,12,
+-	96,0,2,174,1,0,66,36,100,0,2,174,
+-	17,0,34,146,0,0,0,0,1,0,66,52,
+-	17,0,34,162,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	208,255,189,39,32,0,176,175,64,0,176,143,
+-	36,0,177,175,33,136,224,0,4,0,160,20,
+-	40,0,191,175,1,0,2,36,106,52,192,8,
+-	24,0,162,175,0,0,198,140,32,133,130,143,
+-	0,0,0,0,43,16,194,0,3,0,64,16,
+-	1,0,194,36,106,52,192,8,24,0,162,175,
+-	17,0,2,146,0,0,0,0,18,0,66,52,
+-	116,52,192,8,17,0,2,162,16,0,176,175,
+-	1,0,5,36,24,0,166,39,97,51,192,12,
+-	33,56,32,2,33,32,32,2,33,40,0,2,
+-	1,0,6,36,253,76,192,12,24,0,167,39,
+-	40,0,191,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,48,0,189,39,16,0,163,143,
+-	1,0,2,36,13,0,162,20,14,0,2,36,
+-	0,0,198,140,0,0,0,0,9,0,192,16,
+-	0,0,0,0,32,133,130,143,0,0,0,0,
+-	43,16,70,0,4,0,64,20,14,0,2,36,
+-	7,0,2,36,2,0,130,16,14,0,2,36,
+-	96,0,226,172,17,0,98,144,0,0,0,0,
+-	2,0,66,52,8,0,224,3,17,0,98,160,
+-	16,0,162,143,0,0,0,0,8,0,224,3,
+-	0,0,226,172,0,0,226,140,8,0,224,3,
+-	0,0,0,0,232,255,189,39,40,0,168,143,
+-	1,0,2,36,61,0,162,20,16,0,191,175,
+-	0,0,197,140,0,0,0,0,57,0,160,16,
+-	0,0,0,0,32,133,130,143,0,0,0,0,
+-	43,16,69,0,52,0,64,20,255,255,132,36,
+-	5,0,130,44,49,0,64,16,128,16,4,0,
+-	2,131,1,60,33,8,34,0,232,148,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	64,0,2,36,16,0,2,161,0,163,5,60,
+-	220,5,165,52,3,0,162,136,0,0,162,152,
+-	0,0,0,0,43,0,2,169,40,0,2,185,
+-	17,0,2,145,0,0,0,0,213,52,192,8,
+-	2,0,66,52,2,0,2,36,16,0,2,161,
+-	17,0,2,145,0,0,195,140,0,0,0,0,
+-	198,52,192,8,2,0,66,52,64,0,2,36,
+-	16,0,2,161,17,0,2,145,128,132,131,143,
+-	2,0,66,52,40,0,3,173,218,52,192,8,
+-	17,0,2,161,2,0,2,36,16,0,2,161,
+-	17,0,2,145,0,0,0,0,211,52,192,8,
+-	1,0,3,36,2,0,2,36,16,0,2,161,
+-	17,0,2,145,220,5,3,36,40,0,3,173,
+-	2,0,66,52,218,52,192,8,17,0,2,161,
+-	33,32,224,0,200,76,192,12,33,40,0,1,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,208,255,189,39,32,0,176,175,
+-	64,0,176,143,36,0,177,175,33,136,224,0,
+-	4,0,160,20,40,0,191,175,1,0,2,36,
+-	245,52,192,8,24,0,162,175,0,0,198,140,
+-	32,133,130,143,0,0,0,0,43,16,194,0,
+-	3,0,64,16,1,0,194,36,245,52,192,8,
+-	24,0,162,175,17,0,2,146,0,0,0,0,
+-	18,0,66,52,255,52,192,8,17,0,2,162,
+-	16,0,176,175,1,0,5,36,24,0,166,39,
+-	150,52,192,12,33,56,32,2,33,32,32,2,
+-	33,40,0,2,1,0,6,36,253,76,192,12,
+-	24,0,167,39,40,0,191,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,48,0,189,39,
+-	232,255,189,39,40,0,165,143,16,0,191,175,
+-	200,76,192,12,33,32,224,0,16,0,191,143,
+-	24,0,189,39,8,0,224,3,0,0,0,0,
+-	16,0,163,143,14,0,2,36,96,0,226,172,
+-	17,0,98,144,0,0,0,0,2,0,66,52,
+-	8,0,224,3,17,0,98,160,224,255,189,39,
+-	16,0,176,175,33,128,224,0,17,0,2,36,
+-	24,0,191,175,20,0,177,175,96,0,2,174,
+-	48,0,177,143,33,32,0,2,48,72,192,12,
+-	33,40,32,2,1,0,66,36,100,0,2,174,
+-	17,0,34,146,0,0,0,0,1,0,66,52,
+-	17,0,34,162,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	16,0,163,143,0,0,0,0,17,0,98,144,
+-	0,0,0,0,18,0,66,52,8,0,224,3,
+-	17,0,98,160,8,0,224,3,33,16,224,0,
+-	224,255,189,39,48,0,168,143,1,0,2,36,
+-	114,0,162,20,24,0,191,175,0,0,195,140,
+-	0,0,0,0,110,0,96,16,0,0,0,0,
+-	32,133,130,143,0,0,0,0,43,16,67,0,
+-	105,0,64,20,255,255,98,36,64,18,2,0,
+-	2,131,3,60,192,246,99,36,33,24,67,0,
+-	255,255,132,36,17,0,130,44,97,0,64,16,
+-	128,16,4,0,2,131,1,60,33,8,34,0,
+-	0,149,34,140,0,0,0,0,8,0,64,0,
+-	0,0,0,0,2,0,2,36,16,0,2,161,
+-	17,0,2,145,0,0,195,140,0,0,0,0,
+-	140,53,192,8,2,0,66,52,2,0,2,36,
+-	16,0,2,161,44,0,99,140,17,0,2,145,
+-	16,0,99,140,0,0,0,0,101,53,192,8,
+-	2,0,66,52,2,0,2,36,16,0,2,161,
+-	44,0,99,140,17,0,2,145,12,0,99,140,
+-	2,0,66,52,17,0,2,161,173,53,192,8,
+-	40,0,3,173,2,0,2,36,16,0,2,161,
+-	17,0,2,145,212,0,99,140,0,0,0,0,
+-	140,53,192,8,2,0,66,52,2,0,2,36,
+-	16,0,2,161,17,0,2,145,192,0,99,140,
+-	0,0,0,0,140,53,192,8,2,0,66,52,
+-	2,0,2,36,16,0,2,161,17,0,2,145,
+-	208,0,99,140,0,0,0,0,140,53,192,8,
+-	2,0,66,52,2,0,2,36,16,0,2,161,
+-	204,0,98,140,184,0,100,140,17,0,3,145,
+-	33,16,68,0,2,0,99,52,40,0,2,173,
+-	173,53,192,8,17,0,3,161,2,0,2,36,
+-	16,0,2,161,17,0,2,145,196,0,99,140,
+-	2,0,66,52,40,0,3,173,173,53,192,8,
+-	17,0,2,161,17,0,3,145,2,0,2,36,
+-	16,0,2,161,40,0,0,173,2,0,99,52,
+-	173,53,192,8,17,0,3,161,2,0,2,36,
+-	16,0,2,161,44,0,100,140,17,0,2,145,
+-	20,0,131,140,24,0,132,140,2,0,66,52,
+-	17,0,2,161,33,24,100,0,173,53,192,8,
+-	40,0,3,173,16,0,160,175,33,32,224,0,
+-	33,40,0,1,2,131,7,60,104,204,231,36,
+-	226,76,192,12,11,0,6,36,173,53,192,8,
+-	0,0,0,0,33,32,224,0,200,76,192,12,
+-	33,40,0,1,24,0,191,143,32,0,189,39,
+-	8,0,224,3,0,0,0,0,208,255,189,39,
+-	32,0,176,175,64,0,176,143,36,0,177,175,
+-	33,136,224,0,4,0,160,20,40,0,191,175,
+-	1,0,2,36,200,53,192,8,24,0,162,175,
+-	0,0,198,140,32,133,130,143,0,0,0,0,
+-	43,16,194,0,3,0,64,16,1,0,194,36,
+-	200,53,192,8,24,0,162,175,17,0,2,146,
+-	0,0,0,0,18,0,66,52,210,53,192,8,
+-	17,0,2,162,16,0,176,175,1,0,5,36,
+-	24,0,166,39,52,53,192,12,33,56,32,2,
+-	33,32,32,2,33,40,0,2,1,0,6,36,
+-	253,76,192,12,24,0,167,39,40,0,191,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	48,0,189,39,0,0,226,140,8,0,224,3,
+-	0,0,0,0,3,131,2,60,28,18,66,148,
+-	0,0,0,0,2,0,66,48,2,0,64,16,
+-	2,0,3,36,1,0,3,36,8,0,224,3,
+-	33,16,96,0,232,255,189,39,40,0,164,143,
+-	16,0,191,175,1,0,132,56,186,59,192,12,
+-	1,0,132,44,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,16,0,163,143,
+-	6,0,2,36,0,0,98,172,8,0,224,3,
+-	33,16,224,0,224,255,189,39,48,0,168,143,
+-	1,0,2,36,52,0,162,20,24,0,191,175,
+-	0,0,197,140,0,0,0,0,48,0,160,16,
+-	0,0,0,0,24,133,130,143,0,0,0,0,
+-	43,16,69,0,43,0,64,20,255,255,132,36,
+-	5,0,130,44,40,0,64,16,128,16,4,0,
+-	2,131,1,60,33,8,34,0,72,149,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	2,0,2,36,16,0,2,161,17,0,2,145,
+-	0,0,195,140,2,0,66,52,40,0,3,173,
+-	45,54,192,8,17,0,2,161,2,0,2,36,
+-	16,0,2,161,0,0,194,140,17,0,3,145,
+-	1,0,66,36,2,0,99,52,40,0,2,173,
+-	45,54,192,8,17,0,3,161,16,0,160,175,
+-	33,32,224,0,33,40,0,1,2,131,7,60,
+-	148,204,231,36,226,76,192,12,2,0,6,36,
+-	45,54,192,8,0,0,0,0,17,0,3,145,
+-	2,0,2,36,16,0,2,161,40,0,0,173,
+-	2,0,99,52,45,54,192,8,17,0,3,161,
+-	33,32,224,0,200,76,192,12,33,40,0,1,
+-	24,0,191,143,32,0,189,39,8,0,224,3,
+-	0,0,0,0,208,255,189,39,32,0,176,175,
+-	64,0,176,143,36,0,177,175,33,136,224,0,
+-	4,0,160,20,40,0,191,175,1,0,2,36,
+-	72,54,192,8,24,0,162,175,0,0,198,140,
+-	24,133,130,143,0,0,0,0,43,16,194,0,
+-	3,0,64,16,1,0,194,36,72,54,192,8,
+-	24,0,162,175,17,0,2,146,0,0,0,0,
+-	18,0,66,52,82,54,192,8,17,0,2,162,
+-	16,0,176,175,1,0,5,36,24,0,166,39,
+-	242,53,192,12,33,56,32,2,33,32,32,2,
+-	33,40,0,2,1,0,6,36,253,76,192,12,
+-	24,0,167,39,40,0,191,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,48,0,189,39,
+-	0,0,226,148,8,0,224,3,0,0,0,0,
+-	8,0,224,3,33,16,224,0,16,0,163,143,
+-	8,0,2,36,0,0,98,172,8,0,224,3,
+-	33,16,224,0,224,255,189,39,16,0,176,175,
+-	48,0,176,143,1,0,2,36,24,0,191,175,
+-	126,0,162,20,20,0,177,175,0,0,198,140,
+-	0,0,0,0,122,0,192,16,0,0,0,0,
+-	24,133,130,143,0,0,0,0,43,16,70,0,
+-	117,0,64,20,192,17,6,0,3,131,3,60,
+-	16,13,99,36,33,136,67,0,255,255,132,36,
+-	10,0,130,44,110,0,64,16,128,16,4,0,
+-	2,131,1,60,33,8,34,0,96,149,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	17,0,3,146,2,0,2,36,16,0,2,162,
+-	211,54,192,8,40,0,6,174,2,0,2,36,
+-	16,0,2,162,0,0,34,150,17,0,3,146,
+-	0,0,0,0,143,54,192,8,2,18,2,0,
+-	2,0,2,36,16,0,2,162,4,0,34,142,
+-	17,0,3,146,1,0,66,36,2,0,99,52,
+-	40,0,2,174,232,54,192,8,17,0,3,162,
+-	2,0,2,36,16,0,2,162,4,0,34,142,
+-	0,0,0,0,2,0,64,16,2,0,3,36,
+-	1,0,3,36,17,0,2,146,40,0,3,174,
+-	2,0,66,52,232,54,192,8,17,0,2,162,
+-	2,0,2,36,16,0,2,162,17,0,2,146,
+-	8,0,35,142,0,0,0,0,226,54,192,8,
+-	2,0,66,52,9,50,192,12,8,0,4,36,
+-	33,48,64,0,15,0,34,138,12,0,34,154,
+-	19,0,35,138,16,0,35,154,3,0,194,168,
+-	0,0,194,184,7,0,195,168,196,54,192,8,
+-	4,0,195,184,2,0,2,36,16,0,2,162,
+-	17,0,2,146,20,0,35,142,0,0,0,0,
+-	226,54,192,8,2,0,66,52,9,50,192,12,
+-	8,0,4,36,33,48,64,0,27,0,34,138,
+-	24,0,34,154,31,0,35,138,28,0,35,154,
+-	3,0,194,168,0,0,194,184,7,0,195,168,
+-	4,0,195,184,0,0,194,148,0,0,0,0,
+-	0,26,2,0,2,18,2,0,37,24,98,0,
+-	0,0,195,164,17,0,3,146,4,0,2,36,
+-	16,0,2,162,1,0,2,36,40,0,2,166,
+-	8,0,194,36,44,0,6,174,48,0,2,174,
+-	52,0,0,166,2,0,99,52,232,54,192,8,
+-	17,0,3,162,2,0,2,36,16,0,2,162,
+-	17,0,2,146,32,0,35,150,0,0,0,0,
+-	226,54,192,8,2,0,66,52,2,0,2,36,
+-	16,0,2,162,17,0,2,146,104,0,35,142,
+-	2,0,66,52,40,0,3,174,232,54,192,8,
+-	17,0,2,162,33,32,224,0,200,76,192,12,
+-	33,40,0,2,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	224,255,189,39,16,0,176,175,33,128,224,0,
+-	20,0,177,175,48,0,177,143,1,0,2,36,
+-	10,0,162,20,24,0,191,175,0,0,198,140,
+-	0,0,0,0,6,0,192,16,0,0,0,0,
+-	24,133,130,143,0,0,0,0,43,16,70,0,
+-	5,0,64,16,2,0,2,36,33,32,0,2,
+-	33,40,32,2,13,55,192,8,11,0,2,36,
+-	14,0,130,16,2,0,130,44,5,0,64,20,
+-	6,0,130,44,3,0,64,16,4,0,130,44,
+-	8,0,64,16,0,0,0,0,33,32,0,2,
+-	33,40,32,2,17,0,2,36,48,72,192,12,
+-	96,0,2,174,1,0,66,36,100,0,2,174,
+-	17,0,34,146,0,0,0,0,1,0,66,52,
+-	17,0,34,162,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	208,255,189,39,32,0,176,175,64,0,176,143,
+-	36,0,177,175,33,136,224,0,4,0,160,20,
+-	40,0,191,175,1,0,2,36,49,55,192,8,
+-	24,0,162,175,0,0,198,140,24,133,130,143,
+-	0,0,0,0,43,16,194,0,3,0,64,16,
+-	1,0,194,36,49,55,192,8,24,0,162,175,
+-	17,0,2,146,0,0,0,0,18,0,66,52,
+-	59,55,192,8,17,0,2,162,16,0,176,175,
+-	1,0,5,36,24,0,166,39,97,54,192,12,
+-	33,56,32,2,33,32,32,2,33,40,0,2,
+-	1,0,6,36,253,76,192,12,24,0,167,39,
+-	40,0,191,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,48,0,189,39,232,255,189,39,
+-	33,64,128,0,16,0,176,175,40,0,176,143,
+-	1,0,2,36,57,0,162,20,20,0,191,175,
+-	0,0,196,140,0,0,0,0,54,0,128,16,
+-	14,0,2,36,24,133,130,143,0,0,0,0,
+-	43,16,68,0,49,0,64,20,14,0,2,36,
+-	192,17,4,0,3,131,3,60,16,13,99,36,
+-	33,48,67,0,4,0,2,36,21,0,2,17,
+-	5,0,2,45,5,0,64,16,2,0,2,36,
+-	8,0,2,17,14,0,2,36,129,55,192,8,
+-	96,0,226,172,5,0,2,36,28,0,2,17,
+-	14,0,2,36,129,55,192,8,96,0,226,172,
+-	0,0,195,144,0,0,0,0,0,0,195,164,
+-	40,0,2,142,0,0,0,0,0,18,2,0,
+-	37,24,98,0,129,55,192,8,0,0,195,164,
+-	40,0,3,142,0,0,0,0,5,0,101,16,
+-	2,0,2,36,7,0,98,16,14,0,2,36,
+-	129,55,192,8,96,0,226,172,187,42,192,12,
+-	1,0,5,36,129,55,192,8,0,0,0,0,
+-	187,42,192,12,33,40,0,0,129,55,192,8,
+-	0,0,0,0,40,0,2,142,0,0,0,0,
+-	129,55,192,8,8,0,194,172,14,0,2,36,
+-	96,0,226,172,17,0,2,146,0,0,0,0,
+-	2,0,66,52,17,0,2,162,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	216,255,189,39,20,0,177,175,33,136,128,0,
+-	28,0,179,175,33,152,160,0,24,0,178,175,
+-	33,144,224,0,16,0,176,175,56,0,176,143,
+-	1,0,2,36,46,0,98,22,32,0,191,175,
+-	0,0,196,140,0,0,0,0,42,0,128,16,
+-	0,0,0,0,58,25,192,12,0,0,0,0,
+-	33,32,64,0,37,0,128,16,2,0,2,36,
+-	11,0,34,18,3,0,34,46,5,0,64,16,
+-	3,0,2,36,15,0,51,18,4,0,2,36,
+-	195,55,192,8,33,32,64,2,20,0,34,18,
+-	33,32,64,2,195,55,192,8,0,0,0,0,
+-	2,0,2,36,16,0,2,162,17,0,2,146,
+-	10,0,131,132,2,0,66,52,40,0,3,174,
+-	197,55,192,8,17,0,2,162,17,0,3,146,
+-	16,0,2,162,4,0,130,36,44,0,2,174,
+-	10,0,130,36,40,0,0,166,48,0,2,174,
+-	191,55,192,8,52,0,0,166,17,0,3,146,
+-	2,0,2,36,16,0,2,162,40,0,17,174,
+-	2,0,99,52,197,55,192,8,17,0,3,162,
+-	33,32,64,2,200,76,192,12,33,40,0,2,
+-	32,0,191,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,208,255,189,39,32,0,176,175,
+-	64,0,176,143,40,0,178,175,33,144,128,0,
+-	36,0,177,175,33,136,224,0,3,0,160,20,
+-	44,0,191,175,218,55,192,8,1,0,2,36,
+-	0,0,194,140,0,0,0,0,1,0,66,36,
+-	24,0,162,175,24,0,164,143,58,25,192,12,
+-	0,0,0,0,6,0,64,20,33,32,64,2,
+-	17,0,2,146,0,0,0,0,18,0,66,52,
+-	239,55,192,8,17,0,2,162,16,0,176,175,
+-	1,0,5,36,24,0,166,39,137,55,192,12,
+-	33,56,32,2,33,32,32,2,33,40,0,2,
+-	1,0,6,36,253,76,192,12,24,0,167,39,
+-	44,0,191,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,48,0,189,39,
+-	232,255,189,39,40,0,168,143,1,0,2,36,
+-	63,0,162,20,16,0,191,175,0,0,195,140,
+-	0,0,0,0,59,0,96,16,0,0,0,0,
+-	24,133,130,143,0,0,0,0,43,16,67,0,
+-	54,0,64,20,64,18,3,0,2,131,3,60,
+-	192,246,99,36,33,24,67,0,255,255,132,36,
+-	5,0,130,44,47,0,64,16,128,16,4,0,
+-	2,131,1,60,33,8,34,0,136,149,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	2,0,2,36,16,0,2,161,17,0,2,145,
+-	0,0,195,140,0,0,0,0,43,56,192,8,
+-	2,0,66,52,2,0,2,36,16,0,2,161,
+-	17,0,2,145,220,5,3,36,40,0,3,173,
+-	2,0,66,52,59,56,192,8,17,0,2,161,
+-	65,0,2,36,16,0,2,161,17,0,2,145,
+-	156,0,99,140,0,0,0,0,43,56,192,8,
+-	2,0,66,52,65,0,2,36,16,0,2,161,
+-	17,0,2,145,172,0,99,140,2,0,66,52,
+-	40,0,3,173,59,56,192,8,17,0,2,161,
+-	65,0,2,36,16,0,2,161,156,0,98,140,
+-	252,0,100,140,17,0,3,145,35,16,68,0,
+-	2,0,99,52,40,0,2,173,59,56,192,8,
+-	17,0,3,161,33,32,224,0,200,76,192,12,
+-	33,40,0,1,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,208,255,189,39,
+-	32,0,176,175,64,0,176,143,36,0,177,175,
+-	33,136,224,0,4,0,160,20,40,0,191,175,
+-	1,0,2,36,86,56,192,8,24,0,162,175,
+-	0,0,198,140,24,133,130,143,0,0,0,0,
+-	43,16,194,0,3,0,64,16,1,0,194,36,
+-	86,56,192,8,24,0,162,175,17,0,2,146,
+-	0,0,0,0,18,0,66,52,96,56,192,8,
+-	17,0,2,162,16,0,176,175,1,0,5,36,
+-	24,0,166,39,245,55,192,12,33,56,32,2,
+-	33,32,32,2,33,40,0,2,1,0,6,36,
+-	253,76,192,12,24,0,167,39,40,0,191,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	48,0,189,39,0,0,0,0,0,0,0,0,
+-	0,0,0,0,200,255,189,39,72,0,163,143,
+-	44,0,177,175,33,136,128,0,20,0,165,175,
+-	33,40,224,0,2,131,2,60,172,210,66,140,
+-	152,132,135,143,33,32,0,0,48,0,191,175,
+-	40,0,176,175,24,0,160,175,28,0,160,175,
+-	36,0,160,175,16,0,162,175,104,77,192,12,
+-	32,0,163,175,33,128,64,0,3,0,0,22,
+-	33,32,0,2,143,56,192,8,33,16,0,0,
+-	197,80,192,12,33,40,32,2,255,255,3,36,
+-	5,0,67,20,0,0,0,0,167,83,192,12,
+-	33,32,0,2,143,56,192,8,33,16,0,0,
+-	167,83,192,12,33,32,0,2,8,0,34,142,
+-	4,0,35,142,0,0,0,0,35,16,67,0,
+-	255,255,66,48,48,0,191,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,56,0,189,39,
+-	200,255,189,39,44,0,177,175,33,136,128,0,
+-	72,0,168,143,33,32,0,0,20,0,165,175,
+-	33,40,224,0,2,131,3,60,172,210,99,140,
+-	152,132,135,143,1,0,2,36,48,0,191,175,
+-	40,0,176,175,24,0,162,175,28,0,160,175,
+-	36,0,160,175,16,0,163,175,104,77,192,12,
+-	32,0,168,175,33,128,64,0,3,0,0,22,
+-	33,32,0,2,188,56,192,8,33,16,0,0,
+-	197,80,192,12,33,40,32,2,255,255,3,36,
+-	5,0,67,20,0,0,0,0,167,83,192,12,
+-	33,32,0,2,188,56,192,8,33,16,0,0,
+-	167,83,192,12,33,32,0,2,8,0,34,142,
+-	4,0,35,142,0,0,0,0,35,16,67,0,
+-	255,255,66,48,48,0,191,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,56,0,189,39,
+-	176,255,189,39,44,0,177,175,108,0,177,143,
+-	68,0,183,175,96,0,183,143,72,0,190,175,
+-	100,0,190,143,48,0,178,175,33,144,128,0,
+-	56,0,180,175,33,160,160,0,52,0,179,175,
+-	33,152,192,0,40,0,176,175,33,128,224,0,
+-	60,0,181,175,1,0,21,36,76,0,191,175,
+-	3,0,53,18,64,0,182,175,9,57,192,8,
+-	255,255,2,36,4,0,6,36,2,131,22,60,
+-	48,205,214,38,160,132,132,143,104,0,165,143,
+-	128,32,4,0,80,68,192,12,33,32,150,0,
+-	33,32,0,0,33,40,0,2,152,132,135,143,
+-	2,0,2,36,24,0,162,175,160,132,130,143,
+-	2,131,3,60,172,210,99,140,33,48,96,2,
+-	20,0,180,175,28,0,160,175,32,0,183,175,
+-	36,0,181,175,1,0,81,36,104,77,192,12,
+-	16,0,163,175,33,128,64,0,23,0,0,18,
+-	33,40,0,0,16,0,190,175,33,32,0,2,
+-	33,48,32,2,108,84,192,12,33,56,192,2,
+-	255,255,17,36,13,0,81,16,33,32,0,2,
+-	197,80,192,12,33,40,64,2,9,0,81,16,
+-	0,0,0,0,167,83,192,12,33,32,0,2,
+-	8,0,66,142,4,0,67,142,0,0,0,0,
+-	35,16,67,0,9,57,192,8,255,255,66,48,
+-	167,83,192,12,33,32,0,2,33,16,0,0,
+-	76,0,191,143,72,0,190,143,68,0,183,143,
+-	64,0,182,143,60,0,181,143,56,0,180,143,
+-	52,0,179,143,48,0,178,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,80,0,189,39,
+-	176,255,189,39,44,0,177,175,108,0,177,143,
+-	68,0,183,175,96,0,183,143,72,0,190,175,
+-	100,0,190,143,48,0,178,175,33,144,128,0,
+-	56,0,180,175,33,160,160,0,52,0,179,175,
+-	33,152,192,0,40,0,176,175,33,128,224,0,
+-	60,0,181,175,1,0,21,36,76,0,191,175,
+-	3,0,53,18,64,0,182,175,93,57,192,8,
+-	255,255,2,36,4,0,6,36,2,131,22,60,
+-	48,205,214,38,160,132,132,143,104,0,165,143,
+-	128,32,4,0,80,68,192,12,33,32,150,0,
+-	33,32,0,0,33,40,0,2,152,132,135,143,
+-	3,0,2,36,24,0,162,175,160,132,130,143,
+-	2,131,3,60,172,210,99,140,33,48,96,2,
+-	20,0,180,175,28,0,160,175,32,0,183,175,
+-	36,0,181,175,1,0,81,36,104,77,192,12,
+-	16,0,163,175,33,128,64,0,23,0,0,18,
+-	33,40,0,0,16,0,190,175,33,32,0,2,
+-	33,48,32,2,108,84,192,12,33,56,192,2,
+-	255,255,17,36,13,0,81,16,33,32,0,2,
+-	197,80,192,12,33,40,64,2,9,0,81,16,
+-	0,0,0,0,167,83,192,12,33,32,0,2,
+-	8,0,66,142,4,0,67,142,0,0,0,0,
+-	35,16,67,0,93,57,192,8,255,255,66,48,
+-	167,83,192,12,33,32,0,2,33,16,0,0,
+-	76,0,191,143,72,0,190,143,68,0,183,143,
+-	64,0,182,143,60,0,181,143,56,0,180,143,
+-	52,0,179,143,48,0,178,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,80,0,189,39,
+-	200,255,189,39,44,0,177,175,33,136,128,0,
+-	72,0,168,143,33,32,0,0,20,0,165,175,
+-	33,40,224,0,2,131,3,60,172,210,99,140,
+-	152,132,135,143,4,0,2,36,48,0,191,175,
+-	40,0,176,175,24,0,162,175,28,0,160,175,
+-	36,0,160,175,16,0,163,175,104,77,192,12,
+-	32,0,168,175,33,128,64,0,3,0,0,22,
+-	33,32,0,2,145,57,192,8,33,16,0,0,
+-	197,80,192,12,33,40,32,2,255,255,3,36,
+-	5,0,67,20,0,0,0,0,167,83,192,12,
+-	33,32,0,2,145,57,192,8,33,16,0,0,
+-	167,83,192,12,33,32,0,2,8,0,34,142,
+-	4,0,35,142,0,0,0,0,35,16,67,0,
+-	255,255,66,48,48,0,191,143,44,0,177,143,
+-	40,0,176,143,8,0,224,3,56,0,189,39,
+-	200,255,189,39,44,0,177,175,33,136,128,0,
+-	72,0,163,143,33,32,0,0,20,0,165,175,
+-	33,40,224,0,164,132,135,143,2,131,2,60,
+-	92,205,66,36,16,0,162,175,6,0,2,36,
+-	24,0,162,175,1,0,2,36,48,0,191,175,
+-	40,0,176,175,28,0,162,175,36,0,160,175,
+-	104,77,192,12,32,0,163,175,33,128,64,0,
+-	3,0,0,22,33,32,0,2,191,57,192,8,
+-	33,16,0,0,197,80,192,12,33,40,32,2,
+-	255,255,3,36,5,0,67,20,0,0,0,0,
+-	167,83,192,12,33,32,0,2,191,57,192,8,
+-	33,16,0,0,167,83,192,12,33,32,0,2,
+-	8,0,34,142,4,0,35,142,0,0,0,0,
+-	35,16,67,0,255,255,66,48,48,0,191,143,
+-	44,0,177,143,40,0,176,143,8,0,224,3,
+-	56,0,189,39,200,255,189,39,44,0,177,175,
+-	33,136,128,0,72,0,163,143,33,32,0,0,
+-	20,0,165,175,33,40,224,0,164,132,135,143,
+-	2,131,2,60,92,205,66,36,16,0,162,175,
+-	6,0,2,36,24,0,162,175,2,0,2,36,
+-	48,0,191,175,40,0,176,175,28,0,162,175,
+-	36,0,160,175,104,77,192,12,32,0,163,175,
+-	33,128,64,0,3,0,0,22,33,32,0,2,
+-	237,57,192,8,33,16,0,0,197,80,192,12,
+-	33,40,32,2,255,255,3,36,5,0,67,20,
+-	0,0,0,0,167,83,192,12,33,32,0,2,
+-	237,57,192,8,33,16,0,0,167,83,192,12,
+-	33,32,0,2,8,0,34,142,4,0,35,142,
+-	0,0,0,0,35,16,67,0,255,255,66,48,
+-	48,0,191,143,44,0,177,143,40,0,176,143,
+-	8,0,224,3,56,0,189,39,0,0,0,0,
+-	0,0,0,0,224,255,189,39,24,0,178,175,
+-	33,144,128,0,20,0,177,175,3,131,17,60,
+-	0,18,49,38,16,0,176,175,33,128,0,0,
+-	28,0,191,175,208,133,128,175,60,65,192,12,
+-	33,32,0,2,0,0,34,166,1,0,16,38,
+-	64,0,2,42,250,255,64,20,2,0,49,38,
+-	3,131,3,60,18,18,99,144,255,0,2,36,
+-	3,0,98,16,0,0,0,0,6,0,64,18,
+-	0,163,4,60,75,59,192,12,32,0,4,36,
+-	87,59,192,12,255,0,4,36,0,163,4,60,
+-	220,5,132,52,176,132,133,39,168,71,192,12,
+-	4,0,6,36,25,0,64,20,0,163,4,60,
+-	3,131,16,60,20,18,16,38,33,32,0,2,
+-	176,132,133,39,168,71,192,12,4,0,6,36,
+-	3,0,64,16,0,163,4,60,7,0,64,18,
+-	0,0,0,0,220,5,132,52,33,40,0,0,
+-	144,71,192,12,4,0,6,36,47,58,192,8,
+-	0,163,4,60,0,163,5,60,220,5,165,52,
+-	3,0,2,138,0,0,2,154,0,0,0,0,
+-	3,0,162,168,0,0,162,184,0,163,4,60,
+-	99,59,192,12,220,5,132,52,0,163,4,60,
+-	16,6,132,52,176,132,133,39,168,71,192,12,
+-	4,0,6,36,25,0,64,20,0,163,4,60,
+-	3,131,16,60,68,18,16,38,33,32,0,2,
+-	176,132,133,39,168,71,192,12,4,0,6,36,
+-	3,0,64,16,0,163,4,60,7,0,64,18,
+-	0,0,0,0,16,6,132,52,33,40,0,0,
+-	144,71,192,12,4,0,6,36,80,58,192,8,
+-	0,163,4,60,0,163,5,60,16,6,165,52,
+-	3,0,2,138,0,0,2,154,0,0,0,0,
+-	3,0,162,168,0,0,162,184,0,163,4,60,
+-	119,59,192,12,16,6,132,52,0,163,4,60,
+-	224,5,132,52,176,132,133,39,168,71,192,12,
+-	4,0,6,36,25,0,64,20,0,163,4,60,
+-	3,131,16,60,24,18,16,38,33,32,0,2,
+-	176,132,133,39,168,71,192,12,4,0,6,36,
+-	3,0,64,16,0,163,4,60,7,0,64,18,
+-	0,0,0,0,224,5,132,52,33,40,0,0,
+-	144,71,192,12,4,0,6,36,113,58,192,8,
+-	0,163,4,60,0,163,5,60,224,5,165,52,
+-	3,0,2,138,0,0,2,154,0,0,0,0,
+-	3,0,162,168,0,0,162,184,0,163,4,60,
+-	139,59,192,12,224,5,132,52,3,131,3,60,
+-	28,18,99,36,0,0,98,148,0,0,0,0,
+-	0,128,66,48,3,0,64,20,1,0,2,36,
+-	2,0,64,18,0,0,0,0,0,0,98,164,
+-	0,163,2,60,144,1,66,140,0,0,0,0,
+-	7,0,64,20,0,0,0,0,3,131,3,60,
+-	28,18,99,36,0,0,98,148,0,0,0,0,
+-	146,58,192,8,254,255,66,48,0,163,2,60,
+-	144,1,66,140,0,0,0,0,7,0,64,24,
+-	0,0,0,0,3,131,3,60,28,18,99,36,
+-	0,0,98,148,0,0,0,0,1,0,66,52,
+-	0,0,98,164,3,131,4,60,28,18,132,148,
+-	0,0,0,0,159,59,192,12,1,0,132,48,
+-	3,131,3,60,80,18,99,144,255,0,2,36,
+-	3,0,98,16,0,0,0,0,5,0,64,18,
+-	0,0,0,0,2,131,4,60,160,149,132,36,
+-	205,59,192,12,14,0,5,36,3,131,3,60,
+-	96,18,99,144,255,0,2,36,3,0,98,16,
+-	0,0,0,0,5,0,64,18,0,0,0,0,
+-	2,131,4,60,176,149,132,36,239,59,192,12,
+-	11,0,5,36,3,131,3,60,112,18,99,144,
+-	255,0,2,36,3,0,98,16,0,0,0,0,
+-	5,0,64,18,0,0,0,0,2,131,4,60,
+-	188,149,132,36,17,60,192,12,15,0,5,36,
+-	0,163,2,60,140,1,66,140,0,0,0,0,
+-	7,0,64,16,15,0,2,60,0,163,3,60,
+-	140,1,99,140,64,66,66,52,43,16,67,0,
+-	26,0,64,16,0,0,0,0,3,131,3,60,
+-	64,18,99,140,255,255,2,36,3,0,98,16,
+-	44,1,2,36,4,0,64,18,0,0,0,0,
+-	0,163,1,60,221,58,192,8,140,1,34,172,
+-	5,0,96,20,15,0,4,60,1,0,2,36,
+-	0,163,1,60,221,58,192,8,140,1,34,172,
+-	64,66,132,52,43,16,131,0,4,0,64,16,
+-	0,0,0,0,0,163,1,60,221,58,192,8,
+-	140,1,36,172,0,163,1,60,140,1,35,172,
+-	0,163,4,60,140,1,132,140,51,60,192,12,
+-	0,0,0,0,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,208,255,189,39,20,0,177,175,
+-	33,136,128,0,36,0,181,175,33,168,160,0,
+-	28,0,179,175,33,152,192,0,44,0,191,175,
+-	40,0,182,175,32,0,180,175,24,0,178,175,
+-	168,71,192,12,16,0,176,175,76,0,64,16,
+-	0,0,0,0,3,131,22,60,0,18,214,38,
+-	35,16,54,2,194,31,2,0,33,16,67,0,
+-	67,144,2,0,1,0,98,38,194,31,2,0,
+-	33,16,67,0,67,128,2,0,255,255,20,38,
+-	64,0,130,46,14,0,64,20,64,0,66,46,
+-	2,131,4,60,204,149,132,36,180,132,144,39,
+-	33,40,0,2,2,131,7,60,236,149,231,36,
+-	15,63,192,12,143,0,6,36,1,0,4,36,
+-	33,40,0,2,188,7,192,12,143,0,6,36,
+-	64,0,66,46,14,0,64,20,33,32,32,2,
+-	2,131,4,60,204,149,132,36,180,132,144,39,
+-	33,40,0,2,2,131,7,60,20,150,231,36,
+-	15,63,192,12,144,0,6,36,1,0,4,36,
+-	33,40,0,2,188,7,192,12,144,0,6,36,
+-	33,32,32,2,33,40,160,2,80,68,192,12,
+-	33,48,96,2,64,16,18,0,33,136,86,0,
+-	33,128,128,2,255,255,2,36,25,0,2,18,
+-	255,255,20,36,180,132,147,39,33,32,64,2,
+-	208,133,130,143,1,0,82,38,1,0,66,36,
+-	208,133,130,175,0,0,37,150,0,0,0,0,
+-	162,65,192,12,2,0,49,38,10,0,64,20,
+-	33,40,96,2,2,131,4,60,204,149,132,36,
+-	188,132,135,39,15,63,192,12,159,0,6,36,
+-	1,0,4,36,33,40,96,2,188,7,192,12,
+-	159,0,6,36,255,255,16,38,235,255,20,22,
+-	33,32,64,2,44,0,191,143,40,0,182,143,
+-	36,0,181,143,32,0,180,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,48,0,189,39,224,255,189,39,
+-	16,0,164,163,3,131,4,60,18,18,132,36,
+-	16,0,165,39,24,0,191,175,231,58,192,12,
+-	1,0,6,36,24,0,191,143,32,0,189,39,
+-	8,0,224,3,0,0,0,0,224,255,189,39,
+-	16,0,164,163,3,131,4,60,19,18,132,36,
+-	16,0,165,39,24,0,191,175,231,58,192,12,
+-	1,0,6,36,24,0,191,143,32,0,189,39,
+-	8,0,224,3,0,0,0,0,232,255,189,39,
+-	33,40,128,0,16,0,176,175,3,131,16,60,
+-	20,18,16,38,33,32,0,2,20,0,191,175,
+-	231,58,192,12,4,0,6,36,0,163,5,60,
+-	220,5,165,52,3,0,2,138,0,0,2,154,
+-	0,0,0,0,3,0,162,168,0,0,162,184,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,232,255,189,39,33,40,128,0,
+-	16,0,176,175,3,131,16,60,68,18,16,38,
+-	33,32,0,2,20,0,191,175,231,58,192,12,
+-	4,0,6,36,0,163,5,60,16,6,165,52,
+-	3,0,2,138,0,0,2,154,0,0,0,0,
+-	3,0,162,168,0,0,162,184,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	232,255,189,39,33,40,128,0,16,0,176,175,
+-	3,131,16,60,24,18,16,38,33,32,0,2,
+-	20,0,191,175,231,58,192,12,4,0,6,36,
+-	0,163,5,60,224,5,165,52,3,0,2,138,
+-	0,0,2,154,0,0,0,0,3,0,162,168,
+-	0,0,162,184,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,3,131,2,60,
+-	28,18,66,148,224,255,189,39,24,0,191,175,
+-	8,0,128,16,16,0,162,167,1,0,66,52,
+-	16,0,162,167,1,0,2,36,44,133,130,175,
+-	0,163,1,60,177,59,192,8,144,1,34,172,
+-	254,255,66,48,16,0,162,167,44,133,128,175,
+-	0,163,1,60,144,1,32,172,3,131,4,60,
+-	28,18,132,36,16,0,165,39,231,58,192,12,
+-	2,0,6,36,24,0,191,143,32,0,189,39,
+-	8,0,224,3,0,0,0,0,3,131,2,60,
+-	28,18,66,148,224,255,189,39,24,0,191,175,
+-	3,0,128,16,16,0,162,167,195,59,192,8,
+-	2,0,66,52,253,255,66,48,16,0,162,167,
+-	3,131,4,60,28,18,132,36,16,0,165,39,
+-	231,58,192,12,2,0,6,36,24,0,191,143,
+-	32,0,189,39,8,0,224,3,0,0,0,0,
+-	216,255,189,39,32,0,191,175,33,56,128,0,
+-	33,48,160,0,3,0,226,136,0,0,226,152,
+-	7,0,227,136,4,0,227,152,11,0,228,136,
+-	8,0,228,152,15,0,229,136,12,0,229,152,
+-	19,0,162,171,16,0,162,187,23,0,163,171,
+-	20,0,163,187,27,0,164,171,24,0,164,187,
+-	31,0,165,171,28,0,165,187,16,0,194,44,
+-	3,0,64,16,16,0,163,39,33,16,102,0,
+-	0,0,64,160,3,131,4,60,80,18,132,36,
+-	33,40,224,0,231,58,192,12,16,0,6,36,
+-	32,0,191,143,40,0,189,39,8,0,224,3,
+-	0,0,0,0,216,255,189,39,32,0,191,175,
+-	33,56,128,0,33,48,160,0,3,0,226,136,
+-	0,0,226,152,7,0,227,136,4,0,227,152,
+-	11,0,228,136,8,0,228,152,15,0,229,136,
+-	12,0,229,152,19,0,162,171,16,0,162,187,
+-	23,0,163,171,20,0,163,187,27,0,164,171,
+-	24,0,164,187,31,0,165,171,28,0,165,187,
+-	16,0,194,44,3,0,64,16,16,0,163,39,
+-	33,16,102,0,0,0,64,160,3,131,4,60,
+-	96,18,132,36,33,40,224,0,231,58,192,12,
+-	16,0,6,36,32,0,191,143,40,0,189,39,
+-	8,0,224,3,0,0,0,0,216,255,189,39,
+-	32,0,191,175,33,56,128,0,33,48,160,0,
+-	3,0,226,136,0,0,226,152,7,0,227,136,
+-	4,0,227,152,11,0,228,136,8,0,228,152,
+-	15,0,229,136,12,0,229,152,19,0,162,171,
+-	16,0,162,187,23,0,163,171,20,0,163,187,
+-	27,0,164,171,24,0,164,187,31,0,165,171,
+-	28,0,165,187,16,0,194,44,3,0,64,16,
+-	16,0,163,39,33,16,102,0,0,0,64,160,
+-	3,131,4,60,112,18,132,36,33,40,224,0,
+-	231,58,192,12,16,0,6,36,32,0,191,143,
+-	40,0,189,39,8,0,224,3,0,0,0,0,
+-	232,255,189,39,15,0,2,60,54,66,66,52,
+-	24,0,164,175,246,255,132,36,43,16,68,0,
+-	3,0,64,16,16,0,191,175,44,1,2,36,
+-	24,0,162,175,3,131,4,60,64,18,132,36,
+-	24,0,165,39,231,58,192,12,4,0,6,36,
+-	24,0,162,143,0,163,1,60,140,1,34,172,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,232,255,189,39,16,0,191,175,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,232,255,189,39,16,0,191,175,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,160,255,189,39,112,0,162,143,
+-	72,0,176,175,33,128,224,0,88,0,180,175,
+-	33,160,0,0,84,0,179,175,33,152,192,0,
+-	92,0,191,175,80,0,178,175,7,0,160,16,
+-	76,0,177,175,6,0,65,4,51,0,177,39,
+-	45,0,20,36,3,0,0,18,35,16,2,0,
+-	255,255,16,38,51,0,177,39,51,0,160,163,
+-	27,0,68,0,2,0,128,20,0,0,0,0,
+-	13,0,7,0,18,24,0,0,16,16,0,0,
+-	2,131,1,60,33,8,34,0,128,205,34,144,
+-	255,255,49,38,2,0,0,18,0,0,34,162,
+-	255,255,16,38,33,16,96,0,241,255,64,20,
+-	1,0,3,36,0,22,19,0,3,22,2,0,
+-	11,0,67,20,33,32,128,2,255,255,16,38,
+-	255,255,2,36,7,0,2,18,0,0,0,0,
+-	255,255,18,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,18,22,33,32,128,2,
+-	4,0,128,16,0,22,19,0,196,64,192,12,
+-	0,0,0,0,0,22,19,0,3,22,2,0,
+-	2,0,3,36,14,0,67,20,255,255,2,36,
+-	255,255,16,38,11,0,2,18,255,255,18,36,
+-	196,64,192,12,48,0,4,36,255,255,16,38,
+-	6,0,18,18,0,0,0,0,156,60,192,8,
+-	0,0,0,0,0,38,4,0,196,64,192,12,
+-	3,38,4,0,0,0,34,130,0,0,36,146,
+-	0,0,0,0,249,255,64,20,1,0,49,38,
+-	255,255,49,38,0,22,19,0,3,22,2,0,
+-	3,0,3,36,9,0,67,20,255,255,16,38,
+-	255,255,2,36,6,0,2,18,255,255,17,36,
+-	196,64,192,12,32,0,4,36,255,255,16,38,
+-	252,255,17,22,0,0,0,0,92,0,191,143,
+-	88,0,180,143,84,0,179,143,80,0,178,143,
+-	76,0,177,143,72,0,176,143,8,0,224,3,
+-	96,0,189,39,200,255,189,39,40,0,178,175,
+-	33,144,128,0,32,0,176,175,33,128,160,0,
+-	36,0,177,175,33,136,192,0,33,32,32,2,
+-	48,0,191,175,156,71,192,12,44,0,179,175,
+-	33,32,0,0,33,24,64,0,42,16,112,0,
+-	2,0,64,16,33,152,64,2,35,32,3,2,
+-	0,22,18,0,3,22,2,0,1,0,3,36,
+-	11,0,67,20,33,128,128,0,255,255,16,38,
+-	255,255,2,36,8,0,2,18,0,22,19,0,
+-	255,255,18,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,18,22,0,0,0,0,
+-	0,22,19,0,3,22,2,0,2,0,3,36,
+-	14,0,67,20,255,255,2,36,255,255,16,38,
+-	11,0,2,18,255,255,18,36,196,64,192,12,
+-	48,0,4,36,255,255,16,38,6,0,18,18,
+-	0,0,0,0,233,60,192,8,0,0,0,0,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	0,0,34,130,0,0,36,146,0,0,0,0,
+-	249,255,64,20,1,0,49,38,255,255,49,38,
+-	0,22,19,0,3,22,2,0,3,0,3,36,
+-	9,0,67,20,255,255,16,38,255,255,2,36,
+-	6,0,2,18,255,255,17,36,196,64,192,12,
+-	32,0,4,36,255,255,16,38,252,255,17,22,
+-	0,0,0,0,48,0,191,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,56,0,189,39,32,255,189,39,
+-	192,0,178,175,33,144,160,0,196,0,179,175,
+-	33,152,0,0,220,0,191,175,216,0,190,175,
+-	212,0,183,175,208,0,182,175,204,0,181,175,
+-	200,0,180,175,188,0,177,175,184,0,176,175,
+-	1,0,130,128,0,0,0,0,229,1,64,16,
+-	33,136,0,0,255,255,22,36,1,0,23,36,
+-	2,0,30,36,1,0,149,36,0,0,162,146,
+-	0,0,0,0,219,255,66,36,0,22,2,0,
+-	3,30,2,0,84,0,98,44,217,1,64,16,
+-	128,16,3,0,2,131,1,60,33,8,34,0,
+-	80,150,34,140,0,0,0,0,8,0,64,0,
+-	0,0,0,0,209,61,192,8,37,0,4,36,
+-	2,131,16,60,64,150,16,38,156,71,192,12,
+-	33,32,0,2,59,61,192,8,0,0,0,0,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	0,0,2,130,0,0,4,146,0,0,0,0,
+-	249,255,64,20,1,0,16,38,3,63,192,8,
+-	1,0,162,38,0,38,18,0,209,61,192,8,
+-	3,38,4,0,2,0,3,36,33,128,32,2,
+-	33,40,64,2,33,160,0,0,51,0,177,39,
+-	51,0,160,163,27,0,163,0,2,0,96,20,
+-	0,0,0,0,13,0,7,0,18,40,0,0,
+-	16,16,0,0,2,131,1,60,33,8,34,0,
+-	128,205,34,144,255,255,49,38,2,0,0,18,
+-	0,0,34,162,255,255,16,38,242,255,160,20,
+-	0,0,0,0,10,0,119,22,0,22,20,0,
+-	255,255,16,38,8,0,22,18,3,38,2,0,
+-	255,255,18,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,18,22,0,22,20,0,
+-	3,38,2,0,3,0,128,16,0,0,0,0,
+-	196,64,192,12,0,0,0,0,14,0,126,22,
+-	0,0,0,0,255,255,16,38,11,0,22,18,
+-	255,255,18,36,196,64,192,12,48,0,4,36,
+-	255,255,16,38,6,0,18,18,0,0,0,0,
+-	111,61,192,8,0,0,0,0,0,38,4,0,
+-	196,64,192,12,3,38,4,0,0,0,34,130,
+-	0,0,36,146,0,0,0,0,249,255,64,20,
+-	1,0,49,38,255,255,49,38,3,0,6,36,
+-	80,0,102,22,66,0,4,36,255,255,16,38,
+-	77,0,22,18,255,255,17,36,196,64,192,12,
+-	32,0,4,36,255,255,16,38,252,255,17,22,
+-	66,0,4,36,209,61,192,8,0,0,0,0,
+-	8,0,3,36,33,128,32,2,33,40,64,2,
+-	33,160,0,0,51,0,177,39,51,0,160,163,
+-	27,0,163,0,2,0,96,20,0,0,0,0,
+-	13,0,7,0,18,40,0,0,16,16,0,0,
+-	2,131,1,60,33,8,34,0,128,205,34,144,
+-	255,255,49,38,2,0,0,18,0,0,34,162,
+-	255,255,16,38,242,255,160,20,0,0,0,0,
+-	10,0,119,22,0,22,20,0,255,255,16,38,
+-	8,0,22,18,3,38,2,0,255,255,18,36,
+-	196,64,192,12,32,0,4,36,255,255,16,38,
+-	252,255,18,22,0,22,20,0,3,38,2,0,
+-	3,0,128,16,0,0,0,0,196,64,192,12,
+-	0,0,0,0,14,0,126,22,0,0,0,0,
+-	255,255,16,38,11,0,22,18,255,255,18,36,
+-	196,64,192,12,48,0,4,36,255,255,16,38,
+-	6,0,18,18,0,0,0,0,182,61,192,8,
+-	0,0,0,0,0,38,4,0,196,64,192,12,
+-	3,38,4,0,0,0,34,130,0,0,36,146,
+-	0,0,0,0,249,255,64,20,1,0,49,38,
+-	255,255,49,38,3,0,6,36,9,0,102,22,
+-	81,0,4,36,255,255,16,38,6,0,22,18,
+-	255,255,17,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,17,22,81,0,4,36,
+-	196,64,192,12,0,0,0,0,3,63,192,8,
+-	1,0,162,38,33,128,32,2,33,16,64,2,
+-	33,160,0,0,5,0,65,6,10,0,4,36,
+-	45,0,20,36,2,0,32,18,35,16,18,0,
+-	255,255,48,38,51,0,177,39,51,0,160,163,
+-	27,0,68,0,2,0,128,20,0,0,0,0,
+-	13,0,7,0,18,24,0,0,16,16,0,0,
+-	2,131,1,60,33,8,34,0,128,205,34,144,
+-	255,255,49,38,2,0,0,18,0,0,34,162,
+-	255,255,16,38,33,16,96,0,241,255,64,20,
+-	0,0,0,0,10,0,119,22,33,32,128,2,
+-	255,255,16,38,7,0,22,18,0,0,0,0,
+-	255,255,18,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,18,22,33,32,128,2,
+-	3,0,128,16,0,0,0,0,196,64,192,12,
+-	0,0,0,0,14,0,126,22,0,0,0,0,
+-	255,255,16,38,11,0,22,18,255,255,18,36,
+-	196,64,192,12,48,0,4,36,255,255,16,38,
+-	6,0,18,18,0,0,0,0,4,62,192,8,
+-	0,0,0,0,0,38,4,0,196,64,192,12,
+-	3,38,4,0,0,0,34,130,0,0,36,146,
+-	0,0,0,0,249,255,64,20,1,0,49,38,
+-	255,255,49,38,3,0,6,36,237,0,102,22,
+-	1,0,162,38,255,255,16,38,234,0,22,18,
+-	255,255,17,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,17,22,1,0,162,38,
+-	3,63,192,8,0,0,0,0,10,0,3,36,
+-	33,128,32,2,33,40,64,2,33,160,0,0,
+-	51,0,177,39,51,0,160,163,27,0,163,0,
+-	2,0,96,20,0,0,0,0,13,0,7,0,
+-	18,40,0,0,16,16,0,0,2,131,1,60,
+-	33,8,34,0,128,205,34,144,255,255,49,38,
+-	2,0,0,18,0,0,34,162,255,255,16,38,
+-	242,255,160,20,0,0,0,0,10,0,119,22,
+-	0,22,20,0,255,255,16,38,8,0,22,18,
+-	3,38,2,0,255,255,18,36,196,64,192,12,
+-	32,0,4,36,255,255,16,38,252,255,18,22,
+-	0,22,20,0,3,38,2,0,3,0,128,16,
+-	0,0,0,0,196,64,192,12,0,0,0,0,
+-	14,0,126,22,0,0,0,0,255,255,16,38,
+-	11,0,22,18,255,255,18,36,196,64,192,12,
+-	48,0,4,36,255,255,16,38,6,0,18,18,
+-	0,0,0,0,75,62,192,8,0,0,0,0,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	0,0,34,130,0,0,36,146,0,0,0,0,
+-	249,255,64,20,1,0,49,38,255,255,49,38,
+-	3,0,6,36,166,0,102,22,1,0,162,38,
+-	255,255,16,38,163,0,22,18,255,255,17,36,
+-	196,64,192,12,32,0,4,36,255,255,16,38,
+-	252,255,17,22,1,0,162,38,3,63,192,8,
+-	0,0,0,0,192,132,144,39,156,71,192,12,
+-	33,32,0,2,112,62,192,8,0,0,0,0,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	0,0,2,130,0,0,4,146,0,0,0,0,
+-	249,255,64,20,1,0,16,38,16,0,3,36,
+-	33,128,32,2,33,40,64,2,33,160,0,0,
+-	51,0,177,39,51,0,160,163,27,0,163,0,
+-	2,0,96,20,0,0,0,0,13,0,7,0,
+-	18,40,0,0,16,16,0,0,2,131,1,60,
+-	33,8,34,0,128,205,34,144,255,255,49,38,
+-	2,0,0,18,0,0,34,162,255,255,16,38,
+-	242,255,160,20,0,0,0,0,10,0,119,22,
+-	0,22,20,0,255,255,16,38,8,0,22,18,
+-	3,38,2,0,255,255,18,36,196,64,192,12,
+-	32,0,4,36,255,255,16,38,252,255,18,22,
+-	0,22,20,0,3,38,2,0,3,0,128,16,
+-	0,0,0,0,196,64,192,12,0,0,0,0,
+-	14,0,126,22,0,0,0,0,255,255,16,38,
+-	11,0,22,18,255,255,18,36,196,64,192,12,
+-	48,0,4,36,255,255,16,38,6,0,18,18,
+-	0,0,0,0,159,62,192,8,0,0,0,0,
+-	0,38,4,0,196,64,192,12,3,38,4,0,
+-	0,0,34,130,0,0,36,146,0,0,0,0,
+-	249,255,64,20,1,0,49,38,255,255,49,38,
+-	3,0,6,36,82,0,102,22,1,0,162,38,
+-	255,255,16,38,79,0,22,18,255,255,17,36,
+-	196,64,192,12,32,0,4,36,255,255,16,38,
+-	252,255,17,22,1,0,162,38,3,63,192,8,
+-	0,0,0,0,156,71,192,12,33,32,64,2,
+-	33,24,64,0,42,16,113,0,2,0,64,16,
+-	33,32,0,0,35,32,35,2,10,0,119,22,
+-	33,128,128,0,255,255,16,38,7,0,22,18,
+-	0,0,0,0,255,255,17,36,196,64,192,12,
+-	32,0,4,36,255,255,16,38,252,255,17,22,
+-	0,0,0,0,14,0,126,22,0,0,0,0,
+-	255,255,16,38,11,0,22,18,255,255,17,36,
+-	196,64,192,12,48,0,4,36,255,255,16,38,
+-	6,0,17,18,0,0,0,0,211,62,192,8,
+-	0,0,0,0,0,38,4,0,196,64,192,12,
+-	3,38,4,0,0,0,66,130,0,0,68,146,
+-	0,0,0,0,249,255,64,20,1,0,82,38,
+-	255,255,82,38,3,0,6,36,30,0,102,22,
+-	1,0,162,38,255,255,16,38,27,0,22,18,
+-	255,255,17,36,196,64,192,12,32,0,4,36,
+-	255,255,16,38,252,255,17,22,1,0,162,38,
+-	3,63,192,8,0,0,0,0,253,62,192,8,
+-	3,0,19,36,3,0,96,22,128,16,17,0,
+-	2,0,19,36,128,16,17,0,33,16,81,0,
+-	64,16,2,0,0,0,163,130,208,255,66,36,
+-	2,0,96,22,33,136,67,0,1,0,19,36,
+-	1,0,181,38,0,0,162,130,0,0,0,0,
+-	33,254,64,20,0,0,0,0,1,0,130,36,
+-	220,0,191,143,216,0,190,143,212,0,183,143,
+-	208,0,182,143,204,0,181,143,200,0,180,143,
+-	196,0,179,143,192,0,178,143,188,0,177,143,
+-	184,0,176,143,8,0,224,3,224,0,189,39,
+-	0,0,164,175,4,0,165,175,8,0,166,175,
+-	12,0,167,175,200,255,189,39,59,0,162,39,
+-	252,255,3,36,36,16,67,0,52,0,191,175,
+-	48,0,180,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,32,0,176,175,56,0,164,175,
+-	0,0,80,140,4,0,81,36,0,0,2,130,
+-	0,0,3,146,0,0,0,0,31,0,64,16,
+-	37,0,20,36,69,0,19,36,252,255,18,36,
+-	0,22,3,0,3,38,2,0,18,0,148,20,
+-	0,0,0,0,1,0,3,130,0,0,0,0,
+-	4,0,100,16,33,32,0,2,4,0,115,20,
+-	3,0,34,38,33,32,0,2,56,63,192,8,
+-	33,40,0,0,36,16,82,0,4,0,81,36,
+-	0,0,69,140,33,32,0,2,13,61,192,12,
+-	0,0,0,0,62,63,192,8,33,128,64,0,
+-	196,64,192,12,1,0,16,38,0,0,2,130,
+-	0,0,3,146,0,0,0,0,230,255,64,20,
+-	0,22,3,0,52,0,191,143,48,0,180,143,
+-	44,0,179,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,56,0,189,39,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,8,0,224,3,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	8,0,224,3,0,0,0,0,33,72,224,3,
+-	170,3,8,36,76,63,192,12,0,0,0,0,
+-	255,255,8,33,252,255,0,21,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,8,0,32,1,
+-	0,0,0,0,33,88,224,3,232,3,10,36,
+-	143,63,192,12,0,0,0,0,255,255,74,33,
+-	252,255,64,21,0,0,0,0,8,0,96,1,
+-	0,0,0,0,250,255,132,32,130,32,4,0,
+-	255,255,132,32,0,0,0,0,253,255,128,20,
+-	0,0,0,0,8,0,224,3,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	248,255,189,39,255,255,195,36,10,0,192,16,
+-	33,56,160,0,255,255,6,36,0,0,162,144,
+-	1,0,165,36,0,0,130,160,4,0,64,16,
+-	1,0,132,36,255,255,99,36,249,255,102,20,
+-	0,0,0,0,33,16,224,0,8,0,224,3,
+-	8,0,189,39,0,96,2,64,0,0,0,0,
+-	38,64,68,0,1,255,8,49,38,64,2,1,
+-	0,96,136,64,8,0,224,3,1,255,66,48,
+-	0,96,2,64,0,0,0,0,1,255,132,48,
+-	39,32,128,0,36,64,68,0,0,96,136,64,
+-	8,0,224,3,1,255,66,48,0,96,2,64,
+-	0,0,0,0,0,255,132,48,37,64,68,0,
+-	1,0,8,53,0,96,136,64,8,0,224,3,
+-	1,255,66,48,176,255,189,39,64,0,182,175,
+-	33,176,128,0,52,0,179,175,33,152,160,0,
+-	72,0,190,175,33,240,192,0,68,0,183,175,
+-	33,184,224,0,60,0,181,175,33,168,0,0,
+-	56,0,180,175,33,160,0,0,76,0,191,175,
+-	48,0,178,175,44,0,177,175,40,0,176,175,
+-	2,131,6,60,33,48,212,0,160,205,198,144,
+-	0,0,0,0,28,0,96,26,33,128,0,0,
+-	33,24,192,2,33,32,118,2,0,0,102,160,
+-	1,0,99,36,42,16,100,0,252,255,64,20,
+-	0,0,0,0,19,0,96,26,33,128,0,0,
+-	255,0,210,48,33,136,192,2,0,0,39,146,
+-	0,0,0,0,9,0,242,16,0,0,0,0,
+-	5,0,224,18,33,40,0,2,96,0,164,143,
+-	0,0,0,0,9,248,224,2,33,48,64,2,
+-	32,0,192,23,1,0,181,38,1,0,16,38,
+-	42,16,19,2,241,255,64,20,1,0,49,38,
+-	1,0,148,38,4,0,130,46,220,255,64,20,
+-	0,0,0,0,7,0,96,26,33,128,0,0,
+-	33,24,192,2,0,0,112,160,1,0,16,38,
+-	42,16,19,2,252,255,64,20,1,0,99,36,
+-	20,0,96,26,33,128,0,0,33,136,192,2,
+-	0,0,39,146,255,0,6,50,11,0,230,16,
+-	0,0,0,0,5,0,224,18,0,0,0,0,
+-	96,0,164,143,0,0,0,0,9,248,224,2,
+-	33,40,0,2,3,0,192,19,1,0,181,38,
+-	72,64,192,8,1,0,2,36,1,0,16,38,
+-	42,16,19,2,239,255,64,20,1,0,49,38,
+-	33,16,160,2,76,0,191,143,72,0,190,143,
+-	68,0,183,143,64,0,182,143,60,0,181,143,
+-	56,0,180,143,52,0,179,143,48,0,178,143,
+-	44,0,177,143,40,0,176,143,8,0,224,3,
+-	80,0,189,39,160,255,189,39,88,0,190,175,
+-	33,240,128,0,68,0,179,175,33,152,160,0,
+-	76,0,181,175,33,168,224,0,72,0,180,175,
+-	33,160,0,0,33,16,96,2,92,0,191,175,
+-	84,0,183,175,80,0,182,175,64,0,178,175,
+-	60,0,177,175,56,0,176,175,2,0,97,6,
+-	16,0,166,175,3,0,98,38,131,152,2,0,
+-	33,184,0,0,2,131,22,60,164,205,214,38,
+-	0,0,210,142,0,0,0,0,7,0,96,18,
+-	33,128,0,0,33,24,192,3,0,0,114,172,
+-	1,0,16,38,43,16,19,2,252,255,64,20,
+-	4,0,99,36,20,0,96,18,33,128,0,0,
+-	33,136,192,3,0,0,39,142,0,0,0,0,
+-	11,0,242,16,128,40,16,0,5,0,160,18,
+-	0,0,0,0,112,0,164,143,0,0,0,0,
+-	9,248,160,2,33,48,64,2,16,0,168,143,
+-	0,0,0,0,34,0,0,21,1,0,148,38,
+-	1,0,16,38,43,16,19,2,239,255,64,20,
+-	4,0,49,38,1,0,247,38,4,0,226,46,
+-	222,255,64,20,4,0,214,38,7,0,96,18,
+-	33,128,0,0,33,24,192,3,0,0,112,172,
+-	1,0,16,38,43,16,19,2,252,255,64,20,
+-	4,0,99,36,22,0,96,18,33,128,0,0,
+-	33,136,192,3,0,0,39,142,0,0,0,0,
+-	13,0,240,16,128,40,16,0,5,0,160,18,
+-	0,0,0,0,112,0,164,143,0,0,0,0,
+-	9,248,160,2,33,48,0,2,16,0,168,143,
+-	0,0,0,0,3,0,0,17,1,0,148,38,
+-	174,64,192,8,1,0,2,36,1,0,16,38,
+-	43,16,19,2,237,255,64,20,4,0,49,38,
+-	33,16,128,2,92,0,191,143,88,0,190,143,
+-	84,0,183,143,80,0,182,143,76,0,181,143,
+-	72,0,180,143,68,0,179,143,64,0,178,143,
+-	60,0,177,143,56,0,176,143,8,0,224,3,
+-	96,0,189,39,0,0,0,0,0,0,0,0,
+-	255,1,2,36,0,163,1,60,176,1,32,172,
+-	0,163,1,60,180,1,32,172,0,163,1,60,
+-	8,0,224,3,184,1,34,172,232,255,189,39,
+-	16,0,176,175,33,128,128,0,20,0,191,175,
+-	220,63,192,12,33,32,0,0,33,40,64,0,
+-	0,163,3,60,180,1,99,140,0,163,2,60,
+-	184,1,66,140,0,163,4,60,128,1,132,140,
+-	1,0,99,36,11,0,128,20,36,24,98,0,
+-	0,163,2,60,176,1,66,140,0,0,0,0,
+-	6,0,98,20,0,0,0,0,0,163,2,60,
+-	128,1,66,140,0,0,0,0,247,255,64,16,
+-	0,0,0,0,0,163,2,60,180,1,66,140,
+-	33,32,160,0,0,163,1,60,33,8,34,0,
+-	188,1,48,160,0,163,1,60,220,63,192,12,
+-	180,1,35,172,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,192,255,189,39,33,80,0,0,
+-	80,0,185,143,84,0,184,143,88,0,175,143,
+-	1,0,2,36,60,0,177,175,92,0,177,143,
+-	4,112,226,0,12,0,224,24,56,0,176,175,
+-	1,0,9,36,33,64,160,3,33,24,32,3,
+-	0,0,98,140,4,0,99,36,1,0,74,37,
+-	4,16,73,0,0,0,2,173,42,16,71,1,
+-	249,255,64,20,4,0,8,37,46,0,192,25,
+-	33,80,0,0,255,0,16,36,33,72,0,0,
+-	0,0,145,172,0,0,160,164,34,0,224,24,
+-	0,0,208,160,33,88,128,0,33,96,160,0,
+-	33,104,192,0,33,64,32,3,33,24,160,3,
+-	0,0,98,140,0,0,0,0,36,16,66,1,
+-	19,0,64,16,0,0,0,0,0,0,2,141,
+-	0,0,0,0,128,16,2,0,33,16,88,0,
+-	0,0,66,140,0,0,0,0,0,0,98,173,
+-	0,0,2,141,0,0,0,0,64,16,2,0,
+-	33,16,79,0,0,0,66,148,0,0,0,0,
+-	0,0,130,165,0,0,2,141,0,0,0,0,
+-	47,65,192,8,0,0,162,161,4,0,8,37,
+-	1,0,41,37,42,16,39,1,229,255,64,20,
+-	4,0,99,36,1,0,198,36,2,0,165,36,
+-	1,0,74,37,42,16,78,1,213,255,64,20,
+-	4,0,132,36,60,0,177,143,56,0,176,143,
+-	8,0,224,3,64,0,189,39,0,0,0,0,
+-	0,0,0,0,0,0,0,0,216,255,189,39,
+-	63,0,132,48,28,0,179,175,128,1,147,52,
+-	50,133,130,151,48,133,132,151,0,128,131,151,
+-	20,0,177,175,16,0,176,175,5,162,16,60,
+-	32,0,191,175,24,0,178,175,39,16,68,0,
+-	36,24,98,0,0,128,131,167,0,0,3,166,
+-	76,63,192,12,0,1,17,36,0,128,130,151,
+-	48,133,131,151,5,162,18,60,37,16,67,0,
+-	0,128,130,167,0,0,2,166,36,16,51,2,
+-	6,0,64,16,0,0,0,0,0,128,131,151,
+-	20,133,130,151,0,0,0,0,96,65,192,8,
+-	37,24,98,0,20,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,0,128,131,167,
+-	0,0,67,166,76,63,192,12,66,136,17,0,
+-	0,128,130,151,50,133,131,151,0,0,0,0,
+-	37,16,67,0,0,128,130,167,76,63,192,12,
+-	0,0,66,166,50,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,255,255,34,50,
+-	0,128,131,167,0,0,67,166,226,255,64,20,
+-	36,16,51,2,33,136,0,0,16,0,16,36,
+-	5,162,18,60,255,255,19,36,76,63,192,12,
+-	0,0,0,0,0,128,131,151,50,133,130,151,
+-	0,0,0,0,37,24,98,0,0,128,131,167,
+-	76,63,192,12,0,0,67,166,8,0,0,18,
+-	0,0,0,0,0,0,67,150,20,133,130,151,
+-	0,0,0,0,36,16,67,0,2,0,64,16,
+-	64,136,17,0,1,0,49,54,76,63,192,12,
+-	255,255,16,38,50,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,0,128,131,167,
+-	230,255,19,22,0,0,67,166,48,133,130,151,
+-	0,128,131,151,39,16,2,0,36,24,98,0,
+-	5,162,2,60,0,128,131,167,0,0,67,164,
+-	255,255,34,50,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,208,255,189,39,
+-	36,0,181,175,33,168,160,0,32,0,180,175,
+-	63,0,148,48,33,32,128,2,44,0,191,175,
+-	40,0,182,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,60,65,192,12,16,0,176,175,
+-	33,152,64,0,255,255,163,50,255,255,98,50,
+-	3,0,98,20,48,1,22,36,245,66,192,8,
+-	1,0,2,36,5,162,16,60,50,133,130,151,
+-	48,133,132,151,0,128,131,151,39,16,68,0,
+-	36,24,98,0,0,128,131,167,0,0,3,166,
+-	76,63,192,12,0,1,17,36,0,128,130,151,
+-	48,133,131,151,5,162,18,60,37,16,67,0,
+-	0,128,130,167,0,0,2,166,36,16,54,2,
+-	6,0,64,16,0,0,0,0,0,128,131,151,
+-	20,133,130,151,0,0,0,0,210,65,192,8,
+-	37,24,98,0,20,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,0,128,131,167,
+-	0,0,67,166,76,63,192,12,66,136,17,0,
+-	0,128,130,151,50,133,131,151,0,0,0,0,
+-	37,16,67,0,0,128,130,167,76,63,192,12,
+-	0,0,66,166,50,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,255,255,34,50,
+-	0,128,131,167,0,0,67,166,226,255,64,20,
+-	36,16,54,2,255,255,163,50,255,255,98,50,
+-	39,16,2,0,36,24,98,0,84,0,96,16,
+-	192,1,147,54,5,162,16,60,50,133,130,151,
+-	48,133,132,151,0,128,131,151,39,16,68,0,
+-	36,24,98,0,0,128,131,167,0,0,3,166,
+-	76,63,192,12,0,1,17,36,0,128,130,151,
+-	48,133,131,151,5,162,18,60,37,16,67,0,
+-	0,128,130,167,0,0,2,166,36,16,51,2,
+-	6,0,64,16,0,0,0,0,0,128,131,151,
+-	20,133,130,151,0,0,0,0,8,66,192,8,
+-	37,24,98,0,20,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,0,128,131,167,
+-	0,0,67,166,76,63,192,12,66,136,17,0,
+-	0,128,130,151,50,133,131,151,0,0,0,0,
+-	37,16,67,0,0,128,130,167,76,63,192,12,
+-	0,0,66,166,50,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,255,255,34,50,
+-	0,128,131,167,0,0,67,166,226,255,64,20,
+-	36,16,51,2,5,162,16,60,50,133,130,151,
+-	48,133,132,151,0,128,131,151,39,16,68,0,
+-	36,24,98,0,0,128,131,167,76,63,192,12,
+-	0,0,3,166,0,128,131,151,48,133,130,151,
+-	0,0,0,0,37,24,98,0,0,0,3,166,
+-	0,0,4,150,20,133,130,151,0,128,131,167,
+-	36,16,68,0,9,0,64,20,0,0,0,0,
+-	76,63,192,12,0,0,0,0,0,0,3,150,
+-	20,133,130,151,0,0,0,0,36,16,67,0,
+-	249,255,64,16,0,0,0,0,48,133,130,151,
+-	0,128,131,151,39,16,2,0,36,24,98,0,
+-	5,162,2,60,0,128,131,167,0,0,67,164,
+-	255,255,163,50,255,255,2,52,125,0,98,16,
+-	64,1,147,54,5,162,16,60,50,133,130,151,
+-	48,133,132,151,0,128,131,151,39,16,68,0,
+-	36,24,98,0,0,128,131,167,0,0,3,166,
+-	76,63,192,12,0,1,17,36,0,128,130,151,
+-	48,133,131,151,5,162,18,60,37,16,67,0,
+-	0,128,130,167,0,0,2,166,36,16,51,2,
+-	6,0,64,16,0,0,0,0,0,128,131,151,
+-	20,133,130,151,0,0,0,0,95,66,192,8,
+-	37,24,98,0,20,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,0,128,131,167,
+-	0,0,67,166,76,63,192,12,66,136,17,0,
+-	0,128,130,151,50,133,131,151,0,0,0,0,
+-	37,16,67,0,0,128,130,167,76,63,192,12,
+-	0,0,66,166,50,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,255,255,34,50,
+-	0,128,131,167,0,0,67,166,226,255,64,20,
+-	36,16,51,2,33,144,160,2,0,128,16,52,
+-	0,128,130,151,48,133,131,151,5,162,17,60,
+-	37,16,67,0,5,162,3,60,0,128,130,167,
+-	0,0,98,164,36,16,18,2,6,0,64,16,
+-	0,0,0,0,0,128,131,151,20,133,130,151,
+-	0,0,0,0,136,66,192,8,37,24,98,0,
+-	20,133,130,151,0,128,131,151,39,16,2,0,
+-	36,24,98,0,0,128,131,167,0,0,35,166,
+-	76,63,192,12,66,128,16,0,0,128,130,151,
+-	50,133,131,151,0,0,0,0,37,16,67,0,
+-	0,128,130,167,76,63,192,12,0,0,34,166,
+-	50,133,130,151,0,128,131,151,39,16,2,0,
+-	36,24,98,0,255,255,2,50,0,128,131,167,
+-	0,0,35,166,226,255,64,20,36,16,18,2,
+-	5,162,16,60,50,133,130,151,48,133,132,151,
+-	0,128,131,151,39,16,68,0,36,24,98,0,
+-	0,128,131,167,76,63,192,12,0,0,3,166,
+-	0,128,131,151,48,133,130,151,0,0,0,0,
+-	37,24,98,0,0,0,3,166,0,0,4,150,
+-	20,133,130,151,0,128,131,167,36,16,68,0,
+-	9,0,64,20,0,0,0,0,76,63,192,12,
+-	0,0,0,0,0,0,3,150,20,133,130,151,
+-	0,0,0,0,36,16,67,0,249,255,64,16,
+-	0,0,0,0,48,133,130,151,0,128,131,151,
+-	39,16,2,0,36,24,98,0,5,162,2,60,
+-	0,128,131,167,0,0,67,164,0,1,19,36,
+-	5,162,16,60,50,133,130,151,48,133,132,151,
+-	0,128,131,151,39,16,68,0,36,24,98,0,
+-	0,128,131,167,0,0,3,166,76,63,192,12,
+-	0,1,17,36,0,128,130,151,48,133,131,151,
+-	5,162,18,60,37,16,67,0,0,128,130,167,
+-	0,0,2,166,36,16,113,2,6,0,64,16,
+-	0,0,0,0,0,128,131,151,20,133,130,151,
+-	0,0,0,0,220,66,192,8,37,24,98,0,
+-	20,133,130,151,0,128,131,151,39,16,2,0,
+-	36,24,98,0,0,128,131,167,0,0,67,166,
+-	76,63,192,12,66,136,17,0,0,128,130,151,
+-	50,133,131,151,0,0,0,0,37,16,67,0,
+-	0,128,130,167,76,63,192,12,0,0,66,166,
+-	50,133,130,151,0,128,131,151,39,16,2,0,
+-	36,24,98,0,255,255,34,50,0,128,131,167,
+-	0,0,67,166,226,255,64,20,36,16,113,2,
+-	60,65,192,12,33,32,128,2,38,16,162,2,
+-	255,255,66,48,1,0,66,44,44,0,191,143,
+-	40,0,182,143,36,0,181,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,48,0,189,39,
+-	224,255,189,39,24,0,178,175,33,144,0,0,
+-	64,16,4,0,16,0,176,175,33,128,68,0,
+-	33,32,0,2,20,0,177,175,255,255,177,48,
+-	28,0,191,175,162,65,192,12,33,40,32,2,
+-	8,0,64,16,1,0,4,38,162,65,192,12,
+-	33,40,32,2,4,0,64,16,2,0,4,38,
+-	162,65,192,12,33,40,32,2,43,144,2,0,
+-	33,16,64,2,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,216,255,189,39,64,16,4,0,
+-	24,0,178,175,33,144,68,0,33,32,64,2,
+-	36,0,191,175,32,0,180,175,28,0,179,175,
+-	20,0,177,175,60,65,192,12,16,0,176,175,
+-	1,0,84,38,33,32,128,2,60,65,192,12,
+-	33,136,64,0,2,0,83,38,33,32,96,2,
+-	60,65,192,12,33,128,64,0,255,255,35,50,
+-	255,255,17,50,8,0,113,20,0,0,0,0,
+-	255,255,66,48,3,0,34,18,33,32,96,2,
+-	162,65,192,12,33,40,32,2,66,67,192,8,
+-	33,16,32,2,255,255,80,48,4,0,112,16,
+-	33,32,128,2,5,0,48,22,255,255,2,36,
+-	33,32,64,2,162,65,192,12,33,40,0,2,
+-	33,16,0,2,36,0,191,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,40,0,189,39,
+-	0,0,0,0,0,0,0,0,0,96,8,64,
+-	0,0,0,0,254,255,1,36,36,72,1,1,
+-	0,96,137,64,0,0,133,164,2,0,132,32,
+-	2,44,5,0,0,0,133,164,0,96,136,64,
+-	8,0,224,3,0,0,0,0,208,255,189,39,
+-	32,0,178,175,33,144,128,0,28,0,177,175,
+-	33,136,160,0,36,0,179,175,33,152,192,0,
+-	40,0,180,175,33,160,224,0,44,0,191,175,
+-	2,0,32,22,24,0,176,175,255,255,17,36,
+-	0,0,66,142,0,0,0,0,36,16,81,0,
+-	3,0,83,20,0,0,0,0,121,67,192,8,
+-	1,0,2,36,11,0,128,26,33,128,0,0,
+-	143,63,192,12,0,0,0,0,0,0,66,142,
+-	0,0,0,0,36,16,81,0,246,255,83,16,
+-	1,0,16,38,42,16,20,2,247,255,64,20,
+-	0,0,0,0,33,16,0,0,44,0,191,143,
+-	40,0,180,143,36,0,179,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	48,0,189,39,208,255,189,39,32,0,178,175,
+-	33,144,128,0,28,0,177,175,33,136,160,0,
+-	36,0,179,175,33,152,192,0,40,0,180,175,
+-	33,160,224,0,44,0,191,175,2,0,32,22,
+-	24,0,176,175,255,255,17,52,0,0,66,150,
+-	0,0,0,0,36,16,81,0,3,0,83,20,
+-	0,0,0,0,162,67,192,8,1,0,2,36,
+-	11,0,128,26,33,128,0,0,143,63,192,12,
+-	0,0,0,0,0,0,66,150,0,0,0,0,
+-	36,16,81,0,246,255,83,16,1,0,16,38,
+-	42,16,20,2,247,255,64,20,0,0,0,0,
+-	33,16,0,0,44,0,191,143,40,0,180,143,
+-	36,0,179,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,48,0,189,39,
+-	208,255,189,39,32,0,178,175,33,144,128,0,
+-	28,0,177,175,33,136,160,0,36,0,179,175,
+-	33,152,192,0,40,0,180,175,33,160,224,0,
+-	44,0,191,175,2,0,32,22,24,0,176,175,
+-	255,0,17,36,0,0,66,146,0,0,0,0,
+-	36,16,81,0,3,0,83,20,0,0,0,0,
+-	203,67,192,8,1,0,2,36,11,0,128,26,
+-	33,128,0,0,143,63,192,12,0,0,0,0,
+-	0,0,66,146,0,0,0,0,36,16,81,0,
+-	246,255,83,16,1,0,16,38,42,16,20,2,
+-	247,255,64,20,0,0,0,0,33,16,0,0,
+-	44,0,191,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,48,0,189,39,208,255,189,39,
+-	32,0,178,175,33,144,128,0,28,0,177,175,
+-	33,136,160,0,36,0,179,175,33,152,192,0,
+-	40,0,180,175,33,160,224,0,44,0,191,175,
+-	2,0,32,22,24,0,176,175,255,255,17,36,
+-	0,0,66,142,0,0,0,0,36,16,81,0,
+-	3,0,83,20,0,0,0,0,244,67,192,8,
+-	1,0,2,36,11,0,128,26,33,128,0,0,
+-	143,63,192,12,0,0,0,0,0,0,66,142,
+-	0,0,0,0,36,16,81,0,246,255,83,20,
+-	1,0,16,38,42,16,20,2,247,255,64,20,
+-	0,0,0,0,33,16,0,0,44,0,191,143,
+-	40,0,180,143,36,0,179,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	48,0,189,39,208,255,189,39,32,0,178,175,
+-	33,144,128,0,28,0,177,175,33,136,160,0,
+-	36,0,179,175,33,152,192,0,40,0,180,175,
+-	33,160,224,0,44,0,191,175,2,0,32,22,
+-	24,0,176,175,255,255,17,52,0,0,66,150,
+-	0,0,0,0,36,16,81,0,3,0,83,20,
+-	0,0,0,0,29,68,192,8,1,0,2,36,
+-	11,0,128,26,33,128,0,0,143,63,192,12,
+-	0,0,0,0,0,0,66,150,0,0,0,0,
+-	36,16,81,0,246,255,83,20,1,0,16,38,
+-	42,16,20,2,247,255,64,20,0,0,0,0,
+-	33,16,0,0,44,0,191,143,40,0,180,143,
+-	36,0,179,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,48,0,189,39,
+-	208,255,189,39,32,0,178,175,33,144,128,0,
+-	28,0,177,175,33,136,160,0,36,0,179,175,
+-	33,152,192,0,40,0,180,175,33,160,224,0,
+-	44,0,191,175,2,0,32,22,24,0,176,175,
+-	255,0,17,36,0,0,66,146,0,0,0,0,
+-	36,16,81,0,3,0,83,20,0,0,0,0,
+-	70,68,192,8,1,0,2,36,11,0,128,26,
+-	33,128,0,0,143,63,192,12,0,0,0,0,
+-	0,0,66,146,0,0,0,0,36,16,81,0,
+-	246,255,83,20,1,0,16,38,42,16,20,2,
+-	247,255,64,20,0,0,0,0,33,16,0,0,
+-	44,0,191,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,48,0,189,39,0,0,0,0,
+-	0,0,0,0,248,255,189,39,255,255,195,36,
+-	8,0,192,16,33,56,128,0,255,255,6,36,
+-	0,0,162,144,1,0,165,36,255,255,99,36,
+-	0,0,130,160,251,255,102,20,1,0,132,36,
+-	33,16,224,0,8,0,224,3,8,0,189,39,
+-	0,0,0,0,0,0,0,0,0,96,8,64,
+-	1,0,9,60,0,96,137,64,15,0,138,48,
+-	33,40,170,0,192,255,165,36,0,0,128,160,
+-	16,0,128,160,32,0,128,160,251,255,160,28,
+-	48,0,128,160,64,0,132,36,0,96,136,64,
+-	0,0,0,0,0,0,0,0,8,0,224,3,
+-	0,0,0,0,0,0,0,0,1,131,2,60,
+-	224,17,66,36,0,32,9,60,37,16,73,0,
+-	8,0,64,0,0,0,0,0,0,96,8,64,
+-	3,0,9,60,0,96,137,64,15,0,138,48,
+-	33,40,170,0,192,255,165,36,0,0,128,160,
+-	16,0,128,160,32,0,128,160,251,255,160,28,
+-	48,0,128,160,64,0,132,36,0,96,136,64,
+-	0,0,0,0,0,0,0,0,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,163,3,60,192,3,99,140,
+-	0,163,2,60,188,3,66,140,0,0,0,0,
+-	16,0,98,16,255,255,2,36,0,163,2,60,
+-	188,3,66,140,0,163,1,60,33,8,34,0,
+-	200,3,34,144,0,163,3,60,188,3,99,140,
+-	0,163,4,60,196,3,132,140,0,22,2,0,
+-	3,22,2,0,1,0,99,36,36,24,100,0,
+-	0,163,1,60,188,3,35,172,8,0,224,3,
+-	0,0,0,0,0,163,6,60,0,1,198,52,
+-	10,0,9,36,255,255,8,36,13,0,7,36,
+-	0,163,3,60,192,3,99,140,0,163,2,60,
+-	188,3,66,140,0,0,0,0,17,0,98,16,
+-	255,255,5,36,0,163,2,60,188,3,66,140,
+-	0,0,0,0,33,16,70,0,200,2,66,144,
+-	0,0,0,0,0,22,2,0,3,46,2,0,
+-	0,163,2,60,188,3,66,140,0,163,3,60,
+-	196,3,99,140,1,0,66,36,36,16,67,0,
+-	0,163,1,60,188,3,34,172,11,0,169,16,
+-	11,0,162,40,5,0,64,16,0,0,0,0,
+-	228,255,168,16,0,0,0,0,206,68,192,8,
+-	0,0,133,160,224,255,167,16,0,0,0,0,
+-	206,68,192,8,0,0,133,160,208,68,192,8,
+-	0,0,128,160,169,68,192,8,1,0,132,36,
+-	8,0,224,3,0,0,0,0,0,0,0,0,
+-	0,0,0,0,208,255,189,39,24,0,176,175,
+-	33,128,128,0,36,0,179,175,33,152,160,0,
+-	28,0,177,175,33,136,0,0,32,0,178,175,
+-	33,144,0,2,5,0,64,22,40,0,191,175,
+-	54,0,96,22,33,16,0,0,22,69,192,8,
+-	0,0,32,174,0,0,67,130,0,0,0,0,
+-	233,68,192,8,32,0,2,36,0,0,3,130,
+-	32,0,2,36,253,255,98,16,1,0,16,38,
+-	255,255,16,38,9,0,2,36,249,255,98,16,
+-	1,0,16,38,255,255,16,38,0,0,3,130,
+-	45,0,2,36,4,0,98,20,43,0,2,36,
+-	1,0,16,38,250,68,192,8,1,0,17,36,
+-	3,0,98,20,33,32,0,2,1,0,16,38,
+-	33,32,0,2,44,69,192,12,16,0,165,39,
+-	7,0,96,18,33,24,64,0,16,0,162,143,
+-	0,0,0,0,2,0,80,20,0,0,0,0,
+-	33,16,64,2,0,0,98,174,6,0,32,18,
+-	0,128,2,60,43,16,67,0,5,0,64,20,
+-	255,127,2,60,19,69,192,8,33,16,96,0,
+-	5,0,97,4,255,127,2,60,7,0,32,18,
+-	255,255,66,52,22,69,192,8,0,128,2,60,
+-	33,16,96,0,2,0,32,18,0,0,0,0,
+-	35,16,2,0,40,0,191,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,48,0,189,39,0,0,0,0,
+-	0,0,0,0,0,0,0,0,208,255,130,36,
+-	10,0,66,44,7,0,64,20,1,0,2,36,
+-	191,255,130,36,6,0,66,44,3,0,64,20,
+-	1,0,2,36,159,255,130,36,6,0,66,44,
+-	8,0,224,3,0,0,0,0,248,255,189,39,
+-	0,0,176,175,33,56,0,0,33,72,0,0,
+-	33,80,0,0,33,112,0,0,5,0,128,20,
+-	33,200,128,0,110,0,160,20,33,16,0,0,
+-	163,69,192,8,0,0,192,173,0,0,131,128,
+-	32,0,2,36,253,255,98,16,1,0,132,36,
+-	255,255,132,36,9,0,2,36,249,255,98,16,
+-	1,0,132,36,255,255,132,36,0,0,131,128,
+-	43,0,2,36,3,0,98,20,45,0,2,36,
+-	75,69,192,8,1,0,132,36,3,0,98,20,
+-	0,0,0,0,1,0,132,36,1,0,14,36,
+-	3,0,192,16,16,0,2,36,16,0,194,20,
+-	0,0,0,0,0,0,131,128,48,0,2,36,
+-	9,0,98,20,10,0,2,36,1,0,131,128,
+-	88,0,2,36,3,0,98,16,120,0,2,36,
+-	3,0,98,20,8,0,2,36,16,0,2,36,
+-	2,0,132,36,2,0,192,20,0,0,0,0,
+-	33,48,64,0,0,0,131,128,255,255,2,36,
+-	27,0,70,0,2,0,192,20,0,0,0,0,
+-	13,0,7,0,18,64,0,0,16,192,0,0,
+-	0,0,0,0,0,0,0,0,42,0,96,16,
+-	48,0,98,44,48,0,207,36,11,0,205,40,
+-	87,0,204,36,55,0,203,36,5,0,64,20,
+-	43,16,111,0,3,0,64,16,0,0,0,0,
+-	130,69,192,8,208,255,99,36,30,0,160,21,
+-	97,0,98,44,6,0,64,20,65,0,98,44,
+-	43,16,108,0,3,0,64,16,65,0,98,44,
+-	130,69,192,8,169,255,99,36,21,0,64,20,
+-	43,16,107,0,19,0,64,16,0,0,0,0,
+-	201,255,99,36,43,16,7,1,6,0,64,20,
+-	1,0,9,36,6,0,232,20,24,0,230,0,
+-	43,16,3,3,3,0,64,16,0,0,0,0,
+-	1,0,10,36,24,0,230,0,1,0,132,36,
+-	18,128,0,0,33,56,3,2,0,0,131,128,
+-	0,0,0,0,220,255,96,20,48,0,98,44,
+-	5,0,64,17,0,0,0,0,13,0,160,16,
+-	255,255,2,36,163,69,192,8,0,0,164,172,
+-	6,0,160,16,0,0,0,0,3,0,32,21,
+-	0,0,0,0,160,69,192,8,0,0,185,172,
+-	0,0,164,172,2,0,192,17,33,16,224,0,
+-	35,16,2,0,0,0,176,143,8,0,224,3,
+-	8,0,189,39,0,0,0,0,0,0,0,0,
+-	200,255,189,39,16,0,176,175,7,162,16,60,
+-	236,0,16,54,255,240,3,60,255,255,99,52,
+-	63,0,132,48,36,0,181,175,128,1,149,52,
+-	24,0,178,175,0,1,18,36,20,0,177,175,
+-	7,162,17,60,236,0,49,54,44,0,183,175,
+-	0,4,23,60,32,0,180,175,255,251,20,60,
+-	255,255,148,54,40,0,182,175,0,1,22,60,
+-	28,0,179,175,255,254,19,60,48,0,191,175,
+-	0,0,2,142,0,0,0,0,36,16,67,0,
+-	224,133,130,175,0,0,2,174,76,63,192,12,
+-	255,255,115,54,224,133,130,143,0,2,3,60,
+-	37,16,67,0,224,133,130,175,0,0,2,174,
+-	36,16,85,2,5,0,64,16,0,0,0,0,
+-	224,133,130,143,0,0,0,0,214,69,192,8,
+-	37,16,87,0,224,133,130,143,0,0,0,0,
+-	36,16,84,0,224,133,130,175,76,63,192,12,
+-	0,0,34,174,224,133,130,143,0,0,0,0,
+-	37,16,86,0,224,133,130,175,0,0,34,174,
+-	76,63,192,12,66,144,18,0,224,133,130,143,
+-	0,0,0,0,36,16,83,0,224,133,130,175,
+-	0,0,34,174,255,255,66,50,230,255,64,20,
+-	36,16,85,2,33,136,0,0,16,0,16,36,
+-	7,162,18,60,236,0,82,54,0,1,22,60,
+-	0,8,21,60,255,254,19,60,255,255,115,54,
+-	255,255,20,36,76,63,192,12,0,0,0,0,
+-	224,133,130,143,0,0,0,0,37,16,86,0,
+-	224,133,130,175,76,63,192,12,0,0,66,174,
+-	7,0,0,18,0,0,0,0,0,0,66,142,
+-	0,0,0,0,36,16,85,0,2,0,64,16,
+-	64,136,17,0,1,0,49,54,76,63,192,12,
+-	255,255,16,38,224,133,130,143,0,0,0,0,
+-	36,16,83,0,224,133,130,175,0,0,66,174,
+-	232,255,20,22,7,162,4,60,236,0,132,52,
+-	255,253,3,60,224,133,130,143,255,255,99,52,
+-	36,16,67,0,224,133,130,175,0,0,130,172,
+-	255,255,34,50,48,0,191,143,44,0,183,143,
+-	40,0,182,143,36,0,181,143,32,0,180,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,56,0,189,39,
+-	200,255,189,39,48,0,190,175,33,240,160,0,
+-	40,0,182,175,63,0,150,48,33,32,192,2,
+-	52,0,191,175,44,0,183,175,36,0,181,175,
+-	32,0,180,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,168,69,192,12,16,0,176,175,
+-	33,152,64,0,255,255,195,51,255,255,98,50,
+-	3,0,98,20,7,162,16,60,131,71,192,8,
+-	1,0,2,36,236,0,16,54,255,252,3,60,
+-	255,255,99,52,0,1,18,36,7,162,17,60,
+-	236,0,49,54,255,251,21,60,255,255,181,54,
+-	0,1,23,60,255,254,20,60,224,133,130,143,
+-	0,0,0,0,36,16,67,0,224,133,130,175,
+-	0,0,2,174,76,63,192,12,255,255,148,54,
+-	224,133,130,143,0,2,3,60,37,16,67,0,
+-	224,133,130,175,0,0,2,174,48,1,66,50,
+-	5,0,64,16,0,4,6,60,224,133,130,143,
+-	0,0,0,0,83,70,192,8,37,16,70,0,
+-	224,133,130,143,0,0,0,0,36,16,85,0,
+-	224,133,130,175,76,63,192,12,0,0,34,174,
+-	224,133,130,143,0,0,0,0,37,16,87,0,
+-	224,133,130,175,0,0,34,174,76,63,192,12,
+-	66,144,18,0,224,133,130,143,0,0,0,0,
+-	36,16,84,0,224,133,130,175,0,0,34,174,
+-	255,255,66,50,230,255,64,20,48,1,66,50,
+-	255,255,195,51,255,255,98,50,39,16,2,0,
+-	36,24,98,0,88,0,96,16,192,1,213,54,
+-	7,162,16,60,236,0,16,54,255,252,3,60,
+-	255,255,99,52,0,1,18,36,7,162,17,60,
+-	236,0,49,54,255,251,20,60,255,255,148,54,
+-	0,1,23,60,255,254,19,60,224,133,130,143,
+-	0,0,0,0,36,16,67,0,224,133,130,175,
+-	0,0,2,174,76,63,192,12,255,255,115,54,
+-	224,133,130,143,0,2,3,60,37,16,67,0,
+-	224,133,130,175,0,0,2,174,36,16,85,2,
+-	5,0,64,16,0,4,6,60,224,133,130,143,
+-	0,0,0,0,140,70,192,8,37,16,70,0,
+-	224,133,130,143,0,0,0,0,36,16,84,0,
+-	224,133,130,175,76,63,192,12,0,0,34,174,
+-	224,133,130,143,0,0,0,0,37,16,87,0,
+-	224,133,130,175,0,0,34,174,76,63,192,12,
+-	66,144,18,0,224,133,130,143,0,0,0,0,
+-	36,16,83,0,224,133,130,175,0,0,34,174,
+-	255,255,66,50,230,255,64,20,36,16,85,2,
+-	7,162,16,60,236,0,16,54,255,252,3,60,
+-	224,133,130,143,255,255,99,52,36,16,67,0,
+-	224,133,130,175,76,63,192,12,0,0,2,174,
+-	224,133,130,143,0,2,3,60,37,16,67,0,
+-	224,133,130,175,0,0,2,174,0,0,2,142,
+-	0,8,3,60,36,16,67,0,11,0,64,20,
+-	7,162,4,60,7,162,16,60,236,0,16,54,
+-	0,8,17,60,76,63,192,12,0,0,0,0,
+-	0,0,2,142,0,0,0,0,36,16,81,0,
+-	250,255,64,16,7,162,4,60,236,0,132,52,
+-	255,253,3,60,224,133,130,143,255,255,99,52,
+-	36,16,67,0,224,133,130,175,0,0,130,172,
+-	255,255,195,51,255,255,2,52,133,0,98,16,
+-	64,1,213,54,7,162,16,60,236,0,16,54,
+-	255,252,3,60,255,255,99,52,0,1,18,36,
+-	7,162,17,60,236,0,49,54,255,251,20,60,
+-	255,255,148,54,0,1,23,60,255,254,19,60,
+-	224,133,130,143,0,0,0,0,36,16,67,0,
+-	224,133,130,175,0,0,2,174,76,63,192,12,
+-	255,255,115,54,224,133,130,143,0,2,3,60,
+-	37,16,67,0,224,133,130,175,0,0,2,174,
+-	36,16,85,2,5,0,64,16,0,4,6,60,
+-	224,133,130,143,0,0,0,0,231,70,192,8,
+-	37,16,70,0,224,133,130,143,0,0,0,0,
+-	36,16,84,0,224,133,130,175,76,63,192,12,
+-	0,0,34,174,224,133,130,143,0,0,0,0,
+-	37,16,87,0,224,133,130,175,0,0,34,174,
+-	76,63,192,12,66,144,18,0,224,133,130,143,
+-	0,0,0,0,36,16,83,0,224,133,130,175,
+-	0,0,34,174,255,255,66,50,230,255,64,20,
+-	36,16,85,2,33,160,192,3,7,162,2,60,
+-	236,0,66,52,0,128,17,52,7,162,16,60,
+-	236,0,16,54,0,4,23,60,255,251,19,60,
+-	255,255,115,54,0,1,21,60,255,254,18,60,
+-	255,255,82,54,224,133,131,143,0,2,4,60,
+-	37,24,100,0,224,133,131,175,0,0,67,172,
+-	36,16,52,2,5,0,64,16,0,0,0,0,
+-	224,133,130,143,0,0,0,0,20,71,192,8,
+-	37,16,87,0,224,133,130,143,0,0,0,0,
+-	36,16,83,0,224,133,130,175,76,63,192,12,
+-	0,0,2,174,224,133,130,143,0,0,0,0,
+-	37,16,85,0,224,133,130,175,0,0,2,174,
+-	76,63,192,12,66,136,17,0,224,133,130,143,
+-	0,0,0,0,36,16,82,0,224,133,130,175,
+-	0,0,2,174,255,255,34,50,230,255,64,20,
+-	36,16,52,2,7,162,16,60,236,0,16,54,
+-	255,252,3,60,224,133,130,143,255,255,99,52,
+-	36,16,67,0,224,133,130,175,76,63,192,12,
+-	0,0,2,174,224,133,130,143,0,2,3,60,
+-	37,16,67,0,224,133,130,175,0,0,2,174,
+-	0,0,2,142,0,8,3,60,36,16,67,0,
+-	11,0,64,20,7,162,4,60,7,162,16,60,
+-	236,0,16,54,0,8,17,60,76,63,192,12,
+-	0,0,0,0,0,0,2,142,0,0,0,0,
+-	36,16,81,0,250,255,64,16,7,162,4,60,
+-	236,0,132,52,255,253,3,60,224,133,130,143,
+-	255,255,99,52,36,16,67,0,224,133,130,175,
+-	0,0,130,172,7,162,16,60,236,0,16,54,
+-	255,252,3,60,255,255,99,52,0,1,18,36,
+-	7,162,17,60,236,0,49,54,0,4,23,60,
+-	255,251,20,60,255,255,148,54,0,1,21,60,
+-	255,254,19,60,224,133,130,143,0,0,0,0,
+-	36,16,67,0,224,133,130,175,0,0,2,174,
+-	76,63,192,12,255,255,115,54,224,133,130,143,
+-	0,2,3,60,37,16,67,0,224,133,130,175,
+-	0,0,2,174,0,1,66,50,5,0,64,16,
+-	0,0,0,0,224,133,130,143,0,0,0,0,
+-	108,71,192,8,37,16,87,0,224,133,130,143,
+-	0,0,0,0,36,16,84,0,224,133,130,175,
+-	76,63,192,12,0,0,34,174,224,133,130,143,
+-	0,0,0,0,37,16,85,0,224,133,130,175,
+-	0,0,34,174,76,63,192,12,66,144,18,0,
+-	224,133,130,143,0,0,0,0,36,16,83,0,
+-	224,133,130,175,0,0,34,174,255,255,66,50,
+-	230,255,64,20,0,1,66,50,168,69,192,12,
+-	33,32,192,2,38,16,194,3,255,255,66,48,
+-	1,0,66,44,52,0,191,143,48,0,190,143,
+-	44,0,183,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	56,0,189,39,0,0,0,0,248,255,189,39,
+-	255,255,195,36,6,0,192,16,33,16,128,0,
+-	255,255,6,36,0,0,133,160,255,255,99,36,
+-	253,255,102,20,1,0,132,36,8,0,189,39,
+-	8,0,224,3,0,0,0,0,159,71,192,8,
+-	33,24,0,0,1,0,99,36,0,0,130,128,
+-	0,0,0,0,252,255,64,20,1,0,132,36,
+-	8,0,224,3,33,16,96,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,255,255,198,36,
+-	10,0,192,16,0,0,0,0,0,0,131,128,
+-	0,0,162,128,0,0,0,0,5,0,98,20,
+-	0,0,0,0,1,0,132,36,255,255,198,36,
+-	248,255,192,20,1,0,165,36,0,0,131,144,
+-	0,0,162,144,0,0,0,0,8,0,224,3,
+-	35,16,98,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,196,71,192,8,240,255,189,39,
+-	0,0,163,128,3,22,2,0,8,0,67,20,
+-	0,0,0,0,1,0,132,36,1,0,165,36,
+-	0,0,130,128,0,0,131,144,0,0,0,0,
+-	246,255,64,20,0,22,3,0,0,0,131,144,
+-	0,0,162,144,0,0,0,0,35,16,98,0,
+-	8,0,224,3,16,0,189,39,0,0,0,0,
+-	255,255,198,36,9,0,192,4,33,16,0,0,
+-	0,0,130,144,0,0,0,0,5,0,69,16,
+-	33,16,128,0,255,255,198,36,250,255,193,4,
+-	1,0,132,36,33,16,0,0,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,2,0,192,20,255,255,2,36,
+-	1,0,2,36,8,0,224,3,0,0,226,172,
+-	232,255,189,39,20,0,191,175,16,0,176,175,
+-	40,0,176,143,33,32,192,0,4,0,5,142,
+-	0,0,0,0,15,86,192,12,255,255,230,48,
+-	3,0,64,16,255,255,2,36,243,71,192,8,
+-	0,0,2,174,0,0,0,174,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	208,255,189,39,40,0,191,175,33,24,128,0,
+-	64,0,162,143,32,0,160,175,36,0,162,175,
+-	12,0,66,148,0,0,0,0,2,0,64,20,
+-	33,32,160,0,120,5,2,36,255,255,66,48,
+-	16,0,162,175,1,131,2,60,148,31,66,36,
+-	20,0,162,175,1,131,2,60,128,31,66,36,
+-	24,0,162,175,32,0,162,39,28,0,162,175,
+-	166,85,192,12,33,40,96,0,32,0,162,143,
+-	40,0,191,143,48,0,189,39,8,0,224,3,
+-	0,0,0,0,0,0,0,0,88,0,131,148,
+-	4,0,2,36,9,0,98,20,0,0,0,0,
+-	33,72,192,8,116,0,132,36,33,16,69,0,
+-	128,16,2,0,8,0,131,140,0,0,0,0,
+-	46,72,192,8,33,16,67,0,104,0,132,36,
+-	12,0,128,16,33,16,0,0,4,0,130,140,
+-	0,0,0,0,42,16,162,0,243,255,64,20,
+-	0,17,5,0,4,0,130,140,12,0,132,140,
+-	0,0,0,0,247,255,128,20,35,40,162,0,
+-	33,16,0,0,8,0,224,3,0,0,0,0,
+-	88,0,131,148,4,0,2,36,3,0,98,20,
+-	33,48,0,0,55,72,192,8,116,0,132,36,
+-	104,0,132,36,8,0,130,140,0,0,0,0,
+-	43,16,162,0,14,0,64,16,255,255,2,36,
+-	92,72,192,8,0,0,0,0,35,24,163,0,
+-	0,17,3,0,35,16,67,0,0,26,2,0,
+-	33,16,67,0,0,28,2,0,33,16,67,0,
+-	35,16,2,0,131,16,2,0,92,72,192,8,
+-	33,16,194,0,18,0,128,16,0,0,0,0,
+-	4,0,131,140,0,0,0,0,0,17,3,0,
+-	33,16,67,0,128,16,2,0,8,0,131,140,
+-	0,0,0,0,33,16,67,0,43,16,162,0,
+-	233,255,64,20,0,0,0,0,4,0,130,140,
+-	12,0,132,140,0,0,0,0,241,255,128,20,
+-	33,48,194,0,255,255,2,36,8,0,224,3,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	8,0,130,36,144,0,163,140,120,132,135,39,
+-	2,0,96,16,20,0,137,36,33,56,96,0,
+-	0,0,72,140,4,0,68,140,132,72,192,8,
+-	0,0,0,0,30,0,0,25,0,0,0,0,
+-	4,0,227,140,0,0,0,0,4,0,98,140,
+-	0,0,0,0,55,0,64,16,255,255,2,36,
+-	0,0,135,140,0,0,98,140,0,0,0,0,
+-	8,0,71,16,0,0,0,0,8,0,99,36,
+-	4,0,98,140,0,0,0,0,248,255,64,20,
+-	255,255,2,36,168,72,192,8,0,0,0,0,
+-	0,0,130,140,0,0,0,0,4,0,34,173,
+-	4,0,103,140,255,255,8,37,4,0,132,36,
+-	0,0,226,148,0,0,0,0,1,0,66,48,
+-	226,255,64,16,0,0,0,0,0,0,226,148,
+-	0,0,0,0,64,0,66,48,27,0,64,20,
+-	255,255,2,36,0,0,226,148,0,0,0,0,
+-	1,0,66,48,17,0,64,16,0,0,0,0,
+-	13,0,192,16,1,0,2,36,64,0,162,140,
+-	0,0,0,0,9,0,64,20,1,0,2,36,
+-	28,0,226,140,4,0,163,140,0,0,0,0,
+-	36,16,67,0,3,0,64,20,1,0,2,36,
+-	168,72,192,8,255,255,2,36,164,72,192,8,
+-	0,0,34,165,0,0,32,165,8,0,40,173,
+-	12,0,36,173,16,0,39,173,33,16,0,0,
+-	8,0,224,3,0,0,0,0,200,255,189,39,
+-	48,0,191,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,32,0,176,175,33,152,128,0,
+-	33,128,160,0,33,144,192,0,0,0,4,142,
+-	0,0,0,0,48,0,130,40,2,0,64,16,
+-	8,0,113,38,48,0,4,36,0,0,36,174,
+-	9,50,192,12,128,32,4,0,3,0,64,20,
+-	4,0,34,174,214,72,192,8,255,255,2,36,
+-	144,0,66,142,120,132,132,39,2,0,64,16,
+-	0,0,0,0,33,32,64,0,16,0,160,175,
+-	20,0,179,175,24,0,178,175,0,0,5,142,
+-	4,0,6,142,0,0,0,0,221,72,192,12,
+-	33,56,32,2,33,128,64,0,4,0,0,26,
+-	0,0,0,0,0,0,34,142,214,72,192,8,
+-	0,0,0,0,110,86,192,12,33,32,32,2,
+-	33,16,0,2,48,0,191,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,56,0,189,39,184,255,189,39,
+-	68,0,191,175,64,0,190,175,60,0,183,175,
+-	56,0,182,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,33,144,128,0,33,176,160,0,
+-	33,136,224,0,88,0,183,143,92,0,179,143,
+-	96,0,190,143,32,0,226,38,0,0,36,142,
+-	0,0,0,0,42,16,130,0,22,0,64,16,
+-	33,160,192,0,4,0,132,36,9,50,192,12,
+-	128,32,4,0,33,128,64,0,3,0,0,22,
+-	33,32,0,2,153,73,192,8,255,255,2,36,
+-	0,0,38,142,4,0,37,142,0,0,0,0,
+-	80,68,192,12,128,48,6,0,4,0,36,142,
+-	61,50,192,12,0,0,0,0,4,0,48,174,
+-	0,0,34,142,0,0,0,0,4,0,66,36,
+-	0,0,34,174,0,0,66,150,0,0,0,0,
+-	1,0,66,48,96,0,64,20,0,0,0,0,
+-	33,0,192,30,0,0,0,0,4,0,80,142,
+-	0,0,0,0,4,0,2,142,0,0,0,0,
+-	108,0,64,16,128,160,23,0,1,0,242,38,
+-	4,0,34,142,0,0,0,0,33,16,130,2,
+-	0,0,3,142,0,0,0,0,0,0,67,172,
+-	0,0,2,142,0,0,0,0,24,0,98,174,
+-	16,0,178,175,20,0,179,175,24,0,190,175,
+-	4,0,4,142,33,40,0,0,33,48,0,0,
+-	221,72,192,12,33,56,32,2,112,0,64,20,
+-	8,0,16,38,4,0,2,142,0,0,0,0,
+-	234,255,64,20,33,16,0,0,153,73,192,8,
+-	0,0,0,0,4,0,80,142,0,0,0,0,
+-	4,0,2,142,0,0,0,0,76,0,64,16,
+-	128,168,23,0,1,0,242,38,0,0,3,142,
+-	0,0,132,142,0,0,0,0,43,16,100,0,
+-	42,0,64,20,0,0,0,0,19,0,100,20,
+-	255,255,197,38,4,0,34,142,0,0,0,0,
+-	33,16,162,2,0,0,67,172,0,0,2,142,
+-	0,0,0,0,24,0,98,174,16,0,178,175,
+-	20,0,179,175,24,0,190,175,4,0,4,142,
+-	4,0,134,38,221,72,192,12,33,56,32,2,
+-	25,0,64,16,8,0,16,38,153,73,192,8,
+-	0,0,0,0,0,0,130,142,0,0,0,0,
+-	43,16,67,0,17,0,64,16,33,40,0,0,
+-	4,0,34,142,0,0,0,0,33,16,162,2,
+-	0,0,67,172,0,0,2,142,0,0,0,0,
+-	24,0,98,174,16,0,178,175,20,0,179,175,
+-	24,0,190,175,4,0,4,142,33,48,0,0,
+-	221,72,192,12,33,56,32,2,52,0,64,20,
+-	0,0,0,0,8,0,16,38,4,0,2,142,
+-	0,0,0,0,205,255,64,20,33,16,0,0,
+-	153,73,192,8,0,0,0,0,0,0,66,150,
+-	0,0,0,0,64,0,66,48,40,0,64,20,
+-	33,16,0,0,3,0,66,146,0,0,0,0,
+-	1,0,66,48,11,0,64,16,33,24,64,2,
+-	64,0,194,143,0,0,0,0,9,0,64,20,
+-	0,0,0,0,28,0,98,140,4,0,195,143,
+-	0,0,0,0,36,16,67,0,3,0,64,20,
+-	0,0,0,0,153,73,192,8,33,16,0,0,
+-	14,0,192,26,33,16,246,2,0,0,34,174,
+-	4,0,36,142,128,128,23,0,33,32,4,2,
+-	33,40,128,2,80,68,192,12,128,48,22,0,
+-	28,0,118,174,4,0,34,142,0,0,0,0,
+-	33,128,2,2,149,73,192,8,32,0,112,174,
+-	0,0,55,174,28,0,96,174,32,0,96,174,
+-	36,0,114,174,1,0,2,36,20,0,98,166,
+-	1,0,2,36,68,0,191,143,64,0,190,143,
+-	60,0,183,143,56,0,182,143,52,0,181,143,
+-	48,0,180,143,44,0,179,143,40,0,178,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	72,0,189,39,3,0,160,28,33,16,0,0,
+-	0,0,224,172,1,0,2,36,8,0,224,3,
+-	0,0,0,0,208,255,189,39,44,0,191,175,
+-	40,0,178,175,36,0,177,175,32,0,176,175,
+-	33,144,128,0,33,136,224,0,64,0,176,143,
+-	0,0,0,0,6,0,160,24,24,0,160,175,
+-	17,0,2,146,0,0,0,0,18,0,66,52,
+-	200,73,192,8,17,0,2,162,33,32,32,2,
+-	33,40,0,2,1,0,6,36,253,76,192,12,
+-	24,0,167,39,36,0,2,142,16,0,176,175,
+-	8,0,66,140,33,32,64,2,1,0,5,36,
+-	24,0,166,39,9,248,64,0,33,56,32,2,
+-	44,0,191,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,48,0,189,39,
+-	224,255,189,39,28,0,191,175,24,0,178,175,
+-	20,0,177,175,33,144,128,0,33,136,160,0,
+-	31,0,81,18,16,0,176,175,4,0,80,142,
+-	0,0,0,0,4,0,2,142,0,0,0,0,
+-	10,0,64,16,0,0,0,0,4,0,4,142,
+-	0,0,0,0,206,73,192,12,33,40,32,2,
+-	8,0,16,38,4,0,2,142,0,0,0,0,
+-	248,255,64,20,0,0,0,0,0,0,66,150,
+-	0,0,0,0,32,0,66,48,4,0,64,16,
+-	0,0,0,0,4,0,68,142,61,50,192,12,
+-	0,0,0,0,0,0,66,150,0,0,0,0,
+-	16,0,66,48,3,0,64,16,0,0,0,0,
+-	61,50,192,12,33,32,64,2,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,120,132,131,39,
+-	2,0,128,16,0,0,0,0,33,24,128,0,
+-	0,0,167,140,4,0,165,140,26,74,192,8,
+-	0,0,0,0,28,0,224,24,0,0,0,0,
+-	4,0,99,140,0,0,0,0,4,0,98,140,
+-	0,0,0,0,11,0,64,16,0,0,0,0,
+-	0,0,164,140,0,0,98,140,0,0,0,0,
+-	9,0,68,16,0,0,0,0,8,0,99,36,
+-	4,0,98,140,0,0,0,0,248,255,64,20,
+-	0,0,0,0,0,0,192,172,33,74,192,8,
+-	2,0,2,36,4,0,99,140,255,255,231,36,
+-	4,0,165,36,0,0,98,148,0,0,0,0,
+-	1,0,66,48,228,255,64,16,0,0,0,0,
+-	0,0,195,172,42,16,7,0,8,0,224,3,
+-	0,0,0,0,208,255,189,39,44,0,191,175,
+-	40,0,182,175,36,0,181,175,32,0,180,175,
+-	28,0,179,175,24,0,178,175,20,0,177,175,
+-	16,0,176,175,33,168,192,0,0,0,162,140,
+-	0,0,0,0,3,0,64,28,33,48,0,0,
+-	220,74,192,8,5,0,2,36,120,132,147,39,
+-	2,0,128,16,0,0,224,172,33,152,128,0,
+-	0,0,177,140,4,0,180,140,84,74,192,8,
+-	0,0,0,0,29,0,32,26,0,0,0,0,
+-	4,0,102,142,0,0,0,0,4,0,194,140,
+-	0,0,0,0,23,0,64,16,0,0,0,0,
+-	0,0,131,142,0,0,194,140,0,0,0,0,
+-	6,0,67,16,0,0,0,0,8,0,198,36,
+-	4,0,194,140,0,0,0,0,248,255,64,20,
+-	0,0,0,0,4,0,194,140,0,0,0,0,
+-	9,0,64,16,0,0,0,0,255,255,49,38,
+-	4,0,148,38,33,152,64,0,0,0,98,150,
+-	0,0,0,0,1,0,66,48,227,255,64,16,
+-	0,0,0,0,29,0,32,22,0,0,0,0,
+-	0,0,99,150,0,0,0,0,1,0,98,48,
+-	11,0,64,16,4,0,98,48,123,0,64,16,
+-	3,0,2,36,0,0,162,150,0,0,0,0,
+-	1,0,66,48,118,0,64,16,4,0,2,36,
+-	0,0,243,172,219,74,192,8,4,0,213,172,
+-	0,0,98,150,0,0,0,0,4,0,66,48,
+-	110,0,64,16,3,0,2,36,0,0,162,150,
+-	0,0,0,0,1,0,66,48,105,0,64,20,
+-	4,0,2,36,0,0,243,172,219,74,192,8,
+-	4,0,213,172,0,0,98,150,0,0,0,0,
+-	1,0,66,48,97,0,64,20,2,0,2,36,
+-	2,0,34,42,23,0,64,20,33,144,160,2,
+-	56,0,22,36,9,50,192,12,16,0,4,36,
+-	33,128,64,0,40,0,0,18,128,16,17,0,
+-	33,16,84,0,252,255,66,140,0,0,0,0,
+-	0,0,2,174,4,0,18,174,8,0,0,174,
+-	12,0,0,174,9,50,192,12,8,0,4,36,
+-	33,144,64,0,24,0,64,18,255,255,49,38,
+-	0,0,86,166,2,0,34,42,236,255,64,16,
+-	4,0,80,174,4,0,102,142,0,0,0,0,
+-	4,0,194,140,0,0,0,0,6,0,64,16,
+-	1,0,17,36,8,0,198,36,4,0,194,140,
+-	0,0,0,0,252,255,64,20,1,0,49,38,
+-	1,0,36,38,9,50,192,12,192,32,4,0,
+-	33,128,64,0,12,0,0,22,33,32,64,2,
+-	173,74,192,8,0,0,0,0,0,0,18,142,
+-	0,0,0,0,61,50,192,12,33,32,0,2,
+-	33,32,64,2,206,73,192,12,33,40,160,2,
+-	220,74,192,8,1,0,2,36,4,0,102,142,
+-	0,0,0,0,192,74,192,8,33,168,0,2,
+-	4,0,194,140,0,0,0,0,14,0,64,16,
+-	0,0,0,0,0,0,194,140,4,0,195,140,
+-	0,0,2,174,4,0,3,174,8,0,198,36,
+-	8,0,16,38,255,255,49,38,0,0,194,140,
+-	0,0,131,142,0,0,0,0,43,16,67,0,
+-	240,255,64,20,0,0,0,0,0,0,130,142,
+-	0,0,0,0,0,0,2,174,4,0,18,174,
+-	8,0,4,38,33,40,192,0,80,68,192,12,
+-	192,48,17,0,4,0,102,142,4,0,117,174,
+-	0,0,98,150,0,0,0,0,32,0,66,48,
+-	3,0,64,16,0,0,0,0,61,50,192,12,
+-	33,32,192,0,0,0,98,150,0,0,0,0,
+-	32,0,66,52,0,0,98,166,33,16,0,0,
+-	44,0,191,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	48,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,0,0,162,140,0,0,0,0,
+-	85,0,64,24,33,16,0,0,120,132,144,39,
+-	2,0,128,16,0,0,0,0,33,128,128,0,
+-	0,0,164,140,4,0,165,140,0,0,0,0,
+-	0,0,168,140,0,0,2,150,0,0,0,0,
+-	33,24,64,0,1,0,66,48,34,0,64,20,
+-	33,56,0,2,32,0,128,24,8,0,98,48,
+-	4,0,6,142,5,0,64,16,0,0,0,0,
+-	12,0,194,140,0,0,0,0,3,0,64,16,
+-	0,0,0,0,33,56,0,2,0,0,168,140,
+-	0,0,195,140,0,0,162,140,0,0,0,0,
+-	10,0,98,16,0,0,0,0,0,0,163,140,
+-	4,0,194,140,0,0,0,0,20,0,64,16,
+-	8,0,198,36,0,0,194,140,0,0,0,0,
+-	249,255,67,20,0,0,0,0,255,255,132,36,
+-	4,0,208,140,0,0,0,0,0,0,3,150,
+-	0,0,0,0,1,0,98,48,224,255,64,16,
+-	4,0,165,36,36,0,128,20,33,16,0,0,
+-	0,0,2,150,0,0,0,0,2,0,66,48,
+-	3,0,64,20,0,0,0,0,65,75,192,8,
+-	33,16,0,0,4,0,230,140,0,0,0,0,
+-	0,0,194,140,0,0,0,0,7,0,72,16,
+-	0,0,0,0,8,0,198,36,0,0,194,140,
+-	0,0,0,0,253,255,72,20,8,0,198,36,
+-	248,255,198,36,4,0,199,140,0,0,0,0,
+-	10,0,224,16,33,32,224,0,8,0,194,140,
+-	12,0,195,140,0,0,194,172,4,0,195,172,
+-	8,0,198,36,4,0,194,140,0,0,0,0,
+-	248,255,64,20,33,32,224,0,206,73,192,12,
+-	33,40,0,2,33,16,0,2,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	192,255,189,39,56,0,191,175,52,0,181,175,
+-	48,0,180,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,32,0,176,175,33,136,128,0,
+-	33,144,160,0,33,152,192,0,33,160,224,0,
+-	80,0,181,143,0,0,0,0,36,0,162,142,
+-	0,0,0,0,20,0,80,140,33,32,128,2,
+-	48,72,192,12,33,40,160,2,16,0,3,142,
+-	0,0,0,0,16,0,163,175,20,0,180,175,
+-	24,0,162,175,0,0,2,142,1,0,4,36,
+-	33,40,32,2,33,48,64,2,9,248,64,0,
+-	33,56,96,2,6,0,64,20,33,32,128,2,
+-	17,0,162,146,0,0,0,0,1,0,66,52,
+-	113,75,192,8,17,0,162,162,33,40,160,2,
+-	59,77,192,12,33,48,64,0,56,0,191,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,64,0,189,39,192,255,189,39,
+-	60,0,191,175,56,0,178,175,52,0,177,175,
+-	48,0,176,175,33,136,224,0,80,0,178,143,
+-	36,0,160,175,36,0,66,142,0,0,0,0,
+-	20,0,67,140,2,0,80,144,0,0,0,0,
+-	255,0,2,50,254,255,71,36,70,0,226,44,
+-	110,0,64,16,128,16,7,0,2,131,1,60,
+-	33,8,34,0,160,151,34,140,0,0,0,0,
+-	8,0,64,0,0,0,0,0,16,0,177,175,
+-	8,0,98,140,16,0,103,140,9,248,64,0,
+-	0,0,0,0,2,0,3,36,16,0,67,162,
+-	251,75,192,8,40,0,66,174,16,0,177,175,
+-	8,0,98,140,16,0,103,140,9,248,64,0,
+-	0,0,0,0,40,0,162,175,16,0,80,162,
+-	40,0,162,143,0,0,0,0,251,75,192,8,
+-	40,0,66,174,32,0,162,39,16,0,162,175,
+-	20,0,177,175,36,0,162,39,24,0,162,175,
+-	8,0,98,140,16,0,103,140,9,248,64,0,
+-	0,0,0,0,33,48,64,0,16,0,80,162,
+-	17,0,66,146,0,0,0,0,2,0,66,52,
+-	17,0,66,162,36,0,162,143,0,0,0,0,
+-	43,16,2,0,40,0,66,166,44,0,70,174,
+-	32,0,162,151,0,0,0,0,33,16,194,0,
+-	48,0,66,174,255,75,192,8,52,0,64,166,
+-	16,0,177,175,36,0,162,39,20,0,162,175,
+-	8,0,98,140,16,0,103,140,9,248,64,0,
+-	0,0,0,0,33,128,64,0,8,0,0,22,
+-	33,32,32,2,16,0,160,175,33,40,64,2,
+-	33,48,0,0,226,76,192,12,33,56,0,0,
+-	255,75,192,8,0,0,0,0,36,0,162,143,
+-	0,0,0,0,16,0,162,175,0,0,6,142,
+-	4,0,7,142,0,0,0,0,226,76,192,12,
+-	33,40,64,2,36,0,162,143,0,0,0,0,
+-	35,0,64,16,0,0,0,0,61,50,192,12,
+-	33,32,0,2,255,75,192,8,0,0,0,0,
+-	5,0,2,36,251,75,192,8,16,0,66,162,
+-	16,0,177,175,40,0,162,39,20,0,162,175,
+-	8,0,98,140,16,0,103,140,9,248,64,0,
+-	0,0,0,0,33,48,64,0,7,0,192,16,
+-	64,0,2,36,3,0,194,136,0,0,194,152,
+-	0,0,0,0,43,0,162,171,40,0,162,187,
+-	64,0,2,36,16,0,66,162,40,0,162,143,
+-	0,0,0,0,251,75,192,8,40,0,66,174,
+-	5,0,2,36,96,0,34,174,17,0,66,146,
+-	0,0,0,0,2,0,66,52,17,0,66,162,
+-	60,0,191,143,56,0,178,143,52,0,177,143,
+-	48,0,176,143,8,0,224,3,64,0,189,39,
+-	80,255,189,39,168,0,191,175,164,0,179,175,
+-	160,0,178,175,156,0,177,175,152,0,176,175,
+-	33,152,128,0,33,136,224,0,192,0,178,143,
+-	0,0,0,0,36,0,66,142,0,0,0,0,
+-	20,0,67,140,0,0,0,0,16,0,98,140,
+-	0,0,0,0,16,0,162,175,20,0,177,175,
+-	4,0,98,140,0,0,0,0,9,248,64,0,
+-	24,0,167,39,33,128,64,0,6,0,0,22,
+-	33,32,32,2,17,0,66,146,0,0,0,0,
+-	18,0,66,52,45,76,192,8,17,0,66,162,
+-	33,40,64,2,33,48,0,2,253,76,192,12,
+-	24,0,167,39,16,0,178,175,33,32,96,2,
+-	33,40,0,2,24,0,166,39,122,75,192,12,
+-	33,56,32,2,168,0,191,143,164,0,179,143,
+-	160,0,178,143,156,0,177,143,152,0,176,143,
+-	8,0,224,3,176,0,189,39,192,255,189,39,
+-	56,0,191,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,33,152,128,0,33,160,160,0,
+-	33,168,192,0,33,136,224,0,80,0,178,143,
+-	0,0,0,0,36,0,66,142,0,0,0,0,
+-	20,0,80,140,33,32,32,2,48,72,192,12,
+-	33,40,64,2,16,0,3,142,0,0,0,0,
+-	16,0,163,175,20,0,177,175,24,0,162,175,
+-	0,0,2,142,33,32,0,0,33,40,96,2,
+-	33,48,128,2,9,248,64,0,33,56,160,2,
+-	5,0,64,16,33,32,32,2,200,76,192,12,
+-	33,40,64,2,95,76,192,8,0,0,0,0,
+-	16,0,178,175,33,32,96,2,33,40,128,2,
+-	33,48,160,2,122,75,192,12,33,56,32,2,
+-	56,0,191,143,52,0,181,143,48,0,180,143,
+-	44,0,179,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,64,0,189,39,
+-	192,255,189,39,56,0,191,175,52,0,181,175,
+-	48,0,180,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,32,0,176,175,33,152,128,0,
+-	33,160,160,0,33,168,192,0,80,0,177,143,
+-	0,0,0,0,36,0,34,142,0,0,0,0,
+-	20,0,82,140,2,0,66,144,0,0,0,0,
+-	254,255,67,36,70,0,98,44,57,0,64,16,
+-	33,128,224,0,128,16,3,0,2,131,1,60,
+-	33,8,34,0,184,152,34,140,0,0,0,0,
+-	8,0,64,0,0,0,0,0,33,32,0,2,
+-	48,72,192,12,33,40,32,2,40,0,35,142,
+-	0,0,0,0,16,0,163,175,20,0,176,175,
+-	173,76,192,8,24,0,162,175,33,32,0,2,
+-	48,72,192,12,33,40,32,2,44,0,35,142,
+-	0,0,0,0,16,0,163,175,48,0,35,142,
+-	44,0,36,142,0,0,0,0,35,24,100,0,
+-	170,76,192,8,255,255,99,48,33,32,0,2,
+-	48,72,192,12,33,40,32,2,40,0,35,142,
+-	0,0,0,0,16,0,163,175,44,0,35,142,
+-	0,0,0,0,171,76,192,8,20,0,163,175,
+-	33,32,0,2,48,72,192,12,33,40,32,2,
+-	40,0,35,38,16,0,163,175,4,0,3,36,
+-	20,0,163,175,24,0,176,175,28,0,162,175,
+-	12,0,66,142,33,32,96,2,33,40,128,2,
+-	16,0,71,142,0,0,0,0,9,248,64,0,
+-	33,48,160,2,184,76,192,8,0,0,0,0,
+-	5,0,2,36,96,0,2,174,17,0,34,146,
+-	0,0,0,0,2,0,66,52,17,0,34,162,
+-	56,0,191,143,52,0,181,143,48,0,180,143,
+-	44,0,179,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,64,0,189,39,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	224,255,189,39,24,0,191,175,20,0,177,175,
+-	16,0,176,175,33,128,128,0,64,0,2,142,
+-	0,0,0,0,7,0,64,20,33,136,160,0,
+-	2,0,2,36,48,72,192,12,96,0,2,174,
+-	1,0,66,36,217,76,192,8,100,0,2,174,
+-	129,0,2,36,16,0,34,162,17,0,34,146,
+-	0,0,0,0,2,0,66,52,17,0,34,162,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,232,255,189,39,
+-	20,0,191,175,16,0,176,175,33,128,128,0,
+-	33,64,160,0,33,32,192,0,33,40,224,0,
+-	40,0,162,143,17,0,3,145,0,0,0,0,
+-	2,0,99,52,17,0,3,161,6,0,3,36,
+-	4,0,64,16,16,0,3,161,40,0,4,173,
+-	249,76,192,8,44,0,5,173,80,86,192,12,
+-	40,0,6,37,2,0,64,16,5,0,2,36,
+-	96,0,2,174,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,200,255,189,39,
+-	48,0,191,175,44,0,183,175,40,0,182,175,
+-	36,0,181,175,32,0,180,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,176,128,0,33,144,160,0,33,152,192,0,
+-	37,0,96,18,33,184,224,0,28,0,84,38,
+-	8,0,67,142,28,0,66,142,0,0,0,0,
+-	35,128,98,0,42,16,83,0,23,0,64,16,
+-	33,168,19,2,9,50,192,12,128,32,21,0,
+-	33,136,64,0,8,0,32,22,128,128,16,0,
+-	5,0,2,36,96,0,194,174,17,0,66,146,
+-	0,0,0,0,2,0,66,52,48,77,192,8,
+-	17,0,66,162,33,32,32,2,12,0,69,142,
+-	0,0,0,0,80,68,192,12,33,48,0,2,
+-	110,86,192,12,8,0,68,38,12,0,81,174,
+-	33,128,48,2,4,0,144,174,4,0,132,142,
+-	33,40,224,2,80,68,192,12,128,48,19,0,
+-	0,0,147,174,8,0,85,174,48,0,191,143,
+-	44,0,183,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	56,0,189,39,224,255,189,39,24,0,191,175,
+-	20,0,177,175,16,0,176,175,33,136,128,0,
+-	5,0,192,24,33,128,160,0,3,0,2,36,
+-	96,0,34,174,95,77,192,8,100,0,38,174,
+-	19,0,195,36,19,0,98,44,9,0,64,16,
+-	128,16,3,0,2,131,1,60,33,8,34,0,
+-	208,153,34,140,0,0,0,0,8,0,64,0,
+-	0,0,0,0,89,77,192,8,2,0,6,36,
+-	89,77,192,8,5,0,6,36,89,77,192,8,
+-	3,0,6,36,89,77,192,8,1,0,6,36,
+-	35,48,6,0,96,0,38,174,33,32,32,2,
+-	48,72,192,12,33,40,0,2,1,0,66,36,
+-	100,0,34,174,17,0,2,146,0,0,0,0,
+-	1,0,66,52,17,0,2,162,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,200,255,189,39,52,0,191,175,
+-	48,0,190,175,44,0,183,175,40,0,182,175,
+-	36,0,181,175,32,0,180,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,152,128,0,33,168,160,0,33,160,192,0,
+-	76,0,182,143,80,0,183,143,84,0,190,143,
+-	92,0,177,143,0,0,0,0,209,83,192,12,
+-	33,144,224,0,33,128,64,0,3,0,0,22,
+-	4,0,2,36,168,77,192,8,33,16,0,0,
+-	88,0,2,166,64,0,19,174,33,32,64,2,
+-	72,0,165,143,0,0,0,0,80,86,192,12,
+-	92,0,6,38,255,255,3,36,23,0,67,16,
+-	0,0,0,0,3,0,194,138,0,0,194,154,
+-	0,0,0,0,103,0,2,170,100,0,2,186,
+-	104,0,23,174,108,0,30,174,88,0,168,143,
+-	0,0,0,0,112,0,8,174,72,0,0,166,
+-	76,0,20,174,255,255,162,50,33,16,130,2,
+-	80,0,2,174,84,0,0,166,9,0,32,18,
+-	120,0,17,174,224,83,192,12,33,32,32,2,
+-	6,0,64,20,124,0,2,174,167,83,192,12,
+-	33,32,0,2,168,77,192,8,33,16,0,0,
+-	124,0,0,174,33,16,0,2,52,0,191,143,
+-	48,0,190,143,44,0,183,143,40,0,182,143,
+-	36,0,181,143,32,0,180,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,56,0,189,39,224,255,189,39,
+-	28,0,191,175,24,0,178,175,20,0,177,175,
+-	16,0,176,175,33,144,128,0,92,0,68,142,
+-	128,86,192,12,0,0,0,0,96,0,68,142,
+-	0,0,0,0,128,86,192,12,33,128,64,0,
+-	100,0,68,142,0,0,0,0,128,86,192,12,
+-	33,136,64,0,33,128,17,2,6,0,16,38,
+-	33,16,80,0,90,0,66,166,191,79,192,12,
+-	104,0,68,38,255,255,67,48,90,0,68,150,
+-	128,0,98,44,5,0,64,20,2,0,130,36,
+-	0,1,98,44,2,0,64,20,3,0,130,36,
+-	4,0,130,36,33,16,67,0,90,0,66,166,
+-	80,0,66,142,76,0,67,142,90,0,80,150,
+-	64,0,68,142,0,0,0,0,128,86,192,12,
+-	35,136,67,0,255,255,67,48,90,0,68,150,
+-	0,0,0,0,128,0,130,44,9,0,64,20,
+-	0,1,130,44,4,0,64,16,0,0,0,0,
+-	33,24,112,0,237,77,192,8,6,0,99,36,
+-	33,24,112,0,237,77,192,8,7,0,99,36,
+-	33,24,112,0,5,0,99,36,255,255,36,50,
+-	128,0,130,44,5,0,64,20,1,0,130,36,
+-	0,1,130,44,2,0,64,20,2,0,130,36,
+-	3,0,130,36,33,16,98,0,2,0,66,166,
+-	2,0,67,150,2,0,68,150,0,0,0,0,
+-	128,0,130,44,6,0,64,20,1,0,99,36,
+-	0,1,130,44,4,0,64,20,2,0,98,36,
+-	3,78,192,8,3,0,98,36,1,0,98,36,
+-	0,0,66,166,0,0,66,150,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,216,255,189,39,
+-	32,0,191,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,152,128,0,
+-	171,86,192,12,92,0,100,38,104,0,100,142,
+-	0,0,0,0,128,86,192,12,33,144,64,0,
+-	108,0,100,142,0,0,0,0,128,86,192,12,
+-	33,136,64,0,112,0,100,142,0,0,0,0,
+-	153,86,192,12,33,128,64,0,10,0,82,38,
+-	33,136,50,2,33,128,17,2,4,0,16,38,
+-	33,16,80,0,90,0,98,166,191,79,192,12,
+-	116,0,100,38,255,255,67,48,90,0,100,150,
+-	128,0,98,44,5,0,64,20,2,0,130,36,
+-	0,1,98,44,2,0,64,20,3,0,130,36,
+-	4,0,130,36,33,16,67,0,90,0,98,166,
+-	80,0,98,142,76,0,99,142,90,0,113,150,
+-	64,0,100,142,0,0,0,0,128,86,192,12,
+-	35,128,67,0,255,255,67,48,90,0,100,150,
+-	0,0,0,0,128,0,130,44,9,0,64,20,
+-	0,1,130,44,4,0,64,16,0,0,0,0,
+-	33,24,113,0,74,78,192,8,6,0,99,36,
+-	33,24,113,0,74,78,192,8,7,0,99,36,
+-	33,24,113,0,5,0,99,36,255,255,4,50,
+-	128,0,130,44,5,0,64,20,1,0,130,36,
+-	0,1,130,44,2,0,64,20,2,0,130,36,
+-	3,0,130,36,33,16,98,0,2,0,98,166,
+-	2,0,99,150,2,0,100,150,0,0,0,0,
+-	128,0,130,44,6,0,64,20,1,0,99,36,
+-	0,1,130,44,4,0,64,20,2,0,112,36,
+-	96,78,192,8,3,0,112,36,1,0,112,36,
+-	255,255,2,50,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,208,255,189,39,
+-	40,0,191,175,36,0,179,175,32,0,178,175,
+-	28,0,177,175,24,0,176,175,33,128,128,0,
+-	33,152,192,0,33,144,224,0,33,136,160,0,
+-	16,0,4,36,32,0,5,36,1,131,6,60,
+-	56,97,198,36,242,86,192,12,33,56,0,2,
+-	255,255,36,50,1,131,5,60,56,97,165,36,
+-	44,87,192,12,33,48,0,2,16,0,176,175,
+-	2,0,4,36,33,40,0,0,1,131,7,60,
+-	56,97,231,36,94,87,192,12,33,48,96,2,
+-	8,0,71,142,4,0,66,142,0,0,0,0,
+-	35,56,226,0,1,131,2,60,56,97,66,36,
+-	16,0,162,175,20,0,176,175,4,0,4,36,
+-	33,40,0,0,4,0,70,142,0,0,0,0,
+-	194,87,192,12,255,255,231,48,40,0,191,143,
+-	36,0,179,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,48,0,189,39,
+-	216,255,189,39,36,0,191,175,32,0,178,175,
+-	28,0,177,175,24,0,176,175,33,128,128,0,
+-	33,136,160,0,88,0,4,150,160,0,5,36,
+-	1,131,6,60,56,97,198,36,242,86,192,12,
+-	33,56,32,2,90,0,4,150,1,131,5,60,
+-	56,97,165,36,44,87,192,12,33,48,32,2,
+-	16,0,177,175,6,0,4,36,33,40,0,0,
+-	1,131,7,60,56,97,231,36,15,88,192,12,
+-	92,0,6,38,1,131,18,60,56,97,82,38,
+-	16,0,178,175,20,0,177,175,33,32,0,0,
+-	64,0,5,36,100,0,6,38,194,87,192,12,
+-	4,0,7,36,16,0,177,175,2,0,4,36,
+-	33,40,0,0,104,0,6,142,0,0,0,0,
+-	94,87,192,12,33,56,64,2,16,0,177,175,
+-	2,0,4,36,33,40,0,0,108,0,6,142,
+-	0,0,0,0,94,87,192,12,33,56,64,2,
+-	16,0,177,175,3,0,4,36,64,0,5,36,
+-	112,0,6,142,0,0,0,0,143,87,192,12,
+-	33,56,64,2,116,0,4,38,7,79,192,12,
+-	33,40,32,2,36,0,191,143,32,0,178,143,
+-	28,0,177,143,24,0,176,143,8,0,224,3,
+-	40,0,189,39,216,255,189,39,32,0,191,175,
+-	28,0,177,175,24,0,176,175,33,128,128,0,
+-	33,136,160,0,88,0,4,150,160,0,5,36,
+-	1,131,6,60,56,97,198,36,242,86,192,12,
+-	33,56,32,2,90,0,4,150,1,131,5,60,
+-	56,97,165,36,44,87,192,12,33,48,32,2,
+-	16,0,177,175,2,0,4,36,92,0,6,142,
+-	1,131,7,60,56,97,231,36,94,87,192,12,
+-	33,40,0,0,16,0,177,175,2,0,4,36,
+-	96,0,6,142,1,131,7,60,56,97,231,36,
+-	94,87,192,12,33,40,0,0,16,0,177,175,
+-	2,0,4,36,100,0,6,142,1,131,7,60,
+-	56,97,231,36,94,87,192,12,33,40,0,0,
+-	104,0,4,38,7,79,192,12,33,40,32,2,
+-	32,0,191,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,40,0,189,39,200,255,189,39,
+-	52,0,191,175,48,0,180,175,44,0,179,175,
+-	40,0,178,175,36,0,177,175,32,0,176,175,
+-	33,144,128,0,33,136,160,0,16,0,4,36,
+-	32,0,5,36,1,131,6,60,56,97,198,36,
+-	242,86,192,12,33,56,32,2,0,0,68,150,
+-	1,131,5,60,56,97,165,36,44,87,192,12,
+-	33,48,32,2,155,0,64,18,0,0,0,0,
+-	1,131,20,60,56,97,148,38,8,0,80,142,
+-	0,0,0,0,145,0,0,18,0,0,0,0,
+-	4,0,66,142,0,0,0,0,141,0,64,24,
+-	33,152,0,0,16,0,4,36,32,0,5,36,
+-	33,48,128,2,242,86,192,12,33,56,32,2,
+-	4,0,4,150,33,40,128,2,44,87,192,12,
+-	33,48,32,2,16,0,177,175,6,0,4,36,
+-	33,40,0,0,8,0,6,38,15,88,192,12,
+-	33,56,128,2,16,0,3,146,65,0,2,36,
+-	47,0,98,16,66,0,98,40,18,0,64,16,
+-	5,0,2,36,88,0,98,16,6,0,98,40,
+-	7,0,64,16,2,0,2,36,30,0,98,16,
+-	4,0,2,36,51,0,98,16,4,0,4,36,
+-	174,79,192,8,1,0,115,38,6,0,2,36,
+-	68,0,98,16,64,0,2,36,78,0,98,16,
+-	33,32,0,0,174,79,192,8,1,0,115,38,
+-	68,0,2,36,47,0,98,16,69,0,98,40,
+-	7,0,64,16,66,0,2,36,24,0,98,16,
+-	67,0,2,36,25,0,98,16,3,0,4,36,
+-	174,79,192,8,1,0,115,38,131,0,98,40,
+-	83,0,64,16,128,0,98,40,68,0,64,16,
+-	0,0,0,0,174,79,192,8,1,0,115,38,
+-	16,0,177,175,2,0,4,36,40,0,6,142,
+-	1,131,7,60,56,97,231,36,94,87,192,12,
+-	33,40,0,0,174,79,192,8,1,0,115,38,
+-	16,0,177,175,111,79,192,8,1,0,4,36,
+-	16,0,177,175,111,79,192,8,2,0,4,36,
+-	16,0,177,175,40,0,6,142,1,131,7,60,
+-	56,97,231,36,143,87,192,12,64,0,5,36,
+-	174,79,192,8,1,0,115,38,48,0,7,142,
+-	44,0,2,142,0,0,0,0,35,56,226,0,
+-	16,0,180,175,20,0,177,175,134,79,192,8,
+-	33,40,0,0,48,0,7,142,44,0,2,142,
+-	0,0,0,0,35,56,226,0,16,0,180,175,
+-	20,0,177,175,4,0,4,36,64,0,5,36,
+-	44,0,6,142,0,0,0,0,194,87,192,12,
+-	255,255,231,48,174,79,192,8,1,0,115,38,
+-	16,0,177,175,6,0,4,36,33,40,0,0,
+-	1,131,7,60,56,97,231,36,15,88,192,12,
+-	40,0,6,38,174,79,192,8,1,0,115,38,
+-	5,0,4,36,164,79,192,8,33,40,0,0,
+-	16,0,180,175,20,0,177,175,64,0,5,36,
+-	40,0,6,38,194,87,192,12,4,0,7,36,
+-	174,79,192,8,1,0,115,38,16,0,4,146,
+-	16,0,5,146,31,0,132,48,224,0,165,48,
+-	1,131,6,60,56,97,198,36,242,86,192,12,
+-	33,56,32,2,33,32,0,0,1,131,5,60,
+-	56,97,165,36,44,87,192,12,33,48,32,2,
+-	1,0,115,38,4,0,66,142,0,0,0,0,
+-	42,16,98,2,117,255,64,20,68,0,16,38,
+-	12,0,82,142,0,0,0,0,105,255,64,22,
+-	0,0,0,0,52,0,191,143,48,0,180,143,
+-	44,0,179,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,56,0,189,39,
+-	200,255,189,39,52,0,191,175,48,0,182,175,
+-	44,0,181,175,40,0,180,175,36,0,179,175,
+-	32,0,178,175,28,0,177,175,24,0,176,175,
+-	33,168,128,0,33,152,160,2,113,0,160,18,
+-	33,144,0,0,4,0,22,36,8,0,112,142,
+-	0,0,0,0,104,0,0,18,0,0,0,0,
+-	4,0,98,142,0,0,0,0,100,0,64,24,
+-	33,160,0,0,171,86,192,12,8,0,4,38,
+-	255,255,67,48,128,0,98,44,5,0,64,20,
+-	2,0,113,36,0,1,98,44,2,0,64,20,
+-	3,0,113,36,4,0,113,36,16,0,3,146,
+-	64,0,2,36,50,0,98,16,65,0,98,40,
+-	16,0,64,16,68,0,2,36,34,0,118,16,
+-	5,0,98,40,5,0,64,16,2,0,2,36,
+-	20,0,98,16,255,255,36,50,22,80,192,8,
+-	0,0,0,0,5,0,2,36,35,0,98,16,
+-	6,0,2,36,29,0,98,16,255,255,36,50,
+-	22,80,192,8,0,0,0,0,19,0,98,16,
+-	68,0,98,40,12,0,64,20,131,0,98,40,
+-	28,0,64,16,128,0,98,40,27,0,64,20,
+-	255,255,36,50,22,80,192,8,18,0,0,166,
+-	40,0,4,142,128,86,192,12,0,0,0,0,
+-	21,80,192,8,18,0,2,166,40,0,4,142,
+-	153,86,192,12,0,0,0,0,21,80,192,8,
+-	18,0,2,166,48,0,2,142,44,0,3,142,
+-	0,0,0,0,35,16,67,0,21,80,192,8,
+-	18,0,2,166,171,86,192,12,40,0,4,38,
+-	21,80,192,8,18,0,2,166,21,80,192,8,
+-	18,0,0,166,18,0,22,166,255,255,36,50,
+-	18,0,3,150,0,0,0,0,128,0,98,44,
+-	6,0,64,20,1,0,132,36,0,1,98,44,
+-	4,0,64,20,2,0,98,36,33,80,192,8,
+-	3,0,98,36,1,0,98,36,33,16,130,0,
+-	4,0,2,166,4,0,4,150,0,0,0,0,
+-	1,0,132,36,4,0,3,150,0,0,0,0,
+-	128,0,98,44,6,0,64,20,255,255,69,50,
+-	0,1,98,44,4,0,64,20,2,0,162,36,
+-	49,80,192,8,3,0,162,36,1,0,162,36,
+-	33,144,68,0,1,0,148,38,4,0,98,142,
+-	0,0,0,0,42,16,130,2,158,255,64,20,
+-	68,0,16,38,12,0,115,142,0,0,0,0,
+-	146,255,96,22,0,0,0,0,0,0,178,166,
+-	255,255,66,50,52,0,191,143,48,0,182,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,56,0,189,39,224,255,189,39,
+-	24,0,191,175,20,0,177,175,16,0,176,175,
+-	33,128,128,0,171,86,192,12,8,0,4,38,
+-	255,255,67,48,128,0,98,44,5,0,64,20,
+-	2,0,113,36,0,1,98,44,2,0,64,20,
+-	3,0,113,36,4,0,113,36,16,0,3,146,
+-	64,0,2,36,52,0,98,16,65,0,98,40,
+-	17,0,64,16,4,0,2,36,37,0,98,16,
+-	0,0,0,0,5,0,98,40,5,0,64,16,
+-	2,0,2,36,22,0,98,16,255,255,36,50,
+-	145,80,192,8,0,0,0,0,5,0,2,36,
+-	36,0,98,16,6,0,2,36,30,0,98,16,
+-	255,255,36,50,145,80,192,8,0,0,0,0,
+-	68,0,2,36,20,0,98,16,0,0,0,0,
+-	68,0,98,40,12,0,64,20,131,0,98,40,
+-	28,0,64,16,128,0,98,40,27,0,64,20,
+-	255,255,36,50,145,80,192,8,18,0,0,166,
+-	40,0,4,142,128,86,192,12,0,0,0,0,
+-	144,80,192,8,18,0,2,166,40,0,4,142,
+-	153,86,192,12,0,0,0,0,144,80,192,8,
+-	18,0,2,166,48,0,2,142,44,0,3,142,
+-	0,0,0,0,143,80,192,8,35,16,67,0,
+-	171,86,192,12,40,0,4,38,144,80,192,8,
+-	18,0,2,166,144,80,192,8,18,0,0,166,
+-	4,0,2,36,18,0,2,166,255,255,36,50,
+-	18,0,3,150,0,0,0,0,128,0,98,44,
+-	6,0,64,20,1,0,132,36,0,1,98,44,
+-	4,0,64,20,2,0,98,36,156,80,192,8,
+-	3,0,98,36,1,0,98,36,33,16,130,0,
+-	4,0,2,166,4,0,3,150,4,0,4,150,
+-	0,0,0,0,128,0,130,44,6,0,64,20,
+-	1,0,99,36,0,1,130,44,4,0,64,20,
+-	2,0,98,36,170,80,192,8,3,0,98,36,
+-	1,0,98,36,255,255,66,48,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,16,0,191,175,
+-	64,0,130,140,0,0,0,0,12,0,64,20,
+-	33,16,0,0,88,0,131,148,4,0,2,36,
+-	5,0,98,16,0,0,0,0,180,77,192,12,
+-	0,0,0,0,193,80,192,8,255,255,66,48,
+-	11,78,192,12,0,0,0,0,255,255,66,48,
+-	16,0,191,143,24,0,189,39,8,0,224,3,
+-	0,0,0,0,224,255,189,39,24,0,191,175,
+-	20,0,177,175,16,0,176,175,33,128,128,0,
+-	176,80,192,12,33,136,160,0,33,32,0,2,
+-	33,40,32,2,213,80,192,12,255,255,70,48,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,224,255,189,39,
+-	28,0,191,175,24,0,178,175,20,0,177,175,
+-	16,0,176,175,33,144,128,0,33,136,192,0,
+-	255,255,34,50,41,0,64,16,33,128,160,0,
+-	4,0,2,142,0,0,0,0,11,0,64,20,
+-	255,255,35,50,9,50,192,12,255,255,36,50,
+-	33,24,64,0,32,0,96,16,1,0,2,36,
+-	0,0,2,166,4,0,3,174,8,0,3,174,
+-	242,80,192,8,12,0,17,166,12,0,2,150,
+-	0,0,0,0,43,16,67,0,23,0,64,20,
+-	255,255,2,36,64,0,66,142,0,0,0,0,
+-	19,0,64,20,255,255,2,36,33,32,0,2,
+-	2,0,69,150,33,48,0,0,104,78,192,12,
+-	72,0,71,38,88,0,67,150,4,0,2,36,
+-	5,0,98,16,33,32,64,2,217,78,192,12,
+-	33,40,0,2,8,81,192,8,33,16,0,0,
+-	153,78,192,12,33,40,0,2,8,81,192,8,
+-	33,16,0,0,255,255,2,36,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,0,0,0,0,
+-	0,0,0,0,168,255,189,39,80,0,191,175,
+-	76,0,183,175,72,0,182,175,68,0,181,175,
+-	64,0,180,175,60,0,179,175,56,0,178,175,
+-	52,0,177,175,48,0,176,175,33,24,128,0,
+-	33,152,160,0,33,176,192,0,33,184,224,0,
+-	104,0,162,143,0,0,0,0,2,0,64,20,
+-	44,0,160,175,40,0,162,39,0,0,64,172,
+-	24,0,164,39,33,40,96,0,156,88,192,12,
+-	33,48,96,2,33,136,64,0,82,0,32,18,
+-	33,16,0,0,209,83,192,12,0,0,0,0,
+-	33,144,64,0,5,0,64,22,1,0,2,36,
+-	183,88,192,12,33,32,32,2,124,81,192,8,
+-	33,16,0,0,148,0,66,162,196,88,192,12,
+-	33,32,32,2,224,0,85,48,44,0,176,39,
+-	33,32,32,2,124,89,192,12,33,40,0,2,
+-	33,160,64,0,33,32,32,2,198,89,192,12,
+-	33,40,0,2,2,0,66,166,44,0,162,143,
+-	0,0,0,0,14,0,64,20,0,0,0,0,
+-	8,0,35,142,4,0,34,142,0,0,0,0,
+-	35,128,98,0,2,0,66,150,0,0,0,0,
+-	33,128,2,2,42,16,19,2,16,0,64,20,
+-	33,32,32,2,42,16,112,2,16,0,64,16,
+-	0,0,0,0,167,83,192,12,33,32,64,2,
+-	183,88,192,12,33,32,32,2,3,131,3,60,
+-	140,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,124,81,192,8,
+-	33,16,0,0,33,40,0,2,42,89,192,12,
+-	33,48,0,0,255,0,162,50,255,255,131,50,
+-	37,16,67,0,48,0,3,36,8,0,67,20,
+-	33,32,64,2,16,0,176,175,33,40,32,2,
+-	33,48,192,2,135,81,192,12,33,56,224,2,
+-	117,81,192,8,33,128,64,0,3,131,3,60,
+-	140,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,33,128,0,0,
+-	3,0,0,22,0,0,0,0,167,83,192,12,
+-	33,32,64,2,183,88,192,12,33,32,32,2,
+-	33,16,0,2,80,0,191,143,76,0,183,143,
+-	72,0,182,143,68,0,181,143,64,0,180,143,
+-	60,0,179,143,56,0,178,143,52,0,177,143,
+-	48,0,176,143,8,0,224,3,88,0,189,39,
+-	176,255,189,39,76,0,191,175,72,0,182,175,
+-	68,0,181,175,64,0,180,175,60,0,179,175,
+-	56,0,178,175,52,0,177,175,48,0,176,175,
+-	33,128,128,0,33,136,160,0,33,160,192,0,
+-	33,168,224,0,96,0,182,143,24,0,160,175,
+-	33,32,32,2,24,0,165,39,2,0,6,36,
+-	239,90,192,12,33,56,0,0,64,0,2,174,
+-	24,0,162,143,0,0,0,0,155,0,64,20,
+-	0,0,0,0,64,0,2,142,0,0,0,0,
+-	4,0,64,16,33,32,32,2,3,131,3,60,
+-	60,82,192,8,148,17,99,36,16,0,160,175,
+-	72,0,5,38,24,0,166,39,110,90,192,12,
+-	4,0,7,36,24,0,162,143,0,0,0,0,
+-	139,0,64,20,0,0,0,0,196,88,192,12,
+-	33,32,32,2,224,0,66,48,160,0,3,36,
+-	133,0,67,20,33,32,32,2,124,89,192,12,
+-	24,0,165,39,33,144,64,0,33,32,32,2,
+-	198,89,192,12,24,0,165,39,33,152,64,0,
+-	24,0,162,143,0,0,0,0,122,0,64,20,
+-	0,0,0,0,255,255,66,50,5,0,66,44,
+-	118,0,64,16,0,0,0,0,8,0,34,142,
+-	4,0,35,142,0,0,0,0,35,16,67,0,
+-	255,255,99,50,33,16,67,0,110,0,194,22,
+-	33,32,0,2,88,0,18,166,90,0,19,166,
+-	33,40,128,2,178,50,192,12,33,48,160,2,
+-	118,0,64,20,33,16,0,0,255,255,67,50,
+-	4,0,2,36,24,0,98,16,33,32,32,2,
+-	24,0,165,39,2,0,6,36,239,90,192,12,
+-	33,56,0,0,92,0,2,174,33,32,32,2,
+-	24,0,165,39,2,0,6,36,239,90,192,12,
+-	33,56,0,0,96,0,2,174,33,32,32,2,
+-	24,0,165,39,2,0,6,36,239,90,192,12,
+-	33,56,0,0,100,0,2,174,24,0,162,143,
+-	0,0,0,0,78,0,64,20,33,32,32,2,
+-	67,82,192,8,104,0,5,38,4,0,2,36,
+-	88,0,2,166,90,0,19,166,124,0,0,174,
+-	16,0,160,175,92,0,5,38,24,0,166,39,
+-	186,91,192,12,6,0,7,36,24,0,162,143,
+-	0,0,0,0,63,0,64,20,100,0,4,38,
+-	33,40,0,0,144,71,192,12,4,0,6,36,
+-	32,0,160,167,40,0,160,175,36,0,160,175,
+-	44,0,160,167,32,0,178,39,64,0,2,36,
+-	16,0,162,175,33,32,32,2,33,40,64,2,
+-	24,0,166,39,110,90,192,12,33,56,0,0,
+-	24,0,162,143,0,0,0,0,5,0,64,16,
+-	0,0,0,0,24,92,192,12,33,32,64,2,
+-	58,82,192,8,0,0,0,0,40,0,162,143,
+-	36,0,163,143,0,0,0,0,35,16,67,0,
+-	255,255,70,48,5,0,194,44,2,0,64,20,
+-	0,0,0,0,4,0,6,36,8,0,192,16,
+-	33,32,32,2,36,0,165,143,0,0,0,0,
+-	80,68,192,12,100,0,4,38,24,92,192,12,
+-	32,0,164,39,33,32,32,2,24,0,165,39,
+-	2,0,6,36,239,90,192,12,33,56,0,0,
+-	104,0,2,174,33,32,32,2,24,0,165,39,
+-	2,0,6,36,239,90,192,12,33,56,0,0,
+-	108,0,2,174,33,32,32,2,24,0,165,39,
+-	3,0,6,36,239,90,192,12,64,0,7,36,
+-	112,0,2,174,24,0,162,143,0,0,0,0,
+-	9,0,64,16,33,32,32,2,3,131,3,60,
+-	140,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,73,82,192,8,
+-	33,16,0,0,116,0,5,38,33,48,192,2,
+-	163,82,192,12,33,56,0,2,255,255,3,36,
+-	248,255,67,16,33,16,0,2,76,0,191,143,
+-	72,0,182,143,68,0,181,143,64,0,180,143,
+-	60,0,179,143,56,0,178,143,52,0,177,143,
+-	48,0,176,143,8,0,224,3,80,0,189,39,
+-	184,255,189,39,64,0,191,175,60,0,183,175,
+-	56,0,182,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,33,128,128,0,16,0,160,175,
+-	8,0,2,142,4,0,3,142,0,0,0,0,
+-	35,184,67,0,33,144,0,0,255,255,162,48,
+-	45,0,64,16,33,136,0,0,3,131,19,60,
+-	140,17,115,38,255,255,22,36,255,255,181,48,
+-	8,0,3,142,4,0,2,142,0,0,0,0,
+-	35,160,98,0,0,0,2,146,0,0,0,0,
+-	128,0,66,48,32,0,64,20,33,32,0,2,
+-	124,89,192,12,16,0,165,39,33,32,0,2,
+-	198,89,192,12,16,0,165,39,33,40,64,0,
+-	16,0,162,143,0,0,0,0,6,0,64,20,
+-	33,32,0,2,255,255,165,48,251,88,192,12,
+-	1,0,6,36,7,0,86,20,0,0,0,0,
+-	0,0,98,142,0,0,0,0,1,0,66,36,
+-	0,0,98,174,147,82,192,8,255,255,17,36,
+-	8,0,2,142,4,0,3,142,0,0,0,0,
+-	35,16,67,0,33,16,66,2,35,144,84,0,
+-	255,255,66,50,43,16,85,0,217,255,64,20,
+-	1,0,49,38,33,32,0,2,33,40,224,2,
+-	251,88,192,12,33,48,0,0,33,16,32,2,
+-	64,0,191,143,60,0,183,143,56,0,182,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,72,0,189,39,192,255,189,39,
+-	56,0,191,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,33,144,128,0,33,152,160,0,
+-	33,168,224,0,16,0,160,175,124,89,192,12,
+-	16,0,165,39,33,32,64,2,198,89,192,12,
+-	16,0,165,39,0,0,98,166,16,0,162,143,
+-	0,0,0,0,28,0,64,20,0,0,0,0,
+-	12,0,66,142,8,0,67,142,0,0,0,0,
+-	35,16,67,0,0,0,99,150,255,255,66,48,
+-	20,0,98,20,0,0,0,0,4,0,96,174,
+-	0,0,101,150,0,0,0,0,83,82,192,12,
+-	33,32,64,2,33,32,64,0,255,255,2,36,
+-	46,0,130,16,0,0,0,0,3,0,128,20,
+-	0,0,0,0,246,82,192,8,8,0,96,174,
+-	224,83,192,12,4,0,100,174,10,0,64,20,
+-	8,0,98,174,247,82,192,8,255,255,2,36,
+-	3,131,3,60,140,17,99,36,0,0,98,140,
+-	0,0,0,0,1,0,66,36,210,82,192,8,
+-	0,0,98,172,8,0,112,142,4,0,98,142,
+-	0,0,0,0,23,0,64,24,33,136,0,0,
+-	255,255,20,36,33,32,64,2,124,89,192,12,
+-	16,0,165,39,33,32,64,2,198,89,192,12,
+-	16,0,165,39,4,0,2,166,16,0,162,143,
+-	0,0,0,0,233,255,64,20,33,32,64,2,
+-	33,40,0,2,0,83,192,12,33,48,160,2,
+-	226,255,84,16,1,0,49,38,4,0,98,142,
+-	0,0,0,0,42,16,34,2,236,255,64,20,
+-	68,0,16,38,33,16,0,0,56,0,191,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,64,0,189,39,184,255,189,39,
+-	68,0,191,175,64,0,180,175,60,0,179,175,
+-	56,0,178,175,52,0,177,175,48,0,176,175,
+-	33,128,128,0,33,144,160,0,24,0,160,175,
+-	16,0,160,175,8,0,69,38,24,0,166,39,
+-	186,91,192,12,6,0,7,36,24,0,162,143,
+-	0,0,0,0,103,0,64,20,0,0,0,0,
+-	196,88,192,12,33,32,0,2,224,0,84,48,
+-	33,32,0,2,124,89,192,12,24,0,165,39,
+-	33,152,64,0,33,32,0,2,198,89,192,12,
+-	24,0,165,39,33,136,64,0,24,0,162,143,
+-	0,0,0,0,88,0,64,20,37,16,116,2,
+-	18,0,81,166,16,0,66,162,16,0,67,146,
+-	64,0,2,36,48,0,98,16,65,0,98,40,
+-	16,0,64,16,4,0,2,36,31,0,98,16,
+-	5,0,98,40,5,0,64,16,2,0,2,36,
+-	22,0,98,16,33,32,0,2,121,83,192,8,
+-	0,0,0,0,5,0,2,36,65,0,98,16,
+-	6,0,2,36,27,0,98,16,33,32,0,2,
+-	121,83,192,8,0,0,0,0,68,0,2,36,
+-	15,0,98,16,68,0,98,40,8,0,64,20,
+-	33,32,0,2,131,0,98,40,57,0,64,16,
+-	128,0,98,40,51,0,64,16,0,0,0,0,
+-	121,83,192,8,0,0,0,0,255,255,37,50,
+-	164,90,192,12,24,0,166,39,117,83,192,8,
+-	40,0,66,174,33,32,0,2,255,255,37,50,
+-	40,0,70,38,19,90,192,12,24,0,167,39,
+-	117,83,192,8,0,0,0,0,255,255,37,50,
+-	40,0,70,38,24,91,192,12,24,0,167,39,
+-	117,83,192,8,0,0,0,0,40,0,68,38,
+-	33,40,0,0,144,71,192,12,4,0,6,36,
+-	32,0,160,167,40,0,160,175,36,0,160,175,
+-	44,0,160,167,33,32,0,2,255,255,37,50,
+-	32,0,166,39,19,90,192,12,24,0,167,39,
+-	40,0,162,143,36,0,163,143,0,0,0,0,
+-	35,16,67,0,255,255,70,48,5,0,194,44,
+-	2,0,64,20,0,0,0,0,4,0,6,36,
+-	7,0,192,16,0,0,0,0,36,0,165,143,
+-	0,0,0,0,80,68,192,12,40,0,68,38,
+-	24,92,192,12,32,0,164,39,24,0,162,143,
+-	0,0,0,0,8,0,64,16,33,16,0,0,
+-	3,131,3,60,140,17,99,36,0,0,98,140,
+-	0,0,0,0,1,0,66,36,0,0,98,172,
+-	255,255,2,36,68,0,191,143,64,0,180,143,
+-	60,0,179,143,56,0,178,143,52,0,177,143,
+-	48,0,176,143,8,0,224,3,72,0,189,39,
+-	232,255,189,39,20,0,191,175,16,0,176,175,
+-	33,128,128,0,76,0,2,142,0,0,0,0,
+-	3,0,64,16,0,0,0,0,24,92,192,12,
+-	72,0,4,38,88,0,3,150,4,0,2,36,
+-	5,0,98,20,0,0,0,0,110,86,192,12,
+-	92,0,4,38,157,83,192,8,116,0,4,38,
+-	13,84,192,12,104,0,4,38,120,0,4,38,
+-	13,84,192,12,0,0,0,0,148,0,3,146,
+-	0,0,0,0,248,83,192,12,33,32,0,2,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,33,128,128,0,5,0,0,18,
+-	0,0,0,0,136,83,192,12,0,0,0,0,
+-	61,50,192,12,33,32,0,2,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	224,255,189,39,24,0,191,175,20,0,177,175,
+-	16,0,176,175,33,136,128,0,9,50,192,12,
+-	16,0,4,36,33,128,64,0,11,0,0,18,
+-	33,32,0,2,33,40,0,0,144,71,192,12,
+-	16,0,6,36,224,83,192,12,33,32,32,2,
+-	4,0,64,16,8,0,2,174,4,0,17,174,
+-	204,83,192,8,33,16,0,2,61,50,192,12,
+-	33,32,0,2,33,16,0,0,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,9,50,192,12,152,0,4,36,
+-	33,128,64,0,4,0,0,18,33,16,0,0,
+-	248,83,192,12,33,32,0,2,33,16,0,2,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,224,255,189,39,24,0,191,175,
+-	20,0,177,175,0,17,4,0,33,16,68,0,
+-	128,136,2,0,11,0,32,18,16,0,176,175,
+-	9,50,192,12,33,32,32,2,33,128,64,0,
+-	4,0,0,18,33,32,0,2,33,40,0,0,
+-	144,71,192,12,33,48,32,2,243,83,192,8,
+-	33,16,0,2,33,16,0,0,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,33,128,128,0,33,40,0,0,
+-	144,71,192,12,152,0,6,36,255,0,2,36,
+-	88,0,2,166,120,5,2,36,58,0,2,166,
+-	72,0,0,166,80,0,0,174,76,0,0,174,
+-	84,0,0,166,148,0,0,162,149,0,0,162,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,208,255,189,39,40,0,191,175,
+-	36,0,179,175,32,0,178,175,28,0,177,175,
+-	24,0,176,175,33,128,128,0,31,0,0,18,
+-	1,0,19,36,8,0,18,142,0,0,0,0,
+-	16,0,64,18,0,0,0,0,4,0,2,142,
+-	0,0,0,0,9,0,64,24,33,136,0,0,
+-	59,84,192,12,33,32,64,2,1,0,49,38,
+-	4,0,2,142,0,0,0,0,42,16,34,2,
+-	249,255,64,20,68,0,82,38,8,0,4,142,
+-	61,50,192,12,0,0,0,0,12,0,17,142,
+-	4,0,96,18,0,0,0,0,33,152,0,0,
+-	49,84,192,8,4,0,0,174,61,50,192,12,
+-	33,32,0,2,33,128,32,2,227,255,0,22,
+-	0,0,0,0,40,0,191,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,48,0,189,39,232,255,189,39,
+-	20,0,191,175,16,0,176,175,33,128,128,0,
+-	60,0,2,142,0,0,0,0,4,0,64,16,
+-	0,0,0,0,9,248,64,0,0,0,0,0,
+-	60,0,0,174,110,86,192,12,8,0,4,38,
+-	78,84,192,12,33,32,0,2,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	232,255,189,39,16,0,191,175,16,0,131,144,
+-	6,0,2,36,18,0,98,16,7,0,98,40,
+-	5,0,64,16,4,0,2,36,6,0,98,16,
+-	0,0,0,0,103,84,192,8,0,0,0,0,
+-	68,0,2,36,11,0,98,20,0,0,0,0,
+-	44,0,130,140,0,0,0,0,7,0,64,16,
+-	0,0,0,0,24,92,192,12,40,0,132,36,
+-	103,84,192,8,0,0,0,0,110,86,192,12,
+-	40,0,132,36,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,0,0,0,0,
+-	216,255,189,39,32,0,191,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,136,192,0,56,0,179,143,0,0,0,0,
+-	20,72,192,12,33,144,224,0,33,128,64,0,
+-	11,0,0,18,33,32,32,2,33,40,64,2,
+-	80,86,192,12,8,0,6,38,255,255,3,36,
+-	5,0,67,16,2,0,2,36,16,0,2,162,
+-	40,0,19,174,133,84,192,8,33,16,0,0,
+-	255,255,2,36,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,216,255,189,39,
+-	32,0,191,175,28,0,177,175,24,0,176,175,
+-	33,128,128,0,96,0,5,174,100,0,6,174,
+-	128,0,2,142,0,0,0,0,11,0,64,16,
+-	0,0,0,0,13,84,192,12,104,0,4,38,
+-	124,0,2,142,0,0,0,0,108,0,2,174,
+-	128,0,2,142,0,0,0,0,112,0,2,174,
+-	128,0,0,174,124,0,0,174,88,0,17,150,
+-	2,0,2,36,88,0,2,166,176,80,192,12,
+-	33,32,0,2,33,56,64,0,64,0,2,142,
+-	0,0,0,0,35,0,64,20,255,255,35,50,
+-	3,0,2,36,14,0,98,16,255,255,227,48,
+-	58,0,2,150,0,0,0,0,43,16,67,0,
+-	9,0,64,16,12,0,4,38,48,0,2,142,
+-	28,0,5,38,52,0,7,142,0,0,0,0,
+-	9,248,64,0,1,0,6,36,214,84,192,8,
+-	0,0,0,0,96,0,2,142,0,0,0,0,
+-	250,255,67,36,13,0,98,44,13,0,64,16,
+-	128,16,3,0,2,131,1,60,33,8,34,0,
+-	32,154,34,140,0,0,0,0,8,0,64,0,
+-	0,0,0,0,204,84,192,8,2,0,2,36,
+-	204,84,192,8,3,0,2,36,5,0,2,36,
+-	96,0,2,174,52,0,2,142,0,0,0,0,
+-	16,0,162,175,44,0,2,142,12,0,4,38,
+-	28,0,5,38,33,48,0,2,9,248,64,0,
+-	255,255,231,48,32,0,191,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,40,0,189,39,
+-	224,255,189,39,28,0,191,175,24,0,176,175,
+-	33,128,128,0,96,0,5,142,0,0,0,0,
+-	6,0,160,16,0,0,0,0,100,0,6,142,
+-	140,84,192,12,0,0,0,0,56,85,192,8,
+-	0,0,0,0,176,80,192,12,33,32,0,2,
+-	33,56,64,0,88,0,2,150,0,0,0,0,
+-	2,0,66,44,11,0,64,16,255,255,227,48,
+-	58,0,2,150,0,0,0,0,43,16,67,0,
+-	6,0,64,16,33,32,0,2,1,0,5,36,
+-	140,84,192,12,33,48,0,0,56,85,192,8,
+-	0,0,0,0,96,0,2,142,0,0,0,0,
+-	49,0,64,20,2,0,2,36,88,0,3,150,
+-	3,0,2,36,33,0,98,16,4,0,98,40,
+-	7,0,64,16,2,0,98,40,41,0,64,16,
+-	2,0,2,36,39,0,96,4,0,0,0,0,
+-	13,85,192,8,0,0,0,0,5,0,2,36,
+-	34,0,98,20,2,0,2,36,3,131,3,60,
+-	236,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,104,0,4,38,25,0,128,16,
+-	0,0,98,172,3,131,5,60,176,17,165,36,
+-	0,0,162,140,108,0,3,142,0,0,0,0,
+-	33,16,67,0,0,0,162,172,12,0,132,140,
+-	0,0,0,0,248,255,128,20,2,0,2,36,
+-	47,85,192,8,88,0,2,166,3,131,4,60,
+-	236,17,132,36,0,0,130,140,0,0,0,0,
+-	1,0,66,36,0,0,130,172,200,255,130,140,
+-	108,0,3,142,0,0,0,0,33,16,67,0,
+-	200,255,130,172,2,0,2,36,88,0,2,166,
+-	52,0,2,142,0,0,0,0,16,0,162,175,
+-	44,0,2,142,12,0,4,38,28,0,5,38,
+-	33,48,0,2,9,248,64,0,255,255,231,48,
+-	28,0,191,143,24,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,33,128,128,0,88,0,3,150,
+-	1,0,2,36,25,0,98,16,2,0,98,40,
+-	5,0,64,16,3,0,2,36,7,0,96,16,
+-	0,0,0,0,116,85,192,8,0,0,0,0,
+-	37,0,98,16,0,0,0,0,116,85,192,8,
+-	0,0,0,0,112,0,4,142,108,0,3,142,
+-	0,0,0,0,34,0,96,16,0,0,0,0,
+-	17,0,130,144,0,0,0,0,2,0,66,48,
+-	33,0,64,16,255,255,99,36,250,255,96,20,
+-	68,0,132,36,116,85,192,8,0,0,0,0,
+-	112,0,4,142,108,0,3,142,0,0,0,0,
+-	8,0,96,16,0,0,0,0,17,0,130,144,
+-	0,0,0,0,2,0,66,48,19,0,64,16,
+-	255,255,99,36,250,255,96,20,68,0,132,36,
+-	118,93,192,12,33,32,0,2,241,255,64,28,
+-	255,255,66,40,7,0,64,16,0,0,0,0,
+-	92,85,192,8,0,0,0,0,120,94,192,12,
+-	33,32,0,2,5,0,64,20,0,0,0,0,
+-	219,84,192,12,33,32,0,2,167,83,192,12,
+-	33,32,0,2,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,232,255,189,39,
+-	20,0,191,175,16,0,176,175,33,128,128,0,
+-	88,0,3,150,1,0,2,36,17,0,98,16,
+-	2,0,98,40,5,0,64,16,3,0,2,36,
+-	9,0,96,16,0,0,0,0,156,85,192,8,
+-	0,0,0,0,13,0,98,16,5,0,2,36,
+-	7,0,98,16,0,0,0,0,156,85,192,8,
+-	0,0,0,0,60,95,192,12,33,32,0,2,
+-	154,85,192,8,0,0,0,0,0,93,192,12,
+-	33,32,0,2,154,85,192,8,0,0,0,0,
+-	252,93,192,12,33,32,0,2,5,0,64,20,
+-	0,0,0,0,60,85,192,12,33,32,0,2,
+-	162,85,192,8,0,0,0,0,167,83,192,12,
+-	33,32,0,2,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,192,255,189,39,
+-	60,0,191,175,56,0,182,175,52,0,181,175,
+-	48,0,180,175,44,0,179,175,40,0,178,175,
+-	36,0,177,175,32,0,176,175,33,64,128,0,
+-	33,136,192,0,33,152,224,0,84,0,182,143,
+-	88,0,181,143,92,0,180,143,80,0,178,151,
+-	3,131,3,60,128,17,99,36,0,0,98,140,
+-	0,0,0,0,1,0,66,36,0,0,98,172,
+-	24,0,162,39,16,0,162,175,33,32,160,0,
+-	16,81,192,12,33,40,0,1,33,128,64,0,
+-	57,0,0,18,255,255,66,50,58,0,3,150,
+-	0,0,0,0,43,16,67,0,2,0,64,16,
+-	0,0,0,0,58,0,18,166,44,0,22,174,
+-	48,0,21,174,52,0,20,174,24,0,162,143,
+-	0,0,0,0,7,0,64,16,1,0,2,36,
+-	219,84,192,12,33,32,0,2,167,83,192,12,
+-	33,32,0,2,5,86,192,8,0,0,0,0,
+-	88,0,3,150,0,0,0,0,16,0,98,16,
+-	2,0,98,40,5,0,64,16,3,0,2,36,
+-	9,0,96,16,0,0,0,0,244,85,192,8,
+-	0,0,0,0,11,0,98,16,5,0,2,36,
+-	31,0,98,16,0,0,0,0,244,85,192,8,
+-	0,0,0,0,3,131,3,60,239,85,192,8,
+-	184,17,99,36,3,131,3,60,239,85,192,8,
+-	188,17,99,36,3,131,3,60,192,17,99,36,
+-	0,0,98,140,0,0,0,0,1,0,66,36,
+-	3,86,192,8,0,0,98,172,3,131,3,60,
+-	140,17,99,36,0,0,98,140,0,0,0,0,
+-	1,0,66,36,0,0,98,172,167,83,192,12,
+-	33,32,0,2,33,32,32,2,33,40,96,2,
+-	1,0,6,36,9,248,160,2,33,56,128,2,
+-	5,86,192,8,0,0,0,0,124,85,192,12,
+-	33,32,0,2,60,0,191,143,56,0,182,143,
+-	52,0,181,143,48,0,180,143,44,0,179,143,
+-	40,0,178,143,36,0,177,143,32,0,176,143,
+-	8,0,224,3,64,0,189,39,232,255,189,39,
+-	20,0,191,175,16,0,176,175,33,128,128,0,
+-	213,80,192,12,255,255,198,48,53,0,64,20,
+-	255,255,2,36,3,131,3,60,144,17,99,36,
+-	0,0,98,140,0,0,0,0,1,0,66,36,
+-	0,0,98,172,96,0,2,142,0,0,0,0,
+-	32,0,64,16,4,0,2,36,92,0,98,140,
+-	0,0,0,0,1,0,66,36,92,0,98,172,
+-	96,0,2,142,0,0,0,0,255,255,67,36,
+-	5,0,98,44,32,0,64,16,128,16,3,0,
+-	2,131,1,60,33,8,34,0,88,154,34,140,
+-	0,0,0,0,8,0,64,0,0,0,0,0,
+-	3,131,3,60,70,86,192,8,204,17,99,36,
+-	3,131,3,60,70,86,192,8,212,17,99,36,
+-	3,131,3,60,70,86,192,8,216,17,99,36,
+-	3,131,3,60,70,86,192,8,208,17,99,36,
+-	3,131,3,60,70,86,192,8,220,17,99,36,
+-	88,0,3,150,0,0,0,0,8,0,98,20,
+-	33,16,0,0,3,131,3,60,240,17,99,36,
+-	0,0,98,140,0,0,0,0,1,0,66,36,
+-	0,0,98,172,33,16,0,0,20,0,191,143,
+-	16,0,176,143,8,0,224,3,24,0,189,39,
+-	0,0,0,0,224,255,189,39,28,0,191,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,144,160,0,33,128,192,0,4,0,0,174,
+-	14,0,128,16,0,0,4,174,128,136,4,0,
+-	9,50,192,12,33,32,32,2,3,0,64,20,
+-	4,0,2,174,104,86,192,8,255,255,2,36,
+-	5,0,32,18,33,40,64,2,4,0,4,142,
+-	0,0,0,0,80,68,192,12,33,48,32,2,
+-	33,16,0,0,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,20,0,191,175,
+-	16,0,176,175,33,128,128,0,4,0,4,142,
+-	0,0,0,0,4,0,128,16,0,0,0,0,
+-	61,50,192,12,0,0,0,0,4,0,0,174,
+-	0,0,0,174,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,0,0,0,0,
+-	0,0,0,0,11,0,128,4,128,0,130,40,
+-	20,0,64,20,1,0,3,36,255,127,2,36,
+-	42,16,68,0,16,0,64,16,2,0,3,36,
+-	127,0,2,60,255,255,66,52,148,86,192,8,
+-	42,16,68,0,128,255,130,40,9,0,64,16,
+-	1,0,3,36,0,128,130,40,6,0,64,16,
+-	2,0,3,36,128,255,2,60,42,16,130,0,
+-	2,0,64,20,4,0,3,36,3,0,3,36,
+-	8,0,224,3,33,16,96,0,128,0,130,44,
+-	14,0,64,20,1,0,2,36,255,127,2,36,
+-	43,16,68,0,9,0,64,16,127,0,2,60,
+-	255,255,66,52,43,16,68,0,6,0,64,16,
+-	3,0,2,36,4,0,128,4,5,0,2,36,
+-	169,86,192,8,4,0,2,36,2,0,2,36,
+-	8,0,224,3,0,0,0,0,4,0,135,140,
+-	0,0,130,140,0,0,0,0,65,0,64,16,
+-	33,16,0,0,0,0,227,140,4,0,231,36,
+-	128,16,3,0,33,16,67,0,192,16,2,0,
+-	0,0,227,140,0,0,0,0,33,24,67,0,
+-	128,0,98,44,17,0,64,20,4,0,231,36,
+-	0,64,98,44,15,0,64,20,2,0,5,36,
+-	31,0,2,60,255,255,66,52,43,16,67,0,
+-	7,0,64,16,255,15,2,60,255,255,66,52,
+-	43,16,67,0,6,0,64,20,5,0,5,36,
+-	204,86,192,8,4,0,5,36,204,86,192,8,
+-	3,0,5,36,1,0,5,36,2,0,6,36,
+-	0,0,130,140,0,0,0,0,42,16,194,0,
+-	31,0,64,16,255,255,162,48,31,0,9,60,
+-	255,255,41,53,255,15,8,60,255,255,8,53,
+-	0,0,132,140,0,0,227,140,4,0,231,36,
+-	128,0,98,44,16,0,64,20,255,255,165,48,
+-	0,64,98,44,11,0,64,20,43,16,35,1,
+-	7,0,64,16,43,16,3,1,3,0,64,20,
+-	0,0,0,0,236,86,192,8,4,0,165,36,
+-	236,86,192,8,5,0,165,36,236,86,192,8,
+-	3,0,165,36,236,86,192,8,2,0,165,36,
+-	1,0,165,36,1,0,198,36,42,16,196,0,
+-	232,255,64,20,255,255,162,48,8,0,224,3,
+-	0,0,0,0,208,255,189,39,40,0,191,175,
+-	33,72,192,0,224,0,165,48,255,255,130,48,
+-	31,0,66,44,7,0,64,16,33,48,160,0,
+-	37,16,133,0,16,0,162,163,33,32,224,0,
+-	16,0,165,39,38,87,192,8,1,0,6,36,
+-	32,0,163,39,33,40,0,0,31,0,194,52,
+-	24,0,162,163,255,255,130,48,8,0,64,16,
+-	25,0,168,39,127,0,130,48,0,0,98,160,
+-	1,0,99,36,255,255,130,48,194,33,2,0,
+-	250,255,128,20,1,0,165,36,1,0,166,36,
+-	33,16,160,0,255,255,66,48,2,0,66,44,
+-	13,0,64,20,255,255,165,36,255,255,4,52,
+-	255,255,99,36,0,0,98,144,0,0,0,0,
+-	128,0,66,52,0,0,2,161,1,0,8,37,
+-	33,16,160,0,255,255,66,48,2,0,66,44,
+-	246,255,64,16,33,40,164,0,255,255,98,144,
+-	0,0,0,0,0,0,2,161,33,32,224,0,
+-	24,0,165,39,255,255,198,48,9,248,32,1,
+-	0,0,0,0,40,0,191,143,48,0,189,39,
+-	8,0,224,3,0,0,0,0,208,255,189,39,
+-	40,0,191,175,33,72,160,0,255,255,130,48,
+-	128,0,66,44,6,0,64,16,33,64,192,0,
+-	16,0,164,163,33,32,0,1,16,0,165,39,
+-	88,87,192,8,1,0,6,36,24,0,167,39,
+-	32,0,165,39,255,255,130,48,7,0,64,16,
+-	33,24,0,0,0,0,164,160,1,0,165,36,
+-	255,255,130,48,2,34,2,0,251,255,128,20,
+-	1,0,99,36,128,0,98,52,0,0,226,160,
+-	1,0,231,36,1,0,102,36,33,16,96,0,
+-	255,255,66,48,11,0,64,16,255,255,99,36,
+-	255,255,4,52,255,255,165,36,0,0,162,144,
+-	0,0,0,0,0,0,226,160,1,0,231,36,
+-	33,16,96,0,255,255,66,48,248,255,64,20,
+-	33,24,100,0,33,32,0,1,24,0,165,39,
+-	255,255,198,48,9,248,32,1,0,0,0,0,
+-	40,0,191,143,48,0,189,39,8,0,224,3,
+-	0,0,0,0,200,255,189,39,48,0,191,175,
+-	44,0,181,175,40,0,180,175,36,0,179,175,
+-	32,0,178,175,28,0,177,175,24,0,176,175,
+-	33,136,160,0,33,144,192,0,33,152,224,0,
+-	72,0,180,143,33,128,128,0,128,86,192,12,
+-	33,32,64,2,33,168,64,0,255,255,4,50,
+-	192,0,37,50,33,48,96,2,242,86,192,12,
+-	33,56,128,2,255,255,176,50,33,32,0,2,
+-	33,40,96,2,44,87,192,12,33,48,128,2,
+-	16,0,162,39,33,24,80,0,255,255,99,36,
+-	6,0,98,16,0,0,114,160,16,0,162,39,
+-	3,146,18,0,255,255,99,36,253,255,98,20,
+-	0,0,114,160,33,32,128,2,16,0,165,39,
+-	9,248,96,2,255,255,166,50,48,0,191,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,56,0,189,39,200,255,189,39,
+-	48,0,191,175,44,0,181,175,40,0,180,175,
+-	36,0,179,175,32,0,178,175,28,0,177,175,
+-	24,0,176,175,33,136,160,0,33,144,192,0,
+-	33,160,224,0,72,0,181,143,33,128,128,0,
+-	153,86,192,12,33,32,64,2,33,152,64,0,
+-	255,255,4,50,192,0,37,50,33,48,128,2,
+-	242,86,192,12,33,56,160,2,255,255,112,50,
+-	33,32,0,2,33,40,128,2,44,87,192,12,
+-	33,48,160,2,16,0,162,39,33,32,80,0,
+-	9,0,0,18,255,255,99,38,255,255,5,52,
+-	255,255,132,36,0,0,146,160,2,146,18,0,
+-	33,16,96,0,255,255,66,48,250,255,64,20,
+-	33,24,101,0,33,32,160,2,16,0,165,39,
+-	9,248,128,2,255,255,102,50,48,0,191,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,56,0,189,39,216,255,189,39,
+-	32,0,191,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,152,192,0,
+-	56,0,178,143,60,0,177,143,33,128,224,0,
+-	255,255,132,48,192,0,165,48,33,48,64,2,
+-	242,86,192,12,33,56,32,2,255,255,16,50,
+-	33,32,0,2,33,40,64,2,44,87,192,12,
+-	33,48,32,2,4,0,0,18,33,32,32,2,
+-	33,40,96,2,9,248,64,2,33,48,0,2,
+-	32,0,191,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,224,255,189,39,24,0,191,175,
+-	33,72,160,0,128,0,130,44,18,0,64,20,
+-	33,64,192,0,0,64,130,44,13,0,64,20,
+-	31,0,2,60,255,255,66,52,43,16,68,0,
+-	7,0,64,16,255,15,2,60,255,255,66,52,
+-	43,16,68,0,8,0,64,20,5,0,6,36,
+-	250,87,192,8,4,0,6,36,250,87,192,8,
+-	3,0,6,36,250,87,192,8,2,0,6,36,
+-	1,0,6,36,255,255,194,48,16,0,163,39,
+-	33,40,98,0,9,0,163,16,33,56,0,0,
+-	16,0,163,39,255,255,165,36,127,0,130,48,
+-	37,16,226,0,0,0,162,160,194,33,4,0,
+-	250,255,163,20,128,0,7,36,33,32,0,1,
+-	16,0,165,39,9,248,32,1,255,255,198,48,
+-	24,0,191,143,32,0,189,39,8,0,224,3,
+-	0,0,0,0,208,255,189,39,44,0,191,175,
+-	40,0,182,175,36,0,181,175,32,0,180,175,
+-	28,0,179,175,24,0,178,175,20,0,177,175,
+-	16,0,176,175,33,144,160,0,33,168,192,0,
+-	33,160,224,0,64,0,182,143,33,136,128,0,
+-	4,0,179,142,0,0,0,0,171,86,192,12,
+-	33,32,160,2,33,128,64,0,255,255,36,50,
+-	192,0,69,50,33,48,128,2,242,86,192,12,
+-	33,56,192,2,255,255,16,50,33,32,0,2,
+-	33,40,128,2,44,87,192,12,33,48,192,2,
+-	23,0,0,18,33,40,128,2,0,0,98,142,
+-	4,0,115,38,128,32,2,0,33,32,130,0,
+-	192,32,4,0,0,0,98,142,4,0,115,38,
+-	33,32,130,0,226,87,192,12,33,48,192,2,
+-	63,88,192,8,2,0,16,36,0,0,100,142,
+-	4,0,115,38,226,87,192,12,33,48,192,2,
+-	1,0,16,38,0,0,162,142,0,0,0,0,
+-	42,16,2,2,247,255,64,20,33,40,128,2,
+-	44,0,191,143,40,0,182,143,36,0,181,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	48,0,189,39,224,255,189,39,28,0,191,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,136,128,0,33,144,192,0,255,255,67,50,
+-	12,0,34,150,0,0,0,0,43,16,67,0,
+-	4,0,64,16,1,0,2,36,12,0,50,150,
+-	0,0,0,0,255,255,67,50,11,0,98,16,
+-	2,0,98,40,5,0,64,16,2,0,2,36,
+-	50,0,96,16,255,255,80,50,137,88,192,8,
+-	0,0,0,0,15,0,98,16,255,255,80,50,
+-	137,88,192,8,0,0,0,0,8,0,35,142,
+-	0,0,0,0,1,0,98,36,8,0,34,174,
+-	0,0,162,144,0,0,0,0,0,0,98,160,
+-	12,0,34,150,0,0,0,0,255,255,66,36,
+-	149,88,192,8,12,0,34,166,8,0,35,142,
+-	0,0,0,0,1,0,98,36,8,0,34,174,
+-	0,0,162,144,0,0,0,0,0,0,98,160,
+-	8,0,35,142,0,0,0,0,1,0,98,36,
+-	8,0,34,174,1,0,162,144,0,0,0,0,
+-	0,0,98,160,12,0,34,150,0,0,0,0,
+-	254,255,66,36,149,88,192,8,12,0,34,166,
+-	8,0,36,142,0,0,0,0,80,68,192,12,
+-	33,48,0,2,12,0,34,150,0,0,0,0,
+-	35,16,82,0,12,0,34,166,8,0,34,142,
+-	0,0,0,0,33,128,2,2,8,0,48,174,
+-	255,255,66,50,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,224,255,189,39,24,0,191,175,
+-	20,0,177,175,16,0,176,175,33,128,160,0,
+-	10,0,128,20,33,136,192,0,9,50,192,12,
+-	16,0,4,36,33,32,64,0,3,0,128,20,
+-	1,0,2,36,178,88,192,8,33,16,0,0,
+-	173,88,192,8,0,0,130,160,0,0,128,160,
+-	4,0,144,172,8,0,144,172,33,16,17,2,
+-	12,0,130,172,33,16,128,0,24,0,191,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,232,255,189,39,16,0,191,175,
+-	0,0,130,144,0,0,0,0,1,0,66,48,
+-	3,0,64,16,0,0,0,0,61,50,192,12,
+-	0,0,0,0,16,0,191,143,24,0,189,39,
+-	8,0,224,3,0,0,0,0,0,0,130,144,
+-	0,0,0,0,128,0,66,48,16,0,64,20,
+-	255,255,2,36,8,0,130,140,12,0,131,140,
+-	0,0,0,0,43,16,67,0,7,0,64,20,
+-	0,0,0,0,0,0,130,144,0,0,0,0,
+-	128,0,66,52,0,0,130,160,216,88,192,8,
+-	255,255,2,36,8,0,130,140,0,0,0,0,
+-	0,0,66,144,8,0,224,3,0,0,0,0,
+-	30,0,192,24,33,56,192,0,0,0,130,144,
+-	0,0,0,0,128,0,66,48,16,0,64,20,
+-	255,0,3,36,8,0,131,140,12,0,130,140,
+-	0,0,0,0,43,16,98,0,5,0,64,16,
+-	1,0,98,36,8,0,130,172,0,0,99,144,
+-	240,88,192,8,0,0,0,0,0,0,130,144,
+-	0,0,0,0,128,0,66,52,0,0,130,160,
+-	255,0,3,36,0,0,130,144,0,0,0,0,
+-	128,0,66,48,5,0,64,20,0,0,0,0,
+-	0,0,163,160,255,255,198,36,228,255,192,28,
+-	1,0,165,36,8,0,224,3,35,16,230,0,
+-	1,0,2,36,15,0,194,16,2,0,194,40,
+-	5,0,64,16,2,0,2,36,7,0,192,16,
+-	255,255,2,36,40,89,192,8,0,0,0,0,
+-	11,0,194,16,255,255,2,36,40,89,192,8,
+-	0,0,0,0,4,0,130,140,0,0,0,0,
+-	21,89,192,8,33,40,162,0,8,0,130,140,
+-	0,0,0,0,19,89,192,8,33,40,162,0,
+-	12,0,130,140,0,0,0,0,35,40,69,0,
+-	4,0,130,140,0,0,0,0,43,16,162,0,
+-	17,0,64,20,255,255,2,36,12,0,130,140,
+-	0,0,0,0,43,16,69,0,12,0,64,20,
+-	255,255,2,36,12,0,130,140,0,0,0,0,
+-	43,16,162,0,5,0,64,16,0,0,0,0,
+-	0,0,130,144,0,0,0,0,127,0,66,48,
+-	0,0,130,160,8,0,133,172,33,16,0,0,
+-	8,0,224,3,0,0,0,0,12,0,130,140,
+-	4,0,131,140,0,0,0,0,35,56,67,0,
+-	1,0,2,36,15,0,194,16,2,0,194,40,
+-	5,0,64,16,2,0,2,36,7,0,192,16,
+-	255,255,2,36,87,89,192,8,0,0,0,0,
+-	12,0,194,16,255,255,2,36,87,89,192,8,
+-	0,0,0,0,4,0,130,140,0,0,0,0,
+-	66,89,192,8,33,16,162,0,8,0,130,140,
+-	0,0,0,0,33,16,162,0,72,89,192,8,
+-	12,0,130,172,12,0,130,140,0,0,0,0,
+-	35,16,69,0,12,0,130,172,8,0,130,140,
+-	12,0,131,140,0,0,0,0,43,16,67,0,
+-	5,0,64,16,0,0,0,0,0,0,130,144,
+-	0,0,0,0,85,89,192,8,127,0,66,48,
+-	0,0,130,144,0,0,0,0,128,0,66,52,
+-	0,0,130,160,33,16,224,0,8,0,224,3,
+-	0,0,0,0,232,255,189,39,20,0,191,175,
+-	16,0,176,175,12,0,128,20,33,128,160,0,
+-	9,50,192,12,16,0,4,36,33,32,64,0,
+-	3,0,128,20,0,0,0,0,119,89,192,8,
+-	33,16,0,0,0,0,2,146,0,0,0,0,
+-	108,89,192,8,1,0,66,52,0,0,2,146,
+-	0,0,0,0,254,0,66,48,0,0,130,160,
+-	4,0,2,142,0,0,0,0,4,0,130,172,
+-	8,0,2,142,0,0,0,0,8,0,130,172,
+-	12,0,2,142,0,0,0,0,12,0,130,172,
+-	33,16,128,0,20,0,191,143,16,0,176,143,
+-	8,0,224,3,24,0,189,39,0,0,0,0,
+-	0,0,130,144,0,0,0,0,128,0,66,48,
+-	17,0,64,20,31,0,3,36,8,0,131,140,
+-	12,0,130,140,0,0,0,0,43,16,98,0,
+-	6,0,64,16,1,0,98,36,8,0,130,172,
+-	0,0,98,144,0,0,0,0,145,89,192,8,
+-	31,0,67,48,0,0,130,144,0,0,0,0,
+-	128,0,66,52,0,0,130,160,31,0,3,36,
+-	0,0,130,144,0,0,0,0,128,0,66,48,
+-	4,0,64,16,1,0,2,36,0,0,162,172,
+-	196,89,192,8,33,16,0,0,255,0,99,48,
+-	31,0,2,36,6,0,98,16,33,16,96,0,
+-	196,89,192,8,0,0,0,0,1,0,2,36,
+-	195,89,192,8,0,0,162,172,33,48,0,0,
+-	0,0,130,144,0,0,0,0,128,0,66,48,
+-	16,0,64,20,255,0,3,36,8,0,131,140,
+-	12,0,130,140,0,0,0,0,43,16,98,0,
+-	5,0,64,16,1,0,98,36,8,0,130,172,
+-	0,0,99,144,183,89,192,8,0,0,0,0,
+-	0,0,130,144,0,0,0,0,128,0,66,52,
+-	0,0,130,160,255,0,3,36,0,0,130,144,
+-	0,0,0,0,128,0,66,48,228,255,64,20,
+-	128,0,98,48,4,0,64,16,127,0,98,48,
+-	37,16,194,0,163,89,192,8,192,49,2,0,
+-	255,0,98,48,37,48,70,0,255,255,194,48,
+-	8,0,224,3,0,0,0,0,0,0,130,144,
+-	0,0,0,0,128,0,66,48,16,0,64,20,
+-	255,0,6,36,8,0,131,140,12,0,130,140,
+-	0,0,0,0,43,16,98,0,5,0,64,16,
+-	1,0,98,36,8,0,130,172,0,0,102,144,
+-	218,89,192,8,0,0,0,0,0,0,130,144,
+-	0,0,0,0,128,0,66,52,0,0,130,160,
+-	255,0,6,36,0,0,130,144,0,0,0,0,
+-	128,0,66,48,13,0,64,20,1,0,2,36,
+-	255,0,195,48,128,0,2,36,4,0,98,20,
+-	2,0,2,36,0,0,162,172,17,90,192,8,
+-	255,255,2,52,128,0,194,48,6,0,64,20,
+-	33,24,0,0,17,90,192,8,255,0,194,48,
+-	0,0,162,172,17,90,192,8,33,16,0,0,
+-	127,0,194,48,32,0,64,16,255,255,71,36,
+-	0,26,3,0,0,0,130,144,0,0,0,0,
+-	128,0,66,48,16,0,64,20,255,255,102,48,
+-	8,0,131,140,12,0,130,140,0,0,0,0,
+-	43,16,98,0,6,0,64,16,1,0,98,36,
+-	8,0,130,172,0,0,98,144,0,0,0,0,
+-	7,90,192,8,37,24,194,0,0,0,130,144,
+-	0,0,0,0,128,0,66,52,0,0,130,160,
+-	255,0,195,52,0,0,130,144,0,0,0,0,
+-	128,0,66,48,224,255,64,20,1,0,2,36,
+-	33,16,224,0,255,0,66,48,226,255,64,20,
+-	255,255,231,36,255,255,98,48,8,0,224,3,
+-	0,0,0,0,216,255,189,39,36,0,191,175,
+-	32,0,180,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,152,128,0,
+-	33,128,192,0,33,144,160,0,255,255,81,50,
+-	33,0,32,18,33,160,224,0,255,255,2,52,
+-	30,0,34,18,0,0,0,0,9,50,192,12,
+-	33,32,32,2,33,24,64,0,29,0,96,16,
+-	1,0,2,36,0,0,2,166,4,0,3,174,
+-	8,0,3,174,12,0,18,166,33,32,96,2,
+-	8,0,5,142,0,0,0,0,218,88,192,12,
+-	33,48,32,2,33,24,64,0,255,255,100,48,
+-	10,0,145,20,1,0,2,36,12,0,2,150,
+-	0,0,0,0,35,16,67,0,12,0,2,166,
+-	8,0,2,142,0,0,0,0,33,16,130,0,
+-	68,90,192,8,8,0,2,174,68,90,192,8,
+-	0,0,130,174,0,0,0,166,4,0,0,174,
+-	8,0,0,174,12,0,0,166,36,0,191,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,224,255,189,39,28,0,191,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,144,128,0,33,136,160,0,33,128,192,0,
+-	124,89,192,12,33,40,0,2,33,32,64,2,
+-	198,89,192,12,33,40,0,2,33,40,64,0,
+-	0,0,2,142,0,0,0,0,7,0,64,20,
+-	33,32,64,2,255,255,165,48,33,48,32,2,
+-	19,90,192,12,33,56,0,2,104,90,192,8,
+-	0,0,0,0,0,0,32,166,4,0,32,174,
+-	8,0,32,174,12,0,32,166,28,0,191,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,216,255,189,39,
+-	36,0,191,175,32,0,180,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,152,128,0,33,136,160,0,33,144,192,0,
+-	56,0,176,147,0,0,0,0,196,88,192,12,
+-	33,160,224,0,224,0,66,48,7,0,80,20,
+-	33,32,96,2,124,89,192,12,33,40,64,2,
+-	255,255,66,48,255,255,131,50,7,0,67,16,
+-	33,32,96,2,0,0,66,142,0,0,0,0,
+-	16,0,64,20,4,0,2,36,152,90,192,8,
+-	0,0,66,174,198,89,192,12,33,40,64,2,
+-	33,40,64,0,0,0,66,142,0,0,0,0,
+-	7,0,64,20,33,32,96,2,255,255,165,48,
+-	33,48,32,2,19,90,192,12,33,56,64,2,
+-	156,90,192,8,0,0,0,0,0,0,32,166,
+-	4,0,32,174,8,0,32,174,12,0,32,166,
+-	36,0,191,143,32,0,180,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,33,56,0,0,
+-	255,255,168,36,255,255,165,48,50,0,160,16,
+-	1,0,9,36,1,0,12,36,4,0,10,36,
+-	3,0,11,36,255,255,5,52,0,0,130,144,
+-	0,0,0,0,128,0,66,48,16,0,64,20,
+-	255,0,3,36,8,0,131,140,12,0,130,140,
+-	0,0,0,0,43,16,98,0,5,0,64,16,
+-	1,0,98,36,8,0,130,172,0,0,99,144,
+-	193,90,192,8,0,0,0,0,0,0,130,144,
+-	0,0,0,0,128,0,66,52,0,0,130,160,
+-	255,0,3,36,0,0,130,144,0,0,0,0,
+-	128,0,66,48,3,0,64,16,0,0,0,0,
+-	218,90,192,8,0,0,204,172,11,0,32,17,
+-	255,255,2,49,5,0,74,20,33,72,0,0,
+-	3,0,96,16,0,0,0,0,218,90,192,8,
+-	0,0,203,172,128,0,98,48,3,0,64,16,
+-	0,18,7,0,255,255,7,36,0,18,7,0,
+-	37,56,67,0,33,16,0,1,255,255,66,48,
+-	212,255,64,20,33,64,5,1,8,0,224,3,
+-	33,16,224,0,224,255,189,39,24,0,191,175,
+-	20,0,177,175,16,0,176,175,33,128,128,0,
+-	124,89,192,12,33,136,160,0,33,32,0,2,
+-	198,89,192,12,33,40,32,2,33,32,0,2,
+-	255,255,69,48,164,90,192,12,33,48,32,2,
+-	24,0,191,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,32,0,189,39,216,255,189,39,
+-	32,0,191,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,144,128,0,
+-	33,136,160,0,33,152,192,0,196,88,192,12,
+-	33,128,224,0,224,0,66,48,255,0,16,50,
+-	7,0,80,20,33,32,64,2,124,89,192,12,
+-	33,40,32,2,255,255,66,48,255,255,99,50,
+-	8,0,67,16,33,32,64,2,0,0,34,142,
+-	0,0,0,0,2,0,64,20,4,0,2,36,
+-	0,0,34,174,17,91,192,8,33,16,0,0,
+-	198,89,192,12,33,40,32,2,33,32,64,2,
+-	255,255,69,48,164,90,192,12,33,48,32,2,
+-	32,0,191,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,208,255,189,39,44,0,191,175,
+-	40,0,180,175,36,0,179,175,32,0,178,175,
+-	28,0,177,175,24,0,176,175,33,128,128,0,
+-	33,152,192,0,33,160,224,0,0,0,96,174,
+-	4,0,96,174,8,0,3,142,4,0,2,142,
+-	0,0,0,0,35,24,98,0,255,255,165,48,
+-	35,0,160,24,33,144,0,0,1,0,6,36,
+-	0,0,2,146,0,0,0,0,128,0,66,48,
+-	16,0,64,20,255,0,4,36,8,0,4,142,
+-	12,0,2,142,0,0,0,0,43,16,130,0,
+-	5,0,64,16,1,0,130,36,8,0,2,174,
+-	0,0,132,144,64,91,192,8,0,0,0,0,
+-	0,0,2,146,0,0,0,0,128,0,66,52,
+-	0,0,2,162,255,0,4,36,0,0,2,146,
+-	0,0,0,0,128,0,66,48,3,0,64,16,
+-	128,0,130,48,150,91,192,8,0,0,134,174,
+-	2,0,64,20,0,0,0,0,1,0,82,38,
+-	255,255,165,36,224,255,160,28,0,0,0,0,
+-	33,32,0,2,33,40,96,0,251,88,192,12,
+-	33,48,0,0,68,0,64,18,1,0,81,38,
+-	9,50,192,12,128,32,17,0,33,40,64,0,
+-	63,0,160,16,0,0,0,0,0,0,113,174,
+-	4,0,101,174,59,0,64,26,33,56,0,0,
+-	1,0,8,36,33,48,0,0,0,0,2,146,
+-	0,0,0,0,128,0,66,48,16,0,64,20,
+-	255,0,4,36,8,0,3,142,12,0,2,142,
+-	0,0,0,0,43,16,98,0,5,0,64,16,
+-	1,0,98,36,8,0,2,174,0,0,100,144,
+-	114,91,192,8,0,0,0,0,0,0,2,146,
+-	0,0,0,0,128,0,66,52,0,0,2,162,
+-	255,0,4,36,0,0,2,146,0,0,0,0,
+-	128,0,66,48,3,0,64,16,192,49,6,0,
+-	150,91,192,8,0,0,136,174,127,0,130,48,
+-	37,48,194,0,128,0,130,48,225,255,64,20,
+-	0,0,0,0,18,0,224,20,40,0,194,44,
+-	4,0,64,16,80,0,194,44,0,0,160,172,
+-	145,91,192,8,4,0,165,36,5,0,64,16,
+-	216,255,194,36,0,0,168,172,4,0,165,36,
+-	146,91,192,8,0,0,162,172,2,0,2,36,
+-	0,0,162,172,4,0,165,36,176,255,194,36,
+-	146,91,192,8,0,0,162,172,0,0,166,172,
+-	1,0,231,36,42,16,242,0,200,255,64,20,
+-	4,0,165,36,44,0,191,143,40,0,180,143,
+-	36,0,179,143,32,0,178,143,28,0,177,143,
+-	24,0,176,143,8,0,224,3,48,0,189,39,
+-	224,255,189,39,28,0,191,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,136,128,0,
+-	33,144,160,0,33,128,192,0,124,89,192,12,
+-	33,40,0,2,33,32,32,2,198,89,192,12,
+-	33,40,0,2,33,40,64,0,0,0,2,142,
+-	0,0,0,0,5,0,64,20,33,32,32,2,
+-	255,255,165,48,33,48,64,2,24,91,192,12,
+-	33,56,0,2,28,0,191,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	32,0,189,39,216,255,189,39,36,0,191,175,
+-	32,0,180,175,28,0,179,175,24,0,178,175,
+-	20,0,177,175,16,0,176,175,33,144,128,0,
+-	33,160,160,0,33,136,192,0,56,0,176,147,
+-	0,0,0,0,196,88,192,12,33,152,224,0,
+-	224,0,66,48,7,0,80,20,33,32,64,2,
+-	124,89,192,12,33,40,32,2,255,255,66,48,
+-	255,255,99,50,7,0,67,16,33,32,64,2,
+-	0,0,34,142,0,0,0,0,14,0,64,20,
+-	4,0,2,36,226,91,192,8,0,0,34,174,
+-	198,89,192,12,33,40,32,2,33,40,64,0,
+-	0,0,34,142,0,0,0,0,5,0,64,20,
+-	33,32,64,2,255,255,165,48,33,48,128,2,
+-	24,91,192,12,33,56,32,2,36,0,191,143,
+-	32,0,180,143,28,0,179,143,24,0,178,143,
+-	20,0,177,143,16,0,176,143,8,0,224,3,
+-	40,0,189,39,0,0,0,0,0,0,0,0,
+-	216,255,189,39,32,0,191,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,152,128,0,8,0,99,142,4,0,98,142,
+-	0,0,0,0,35,128,98,0,255,255,4,50,
+-	19,0,128,16,33,136,160,0,9,50,192,12,
+-	0,0,0,0,33,144,64,0,3,0,64,22,
+-	255,255,16,50,17,92,192,8,255,255,2,36,
+-	33,32,64,2,4,0,101,142,0,0,0,0,
+-	80,68,192,12,33,48,0,2,1,0,2,36,
+-	0,0,34,166,4,0,50,174,33,128,80,2,
+-	15,92,192,8,8,0,48,174,0,0,32,166,
+-	4,0,32,174,8,0,32,174,12,0,32,166,
+-	33,16,0,0,32,0,191,143,28,0,179,143,
+-	24,0,178,143,20,0,177,143,16,0,176,143,
+-	8,0,224,3,40,0,189,39,232,255,189,39,
+-	20,0,191,175,16,0,176,175,33,128,128,0,
+-	0,0,2,150,0,0,0,0,1,0,66,48,
+-	7,0,64,16,0,0,0,0,4,0,4,142,
+-	0,0,0,0,3,0,128,16,0,0,0,0,
+-	61,50,192,12,0,0,0,0,0,0,0,166,
+-	8,0,0,174,4,0,0,174,12,0,0,166,
+-	20,0,191,143,16,0,176,143,8,0,224,3,
+-	24,0,189,39,224,255,189,39,24,0,191,175,
+-	20,0,177,175,16,0,176,175,33,128,128,0,
+-	8,0,163,140,4,0,162,140,0,0,0,0,
+-	35,136,98,0,255,255,35,50,12,0,2,150,
+-	0,0,0,0,43,16,67,0,4,0,64,16,
+-	255,255,38,50,12,0,17,150,0,0,0,0,
+-	255,255,38,50,6,0,192,16,255,255,34,50,
+-	8,0,4,142,4,0,165,140,80,68,192,12,
+-	0,0,0,0,255,255,34,50,8,0,3,142,
+-	0,0,0,0,33,16,67,0,8,0,2,174,
+-	12,0,2,150,0,0,0,0,35,16,81,0,
+-	12,0,2,166,24,0,191,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,32,0,189,39,
+-	1,0,2,36,23,0,194,16,2,0,194,40,
+-	5,0,64,16,2,0,2,36,7,0,192,16,
+-	255,255,2,36,132,92,192,8,0,0,0,0,
+-	23,0,194,16,255,255,2,36,132,92,192,8,
+-	0,0,0,0,255,255,162,48,4,0,131,140,
+-	0,0,0,0,33,48,67,0,8,0,130,140,
+-	0,0,0,0,35,16,67,0,12,0,131,148,
+-	0,0,0,0,33,16,67,0,124,92,192,8,
+-	35,40,69,0,255,255,162,48,8,0,131,140,
+-	0,0,0,0,33,48,67,0,12,0,130,148,
+-	0,0,0,0,124,92,192,8,35,40,69,0,
+-	12,0,130,148,8,0,131,140,0,0,0,0,
+-	33,48,67,0,255,255,162,48,35,48,194,0,
+-	4,0,130,140,0,0,0,0,43,16,194,0,
+-	4,0,64,20,255,255,2,36,8,0,134,172,
+-	12,0,133,164,33,16,0,0,8,0,224,3,
+-	0,0,0,0,216,255,189,39,32,0,191,175,
+-	28,0,179,175,24,0,178,175,20,0,177,175,
+-	16,0,176,175,33,128,128,0,33,152,160,0,
+-	8,0,3,142,4,0,2,142,0,0,0,0,
+-	35,144,98,0,255,255,66,50,12,0,3,150,
+-	0,0,0,0,33,16,67,0,255,255,99,50,
+-	42,16,67,0,35,0,64,16,1,0,2,36,
+-	0,0,3,150,0,0,0,0,32,0,98,20,
+-	255,255,2,36,9,50,192,12,255,255,100,50,
+-	33,136,64,0,3,0,32,22,255,255,70,50,
+-	189,92,192,8,255,255,2,36,5,0,192,16,
+-	0,0,0,0,4,0,5,142,0,0,0,0,
+-	80,68,192,12,33,32,32,2,0,0,2,150,
+-	0,0,0,0,1,0,66,48,7,0,64,16,
+-	0,0,0,0,4,0,4,142,0,0,0,0,
+-	3,0,128,16,0,0,0,0,61,50,192,12,
+-	0,0,0,0,4,0,17,174,255,255,66,50,
+-	33,16,34,2,8,0,2,174,35,16,114,2,
+-	12,0,2,166,33,16,0,0,32,0,191,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,40,0,189,39,
+-	216,255,189,39,32,0,191,175,28,0,179,175,
+-	24,0,178,175,20,0,177,175,16,0,176,175,
+-	33,128,128,0,33,136,192,0,255,255,36,50,
+-	35,0,128,16,33,152,160,0,8,0,2,142,
+-	4,0,3,142,0,0,0,0,35,16,67,0,
+-	255,255,66,48,12,0,3,150,0,0,0,0,
+-	33,16,67,0,42,16,68,0,20,0,64,16,
+-	0,0,0,0,9,50,192,12,0,0,0,0,
+-	33,144,64,0,24,0,64,18,255,255,2,36,
+-	0,0,2,150,0,0,0,0,1,0,66,48,
+-	8,0,64,16,1,0,2,36,4,0,4,142,
+-	0,0,0,0,4,0,128,16,0,0,0,0,
+-	61,50,192,12,0,0,0,0,1,0,2,36,
+-	0,0,2,166,4,0,18,174,4,0,4,142,
+-	33,40,96,2,80,68,192,12,255,255,38,50,
+-	33,32,0,2,255,255,37,50,85,92,192,12,
+-	33,48,0,0,33,16,0,0,32,0,191,143,
+-	28,0,179,143,24,0,178,143,20,0,177,143,
+-	16,0,176,143,8,0,224,3,40,0,189,39,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	184,255,189,39,64,0,191,175,60,0,183,175,
+-	56,0,182,175,52,0,181,175,48,0,180,175,
+-	44,0,179,175,40,0,178,175,36,0,177,175,
+-	32,0,176,175,33,144,128,0,112,0,84,142,
+-	0,0,0,0,92,0,128,18,1,0,2,36,
+-	108,0,81,142,0,0,0,0,88,0,32,18,
+-	0,0,0,0,96,0,87,38,136,0,66,174,
+-	140,0,64,174,96,0,64,174,100,0,64,174,
+-	224,83,192,12,33,32,32,2,33,168,64,0,
+-	25,0,160,18,33,128,160,2,108,0,66,142,
+-	0,0,0,0,124,0,66,174,128,0,84,174,
+-	108,0,81,174,112,0,85,174,29,0,32,26,
+-	33,152,0,0,255,255,22,36,33,32,0,2,
+-	8,0,133,38,33,48,64,2,170,72,192,12,
+-	1,0,7,36,10,0,86,16,33,32,64,2,
+-	14,0,64,20,0,0,0,0,64,0,66,142,
+-	0,0,0,0,10,0,64,20,2,0,5,36,
+-	56,93,192,8,1,0,102,38,33,32,64,2,
+-	5,0,5,36,33,48,0,0,140,84,192,12,
+-	0,0,0,0,107,93,192,8,1,0,2,36,
+-	1,0,115,38,68,0,16,38,42,16,113,2,
+-	230,255,64,20,68,0,148,38,40,0,32,18,
+-	33,128,160,2,17,0,2,146,0,0,0,0,
+-	34,0,66,48,32,0,64,20,0,0,0,0,
+-	36,0,2,142,16,0,176,175,16,0,66,140,
+-	24,0,4,142,28,0,5,142,32,0,6,142,
+-	0,0,0,0,9,248,64,0,33,56,64,2,
+-	17,0,2,146,0,0,0,0,32,0,66,52,
+-	17,0,2,162,0,0,226,142,0,0,0,0,
+-	15,0,64,16,0,0,0,0,255,255,49,38,
+-	15,0,32,18,68,0,16,38,17,0,3,146,
+-	0,0,0,0,32,0,98,48,2,0,64,20,
+-	34,0,98,52,17,0,2,162,255,255,49,38,
+-	248,255,32,22,68,0,16,38,107,93,192,8,
+-	33,16,0,0,255,255,49,38,218,255,32,22,
+-	68,0,16,38,33,16,0,0,64,0,191,143,
+-	60,0,183,143,56,0,182,143,52,0,181,143,
+-	48,0,180,143,44,0,179,143,40,0,178,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	72,0,189,39,168,255,189,39,80,0,191,175,
+-	76,0,183,175,72,0,182,175,68,0,181,175,
+-	64,0,180,175,60,0,179,175,56,0,178,175,
+-	52,0,177,175,48,0,176,175,33,144,128,0,
+-	96,0,66,142,0,0,0,0,3,0,64,16,
+-	33,32,0,0,240,93,192,8,255,255,2,36,
+-	116,0,66,142,0,0,0,0,7,0,64,16,
+-	104,0,67,38,12,0,99,140,0,0,0,0,
+-	12,0,98,140,0,0,0,0,251,255,64,20,
+-	0,0,0,0,8,0,116,140,0,0,0,0,
+-	92,0,128,18,33,16,0,0,4,0,115,140,
+-	0,0,0,0,88,0,96,18,0,0,0,0,
+-	64,0,66,142,0,0,0,0,55,0,64,20,
+-	0,0,0,0,33,128,128,2,52,0,96,26,
+-	33,136,0,0,255,255,23,36,2,0,22,36,
+-	5,0,21,36,17,0,2,146,0,0,0,0,
+-	16,0,66,48,40,0,64,16,24,0,165,39,
+-	8,0,3,142,28,0,2,142,0,0,0,0,
+-	35,24,98,0,24,0,163,175,12,0,2,142,
+-	0,0,0,0,28,0,162,175,128,24,3,0,
+-	33,24,98,0,252,255,98,140,0,0,0,0,
+-	1,0,66,36,252,255,98,172,12,0,0,174,
+-	8,0,0,174,33,32,0,2,33,48,64,2,
+-	170,72,192,12,1,0,7,36,6,0,87,16,
+-	0,0,0,0,9,0,64,20,1,0,34,38,
+-	96,0,86,174,196,93,192,8,100,0,66,174,
+-	96,0,85,174,110,86,192,12,24,0,164,39,
+-	240,93,192,8,255,255,2,36,110,86,192,12,
+-	24,0,164,39,17,0,2,146,0,0,0,0,
+-	12,0,66,48,17,0,2,162,1,0,4,36,
+-	1,0,49,38,42,16,51,2,209,255,64,20,
+-	68,0,16,38,27,0,128,16,33,128,128,2,
+-	23,0,96,26,33,136,0,0,17,0,2,146,
+-	0,0,0,0,34,0,66,48,14,0,64,20,
+-	0,0,0,0,36,0,2,142,16,0,176,175,
+-	16,0,66,140,24,0,4,142,28,0,5,142,
+-	32,0,6,142,0,0,0,0,9,248,64,0,
+-	33,56,64,2,17,0,2,146,0,0,0,0,
+-	32,0,66,52,17,0,2,162,1,0,49,38,
+-	42,16,51,2,235,255,64,20,68,0,16,38,
+-	240,93,192,8,1,0,2,36,33,16,0,0,
+-	80,0,191,143,76,0,183,143,72,0,182,143,
+-	68,0,181,143,64,0,180,143,60,0,179,143,
+-	56,0,178,143,52,0,177,143,48,0,176,143,
+-	8,0,224,3,88,0,189,39,0,0,0,0,
+-	200,255,189,39,48,0,191,175,44,0,179,175,
+-	40,0,178,175,36,0,177,175,32,0,176,175,
+-	33,144,128,0,96,0,64,174,100,0,64,174,
+-	112,0,80,142,0,0,0,0,105,0,0,18,
+-	33,16,0,0,108,0,81,142,0,0,0,0,
+-	101,0,32,18,0,0,0,0,64,0,66,142,
+-	0,0,0,0,43,0,64,20,33,32,64,2,
+-	50,0,32,26,33,152,0,0,33,32,0,2,
+-	33,40,64,2,96,72,192,12,1,0,6,36,
+-	13,0,64,20,33,32,64,2,20,0,2,150,
+-	0,0,0,0,1,0,66,48,34,0,64,16,
+-	2,0,5,36,36,0,2,142,0,0,0,0,
+-	3,0,66,144,0,0,0,0,2,0,66,48,
+-	3,0,64,20,0,0,0,0,63,94,192,8,
+-	2,0,5,36,36,0,2,142,0,0,0,0,
+-	32,0,66,140,4,0,67,142,0,0,0,0,
+-	36,16,67,0,16,0,64,16,33,32,64,2,
+-	36,0,2,142,16,0,3,146,2,0,66,144,
+-	0,0,0,0,11,0,98,20,3,0,5,36,
+-	1,0,115,38,42,16,113,2,219,255,64,20,
+-	68,0,16,38,69,94,192,8,96,0,83,38,
+-	5,0,5,36,64,94,192,8,33,48,0,0,
+-	2,0,5,36,1,0,102,38,140,84,192,12,
+-	0,0,0,0,113,94,192,8,1,0,2,36,
+-	96,0,83,38,112,0,80,142,0,0,0,0,
+-	41,0,32,18,33,16,0,0,17,0,2,146,
+-	0,0,0,0,17,0,66,48,32,0,64,20,
+-	0,0,0,0,36,0,2,142,16,0,176,175,
+-	4,0,66,140,24,0,4,142,28,0,5,142,
+-	32,0,6,142,0,0,0,0,9,248,64,0,
+-	33,56,64,2,17,0,2,146,0,0,0,0,
+-	16,0,66,52,17,0,2,162,0,0,98,142,
+-	0,0,0,0,15,0,64,16,0,0,0,0,
+-	255,255,49,38,15,0,32,18,68,0,16,38,
+-	17,0,3,146,0,0,0,0,16,0,98,48,
+-	2,0,64,20,17,0,98,52,17,0,2,162,
+-	255,255,49,38,248,255,32,22,68,0,16,38,
+-	113,94,192,8,33,16,0,0,255,255,49,38,
+-	218,255,32,22,68,0,16,38,33,16,0,0,
+-	48,0,191,143,44,0,179,143,40,0,178,143,
+-	36,0,177,143,32,0,176,143,8,0,224,3,
+-	56,0,189,39,192,255,189,39,56,0,191,175,
+-	52,0,183,175,48,0,182,175,44,0,181,175,
+-	40,0,180,175,36,0,179,175,32,0,178,175,
+-	28,0,177,175,24,0,176,175,33,144,128,0,
+-	112,0,84,142,0,0,0,0,171,0,128,18,
+-	33,16,0,0,108,0,85,142,0,0,0,0,
+-	166,0,160,18,32,0,2,36,56,0,67,146,
+-	0,0,0,0,75,0,98,16,96,0,83,38,
+-	33,0,98,40,5,0,64,16,64,0,2,36,
+-	9,0,96,16,33,16,0,0,49,95,192,8,
+-	0,0,0,0,85,0,98,16,128,0,2,36,
+-	137,0,98,16,33,16,0,0,49,95,192,8,
+-	0,0,0,0,33,136,160,2,8,0,32,18,
+-	33,128,128,2,17,0,2,146,0,0,0,0,
+-	1,0,66,48,139,0,64,16,255,255,49,38,
+-	250,255,32,22,68,0,16,38,0,0,98,142,
+-	0,0,0,0,136,0,64,20,33,16,0,0,
+-	33,136,160,2,43,0,32,18,33,128,128,2,
+-	14,0,22,36,64,0,23,36,17,0,2,146,
+-	0,0,0,0,34,0,66,48,33,0,64,20,
+-	0,0,0,0,36,0,2,142,16,0,176,175,
+-	12,0,66,140,24,0,4,142,28,0,5,142,
+-	32,0,6,142,0,0,0,0,9,248,64,0,
+-	33,56,64,2,17,0,2,146,0,0,0,0,
+-	32,0,66,52,17,0,2,162,0,0,98,142,
+-	0,0,0,0,16,0,64,16,0,0,0,0,
+-	255,255,49,38,10,0,32,18,68,0,16,38,
+-	17,0,3,146,0,0,0,0,32,0,98,48,
+-	2,0,64,20,192,0,98,52,17,0,2,162,
+-	255,255,49,38,248,255,32,22,68,0,16,38,
+-	0,0,118,174,236,94,192,8,56,0,87,162,
+-	255,255,49,38,217,255,32,22,68,0,16,38,
+-	32,0,2,36,56,0,66,162,0,0,98,142,
+-	0,0,0,0,13,0,64,20,64,0,2,36,
+-	33,136,160,2,81,0,32,18,33,128,128,2,
+-	17,0,2,146,0,0,0,0,2,0,66,48,
+-	74,0,64,16,255,255,49,38,250,255,32,22,
+-	68,0,16,38,49,95,192,8,33,16,0,0,
+-	56,0,66,162,14,0,2,36,0,0,98,174,
+-	33,136,160,2,53,0,32,18,33,128,128,2,
+-	2,0,23,36,15,0,22,36,17,0,2,146,
+-	0,0,0,0,194,0,66,48,5,0,64,16,
+-	0,0,0,0,19,0,87,16,0,0,0,0,
+-	32,95,192,8,255,255,49,38,64,0,2,142,
+-	0,0,0,0,34,0,64,16,0,0,0,0,
+-	16,0,176,175,64,0,2,142,24,0,4,142,
+-	28,0,5,142,32,0,6,142,0,0,0,0,
+-	9,248,64,0,33,56,64,2,17,0,2,146,
+-	0,0,0,0,30,95,192,8,64,0,66,52,
+-	64,0,2,142,0,0,0,0,13,0,64,16,
+-	0,0,0,0,16,0,176,175,64,0,2,142,
+-	24,0,4,142,28,0,5,142,32,0,6,142,
+-	0,0,0,0,9,248,64,0,33,56,64,2,
+-	17,0,2,146,0,0,0,0,30,95,192,8,
+-	64,0,66,52,0,0,118,174,17,0,2,146,
+-	0,0,0,0,128,0,66,52,17,0,2,162,
+-	255,255,49,38,208,255,32,22,68,0,16,38,
+-	33,136,160,2,12,0,32,18,33,128,128,2,
+-	17,0,2,146,0,0,0,0,128,0,66,48,
+-	5,0,64,16,255,255,49,38,250,255,32,22,
+-	68,0,16,38,49,95,192,8,33,16,0,0,
+-	49,95,192,8,1,0,2,36,33,16,0,0,
+-	56,0,191,143,52,0,183,143,48,0,182,143,
+-	44,0,181,143,40,0,180,143,36,0,179,143,
+-	32,0,178,143,28,0,177,143,24,0,176,143,
+-	8,0,224,3,64,0,189,39,184,255,189,39,
+-	64,0,191,175,60,0,183,175,56,0,182,175,
+-	52,0,181,175,48,0,180,175,44,0,179,175,
+-	40,0,178,175,36,0,177,175,32,0,176,175,
+-	33,160,128,0,112,0,147,142,0,0,0,0,
+-	129,0,96,18,33,16,0,0,108,0,146,142,
+-	0,0,0,0,125,0,64,18,96,0,151,38,
+-	96,0,128,174,100,0,128,174,224,83,192,12,
+-	33,32,64,2,33,168,64,0,5,0,160,22,
+-	33,136,64,2,33,32,128,2,5,0,5,36,
+-	123,95,192,8,33,48,0,0,36,0,64,18,
+-	33,128,160,2,5,0,22,36,16,0,22,162,
+-	8,0,100,142,12,0,101,142,0,0,0,0,
+-	80,86,192,12,8,0,6,38,5,0,64,20,
+-	0,0,0,0,255,255,49,38,68,0,115,38,
+-	245,255,32,22,68,0,16,38,21,0,32,18,
+-	42,16,50,2,7,0,64,16,33,128,160,2,
+-	59,84,192,12,33,32,0,2,1,0,49,38,
+-	42,16,50,2,251,255,64,20,68,0,16,38,
+-	61,50,192,12,33,32,160,2,33,32,128,2,
+-	5,0,5,36,123,95,192,8,33,48,0,0,
+-	2,0,5,36,1,0,38,38,140,84,192,12,
+-	0,0,0,0,203,95,192,8,1,0,2,36,
+-	124,0,146,174,112,0,130,142,0,0,0,0,
+-	128,0,130,174,112,0,149,174,33,128,160,2,
+-	27,0,64,26,33,136,0,0,33,32,0,2,
+-	33,40,128,2,96,72,192,12,1,0,6,36,
+-	13,0,64,20,0,0,0,0,20,0,2,150,
+-	0,0,0,0,1,0,66,48,8,0,64,16,
+-	0,0,0,0,36,0,2,142,0,0,0,0,
+-	3,0,66,144,0,0,0,0,1,0,66,48,
+-	5,0,64,20,0,0,0,0,64,0,130,142,
+-	0,0,0,0,221,255,64,16,33,32,128,2,
+-	1,0,49,38,42,16,50,2,231,255,64,20,
+-	68,0,16,38,40,0,64,18,33,128,160,2,
+-	17,0,2,146,0,0,0,0,34,0,66,48,
+-	32,0,64,20,0,0,0,0,36,0,2,142,
+-	16,0,176,175,8,0,66,140,24,0,4,142,
+-	28,0,5,142,32,0,6,142,0,0,0,0,
+-	9,248,64,0,33,56,128,2,17,0,2,146,
+-	0,0,0,0,32,0,66,52,17,0,2,162,
+-	0,0,226,142,0,0,0,0,15,0,64,16,
+-	0,0,0,0,255,255,82,38,15,0,64,18,
+-	68,0,16,38,17,0,3,146,0,0,0,0,
+-	32,0,98,48,2,0,64,20,34,0,98,52,
+-	17,0,2,162,255,255,82,38,248,255,64,22,
+-	68,0,16,38,203,95,192,8,33,16,0,0,
+-	255,255,82,38,218,255,64,22,68,0,16,38,
+-	33,16,0,0,64,0,191,143,60,0,183,143,
+-	56,0,182,143,52,0,181,143,48,0,180,143,
+-	44,0,179,143,40,0,178,143,36,0,177,143,
+-	32,0,176,143,8,0,224,3,72,0,189,39,
+-	0,0,0,0,0,0,0,0,37,115,58,37,
+-	100,58,32,102,97,105,108,101,100,32,97,115,
+-	115,101,114,116,105,111,110,32,96,37,115,39,
+-	10,0,0,0,114,97,109,116,101,115,116,100,
+-	119,40,98,99,46,98,99,95,104,101,97,112,
+-	115,116,97,114,116,44,32,108,101,110,44,32,
+-	49,44,32,48,44,32,48,41,32,61,61,32,
+-	48,0,0,0,98,99,46,98,99,95,104,101,
+-	97,112,101,110,100,32,60,61,32,98,99,46,
+-	98,99,95,114,97,109,101,110,100,0,0,0,
+-	35,32,112,111,114,116,115,58,32,37,100,10,
+-	0,0,0,0,42,42,42,80,114,111,102,105,
+-	108,105,110,103,32,64,32,37,120,44,32,37,
+-	120,10,0,0,103,111,116,32,104,101,114,101,
+-	32,99,97,117,115,101,61,37,120,32,115,116,
+-	97,116,117,115,61,37,120,32,118,101,99,61,
+-	37,120,10,0,37,115,58,37,100,58,32,102,
+-	97,105,108,101,100,32,97,115,115,101,114,116,
+-	105,111,110,32,96,37,115,39,10,0,0,0,
+-	83,101,99,111,110,100,115,32,60,32,48,120,
+-	55,70,70,70,102,102,102,102,0,0,0,0,
+-	84,105,109,101,114,115,85,115,101,100,32,60,
+-	32,78,84,73,77,69,82,83,0,0,0,0,
+-	0,0,0,0,69,69,80,82,79,77,32,105,
+-	115,32,98,97,100,10,0,0,80,111,114,116,
+-	32,37,100,32,101,116,104,101,114,32,97,100,
+-	100,114,101,115,115,58,32,37,48,50,88,58,
+-	37,48,50,88,58,37,48,50,88,58,37,48,
+-	50,88,58,37,48,50,88,58,37,48,50,88,
+-	10,0,0,0,35,35,35,32,56,50,53,57,
+-	54,32,67,104,97,110,32,37,100,58,32,115,
+-	101,108,102,116,101,115,116,32,102,97,105,108,
+-	101,100,32,40,37,120,41,10,0,0,0,0,
+-	42,42,42,32,56,50,53,57,54,32,80,111,
+-	114,116,32,37,100,58,32,115,101,108,102,116,
+-	101,115,116,32,112,97,115,115,101,100,10,0,
+-	56,50,53,57,54,32,80,111,114,116,32,37,
+-	100,58,32,100,117,109,112,32,102,97,105,108,
+-	101,100,32,40,37,120,41,10,0,0,0,0,
+-	42,42,42,32,56,50,53,57,54,32,80,111,
+-	114,116,32,37,100,58,32,100,117,109,112,32,
+-	112,97,115,115,101,100,10,0,35,35,35,32,
+-	56,50,53,57,54,32,80,111,114,116,32,37,
+-	100,58,32,83,67,80,32,102,101,116,99,104,
+-	32,102,97,105,108,101,100,10,0,0,0,0,
+-	42,42,42,32,56,50,53,57,54,32,80,111,
+-	114,116,32,37,100,58,32,83,67,80,32,102,
+-	101,116,99,104,32,112,97,115,115,101,100,32,
+-	37,120,32,10,0,0,0,0,35,35,35,32,
+-	56,50,53,57,54,32,80,111,114,116,32,37,
+-	100,58,32,66,85,83,84,73,77,69,82,83,
+-	32,108,111,97,100,32,102,97,105,108,101,100,
+-	10,0,0,0,42,42,42,32,56,50,53,57,
+-	54,32,80,111,114,116,32,37,100,58,32,66,
+-	85,83,84,73,77,69,82,83,32,108,111,97,
+-	100,32,112,97,115,115,101,100,10,0,0,0,
+-	35,35,35,32,65,67,75,32,100,105,100,32,
+-	110,111,116,32,111,99,99,117,114,10,0,0,
+-	35,35,35,32,115,116,97,116,117,115,32,115,
+-	116,105,108,108,32,98,117,115,121,58,32,37,
+-	120,10,0,0,101,116,104,95,105,110,105,116,
+-	46,99,0,0,42,42,42,76,49,87,65,10,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,35,35,35,32,84,66,68,32,
+-	98,108,111,99,107,115,32,97,114,101,110,39,
+-	116,32,98,101,105,110,103,32,102,114,101,101,
+-	100,10,0,0,65,116,116,101,109,112,116,32,
+-	116,111,32,102,114,101,101,32,98,111,103,117,
+-	115,32,84,66,68,32,37,120,10,0,0,0,
+-	35,35,35,32,66,85,70,32,98,108,111,99,
+-	107,115,32,97,114,101,110,39,116,32,98,101,
+-	105,110,103,32,102,114,101,101,100,10,0,0,
+-	65,116,116,101,109,112,116,32,116,111,32,102,
+-	114,101,101,32,98,111,103,117,115,32,66,85,
+-	70,32,37,120,10,0,0,0,0,0,0,0,
+-	0,0,0,0,82,70,68,115,32,37,100,32,
+-	10,0,0,0,82,66,68,115,32,37,100,32,
+-	10,0,0,0,37,115,58,37,100,58,32,102,
+-	97,105,108,101,100,32,97,115,115,101,114,116,
+-	105,111,110,32,96,37,115,39,10,0,0,0,
+-	101,116,104,95,114,99,118,46,99,0,0,0,
+-	100,115,116,99,104,97,110,32,62,61,32,49,
+-	32,38,38,32,100,115,116,99,104,97,110,32,
+-	60,32,78,99,104,97,110,0,37,115,37,48,
+-	50,88,58,37,48,50,88,58,37,48,50,88,
+-	58,37,48,50,88,58,37,48,50,88,58,37,
+-	48,50,88,37,115,0,0,0,176,72,0,131,
+-	80,67,0,131,164,67,0,131,24,68,0,131,
+-	80,67,0,131,0,0,0,0,4,82,0,131,
+-	184,76,0,131,12,77,0,131,128,77,0,131,
+-	184,76,0,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,37,115,58,37,100,58,32,102,
+-	97,105,108,101,100,32,97,115,115,101,114,116,
+-	105,111,110,32,96,37,115,39,10,0,0,0,
+-	101,116,104,95,120,109,105,116,46,99,0,0,
+-	99,98,112,45,62,110,111,112,46,99,109,100,
+-	32,61,61,32,73,53,57,54,95,67,66,95,
+-	67,77,68,95,78,79,80,124,73,53,57,54,
+-	95,67,66,95,67,77,68,95,69,76,0,0,
+-	99,98,112,45,62,110,111,112,46,99,109,100,
+-	32,38,32,73,53,57,54,95,67,66,95,67,
+-	77,68,0,0,112,45,62,115,99,98,112,45,
+-	62,115,116,97,116,117,115,32,38,32,73,53,
+-	57,54,95,83,67,66,95,67,78,65,0,0,
+-	35,35,35,32,99,109,100,32,115,116,105,108,
+-	108,32,98,117,115,121,58,32,37,120,10,0,
+-	37,100,61,37,100,44,37,120,44,37,100,10,
+-	0,0,0,0,39,37,115,39,32,37,120,32,
+-	37,120,10,0,37,48,56,120,58,32,37,48,
+-	50,120,10,0,37,48,56,120,58,32,37,48,
+-	52,120,10,0,37,48,56,120,58,32,37,48,
+-	56,120,10,0,108,105,110,107,32,115,116,97,
+-	116,101,32,37,48,50,120,10,0,0,0,0,
+-	42,42,42,32,103,111,116,32,37,100,32,105,
+-	110,116,101,114,114,117,112,116,115,10,0,0,
+-	35,35,35,32,69,120,112,101,99,116,101,100,
+-	32,37,100,32,98,117,116,32,103,111,116,32,
+-	37,100,32,105,110,116,101,114,114,117,112,116,
+-	115,10,0,0,80,76,88,57,48,54,48,32,
+-	65,100,100,114,101,115,115,32,61,32,37,88,
+-	32,68,65,84,65,32,61,32,37,88,32,10,
+-	0,0,0,0,42,42,42,32,87,114,105,116,
+-	101,32,111,102,32,37,120,32,116,111,32,37,
+-	100,32,102,97,105,108,101,100,10,0,0,0,
+-	42,42,42,32,87,114,105,116,101,32,111,102,
+-	32,37,120,32,116,111,32,37,120,32,102,97,
+-	105,108,101,100,10,0,0,0,42,42,42,42,
+-	42,42,42,42,42,42,42,42,42,42,42,42,
+-	0,0,0,0,42,42,42,32,73,108,108,101,
+-	103,97,108,32,99,111,109,109,97,110,100,32,
+-	39,37,115,39,10,0,0,0,45,45,45,32,
+-	99,111,109,109,97,110,100,115,32,109,44,116,
+-	44,101,44,69,44,97,44,120,44,108,44,115,
+-	44,112,32,99,97,110,32,98,101,32,112,114,
+-	101,102,105,120,101,100,32,119,105,116,104,32,
+-	97,32,114,101,112,101,97,116,32,99,111,117,
+-	110,116,0,0,108,32,120,112,111,114,116,32,
+-	114,112,111,114,116,32,91,108,101,110,93,32,
+-	32,32,32,32,32,32,32,32,32,76,111,111,
+-	112,98,97,99,107,32,116,101,115,116,32,102,
+-	114,111,109,32,120,112,111,114,116,32,40,49,
+-	45,54,41,32,116,111,32,114,112,111,114,116,
+-	32,40,49,45,54,41,0,0,105,32,32,32,
+-	32,32,32,32,32,32,73,110,116,101,114,114,
+-	117,112,116,32,72,111,115,116,32,32,124,32,
+-	32,115,32,91,112,111,114,116,93,32,91,108,
+-	101,110,93,32,66,97,99,107,50,98,97,99,
+-	107,32,120,109,105,116,32,99,110,116,32,112,
+-	97,99,107,101,116,115,0,0,80,32,32,32,
+-	32,32,32,32,32,32,84,101,115,116,32,80,
+-	76,88,32,57,48,54,48,32,32,32,124,32,
+-	32,100,32,91,114,124,119,124,108,124,116,93,
+-	32,91,118,97,108,124,39,99,39,93,32,32,
+-	82,101,97,100,47,87,114,105,116,101,47,76,
+-	111,111,112,47,84,105,109,101,32,68,77,65,
+-	0,0,0,0,76,32,32,32,32,32,32,32,
+-	32,32,82,101,97,100,32,76,105,110,107,32,
+-	76,69,68,115,32,32,124,32,32,112,32,114,
+-	101,103,110,111,32,91,118,97,108,93,32,32,
+-	82,101,97,100,47,91,119,114,105,116,101,93,
+-	32,80,76,88,32,114,101,103,105,115,116,101,
+-	114,0,0,0,65,32,97,100,100,114,32,32,
+-	32,32,83,101,116,32,101,116,104,101,114,32,
+-	97,100,100,114,32,32,124,32,32,36,32,115,
+-	99,114,105,112,116,32,32,32,32,32,32,32,
+-	82,101,97,100,32,99,109,100,115,32,102,114,
+-	111,109,32,102,105,108,101,32,39,115,99,114,
+-	105,112,116,39,0,0,0,0,120,32,91,112,
+-	111,114,116,93,32,32,84,120,32,101,116,104,
+-	101,114,32,32,32,32,32,32,32,32,124,32,
+-	32,82,32,91,112,111,114,116,93,32,32,32,
+-	32,32,32,32,82,120,32,101,116,104,101,114,
+-	32,91,111,110,32,112,111,114,116,32,49,45,
+-	54,93,0,0,72,32,32,32,32,32,32,32,
+-	32,32,84,111,103,103,108,101,32,70,67,67,
+-	32,116,101,115,116,32,124,32,32,113,44,94,
+-	68,44,94,90,32,32,32,32,32,32,32,32,
+-	81,117,105,116,0,0,0,0,97,32,32,32,
+-	32,32,32,32,32,32,84,101,115,116,32,97,
+-	108,108,32,32,32,32,32,32,32,32,124,32,
+-	32,90,32,109,115,101,99,115,32,32,32,32,
+-	32,32,32,32,80,97,117,115,101,32,102,111,
+-	114,32,97,32,119,104,105,108,101,0,0,0,
+-	69,32,32,32,32,32,32,32,32,32,84,101,
+-	115,116,32,69,69,80,82,79,77,32,32,32,
+-	32,32,124,32,32,83,114,32,97,100,100,114,
+-	59,32,83,119,32,97,100,100,114,32,118,97,
+-	108,59,32,32,82,101,97,100,47,87,114,105,
+-	116,101,32,80,76,88,32,69,50,32,114,101,
+-	103,0,0,0,101,32,91,112,111,114,116,93,
+-	32,32,84,101,115,116,32,101,116,104,101,114,
+-	110,101,116,32,32,32,124,32,32,69,114,32,
+-	97,100,100,114,59,32,69,119,32,97,100,100,
+-	114,32,118,97,108,59,32,32,82,101,97,100,
+-	47,87,114,105,116,101,32,69,69,80,82,79,
+-	77,32,114,101,103,0,0,0,116,32,32,32,
+-	32,32,32,32,32,32,84,101,115,116,32,116,
+-	105,109,101,114,115,32,32,32,32,32,124,32,
+-	32,119,91,42,93,32,97,100,100,114,32,118,
+-	97,108,32,32,87,114,105,116,101,32,109,101,
+-	109,111,114,121,58,32,119,98,32,119,104,44,
+-	32,119,119,44,32,119,116,0,109,32,32,32,
+-	32,32,32,32,32,32,84,101,115,116,32,109,
+-	101,109,111,114,121,32,32,32,32,32,124,32,
+-	32,114,91,42,93,32,97,100,100,114,32,32,
+-	32,32,32,32,82,101,97,100,32,109,101,109,
+-	111,114,121,58,32,114,98,32,114,104,44,32,
+-	114,119,44,32,114,116,0,0,42,42,42,32,
+-	82,105,103,104,116,83,119,105,116,99,104,32,
+-	68,105,97,103,110,111,115,116,105,99,115,32,
+-	109,101,110,117,32,42,42,42,0,0,0,0,
+-	45,45,45,32,84,104,114,101,101,32,99,111,
+-	112,105,101,115,32,111,102,32,97,100,100,114,
+-	101,115,115,32,100,111,32,110,111,116,32,97,
+-	103,114,101,101,33,10,0,0,45,45,45,32,
+-	69,116,104,101,114,32,65,100,100,114,101,115,
+-	115,32,78,111,116,32,83,101,116,33,10,0,
+-	45,45,45,32,69,116,104,101,114,32,65,100,
+-	100,114,101,115,115,32,105,115,32,97,32,109,
+-	117,108,116,105,99,97,115,116,32,97,100,100,
+-	114,101,115,115,33,10,0,0,42,42,42,32,
+-	37,48,50,88,37,48,50,88,37,48,50,88,
+-	58,37,48,50,88,58,37,48,50,88,37,48,
+-	50,88,10,0,45,45,45,32,70,105,114,115,
+-	116,32,98,121,116,101,32,40,37,48,50,88,
+-	41,32,105,115,32,97,32,98,114,111,97,100,
+-	99,97,115,116,32,97,100,100,114,101,115,115,
+-	10,0,0,0,45,45,45,32,76,97,115,116,
+-	32,100,105,103,105,116,32,109,117,115,116,32,
+-	98,101,32,48,32,111,114,32,56,10,0,0,
+-	42,42,42,32,69,105,103,104,116,32,101,116,
+-	104,101,114,110,101,116,32,97,100,100,114,101,
+-	115,115,101,115,32,104,97,118,101,32,98,101,
+-	101,110,32,117,115,101,100,58,10,0,0,0,
+-	42,42,42,32,80,111,114,116,32,37,100,32,
+-	101,116,104,101,114,110,101,116,32,97,100,100,
+-	114,101,115,115,32,105,115,32,0,0,0,0,
+-	45,45,45,32,66,97,100,32,101,116,104,101,
+-	114,32,97,100,100,114,101,115,115,32,39,37,
+-	115,39,32,115,112,101,99,105,102,105,101,100,
+-	10,0,0,0,0,0,0,0,244,101,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,244,101,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,64,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,28,111,0,131,104,112,0,131,
+-	104,112,0,131,132,111,0,131,152,109,0,131,
+-	104,112,0,131,104,112,0,131,244,101,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	24,107,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,76,108,0,131,104,112,0,131,
+-	228,108,0,131,112,110,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	28,109,0,131,104,112,0,131,48,111,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	104,112,0,131,104,112,0,131,104,112,0,131,
+-	84,109,0,131,104,112,0,131,104,112,0,131,
+-	32,112,0,131,136,106,0,131,28,106,0,131,
+-	104,112,0,131,104,112,0,131,52,107,0,131,
+-	104,112,0,131,104,112,0,131,252,106,0,131,
+-	88,111,0,131,104,112,0,131,104,112,0,131,
+-	196,107,0,131,104,112,0,131,180,104,0,131,
+-	168,106,0,131,92,106,0,131,104,112,0,131,
+-	104,112,0,131,148,105,0,131,192,106,0,131,
+-	0,0,0,0,188,111,0,131,204,111,0,131,
+-	12,112,0,131,12,112,0,131,12,112,0,131,
+-	12,112,0,131,12,112,0,131,12,112,0,131,
+-	12,112,0,131,12,112,0,131,12,112,0,131,
+-	12,112,0,131,252,111,0,131,12,112,0,131,
+-	12,112,0,131,12,112,0,131,12,112,0,131,
+-	236,111,0,131,12,112,0,131,12,112,0,131,
+-	12,112,0,131,12,112,0,131,220,111,0,131,
+-	252,111,0,131,0,0,0,0,0,0,0,0,
+-	42,42,42,32,69,69,80,82,79,77,32,80,
+-	97,115,115,101,100,10,0,0,33,33,33,32,
+-	69,69,80,82,79,77,32,70,97,105,108,117,
+-	114,101,58,32,87,114,111,116,101,32,37,48,
+-	52,120,32,97,116,32,37,100,44,32,103,111,
+-	116,32,37,48,52,120,10,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,35,35,35,70,
+-	114,97,109,101,32,37,100,32,100,105,100,32,
+-	110,111,116,32,97,114,114,105,118,101,10,0,
+-	35,35,35,32,70,114,97,109,101,32,37,100,
+-	44,32,108,101,110,32,37,100,44,32,98,121,
+-	116,101,32,37,100,44,32,119,97,110,116,32,
+-	37,120,32,103,111,116,32,37,120,10,0,0,
+-	35,35,35,70,114,97,109,101,32,37,100,32,
+-	119,114,111,110,103,32,108,101,110,103,116,104,
+-	32,40,119,97,110,116,32,37,100,32,103,111,
+-	116,32,37,100,41,10,0,0,35,35,35,70,
+-	114,97,109,101,32,37,100,58,32,103,111,116,
+-	32,115,101,113,32,37,100,10,0,0,0,0,
+-	35,35,35,32,37,100,32,67,82,67,32,101,
+-	114,114,111,114,115,32,111,99,99,117,114,101,
+-	100,10,0,0,35,35,35,32,37,100,32,65,
+-	108,105,103,110,32,101,114,114,111,114,115,32,
+-	111,99,99,117,114,101,100,10,0,0,0,0,
+-	35,35,35,32,37,100,32,83,104,111,114,116,
+-	32,101,114,114,111,114,115,32,111,99,99,117,
+-	114,101,100,10,0,0,0,0,35,35,35,32,
+-	37,100,32,79,118,101,114,114,117,110,32,101,
+-	114,114,111,114,115,32,111,99,99,117,114,101,
+-	100,10,0,0,35,35,35,32,67,85,32,115,
+-	116,105,108,108,32,114,117,110,110,105,110,103,
+-	58,32,37,120,10,0,0,0,35,35,35,32,
+-	99,109,100,32,115,116,105,108,108,32,98,117,
+-	115,121,58,32,37,120,10,0,35,35,35,32,
+-	115,116,97,116,117,115,32,115,116,105,108,108,
+-	32,98,117,115,121,58,32,37,120,10,0,0,
+-	67,66,61,37,120,44,32,84,66,68,61,37,
+-	120,44,32,66,85,70,61,37,120,10,0,0,
+-	116,101,115,116,95,101,116,104,101,114,46,99,
+-	0,0,0,0,37,100,32,102,114,97,109,101,
+-	115,32,111,102,32,108,101,110,103,116,104,32,
+-	37,100,32,115,101,110,116,32,105,110,32,37,
+-	100,32,109,115,101,99,115,10,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	42,42,42,32,56,50,53,52,32,84,105,109,
+-	101,114,32,48,32,79,75,44,32,99,111,117,
+-	110,116,32,119,97,115,32,37,100,10,0,0,
+-	42,42,42,32,56,50,53,52,32,84,105,109,
+-	101,114,32,48,32,110,111,116,32,105,110,116,
+-	101,114,114,117,112,116,105,110,103,32,37,100,
+-	10,0,0,0,42,42,42,32,56,50,53,52,
+-	32,84,105,109,101,114,32,48,32,115,112,101,
+-	101,100,32,119,114,111,110,103,44,32,103,111,
+-	116,32,37,100,32,115,104,111,117,108,100,32,
+-	98,101,32,49,48,48,48,10,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	9,37,120,58,32,119,97,110,116,32,37,120,
+-	32,103,111,116,32,37,120,10,0,0,0,0,
+-	45,45,45,32,82,65,77,32,84,101,115,116,
+-	32,111,102,32,37,120,32,116,111,32,37,120,
+-	32,102,97,105,108,101,100,10,0,0,0,0,
+-	42,42,42,32,82,65,77,32,84,101,115,116,
+-	32,111,102,32,37,120,32,116,111,32,37,120,
+-	32,112,97,115,115,101,100,10,0,0,0,0,
+-	35,35,35,32,68,77,65,32,68,79,78,69,
+-	32,110,101,118,101,114,32,111,99,99,117,114,
+-	114,101,100,46,32,32,99,115,114,32,61,32,
+-	37,120,10,0,35,35,35,32,72,111,115,116,
+-	32,110,101,118,101,114,32,103,111,116,32,68,
+-	77,65,32,105,110,116,101,114,114,117,112,116,
+-	46,32,98,99,95,99,110,116,32,61,32,37,
+-	100,10,0,0,35,35,35,32,68,77,65,32,
+-	101,114,114,111,114,32,97,116,32,105,110,100,
+-	101,120,32,37,100,58,32,119,97,110,116,101,
+-	100,32,37,48,50,120,32,103,111,116,32,37,
+-	48,50,120,10,0,0,0,0,35,35,35,32,
+-	73,108,108,101,103,97,108,32,72,111,115,116,
+-	32,97,100,100,114,32,40,61,37,120,41,32,
+-	111,114,32,108,101,110,103,116,104,32,40,61,
+-	37,100,41,10,0,0,0,0,35,35,35,32,
+-	67,111,117,110,116,32,99,97,110,110,111,116,
+-	32,98,101,32,62,32,49,48,50,52,42,49,
+-	48,50,52,10,0,0,0,0,42,42,42,32,
+-	108,99,108,46,66,117,102,49,32,61,32,37,
+-	120,32,45,45,62,32,104,111,115,116,46,66,
+-	117,102,32,61,32,37,120,32,45,45,62,32,
+-	108,99,108,46,66,117,102,50,32,61,32,37,
+-	120,10,0,0,42,42,42,32,62,32,68,98,
+-	32,37,100,32,40,98,117,114,115,116,41,59,
+-	32,62,32,68,119,32,37,100,32,40,119,97,
+-	105,116,115,116,97,116,101,115,41,10,0,0,
+-	35,35,35,32,83,101,99,111,110,100,32,97,
+-	114,103,32,109,117,115,116,32,98,101,32,39,
+-	114,39,32,111,114,32,39,119,39,32,111,114,
+-	32,39,108,39,10,0,0,0,42,42,42,32,
+-	68,77,65,32,37,115,32,105,110,32,37,52,
+-	100,32,98,121,116,101,32,99,104,117,110,107,
+-	115,58,32,0,32,32,116,111,32,104,111,115,
+-	116,0,0,0,102,114,111,109,32,104,111,115,
+-	116,0,0,0,37,56,100,32,98,121,116,101,
+-	115,47,115,101,99,46,10,0,116,105,109,101,
+-	32,116,111,111,32,115,104,111,114,116,32,116,
+-	111,32,109,101,97,115,117,114,101,10,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	80,37,100,45,62,37,115,32,10,0,0,0,
+-	116,114,97,110,115,109,105,116,32,112,101,110,
+-	100,105,110,103,32,111,110,32,37,100,10,0,
+-	116,114,97,110,115,109,105,116,32,99,111,110,
+-	102,105,103,32,111,110,32,37,100,10,0,0,
+-	116,114,97,110,115,109,105,116,32,116,99,110,
+-	10,0,0,0,116,99,110,32,101,120,112,10,
+-	0,0,0,0,102,111,114,119,97,114,100,95,
+-	100,101,108,97,121,32,101,120,112,32,37,100,
+-	10,0,0,0,109,101,115,115,97,103,101,95,
+-	97,103,101,32,101,120,112,32,37,100,10,0,
+-	104,111,108,100,32,101,120,112,32,37,100,10,
+-	0,0,0,0,84,120,67,79,78,70,73,71,
+-	37,100,10,0,84,120,84,67,78,37,100,10,
+-	0,0,0,0,114,99,118,32,99,111,110,102,
+-	105,103,32,111,110,32,37,100,10,0,0,0,
+-	90,69,82,79,32,114,111,111,116,33,32,97,
+-	116,32,37,120,32,0,0,0,115,117,112,101,
+-	114,99,101,100,101,115,32,37,100,10,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	65,82,80,82,69,81,32,37,120,33,10,0,
+-	65,82,80,82,69,80,32,37,120,33,10,0,
+-	83,101,110,100,32,85,68,80,32,37,100,10,
+-	0,0,0,0,78,111,32,82,66,68,39,115,
+-	32,105,110,32,85,68,80,32,40,37,100,32,
+-	37,100,41,10,0,0,0,0,83,101,110,116,
+-	32,85,68,80,32,37,100,10,0,0,0,0,
+-	83,78,77,80,32,39,37,99,39,32,108,101,
+-	110,32,37,100,10,0,0,0,69,110,118,111,
+-	121,32,114,99,61,37,100,10,0,0,0,0,
+-	71,101,110,32,116,114,97,112,32,37,100,32,
+-	114,99,61,37,100,10,0,0,66,97,100,32,
+-	85,68,80,32,99,104,101,99,107,115,117,109,
+-	32,37,120,32,108,101,110,32,37,100,10,0,
+-	66,97,100,32,85,68,80,32,108,101,110,103,
+-	116,104,32,119,97,110,116,32,37,100,32,103,
+-	111,116,32,37,100,10,0,0,66,97,100,32,
+-	73,67,77,80,32,99,104,101,99,107,115,117,
+-	109,10,0,0,78,111,32,82,66,68,39,115,
+-	32,105,110,32,73,67,77,80,10,0,0,0,
+-	66,97,100,32,73,80,32,99,104,101,99,107,
+-	115,117,109,10,0,0,0,0,84,114,117,110,
+-	99,97,116,101,100,32,73,80,10,0,0,0,
+-	83,69,78,84,32,73,80,88,33,10,0,0,
+-	110,111,32,115,121,115,78,97,109,101,0,0,
+-	114,105,103,104,116,115,119,105,116,99,104,45,
+-	0,0,0,0,78,111,32,82,66,68,39,115,
+-	32,105,110,32,115,101,110,100,95,115,97,112,
+-	10,0,0,0,78,111,32,82,66,68,39,115,
+-	32,105,110,32,73,80,88,10,0,0,0,0,
+-	84,114,117,110,99,97,116,101,100,32,73,80,
+-	88,10,0,0,0,0,0,0,0,0,0,0,
+-	77,97,108,108,111,99,32,114,101,116,117,114,
+-	110,115,32,78,85,76,76,33,0,0,0,0,
+-	0,0,0,0,0,0,0,0,68,105,103,105,
+-	32,73,110,116,108,46,32,82,105,103,104,116,
+-	83,119,105,116,99,104,32,83,69,45,88,0,
+-	73,110,116,101,108,32,56,50,53,57,54,0,
+-	0,0,0,0,0,0,0,0,8,206,0,131,
+-	36,206,0,131,92,206,0,131,112,206,0,131,
+-	132,206,0,131,220,206,0,131,4,207,0,131,
+-	4,207,0,131,36,207,0,131,52,207,0,131,
+-	80,207,0,131,104,207,0,131,132,207,0,131,
+-	160,207,0,131,188,207,0,131,188,207,0,131,
+-	216,207,0,131,240,207,0,131,12,208,0,131,
+-	40,208,0,131,72,208,0,131,112,208,0,131,
+-	180,210,0,131,232,210,0,131,4,211,0,131,
+-	36,211,0,131,60,211,0,131,0,0,0,0,
+-	64,213,0,131,92,213,0,131,124,213,0,131,
+-	160,213,0,131,60,214,0,131,60,214,0,131,
+-	60,214,0,131,188,213,0,131,216,213,0,131,
+-	244,213,0,131,28,214,0,131,168,214,0,131,
+-	60,214,0,131,168,214,0,131,168,214,0,131,
+-	88,214,0,131,132,214,0,131,0,0,0,0,
+-	36,216,0,131,68,216,0,131,104,216,0,131,
+-	140,216,0,131,140,216,0,131,0,0,0,0,
+-	248,217,0,131,12,218,0,131,40,218,0,131,
+-	76,218,0,131,124,218,0,131,152,218,0,131,
+-	200,218,0,131,228,218,0,131,88,219,0,131,
+-	116,219,0,131,64,224,0,131,92,224,0,131,
+-	124,224,0,131,152,224,0,131,184,224,0,131,
+-	0,0,0,0,110,111,32,115,121,115,67,111,
+-	110,116,97,99,116,0,0,0,110,111,32,115,
+-	121,115,78,97,109,101,0,0,110,111,32,115,
+-	121,115,76,111,99,97,116,105,111,110,0,0,
+-	37,115,58,37,100,58,32,102,97,105,108,101,
+-	100,32,97,115,115,101,114,116,105,111,110,32,
+-	96,37,115,39,10,0,0,0,110,117,109,114,
+-	101,103,115,32,60,61,32,78,86,82,65,77,
+-	95,78,82,69,71,83,32,38,38,32,110,117,
+-	109,114,101,103,115,32,62,32,48,0,0,0,
+-	102,105,114,115,116,114,101,103,32,60,32,78,
+-	86,82,65,77,95,78,82,69,71,83,32,38,
+-	38,32,102,105,114,115,116,114,101,103,32,62,
+-	61,32,48,0,0,0,0,0,10,13,69,82,
+-	82,79,82,32,45,0,0,0,0,0,0,0,
+-	192,244,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,192,251,0,131,
+-	8,252,0,131,8,252,0,131,200,251,0,131,
+-	212,251,0,131,212,251,0,131,212,251,0,131,
+-	212,251,0,131,212,251,0,131,212,251,0,131,
+-	212,251,0,131,212,251,0,131,212,251,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,200,244,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	212,249,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,20,245,0,131,8,245,0,131,
+-	84,247,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	8,252,0,131,8,252,0,131,244,251,0,131,
+-	8,252,0,131,8,252,0,131,48,246,0,131,
+-	8,252,0,131,8,252,0,131,8,252,0,131,
+-	240,250,0,131,8,252,0,131,132,248,0,131,
+-	8,252,0,131,8,252,0,131,160,249,0,131,
+-	72,46,1,131,228,47,1,131,152,46,1,131,
+-	132,47,1,131,0,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,228,47,1,131,
+-	228,47,1,131,228,47,1,131,144,47,1,131,
+-	108,46,1,131,108,46,1,131,108,46,1,131,
+-	152,46,1,131,152,46,1,131,228,47,1,131,
+-	108,46,1,131,20,50,1,131,216,50,1,131,
+-	56,50,1,131,224,50,1,131,104,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	216,50,1,131,216,50,1,131,216,50,1,131,
+-	144,50,1,131,20,50,1,131,20,50,1,131,
+-	20,50,1,131,56,50,1,131,56,50,1,131,
+-	216,50,1,131,20,50,1,131,124,53,1,131,
+-	96,53,1,131,96,53,1,131,96,53,1,131,
+-	96,53,1,131,96,53,1,131,96,53,1,131,
+-	96,53,1,131,96,53,1,131,96,53,1,131,
+-	96,53,1,131,96,53,1,131,96,53,1,131,
+-	96,53,1,131,88,53,1,131,64,53,1,131,
+-	80,53,1,131,72,53,1,131,64,53,1,131,
+-	0,0,0,0,28,83,1,131,36,83,1,131,
+-	36,83,1,131,36,83,1,131,36,83,1,131,
+-	28,83,1,131,44,83,1,131,44,83,1,131,
+-	44,83,1,131,44,83,1,131,44,83,1,131,
+-	28,83,1,131,44,83,1,131,0,0,0,0,
+-	196,88,1,131,232,88,1,131,208,88,1,131,
+-	220,88,1,131,244,88,1,131,0,0,0,0,
+-	4,0,0,0,5,0,0,0,6,0,0,0,
+-	7,0,0,0,2,0,0,0,3,0,0,0,
+-	0,0,0,0,1,0,0,0,72,30,0,131,
+-	72,30,0,131,216,44,0,131,0,30,0,131,
+-	108,30,0,131,108,30,0,131,108,30,0,131,
+-	108,30,0,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,20,137,1,131,
+-	204,136,1,131,132,136,1,131,56,136,1,131,
+-	236,135,1,131,172,135,1,131,120,135,1,131,
+-	52,135,1,131,232,134,1,131,160,134,1,131,
+-	80,134,1,131,8,134,1,131,188,133,1,131,
+-	120,133,1,131,0,0,0,0,0,0,0,0,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,72,72,72,72,72,72,72,
+-	72,72,72,72,72,0,0,0,0,255,85,170,
+-	0,0,0,0,4,0,8,0,16,0,32,0,
+-	64,0,0,1,0,8,0,0,0,0,0,0,
+-	0,0,0,0,0,4,3,2,1,0,0,0,
+-	7,0,0,0,1,0,1,0,1,0,2,0,
+-	20,0,15,0,1,0,0,128,128,0,0,0,
+-	100,0,0,0,96,207,1,131,92,207,1,131,
+-	88,207,1,131,84,207,1,131,80,207,1,131,
+-	0,0,0,0,0,0,0,0,48,49,50,51,
+-	52,53,54,55,56,57,65,66,67,68,69,70,
+-	0,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,64,204,0,131,156,202,0,131,
+-	96,148,1,131,1,0,4,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	200,155,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,124,204,0,131,156,202,0,131,
+-	168,210,1,131,1,0,6,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	4,156,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,132,204,0,131,156,202,0,131,
+-	4,1,0,163,1,0,67,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	64,156,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,168,204,0,131,248,204,0,131,
+-	80,18,3,131,1,0,4,3,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	124,156,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,168,204,0,131,32,205,0,131,
+-	96,18,3,131,1,0,4,3,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	184,156,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,168,204,0,131,72,205,0,131,
+-	112,18,3,131,1,0,4,3,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	244,156,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,112,205,0,131,156,202,0,131,
+-	2,0,0,0,1,0,2,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	48,157,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	220,155,1,131,2,0,0,0,24,156,1,131,
+-	3,0,0,0,84,156,1,131,4,0,0,0,
+-	144,156,1,131,5,0,0,0,204,156,1,131,
+-	6,0,0,0,8,157,1,131,7,0,0,0,
+-	68,157,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,120,205,0,131,
+-	156,202,0,131,48,211,1,131,1,0,2,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,172,157,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,4,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	124,148,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,6,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,220,5,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,66,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,4,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,3,180,208,0,131,132,205,0,131,
+-	228,209,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,67,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,180,208,0,131,
+-	132,205,0,131,164,202,0,131,76,209,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,66,1,
+-	180,208,0,131,132,205,0,131,164,202,0,131,
+-	76,209,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,6,1,180,208,0,131,132,205,0,131,
+-	164,202,0,131,76,209,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,0,0,232,157,1,131,
+-	2,0,0,0,16,158,1,131,3,0,0,0,
+-	56,158,1,131,4,0,0,0,96,158,1,131,
+-	5,0,0,0,136,158,1,131,6,0,0,0,
+-	176,158,1,131,7,0,0,0,216,158,1,131,
+-	8,0,0,0,0,159,1,131,9,0,0,0,
+-	40,159,1,131,10,0,0,0,80,159,1,131,
+-	11,0,0,0,120,159,1,131,12,0,0,0,
+-	160,159,1,131,13,0,0,0,200,159,1,131,
+-	14,0,0,0,240,159,1,131,15,0,0,0,
+-	24,160,1,131,16,0,0,0,64,160,1,131,
+-	17,0,0,0,104,160,1,131,18,0,0,0,
+-	144,160,1,131,19,0,0,0,184,160,1,131,
+-	20,0,0,0,224,160,1,131,21,0,0,0,
+-	8,161,1,131,22,0,0,0,48,161,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	32,208,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,192,157,1,131,2,0,0,0,
+-	40,208,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,112,205,0,131,
+-	60,210,0,131,2,0,0,0,1,0,2,3,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,56,162,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,120,205,0,131,
+-	60,210,0,131,0,17,3,131,1,0,2,3,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,116,162,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,4,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,176,162,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,8,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,236,162,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,12,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,40,163,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,16,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,100,163,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,20,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,160,163,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,24,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,220,163,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,28,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,24,164,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,32,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,84,164,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,36,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,144,164,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,40,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,204,164,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,120,205,0,131,
+-	156,202,0,131,44,17,3,131,1,0,2,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,8,165,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,48,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,68,165,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,52,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,128,165,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,56,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,188,165,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,60,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,248,165,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,64,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,52,166,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,68,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,112,166,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,64,1,44,202,0,131,88,210,0,131,
+-	164,202,0,131,120,211,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,44,202,0,131,
+-	88,210,0,131,164,202,0,131,120,211,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,64,1,
+-	44,202,0,131,88,210,0,131,164,202,0,131,
+-	120,211,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,44,202,0,131,88,210,0,131,
+-	164,202,0,131,120,211,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,44,202,0,131,
+-	88,210,0,131,164,202,0,131,120,211,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	172,166,1,131,2,0,0,0,212,166,1,131,
+-	3,0,0,0,252,166,1,131,4,0,0,0,
+-	36,167,1,131,5,0,0,0,76,167,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	56,208,1,131,0,0,0,0,0,0,0,0,
+-	1,0,64,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,3,84,212,0,131,
+-	16,212,0,131,52,212,0,131,172,212,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,3,
+-	84,212,0,131,16,212,0,131,52,212,0,131,
+-	172,212,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,3,84,212,0,131,
+-	16,212,0,131,52,212,0,131,172,212,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,3,
+-	84,212,0,131,16,212,0,131,52,212,0,131,
+-	172,212,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,64,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,3,84,212,0,131,
+-	16,212,0,131,52,212,0,131,172,212,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,1,
+-	84,212,0,131,16,212,0,131,164,202,0,131,
+-	172,212,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,64,3,84,212,0,131,
+-	16,212,0,131,52,212,0,131,172,212,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,3,
+-	84,212,0,131,16,212,0,131,52,212,0,131,
+-	172,212,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,6,1,84,212,0,131,16,212,0,131,
+-	164,202,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,0,0,180,167,1,131,
+-	2,0,0,0,220,167,1,131,3,0,0,0,
+-	4,168,1,131,4,0,0,0,44,168,1,131,
+-	5,0,0,0,84,168,1,131,6,0,0,0,
+-	124,168,1,131,7,0,0,0,164,168,1,131,
+-	8,0,0,0,204,168,1,131,9,0,0,0,
+-	244,168,1,131,10,0,0,0,28,169,1,131,
+-	11,0,0,0,68,169,1,131,12,0,0,0,
+-	108,169,1,131,13,0,0,0,148,169,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	72,208,1,131,0,0,0,0,0,0,0,0,
+-	1,0,2,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,4,3,84,212,0,131,
+-	16,212,0,131,52,212,0,131,172,212,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,64,3,
+-	84,212,0,131,16,212,0,131,52,212,0,131,
+-	172,212,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,3,84,212,0,131,16,212,0,131,
+-	52,212,0,131,172,212,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,0,0,60,170,1,131,
+-	2,0,0,0,100,170,1,131,3,0,0,0,
+-	140,170,1,131,4,0,0,0,180,170,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	88,208,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,72,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,20,171,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,0,0,76,162,1,131,2,0,0,0,
+-	136,162,1,131,3,0,0,0,196,162,1,131,
+-	4,0,0,0,0,163,1,131,5,0,0,0,
+-	60,163,1,131,6,0,0,0,120,163,1,131,
+-	7,0,0,0,180,163,1,131,8,0,0,0,
+-	240,163,1,131,9,0,0,0,44,164,1,131,
+-	10,0,0,0,104,164,1,131,11,0,0,0,
+-	164,164,1,131,12,0,0,0,224,164,1,131,
+-	13,0,0,0,28,165,1,131,14,0,0,0,
+-	88,165,1,131,15,0,0,0,148,165,1,131,
+-	16,0,0,0,208,165,1,131,17,0,0,0,
+-	12,166,1,131,18,0,0,0,72,166,1,131,
+-	19,0,0,0,132,166,1,131,20,0,0,0,
+-	64,208,1,131,21,0,0,0,80,208,1,131,
+-	22,0,0,0,96,208,1,131,23,0,0,0,
+-	40,171,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,144,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,16,172,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,148,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,76,172,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,152,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,136,172,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,156,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,196,172,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,160,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,0,173,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,164,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,60,173,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,168,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,120,173,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,172,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,180,173,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,176,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,240,173,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,180,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,44,174,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,184,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,104,174,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,188,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,164,174,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,192,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,224,174,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,196,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,28,175,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,200,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,88,175,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,204,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,148,175,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,208,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,208,175,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,212,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,12,176,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,216,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,72,176,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,220,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,132,176,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,224,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,192,176,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,228,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,252,176,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,232,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,56,177,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,236,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,116,177,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,240,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,176,177,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,244,16,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,236,177,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,0,0,36,172,1,131,2,0,0,0,
+-	96,172,1,131,3,0,0,0,156,172,1,131,
+-	4,0,0,0,216,172,1,131,5,0,0,0,
+-	20,173,1,131,6,0,0,0,80,173,1,131,
+-	7,0,0,0,140,173,1,131,8,0,0,0,
+-	200,173,1,131,9,0,0,0,4,174,1,131,
+-	10,0,0,0,64,174,1,131,11,0,0,0,
+-	124,174,1,131,12,0,0,0,184,174,1,131,
+-	13,0,0,0,244,174,1,131,14,0,0,0,
+-	48,175,1,131,15,0,0,0,108,175,1,131,
+-	16,0,0,0,168,175,1,131,17,0,0,0,
+-	228,175,1,131,18,0,0,0,32,176,1,131,
+-	19,0,0,0,92,176,1,131,20,0,0,0,
+-	152,176,1,131,21,0,0,0,212,176,1,131,
+-	22,0,0,0,16,177,1,131,23,0,0,0,
+-	76,177,1,131,24,0,0,0,136,177,1,131,
+-	25,0,0,0,196,177,1,131,26,0,0,0,
+-	0,178,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,112,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,0,179,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,116,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,60,179,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,120,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,120,179,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,76,210,0,131,
+-	156,202,0,131,124,17,3,131,1,0,65,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,180,179,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,200,212,0,131,
+-	156,202,0,131,220,5,0,163,1,0,64,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,240,179,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,112,205,0,131,
+-	156,202,0,131,161,0,0,0,1,0,2,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,44,180,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,0,0,4,180,1,131,2,0,0,0,
+-	64,180,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,120,208,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,20,179,1,131,
+-	2,0,0,0,80,179,1,131,3,0,0,0,
+-	140,179,1,131,4,0,0,0,200,179,1,131,
+-	5,0,0,0,128,208,1,131,0,0,0,0,
+-	0,0,0,0,1,0,2,1,44,202,0,131,
+-	208,212,0,131,164,202,0,131,196,214,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	44,202,0,131,208,212,0,131,164,202,0,131,
+-	196,214,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,208,212,0,131,
+-	164,202,0,131,196,214,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	208,212,0,131,164,202,0,131,196,214,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	44,202,0,131,208,212,0,131,164,202,0,131,
+-	196,214,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,208,212,0,131,
+-	164,202,0,131,196,214,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	208,212,0,131,164,202,0,131,196,214,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	44,202,0,131,208,212,0,131,164,202,0,131,
+-	196,214,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,208,212,0,131,
+-	164,202,0,131,196,214,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	208,212,0,131,164,202,0,131,196,214,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	44,202,0,131,208,212,0,131,164,202,0,131,
+-	196,214,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,208,212,0,131,
+-	164,202,0,131,196,214,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	208,212,0,131,164,202,0,131,196,214,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,6,1,
+-	44,202,0,131,208,212,0,131,164,202,0,131,
+-	196,214,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,0,0,192,180,1,131,2,0,0,0,
+-	232,180,1,131,3,0,0,0,16,181,1,131,
+-	4,0,0,0,56,181,1,131,5,0,0,0,
+-	96,181,1,131,6,0,0,0,136,181,1,131,
+-	7,0,0,0,176,181,1,131,8,0,0,0,
+-	216,181,1,131,9,0,0,0,0,182,1,131,
+-	10,0,0,0,40,182,1,131,11,0,0,0,
+-	80,182,1,131,13,0,0,0,120,182,1,131,
+-	16,0,0,0,160,182,1,131,17,0,0,0,
+-	200,182,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,144,208,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	160,208,1,131,2,0,0,0,168,208,1,131,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,184,208,1,131,2,0,0,0,
+-	192,208,1,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,208,208,1,131,2,0,0,0,
+-	216,208,1,131,3,0,0,0,224,208,1,131,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,240,208,1,131,2,0,0,0,
+-	248,208,1,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	8,209,1,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,1,0,0,0,24,209,1,131,
+-	2,0,0,0,32,209,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,48,209,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,64,209,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,232,208,1,131,
+-	2,0,0,0,0,209,1,131,3,0,0,0,
+-	16,209,1,131,4,0,0,0,40,209,1,131,
+-	5,0,0,0,56,209,1,131,6,0,0,0,
+-	72,209,1,131,0,0,0,0,0,0,0,0,
+-	2,0,0,0,152,208,1,131,6,0,0,0,
+-	176,208,1,131,7,0,0,0,200,208,1,131,
+-	8,0,0,0,80,209,1,131,0,0,0,0,
+-	0,0,0,0,7,0,0,0,88,209,1,131,
+-	0,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	128,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	8,185,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	144,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	68,185,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	148,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	128,185,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	132,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	188,185,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	136,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	248,185,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	140,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	52,186,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	156,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	112,186,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	160,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	172,186,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	164,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	232,186,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	168,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	36,187,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	172,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	96,187,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	176,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	156,187,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	180,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	216,187,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	184,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	20,188,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	188,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	80,188,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	192,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	140,188,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	196,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	200,188,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	200,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	4,189,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	204,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	64,189,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	208,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	124,189,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	212,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	184,189,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	220,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	244,189,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	224,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	48,190,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	228,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	108,190,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	232,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	168,190,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	236,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	228,190,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,92,215,0,131,156,202,0,131,
+-	240,17,3,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	32,191,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,104,215,0,131,140,215,0,131,
+-	0,0,0,0,1,0,2,3,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	92,191,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	28,185,1,131,2,0,0,0,88,185,1,131,
+-	3,0,0,0,148,185,1,131,4,0,0,0,
+-	208,185,1,131,5,0,0,0,12,186,1,131,
+-	6,0,0,0,72,186,1,131,8,0,0,0,
+-	132,186,1,131,9,0,0,0,192,186,1,131,
+-	10,0,0,0,252,186,1,131,11,0,0,0,
+-	56,187,1,131,12,0,0,0,116,187,1,131,
+-	13,0,0,0,176,187,1,131,14,0,0,0,
+-	236,187,1,131,15,0,0,0,40,188,1,131,
+-	16,0,0,0,100,188,1,131,17,0,0,0,
+-	160,188,1,131,18,0,0,0,220,188,1,131,
+-	19,0,0,0,24,189,1,131,20,0,0,0,
+-	84,189,1,131,21,0,0,0,144,189,1,131,
+-	22,0,0,0,204,189,1,131,24,0,0,0,
+-	8,190,1,131,25,0,0,0,68,190,1,131,
+-	26,0,0,0,128,190,1,131,27,0,0,0,
+-	188,190,1,131,28,0,0,0,248,190,1,131,
+-	29,0,0,0,52,191,1,131,30,0,0,0,
+-	112,191,1,131,0,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,180,215,0,131,
+-	156,202,0,131,218,12,3,131,1,0,4,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,128,192,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,120,205,0,131,
+-	156,202,0,131,40,211,1,131,1,0,2,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,188,192,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	8,202,0,131,148,38,1,131,112,205,0,131,
+-	156,202,0,131,2,0,0,0,1,0,2,1,
+-	32,45,1,131,208,48,1,131,160,49,1,131,
+-	20,48,1,131,248,192,1,131,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,44,202,0,131,200,215,0,131,
+-	164,202,0,131,196,216,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,44,202,0,131,
+-	200,215,0,131,164,202,0,131,196,216,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,6,1,
+-	44,202,0,131,200,215,0,131,164,202,0,131,
+-	196,216,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,200,215,0,131,
+-	164,202,0,131,196,216,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	200,215,0,131,164,202,0,131,196,216,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	52,193,1,131,2,0,0,0,92,193,1,131,
+-	3,0,0,0,132,193,1,131,4,0,0,0,
+-	172,193,1,131,5,0,0,0,212,193,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	112,209,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,148,192,1,131,2,0,0,0,
+-	208,192,1,131,3,0,0,0,12,193,1,131,
+-	4,0,0,0,120,209,1,131,0,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	112,205,0,131,156,202,0,131,3,0,0,0,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,100,194,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,60,210,0,131,216,12,3,131,
+-	1,0,2,3,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,160,194,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	104,217,0,131,156,202,0,131,0,0,0,0,
+-	1,0,67,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,220,194,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	104,217,0,131,156,202,0,131,0,0,0,0,
+-	1,0,65,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,24,195,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	112,217,0,131,156,202,0,131,216,12,3,131,
+-	1,0,4,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,84,195,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	120,205,0,131,156,202,0,131,224,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,144,195,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	120,205,0,131,156,202,0,131,228,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,204,195,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,156,202,0,131,232,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,8,196,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,156,202,0,131,234,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,68,196,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,156,202,0,131,246,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,128,196,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,156,202,0,131,236,12,3,131,
+-	1,0,2,1,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,188,196,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,60,210,0,131,238,12,3,131,
+-	1,0,2,3,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,248,196,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,60,210,0,131,240,12,3,131,
+-	1,0,2,3,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,52,197,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,8,202,0,131,148,38,1,131,
+-	92,217,0,131,60,210,0,131,242,12,3,131,
+-	1,0,2,3,32,45,1,131,208,48,1,131,
+-	160,49,1,131,20,48,1,131,112,197,1,131,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,180,219,0,131,
+-	132,217,0,131,164,202,0,131,104,220,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,3,
+-	180,219,0,131,132,217,0,131,0,221,0,131,
+-	104,220,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,180,219,0,131,132,217,0,131,
+-	164,202,0,131,104,220,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,3,180,219,0,131,
+-	132,217,0,131,0,221,0,131,104,220,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,2,3,
+-	180,219,0,131,132,217,0,131,0,221,0,131,
+-	104,220,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,4,1,180,219,0,131,132,217,0,131,
+-	164,202,0,131,104,220,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,180,219,0,131,
+-	132,217,0,131,164,202,0,131,104,220,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,4,1,
+-	180,219,0,131,132,217,0,131,164,202,0,131,
+-	104,220,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,4,1,180,219,0,131,132,217,0,131,
+-	164,202,0,131,104,220,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,180,219,0,131,
+-	132,217,0,131,164,202,0,131,104,220,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	172,197,1,131,2,0,0,0,212,197,1,131,
+-	3,0,0,0,252,197,1,131,4,0,0,0,
+-	36,198,1,131,5,0,0,0,76,198,1,131,
+-	6,0,0,0,116,198,1,131,7,0,0,0,
+-	156,198,1,131,8,0,0,0,196,198,1,131,
+-	9,0,0,0,236,198,1,131,10,0,0,0,
+-	20,199,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,136,209,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,120,194,1,131,
+-	2,0,0,0,180,194,1,131,3,0,0,0,
+-	240,194,1,131,4,0,0,0,44,195,1,131,
+-	5,0,0,0,104,195,1,131,6,0,0,0,
+-	164,195,1,131,7,0,0,0,224,195,1,131,
+-	8,0,0,0,28,196,1,131,9,0,0,0,
+-	88,196,1,131,10,0,0,0,148,196,1,131,
+-	11,0,0,0,208,196,1,131,12,0,0,0,
+-	12,197,1,131,13,0,0,0,72,197,1,131,
+-	14,0,0,0,132,197,1,131,15,0,0,0,
+-	144,209,1,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,76,210,0,131,156,202,0,131,
+-	160,211,1,131,1,0,65,1,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	44,200,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,8,202,0,131,
+-	148,38,1,131,120,205,0,131,60,210,0,131,
+-	140,1,0,163,1,0,2,3,32,45,1,131,
+-	208,48,1,131,160,49,1,131,20,48,1,131,
+-	104,200,1,131,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,4,1,
+-	44,202,0,131,36,222,0,131,164,202,0,131,
+-	48,223,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,44,202,0,131,36,222,0,131,
+-	164,202,0,131,48,223,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,2,1,44,202,0,131,
+-	36,222,0,131,164,202,0,131,48,223,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,0,0,
+-	164,200,1,131,2,0,0,0,204,200,1,131,
+-	3,0,0,0,244,200,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,168,209,1,131,
+-	0,0,0,0,0,0,0,0,1,0,2,1,
+-	44,202,0,131,212,223,0,131,164,202,0,131,
+-	252,224,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,2,1,44,202,0,131,212,223,0,131,
+-	164,202,0,131,252,224,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,65,1,44,202,0,131,
+-	212,223,0,131,164,202,0,131,252,224,0,131,
+-	0,0,0,0,0,0,0,0,255,0,0,0,
+-	255,0,0,0,0,0,0,0,1,0,65,1,
+-	44,202,0,131,212,223,0,131,164,202,0,131,
+-	252,224,0,131,0,0,0,0,0,0,0,0,
+-	255,0,0,0,255,0,0,0,0,0,0,0,
+-	1,0,65,1,44,202,0,131,212,223,0,131,
+-	164,202,0,131,252,224,0,131,0,0,0,0,
+-	0,0,0,0,255,0,0,0,255,0,0,0,
+-	0,0,0,0,1,0,0,0,76,201,1,131,
+-	2,0,0,0,116,201,1,131,3,0,0,0,
+-	156,201,1,131,4,0,0,0,196,201,1,131,
+-	5,0,0,0,236,201,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,184,209,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	64,200,1,131,2,0,0,0,124,200,1,131,
+-	3,0,0,0,176,209,1,131,4,0,0,0,
+-	192,209,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,128,209,1,131,2,0,0,0,
+-	152,209,1,131,3,0,0,0,160,209,1,131,
+-	4,0,0,0,200,209,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,24,208,1,131,
+-	2,0,0,0,48,208,1,131,4,0,0,0,
+-	104,208,1,131,5,0,0,0,112,208,1,131,
+-	7,0,0,0,136,208,1,131,10,0,0,0,
+-	96,209,1,131,11,0,0,0,104,209,1,131,
+-	17,0,0,0,208,209,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,216,209,1,131,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,240,209,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,1,0,0,0,8,210,1,131,
+-	2,0,0,0,16,210,1,131,3,0,0,0,
+-	24,210,1,131,4,0,0,0,32,210,1,131,
+-	5,0,0,0,40,210,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	56,210,1,131,2,0,0,0,64,210,1,131,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	72,210,1,131,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	48,210,1,131,2,0,0,0,80,210,1,131,
+-	3,0,0,0,88,210,1,131,0,0,0,0,
+-	0,0,0,0,1,0,0,0,16,208,1,131,
+-	2,0,0,0,224,209,1,131,3,0,0,0,
+-	232,209,1,131,4,0,0,0,248,209,1,131,
+-	5,0,0,0,0,210,1,131,6,0,0,0,
+-	96,210,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,104,210,1,131,0,0,0,0,
+-	0,0,0,0,6,0,0,0,112,210,1,131,
+-	0,0,0,0,0,0,0,0,3,0,0,0,
+-	120,210,1,131,0,0,0,0,0,0,0,0,
+-	1,0,0,0,128,210,1,131,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,3,0,0,0,6,0,0,0,
+-	1,0,0,0,2,0,0,0,1,0,0,0,
+-	10,0,0,0,7,0,0,0,8,0,0,0,
+-	2,0,0,0,2,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,112,117,98,108,
+-	105,99,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,112,114,105,118,97,116,101,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	83,78,77,80,95,116,114,97,112,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	3,0,0,0,6,0,0,0,1,0,0,0,
+-	4,0,0,0,1,0,0,0,76,1,0,0,
+-	5,0,0,0,1,0,0,0,1,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	3,0,0,0,6,0,0,0,1,0,0,0,
+-	2,0,0,0,1,0,0,0,2,0,0,0,
+-	2,0,0,0,1,0,0,0,1,0,0,0,
+-	0,0,0,0,1,0,0,0,3,0,0,0,
+-	6,0,0,0,1,0,0,0,2,0,0,0,
+-	1,0,0,0,17,0,0,0,0,0,0,0,
+-	0,0,0,0,48,49,50,51,52,53,54,55,
+-	56,57,65,66,67,68,69,70,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	255,85,170,0,255,255,255,255,85,85,85,85,
+-	170,170,170,170,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,64,40,35,41,
+-	32,67,111,112,121,114,105,103,104,116,32,40,
+-	99,41,32,49,57,56,54,32,45,32,49,57,
+-	57,53,32,32,69,112,105,108,111,103,117,101,
+-	32,84,101,99,104,110,111,108,111,103,121,32,
+-	67,111,114,112,111,114,97,116,105,111,110,10,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,255,255,255,255,
+-	72,10,0,0,78,10,0,0,83,10,0,0,
+-	69,10,0,0,109,97,105,110,46,99,0,0,
+-	48,0,0,0,55,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	0,0,0,0,116,105,109,101,114,46,99,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	100,0,0,0,100,0,0,0,1,0,0,0,
+-	0,0,0,0,115,114,99,32,0,0,0,0,
+-	32,0,0,0,100,115,116,32,0,0,0,0,
+-	32,37,48,50,88,0,0,0,10,0,0,0,
+-	255,255,255,255,48,48,48,48,48,48,0,0,
+-	48,48,48,48,48,49,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,255,255,255,255,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	62,32,0,0,37,120,10,0,37,120,58,9,
+-	37,120,10,0,37,115,10,0,0,0,0,0,
+-	10,0,0,0,0,0,0,0,0,0,0,0,
+-	68,85,77,80,10,0,0,0,37,48,50,120,
+-	32,0,0,0,10,0,0,0,0,0,0,0,
+-	37,100,32,112,112,115,10,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	1,0,0,0,0,0,0,0,1,0,0,0,
+-	119,119,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,128,194,0,
+-	0,0,0,0,1,128,194,0,0,16,0,0,
+-	66,76,75,0,70,87,68,0,76,82,78,0,
+-	76,73,83,0,68,73,83,0,72,69,76,76,
+-	79,10,0,0,116,99,32,101,120,112,10,0,
+-	102,114,111,109,32,0,0,0,10,0,0,0,
+-	87,101,105,114,100,0,0,0,0,0,0,0,
+-	0,0,0,0,255,255,255,255,255,255,255,255,
+-	255,255,0,0,255,255,255,255,255,255,0,0,
+-	0,0,0,0,0,0,0,0,80,65,68,37,
+-	100,10,0,0,170,170,3,0,0,0,0,0,
+-	83,69,78,84,33,10,0,0,85,68,80,10,
+-	0,0,0,0,73,67,77,80,10,0,0,0,
+-	69,67,72,79,10,0,0,0,73,80,10,0,
+-	170,170,3,0,0,0,0,0,73,80,88,33,
+-	10,0,0,0,0,0,0,0,255,255,255,255,
+-	255,255,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0,
+-	0,0,0,0,192,155,1,131,0,0,0,0,
+-	108,157,1,131,0,0,0,0,88,161,1,131,
+-	0,0,0,0,16,162,1,131,0,0,0,0,
+-	32,162,1,131,0,0,0,0,116,167,1,131,
+-	0,0,0,0,164,167,1,131,0,0,0,0,
+-	188,169,1,131,0,0,0,0,44,170,1,131,
+-	0,0,0,0,220,170,1,131,0,0,0,0,
+-	4,171,1,131,0,0,0,0,80,171,1,131,
+-	0,0,0,0,40,178,1,131,0,0,0,0,
+-	104,180,1,131,0,0,0,0,128,180,1,131,
+-	0,0,0,0,144,180,1,131,0,0,0,0,
+-	240,182,1,131,0,0,0,0,104,183,1,131,
+-	0,0,0,0,120,183,1,131,0,0,0,0,
+-	128,183,1,131,0,0,0,0,136,183,1,131,
+-	0,0,0,0,160,183,1,131,0,0,0,0,
+-	168,183,1,131,0,0,0,0,176,183,1,131,
+-	0,0,0,0,200,183,1,131,0,0,0,0,
+-	208,183,1,131,0,0,0,0,216,183,1,131,
+-	0,0,0,0,224,183,1,131,0,0,0,0,
+-	0,184,1,131,0,0,0,0,8,184,1,131,
+-	0,0,0,0,16,184,1,131,0,0,0,0,
+-	40,184,1,131,0,0,0,0,48,184,1,131,
+-	0,0,0,0,64,184,1,131,0,0,0,0,
+-	72,184,1,131,0,0,0,0,80,184,1,131,
+-	0,0,0,0,104,184,1,131,0,0,0,0,
+-	112,184,1,131,0,0,0,0,128,184,1,131,
+-	0,0,0,0,136,184,1,131,0,0,0,0,
+-	152,184,1,131,0,0,0,0,208,184,1,131,
+-	0,0,0,0,248,184,1,131,0,0,0,0,
+-	152,191,1,131,0,0,0,0,252,193,1,131,
+-	0,0,0,0,44,194,1,131,0,0,0,0,
+-	60,194,1,131,0,0,0,0,60,199,1,131,
+-	0,0,0,0,148,199,1,131,0,0,0,0,
+-	164,199,1,131,0,0,0,0,36,200,1,131,
+-	0,0,0,0,28,201,1,131,0,0,0,0,
+-	60,201,1,131,0,0,0,0,20,202,1,131,
+-	0,0,0,0,68,202,1,131,0,0,0,0,
+-	84,202,1,131,0,0,0,0,124,202,1,131,
+-	0,0,0,0,164,202,1,131,0,0,0,0,
+-	236,202,1,131,0,0,0,0,252,202,1,131,
+-	0,0,0,0,4,203,1,131,0,0,0,0,
+-	12,203,1,131,0,0,0,0,28,203,1,131,
+-	0,0,0,0,36,203,1,131,0,0,0,0,
+-	44,203,1,131,0,0,0,0,52,203,1,131,
+-	0,0,0,0,60,203,1,131,0,0,0,0,
+-	68,203,1,131,0,0,0,0,76,203,1,131,
+-	0,0,0,0,124,203,1,131,0,0,0,0,
+-	132,203,1,131,0,0,0,0,140,203,1,131,
+-	0,0,0,0,164,203,1,131,0,0,0,0,
+-	180,203,1,131,0,0,0,0,188,203,1,131,
+-	0,0,0,0,220,203,1,131,0,0,0,0,
+-	20,204,1,131,0,0,0,0,36,204,1,131,
+-	0,0,0,0,52,204,1,131,0,0,0,0,
+-	68,204,1,131,255,255,255,0,0,0,0,0,
+-	0,0,0,0,0,0,0,0,1,0,0,0,
+-	10,0,0,0,10,0,0,0,0,205,1,131,
+-	10,0,0,0,7,0,0,0,0,0,0,0,
+-	0,0,0,0,255,255,255,255,110,118,114,97,
+-	109,46,99,0,114,99,0,0,48,120,0,0,
+-	0,0,0,0,0,0,0,0,0,0,0,0
+-	} ;
+-static const int dgrs_ncode = 119520 ;
+diff -puN drivers/net/dgrs_i82596.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_i82596.h
++++ /dev/null
+@@ -1,473 +0,0 @@
+-/*
+- *	i82596 ethernet controller bits and structures (little endian)
+- *
+- *	$Id: i82596.h,v 1.8 1996/09/03 11:19:03 rick Exp $
+- */
+-
+-/************************************************************************/
+-/*									*/
+-/*	PORT commands (p. 4-20).  The least significant nibble is one	*/
+-/*	of these commands, the rest of the command is a memory address	*/
+-/*	aligned on a 16 byte boundary.  Note that port commands must	*/
+-/*	be written to the PORT address and the PORT address+2 with two	*/
+-/*	halfword writes.  Write the LSH first to PORT, then the MSH to	*/
+-/*	PORT+2.  Blame Intel.						*/
+-/*									*/
+-/************************************************************************/
+-#define	I596_PORT_RESET		0x0	/* Reset. Wait 5 SysClks & 10 TxClks */
+-#define	I596_PORT_SELFTEST	0x1	/* Do a selftest */
+-#define	I596_PORT_SCP_ADDR	0x2	/* Set new SCP address */
+-#define	I596_PORT_DUMP		0x3	/* Dump internal data structures */
+-
+-/*
+- *	I596_ST:	Selftest results (p. 4-21)
+- */
+-typedef volatile struct
+-{
+-	ulong	signature;	/* ROM checksum */
+-	ulong	result;		/* Selftest results: non-zero is a failure */
+-} I596_ST;
+-
+-#define	I596_ST_SELFTEST_FAIL	0x1000	/* Selftest Failed */
+-#define	I596_ST_DIAGNOSE_FAIL	0x0020	/* Diagnose Failed */
+-#define	I596_ST_BUSTIMER_FAIL	0x0010	/* Bus Timer Failed */
+-#define	I596_ST_REGISTER_FAIL	0x0008	/* Register Failed */
+-#define	I596_ST_ROM_FAIL	0x0004	/* ROM Failed */
+-
+-/*
+- *	I596_DUMP:	Dump results
+- */
+-typedef volatile struct
+-{
+-	ulong	dump[77];
+-} I596_DUMP;
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_TBD:	Transmit Buffer Descriptor (p. 4-59)		*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct _I596_TBD
+-{
+-	ulong			count;
+-	vol struct _I596_TBD	*next;
+-	uchar			*buf;
+-	ushort			unused1;
+-	ushort			unused2;
+-} I596_TBD;
+-
+-#define	I596_TBD_NOLINK		((I596_TBD *) 0xffffffff)
+-#define	I596_TBD_EOF		0x8000
+-#define I596_TBD_COUNT_MASK	0x3fff
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_TFD:	Transmit Frame Descriptor (p. 4-56)		*/
+-/*			a.k.a. I596_CB_XMIT				*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	I596_TBD		*tbdp;
+-	ulong			count;	/* for speed */
+-
+-	/* Application defined data follows structure... */
+-
+-#if 0	/* We don't use these intel defined ones */
+-		uchar			addr[6];
+-		ushort			len;
+-		uchar			data[1];
+-#else
+-		ulong		dstchan;/* Used by multi-NIC mode */
+-#endif
+-} I596_TFD;
+-
+-#define	I596_TFD_NOCRC	0x0010	/* cmd: No CRC insertion */
+-#define	I596_TFD_FLEX	0x0008	/* cmd: Flexible mode */
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_RBD:	Receive Buffer Descriptor (p. 4-84)		*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct _I596_RBD
+-{
+-#ifdef INTEL_RETENTIVE
+-	ushort			count;	/* Length of data in buf */
+-	ushort			offset;
+-#else
+-	ulong			count;	/* Length of data in buf */
+-#endif
+-	vol struct _I596_RBD	*next;	/* Next buffer descriptor in list */
+-	uchar			*buf;	/* Data buffer */
+-#ifdef INTEL_RETENTIVE
+-	ushort			size;	/* Size of buf (constant) */
+-	ushort			zero;
+-#else
+-	ulong			size;	/* Size of buf (constant) */
+-#endif
+-
+-	/* Application defined data follows structure... */
+-
+-	uchar			chan;
+-	uchar			refcnt;
+-	ushort			len;
+-} I596_RBD;
+-
+-#define	I596_RBD_NOLINK		((I596_RBD *) 0xffffffff)
+-#define	I596_RBD_EOF		0x8000	/* This is last buffer in a frame */
+-#define	I596_RBD_F		0x4000	/* The actual count is valid */
+-
+-#define	I596_RBD_EL		0x8000	/* Last buffer in list */
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_RFD:	Receive Frame Descriptor (p. 4-79)		*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct _I596_RFD
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	vol struct _I596_RFD	*next;
+-	vol struct _I596_RBD	*rbdp;
+-	ushort			count;	/* Len of data in RFD: always 0 */
+-	ushort			size;	/* Size of RFD buffer: always 0 */
+-
+-	/* Application defined data follows structure... */
+-
+-#	if 0	/* We don't use these intel defined ones */
+-		uchar		addr[6];
+-		ushort		len;
+-		uchar		data[1];
+-#	else
+-		ulong		dstchan;/* Used by multi-nic mode */
+-#	endif
+-} I596_RFD;
+-
+-#define	I596_RFD_C		0x8000	/* status: frame complete */
+-#define	I596_RFD_B		0x4000	/* status: frame busy or waiting */
+-#define	I596_RFD_OK		0x2000	/* status: frame OK */
+-#define	I596_RFD_ERR_LENGTH	0x1000	/* status: length error */
+-#define	I596_RFD_ERR_CRC	0x0800	/* status: CRC error */
+-#define	I596_RFD_ERR_ALIGN	0x0400	/* status: alignment error */
+-#define	I596_RFD_ERR_NOBUFS	0x0200	/* status: resource error */
+-#define	I596_RFD_ERR_DMA	0x0100	/* status: DMA error */
+-#define	I596_RFD_ERR_SHORT	0x0080	/* status: too short error */
+-#define	I596_RFD_NOMATCH	0x0002	/* status: IA was not matched */
+-#define	I596_RFD_COLLISION	0x0001	/* status: collision during receive */
+-
+-#define	I596_RFD_EL		0x8000	/* cmd: end of RFD list */
+-#define	I596_RFD_FLEX		0x0008	/* cmd: Flexible mode */
+-#define	I596_RFD_EOF		0x8000	/* count: last buffer in the frame */
+-#define	I596_RFD_F		0x4000	/* count: The actual count is valid */
+-
+-/************************************************************************/
+-/*									*/
+-/*	Commands							*/
+-/*									*/
+-/************************************************************************/
+-
+-	/* values for cmd halfword in all the structs below */
+-#define I596_CB_CMD		0x07	/* CB COMMANDS */
+-#define I596_CB_CMD_NOP		0
+-#define I596_CB_CMD_IA		1
+-#define I596_CB_CMD_CONF	2
+-#define I596_CB_CMD_MCAST	3
+-#define I596_CB_CMD_XMIT	4
+-#define I596_CB_CMD_TDR		5
+-#define I596_CB_CMD_DUMP	6
+-#define I596_CB_CMD_DIAG	7
+-
+-#define	I596_CB_CMD_EL		0x8000	/* CB is last in linked list */
+-#define	I596_CB_CMD_S		0x4000	/* Suspend after execution */
+-#define	I596_CB_CMD_I		0x2000	/* cause interrupt */
+-
+-	/* values for the status halfword in all the struct below */
+-#define	I596_CB_STATUS		0xF000	/* All four status bits */
+-#define	I596_CB_STATUS_C	0x8000	/* Command complete */
+-#define	I596_CB_STATUS_B	0x4000	/* Command busy executing */
+-#define	I596_CB_STATUS_C_OR_B	0xC000	/* Command complete or busy */
+-#define	I596_CB_STATUS_OK	0x2000	/* Command complete, no errors */
+-#define	I596_CB_STATUS_A	0x1000	/* Command busy executing */
+-
+-#define	I596_CB_NOLINK		((I596_CB *) 0xffffffff)
+-
+-/*
+- *	I596_CB_NOP:	NOP Command (p. 4-34)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-} I596_CB_NOP;
+-
+-/*
+- *	Same as above, but command and status in one ulong for speed
+- */
+-typedef volatile struct
+-{
+-	ulong			csr;
+-	union _I596_CB		*next;
+-} I596_CB_FAST;
+-#define	FASTs(X)	(X)
+-#define	FASTc(X)	((X)<<16)
+-
+-/*
+- *	I596_CB_IA:	Individual (MAC) Address Command (p. 4-35)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	uchar			addr[6];
+-} I596_CB_IA;
+-
+-/*
+- *	I596_CB_CONF:	Configure Command (p. 4-37)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	uchar			conf[14];
+-} I596_CB_CONF;
+-
+-#define	I596_CONF0_P		0x80	/* Enable RBD Prefetch Bit */
+-#define	I596_CONF0_COUNT	14	/* Count of configuration bytes */
+-
+-#define	I596_CONF1_MON_OFF	0xC0	/* Monitor mode: Monitor off */
+-#define	I596_CONF1_MON_ON	0x80	/* Monitor mode: Monitor on */
+-#define	I596_CONF1_TxFIFO(W)	(W)	/* TxFIFO trigger, in words */
+-
+-#define	I596_CONF2_SAVEBF	0x80	/* Save bad frames */
+-
+-#define	I596_CONF3_ADDRLEN(B)	(B)	/* Address length */
+-#define	I596_CONF3_NOSRCINSERT	0x08	/* Do not insert source address */
+-#define	I596_CONF3_PREAMBLE8	0x20	/* 8 byte preamble */
+-#define	I596_CONF3_LOOPOFF	0x00	/* Loopback: Off */
+-#define	I596_CONF3_LOOPINT	0x40	/* Loopback: internal */
+-#define	I596_CONF3_LOOPEXT	0xC0	/* Loopback: external */
+-
+-#define	I596_CONF4_LINPRI(ST)	(ST)	/* Linear priority: slot times */
+-#define	I596_CONF4_EXPPRI(ST)	(ST)	/* Exponential priority: slot times */
+-#define	I596_CONF4_IEEE_BOM	0	/* IEEE 802.3 backoff method */
+-
+-#define	I596_CONF5_IFS(X)	(X)	/* Interframe spacing in clocks */
+-
+-#define	I596_CONF6_ST_LOW(X)	(X&255)	/* Slot time, low byte */
+-
+-#define	I596_CONF7_ST_HI(X)	(X>>8)	/* Slot time, high bits */
+-#define	I596_CONF7_RETRY(X)	(X<<4)	/* Max retry number */
+-
+-#define	I596_CONF8_PROMISC	0x01	/* Rcv all frames */
+-#define	I596_CONF8_NOBROAD	0x02
+-#define	I596_CONF8_MANCHESTER	0x04
+-#define	I596_CONF8_TxNOCRS	0x08
+-#define	I596_CONF8_NOCRC	0x10
+-#define	I596_CONF8_CRC_CCITT	0x20
+-#define	I596_CONF8_BITSTUFFING	0x40
+-#define	I596_CONF8_PADDING	0x80
+-
+-#define	I596_CONF9_CSFILTER(X)	(X)
+-#define	I596_CONF9_CSINT(X)	0x08
+-#define	I596_CONF9_CDFILTER(X)	(X<<4)
+-#define	I596_CONF9_CDINT(X)	0x80
+-
+-#define	I596_CONF10_MINLEN(X)	(X)	/* Minimum frame length */
+-
+-#define	I596_CONF11_PRECRS_	0x01	/* Preamble before carrier sense */
+-#define	I596_CONF11_LNGFLD_	0x02	/* Padding in End of Carrier */
+-#define	I596_CONF11_CRCINM_	0x04	/* CRC in memory */
+-#define	I596_CONF11_AUTOTX	0x08	/* Auto retransmit */
+-#define	I596_CONF11_CSBSAC_	0x10	/* Collision detect by src addr cmp. */
+-#define	I596_CONF11_MCALL_	0x20	/* Multicast all */
+-
+-#define I596_CONF13_RESERVED	0x3f	/* Reserved: must be ones */
+-#define I596_CONF13_MULTIA	0x40	/* Enable multiple addr. reception */
+-#define I596_CONF13_DISBOF	0x80	/* Disable backoff algorithm */
+-/*
+- *	I596_CB_MCAST:	Multicast-Setup Command (p. 4-54)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	ushort			count;		/* Number of 6-byte addrs that follow */
+-	uchar			addr[6][1];
+-} I596_CB_MCAST;
+-
+-/*
+- *	I596_CB_XMIT:	Transmit Command (p. 4-56)
+- */
+-typedef	I596_TFD	I596_CB_XMIT;
+-
+-#define	I596_CB_XMIT_NOCRC	0x0010	/* cmd: No CRC insertion */
+-#define	I596_CB_XMIT_FLEX	0x0008	/* cmd: Flexible memory mode */
+-
+-#define	I596_CB_XMIT_ERR_LATE	0x0800	/* status: error: late collision */
+-#define	I596_CB_XMIT_ERR_NOCRS	0x0400	/* status: error: no carriers sense */
+-#define	I596_CB_XMIT_ERR_NOCTS	0x0200	/* status: error: loss of CTS */
+-#define	I596_CB_XMIT_ERR_UNDER	0x0100	/* status: error: DMA underrun */
+-#define	I596_CB_XMIT_ERR_MAXCOL	0x0020	/* status: error: maximum collisions */
+-#define	I596_CB_XMIT_COLLISIONS	0x000f	/* status: number of collisions */
+-
+-/*
+- *	I596_CB_TDR:	Time Domain Reflectometry Command (p. 4-63)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	ushort			time;
+-} I596_CB_TDR;
+-
+-/*
+- *	I596_CB_DUMP:	Dump Command (p. 4-65)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-	uchar			*buf;
+-} I596_CB_DUMP;
+-
+-/*
+- *	I596_CB_DIAG:	Diagnose Command (p. 4-77)
+- */
+-typedef volatile struct
+-{
+-	ushort			status;
+-	ushort			cmd;
+-	union _I596_CB		*next;
+-} I596_CB_DIAG;
+-
+-/*
+- *	I596_CB:	Command Block
+- */
+-typedef union _I596_CB
+-{
+-	I596_CB_NOP		nop;
+-	I596_CB_IA		ia;
+-	I596_CB_CONF		conf;
+-	I596_CB_MCAST		mcast;
+-	I596_CB_XMIT		xmit;
+-	I596_CB_TDR		tdr;
+-	I596_CB_DUMP		dump;
+-	I596_CB_DIAG		diag;
+-
+-	/* command and status in one ulong for speed... */
+-	I596_CB_FAST		fast;
+-} I596_CB;
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_SCB:	System Configuration Block (p. 4-26)		*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct
+-{
+-	volatile ushort		status;		/* Status word */
+-	volatile ushort		cmd;		/* Command word */
+-	I596_CB		*cbp;
+-	I596_RFD	*rfdp;
+-	ulong		crc_errs;
+-	ulong		align_errs;
+-	ulong		resource_errs;
+-	ulong		overrun_errs;
+-	ulong		rcvcdt_errs;
+-	ulong		short_errs;
+-	ushort		toff;
+-	ushort		ton;
+-} I596_SCB;
+-
+-	/* cmd halfword values */
+-#define	I596_SCB_ACK		0xF000	/* ACKNOWLEDGMENTS */
+-#define	I596_SCB_ACK_CX		0x8000	/* Ack command completion */
+-#define	I596_SCB_ACK_FR		0x4000	/* Ack received frame */
+-#define	I596_SCB_ACK_CNA	0x2000	/* Ack command unit not active */
+-#define	I596_SCB_ACK_RNR	0x1000	/* Ack rcv unit not ready */
+-#define	I596_SCB_ACK_ALL	0xF000	/* Ack everything */
+-
+-#define	I596_SCB_CUC		0x0700	/* COMMAND UNIT COMMANDS */
+-#define	I596_SCB_CUC_NOP	0x0000	/* No operation */
+-#define	I596_SCB_CUC_START	0x0100	/* Start execution of first CB */
+-#define	I596_SCB_CUC_RESUME	0x0200	/* Resume execution */
+-#define	I596_SCB_CUC_SUSPEND	0x0300	/* Suspend after current CB */
+-#define	I596_SCB_CUC_ABORT	0x0400	/* Abort current CB immediately */
+-#define	I596_SCB_CUC_LOAD	0x0500	/* Load Bus throttle timers */
+-#define	I596_SCB_CUC_LOADIMM	0x0600	/* Load Bus throttle timers, now */
+-
+-#define	I596_SCB_RUC		0x0070	/* RECEIVE UNIT COMMANDS */
+-#define	I596_SCB_RUC_NOP	0x0000	/* No operation */
+-#define	I596_SCB_RUC_START	0x0010	/* Start reception */
+-#define	I596_SCB_RUC_RESUME	0x0020	/* Resume reception */
+-#define	I596_SCB_RUC_SUSPEND	0x0030	/* Suspend reception */
+-#define	I596_SCB_RUC_ABORT	0x0040	/* Abort reception */
+-
+-#define	I596_SCB_RESET		0x0080	/* Hard reset chip */
+-
+-	/* status halfword values */
+-#define	I596_SCB_STAT		0xF000	/* STATUS */
+-#define	I596_SCB_CX		0x8000	/* command completion */
+-#define	I596_SCB_FR		0x4000	/* received frame */
+-#define	I596_SCB_CNA		0x2000	/* command unit not active */
+-#define	I596_SCB_RNR		0x1000	/* rcv unit not ready */
+-
+-#define	I596_SCB_CUS		0x0700	/* COMMAND UNIT STATUS */
+-#define	I596_SCB_CUS_IDLE	0x0000	/* Idle */
+-#define	I596_SCB_CUS_SUSPENDED	0x0100	/* Suspended */
+-#define	I596_SCB_CUS_ACTIVE	0x0200	/* Active */
+-
+-#define	I596_SCB_RUS		0x00F0	/* RECEIVE UNIT STATUS */
+-#define	I596_SCB_RUS_IDLE	0x0000	/* Idle */
+-#define	I596_SCB_RUS_SUSPENDED	0x0010	/* Suspended */
+-#define	I596_SCB_RUS_NORES	0x0020	/* No Resources */
+-#define	I596_SCB_RUS_READY	0x0040	/* Ready */
+-#define	I596_SCB_RUS_NORBDS	0x0080	/* No more RBDs modifier */
+-
+-#define	I596_SCB_LOADED		0x0008	/* Bus timers loaded */
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_ISCP:	Intermediate System Configuration Ptr (p 4-26)	*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct
+-{
+-	ulong		busy;	/* Set to 1; I596 clears it when scbp is read */
+-	I596_SCB	*scbp;
+-} I596_ISCP;
+-
+-/************************************************************************/
+-/*									*/
+-/*	I596_SCP:	System Configuration Pointer (p. 4-23)		*/
+-/*									*/
+-/************************************************************************/
+-typedef volatile struct
+-{
+-	ulong		sysbus;
+-	ulong		dummy;
+-	I596_ISCP	*iscpp;
+-} I596_SCP;
+-
+-	/* .sysbus values */
+-#define I596_SCP_RESERVED	0x400000	/* Reserved bits must be set */
+-#define I596_SCP_INTLOW		0x200000	/* Intr. Polarity active low */
+-#define I596_SCP_INTHIGH	0		/* Intr. Polarity active high */
+-#define I596_SCP_LOCKDIS	0x100000	/* Lock Function disabled */
+-#define I596_SCP_LOCKEN		0		/* Lock Function enabled */
+-#define I596_SCP_ETHROTTLE	0x080000	/* External Bus Throttle */
+-#define I596_SCP_ITHROTTLE	0		/* Internal Bus Throttle */
+-#define I596_SCP_LINEAR		0x040000	/* Linear Mode */
+-#define I596_SCP_SEGMENTED	0x020000	/* Segmented Mode */
+-#define I596_SCP_82586		0x000000	/* 82586 Mode */
+diff -puN drivers/net/dgrs_plx9060.h~dgrs-remove-from-build-config-and-maintainer-list /dev/null
+--- a/drivers/net/dgrs_plx9060.h
++++ /dev/null
+@@ -1,175 +0,0 @@
+-/*
+- *	PLX 9060 PCI Interface chip
+- */
+-
+-/*
+- *	PCI configuration registers, same offset on local and PCI sides,
+- *	but on PCI side, must use PCI BIOS calls to read/write.
+- */
+-#define	PCI_PLXREGS_BASE_ADDR	0x10
+-
+-#define	PCI_PLXREGS_IO_ADDR	0x14
+-
+-#define	PCI_SPACE0_BASE_ADDR	0x18
+-
+-#define	PCI_ROM_BASE_ADDR	0x30
+-#	define PCI_ROM_ENABLED		0x00000001
+-
+-#define	PCI_INT_LINE		0x3C
+-
+-/*
+- *	Registers accessible directly from PCI and local side.
+- *	Offset is from PCI side.  Add PLX_LCL_OFFSET for local address.
+- */
+-#define	PLX_LCL_OFFSET	0x80	/* Offset of regs from local side */
+-
+-/*
+- *	Local Configuration Registers
+- */
+-#define	PLX_SPACE0_RANGE	0x00	/* Range for PCI to Lcl Addr Space 0 */
+-#define	PLX_SPACE0_BASE_ADDR	0x04	/* Lcl Base address remap */
+-
+-#define	PLX_ROM_RANGE		0x10	/* Range for expansion ROM (DMA) */
+-#define	PLX_ROM_BASE_ADDR	0x14	/* Lcl base address remap for ROM */
+-
+-#define	PLX_BUS_REGION		0x18	/* Bus Region Descriptors */
+-
+-/*
+- *	Shared Run Time Registers
+- */
+-#define	PLX_MBOX0		0x40
+-#define	PLX_MBOX1		0x44
+-#define	PLX_MBOX2		0x48
+-#define	PLX_MBOX3		0x4C
+-#define	PLX_MBOX4		0x50
+-#define	PLX_MBOX5		0x54
+-#define	PLX_MBOX6		0x58
+-#define	PLX_MBOX7		0x5C
+-
+-#define	PLX_PCI2LCL_DOORBELL	0x60
+-
+-#define	PLX_LCL2PCI_DOORBELL	0x64
+-
+-#define	PLX_INT_CSR		0x68	/* Interrupt Control/Status */
+-#	define	PLX_LSERR_ENABLE	0x00000001
+-#	define	PLX_LSERR_PE		0x00000002
+-#	define	PLX_SERR		0x00000004
+-#	undef  PLX_UNUSED /*		0x00000008			*/
+-#	undef  PLX_UNUSED /*		0x00000010			*/
+-#	undef  PLX_UNUSED /*		0x00000020			*/
+-#	undef  PLX_UNUSED /*		0x00000040			*/
+-#	undef  PLX_UNUSED /*		0x00000080			*/
+-#	define PLX_PCI_IE		0x00000100
+-#	define	PLX_PCI_DOORBELL_IE	0x00000200
+-#	define	PLX_PCI_ABORT_IE	0x00000400
+-#	define	PLX_PCI_LOCAL_IE	0x00000800
+-#	define	PLX_RETRY_ABORT_ENABLE	0x00001000
+-#	define	PLX_PCI_DOORBELL_INT	0x00002000
+-#	define	PLX_PCI_ABORT_INT	0x00004000
+-#	define	PLX_PCI_LOCAL_INT	0x00008000
+-#	define	PLX_LCL_IE		0x00010000
+-#	define	PLX_LCL_DOORBELL_IE	0x00020000
+-#	define	PLX_LCL_DMA0_IE		0x00040000
+-#	define	PLX_LCL_DMA1_IE		0x00080000
+-#	define	PLX_LCL_DOORBELL_INT	0x00100000
+-#	define	PLX_LCL_DMA0_INT	0x00200000
+-#	define	PLX_LCL_DMA1_INT	0x00400000
+-#	define	PLX_LCL_BIST_INT	0x00800000
+-#	define	PLX_BM_DIRECT_		0x01000000
+-#	define	PLX_BM_DMA0_		0x02000000
+-#	define	PLX_BM_DMA1_		0x04000000
+-#	define	PLX_BM_ABORT_		0x08000000
+-#	undef  PLX_UNUSED /*		0x10000000			*/
+-#	undef  PLX_UNUSED /*		0x20000000			*/
+-#	undef  PLX_UNUSED /*		0x40000000			*/
+-#	undef  PLX_UNUSED /*		0x80000000			*/
+-
+-#define	PLX_MISC_CSR		0x6c	/* EEPROM,PCI,User,Init Control/Status*/
+-#	define PLX_USEROUT		0x00010000
+-#	define PLX_USERIN		0x00020000
+-#	define PLX_EECK			0x01000000
+-#	define PLX_EECS			0x02000000
+-#	define PLX_EEWD			0x04000000
+-#	define PLX_EERD			0x08000000
+-
+-/*
+- *	DMA registers.  Offset is from local side
+- */
+-#define	PLX_DMA0_MODE		0x100
+-#	define PLX_DMA_MODE_WIDTH32	0x00000003
+-#	define PLX_DMA_MODE_WAITSTATES(X)	((X)<<2)
+-#	define PLX_DMA_MODE_NOREADY	0x00000000
+-#	define PLX_DMA_MODE_READY	0x00000040
+-#	define PLX_DMA_MODE_NOBTERM	0x00000000
+-#	define PLX_DMA_MODE_BTERM	0x00000080
+-#	define PLX_DMA_MODE_NOBURST	0x00000000
+-#	define PLX_DMA_MODE_BURST	0x00000100
+-#	define PLX_DMA_MODE_NOCHAIN	0x00000000
+-#	define PLX_DMA_MODE_CHAIN	0x00000200
+-#	define PLX_DMA_MODE_DONE_IE	0x00000400
+-#	define PLX_DMA_MODE_ADDR_HOLD	0x00000800
+-
+-#define	PLX_DMA0_PCI_ADDR	0x104
+-					/* non-chaining mode PCI address */
+-
+-#define	PLX_DMA0_LCL_ADDR	0x108
+-					/* non-chaining mode local address */
+-
+-#define	PLX_DMA0_SIZE		0x10C
+-					/* non-chaining mode length */
+-
+-#define	PLX_DMA0_DESCRIPTOR	0x110
+-#	define	PLX_DMA_DESC_EOC	0x00000002
+-#	define	PLX_DMA_DESC_TC_IE	0x00000004
+-#	define	PLX_DMA_DESC_TO_HOST	0x00000008
+-#	define	PLX_DMA_DESC_TO_BOARD	0x00000000
+-#	define	PLX_DMA_DESC_NEXTADDR	0xFFFFfff0
+-
+-#define	PLX_DMA1_MODE		0x114
+-#define	PLX_DMA1_PCI_ADDR	0x118
+-#define	PLX_DMA1_LCL_ADDR	0x11C
+-#define	PLX_DMA1_SIZE		0x110
+-#define	PLX_DMA1_DESCRIPTOR	0x124
+-
+-#define	PLX_DMA_CSR		0x128
+-#	define PLX_DMA_CSR_0_ENABLE	0x00000001
+-#	define PLX_DMA_CSR_0_START	0x00000002
+-#	define PLX_DMA_CSR_0_ABORT	0x00000004
+-#	define PLX_DMA_CSR_0_CLR_INTR	0x00000008
+-#	define PLX_DMA_CSR_0_DONE	0x00000010
+-#	define PLX_DMA_CSR_1_ENABLE	0x00000100
+-#	define PLX_DMA_CSR_1_START	0x00000200
+-#	define PLX_DMA_CSR_1_ABORT	0x00000400
+-#	define PLX_DMA_CSR_1_CLR_INTR	0x00000800
+-#	define PLX_DMA_CSR_1_DONE	0x00001000
+-
+-#define	PLX_DMA_ARB0		0x12C
+-#	define PLX_DMA_ARB0_LATENCY_T	0x000000FF
+-#	define PLX_DMA_ARB0_PAUSE_T	0x0000FF00
+-#	define PLX_DMA_ARB0_LATENCY_EN	0x00010000
+-#	define PLX_DMA_ARB0_PAUSE_EN	0x00020000
+-#	define PLX_DMA_ARB0_BREQ_EN	0x00040000
+-#	define PLX_DMA_ARB0_PRI		0x00180000
+-#	define PLX_DMA_ARB0_PRI_ROUND	0x00000000
+-#	define PLX_DMA_ARB0_PRI_0	0x00080000
+-#	define PLX_DMA_ARB0_PRI_1	0x00100000
+-
+-#define	PLX_DMA_ARB1		0x130
+-						/* Chan 0: FIFO DEPTH=16 */
+-#	define PLX_DMA_ARB1_0_P2L_LW_TRIG(X)	( ((X)&15) <<  0 )
+-#	define PLX_DMA_ARB1_0_L2P_LR_TRIG(X)	( ((X)&15) <<  4 )
+-#	define PLX_DMA_ARB1_0_L2P_PW_TRIG(X)	( ((X)&15) <<  8 )
+-#	define PLX_DMA_ARB1_0_P2L_PR_TRIG(X)	( ((X)&15) << 12 )
+-						/* Chan 1: FIFO DEPTH=8 */
+-#	define PLX_DMA_ARB1_1_P2L_LW_TRIG(X)	( ((X)& 7) << 16 )
+-#	define PLX_DMA_ARB1_1_L2P_LR_TRIG(X)	( ((X)& 7) << 20 )
+-#	define PLX_DMA_ARB1_1_L2P_PW_TRIG(X)	( ((X)& 7) << 24 )
+-#	define PLX_DMA_ARB1_1_P2L_PR_TRIG(X)	( ((X)& 7) << 28 )
+-
+-typedef struct _dmachain
+-{
+-	ulong		pciaddr;
+-	ulong		lcladdr;
+-	ulong		len;
+-	ulong		next;
+-} DMACHAIN;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from neroden@fastmail.fm are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-cifs.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
-git-net.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-scsi-misc.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-amd-5536-udc-remove-unneeded-memset.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+dgrs-remove-from-build-config-and-maintainer-list.patch
