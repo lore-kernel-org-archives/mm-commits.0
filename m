@@ -1,99 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - amd-5536-udc-remove-unneeded-memset.patch removed from -mm tree
-Date: Wed, 19 Sep 2007 15:30:54 -0700
-Message-ID: <200709192230.l8JMUshl014474@imap1.linux-foundation.org>
+Subject: + use-extended-crashkernel-command-line-on-i386.patch added to -mm tree
+Date: Wed, 19 Sep 2007 15:35:43 -0700
+Message-ID: <200709192235.l8JMZhQW014681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42960 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653AbXISWa5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752874AbXISWf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 18:30:57 -0400
+	Wed, 19 Sep 2007 18:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bwalle@suse.de, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com
 
 
 The patch titled
-     AMD 5536 UDC - Remove unneeded memset()
-has been removed from the -mm tree.  Its filename was
-     amd-5536-udc-remove-unneeded-memset.patch
+     Use extended crashkernel command line on i386
+has been added to the -mm tree.  Its filename is
+     use-extended-crashkernel-command-line-on-i386.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: AMD 5536 UDC - Remove unneeded memset()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: Use extended crashkernel command line on i386
+From: Bernhard Walle <bwalle@suse.de>
 
-In drivers/usb/gadget/amd5536udc.c::udc_pci_probe() - We allocate storage
-for 'dev' with kzalloc(), so it is already zero, no need for an extra
-memset().
+This patch removes the crashkernel parsing from
+arch/i386/kernel/machine_kexec.c and calls the generic function, introduced in
+the last patch, in setup_bootmem_allocator().
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+This is necessary because the amount of System RAM must be known in this
+function now because of the new syntax.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/amd5536udc.c |    1 -
- 1 files changed, 1 deletion(-)
+ arch/i386/kernel/e820.c          |    3 +-
+ arch/i386/kernel/machine_kexec.c |   22 -------------------
+ arch/i386/kernel/setup.c         |   33 ++++++++++++++++++++++++-----
+ 3 files changed, 30 insertions(+), 28 deletions(-)
 
-diff -puN drivers/usb/gadget/amd5536udc.c~amd-5536-udc-remove-unneeded-memset drivers/usb/gadget/amd5536udc.c
---- a/drivers/usb/gadget/amd5536udc.c~amd-5536-udc-remove-unneeded-memset
-+++ a/drivers/usb/gadget/amd5536udc.c
-@@ -3244,7 +3244,6 @@ static int udc_pci_probe(
- 		retval = -ENOMEM;
- 		goto finished;
+diff -puN arch/i386/kernel/e820.c~use-extended-crashkernel-command-line-on-i386 arch/i386/kernel/e820.c
+--- a/arch/i386/kernel/e820.c~use-extended-crashkernel-command-line-on-i386
++++ a/arch/i386/kernel/e820.c
+@@ -288,7 +288,8 @@ legacy_init_iomem_resources(struct resou
+ 			request_resource(res, code_resource);
+ 			request_resource(res, data_resource);
+ #ifdef CONFIG_KEXEC
+-			request_resource(res, &crashk_res);
++			if (crashk_res.start != crashk_res.end)
++				request_resource(res, &crashk_res);
+ #endif
+ 		}
  	}
--	memset(dev, 0, sizeof(struct udc));
+diff -puN arch/i386/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-i386 arch/i386/kernel/machine_kexec.c
+--- a/arch/i386/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-i386
++++ a/arch/i386/kernel/machine_kexec.c
+@@ -149,28 +149,6 @@ NORET_TYPE void machine_kexec(struct kim
+ 			image->start, cpu_has_pae);
+ }
  
- 	/* pci setup */
- 	if (pci_enable_device(pdev) < 0) {
+-/* crashkernel=size@addr specifies the location to reserve for
+- * a crash kernel.  By reserving this memory we guarantee
+- * that linux never sets it up as a DMA target.
+- * Useful for holding code to do something appropriate
+- * after a kernel panic.
+- */
+-static int __init parse_crashkernel(char *arg)
+-{
+-	unsigned long size, base;
+-	size = memparse(arg, &arg);
+-	if (*arg == '@') {
+-		base = memparse(arg+1, &arg);
+-		/* FIXME: Do I want a sanity check
+-		 * to validate the memory range?
+-		 */
+-		crashk_res.start = base;
+-		crashk_res.end   = base + size - 1;
+-	}
+-	return 0;
+-}
+-early_param("crashkernel", parse_crashkernel);
+-
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+diff -puN arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386 arch/i386/kernel/setup.c
+--- a/arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386
++++ a/arch/i386/kernel/setup.c
+@@ -381,6 +381,33 @@ extern unsigned long __init setup_memory
+ extern void zone_sizes_init(void);
+ #endif /* !CONFIG_NEED_MULTIPLE_NODES */
+ 
++#ifdef CONFIG_KEXEC
++static void reserve_crashkernel(void)
++{
++	unsigned long long 	free_mem;
++	unsigned long long 	crash_size, crash_base;
++	int			ret;
++
++	free_mem = (max_low_pfn + highend_pfn - highstart_pfn) << PAGE_SHIFT;
++
++	ret = parse_crashkernel(boot_command_line, free_mem,
++			&crash_size, &crash_base);
++	if (ret == 0 && crash_size > 0 && crash_base > 0) {
++		printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
++				"for crashkernel (System RAM: %ldMB)\n",
++				(unsigned long)(crash_size >> 20),
++				(unsigned long)(crash_base >> 20),
++				(unsigned long)(free_mem >> 20));
++		crashk_res.start = crash_base;
++		crashk_res.end   = crash_base + crash_size - 1;
++		reserve_bootmem(crash_base, crash_size);
++	}
++}
++#else
++static inline void reserve_crashkernel(void)
++{}
++#endif
++
+ void __init setup_bootmem_allocator(void)
+ {
+ 	unsigned long bootmap_size;
+@@ -456,11 +483,7 @@ void __init setup_bootmem_allocator(void
+ 		}
+ 	}
+ #endif
+-#ifdef CONFIG_KEXEC
+-	if (crashk_res.start != crashk_res.end)
+-		reserve_bootmem(crashk_res.start,
+-			crashk_res.end - crashk_res.start + 1);
+-#endif
++	reserve_crashkernel();
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-cifs.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
-git-net.patch
-eepro100-avoid-potential-null-pointer-deref-in-speedo_init_rx_ring.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-backlight.patch
-clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-scsi-misc.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-amd-5536-udc-remove-unneeded-memset.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+add-vmcoreinfo.patch
+express-relocatability-of-kernel-on-x86_64-in-documentation.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+express-new-elf32-mechanisms-in-documentation.patch
+add-reset_devices-to-the-recommended-parameters.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
