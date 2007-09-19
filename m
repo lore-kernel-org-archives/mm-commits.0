@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-macros-for-distinguishing-mandatory-locks.patch added to -mm tree
-Date: Wed, 19 Sep 2007 16:51:07 -0700
-Message-ID: <200709192351.l8JNp8AF019001@imap1.linux-foundation.org>
+Subject: + wake-up-mandatory-locks-waiter-on-chmod-v2.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:52:08 -0700
+Message-ID: <200709192352.l8JNq8ea019025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37867 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60099 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751585AbXISXwz (ORCPT
+	by vger.kernel.org with ESMTP id S1753640AbXISXx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 19:52:55 -0400
+	Wed, 19 Sep 2007 19:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, bfields@fieldses.org, dhowells@redhat.com, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, swhiteho@redhat.com, trond.myklebust@fys.uio.no
+Cc: xemul@openvz.org, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Cleanup macros for distinguishing mandatory locks
+     Wake up mandatory locks waiter on chmod 
 has been added to the -mm tree.  Its filename is
-     cleanup-macros-for-distinguishing-mandatory-locks.patch
+     wake-up-mandatory-locks-waiter-on-chmod-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,161 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Cleanup macros for distinguishing mandatory locks
+Subject: Wake up mandatory locks waiter on chmod 
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The combination of S_ISGID bit set and S_IXGRP bit unset is used to mark the
-inode as "mandatory lockable" and there's a macro for this check called
-MANDATORY_LOCK(inode).  However, fs/locks.c and some filesystems still perform
-the explicit i_mode checking.  Besides, Andrew pointed out, that this macro is
-buggy itself, as it dereferences the inode arg twice.
-
-Convert this macro into static inline function and switch its users to it,
-making the code shorter and more readable.
-
-The __mandatory_lock() helper is to be used in places where the IS_MANDLOCK()
-for superblock is already known to be true.
+When the process is blocked on mandatory lock and someone changes the
+inode's permissions, so that the lock is no longer mandatory, nobody wakes
+up the blocked process, but probably should.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: J. Bruce Fields <bfields@fieldses.org>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c          |   14 ++++----------
- fs/nfsd/nfs4state.c |    2 +-
- fs/nfsd/vfs.c       |    2 +-
- fs/read_write.c     |    2 +-
- include/linux/fs.h  |   21 +++++++++++++++++----
- 5 files changed, 24 insertions(+), 17 deletions(-)
+ fs/attr.c          |    9 +++++++--
+ fs/locks.c         |   17 ++++++++++++++++-
+ include/linux/fs.h |    1 +
+ 3 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN fs/locks.c~cleanup-macros-for-distinguishing-mandatory-locks fs/locks.c
---- a/fs/locks.c~cleanup-macros-for-distinguishing-mandatory-locks
+diff -puN fs/attr.c~wake-up-mandatory-locks-waiter-on-chmod-v2 fs/attr.c
+--- a/fs/attr.c~wake-up-mandatory-locks-waiter-on-chmod-v2
++++ a/fs/attr.c
+@@ -104,7 +104,7 @@ int notify_change(struct dentry * dentry
+ {
+ 	struct inode *inode = dentry->d_inode;
+ 	mode_t mode;
+-	int error;
++	int error, mandatory;
+ 	struct timespec now;
+ 	unsigned int ia_valid = attr->ia_valid;
+ 
+@@ -151,6 +151,8 @@ int notify_change(struct dentry * dentry
+ 	if (ia_valid & ATTR_SIZE)
+ 		down_write(&dentry->d_inode->i_alloc_sem);
+ 
++	mandatory = (inode->i_flock && mandatory_lock(inode));
++
+ 	if (inode->i_op && inode->i_op->setattr) {
+ 		error = security_inode_setattr(dentry, attr);
+ 		if (!error)
+@@ -171,8 +173,11 @@ int notify_change(struct dentry * dentry
+ 	if (ia_valid & ATTR_SIZE)
+ 		up_write(&dentry->d_inode->i_alloc_sem);
+ 
+-	if (!error)
++	if (!error) {
+ 		fsnotify_change(dentry, ia_valid);
++		if (mandatory)
++			locks_wakeup_mandatory(inode);
++	}
+ 
+ 	return error;
+ }
+diff -puN fs/locks.c~wake-up-mandatory-locks-waiter-on-chmod-v2 fs/locks.c
+--- a/fs/locks.c~wake-up-mandatory-locks-waiter-on-chmod-v2
 +++ a/fs/locks.c
-@@ -1115,7 +1115,7 @@ int locks_mandatory_area(int read_write,
+@@ -1109,7 +1109,8 @@ int locks_mandatory_area(int read_write,
+ 			break;
+ 		if (!(fl.fl_flags & FL_SLEEP))
+ 			break;
+-		error = wait_event_interruptible(fl.fl_wait, !fl.fl_next);
++		error = wait_event_interruptible(fl.fl_wait,
++				!fl.fl_next || !__mandatory_lock(inode));
+ 		if (!error) {
+ 			/*
  			 * If we've been sleeping someone might have
- 			 * changed the permissions behind our back.
- 			 */
--			if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
-+			if (__mandatory_lock(inode))
- 				continue;
- 		}
+@@ -1128,6 +1129,20 @@ int locks_mandatory_area(int read_write,
  
-@@ -1754,9 +1754,7 @@ int fcntl_setlk(unsigned int fd, struct 
- 	/* Don't allow mandatory locks on files that may be memory mapped
- 	 * and shared.
- 	 */
--	if (IS_MANDLOCK(inode) &&
--	    (inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
--	    mapping_writably_mapped(filp->f_mapping)) {
-+	if (mandatory_lock(inode) && mapping_writably_mapped(filp->f_mapping)) {
- 		error = -EAGAIN;
- 		goto out;
- 	}
-@@ -1880,9 +1878,7 @@ int fcntl_setlk64(unsigned int fd, struc
- 	/* Don't allow mandatory locks on files that may be memory mapped
- 	 * and shared.
- 	 */
--	if (IS_MANDLOCK(inode) &&
--	    (inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
--	    mapping_writably_mapped(filp->f_mapping)) {
-+	if (mandatory_lock(inode) && mapping_writably_mapped(filp->f_mapping)) {
- 		error = -EAGAIN;
- 		goto out;
- 	}
-@@ -2076,9 +2072,7 @@ static void lock_get_status(char* out, s
- 		out += sprintf(out, "%6s %s ",
- 			     (fl->fl_flags & FL_ACCESS) ? "ACCESS" : "POSIX ",
- 			     (inode == NULL) ? "*NOINODE*" :
--			     (IS_MANDLOCK(inode) &&
--			      (inode->i_mode & (S_IXGRP | S_ISGID)) == S_ISGID) ?
--			     "MANDATORY" : "ADVISORY ");
-+			     mandatory_lock(inode) ? "MANDATORY" : "ADVISORY ");
- 	} else if (IS_FLOCK(fl)) {
- 		if (fl->fl_type & LOCK_MAND) {
- 			out += sprintf(out, "FLOCK  MSNFS     ");
-diff -puN fs/nfsd/nfs4state.c~cleanup-macros-for-distinguishing-mandatory-locks fs/nfsd/nfs4state.c
---- a/fs/nfsd/nfs4state.c~cleanup-macros-for-distinguishing-mandatory-locks
-+++ a/fs/nfsd/nfs4state.c
-@@ -2030,7 +2030,7 @@ static inline int
- io_during_grace_disallowed(struct inode *inode, int flags)
+ EXPORT_SYMBOL(locks_mandatory_area);
+ 
++void locks_wakeup_mandatory(struct inode *inode)
++{
++	struct file_lock *fl, **before;
++
++	lock_kernel();
++	for_each_lock(inode, before) {
++		fl = *before;
++
++		if (IS_POSIX(fl))
++			locks_wake_up_blocks(fl);
++	}
++	unlock_kernel();
++}
++
+ /* We already had a lease on this file; just change its type */
+ int lease_modify(struct file_lock **before, int arg)
  {
- 	return nfs4_in_grace() && (flags & (RD_STATE | WR_STATE))
--		&& MANDATORY_LOCK(inode);
-+		&& mandatory_lock(inode);
- }
- 
- /*
-diff -puN fs/nfsd/vfs.c~cleanup-macros-for-distinguishing-mandatory-locks fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~cleanup-macros-for-distinguishing-mandatory-locks
-+++ a/fs/nfsd/vfs.c
-@@ -65,7 +65,7 @@
-  * locks on them because there is no way to know if the accesser has
-  * the lock.
-  */
--#define IS_ISMNDLK(i)	(S_ISREG((i)->i_mode) && MANDATORY_LOCK(i))
-+#define IS_ISMNDLK(i)	(S_ISREG((i)->i_mode) && mandatory_lock(i))
- 
- /*
-  * This is a cache of readahead params that help us choose the proper
-diff -puN fs/read_write.c~cleanup-macros-for-distinguishing-mandatory-locks fs/read_write.c
---- a/fs/read_write.c~cleanup-macros-for-distinguishing-mandatory-locks
-+++ a/fs/read_write.c
-@@ -205,7 +205,7 @@ int rw_verify_area(int read_write, struc
- 	if (unlikely((pos < 0) || (loff_t) (pos + count) < 0))
- 		goto Einval;
- 
--	if (unlikely(inode->i_flock && MANDATORY_LOCK(inode))) {
-+	if (unlikely(inode->i_flock && mandatory_lock(inode))) {
- 		int retval = locks_mandatory_area(
- 			read_write == READ ? FLOCK_VERIFY_READ : FLOCK_VERIFY_WRITE,
- 			inode, file, pos, count);
-diff -puN include/linux/fs.h~cleanup-macros-for-distinguishing-mandatory-locks include/linux/fs.h
---- a/include/linux/fs.h~cleanup-macros-for-distinguishing-mandatory-locks
+diff -puN include/linux/fs.h~wake-up-mandatory-locks-waiter-on-chmod-v2 include/linux/fs.h
+--- a/include/linux/fs.h~wake-up-mandatory-locks-waiter-on-chmod-v2
 +++ a/include/linux/fs.h
-@@ -1486,12 +1486,25 @@ extern int locks_mandatory_area(int, str
-  * Candidates for mandatory locking have the setgid bit set
-  * but no group execute bit -  an otherwise meaningless combination.
-  */
--#define MANDATORY_LOCK(inode) \
--	(IS_MANDLOCK(inode) && ((inode)->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
-+
-+static inline int __mandatory_lock(struct inode *ino)
-+{
-+	return (ino->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID;
-+}
-+
-+/*
-+ * ... and these candidates should be on MS_MANDLOCK mounted fs,
-+ * otherwise these will be advisory locks
-+ */
-+
-+static inline int mandatory_lock(struct inode *ino)
-+{
-+	return IS_MANDLOCK(ino) && __mandatory_lock(ino);
-+}
+@@ -1481,6 +1481,7 @@ extern struct kset fs_subsys;
  
- static inline int locks_verify_locked(struct inode *inode)
- {
--	if (MANDATORY_LOCK(inode))
-+	if (mandatory_lock(inode))
- 		return locks_mandatory_locked(inode);
- 	return 0;
- }
-@@ -1502,7 +1515,7 @@ static inline int locks_verify_truncate(
- 				    struct file *filp,
- 				    loff_t size)
- {
--	if (inode->i_flock && MANDATORY_LOCK(inode))
-+	if (inode->i_flock && mandatory_lock(inode))
- 		return locks_mandatory_area(
- 			FLOCK_VERIFY_WRITE, inode, filp,
- 			size < inode->i_size ? size : inode->i_size,
+ extern int locks_mandatory_locked(struct inode *);
+ extern int locks_mandatory_area(int, struct inode *, struct file *, loff_t, size_t);
++extern void locks_wakeup_mandatory(struct inode *);
+ 
+ /*
+  * Candidates for mandatory locking have the setgid bit set
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -260,4 +202,5 @@ gfs2-cleanup-explicit-check-for-mandatory-locks.patch
 9pfs-cleanup-explicit-check-for-mandatory-locks.patch
 afs-cleanup-explicit-check-for-mandatory-locks.patch
 nfs-cleanup-explicit-check-for-mandatory-locks.patch
+wake-up-mandatory-locks-waiter-on-chmod-v2.patch
 reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
