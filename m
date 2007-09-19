@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + shrink_dcache_sb-speedup.patch added to -mm tree
-Date: Wed, 19 Sep 2007 15:59:05 -0700
-Message-ID: <200709192259.l8JMx5F3015636@imap1.linux-foundation.org>
+Subject: + menuconfig-distinguish-between-selected-by-another-options-and-comments.patch added to -mm tree
+Date: Wed, 19 Sep 2007 16:01:07 -0700
+Message-ID: <200709192301.l8JN170E015713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56278 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51619 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753783AbXISW7O (ORCPT
+	by vger.kernel.org with ESMTP id S1758120AbXISXBh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 18:59:14 -0400
+	Wed, 19 Sep 2007 19:01:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, amirkin@openvz.org, dev@openvz.org, neilb@suse.de
+Cc: strohel@gmail.com, randy.dunlap@oracle.com, sam@ravnborg.org, zippel@linux-m68k.org
 
 
 The patch titled
-     shrink_dcache_sb speedup
+     menuconfig: distinguish between selected-by-another options and comments
 has been added to the -mm tree.  Its filename is
-     shrink_dcache_sb-speedup.patch
+     menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,89 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: shrink_dcache_sb speedup
-From: Denis V. Lunev <den@openvz.org>
+Subject: menuconfig: distinguish between selected-by-another options and comments
+From: Matej Laitl <strohel@gmail.com>
 
-This patch makes shrink_dcache_sb consistent with dentry pruning policy.
+menuconfig currently represents options implied by another option ('select'
+directive in Kconfig) by prefixing them with '---'.  Unfortunately the same
+notation is used for comments.  If the implied option is module capable,
+user can still switch between Y and M, all without any feedback until she
+visits option's help.  (try saying M to MAC80211 and then toggling
+CFG80211)
 
-On the first pass we iterate over dentry unused list and prepare some
-dentries for removal.
+This patch changes notation of selected-by-another items by introducing 2
+new representations for implied options: {*} or {M} for options selected by
+another modularized one, thus builtin or module capable, -*- or -M- for
+options that cannot be at the moment changed by user.
 
-However, since the existing code moves evicted dentries to the beginning of
-the LRU it can happen that fresh dentries from other superblocks will be
-inserted *before* our dentries.
+The idea is to represent actual capability of the option by braces (dashes)
+around and to always report actual state by * or M inside.
 
-This can result in significant slowdown of shrink_dcache_sb().  Moreover,
-for virtual filesystems like unionfs which can call dput() during dentries
-kill existing code results in O(n^2) complexity.
-
-We observed 2 minutes shrink_dcache_sb() with only 35000 dentries.
-
-To avoid this effects we propose to isolate sb dentries at the end
-of LRU list.
-
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Signed-off-by: Andrey Mirkin <amirkin@openvz.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Matej Laitl <strohel@gmail.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c          |    6 +++---
- include/linux/list.h |   12 ++++++++++++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+ scripts/kconfig/mconf.c |   23 +++++++++++++++--------
+ 1 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN fs/dcache.c~shrink_dcache_sb-speedup fs/dcache.c
---- a/fs/dcache.c~shrink_dcache_sb-speedup
-+++ a/fs/dcache.c
-@@ -553,18 +553,18 @@ void shrink_dcache_sb(struct super_block
- 	 * superblock to the most recent end of the unused list.
- 	 */
- 	spin_lock(&dcache_lock);
--	list_for_each_safe(tmp, next, &dentry_unused) {
-+	list_for_each_prev_safe(tmp, next, &dentry_unused) {
- 		dentry = list_entry(tmp, struct dentry, d_lru);
- 		if (dentry->d_sb != sb)
- 			continue;
--		list_move(tmp, &dentry_unused);
-+		list_move_tail(tmp, &dentry_unused);
- 	}
- 
- 	/*
- 	 * Pass two ... free the dentries for this superblock.
- 	 */
- repeat:
--	list_for_each_safe(tmp, next, &dentry_unused) {
-+	list_for_each_prev_safe(tmp, next, &dentry_unused) {
- 		dentry = list_entry(tmp, struct dentry, d_lru);
- 		if (dentry->d_sb != sb)
- 			continue;
-diff -puN include/linux/list.h~shrink_dcache_sb-speedup include/linux/list.h
---- a/include/linux/list.h~shrink_dcache_sb-speedup
-+++ a/include/linux/list.h
-@@ -478,6 +478,18 @@ static inline void list_splice_init_rcu(
- 		pos = n, n = pos->next)
- 
- /**
-+ * list_for_each_prev_safe - iterate over a list backwards safe against removal
-+			of list entry
-+ * @pos:	the &struct list_head to use as a loop cursor.
-+ * @n:		another &struct list_head to use as temporary storage
-+ * @head:	the head for your list.
-+ */
-+#define list_for_each_prev_safe(pos, n, head) \
-+	for (pos = (head)->prev, n = pos->prev; \
-+	     prefetch(pos->prev), pos != (head); \
-+	     pos = n, n = pos->prev)
-+
-+/**
-  * list_for_each_entry	-	iterate over list of given type
-  * @pos:	the type * to use as a loop cursor.
-  * @head:	the head for your list.
+diff -puN scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments scripts/kconfig/mconf.c
+--- a/scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments
++++ a/scripts/kconfig/mconf.c
+@@ -35,9 +35,13 @@ static const char mconf_readme[] = N_(
+ "kernel parameters which are not really features, but must be\n"
+ "entered in as decimal or hexadecimal numbers or possibly text.\n"
+ "\n"
+-"Menu items beginning with [*], <M> or [ ] represent features\n"
+-"configured to be built in, modularized or removed respectively.\n"
+-"Pointed brackets <> represent module capable features.\n"
++"Menu items beginning with following braces represent features that\n"
++"  [ ] can be built in or removed\n"
++"  < > can be built in, modularized or removed\n"
++"  { } can be built in or modularized (selected by other feature)\n"
++"  - - are selected by other feature,\n"
++"while *, M or whitespace inside braces means to build in, build as\n"
++"a module or to exclude the feature respectively.\n"
+ "\n"
+ "To change any of these features, highlight it with the cursor\n"
+ "keys and press <Y> to build it in, <M> to make it a module or\n"
+@@ -560,7 +564,7 @@ static void build_conf(struct menu *menu
+ 				if (sym_is_changable(sym))
+ 					item_make("[%c]", val == no ? ' ' : '*');
+ 				else
+-					item_make("---");
++					item_make("-%c-", val == no ? ' ' : '*');
+ 				item_set_tag('t');
+ 				item_set_data(menu);
+ 				break;
+@@ -570,10 +574,13 @@ static void build_conf(struct menu *menu
+ 				case mod: ch = 'M'; break;
+ 				default:  ch = ' '; break;
+ 				}
+-				if (sym_is_changable(sym))
+-					item_make("<%c>", ch);
+-				else
+-					item_make("---");
++				if (sym_is_changable(sym)) {
++					if (sym->rev_dep.tri == mod)
++						item_make("{%c}", ch);
++					else
++						item_make("<%c>", ch);
++				} else
++					item_make("-%c-", ch);
+ 				item_set_tag('t');
+ 				item_set_data(menu);
+ 				break;
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from strohel@gmail.com are
 
-origin.patch
-git-net.patch
-shrink_dcache_sb-speedup.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
