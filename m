@@ -1,60 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-wireless-2.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:01:47 -0700
-Message-ID: <200709202101.l8KL1lrb002326@imap1.linux-foundation.org>
+Subject: - git-wireless-fix-99.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:03:13 -0700
+Message-ID: <200709202103.l8KL3D8K002376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751435AbXITVC6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751275AbXITVDp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:02:58 -0400
+	Thu, 20 Sep 2007 17:03:45 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8KL3D92027112
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2007 14:03:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-wireless-2
+     git-wireless-fix-99
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-wireless-2.patch
+     git-wireless-fix-99.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless-2
+Subject: git-wireless-fix-99
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/b43/main.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN net/wireless/core.c~git-net-vs-git-wireless-2 net/wireless/core.c
---- a/net/wireless/core.c~git-net-vs-git-wireless-2
-+++ a/net/wireless/core.c
-@@ -69,7 +69,7 @@ __cfg80211_drv_from_info(struct genl_inf
+diff -puN drivers/net/wireless/b43/main.c~git-wireless-fix-99 drivers/net/wireless/b43/main.c
+--- a/drivers/net/wireless/b43/main.c~git-wireless-fix-99
++++ a/drivers/net/wireless/b43/main.c
+@@ -3917,8 +3917,7 @@ static int b43_wireless_init(struct ssb_
  
- 	if (info->attrs[NL80211_ATTR_IFINDEX]) {
- 		ifindex = nla_get_u32(info->attrs[NL80211_ATTR_IFINDEX]);
--		dev = dev_get_by_index(ifindex);
-+		dev = dev_get_by_index(&init_net, ifindex);
- 		if (dev) {
- 			if (dev->ieee80211_ptr)
- 				byifidx =
-@@ -120,7 +120,7 @@ cfg80211_get_dev_from_ifindex(int ifinde
- 	struct net_device *dev;
- 
- 	mutex_lock(&cfg80211_drv_mutex);
--	dev = dev_get_by_index(ifindex);
-+	dev = dev_get_by_index(&init_net, ifindex);
- 	if (!dev)
- 		goto out;
- 	if (dev->ieee80211_ptr) {
+ 	/* fill hw info */
+ 	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE |
+-	    IEEE80211_HW_MONITOR_DURING_OPER |
+-	    IEEE80211_HW_DEVICE_HIDES_WEP;
++	    IEEE80211_HW_MONITOR_DURING_OPER;
+ 	hw->max_signal = 100;
+ 	hw->max_rssi = -110;
+ 	hw->max_noise = -110;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,14 +123,8 @@ fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-net-vs-git-wireless-2.patch
 net-add-ath5k-wireless-driver-fix.patch
-git-net-vs-git-wireless-3.patch
-git-net-broke-git-wireless.patch
 iwl3945-is-bust.patch
-more-wireless-borkage.patch
-more-wireless-borkage-2.patch
-more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
 git-wireless-b44-is-bust.patch
