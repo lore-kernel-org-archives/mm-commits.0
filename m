@@ -1,29 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - more-wireless-borkage-3.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:03:08 -0700
-Message-ID: <200709202103.l8KL383Q002373@imap1.linux-foundation.org>
+Subject: - more-wireless-borkage.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:02:58 -0700
+Message-ID: <200709202102.l8KL2w5P002359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40076 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45424 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751748AbXITVFs (ORCPT
+	by vger.kernel.org with ESMTP id S1751684AbXITVFn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:05:48 -0400
+	Thu, 20 Sep 2007 17:05:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     more-wireless-borkage-3
+     more-wireless-borkage
 has been removed from the -mm tree.  Its filename was
-     more-wireless-borkage-3.patch
+     more-wireless-borkage.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: more-wireless-borkage-3
+Subject: more-wireless-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/net/wireless/p54common.c: In function 'p54_init_common':
+drivers/net/wireless/p54common.c:896: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
+drivers/net/wireless/p54common.c:896: error: (Each undeclared identifier is reported only once
+drivers/net/wireless/p54common.c:896: error: for each function it appears in.)
+
+starting to get desperate here.
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
@@ -31,47 +38,22 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_base.c               |    2 +-
- drivers/net/wireless/iwl-base.c                 |    3 +--
- drivers/net/wireless/zd1211rw-mac80211/zd_mac.c |    1 -
- 3 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/net/wireless/p54common.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/zd1211rw-mac80211/zd_mac.c~more-wireless-borkage-3 drivers/net/wireless/zd1211rw-mac80211/zd_mac.c
---- a/drivers/net/wireless/zd1211rw-mac80211/zd_mac.c~more-wireless-borkage-3
-+++ a/drivers/net/wireless/zd1211rw-mac80211/zd_mac.c
-@@ -879,7 +879,6 @@ struct ieee80211_hw *zd_mac_alloc_hw(str
- 	mac->modes[1].channels = mac->channels;
+diff -puN drivers/net/wireless/p54common.c~more-wireless-borkage drivers/net/wireless/p54common.c
+--- a/drivers/net/wireless/p54common.c~more-wireless-borkage
++++ a/drivers/net/wireless/p54common.c
+@@ -892,8 +892,7 @@ struct ieee80211_hw *p54_init_common(siz
+ 	priv->modes[0].num_channels = ARRAY_SIZE(p54_channels);
+ 	priv->modes[0].channels = priv->channels;
+ 	dev->flags = IEEE80211_HW_HOST_BROADCAST_PS_BUFFERING | /* not sure */
+-		    IEEE80211_HW_RX_INCLUDES_FCS |
+-		    IEEE80211_HW_WEP_INCLUDE_IV;
++		    IEEE80211_HW_RX_INCLUDES_FCS;
+ 	dev->channel_change_time = 1000;	/* TODO: find actual value */
+ 	dev->max_rssi = 100;
  
- 	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS |
--		     IEEE80211_HW_WEP_INCLUDE_IV |
- 		     IEEE80211_HW_DEFAULT_REG_DOMAIN_CONFIGURED;
- 	hw->max_rssi = 100;
- 	hw->max_signal = 100;
-diff -puN drivers/net/wireless/iwl-base.c~more-wireless-borkage-3 drivers/net/wireless/iwl-base.c
---- a/drivers/net/wireless/iwl-base.c~more-wireless-borkage-3
-+++ a/drivers/net/wireless/iwl-base.c
-@@ -9134,8 +9134,7 @@ static int iwl_pci_probe(struct pci_dev 
- 	hw->max_signal = 100;	/* link quality indication (%) */
- 
- 	/* Tell mac80211 our Tx characteristics */
--	hw->flags = IEEE80211_HW_WEP_INCLUDE_IV |
--	    IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE;
-+	hw->flags = IEEE80211_HW_HOST_GEN_BEACON_TEMPLATE;
- 
- 	hw->queues = 4;
- #if IWL == 4965
-diff -puN drivers/net/wireless/ath5k_base.c~more-wireless-borkage-3 drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~more-wireless-borkage-3
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -2291,7 +2291,7 @@ static int __devinit ath_pci_probe(struc
- 	}
- 
- 	SET_IEEE80211_DEV(hw, &pdev->dev);
--	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS | IEEE80211_HW_WEP_INCLUDE_IV;
-+	hw->flags = IEEE80211_HW_RX_INCLUDES_FCS;
- 	hw->extra_tx_headroom = 2;
- 	hw->channel_change_time = 5000;
- 	hw->max_rssi = 127; /* FIXME: get a real value for this. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +131,8 @@ git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 iwl3945-is-bust.patch
+more-wireless-borkage.patch
+more-wireless-borkage-2.patch
 more-wireless-borkage-3.patch
 p54pci-terminate-pci-table.patch
 git-wireless-fix-99.patch
