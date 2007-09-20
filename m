@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dm-ioctl-on-amd64-with-32bit-userspace.patch added to -mm tree
-Date: Wed, 19 Sep 2007 17:26:54 -0700
-Message-ID: <200709200026.l8K0QsKo020348@imap1.linux-foundation.org>
+Subject: - dm-ioctl-on-amd64-with-32bit-userspace.patch removed from -mm tree
+Date: Wed, 19 Sep 2007 18:30:06 -0700
+Message-ID: <200709200130.l8K1U6sZ022302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49353 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33892 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752072AbXITA1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751290AbXITBaj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Sep 2007 20:27:16 -0400
+	Wed, 19 Sep 2007 21:30:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: agx@sigxcpu.org, agk@redhat.com
+To: agx@sigxcpu.org, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      dm-ioctl on amd64 with 32bit userspace
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      dm-ioctl-on-amd64-with-32bit-userspace.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: dm-ioctl on amd64 with 32bit userspace
