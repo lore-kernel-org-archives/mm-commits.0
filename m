@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-hisax-hfc_usbc-fix-check-after-use.patch added to -mm tree
-Date: Thu, 20 Sep 2007 16:03:52 -0700
-Message-ID: <200709202303.l8KN3qUO007278@imap1.linux-foundation.org>
+Subject: + unify-dma_bit_mask-definitions-v31.patch added to -mm tree
+Date: Thu, 20 Sep 2007 16:05:29 -0700
+Message-ID: <200709202305.l8KN5Tqi007333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54019 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52433 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750778AbXITXEn (ORCPT
+	by vger.kernel.org with ESMTP id S1751600AbXITXGP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 19:04:43 -0400
+	Thu, 20 Sep 2007 19:06:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, kkeil@suse.de
+Cc: bbpetkov@yahoo.de, James.Bottomley@steeleye.com, jeff@garzik.org, jeremy@goop.org, muli@il.ibm.com
 
 
 The patch titled
-     isdn/hisax/hfc_usb.c: fix check-after-use
+     unify DMA_..BIT_MASK definitions: v3.1
 has been added to the -mm tree.  Its filename is
-     isdn-hisax-hfc_usbc-fix-check-after-use.patch
+     unify-dma_bit_mask-definitions-v31.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,86 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn/hisax/hfc_usb.c: fix check-after-use
-From: Adrian Bunk <bunk@kernel.org>
+Subject: unify DMA_..BIT_MASK definitions: v3.1
+From: Borislav Petkov <bbpetkov@yahoo.de>
 
-Fix a check-after-use spotted by the Coverity checker.
+Remove redundant DMA_..BIT_MASK definitions across two drivers.  The
+computation of the majority of the bitmasks is done by the compiler.  The
+initial split of the patch touching each a different file got removed due
+to possible git bisect breakage.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/hfc_usb.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/netxen/netxen_nic_main.c |    3 ---
+ drivers/scsi/gdth.c                  |    5 -----
+ include/linux/dma-mapping.h          |   23 +++++++++++++----------
+ 3 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN drivers/isdn/hisax/hfc_usb.c~isdn-hisax-hfc_usbc-fix-check-after-use drivers/isdn/hisax/hfc_usb.c
---- a/drivers/isdn/hisax/hfc_usb.c~isdn-hisax-hfc_usbc-fix-check-after-use
-+++ a/drivers/isdn/hisax/hfc_usb.c
-@@ -1520,14 +1520,15 @@ hfc_usb_disconnect(struct usb_interface
- 	hfcusb_data *context = usb_get_intfdata(intf);
- 	int i;
+diff -puN drivers/net/netxen/netxen_nic_main.c~unify-dma_bit_mask-definitions-v31 drivers/net/netxen/netxen_nic_main.c
+--- a/drivers/net/netxen/netxen_nic_main.c~unify-dma_bit_mask-definitions-v31
++++ a/drivers/net/netxen/netxen_nic_main.c
+@@ -53,9 +53,6 @@ static char netxen_nic_driver_string[] =
+ #define NETXEN_ADAPTER_UP_MAGIC 777
+ #define NETXEN_NIC_PEG_TUNE 0
  
-+	if (!context)
-+		return;
+-#define DMA_32BIT_MASK	0x00000000ffffffffULL
+-#define DMA_35BIT_MASK	0x00000007ffffffffULL
+-
+ /* Local functions to NetXen NIC driver */
+ static int __devinit netxen_nic_probe(struct pci_dev *pdev,
+ 				      const struct pci_device_id *ent);
+diff -puN drivers/scsi/gdth.c~unify-dma_bit_mask-definitions-v31 drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~unify-dma_bit_mask-definitions-v31
++++ a/drivers/scsi/gdth.c
+@@ -392,12 +392,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/time.h>
+ #include <linux/timer.h>
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,6)
+ #include <linux/dma-mapping.h>
+-#else
+-#define DMA_32BIT_MASK	0x00000000ffffffffULL
+-#define DMA_64BIT_MASK	0xffffffffffffffffULL
+-#endif
+ 
+ #ifdef GDTH_RTC
+ #include <linux/mc146818rtc.h>
+diff -puN include/linux/dma-mapping.h~unify-dma_bit_mask-definitions-v31 include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~unify-dma_bit_mask-definitions-v31
++++ a/include/linux/dma-mapping.h
+@@ -13,16 +13,19 @@ enum dma_data_direction {
+ 	DMA_NONE = 3,
+ };
+ 
+-#define DMA_64BIT_MASK	0xffffffffffffffffULL
+-#define DMA_48BIT_MASK	0x0000ffffffffffffULL
+-#define DMA_40BIT_MASK	0x000000ffffffffffULL
+-#define DMA_39BIT_MASK	0x0000007fffffffffULL
+-#define DMA_32BIT_MASK	0x00000000ffffffffULL
+-#define DMA_31BIT_MASK	0x000000007fffffffULL
+-#define DMA_30BIT_MASK	0x000000003fffffffULL
+-#define DMA_29BIT_MASK	0x000000001fffffffULL
+-#define DMA_28BIT_MASK	0x000000000fffffffULL
+-#define DMA_24BIT_MASK	0x0000000000ffffffULL
++#define DMA_BIT_MASK(n)	((1ULL<<(n))-1)
 +
- 	handle_led(context, LED_POWER_OFF);
- 	schedule_timeout((10 * HZ) / 1000);
++#define DMA_64BIT_MASK	(~0ULL)
++#define DMA_48BIT_MASK	DMA_BIT_MASK(48)
++#define DMA_40BIT_MASK	DMA_BIT_MASK(40)
++#define DMA_39BIT_MASK	DMA_BIT_MASK(39)
++#define DMA_35BIT_MASK	DMA_BIT_MASK(35)
++#define DMA_32BIT_MASK	DMA_BIT_MASK(32)
++#define DMA_31BIT_MASK	DMA_BIT_MASK(31)
++#define DMA_30BIT_MASK	DMA_BIT_MASK(30)
++#define DMA_29BIT_MASK	DMA_BIT_MASK(29)
++#define DMA_28BIT_MASK	DMA_BIT_MASK(28)
++#define DMA_24BIT_MASK	DMA_BIT_MASK(24)
  
- 	printk(KERN_INFO "HFC-S USB: device disconnect\n");
- 	context->disc_flag = 1;
- 	usb_set_intfdata(intf, NULL);
--	if (!context)
--		return;
- 	if (timer_pending(&context->t3_timer))
- 		del_timer(&context->t3_timer);
- 	if (timer_pending(&context->t4_timer))
+ #define DMA_MASK_NONE	0x0ULL
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from bbpetkov@yahoo.de are
 
-git-alsa.patch
-git-arm.patch
-git-powerpc.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-kbuild.patch
-fix-ide-ide-hook-acpi-psx-method-to-ide-power-on-off.patch
-fix-ide-ide-remove-ide-dma-check.patch
-git-net.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-nfsd.patch
-drivers-scsi-immc-fix-check-after-use.patch
-git-block.patch
-git-wireless.patch
-fix-x86_64-mm-unwinder.patch
-i386-visws-extern-inline-static-inline.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-i-oat-add-support-for-msi-and-msi-x-fix.patch
-kconfig-syntax-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-isdn-hisax-hfc_usbc-fix-check-after-use.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-bitmaph-remove-dead-artifacts.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+unify-dma_bit_mask-definitions-v31.patch
