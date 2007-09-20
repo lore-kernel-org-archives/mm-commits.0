@@ -1,63 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 16:26:17 -0700
-Message-ID: <200709202326.l8KNQHNb008064@imap1.linux-foundation.org>
+Subject: + remove-superfluous-definition-of-__setup_null_param-macro.patch added to -mm tree
+Date: Thu, 20 Sep 2007 16:26:14 -0700
+Message-ID: <200709202326.l8KNQEUP008059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60794 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51996 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750778AbXITX0a (ORCPT
+	by vger.kernel.org with ESMTP id S1751447AbXITX0c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 19:26:30 -0400
+	Thu, 20 Sep 2007 19:26:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, lethal@linux-sh.org, satyam@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@mindspring.com
 
 
 The patch titled
-     Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
-has been removed from the -mm tree.  Its filename was
-     remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+     Remove superfluous definition of __setup_null_param macro  and associated content
+has been added to the -mm tree.  Its filename is
+     remove-superfluous-definition-of-__setup_null_param-macro.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
-From: Robert P. J. Day <rpjday@mindspring.com>
+Subject: Remove superfluous definition of __setup_null_param macro  and associated content
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-Remove superfluous definition of __setup_null_param() macro, as nobody uses
-it anymore.
+Given that there are no references to the __setup_null_param() macro
+anymore, we can do the following cleanups in include/linux/init.h:
 
-Also kill the #ifdef-MODULE-case (empty) definition for __setup_param.  It
-is only required for the !MODULE case, as __setup() is empty for the MODULE
-case already.  Also, no user outside init.h must use __setup_null_param
-directly anyway (and nobody does), so it's not something whose empty
-definition we necessarily need to make available to rest of the kernel. 
-Moreover, this MODULE case of __setup_param has been broken for more than
-two years now -- as far back as git history takes us.  Let's get rid of it.
+* Remove the definition of that macro.
+* Remove the #ifdef-MODULE-case (empty) definition for __setup_param,
+  since it's no longer required, either.
+* Combine the 2nd and 3rd arguments for __setup and early_param since
+  they only ever needed to be separate to support __setup_null_param
+  and there's no need for that anymore.
 
 Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    5 -----
- 1 files changed, 5 deletions(-)
+ include/linux/init.h |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param include/linux/init.h
---- a/include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param
+diff -puN include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro include/linux/init.h
+--- a/include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro
 +++ a/include/linux/init.h
-@@ -166,9 +166,6 @@ struct obs_kernel_param {
+@@ -158,24 +158,21 @@ struct obs_kernel_param {
+  * Force the alignment so the compiler doesn't space elements of the
+  * obs_kernel_param "array" too far apart in .init.setup.
+  */
+-#define __setup_param(str, unique_id, fn, early)			\
+-	static char __setup_str_##unique_id[] __initdata = str;	\
+-	static struct obs_kernel_param __setup_##unique_id	\
++#define __setup_param(str, fn, early)				\
++	static char __setup_str_##fn[] __initdata = str;	\
++	static struct obs_kernel_param __setup_##fn		\
+ 		__attribute_used__				\
+ 		__attribute__((__section__(".init.setup")))	\
  		__attribute__((aligned((sizeof(long)))))	\
- 		= { __setup_str_##unique_id, fn, early }
- 
+-		= { __setup_str_##unique_id, fn, early }
+-
 -#define __setup_null_param(str, unique_id)			\
 -	__setup_param(str, unique_id, NULL, 0)
--
- #define __setup(str, fn)					\
- 	__setup_param(str, fn, fn, 0)
++		= { __setup_str_##fn, fn, early }
  
+ #define __setup(str, fn)					\
+-	__setup_param(str, fn, fn, 0)
++	__setup_param(str, fn, 0)
+ 
+ /* NOTE: fn is as per module_param, not __setup!  Emits warning if fn
+  * returns non-zero. */
+ #define early_param(str, fn)					\
+-	__setup_param(str, fn, fn, 1)
++	__setup_param(str, fn, 1)
+ 
+ /* Relies on boot_command_line being set */
+ void __init parse_early_param(void);
 @@ -234,8 +231,6 @@ void __init parse_early_param(void);
  	{ return exitfn; }					\
  	void cleanup_module(void) __attribute__((alias(#exitfn)));
