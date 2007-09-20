@@ -1,51 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:56 -0700
-Message-ID: <200709202116.l8KLGuXw003040@imap1.linux-foundation.org>
+Subject: - git-net-af_iucv-fixes.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:39 -0700
+Message-ID: <200709202116.l8KLGdeE003025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54673 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53280 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbXITV2p (ORCPT
+	by vger.kernel.org with ESMTP id S1753702AbXITV2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:45 -0400
+	Thu, 20 Sep 2007 17:28:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, jesse@icplus.com.tw, romieu@fr.zoreil.com, s.l-h@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, fpavlic@de.ibm.com, heiko.carstens@de.ibm.com, jenhunt@us.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
+     git-net: af_iucv fixes
 has been removed from the -mm tree.  Its filename was
-     git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree.patch
+     git-net-af_iucv-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
+Subject: git-net: af_iucv fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Jesse Huang <jesse@icplus.com.tw>
-Cc: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+net/iucv/af_iucv.c: In function 'iucv_sock_alloc':
+net/iucv/af_iucv.c:216: warning: passing argument 1 of 'sk_alloc' makes pointer from integer without a cast
+net/iucv/af_iucv.c:216: warning: passing argument 3 of 'sk_alloc' makes integer from pointer without a cast
+net/iucv/af_iucv.c:216: warning: passing argument 4 of 'sk_alloc' makes pointer from integer without a cast
+net/iucv/af_iucv.c:216: error: too few arguments to function 'sk_alloc'
+net/iucv/af_iucv.c: At top level:
+net/iucv/af_iucv.c:1137: warning: initialization from incompatible pointer type
+
+(include/net/iucv/af_iucv.h has a bunch of static decalrations which is pretty
+pointless - they should all be deleted.  Any which are still needed by
+net/iucv/af_iucv.c should be placed in that file).
+
+Cc: Jennifer Hunt <jenhunt@us.ibm.com>
+Cc: Frank Pavlic <fpavlic@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ipg.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/net/iucv/af_iucv.h |    1 -
+ net/iucv/af_iucv.c         |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree drivers/net/ipg.c
---- a/drivers/net/ipg.c~git-net-broke-ipg-add-ip1000a-driver-to-kernel-tree
-+++ a/drivers/net/ipg.c
-@@ -2259,7 +2259,6 @@ static int __devinit ipg_probe(struct pc
- 	dev->tx_timeout = ipg_tx_timeout;
- 	dev->change_mtu = &ipg_nic_change_mtu;
+diff -puN net/iucv/af_iucv.c~git-net-af_iucv-fixes net/iucv/af_iucv.c
+--- a/net/iucv/af_iucv.c~git-net-af_iucv-fixes
++++ a/net/iucv/af_iucv.c
+@@ -213,7 +213,7 @@ static struct sock *iucv_sock_alloc(stru
+ {
+ 	struct sock *sk;
  
--	SET_MODULE_OWNER(dev);
- 	SET_NETDEV_DEV(dev, &pdev->dev);
- 	SET_ETHTOOL_OPS(dev, &ipg_ethtool_ops);
+-	sk = sk_alloc(PF_IUCV, prio, &iucv_proto, 1);
++	sk = sk_alloc(&init_net, PF_IUCV, prio, &iucv_proto, 1);
+ 	if (!sk)
+ 		return NULL;
  
+@@ -240,7 +240,7 @@ static struct sock *iucv_sock_alloc(stru
+ }
+ 
+ /* Create an IUCV socket */
+-static int iucv_sock_create(struct socket *sock, int protocol)
++static int iucv_sock_create(struct net *net, struct socket *sock, int protocol)
+ {
+ 	struct sock *sk;
+ 
+diff -puN include/net/iucv/af_iucv.h~git-net-af_iucv-fixes include/net/iucv/af_iucv.h
+--- a/include/net/iucv/af_iucv.h~git-net-af_iucv-fixes
++++ a/include/net/iucv/af_iucv.h
+@@ -78,7 +78,6 @@ static void iucv_sock_destruct(struct so
+ static void iucv_sock_cleanup_listen(struct sock *parent);
+ static void iucv_sock_kill(struct sock *sk);
+ static void iucv_sock_close(struct sock *sk);
+-static int  iucv_sock_create(struct socket *sock, int proto);
+ static int  iucv_sock_bind(struct socket *sock, struct sockaddr *addr,
+ 			int addr_len);
+ static int  iucv_sock_connect(struct socket *sock, struct sockaddr *addr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
