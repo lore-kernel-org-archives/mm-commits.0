@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-remove-assignments-in-if-statements.patch added to -mm tree
-Date: Wed, 19 Sep 2007 22:51:27 -0700
-Message-ID: <200709200551.l8K5pRRR030752@imap1.linux-foundation.org>
+Subject: + ecryptfs-remove-header_extent_size.patch added to -mm tree
+Date: Wed, 19 Sep 2007 22:51:25 -0700
+Message-ID: <200709200551.l8K5pPk4030747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38799 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45033 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753043AbXITFve (ORCPT
+	by vger.kernel.org with ESMTP id S1753906AbXITFvi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 01:51:34 -0400
+	Thu, 20 Sep 2007 01:51:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: remove assignments in if-statements
+     eCryptfs: remove header_extent_size
 has been added to the -mm tree.  Its filename is
-     ecryptfs-remove-assignments-in-if-statements.patch
+     ecryptfs-remove-header_extent_size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,414 +26,253 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: remove assignments in if-statements
+Subject: eCryptfs: remove header_extent_size
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Remove assignments in if-statements.
+There is no point to keeping a separate header_extent_size and an extent_size.
+ The total size of the header can always be represented as some multiple of
+the regular data extent size.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c    |   17 ++++++-----
- fs/ecryptfs/file.c      |    8 +++--
- fs/ecryptfs/inode.c     |   35 ++++++++++++++----------
- fs/ecryptfs/keystore.c  |   55 ++++++++++++++++++++------------------
- fs/ecryptfs/main.c      |   28 +++++++++++--------
- fs/ecryptfs/messaging.c |    5 ++-
- fs/ecryptfs/mmap.c      |    5 ++-
- 7 files changed, 89 insertions(+), 64 deletions(-)
+ fs/ecryptfs/crypto.c          |   40 ++++++++++++++++----------------
+ fs/ecryptfs/ecryptfs_kernel.h |   39 +++++++++++++++++++++----------
+ fs/ecryptfs/inode.c           |    7 +++--
+ fs/ecryptfs/mmap.c            |    2 -
+ 4 files changed, 52 insertions(+), 36 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-remove-assignments-in-if-statements
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size
 +++ a/fs/ecryptfs/crypto.c
-@@ -1277,8 +1277,8 @@ static int ecryptfs_read_header_region(c
- 	mm_segment_t oldfs;
- 	int rc;
+@@ -366,8 +366,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
+ 	int extents_per_page;
  
--	if ((rc = ecryptfs_open_lower_file(&lower_file, dentry, mnt,
--					   O_RDONLY))) {
-+	rc = ecryptfs_open_lower_file(&lower_file, dentry, mnt, O_RDONLY);
-+	if (rc) {
- 		printk(KERN_ERR
- 		       "Error opening lower_file to read header region\n");
- 		goto out;
-@@ -1289,7 +1289,8 @@ static int ecryptfs_read_header_region(c
- 	rc = lower_file->f_op->read(lower_file, (char __user *)data,
- 			      ECRYPTFS_DEFAULT_EXTENT_SIZE, &lower_file->f_pos);
- 	set_fs(oldfs);
--	if ((rc = ecryptfs_close_lower_file(lower_file))) {
-+	rc = ecryptfs_close_lower_file(lower_file);
-+	if (rc) {
- 		printk(KERN_ERR "Error closing lower_file\n");
- 		goto out;
- 	}
-@@ -1951,9 +1952,10 @@ ecryptfs_add_new_key_tfm(struct ecryptfs
- 	strncpy(tmp_tfm->cipher_name, cipher_name,
- 		ECRYPTFS_MAX_CIPHER_NAME_SIZE);
- 	tmp_tfm->key_size = key_size;
--	if ((rc = ecryptfs_process_key_cipher(&tmp_tfm->key_tfm,
--					      tmp_tfm->cipher_name,
--					      &tmp_tfm->key_size))) {
-+	rc = ecryptfs_process_key_cipher(&tmp_tfm->key_tfm,
-+					 tmp_tfm->cipher_name,
-+					 &tmp_tfm->key_size);
-+	if (rc) {
- 		printk(KERN_ERR "Error attempting to initialize key TFM "
- 		       "cipher with name = [%s]; rc = [%d]\n",
- 		       tmp_tfm->cipher_name, rc);
-@@ -1988,7 +1990,8 @@ int ecryptfs_get_tfm_and_mutex_for_ciphe
- 		}
- 	}
- 	mutex_unlock(&key_tfm_list_mutex);
--	if ((rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0))) {
-+	rc = ecryptfs_add_new_key_tfm(&key_tfm, cipher_name, 0);
-+	if (rc) {
- 		printk(KERN_ERR "Error adding new key_tfm to list; rc = [%d]\n",
- 		       rc);
- 		goto out;
-diff -puN fs/ecryptfs/file.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-remove-assignments-in-if-statements
-+++ a/fs/ecryptfs/file.c
-@@ -230,8 +230,9 @@ static int ecryptfs_open(struct inode *i
- 		lower_flags &= ~O_APPEND;
- 	lower_mnt = ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
- 	/* Corresponding fput() in ecryptfs_release() */
--	if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
--					   lower_flags))) {
-+	rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
-+				      lower_flags);
-+	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error opening lower file\n");
- 		goto out_puts;
- 	}
-@@ -300,7 +301,8 @@ static int ecryptfs_release(struct inode
- 	struct inode *lower_inode = ecryptfs_inode_to_lower(inode);
- 	int rc;
+ 	bytes_occupied_by_headers_at_front =
+-		( crypt_stat->header_extent_size
+-		  * crypt_stat->num_header_extents_at_front );
++		(crypt_stat->extent_size
++		 * crypt_stat->num_header_extents_at_front);
+ 	extents_occupied_by_headers_at_front =
+ 		( bytes_occupied_by_headers_at_front
+ 		  / crypt_stat->extent_size );
+@@ -376,8 +376,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
+ 	(*lower_page_idx) = lower_extent_num / extents_per_page;
+ 	extent_offset = lower_extent_num % extents_per_page;
+ 	(*byte_offset) = extent_offset * crypt_stat->extent_size;
+-	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->header_extent_size = "
+-			"[%d]\n", crypt_stat->header_extent_size);
++	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->extent_size = "
++			"[%d]\n", crypt_stat->extent_size);
+ 	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->"
+ 			"num_header_extents_at_front = [%d]\n",
+ 			crypt_stat->num_header_extents_at_front);
+@@ -899,15 +899,17 @@ void ecryptfs_set_default_sizes(struct e
+ 	crypt_stat->extent_size = ECRYPTFS_DEFAULT_EXTENT_SIZE;
+ 	set_extent_mask_and_shift(crypt_stat);
+ 	crypt_stat->iv_bytes = ECRYPTFS_DEFAULT_IV_BYTES;
+-	if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE) {
+-		crypt_stat->header_extent_size =
+-			ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE;
+-	} else
+-		crypt_stat->header_extent_size = PAGE_CACHE_SIZE;
+ 	if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
+ 		crypt_stat->num_header_extents_at_front = 0;
+-	else
+-		crypt_stat->num_header_extents_at_front = 1;
++	else {
++		if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)
++			crypt_stat->num_header_extents_at_front =
++				(ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE
++				 / crypt_stat->extent_size);
++		else
++			crypt_stat->num_header_extents_at_front =
++				(PAGE_CACHE_SIZE / crypt_stat->extent_size);
++	}
+ }
  
--	if ((rc = ecryptfs_close_lower_file(lower_file))) {
-+	rc = ecryptfs_close_lower_file(lower_file);
-+	if (rc) {
- 		printk(KERN_ERR "Error closing lower_file\n");
+ /**
+@@ -1319,7 +1321,7 @@ ecryptfs_write_header_metadata(char *vir
+ 	u32 header_extent_size;
+ 	u16 num_header_extents_at_front;
+ 
+-	header_extent_size = (u32)crypt_stat->header_extent_size;
++	header_extent_size = (u32)crypt_stat->extent_size;
+ 	num_header_extents_at_front =
+ 		(u16)crypt_stat->num_header_extents_at_front;
+ 	header_extent_size = cpu_to_be32(header_extent_size);
+@@ -1415,7 +1417,7 @@ ecryptfs_write_metadata_to_contents(stru
+ 		set_fs(oldfs);
  		goto out;
  	}
-diff -puN fs/ecryptfs/inode.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-remove-assignments-in-if-statements
-+++ a/fs/ecryptfs/inode.c
-@@ -202,8 +202,9 @@ static int ecryptfs_initialize_file(stru
- 	lower_flags = ((O_CREAT | O_TRUNC) & O_ACCMODE) | O_RDWR;
- 	lower_mnt = ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
- 	/* Corresponding fput() at end of this function */
--	if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
--					   lower_flags))) {
-+	rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
-+				      lower_flags);
-+	if (rc) {
- 		ecryptfs_printk(KERN_ERR,
- 				"Error opening dentry; rc = [%i]\n", rc);
- 		goto out;
-@@ -229,7 +230,8 @@ static int ecryptfs_initialize_file(stru
+-	header_pages = ((crypt_stat->header_extent_size
++	header_pages = ((crypt_stat->extent_size
+ 			 * crypt_stat->num_header_extents_at_front)
+ 			/ PAGE_CACHE_SIZE);
+ 	memset(page_virt, 0, PAGE_CACHE_SIZE);
+@@ -1532,17 +1534,16 @@ static int parse_header_metadata(struct 
+ 	virt += 4;
+ 	memcpy(&num_header_extents_at_front, virt, 2);
+ 	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
+-	crypt_stat->header_extent_size = (int)header_extent_size;
+ 	crypt_stat->num_header_extents_at_front =
+ 		(int)num_header_extents_at_front;
+-	(*bytes_read) = 6;
++	(*bytes_read) = (sizeof(u32) + sizeof(u16));
+ 	if ((validate_header_size == ECRYPTFS_VALIDATE_HEADER_SIZE)
+-	    && ((crypt_stat->header_extent_size
++	    && ((crypt_stat->extent_size
+ 		 * crypt_stat->num_header_extents_at_front)
+ 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
+ 		rc = -EINVAL;
+-		ecryptfs_printk(KERN_WARNING, "Invalid header extent size: "
+-				"[%d]\n", crypt_stat->header_extent_size);
++		printk(KERN_WARNING "Invalid number of header extents: [%d]\n",
++		       crypt_stat->num_header_extents_at_front);
  	}
- 	rc = grow_file(ecryptfs_dentry, lower_file, inode, lower_inode);
- out_fput:
--	if ((rc = ecryptfs_close_lower_file(lower_file)))
-+	rc = ecryptfs_close_lower_file(lower_file);
-+	if (rc)
- 		printk(KERN_ERR "Error closing lower_file\n");
- out:
  	return rc;
-@@ -779,8 +781,9 @@ int ecryptfs_truncate(struct dentry *den
- 	lower_dentry = ecryptfs_dentry_to_lower(dentry);
- 	/* This dget & mntget is released through fput at out_fput: */
- 	lower_mnt = ecryptfs_dentry_to_lower_mnt(dentry);
--	if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
--					   O_RDWR))) {
-+	rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
-+				      O_RDWR);
-+	if (rc) {
- 		ecryptfs_printk(KERN_ERR,
- 				"Error opening dentry; rc = [%i]\n", rc);
- 		goto out_free;
-@@ -813,11 +816,12 @@ int ecryptfs_truncate(struct dentry *den
- 			end_pos_in_page = ((new_length - 1) & ~PAGE_CACHE_MASK);
- 		}
- 		if (end_pos_in_page != (PAGE_CACHE_SIZE - 1)) {
--			if ((rc = ecryptfs_write_zeros(&fake_ecryptfs_file,
--						       index,
--						       (end_pos_in_page + 1),
--						       ((PAGE_CACHE_SIZE - 1)
--							- end_pos_in_page)))) {
-+			rc = ecryptfs_write_zeros(&fake_ecryptfs_file,
-+						  index,
-+						  (end_pos_in_page + 1),
-+						  ((PAGE_CACHE_SIZE - 1)
-+						   - end_pos_in_page));
-+			if (rc) {
- 				printk(KERN_ERR "Error attempting to zero out "
- 				       "the remainder of the end page on "
- 				       "reducing truncate; rc = [%d]\n", rc);
-@@ -849,7 +853,8 @@ int ecryptfs_truncate(struct dentry *den
- 		= CURRENT_TIME;
- 	mark_inode_dirty_sync(inode);
- out_fput:
--	if ((rc = ecryptfs_close_lower_file(lower_file)))
-+	rc = ecryptfs_close_lower_file(lower_file);
-+	if (rc)
- 		printk(KERN_ERR "Error closing lower_file\n");
- out_free:
- 	if (ecryptfs_file_to_private(&fake_ecryptfs_file))
-@@ -917,8 +922,9 @@ static int ecryptfs_setattr(struct dentr
- 
- 		lower_mnt = ecryptfs_dentry_to_lower_mnt(dentry);
- 		lower_flags = O_RDONLY;
--		if ((rc = ecryptfs_open_lower_file(&lower_file, lower_dentry,
--						   lower_mnt, lower_flags))) {
-+		rc = ecryptfs_open_lower_file(&lower_file, lower_dentry,
-+					      lower_mnt, lower_flags);
-+		if (rc) {
- 			printk(KERN_ERR
- 			       "Error opening lower file; rc = [%d]\n", rc);
- 			mutex_unlock(&crypt_stat->cs_mutex);
-@@ -926,7 +932,8 @@ static int ecryptfs_setattr(struct dentr
- 		}
- 		mount_crypt_stat = &ecryptfs_superblock_to_private(
- 			dentry->d_sb)->mount_crypt_stat;
--		if ((rc = ecryptfs_read_metadata(dentry, lower_file))) {
-+		rc = ecryptfs_read_metadata(dentry, lower_file);
-+		if (rc) {
- 			if (!(mount_crypt_stat->flags
- 			      & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)) {
- 				rc = -EIO;
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-remove-assignments-in-if-statements
-+++ a/fs/ecryptfs/keystore.c
-@@ -436,7 +436,8 @@ decrypt_pki_encrypted_session_key(struct
- 	size_t netlink_message_length;
- 	int rc;
- 
--	if ((rc = ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok))) {
-+	rc = ecryptfs_get_auth_tok_sig(&auth_tok_sig, auth_tok);
-+	if (rc) {
- 		printk(KERN_ERR "Unrecognized auth tok type: [%d]\n",
- 		       auth_tok->token_type);
- 		goto out;
-@@ -569,8 +570,9 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 		goto out;
- 	}
- 	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
--	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				      &length_size))) {
-+	rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				 &length_size);
-+	if (rc) {
- 		printk(KERN_WARNING "Error parsing packet length; "
- 		       "rc = [%d]\n", rc);
- 		goto out_free;
-@@ -702,8 +704,9 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 		goto out;
- 	}
- 	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
--	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				      &length_size))) {
-+	rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				 &length_size);
-+	if (rc) {
- 		printk(KERN_WARNING "Error parsing packet length; rc = [%d]\n",
- 		       rc);
- 		goto out_free;
-@@ -849,8 +852,9 @@ parse_tag_11_packet(unsigned char *data,
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				      &length_size))) {
-+	rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				 &length_size);
-+	if (rc) {
- 		printk(KERN_WARNING "Invalid tag 11 packet format\n");
- 		goto out;
- 	}
-@@ -1052,9 +1056,10 @@ decrypt_passphrase_encrypted_session_key
- 		       crypt_stat->cipher, rc);
- 		goto out;
- 	}
--	if ((rc = virt_to_scatterlist(auth_tok->session_key.encrypted_key,
--				      auth_tok->session_key.encrypted_key_size,
--				      &src_sg, 1)) != 1) {
-+	rc = virt_to_scatterlist(auth_tok->session_key.encrypted_key,
-+				 auth_tok->session_key.encrypted_key_size,
-+				 &src_sg, 1);
-+	if (rc != 1) {
- 		printk(KERN_ERR "Internal error whilst attempting to convert "
- 			"auth_tok->session_key.encrypted_key to scatterlist; "
- 			"expected rc = 1; got rc = [%d]. "
-@@ -1064,9 +1069,10 @@ decrypt_passphrase_encrypted_session_key
- 	}
- 	auth_tok->session_key.decrypted_key_size =
- 		auth_tok->session_key.encrypted_key_size;
--	if ((rc = virt_to_scatterlist(auth_tok->session_key.decrypted_key,
--				      auth_tok->session_key.decrypted_key_size,
--				      &dst_sg, 1)) != 1) {
-+	rc = virt_to_scatterlist(auth_tok->session_key.decrypted_key,
-+				 auth_tok->session_key.decrypted_key_size,
-+				 &dst_sg, 1);
-+	if (rc != 1) {
- 		printk(KERN_ERR "Internal error whilst attempting to convert "
- 			"auth_tok->session_key.decrypted_key to scatterlist; "
- 			"expected rc = 1; got rc = [%d]\n", rc);
-@@ -1236,18 +1242,17 @@ find_next_matching_auth_tok:
- 					"Considering cadidate auth tok:\n");
- 			ecryptfs_dump_auth_tok(candidate_auth_tok);
- 		}
--		if ((rc = ecryptfs_get_auth_tok_sig(&candidate_auth_tok_sig,
--						    candidate_auth_tok))) {
-+		rc = ecryptfs_get_auth_tok_sig(&candidate_auth_tok_sig,
-+					       candidate_auth_tok);
-+		if (rc) {
- 			printk(KERN_ERR
- 			       "Unrecognized candidate auth tok type: [%d]\n",
- 			       candidate_auth_tok->token_type);
- 			rc = -EINVAL;
- 			goto out_wipe_list;
- 		}
--		if ((rc = ecryptfs_find_auth_tok_for_sig(
--			     &matching_auth_tok, crypt_stat,
--			     candidate_auth_tok_sig)))
--			rc = 0;
-+		ecryptfs_find_auth_tok_for_sig(&matching_auth_tok, crypt_stat,
-+					       candidate_auth_tok_sig);
- 		if (matching_auth_tok) {
- 			found_auth_tok = 1;
- 			goto found_matching_auth_tok;
-@@ -1605,9 +1610,9 @@ write_tag_3_packet(char *dest, size_t *r
- 		ecryptfs_printk(KERN_DEBUG, "Session key encryption key:\n");
- 		ecryptfs_dump_hex(session_key_encryption_key, 16);
- 	}
--	if ((rc = virt_to_scatterlist(crypt_stat->key,
--				      key_rec->enc_key_size, &src_sg, 1))
--	    != 1) {
-+	rc = virt_to_scatterlist(crypt_stat->key, key_rec->enc_key_size,
-+				 &src_sg, 1);
-+	if (rc != 1) {
- 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
- 				"for crypt_stat session key; expected rc = 1; "
- 				"got rc = [%d]. key_rec->enc_key_size = [%d]\n",
-@@ -1615,9 +1620,9 @@ write_tag_3_packet(char *dest, size_t *r
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	if ((rc = virt_to_scatterlist(key_rec->enc_key,
--				      key_rec->enc_key_size, &dst_sg, 1))
--	    != 1) {
-+	rc = virt_to_scatterlist(key_rec->enc_key, key_rec->enc_key_size,
-+				 &dst_sg, 1);
-+	if (rc != 1) {
- 		ecryptfs_printk(KERN_ERR, "Error generating scatterlist "
- 				"for crypt_stat encrypted session key; "
- 				"expected rc = 1; got rc = [%d]. "
-diff -puN fs/ecryptfs/main.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-remove-assignments-in-if-statements
-+++ a/fs/ecryptfs/main.c
-@@ -187,10 +187,11 @@ static int ecryptfs_init_global_auth_tok
- 	list_for_each_entry(global_auth_tok,
- 			    &mount_crypt_stat->global_auth_tok_list,
- 			    mount_crypt_stat_list) {
--		if ((rc = ecryptfs_keyring_auth_tok_for_sig(
--			     &global_auth_tok->global_auth_tok_key,
--			     &global_auth_tok->global_auth_tok,
--			     global_auth_tok->sig))) {
-+		rc = ecryptfs_keyring_auth_tok_for_sig(
-+			&global_auth_tok->global_auth_tok_key,
-+			&global_auth_tok->global_auth_tok,
-+			global_auth_tok->sig);
-+		if (rc) {
- 			printk(KERN_ERR "Could not find valid key in user "
- 			       "session keyring for sig specified in mount "
- 			       "option: [%s]\n", global_auth_tok->sig);
-@@ -354,9 +355,10 @@ static int ecryptfs_parse_options(struct
- 	if (!cipher_key_bytes_set) {
- 		mount_crypt_stat->global_default_cipher_key_size = 0;
- 	}
--	if ((rc = ecryptfs_add_new_key_tfm(
--		     NULL, mount_crypt_stat->global_default_cipher_name,
--		     mount_crypt_stat->global_default_cipher_key_size))) {
-+	rc = ecryptfs_add_new_key_tfm(
-+		NULL, mount_crypt_stat->global_default_cipher_name,
-+		mount_crypt_stat->global_default_cipher_key_size);
-+	if (rc) {
- 		printk(KERN_ERR "Error attempting to initialize cipher with "
- 		       "name = [%s] and key size = [%td]; rc = [%d]\n",
- 		       mount_crypt_stat->global_default_cipher_name,
-@@ -364,7 +366,8 @@ static int ecryptfs_parse_options(struct
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	if ((rc = ecryptfs_init_global_auth_toks(mount_crypt_stat))) {
-+	rc = ecryptfs_init_global_auth_toks(mount_crypt_stat);
-+	if (rc) {
- 		printk(KERN_WARNING "One or more global auth toks could not "
- 		       "properly register; rc = [%d]\n", rc);
- 	}
-@@ -457,7 +460,8 @@ static int ecryptfs_read_super(struct su
- 	sb->s_maxbytes = lower_root->d_sb->s_maxbytes;
- 	ecryptfs_set_dentry_lower(sb->s_root, lower_root);
- 	ecryptfs_set_dentry_lower_mnt(sb->s_root, lower_mnt);
--	if ((rc = ecryptfs_interpose(lower_root, sb->s_root, sb, 0)))
-+	rc = ecryptfs_interpose(lower_root, sb->s_root, sb, 0);
-+	if (rc)
- 		goto out_free;
- 	rc = 0;
- 	goto out;
-@@ -764,7 +768,8 @@ static int do_sysfs_registration(void)
+ }
+@@ -1557,8 +1558,7 @@ static int parse_header_metadata(struct 
+  */
+ static void set_default_header_data(struct ecryptfs_crypt_stat *crypt_stat)
  {
- 	int rc;
+-	crypt_stat->header_extent_size = 4096;
+-	crypt_stat->num_header_extents_at_front = 1;
++	crypt_stat->num_header_extents_at_front = 2;
+ }
  
--	if ((rc = subsystem_register(&ecryptfs_subsys))) {
-+	rc = subsystem_register(&ecryptfs_subsys);
-+	if (rc) {
- 		printk(KERN_ERR
- 		       "Unable to register ecryptfs sysfs subsystem\n");
- 		goto out;
-@@ -795,7 +800,8 @@ static void do_sysfs_unregistration(void
+ /**
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -38,7 +38,7 @@
+ /* Version verification for shared data structures w/ userspace */
+ #define ECRYPTFS_VERSION_MAJOR 0x00
+ #define ECRYPTFS_VERSION_MINOR 0x04
+-#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x02
++#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x03
+ /* These flags indicate which features are supported by the kernel
+  * module; userspace tools such as the mount helper read
+  * ECRYPTFS_VERSIONING_MASK from a sysfs handle in order to determine
+@@ -67,8 +67,7 @@
+ #define ECRYPTFS_MAX_KEY_BYTES 64
+ #define ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES 512
+ #define ECRYPTFS_DEFAULT_IV_BYTES 16
+-#define ECRYPTFS_FILE_VERSION 0x02
+-#define ECRYPTFS_DEFAULT_HEADER_EXTENT_SIZE 8192
++#define ECRYPTFS_FILE_VERSION 0x03
+ #define ECRYPTFS_DEFAULT_EXTENT_SIZE 4096
+ #define ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE 8192
+ #define ECRYPTFS_DEFAULT_MSG_CTX_ELEMS 32
+@@ -201,7 +200,7 @@ ecryptfs_get_key_payload_data(struct key
+ #define ECRYPTFS_SALT_BYTES 2
+ #define MAGIC_ECRYPTFS_MARKER 0x3c81b7f5
+ #define MAGIC_ECRYPTFS_MARKER_SIZE_BYTES 8	/* 4*2 */
+-#define ECRYPTFS_FILE_SIZE_BYTES 8
++#define ECRYPTFS_FILE_SIZE_BYTES (sizeof(u64))
+ #define ECRYPTFS_DEFAULT_CIPHER "aes"
+ #define ECRYPTFS_DEFAULT_KEY_BYTES 16
+ #define ECRYPTFS_DEFAULT_HASH "md5"
+@@ -238,7 +237,6 @@ struct ecryptfs_crypt_stat {
+ 	u32 flags;
+ 	unsigned int file_version;
+ 	size_t iv_bytes;
+-	size_t header_extent_size;
+ 	size_t num_header_extents_at_front;
+ 	size_t extent_size; /* Data extent size; default is 4096 */
+ 	size_t key_size;
+@@ -273,6 +271,17 @@ struct ecryptfs_dentry_info {
+ };
+ 
+ /**
++ * ecryptfs_global_auth_tok - A key used to encrypt all new files under the mountpoint
++ * @flags: Status flags
++ * @mount_crypt_stat_list: These auth_toks hang off the mount-wide
++ *                         cryptographic context. Every time a new
++ *                         inode comes into existence, eCryptfs copies
++ *                         the auth_toks on that list to the set of
++ *                         auth_toks on the inode's crypt_stat
++ * @global_auth_tok_key: The key from the user's keyring for the sig
++ * @global_auth_tok: The key contents
++ * @sig: The key identifier
++ *
+  * ecryptfs_global_auth_tok structs refer to authentication token keys
+  * in the user keyring that apply to newly created files. A list of
+  * these objects hangs off of the mount_crypt_stat struct for any
+@@ -283,15 +292,21 @@ struct ecryptfs_dentry_info {
+ struct ecryptfs_global_auth_tok {
+ #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+ 	u32 flags;
+-	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
+-						 * the mount_crypt_stat */
+-	struct key *global_auth_tok_key; /* The key from the user's keyring for
+-					  * the sig */
+-	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
+-	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
++	struct list_head mount_crypt_stat_list;
++	struct key *global_auth_tok_key;
++	struct ecryptfs_auth_tok *global_auth_tok;
++	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+ };
+ 
+ /**
++ * ecryptfs_key_tfm - Persistent key tfm
++ * @key_tfm: crypto API handle to the key
++ * @key_size: Key size in bytes
++ * @key_tfm_mutex: Mutex to ensure only one operation in eCryptfs is
++ *                 using the persistent TFM at any point in time
++ * @key_tfm_list: Handle to hang this off the module-wide TFM list
++ * @cipher_name: String name for the cipher for this TFM
++ *
+  * Typically, eCryptfs will use the same ciphers repeatedly throughout
+  * the course of its operations. In order to avoid unnecessarily
+  * destroying and initializing the same cipher repeatedly, eCryptfs
+@@ -301,7 +316,7 @@ struct ecryptfs_key_tfm {
+ 	struct crypto_blkcipher *key_tfm;
+ 	size_t key_size;
+ 	struct mutex key_tfm_mutex;
+-	struct list_head key_tfm_list; /* The module's tfm list */
++	struct list_head key_tfm_list;
+ 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ };
+ 
+diff -puN fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/inode.c
+@@ -392,7 +392,8 @@ static struct dentry *ecryptfs_lookup(st
+ 		dentry->d_sb)->mount_crypt_stat;
+ 	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
+-			file_size = (crypt_stat->header_extent_size
++			file_size = ((crypt_stat->extent_size
++				      * crypt_stat->num_header_extents_at_front)
+ 				     + i_size_read(lower_dentry->d_inode));
+ 		else
+ 			file_size = i_size_read(lower_dentry->d_inode);
+@@ -722,8 +723,8 @@ upper_size_to_lower_size(struct ecryptfs
  {
- 	int rc;
+ 	loff_t lower_size;
  
--	if ((rc = ecryptfs_destroy_crypto())) {
-+	rc = ecryptfs_destroy_crypto();
-+	if (rc) {
- 		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
- 		       "rc = [%d]\n", rc);
- 	}
-diff -puN fs/ecryptfs/messaging.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/messaging.c
---- a/fs/ecryptfs/messaging.c~ecryptfs-remove-assignments-in-if-statements
-+++ a/fs/ecryptfs/messaging.c
-@@ -419,8 +419,9 @@ int ecryptfs_init_messaging(unsigned int
- 	}
- 	mutex_init(&ecryptfs_daemon_id_hash_mux);
- 	mutex_lock(&ecryptfs_daemon_id_hash_mux);
--	ecryptfs_hash_buckets = 0;
--	while (ecryptfs_number_of_users >> ++ecryptfs_hash_buckets);
-+	ecryptfs_hash_buckets = 1;
-+	while (ecryptfs_number_of_users >> ecryptfs_hash_buckets)
-+		ecryptfs_hash_buckets++;
- 	ecryptfs_daemon_id_hash = kmalloc(sizeof(struct hlist_head)
- 					  * ecryptfs_hash_buckets, GFP_KERNEL);
- 	if (!ecryptfs_daemon_id_hash) {
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-remove-assignments-in-if-statements fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-remove-assignments-in-if-statements
+-	lower_size = ( crypt_stat->header_extent_size
+-		       * crypt_stat->num_header_extents_at_front );
++	lower_size = (crypt_stat->extent_size
++		      * crypt_stat->num_header_extents_at_front);
+ 	if (upper_size != 0) {
+ 		loff_t num_extents;
+ 
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size
 +++ a/fs/ecryptfs/mmap.c
-@@ -762,8 +762,9 @@ ecryptfs_write_zeros(struct file *file, 
- 		rc = PTR_ERR(tmp_page);
- 		goto out;
- 	}
--	if ((rc = ecryptfs_prepare_write_no_truncate(file, tmp_page, start,
--						     (start + num_zeros)))) {
-+	rc = ecryptfs_prepare_write_no_truncate(file, tmp_page, start,
-+						(start + num_zeros));
-+	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Error preparing to write zero's "
- 				"to page at index [0x%.16x]\n",
- 				index);
+@@ -301,7 +301,7 @@ static int ecryptfs_readpage(struct file
+ 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+ 			int num_pages_in_header_region =
+-				(crypt_stat->header_extent_size
++				(crypt_stat->extent_size
+ 				 / PAGE_CACHE_SIZE);
+ 
+ 			if (page->index < num_pages_in_header_region) {
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
