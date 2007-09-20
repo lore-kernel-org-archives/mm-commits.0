@@ -1,174 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: - dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:41 -0700
-Message-ID: <200709202115.l8KLFfTt002930@imap1.linux-foundation.org>
+Subject: - convert-uid-hash-to-hlist.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:53 -0700
+Message-ID: <200709202115.l8KLFrXN002954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44037 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39347 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbXITV3O (ORCPT
+	by vger.kernel.org with ESMTP id S1752263AbXITV3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:29:14 -0400
+	Thu, 20 Sep 2007 17:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, duaneg@dghda.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: xemul@openvz.org, adobriyan@openvz.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dir_index: error out instead of BUG on corrupt dx dirs
+     Convert uid hash to hlist
 has been removed from the -mm tree.  Its filename was
-     dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs.patch
+     convert-uid-hash-to-hlist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dir_index: error out instead of BUG on corrupt dx dirs
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: Convert uid hash to hlist
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Convert asserts (BUGs) in dx_probe from bad on-disk data to recoverable
-errors with helpful warnings.  With help catching other asserts from Duane
-Griffin <duaneg@dghda.com>
+Surprisingly, but (spotted by Alexey Dobriyan) the uid hash still uses
+list_heads, thus occupying twice as much place as it could.  Convert it to
+hlist_heads.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Acked-by: Duane Griffin <duaneg@dghda.com>
-Acked-by: Theodore Ts'o <tytso@mit.edu>
-Cc: <stable@kernel.org>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |   34 ++++++++++++++++++++++++++++++----
- fs/ext4/namei.c |   34 ++++++++++++++++++++++++++++++----
- 2 files changed, 60 insertions(+), 8 deletions(-)
+ include/linux/sched.h          |    2 +-
+ include/linux/user_namespace.h |    2 +-
+ kernel/user.c                  |   15 ++++++++-------
+ kernel/user_namespace.c        |    2 +-
+ 4 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext3/namei.c
---- a/fs/ext3/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
-+++ a/fs/ext3/namei.c
-@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
+diff -puN include/linux/sched.h~convert-uid-hash-to-hlist include/linux/sched.h
+--- a/include/linux/sched.h~convert-uid-hash-to-hlist
++++ a/include/linux/sched.h
+@@ -593,7 +593,7 @@ struct user_struct {
+ #endif
  
- 	entries = (struct dx_entry *) (((char *)&root->info) +
- 				       root->info.info_length);
--	assert(dx_get_limit(entries) == dx_root_limit(dir,
--						      root->info.info_length));
-+
-+	if (dx_get_limit(entries) != dx_root_limit(dir,
-+						   root->info.info_length)) {
-+		ext3_warning(dir->i_sb, __FUNCTION__,
-+			     "dx entry: limit != root limit");
-+		brelse(bh);
-+		*err = ERR_BAD_DX_DIR;
-+		goto fail;
-+	}
-+
- 	dxtrace (printk("Look up %x", hash));
- 	while (1)
- 	{
- 		count = dx_get_count(entries);
--		assert (count && count <= dx_get_limit(entries));
-+		if (!count || count > dx_get_limit(entries)) {
-+			ext3_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: no count or count > limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
-+
- 		p = entries + 1;
- 		q = entries + count - 1;
- 		while (p <= q)
-@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
- 		if (!(bh = ext3_bread (NULL,dir, dx_get_block(at), 0, err)))
- 			goto fail2;
- 		at = entries = ((struct dx_node *) bh->b_data)->entries;
--		assert (dx_get_limit(entries) == dx_node_limit (dir));
-+		if (dx_get_limit(entries) != dx_node_limit (dir)) {
-+			ext3_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: limit != node limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
- 		frame++;
-+		frame->bh = NULL;
- 	}
- fail2:
- 	while (frame >= frame_in) {
-@@ -432,6 +454,10 @@ fail2:
- 		frame--;
- 	}
- fail:
-+	if (*err == ERR_BAD_DX_DIR)
-+		ext3_warning(dir->i_sb, __FUNCTION__,
-+			     "Corrupt dir inode %ld, running e2fsck is "
-+			     "recommended.", dir->i_ino);
- 	return NULL;
+ 	/* Hash table maintenance information */
+-	struct list_head uidhash_list;
++	struct hlist_node uidhash_node;
+ 	uid_t uid;
+ };
+ 
+diff -puN include/linux/user_namespace.h~convert-uid-hash-to-hlist include/linux/user_namespace.h
+--- a/include/linux/user_namespace.h~convert-uid-hash-to-hlist
++++ a/include/linux/user_namespace.h
+@@ -11,7 +11,7 @@
+ 
+ struct user_namespace {
+ 	struct kref		kref;
+-	struct list_head	uidhash_table[UIDHASH_SZ];
++	struct hlist_head	uidhash_table[UIDHASH_SZ];
+ 	struct user_struct	*root_user;
+ };
+ 
+diff -puN kernel/user.c~convert-uid-hash-to-hlist kernel/user.c
+--- a/kernel/user.c~convert-uid-hash-to-hlist
++++ a/kernel/user.c
+@@ -55,21 +55,22 @@ struct user_struct root_user = {
+ /*
+  * These routines must be called with the uidhash spinlock held!
+  */
+-static inline void uid_hash_insert(struct user_struct *up, struct list_head *hashent)
++static inline void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
+ {
+-	list_add(&up->uidhash_list, hashent);
++	hlist_add_head(&up->uidhash_node, hashent);
  }
  
-diff -puN fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs fs/ext4/namei.c
---- a/fs/ext4/namei.c~dir_index-error-out-instead-of-bug-on-corrupt-dx-dirs
-+++ a/fs/ext4/namei.c
-@@ -379,13 +379,28 @@ dx_probe(struct dentry *dentry, struct i
- 
- 	entries = (struct dx_entry *) (((char *)&root->info) +
- 				       root->info.info_length);
--	assert(dx_get_limit(entries) == dx_root_limit(dir,
--						      root->info.info_length));
-+
-+	if (dx_get_limit(entries) != dx_root_limit(dir,
-+						   root->info.info_length)) {
-+		ext4_warning(dir->i_sb, __FUNCTION__,
-+			     "dx entry: limit != root limit");
-+		brelse(bh);
-+		*err = ERR_BAD_DX_DIR;
-+		goto fail;
-+	}
-+
- 	dxtrace (printk("Look up %x", hash));
- 	while (1)
- 	{
- 		count = dx_get_count(entries);
--		assert (count && count <= dx_get_limit(entries));
-+		if (!count || count > dx_get_limit(entries)) {
-+			ext4_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: no count or count > limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
-+
- 		p = entries + 1;
- 		q = entries + count - 1;
- 		while (p <= q)
-@@ -423,8 +438,15 @@ dx_probe(struct dentry *dentry, struct i
- 		if (!(bh = ext4_bread (NULL,dir, dx_get_block(at), 0, err)))
- 			goto fail2;
- 		at = entries = ((struct dx_node *) bh->b_data)->entries;
--		assert (dx_get_limit(entries) == dx_node_limit (dir));
-+		if (dx_get_limit(entries) != dx_node_limit (dir)) {
-+			ext4_warning(dir->i_sb, __FUNCTION__,
-+				     "dx entry: limit != node limit");
-+			brelse(bh);
-+			*err = ERR_BAD_DX_DIR;
-+			goto fail2;
-+		}
- 		frame++;
-+		frame->bh = NULL;
- 	}
- fail2:
- 	while (frame >= frame_in) {
-@@ -432,6 +454,10 @@ fail2:
- 		frame--;
- 	}
- fail:
-+	if (*err == ERR_BAD_DX_DIR)
-+		ext4_warning(dir->i_sb, __FUNCTION__,
-+			     "Corrupt dir inode %ld, running e2fsck is "
-+			     "recommended.", dir->i_ino);
- 	return NULL;
+ static inline void uid_hash_remove(struct user_struct *up)
+ {
+-	list_del(&up->uidhash_list);
++	hlist_del(&up->uidhash_node);
  }
  
+-static inline struct user_struct *uid_hash_find(uid_t uid, struct list_head *hashent)
++static inline struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
+ {
+ 	struct user_struct *user;
++	struct hlist_node *h;
+ 
+-	list_for_each_entry(user, hashent, uidhash_list) {
++	hlist_for_each_entry(user, h, hashent, uidhash_node) {
+ 		if(user->uid == uid) {
+ 			atomic_inc(&user->__count);
+ 			return user;
+@@ -118,7 +119,7 @@ void free_uid(struct user_struct *up)
+ 
+ struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
+ {
+-	struct list_head *hashent = uidhashentry(ns, uid);
++	struct hlist_head *hashent = uidhashentry(ns, uid);
+ 	struct user_struct *up;
+ 
+ 	spin_lock_irq(&uidhash_lock);
+@@ -207,7 +208,7 @@ static int __init uid_cache_init(void)
+ 			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+ 
+ 	for(n = 0; n < UIDHASH_SZ; ++n)
+-		INIT_LIST_HEAD(init_user_ns.uidhash_table + n);
++		INIT_HLIST_HEAD(init_user_ns.uidhash_table + n);
+ 
+ 	/* Insert the root user immediately (init already runs as root) */
+ 	spin_lock_irq(&uidhash_lock);
+diff -puN kernel/user_namespace.c~convert-uid-hash-to-hlist kernel/user_namespace.c
+--- a/kernel/user_namespace.c~convert-uid-hash-to-hlist
++++ a/kernel/user_namespace.c
+@@ -39,7 +39,7 @@ static struct user_namespace *clone_user
+ 	kref_init(&ns->kref);
+ 
+ 	for (n = 0; n < UIDHASH_SZ; ++n)
+-		INIT_LIST_HEAD(ns->uidhash_table + n);
++		INIT_HLIST_HEAD(ns->uidhash_table + n);
+ 
+ 	/* Insert new root user.  */
+ 	ns->root_user = alloc_uid(ns, 0);
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
-limit-minixfs-printks-on-corrupted-dir-i_size.patch
+git-net.patch
+git-nfsd.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+isolate-some-explicit-usage-of-task-tgid-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+cleanup-macros-for-distinguishing-mandatory-locks.patch
+gfs2-cleanup-explicit-check-for-mandatory-locks.patch
+9pfs-cleanup-explicit-check-for-mandatory-locks.patch
+afs-cleanup-explicit-check-for-mandatory-locks.patch
+nfs-cleanup-explicit-check-for-mandatory-locks.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
