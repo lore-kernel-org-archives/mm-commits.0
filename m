@@ -1,74 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - pktgen-srcmac-fix.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:00 -0700
-Message-ID: <200709202115.l8KLF0Ce002791@imap1.linux-foundation.org>
+Subject: - modpost-detect-unterminated-device-id-lists.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:04 -0700
+Message-ID: <200709202115.l8KLF4uc002871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41212 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60964 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213AbXITVQD (ORCPT
+	by vger.kernel.org with ESMTP id S1751929AbXITVP6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:16:03 -0400
+	Thu, 20 Sep 2007 17:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adit.262@gmail.com, davem@davemloft.net, hadi@cyberus.ca, mm-commits@vger.kernel.org
+To: kees@ubuntu.com, adobriyan@gmail.com, bcollins@ubuntu.com, flamingice@sourmilk.net, greg@kroah.com, jeff@garzik.org, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Pktgen srcmac fix
+     modpost: detect unterminated device id lists
 has been removed from the -mm tree.  Its filename was
-     pktgen-srcmac-fix.patch
+     modpost-detect-unterminated-device-id-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Pktgen srcmac fix
-From: "Adit Ranadive" <adit.262@gmail.com>
+Subject: modpost: detect unterminated device id lists
+From: Kees Cook <kees@ubuntu.com>
 
-Cc: Jamal Hadi Salim <hadi@cyberus.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cause modpost to fail if any device id lists are incorrectly terminated,
+after reporting the offender.
+
+Signed-off-by: Kees Cook <kees@ubuntu.com>
+Greg KH <greg@kroah.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ben Collins <bcollins@ubuntu.com>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/pktgen.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/mod/file2alias.c |   38 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN net/core/pktgen.c~pktgen-srcmac-fix net/core/pktgen.c
---- a/net/core/pktgen.c~pktgen-srcmac-fix
-+++ a/net/core/pktgen.c
-@@ -111,6 +111,9 @@
-  *
-  * 802.1Q/Q-in-Q support by Francesco Fondelli (FF) <francesco.fondelli@gmail.com>
-  *
-+ * Fixed src_mac command to set source mac of packet to value specified in
-+ * command by Adit Ranadive <adit.262@gmail.com>
-+ *
-  */
- #include <linux/sys.h>
- #include <linux/types.h>
-@@ -1472,8 +1475,11 @@ static ssize_t pktgen_if_write(struct fi
+diff -puN scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists
++++ a/scripts/mod/file2alias.c
+@@ -55,10 +55,13 @@ do {                                    
+  * Check that sizeof(device_id type) are consistent with size of section
+  * in .o file. If in-consistent then userspace and kernel does not agree
+  * on actual size which is a bug.
++ * Also verify that the final entry in the table is all zeros.
+  **/
+-static void device_id_size_check(const char *modname, const char *device_id,
+-				 unsigned long size, unsigned long id_size)
++static void device_id_check(const char *modname, const char *device_id,
++			    unsigned long size, unsigned long id_size,
++			    void *symval)
+ {
++	int i;
+ 	if (size % id_size || size < id_size) {
+ 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
+ 		      "of the size of section __mod_%s_device_table=%lu.\n"
+@@ -66,6 +69,18 @@ static void device_id_size_check(const c
+ 		      "in mod_devicetable.h\n",
+ 		      modname, device_id, id_size, device_id, size, device_id);
  	}
- 	if (!strcmp(name, "src_mac")) {
- 		char *v = valstr;
-+		unsigned char old_smac[ETH_ALEN];
- 		unsigned char *m = pkt_dev->src_mac;
++	/* Verify last one is a terminator */
++	for (i = 0; i < id_size; i++ ) {
++		if ( *(uint8_t*)(symval+size-id_size+i) ) {
++			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  The last of %lu is:\n", modname, device_id, id_size, size / id_size);
++			for (i = 0; i < id_size; i++ ) {
++				fprintf(stderr,"0x%02x ", *(uint8_t*)(symval+size-id_size+i) );
++			}
++			fprintf(stderr,"\n");
++			fatal("%s: struct %s_device_id is not terminated "
++				"with a NULL entry!\n", modname, device_id);
++		}
++	}
+ }
  
-+		memcpy(old_smac, pkt_dev->src_mac, ETH_ALEN);
-+
- 		len = strn_len(&user_buffer[i], sizeof(valstr) - 1);
- 		if (len < 0) {
- 			return len;
-@@ -1502,6 +1508,10 @@ static ssize_t pktgen_if_write(struct fi
- 			}
- 		}
+ /* USB is special because the bcdDevice can be matched against a numeric range */
+@@ -168,7 +183,7 @@ static void do_usb_table(void *symval, u
+ 	unsigned int i;
+ 	const unsigned long id_size = sizeof(struct usb_device_id);
  
-+		/* Set up Src MAC */
-+		if (compare_ether_addr(old_smac, pkt_dev->src_mac))
-+			memcpy(&(pkt_dev->hh[6]), pkt_dev->src_mac, ETH_ALEN);
-+
- 		sprintf(pg_result, "OK: srcmac");
- 		return count;
- 	}
+-	device_id_size_check(mod->name, "usb", size, id_size);
++	device_id_check(mod->name, "usb", size, id_size, symval);
+ 
+ 	/* Leave last one: it's the terminator. */
+ 	size -= id_size;
+@@ -529,7 +544,7 @@ static void do_table(void *symval, unsig
+ 	char alias[500];
+ 	int (*do_entry)(const char *, void *entry, char *alias) = function;
+ 
+-	device_id_size_check(mod->name, device_id, size, id_size);
++	device_id_check(mod->name, device_id, size, id_size, symval);
+ 	/* Leave last one: it's the terminator. */
+ 	size -= id_size;
+ 
+@@ -551,14 +566,22 @@ void handle_moddevtable(struct module *m
+ 			Elf_Sym *sym, const char *symname)
+ {
+ 	void *symval;
++	char *zeros = NULL;
+ 
+ 	/* We're looking for a section relative symbol */
+ 	if (!sym->st_shndx || sym->st_shndx >= info->hdr->e_shnum)
+ 		return;
+ 
+-	symval = (void *)info->hdr
+-		+ info->sechdrs[sym->st_shndx].sh_offset
+-		+ sym->st_value;
++	/* Handle all-NULL symbols allocated into .bss */
++	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
++		zeros = calloc(1, sym->st_size);
++		symval = zeros;
++	}
++	else {
++		symval = (void *)info->hdr
++			+ info->sechdrs[sym->st_shndx].sh_offset
++			+ sym->st_value;
++	}
+ 
+ 	if (sym_is(symname, "__mod_pci_device_table"))
+ 		do_table(symval, sym->st_size,
+@@ -627,6 +650,7 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct ssb_device_id), "ssb",
+ 			 do_ssb_entry, mod);
++	if (zeros) free(zeros);
+ }
+ 
+ /* Now add out buffered information to the generated C source */
 _
 
-Patches currently in -mm which might be from adit.262@gmail.com are
+Patches currently in -mm which might be from kees@ubuntu.com are
+
+git-kbuild.patch
