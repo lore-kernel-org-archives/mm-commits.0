@@ -1,85 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-nozomic-__devexit_p-usage-build-fix.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:25 -0700
-Message-ID: <200709202116.l8KLGP4H003006@imap1.linux-foundation.org>
+Subject: - xen-dont-bother-trying-to-set-cr4.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:34 -0700
+Message-ID: <200709202115.l8KLFYXV002921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33087 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35476 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752509AbXITV2d (ORCPT
+	by vger.kernel.org with ESMTP id S1752465AbXITV2i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:33 -0400
+	Thu, 20 Sep 2007 17:28:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/nozomi.c: __devexit_p usage build fix
+     xen: don't bother trying to set cr4
 has been removed from the -mm tree.  Its filename was
-     drivers-char-nozomic-__devexit_p-usage-build-fix.patch
+     xen-dont-bother-trying-to-set-cr4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/nozomi.c: __devexit_p usage build fix
-From: Satyam Sharma <satyam@infradead.org>
+Subject: xen: don't bother trying to set cr4
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-A typo results in build breakage:
+Xen ignores all updates to cr4, and some versions will kill the domain if
+you try to change its value.  Just ignore all changes.
 
-drivers/char/nozomi.c:2204: error: syntax error before `__attribute__'
-
-when CONFIG_HOTPLUG=n. This was actually meant to be __devexit_p.
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/nozomi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/xen/enlighten.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/nozomi.c~drivers-char-nozomic-__devexit_p-usage-build-fix drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~drivers-char-nozomic-__devexit_p-usage-build-fix
-+++ a/drivers/char/nozomi.c
-@@ -2263,7 +2263,7 @@ static struct pci_driver nozomi_driver =
- 	.name = NOZOMI_NAME,
- 	.id_table = nozomi_pci_tbl,
- 	.probe = nozomi_card_init,
--	.remove = __devexit(nozomi_card_exit),
-+	.remove = __devexit_p(nozomi_card_exit),
- };
+diff -puN arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4 arch/i386/xen/enlighten.c
+--- a/arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4
++++ a/arch/i386/xen/enlighten.c
+@@ -623,8 +623,8 @@ static unsigned long xen_read_cr2_direct
  
- static __init int nozomi_init(void)
+ static void xen_write_cr4(unsigned long cr4)
+ {
+-	/* never allow TSC to be disabled */
+-	native_write_cr4(cr4 & ~X86_CR4_TSD);
++	/* Just ignore cr4 changes; Xen doesn't allow us to do
++	   anything anyway. */
+ }
+ 
+ static unsigned long xen_read_cr3(void)
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
 git-net.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-kpagemap-interface.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
 argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe.patch
+core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
+core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
