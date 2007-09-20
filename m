@@ -1,252 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-i801-smbus-patch-for-intel-tolapai-fix.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:32 -0700
-Message-ID: <200709202116.l8KLGWCv003015@imap1.linux-foundation.org>
+Subject: - uml-fix-irqstack-crash.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:02 -0700
+Message-ID: <200709202116.l8KLG2Hl002974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753421AbXITV2m (ORCPT
+	by vger.kernel.org with ESMTP id S1752710AbXITV2f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:42 -0400
+	Thu, 20 Sep 2007 17:28:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jason.d.gaston@intel.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-i801-smbus-patch-for-intel-tolapai-fix
+     uml: fix irqstack crash
 has been removed from the -mm tree.  Its filename was
-     i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
+     uml-fix-irqstack-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2c-i801-smbus-patch-for-intel-tolapai-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: fix irqstack crash
+From: Jeff Dike <jdike@addtoit.com>
 
-Cc: Jason Gaston <jason.d.gaston@intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+This patch fixes a crash caused by an interrupt coming in when an IRQ stack
+is being torn down.  When this happens, handle_signal will loop, setting up
+the IRQ stack again because the tearing down had finished, and handling
+whatever signals had come in.
+
+However, to_irq_stack returns a mask of pending signals to be handled, plus
+bit zero is set if the IRQ stack was already active, and thus shouldn't be
+torn down.  This causes a problem because when handle_signal goes around
+the loop, sig will be zero, and to_irq_stack will duly set bit zero in the
+returned mask, faking handle_signal into believing that it shouldn't tear
+down the IRQ stack and return thread_info pointers back to their original
+values.
+
+This will eventually cause a crash, as the IRQ stack thread_info will
+continue pointing to the original task_struct and an interrupt will look
+into it after it has been freed.
+
+The fix is to stop passing a signal number into to_irq_stack.  Rather, the
+pending signals mask is initialized beforehand with the bit for sig already
+set.  References to sig in to_irq_stack can be replaced with references to
+the mask.
+
+[akpm@linux-foundation.org: use UL]
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-i801.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/um/include/kern_util.h |    2 +-
+ arch/um/kernel/irq.c        |    7 ++++---
+ arch/um/os-Linux/signal.c   |    4 ++--
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai-fix drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai-fix
-+++ a/drivers/i2c/busses/i2c-i801.c
-@@ -544,7 +544,7 @@ static struct pci_device_id i801_ids[] =
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_17) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_5) },
- 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH9_6) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_Tolapai_1) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_TOLAPAI_1) },
- 	{ 0, }
- };
+diff -puN arch/um/include/kern_util.h~uml-fix-irqstack-crash arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-fix-irqstack-crash
++++ a/arch/um/include/kern_util.h
+@@ -117,7 +117,7 @@ extern void sigio_handler(int sig, union
  
-@@ -565,7 +565,7 @@ static int __devinit i801_probe(struct p
- 	case PCI_DEVICE_ID_INTEL_ESB2_17:
- 	case PCI_DEVICE_ID_INTEL_ICH8_5:
- 	case PCI_DEVICE_ID_INTEL_ICH9_6:
--	case PCI_DEVICE_ID_INTEL_Tolapai_1:
-+	case PCI_DEVICE_ID_INTEL_TOLAPAI_1:
- 		isich4 = 1;
- 		break;
- 	default:
+ extern void copy_sc(union uml_pt_regs *regs, void *from);
+ 
+-unsigned long to_irq_stack(int sig, unsigned long *mask_out);
++extern unsigned long to_irq_stack(unsigned long *mask_out);
+ unsigned long from_irq_stack(int nested);
+ 
+ #endif
+diff -puN arch/um/kernel/irq.c~uml-fix-irqstack-crash arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-fix-irqstack-crash
++++ a/arch/um/kernel/irq.c
+@@ -518,13 +518,13 @@ int init_aio_irq(int irq, char *name, ir
+ 
+ static unsigned long pending_mask;
+ 
+-unsigned long to_irq_stack(int sig, unsigned long *mask_out)
++unsigned long to_irq_stack(unsigned long *mask_out)
+ {
+ 	struct thread_info *ti;
+ 	unsigned long mask, old;
+ 	int nested;
+ 
+-	mask = xchg(&pending_mask, 1 << sig);
++	mask = xchg(&pending_mask, *mask_out);
+ 	if(mask != 0){
+ 		/* If any interrupts come in at this point, we want to
+ 		 * make sure that their bits aren't lost by our
+@@ -534,7 +534,7 @@ unsigned long to_irq_stack(int sig, unsi
+ 		 * and pending_mask contains a bit for each interrupt
+ 		 * that came in.
+ 		 */
+-		old = 1 << sig;
++		old = *mask_out;
+ 		do {
+ 			old |= mask;
+ 			mask = xchg(&pending_mask, old);
+@@ -550,6 +550,7 @@ unsigned long to_irq_stack(int sig, unsi
+ 
+ 		task = cpu_tasks[ti->cpu].task;
+ 		tti = task_thread_info(task);
++
+ 		*ti = *tti;
+ 		ti->real_thread = tti;
+ 		task->stack = ti;
+diff -puN arch/um/os-Linux/signal.c~uml-fix-irqstack-crash arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-fix-irqstack-crash
++++ a/arch/um/os-Linux/signal.c
+@@ -119,7 +119,7 @@ void (*handlers[_NSIG])(int sig, struct 
+ 
+ void handle_signal(int sig, struct sigcontext *sc)
+ {
+-	unsigned long pending = 0;
++	unsigned long pending = 1UL << sig;
+ 
+ 	do {
+ 		int nested, bail;
+@@ -134,7 +134,7 @@ void handle_signal(int sig, struct sigco
+ 		 * have to return, and the upper handler will deal
+ 		 * with this interrupt.
+ 		 */
+-		bail = to_irq_stack(sig, &pending);
++		bail = to_irq_stack(&pending);
+ 		if(bail)
+ 			return;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-alsa-procfs-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
-fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
 git-kvm.patch
-git-libata-all.patch
-ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mips-fixup.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-fixup.patch
-revert-8139too-clean-up-i-o-remapping.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-block-fix-qlogicpti-build.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-iwl3945-is-bust.patch
-p54pci-terminate-pci-table.patch
-git-wireless-b44-is-bust.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+hostfs-convert-to-new-aops.patch
+uml-move-userspace-code-to-userspace-file.patch
+uml-tidy-recently-moved-code.patch
+uml-fix-error-cleanup-ordering.patch
+uml-console-subsystem-tidying.patch
+uml-fix-console-writing-bugs.patch
+uml-console-tidying.patch
+uml-stop-using-libc-asm-pageh.patch
+uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
+uml-fix-nonremovability-of-watchdog.patch
+uml-stop-specially-protecting-kernel-stacks.patch
+uml-stop-saving-process-fp-state.patch
+uml-stop-saving-process-fp-state-fix.patch
+uml-physmem-code-tidying.patch
+uml-add-vde-networking-support.patch
+uml-remove-unnecessary-hostfs_getattr.patch
+uml-throw-out-config_mode_tt.patch
+uml-remove-sysdep-threadh.patch
+uml-style-fixes-pass-1.patch
+uml-throw-out-choose_mode.patch
+uml-style-fixes-pass-2.patch
+uml-remove-code-made-redundant-by-choose_mode-removal.patch
+uml-style-fixes-pass-3.patch
+uml-remove-__u64-usage-from-physical-memory-subsystem.patch
+uml-get-rid-of-do_longjmp.patch
+uml-fold-mmu_context_skas-into-mm_context.patch
+uml-rename-pt_regs-general-purpose-register-file.patch
+uml-rename-pt_regs-general-purpose-register-file-fix.patch
+uml-free-ldt-state-on-process-exit.patch
+uml-remove-os_-usage-from-userspace-files.patch
+uml-replace-clone-with-fork.patch
+uml-fix-inlines.patch
+uml-userspace-files-should-call-libc-directly.patch
+uml-clean-up-tlb-flush-path.patch
+uml-remove-unneeded-if-from-hostfs.patch
+uml-fix-hostfs-style.patch
+uml-dont-use-glibc-asm-userh.patch
+uml-floating-point-signal-delivery-fixes.patch
+uml-ptrace-floating-point-fixes.patch
+uml-coredumping-floating-point-fixes.patch
+uml-sysrq-and-mconsole-fixes.patch
+uml-style-fixes-in-fp-code.patch
+uml-eliminate-floating-point-state-from-register-file.patch
+uml-remove-unused-file.patch
+uml-more-idiomatic-parameter-parsing.patch
+bitops-introduce-lock-ops.patch
