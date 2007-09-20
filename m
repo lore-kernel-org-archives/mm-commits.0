@@ -1,49 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fix-u14-34f.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:17:08 -0700
-Message-ID: <200709202117.l8KLH8pd003057@imap1.linux-foundation.org>
+Subject: - i2c-i801-smbus-patch-for-intel-tolapai-fix.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:32 -0700
+Message-ID: <200709202116.l8KLGWCv003015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48939 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752307AbXITV2z (ORCPT
+	by vger.kernel.org with ESMTP id S1753421AbXITV2m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:55 -0400
+	Thu, 20 Sep 2007 17:28:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jason.d.gaston@intel.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fix-u14-34f
+     i2c-i801-smbus-patch-for-intel-tolapai-fix
 has been removed from the -mm tree.  Its filename was
-     git-block-fix-u14-34f.patch
+     i2c-i801-smbus-patch-for-intel-tolapai-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block-fix-u14-34f
+Subject: i2c-i801-smbus-patch-for-intel-tolapai-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Jason Gaston <jason.d.gaston@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/u14-34f.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/busses/i2c-i801.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/u14-34f.c~git-block-fix-u14-34f drivers/scsi/u14-34f.c
---- a/drivers/scsi/u14-34f.c~git-block-fix-u14-34f
-+++ a/drivers/scsi/u14-34f.c
-@@ -450,7 +450,7 @@ static struct scsi_host_template driver_
-                 .slave_configure         = u14_34f_slave_configure,
-                 .this_id                 = 7,
-                 .unchecked_isa_dma       = 1,
--                .use_clustering          = ENABLE_CLUSTERING
-+                .use_clustering          = ENABLE_CLUSTERING,
-                 .use_sg_chaining         = ENABLE_SG_CHAINING,
-                 };
+diff -puN drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai-fix drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c~i2c-i801-smbus-patch-for-intel-tolapai-fix
++++ a/drivers/i2c/busses/i2c-i801.c
+@@ -544,7 +544,7 @@ static struct pci_device_id i801_ids[] =
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_17) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_5) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH9_6) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_Tolapai_1) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_TOLAPAI_1) },
+ 	{ 0, }
+ };
  
+@@ -565,7 +565,7 @@ static int __devinit i801_probe(struct p
+ 	case PCI_DEVICE_ID_INTEL_ESB2_17:
+ 	case PCI_DEVICE_ID_INTEL_ICH8_5:
+ 	case PCI_DEVICE_ID_INTEL_ICH9_6:
+-	case PCI_DEVICE_ID_INTEL_Tolapai_1:
++	case PCI_DEVICE_ID_INTEL_TOLAPAI_1:
+ 		isich4 = 1;
+ 		break;
+ 	default:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
