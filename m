@@ -1,111 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - git-kgdb-ia64-fix.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:08:01 -0700
-Message-ID: <200709202108.l8KL818P002546@imap1.linux-foundation.org>
+Subject: - net-sched-sch_cbqc-shut-up-uninitialized-variable.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:02 -0700
+Message-ID: <200709202115.l8KLF2sI002866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58633 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754105AbXITVIi (ORCPT
+	by vger.kernel.org with ESMTP id S1754499AbXITVPk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:08:38 -0400
+	Thu, 20 Sep 2007 17:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kgdb ia64 fix
+     net/sched/sch_cbq.c: Shut up uninitialized variable warning
 has been removed from the -mm tree.  Its filename was
-     git-kgdb-ia64-fix.patch
+     net-sched-sch_cbqc-shut-up-uninitialized-variable.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-kgdb ia64 fix
-From: mel@skynet.ie (Mel Gorman)
+Subject: net/sched/sch_cbq.c: Shut up uninitialized variable warning
+From: Satyam Sharma <satyam@infradead.org>
 
-IA64 failed to build in kgdb with the messages
+net/sched/sch_cbq.c: In function 'cbq_enqueue':
+net/sched/sch_cbq.c:383: warning: 'ret' may be used uninitialized in this function
 
-arch/ia64/kernel/kgdb.c: In function 'kgdb_arch_set_breakpoint':
-arch/ia64/kernel/kgdb.c:555: warning: large integer implicitly truncated to unsigned type
-arch/ia64/kernel/kgdb.c: At top level:
-arch/ia64/kernel/kgdb.c:673: error: static declaration of 'kgdb_hwbreak_sstep' follows non-static declaration
-include/asm/kgdb.h:33: error: previous declaration of 'kgdb_hwbreak_sstep' was here
-make[1]: *** [arch/ia64/kernel/kgdb.o] Error 1
-make: *** [arch/ia64/kernel] Error 2
-make: *** Waiting for unfinished jobs....
+has been verified to be a bogus case. So let's shut it up.
 
-It's buried in git-kgdb.patch and I've cc'd who might be the owner. A candidate
-fix is below. The build error seems to be a simple case of a badly placed
-static. The warning about large integer truncating does not have an obvious
-fix and I didn't want to hide the warning with a real bug.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Acked-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kgdb.c |    2 +-
+ net/sched/sch_cbq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/kgdb.c~git-kgdb-ia64-fix arch/ia64/kernel/kgdb.c
---- a/arch/ia64/kernel/kgdb.c~git-kgdb-ia64-fix
-+++ a/arch/ia64/kernel/kgdb.c
-@@ -670,7 +670,7 @@ void kgdb_roundup_cpus(unsigned long fla
- 		smp_send_nmi_allbutself();
- }
+diff -puN net/sched/sch_cbq.c~net-sched-sch_cbqc-shut-up-uninitialized-variable net/sched/sch_cbq.c
+--- a/net/sched/sch_cbq.c~net-sched-sch_cbqc-shut-up-uninitialized-variable
++++ a/net/sched/sch_cbq.c
+@@ -380,7 +380,7 @@ cbq_enqueue(struct sk_buff *skb, struct 
+ {
+ 	struct cbq_sched_data *q = qdisc_priv(sch);
+ 	int len = skb->len;
+-	int ret;
++	int uninitialized_var(ret);
+ 	struct cbq_class *cl = cbq_classify(skb, sch, &ret);
  
--static volatile int kgdb_hwbreak_sstep[NR_CPUS];
-+volatile int kgdb_hwbreak_sstep[NR_CPUS];
- 
- static int kgdb_notify(struct notifier_block *self, unsigned long cmd,
- 	void *ptr)
+ #ifdef CONFIG_NET_CLS_ACT
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from satyam@infradead.org are
 
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
 git-net.patch
-git-kgdb-ia64-fix.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-ia64-sparsemem_vmemmap-16k-page-size-support.patch
-ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
-sparc64-sparsemem_vmemmap-support.patch
-sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
-split-the-free-lists-for-movable-and-unmovable-allocations.patch
-choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
-add-a-configure-option-to-group-pages-by-mobility.patch
-drain-per-cpu-lists-when-high-order-allocations-fail.patch
-move-free-pages-between-lists-on-steal.patch
-group-short-lived-and-reclaimable-kernel-allocations.patch
-group-high-order-atomic-allocations.patch
-do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
-bias-the-placement-of-kernel-pages-at-lower-pfns.patch
-be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
-fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-remove-page_group_by_mobility.patch
-dont-group-high-order-atomic-allocations.patch
-fix-calculation-in-move_freepages_block-for-counting-pages.patch
-do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
-print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
-have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
-only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
-ext2-reservations.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
