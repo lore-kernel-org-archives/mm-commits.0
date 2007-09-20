@@ -1,85 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:17:26 -0700
-Message-ID: <200709202117.l8KLHQs5003081@imap1.linux-foundation.org>
+Subject: - x86-multi-byte-single-instruction-nops.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:17:24 -0700
+Message-ID: <200709202117.l8KLHOet003078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964AbXITV2V (ORCPT
+	by vger.kernel.org with ESMTP id S1752085AbXITV20 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:21 -0400
+	Thu, 20 Sep 2007 17:28:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, ak@suse.de, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386, apic: fix 4 bit apicid assumption of mach-default
+     x86: multi-byte single instruction NOPs
 has been removed from the -mm tree.  Its filename was
-     i386-apic-fix-4-bit-apicid-assumption-of-mach-default.patch
+     x86-multi-byte-single-instruction-nops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386, apic: fix 4 bit apicid assumption of mach-default
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: x86: multi-byte single instruction NOPs
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Fix get_apic_id() in mach-default, so that it uses 8 bits incase of xAPIC case
-and 4 bits for legacy APIC case.
+Add support for and use the multi-byte NOPs recently documented to be
+available on all PentiumPro and later processors.
 
-This fixes the i386 kernel assumption that apic id is less than 16 for xAPIC
-platforms with 8 cpus or less and makes the kernel boot on such platforms.
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/mach-default/mach_apicdef.h |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletion(-)
+ arch/i386/kernel/alternative.c |   23 ++++++++++++++++++++++-
+ include/asm-i386/processor.h   |   22 ++++++++++++++++++++++
+ include/asm-x86_64/processor.h |   22 ++++++++++++++++++++++
+ 3 files changed, 66 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-i386/mach-default/mach_apicdef.h~i386-apic-fix-4-bit-apicid-assumption-of-mach-default include/asm-i386/mach-default/mach_apicdef.h
---- a/include/asm-i386/mach-default/mach_apicdef.h~i386-apic-fix-4-bit-apicid-assumption-of-mach-default
-+++ a/include/asm-i386/mach-default/mach_apicdef.h
-@@ -1,11 +1,17 @@
- #ifndef __ASM_MACH_APICDEF_H
- #define __ASM_MACH_APICDEF_H
+diff -puN arch/i386/kernel/alternative.c~x86-multi-byte-single-instruction-nops arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~x86-multi-byte-single-instruction-nops
++++ a/arch/i386/kernel/alternative.c
+@@ -115,12 +115,31 @@ static const unsigned char *const k7_nop
+ };
+ #endif
  
-+#include <asm/apic.h>
++#ifdef P6_NOP1
++asm("\t.section .rodata, \"a\"\np6nops: "
++	P6_NOP1 P6_NOP2 P6_NOP3 P6_NOP4 P6_NOP5 P6_NOP6
++	P6_NOP7 P6_NOP8);
++extern const unsigned char p6nops[];
++static const unsigned char *const p6_nops[ASM_NOP_MAX+1] = {
++	NULL,
++	p6nops,
++	p6nops + 1,
++	p6nops + 1 + 2,
++	p6nops + 1 + 2 + 3,
++	p6nops + 1 + 2 + 3 + 4,
++	p6nops + 1 + 2 + 3 + 4 + 5,
++	p6nops + 1 + 2 + 3 + 4 + 5 + 6,
++	p6nops + 1 + 2 + 3 + 4 + 5 + 6 + 7,
++};
++#endif
 +
- #define		APIC_ID_MASK		(0xF<<24)
+ #ifdef CONFIG_X86_64
  
- static inline unsigned get_apic_id(unsigned long x) 
- { 
--	return (((x)>>24)&0xF);
-+	unsigned int ver = GET_APIC_VERSION(apic_read(APIC_LVR));
-+	if (APIC_XAPIC(ver))
-+		return (((x)>>24)&0xFF);
-+	else
-+		return (((x)>>24)&0xF);
- } 
+ extern char __vsyscall_0;
+ static inline const unsigned char*const * find_nop_table(void)
+ {
+-	return k8_nops;
++	return boot_cpu_data.x86_vendor != X86_VENDOR_INTEL ||
++	       boot_cpu_data.x86 < 6 ? k8_nops : p6_nops;
+ }
  
- #define		GET_APIC_ID(x)	get_apic_id(x)
+ #else /* CONFIG_X86_64 */
+@@ -131,6 +150,8 @@ static const struct nop {
+ } noptypes[] = {
+ 	{ X86_FEATURE_K8, k8_nops },
+ 	{ X86_FEATURE_K7, k7_nops },
++	{ X86_FEATURE_P4, p6_nops },
++	{ X86_FEATURE_P3, p6_nops },
+ 	{ -1, NULL }
+ };
+ 
+diff -puN include/asm-i386/processor.h~x86-multi-byte-single-instruction-nops include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~x86-multi-byte-single-instruction-nops
++++ a/include/asm-i386/processor.h
+@@ -685,6 +685,17 @@ void ler_enable(void);
+ #define K7_NOP7        ".byte 0x8D,0x04,0x05,0,0,0,0\n"
+ #define K7_NOP8        K7_NOP7 ASM_NOP1
+ 
++/* P6 nops */
++/* uses eax dependencies (Intel-recommended choice) */
++#define P6_NOP1	GENERIC_NOP1
++#define P6_NOP2	".byte 0x66,0x90\n"
++#define P6_NOP3	".byte 0x0f,0x1f,0x00\n"
++#define P6_NOP4	".byte 0x0f,0x1f,0x40,0\n"
++#define P6_NOP5	".byte 0x0f,0x1f,0x44,0x00,0\n"
++#define P6_NOP6	".byte 0x66,0x0f,0x1f,0x44,0x00,0\n"
++#define P6_NOP7	".byte 0x0f,0x1f,0x80,0,0,0,0\n"
++#define P6_NOP8	".byte 0x0f,0x1f,0x84,0x00,0,0,0,0\n"
++
+ #ifdef CONFIG_MK8
+ #define ASM_NOP1 K8_NOP1
+ #define ASM_NOP2 K8_NOP2
+@@ -703,6 +714,17 @@ void ler_enable(void);
+ #define ASM_NOP6 K7_NOP6
+ #define ASM_NOP7 K7_NOP7
+ #define ASM_NOP8 K7_NOP8
++#elif defined(CONFIG_M686) || defined(CONFIG_MPENTIUMII) || \
++      defined(CONFIG_MPENTIUMIII) || defined(CONFIG_MPENTIUMM) || \
++      defined(CONFIG_MCORE2) || defined(CONFIG_PENTIUM4)
++#define ASM_NOP1 P6_NOP1
++#define ASM_NOP2 P6_NOP2
++#define ASM_NOP3 P6_NOP3
++#define ASM_NOP4 P6_NOP4
++#define ASM_NOP5 P6_NOP5
++#define ASM_NOP6 P6_NOP6
++#define ASM_NOP7 P6_NOP7
++#define ASM_NOP8 P6_NOP8
+ #else
+ #define ASM_NOP1 GENERIC_NOP1
+ #define ASM_NOP2 GENERIC_NOP2
+diff -puN include/asm-x86_64/processor.h~x86-multi-byte-single-instruction-nops include/asm-x86_64/processor.h
+--- a/include/asm-x86_64/processor.h~x86-multi-byte-single-instruction-nops
++++ a/include/asm-x86_64/processor.h
+@@ -338,6 +338,16 @@ DECLARE_PER_CPU(u32, ler_msr);
+ extern int ler_enabled;
+ void ler_enable(void);
+ 
++#if defined(CONFIG_MPSC) || defined(CONFIG_MCORE2)
++#define ASM_NOP1 P6_NOP1
++#define ASM_NOP2 P6_NOP2
++#define ASM_NOP3 P6_NOP3
++#define ASM_NOP4 P6_NOP4
++#define ASM_NOP5 P6_NOP5
++#define ASM_NOP6 P6_NOP6
++#define ASM_NOP7 P6_NOP7
++#define ASM_NOP8 P6_NOP8
++#else
+ #define ASM_NOP1 K8_NOP1
+ #define ASM_NOP2 K8_NOP2
+ #define ASM_NOP3 K8_NOP3
+@@ -346,6 +356,7 @@ void ler_enable(void);
+ #define ASM_NOP6 K8_NOP6
+ #define ASM_NOP7 K8_NOP7
+ #define ASM_NOP8 K8_NOP8
++#endif
+ 
+ /* Opteron nops */
+ #define K8_NOP1 ".byte 0x90\n"
+@@ -357,6 +368,17 @@ void ler_enable(void);
+ #define K8_NOP7	K8_NOP4 K8_NOP3
+ #define K8_NOP8	K8_NOP4 K8_NOP4
+ 
++/* P6 nops */
++/* uses eax dependencies (Intel-recommended choice) */
++#define P6_NOP1	".byte 0x90\n"
++#define P6_NOP2	".byte 0x66,0x90\n"
++#define P6_NOP3	".byte 0x0f,0x1f,0x00\n"
++#define P6_NOP4	".byte 0x0f,0x1f,0x40,0\n"
++#define P6_NOP5	".byte 0x0f,0x1f,0x44,0x00,0\n"
++#define P6_NOP6	".byte 0x66,0x0f,0x1f,0x44,0x00,0\n"
++#define P6_NOP7	".byte 0x0f,0x1f,0x80,0,0,0,0\n"
++#define P6_NOP8	".byte 0x0f,0x1f,0x84,0x00,0,0,0,0\n"
++
+ #define ASM_NOP_MAX 8
+ 
+ /* REP NOP (PAUSE) is a good thing to insert into busy-wait loops. */
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-x86-fix-cpu_to_node-references.patch
-x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+tristate-choices-with-mixed-tristate-and-boolean.patch
+fix-x86_64-mm-unwinder.patch
+floppy-tolerate-dma-channel-unavailability.patch
+cleanup-floppyh.patch
+handle-recursive-calls-to-bust_spinlocks.patch
+store-__setup_str_-in-a-more-compact-way.patch
+constify-string-array-kparam-tracking-structures.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+pnp-dont-fail-device-init-if-no-dma-channel.patch
