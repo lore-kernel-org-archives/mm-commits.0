@@ -1,244 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - x86-misc-constifications.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:17:20 -0700
-Message-ID: <200709202117.l8KLHKaI003072@imap1.linux-foundation.org>
+Subject: - git-net-fix-ibmveth.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:44 -0700
+Message-ID: <200709202116.l8KLGi43003031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60343 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752089AbXITV21 (ORCPT
+	by vger.kernel.org with ESMTP id S1751869AbXITV2T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:27 -0400
+	Thu, 20 Sep 2007 17:28:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: misc. constifications
+     git-net: fix ibmveth
 has been removed from the -mm tree.  Its filename was
-     x86-misc-constifications.patch
+     git-net-fix-ibmveth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: misc. constifications
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: git-net: fix ibmveth
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Miscellaneous x86 stuff that can live in .rodata.
+drivers/net/ibmveth.c: In function `ibmveth_start_xmit':
+drivers/net/ibmveth.c:907: error: `dev' undeclared (first use in this function)
+drivers/net/ibmveth.c:907: error: (Each undeclared identifier is reported only once
+drivers/net/ibmveth.c:907: error: for each function it appears in.)
+drivers/net/ibmveth.c: In function `ibmveth_poll':
+drivers/net/ibmveth.c:955: error: `dev' undeclared (first use in this function)
+drivers/net/ibmveth.c: In function `ibmveth_probe':
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c       |   30 ++++++++++++-------------
- arch/i386/kernel/smpboot.c           |    4 +--
- arch/i386/kernel/trampoline.S        |    4 +--
- arch/i386/mach-voyager/voyager_smp.c |    4 +--
- arch/x86_64/kernel/setup.c           |    4 +--
- arch/x86_64/kernel/smpboot.c         |    4 +--
- arch/x86_64/kernel/trampoline.S      |    7 +++++
- 7 files changed, 31 insertions(+), 26 deletions(-)
+ drivers/net/ibmveth.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/alternative.c~x86-misc-constifications arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~x86-misc-constifications
-+++ a/arch/i386/kernel/alternative.c
-@@ -62,11 +62,11 @@ __setup("noreplace-paravirt", setup_nore
- /* Use inline assembly to define this because the nops are defined
-    as inline assembly strings in the include files and we cannot
-    get them easily into strings. */
--asm("\t.data\nintelnops: "
-+asm("\t.section .rodata, \"a\"\nintelnops: "
- 	GENERIC_NOP1 GENERIC_NOP2 GENERIC_NOP3 GENERIC_NOP4 GENERIC_NOP5 GENERIC_NOP6
- 	GENERIC_NOP7 GENERIC_NOP8);
--extern unsigned char intelnops[];
--static unsigned char *intel_nops[ASM_NOP_MAX+1] = {
-+extern const unsigned char intelnops[];
-+static const unsigned char *const intel_nops[ASM_NOP_MAX+1] = {
- 	NULL,
- 	intelnops,
- 	intelnops + 1,
-@@ -80,11 +80,11 @@ static unsigned char *intel_nops[ASM_NOP
- #endif
+diff -puN drivers/net/ibmveth.c~git-net-fix-ibmveth drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~git-net-fix-ibmveth
++++ a/drivers/net/ibmveth.c
+@@ -904,9 +904,9 @@ static int ibmveth_start_xmit(struct sk_
+ 			 skb->len, DMA_TO_DEVICE);
  
- #ifdef K8_NOP1
--asm("\t.data\nk8nops: "
-+asm("\t.section .rodata, \"a\"\nk8nops: "
- 	K8_NOP1 K8_NOP2 K8_NOP3 K8_NOP4 K8_NOP5 K8_NOP6
- 	K8_NOP7 K8_NOP8);
--extern unsigned char k8nops[];
--static unsigned char *k8_nops[ASM_NOP_MAX+1] = {
-+extern const unsigned char k8nops[];
-+static const unsigned char *const k8_nops[ASM_NOP_MAX+1] = {
- 	NULL,
- 	k8nops,
- 	k8nops + 1,
-@@ -98,11 +98,11 @@ static unsigned char *k8_nops[ASM_NOP_MA
- #endif
+ out:	spin_lock_irqsave(&adapter->stats_lock, flags);
+-	dev->stats.tx_dropped += tx_dropped;
+-	dev->stats.tx_bytes += tx_bytes;
+-	dev->stats.tx_packets += tx_packets;
++	netdev->stats.tx_dropped += tx_dropped;
++	netdev->stats.tx_bytes += tx_bytes;
++	netdev->stats.tx_packets += tx_packets;
+ 	adapter->tx_send_failed += tx_send_failed;
+ 	adapter->tx_map_failed += tx_map_failed;
+ 	spin_unlock_irqrestore(&adapter->stats_lock, flags);
+@@ -952,8 +952,8 @@ static int ibmveth_poll(struct napi_stru
  
- #ifdef K7_NOP1
--asm("\t.data\nk7nops: "
-+asm("\t.section .rodata, \"a\"\nk7nops: "
- 	K7_NOP1 K7_NOP2 K7_NOP3 K7_NOP4 K7_NOP5 K7_NOP6
- 	K7_NOP7 K7_NOP8);
--extern unsigned char k7nops[];
--static unsigned char *k7_nops[ASM_NOP_MAX+1] = {
-+extern const unsigned char k7nops[];
-+static const unsigned char *const k7_nops[ASM_NOP_MAX+1] = {
- 	NULL,
- 	k7nops,
- 	k7nops + 1,
-@@ -118,25 +118,25 @@ static unsigned char *k7_nops[ASM_NOP_MA
- #ifdef CONFIG_X86_64
+ 			netif_receive_skb(skb);	/* send it up */
  
- extern char __vsyscall_0;
--static inline unsigned char** find_nop_table(void)
-+static inline const unsigned char*const * find_nop_table(void)
- {
- 	return k8_nops;
- }
- 
- #else /* CONFIG_X86_64 */
- 
--static struct nop {
-+static const struct nop {
- 	int cpuid;
--	unsigned char **noptable;
-+	const unsigned char *const *noptable;
- } noptypes[] = {
- 	{ X86_FEATURE_K8, k8_nops },
- 	{ X86_FEATURE_K7, k7_nops },
- 	{ -1, NULL }
- };
- 
--static unsigned char** find_nop_table(void)
-+static const unsigned char*const * find_nop_table(void)
- {
--	unsigned char **noptable = intel_nops;
-+	const unsigned char *const *noptable = intel_nops;
- 	int i;
- 
- 	for (i = 0; noptypes[i].cpuid >= 0; i++) {
-@@ -153,7 +153,7 @@ static unsigned char** find_nop_table(vo
- /* Use this to add nops to a buffer, then text_poke the whole buffer. */
- static void add_nops(void *insns, unsigned int len)
- {
--	unsigned char **noptable = find_nop_table();
-+	const unsigned char *const *noptable = find_nop_table();
- 
- 	while (len > 0) {
- 		unsigned int noplen = len;
-diff -puN arch/i386/kernel/smpboot.c~x86-misc-constifications arch/i386/kernel/smpboot.c
---- a/arch/i386/kernel/smpboot.c~x86-misc-constifications
-+++ a/arch/i386/kernel/smpboot.c
-@@ -110,8 +110,8 @@ u8 apicid_2_node[MAX_APICID];
-  * Trampoline 80x86 program as an array.
-  */
- 
--extern unsigned char trampoline_data [];
--extern unsigned char trampoline_end  [];
-+extern const unsigned char trampoline_data [];
-+extern const unsigned char trampoline_end  [];
- static unsigned char *trampoline_base;
- static int trampoline_exec;
- 
-diff -puN arch/i386/kernel/trampoline.S~x86-misc-constifications arch/i386/kernel/trampoline.S
---- a/arch/i386/kernel/trampoline.S~x86-misc-constifications
-+++ a/arch/i386/kernel/trampoline.S
-@@ -36,11 +36,11 @@
- #include <asm/segment.h>
- #include <asm/page.h>
- 
--.data
--
- /* We can free up trampoline after bootup if cpu hotplug is not supported. */
- #ifndef CONFIG_HOTPLUG_CPU
- .section ".init.data","aw",@progbits
-+#else
-+.section .rodata,"a",@progbits
- #endif
- 
- .code16
-diff -puN arch/i386/mach-voyager/voyager_smp.c~x86-misc-constifications arch/i386/mach-voyager/voyager_smp.c
---- a/arch/i386/mach-voyager/voyager_smp.c~x86-misc-constifications
-+++ a/arch/i386/mach-voyager/voyager_smp.c
-@@ -442,8 +442,8 @@ static __u32 __init
- setup_trampoline(void)
- {
- 	/* these two are global symbols in trampoline.S */
--	extern __u8 trampoline_end[];
--	extern __u8 trampoline_data[];
-+	extern const __u8 trampoline_end[];
-+	extern const __u8 trampoline_data[];
- 
- 	memcpy((__u8 *)trampoline_base, trampoline_data,
- 	       trampoline_end - trampoline_data);
-diff -puN arch/x86_64/kernel/setup.c~x86-misc-constifications arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~x86-misc-constifications
-+++ a/arch/x86_64/kernel/setup.c
-@@ -1028,7 +1028,7 @@ static int show_cpuinfo(struct seq_file 
- 	 * applications want to get the raw CPUID data, they should access
- 	 * /dev/cpu/<cpu_nr>/cpuid instead.
- 	 */
--	static char *x86_cap_flags[] = {
-+	static const char *const x86_cap_flags[] = {
- 		/* Intel-defined */
- 	        "fpu", "vme", "de", "pse", "tsc", "msr", "pae", "mce",
- 	        "cx8", "apic", NULL, "sep", "mtrr", "pge", "mca", "cmov",
-@@ -1082,7 +1082,7 @@ static int show_cpuinfo(struct seq_file 
- 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
- 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
- 	};
--	static char *x86_power_flags[] = { 
-+	static const char *const x86_power_flags[] = {
- 		"ts",	/* temperature sensor */
- 		"fid",  /* frequency id control */
- 		"vid",  /* voltage id control */
-diff -puN arch/x86_64/kernel/smpboot.c~x86-misc-constifications arch/x86_64/kernel/smpboot.c
---- a/arch/x86_64/kernel/smpboot.c~x86-misc-constifications
-+++ a/arch/x86_64/kernel/smpboot.c
-@@ -102,8 +102,8 @@ EXPORT_PER_CPU_SYMBOL(cpu_core_map);
-  * Trampoline 80x86 program as an array.
-  */
- 
--extern unsigned char trampoline_data[];
--extern unsigned char trampoline_end[];
-+extern const unsigned char trampoline_data[];
-+extern const unsigned char trampoline_end[];
- 
- /* State of each CPU */
- DEFINE_PER_CPU(int, cpu_state) = { 0 };
-diff -puN arch/x86_64/kernel/trampoline.S~x86-misc-constifications arch/x86_64/kernel/trampoline.S
---- a/arch/x86_64/kernel/trampoline.S~x86-misc-constifications
-+++ a/arch/x86_64/kernel/trampoline.S
-@@ -33,7 +33,12 @@
- #include <asm/msr.h>
- #include <asm/segment.h>
- 
--.data
-+/* We can free up trampoline after bootup if cpu hotplug is not supported. */
-+#ifndef CONFIG_HOTPLUG_CPU
-+.section .init.data, "aw", @progbits
-+#else
-+.section .rodata, "a", @progbits
-+#endif
- 
- .code16
- 
+-			dev->stats.rx_packets++;
+-			dev->stats.rx_bytes += length;
++			netdev->stats.rx_packets++;
++			netdev->stats.rx_bytes += length;
+ 			frames_processed++;
+ 			netdev->last_rx = jiffies;
+ 		}
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tristate-choices-with-mixed-tristate-and-boolean.patch
-fix-x86_64-mm-unwinder.patch
-floppy-tolerate-dma-channel-unavailability.patch
-cleanup-floppyh.patch
-handle-recursive-calls-to-bust_spinlocks.patch
-store-__setup_str_-in-a-more-compact-way.patch
-constify-string-array-kparam-tracking-structures.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+iwl3945-is-bust.patch
+p54pci-terminate-pci-table.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
