@@ -1,80 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + sound-hda-fix-help-text.patch added to -mm tree
-Date: Thu, 20 Sep 2007 16:24:28 -0700
-Message-ID: <200709202324.l8KNOSXg008011@imap1.linux-foundation.org>
+Subject: - remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 16:26:17 -0700
+Message-ID: <200709202326.l8KNQHNb008064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35669 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751275AbXITXZO (ORCPT
+	by vger.kernel.org with ESMTP id S1750778AbXITX0a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 19:25:14 -0400
+	Thu, 20 Sep 2007 19:26:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de
+To: rpjday@mindspring.com, lethal@linux-sh.org, satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound/hda: fix help text
-has been added to the -mm tree.  Its filename is
-     sound-hda-fix-help-text.patch
+     Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
+has been removed from the -mm tree.  Its filename was
+     remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: sound/hda: fix help text
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Remove superfluous definition of __setup_null_param() macro and broken (for MODULE) __setup_param()
+From: Robert P. J. Day <rpjday@mindspring.com>
 
-Fix hda help text typo.
+Remove superfluous definition of __setup_null_param() macro, as nobody uses
+it anymore.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Also kill the #ifdef-MODULE-case (empty) definition for __setup_param.  It
+is only required for the !MODULE case, as __setup() is empty for the MODULE
+case already.  Also, no user outside init.h must use __setup_null_param
+directly anyway (and nobody does), so it's not something whose empty
+definition we necessarily need to make available to rest of the kernel. 
+Moreover, this MODULE case of __setup_param has been broken for more than
+two years now -- as far back as git history takes us.  Let's get rid of it.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/Kconfig |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init.h |    5 -----
+ 1 files changed, 5 deletions(-)
 
-diff -puN sound/pci/Kconfig~sound-hda-fix-help-text sound/pci/Kconfig
---- a/sound/pci/Kconfig~sound-hda-fix-help-text
-+++ a/sound/pci/Kconfig
-@@ -506,7 +506,7 @@ config SND_HDA_HWDEP
- 	select SND_HWDEP
- 	help
- 	  Say Y here to build a hwdep interface for HD-audio driver.
--	  This interface can be used for out-of-bound communication
-+	  This interface can be used for out-of-band communication
- 	  with codecs for debugging purposes.
+diff -puN include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param include/linux/init.h
+--- a/include/linux/init.h~remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param
++++ a/include/linux/init.h
+@@ -166,9 +166,6 @@ struct obs_kernel_param {
+ 		__attribute__((aligned((sizeof(long)))))	\
+ 		= { __setup_str_##unique_id, fn, early }
  
- config SND_HDA_CODEC_REALTEK
+-#define __setup_null_param(str, unique_id)			\
+-	__setup_param(str, unique_id, NULL, 0)
+-
+ #define __setup(str, fn)					\
+ 	__setup_param(str, fn, fn, 0)
+ 
+@@ -234,8 +231,6 @@ void __init parse_early_param(void);
+ 	{ return exitfn; }					\
+ 	void cleanup_module(void) __attribute__((alias(#exitfn)));
+ 
+-#define __setup_param(str, unique_id, fn)	/* nothing */
+-#define __setup_null_param(str, unique_id) 	/* nothing */
+ #define __setup(str, func) 			/* nothing */
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+git-avr32.patch
+git-kvm.patch
 git-mtd.patch
-git-net.patch
-git-nfsd.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-profile-likely-unlikely-macros.patch
-sound-hda-fix-help-text.patch
-kgdb-fix-help-text.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
+remove-dead-references-to-module_parm-macro.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+m32r-serial-remove-m32r_sio_share_irqs.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+remove-superfluous-definition-of-__setup_null_param-macro.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+remove-valueless-definition-of-hard-selected-ramfs-option.patch
+remove-final-traces-of-long-deprecated-ramdisk-kernel.patch
+add-a-rounddown_pow_of_two-routine-to-log2h.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+ipc-namespace-remove-config-ipc-ns-fix.patch
+documentation-delete-unreferenced-xterm-linuxxpm-file.patch
