@@ -1,51 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-wireless-3.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:02:41 -0700
-Message-ID: <200709202102.l8KL2fsI002341@imap1.linux-foundation.org>
+Subject: - git-net-broke-git-wireless.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:02:51 -0700
+Message-ID: <200709202102.l8KL2p5T002351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445AbXITVDw (ORCPT
+	by vger.kernel.org with ESMTP id S1751486AbXITVEG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:03:52 -0400
+	Thu, 20 Sep 2007 17:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-wireless-3
+     git-net-broke-git-wireless
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-wireless-3.patch
+     git-net-broke-git-wireless.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless-3
+Subject: git-net-broke-git-wireless
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
+drivers/net/wireless/ath5k_base.c: In function 'ath_tx_bf':
+drivers/net/wireless/ath5k_base.c:1203: error: 'HW_KEY_IDX_INVALID' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c:1203: error: (Each undeclared identifier is reported only once
+drivers/net/wireless/ath5k_base.c:1203: error: for each function it appears in.)
+drivers/net/wireless/ath5k_base.c: In function 'ath_copy_channels':
+drivers/net/wireless/ath5k_base.c:1735: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c:1735: error: array index in initializer not of integer type
+drivers/net/wireless/ath5k_base.c:1735: error: (near initialization for 'map')
+drivers/net/wireless/ath5k_base.c:1738: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c:1738: error: array index in initializer not of integer type
+drivers/net/wireless/ath5k_base.c:1738: error: (near initialization for 'map')
+drivers/net/wireless/ath5k_base.c: In function 'ath_getchannels':
+drivers/net/wireless/ath5k_base.c:1843: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c:1844: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
+drivers/net/wireless/ath5k_base.c:1847: error: size of array 'type name' is negative
+drivers/scsi/advansys.c:72:2: warning: #warning this driver is still not properly converted to the DMA API
+drivers/net/wireless/ath5k_base.c: In function 'ath_pci_probe':
+drivers/net/wireless/ath5k_base.c:2294: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
+
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/nl80211.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/wireless/nl80211.c~git-net-vs-git-wireless-3 net/wireless/nl80211.c
---- a/net/wireless/nl80211.c~git-net-vs-git-wireless-3
-+++ a/net/wireless/nl80211.c
-@@ -54,7 +54,7 @@ static int get_drv_dev_by_info_ifindex(s
- 		return -EINVAL;
- 
- 	ifindex = nla_get_u32(info->attrs[NL80211_ATTR_IFINDEX]);
--	*dev = dev_get_by_index(ifindex);
-+	*dev = dev_get_by_index(&init_net, ifindex);
- 	if (!*dev)
- 		return -ENODEV;
- 
+diff -puN drivers/net/wireless/Kconfig~git-net-broke-git-wireless drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-net-broke-git-wireless
++++ a/drivers/net/wireless/Kconfig
+@@ -639,6 +639,7 @@ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
+ 	depends on MAC80211
+ 	depends on PCI
++	depends on BROKEN
+ 	default m
+ 	---help---
+ 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +140,6 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
-git-net-vs-git-wireless-3.patch
 git-net-broke-git-wireless.patch
 iwl3945-is-bust.patch
 more-wireless-borkage.patch
