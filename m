@@ -1,72 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-ibmveth.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:44 -0700
-Message-ID: <200709202116.l8KLGi43003031@imap1.linux-foundation.org>
+Subject: - disable-sys_timerfd-for-2623.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:46 -0700
+Message-ID: <200709202115.l8KLFkHq002936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60343 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57440 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbXITV2T (ORCPT
+	by vger.kernel.org with ESMTP id S1752215AbXITV23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:19 -0400
+	Thu, 20 Sep 2007 17:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davidel@xmailserver.org, mtk-manpages@gmx.net, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: fix ibmveth
+     disable sys_timerfd() for 2.6.23
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-ibmveth.patch
+     disable-sys_timerfd-for-2623.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-net: fix ibmveth
+Subject: disable sys_timerfd() for 2.6.23
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ibmveth.c: In function `ibmveth_start_xmit':
-drivers/net/ibmveth.c:907: error: `dev' undeclared (first use in this function)
-drivers/net/ibmveth.c:907: error: (Each undeclared identifier is reported only once
-drivers/net/ibmveth.c:907: error: for each function it appears in.)
-drivers/net/ibmveth.c: In function `ibmveth_poll':
-drivers/net/ibmveth.c:955: error: `dev' undeclared (first use in this function)
-drivers/net/ibmveth.c: In function `ibmveth_probe':
+There is still some confusion and disagreement over what this interface should
+actually do.  So it is best that we disable it in 2.6.23 until we get that
+fully sorted out.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+(sys_timerfd() was present in 2.6.22 but it was apparently broken, so here we
+assume that nobody is using it yet).
+
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/ibmveth.c~git-net-fix-ibmveth drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~git-net-fix-ibmveth
-+++ a/drivers/net/ibmveth.c
-@@ -904,9 +904,9 @@ static int ibmveth_start_xmit(struct sk_
- 			 skb->len, DMA_TO_DEVICE);
- 
- out:	spin_lock_irqsave(&adapter->stats_lock, flags);
--	dev->stats.tx_dropped += tx_dropped;
--	dev->stats.tx_bytes += tx_bytes;
--	dev->stats.tx_packets += tx_packets;
-+	netdev->stats.tx_dropped += tx_dropped;
-+	netdev->stats.tx_bytes += tx_bytes;
-+	netdev->stats.tx_packets += tx_packets;
- 	adapter->tx_send_failed += tx_send_failed;
- 	adapter->tx_map_failed += tx_map_failed;
- 	spin_unlock_irqrestore(&adapter->stats_lock, flags);
-@@ -952,8 +952,8 @@ static int ibmveth_poll(struct napi_stru
- 
- 			netif_receive_skb(skb);	/* send it up */
- 
--			dev->stats.rx_packets++;
--			dev->stats.rx_bytes += length;
-+			netdev->stats.rx_packets++;
-+			netdev->stats.rx_bytes += length;
- 			frames_processed++;
- 			netdev->last_rx = jiffies;
- 		}
+diff -puN init/Kconfig~disable-sys_timerfd-for-2623 init/Kconfig
+--- a/init/Kconfig~disable-sys_timerfd-for-2623
++++ a/init/Kconfig
+@@ -488,6 +488,7 @@ config SIGNALFD
+ config TIMERFD
+ 	bool "Enable timerfd() system call" if EMBEDDED
+ 	select ANON_INODES
++	depends on BROKEN
+ 	default y
+ 	help
+ 	  Enable the timerfd() system call that allows to receive timer
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
