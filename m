@@ -1,186 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: - x86-multi-byte-single-instruction-nops.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:17:24 -0700
-Message-ID: <200709202117.l8KLHOet003078@imap1.linux-foundation.org>
+Subject: - pvrusb2-hdw-terminate-usb-device-id-table-differently.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:17:31 -0700
+Message-ID: <200709202117.l8KLHVKl003087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752085AbXITV20 (ORCPT
+	by vger.kernel.org with ESMTP id S1751612AbXITV2R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:26 -0400
+	Thu, 20 Sep 2007 17:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kees@ubuntu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: multi-byte single instruction NOPs
+     pvrusb2-hdw: terminate usb device id table differently
 has been removed from the -mm tree.  Its filename was
-     x86-multi-byte-single-instruction-nops.patch
+     pvrusb2-hdw-terminate-usb-device-id-table-differently.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: multi-byte single instruction NOPs
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: pvrusb2-hdw: terminate usb device id table differently
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for and use the multi-byte NOPs recently documented to be
-available on all PentiumPro and later processors.
+rusb2/pvrusb2: struct usb_device_id is 20 bytes.  The last of 3 is:
+0x03 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 
+FATAL: drivers/media/video/pvrusb2/pvrusb2: struct usb_device_id is not terminated with a NULL entry!
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Kees Cook <kees@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/alternative.c |   23 ++++++++++++++++++++++-
- include/asm-i386/processor.h   |   22 ++++++++++++++++++++++
- include/asm-x86_64/processor.h |   22 ++++++++++++++++++++++
- 3 files changed, 66 insertions(+), 1 deletion(-)
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/kernel/alternative.c~x86-multi-byte-single-instruction-nops arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~x86-multi-byte-single-instruction-nops
-+++ a/arch/i386/kernel/alternative.c
-@@ -115,12 +115,31 @@ static const unsigned char *const k7_nop
- };
- #endif
- 
-+#ifdef P6_NOP1
-+asm("\t.section .rodata, \"a\"\np6nops: "
-+	P6_NOP1 P6_NOP2 P6_NOP3 P6_NOP4 P6_NOP5 P6_NOP6
-+	P6_NOP7 P6_NOP8);
-+extern const unsigned char p6nops[];
-+static const unsigned char *const p6_nops[ASM_NOP_MAX+1] = {
-+	NULL,
-+	p6nops,
-+	p6nops + 1,
-+	p6nops + 1 + 2,
-+	p6nops + 1 + 2 + 3,
-+	p6nops + 1 + 2 + 3 + 4,
-+	p6nops + 1 + 2 + 3 + 4 + 5,
-+	p6nops + 1 + 2 + 3 + 4 + 5 + 6,
-+	p6nops + 1 + 2 + 3 + 4 + 5 + 6 + 7,
-+};
-+#endif
-+
- #ifdef CONFIG_X86_64
- 
- extern char __vsyscall_0;
- static inline const unsigned char*const * find_nop_table(void)
- {
--	return k8_nops;
-+	return boot_cpu_data.x86_vendor != X86_VENDOR_INTEL ||
-+	       boot_cpu_data.x86 < 6 ? k8_nops : p6_nops;
- }
- 
- #else /* CONFIG_X86_64 */
-@@ -131,6 +150,8 @@ static const struct nop {
- } noptypes[] = {
- 	{ X86_FEATURE_K8, k8_nops },
- 	{ X86_FEATURE_K7, k7_nops },
-+	{ X86_FEATURE_P4, p6_nops },
-+	{ X86_FEATURE_P3, p6_nops },
- 	{ -1, NULL }
+diff -puN drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently drivers/media/video/pvrusb2/pvrusb2-hdw.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c~pvrusb2-hdw-terminate-usb-device-id-table-differently
++++ a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+@@ -44,7 +44,7 @@
+ struct usb_device_id pvr2_device_table[] = {
+ 	[PVR2_HDW_TYPE_29XXX] = { USB_DEVICE(0x2040, 0x2900) },
+ 	[PVR2_HDW_TYPE_24XXX] = { USB_DEVICE(0x2040, 0x2400) },
+-	{ USB_DEVICE(0, 0) },
++	{ },
  };
  
-diff -puN include/asm-i386/processor.h~x86-multi-byte-single-instruction-nops include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~x86-multi-byte-single-instruction-nops
-+++ a/include/asm-i386/processor.h
-@@ -685,6 +685,17 @@ void ler_enable(void);
- #define K7_NOP7        ".byte 0x8D,0x04,0x05,0,0,0,0\n"
- #define K7_NOP8        K7_NOP7 ASM_NOP1
- 
-+/* P6 nops */
-+/* uses eax dependencies (Intel-recommended choice) */
-+#define P6_NOP1	GENERIC_NOP1
-+#define P6_NOP2	".byte 0x66,0x90\n"
-+#define P6_NOP3	".byte 0x0f,0x1f,0x00\n"
-+#define P6_NOP4	".byte 0x0f,0x1f,0x40,0\n"
-+#define P6_NOP5	".byte 0x0f,0x1f,0x44,0x00,0\n"
-+#define P6_NOP6	".byte 0x66,0x0f,0x1f,0x44,0x00,0\n"
-+#define P6_NOP7	".byte 0x0f,0x1f,0x80,0,0,0,0\n"
-+#define P6_NOP8	".byte 0x0f,0x1f,0x84,0x00,0,0,0,0\n"
-+
- #ifdef CONFIG_MK8
- #define ASM_NOP1 K8_NOP1
- #define ASM_NOP2 K8_NOP2
-@@ -703,6 +714,17 @@ void ler_enable(void);
- #define ASM_NOP6 K7_NOP6
- #define ASM_NOP7 K7_NOP7
- #define ASM_NOP8 K7_NOP8
-+#elif defined(CONFIG_M686) || defined(CONFIG_MPENTIUMII) || \
-+      defined(CONFIG_MPENTIUMIII) || defined(CONFIG_MPENTIUMM) || \
-+      defined(CONFIG_MCORE2) || defined(CONFIG_PENTIUM4)
-+#define ASM_NOP1 P6_NOP1
-+#define ASM_NOP2 P6_NOP2
-+#define ASM_NOP3 P6_NOP3
-+#define ASM_NOP4 P6_NOP4
-+#define ASM_NOP5 P6_NOP5
-+#define ASM_NOP6 P6_NOP6
-+#define ASM_NOP7 P6_NOP7
-+#define ASM_NOP8 P6_NOP8
- #else
- #define ASM_NOP1 GENERIC_NOP1
- #define ASM_NOP2 GENERIC_NOP2
-diff -puN include/asm-x86_64/processor.h~x86-multi-byte-single-instruction-nops include/asm-x86_64/processor.h
---- a/include/asm-x86_64/processor.h~x86-multi-byte-single-instruction-nops
-+++ a/include/asm-x86_64/processor.h
-@@ -338,6 +338,16 @@ DECLARE_PER_CPU(u32, ler_msr);
- extern int ler_enabled;
- void ler_enable(void);
- 
-+#if defined(CONFIG_MPSC) || defined(CONFIG_MCORE2)
-+#define ASM_NOP1 P6_NOP1
-+#define ASM_NOP2 P6_NOP2
-+#define ASM_NOP3 P6_NOP3
-+#define ASM_NOP4 P6_NOP4
-+#define ASM_NOP5 P6_NOP5
-+#define ASM_NOP6 P6_NOP6
-+#define ASM_NOP7 P6_NOP7
-+#define ASM_NOP8 P6_NOP8
-+#else
- #define ASM_NOP1 K8_NOP1
- #define ASM_NOP2 K8_NOP2
- #define ASM_NOP3 K8_NOP3
-@@ -346,6 +356,7 @@ void ler_enable(void);
- #define ASM_NOP6 K8_NOP6
- #define ASM_NOP7 K8_NOP7
- #define ASM_NOP8 K8_NOP8
-+#endif
- 
- /* Opteron nops */
- #define K8_NOP1 ".byte 0x90\n"
-@@ -357,6 +368,17 @@ void ler_enable(void);
- #define K8_NOP7	K8_NOP4 K8_NOP3
- #define K8_NOP8	K8_NOP4 K8_NOP4
- 
-+/* P6 nops */
-+/* uses eax dependencies (Intel-recommended choice) */
-+#define P6_NOP1	".byte 0x90\n"
-+#define P6_NOP2	".byte 0x66,0x90\n"
-+#define P6_NOP3	".byte 0x0f,0x1f,0x00\n"
-+#define P6_NOP4	".byte 0x0f,0x1f,0x40,0\n"
-+#define P6_NOP5	".byte 0x0f,0x1f,0x44,0x00,0\n"
-+#define P6_NOP6	".byte 0x66,0x0f,0x1f,0x44,0x00,0\n"
-+#define P6_NOP7	".byte 0x0f,0x1f,0x80,0,0,0,0\n"
-+#define P6_NOP8	".byte 0x0f,0x1f,0x84,0x00,0,0,0,0\n"
-+
- #define ASM_NOP_MAX 8
- 
- /* REP NOP (PAUSE) is a good thing to insert into busy-wait loops. */
+ MODULE_DEVICE_TABLE(usb, pvr2_device_table);
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tristate-choices-with-mixed-tristate-and-boolean.patch
-fix-x86_64-mm-unwinder.patch
-floppy-tolerate-dma-channel-unavailability.patch
-cleanup-floppyh.patch
-handle-recursive-calls-to-bust_spinlocks.patch
-store-__setup_str_-in-a-more-compact-way.patch
-constify-string-array-kparam-tracking-structures.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-pnp-dont-fail-device-init-if-no-dma-channel.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+iwl3945-is-bust.patch
+p54pci-terminate-pci-table.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
