@@ -1,78 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: - xen-dont-bother-trying-to-set-cr4.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:34 -0700
-Message-ID: <200709202115.l8KLFYXV002921@imap1.linux-foundation.org>
+Subject: - git-block-fix-u14-34f.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:17:08 -0700
+Message-ID: <200709202117.l8KLH8pd003057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35476 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752465AbXITV2i (ORCPT
+	by vger.kernel.org with ESMTP id S1752307AbXITV2z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:38 -0400
+	Thu, 20 Sep 2007 17:28:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, ak@suse.de, jeremy@xensource.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xen: don't bother trying to set cr4
+     git-block-fix-u14-34f
 has been removed from the -mm tree.  Its filename was
-     xen-dont-bother-trying-to-set-cr4.patch
+     git-block-fix-u14-34f.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: xen: don't bother trying to set cr4
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: git-block-fix-u14-34f
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Xen ignores all updates to cr4, and some versions will kill the domain if
-you try to change its value.  Just ignore all changes.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/xen/enlighten.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/u14-34f.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4 arch/i386/xen/enlighten.c
---- a/arch/i386/xen/enlighten.c~xen-dont-bother-trying-to-set-cr4
-+++ a/arch/i386/xen/enlighten.c
-@@ -623,8 +623,8 @@ static unsigned long xen_read_cr2_direct
+diff -puN drivers/scsi/u14-34f.c~git-block-fix-u14-34f drivers/scsi/u14-34f.c
+--- a/drivers/scsi/u14-34f.c~git-block-fix-u14-34f
++++ a/drivers/scsi/u14-34f.c
+@@ -450,7 +450,7 @@ static struct scsi_host_template driver_
+                 .slave_configure         = u14_34f_slave_configure,
+                 .this_id                 = 7,
+                 .unchecked_isa_dma       = 1,
+-                .use_clustering          = ENABLE_CLUSTERING
++                .use_clustering          = ENABLE_CLUSTERING,
+                 .use_sg_chaining         = ENABLE_SG_CHAINING,
+                 };
  
- static void xen_write_cr4(unsigned long cr4)
- {
--	/* never allow TSC to be disabled */
--	native_write_cr4(cr4 & ~X86_CR4_TSD);
-+	/* Just ignore cr4 changes; Xen doesn't allow us to do
-+	   anything anyway. */
- }
- 
- static unsigned long xen_read_cr3(void)
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
 git-net.patch
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
+git-net-fixup.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+iwl3945-is-bust.patch
+p54pci-terminate-pci-table.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-fix-the-softlockup-watchdog-to-actually-work.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
-core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
 core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
