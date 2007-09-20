@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-remove-header_extent_size.patch added to -mm tree
-Date: Wed, 19 Sep 2007 22:51:25 -0700
-Message-ID: <200709200551.l8K5pPk4030747@imap1.linux-foundation.org>
+Subject: + ecryptfs-read_writec-routines.patch added to -mm tree
+Date: Wed, 19 Sep 2007 22:51:29 -0700
+Message-ID: <200709200551.l8K5pT7G030755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753906AbXITFvi (ORCPT
+	by vger.kernel.org with ESMTP id S1753906AbXITFvl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 01:51:38 -0400
+	Thu, 20 Sep 2007 01:51:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: remove header_extent_size
+     eCryptfs: read_write.c routines
 has been added to the -mm tree.  Its filename is
-     ecryptfs-remove-header_extent_size.patch
+     ecryptfs-read_writec-routines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,253 +26,448 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: remove header_extent_size
+Subject: eCryptfs: read_write.c routines
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-There is no point to keeping a separate header_extent_size and an extent_size.
- The total size of the header can always be represented as some multiple of
-the regular data extent size.
+Add a set of functions through which all I/O to lower files is consolidated. 
+This patch adds a new inode_info reference to a persistent lower file for each
+eCryptfs inode; another patch later in this series will set that up.  This
+persistent lower file is what the read_write.c functions use to call
+vfs_read() and vfs_write() on the lower filesystem, so even when reads and
+writes come in through aops->readpage and aops->writepage, we can satisfy them
+without resorting to direct access to the lower inode's address space. 
+Several function declarations are going to be changing with this patchset. 
+For now, in order to keep from breaking the build, I am putting dummy
+parameters in for those functions.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |   40 ++++++++++++++++----------------
- fs/ecryptfs/ecryptfs_kernel.h |   39 +++++++++++++++++++++----------
- fs/ecryptfs/inode.c           |    7 +++--
- fs/ecryptfs/mmap.c            |    2 -
- 4 files changed, 52 insertions(+), 36 deletions(-)
+ fs/ecryptfs/Makefile          |    2 
+ fs/ecryptfs/ecryptfs_kernel.h |   18 +
+ fs/ecryptfs/mmap.c            |    2 
+ fs/ecryptfs/read_write.c      |  359 ++++++++++++++++++++++++++++++++
+ 4 files changed, 379 insertions(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size
-+++ a/fs/ecryptfs/crypto.c
-@@ -366,8 +366,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
- 	int extents_per_page;
+diff -puN fs/ecryptfs/Makefile~ecryptfs-read_writec-routines fs/ecryptfs/Makefile
+--- a/fs/ecryptfs/Makefile~ecryptfs-read_writec-routines
++++ a/fs/ecryptfs/Makefile
+@@ -4,4 +4,4 @@
  
- 	bytes_occupied_by_headers_at_front =
--		( crypt_stat->header_extent_size
--		  * crypt_stat->num_header_extents_at_front );
-+		(crypt_stat->extent_size
-+		 * crypt_stat->num_header_extents_at_front);
- 	extents_occupied_by_headers_at_front =
- 		( bytes_occupied_by_headers_at_front
- 		  / crypt_stat->extent_size );
-@@ -376,8 +376,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
- 	(*lower_page_idx) = lower_extent_num / extents_per_page;
- 	extent_offset = lower_extent_num % extents_per_page;
- 	(*byte_offset) = extent_offset * crypt_stat->extent_size;
--	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->header_extent_size = "
--			"[%d]\n", crypt_stat->header_extent_size);
-+	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->extent_size = "
-+			"[%d]\n", crypt_stat->extent_size);
- 	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->"
- 			"num_header_extents_at_front = [%d]\n",
- 			crypt_stat->num_header_extents_at_front);
-@@ -899,15 +899,17 @@ void ecryptfs_set_default_sizes(struct e
- 	crypt_stat->extent_size = ECRYPTFS_DEFAULT_EXTENT_SIZE;
- 	set_extent_mask_and_shift(crypt_stat);
- 	crypt_stat->iv_bytes = ECRYPTFS_DEFAULT_IV_BYTES;
--	if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE) {
--		crypt_stat->header_extent_size =
--			ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE;
--	} else
--		crypt_stat->header_extent_size = PAGE_CACHE_SIZE;
- 	if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
- 		crypt_stat->num_header_extents_at_front = 0;
--	else
--		crypt_stat->num_header_extents_at_front = 1;
-+	else {
-+		if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)
-+			crypt_stat->num_header_extents_at_front =
-+				(ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE
-+				 / crypt_stat->extent_size);
-+		else
-+			crypt_stat->num_header_extents_at_front =
-+				(PAGE_CACHE_SIZE / crypt_stat->extent_size);
-+	}
- }
+ obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
  
- /**
-@@ -1319,7 +1321,7 @@ ecryptfs_write_header_metadata(char *vir
- 	u32 header_extent_size;
- 	u16 num_header_extents_at_front;
- 
--	header_extent_size = (u32)crypt_stat->header_extent_size;
-+	header_extent_size = (u32)crypt_stat->extent_size;
- 	num_header_extents_at_front =
- 		(u16)crypt_stat->num_header_extents_at_front;
- 	header_extent_size = cpu_to_be32(header_extent_size);
-@@ -1415,7 +1417,7 @@ ecryptfs_write_metadata_to_contents(stru
- 		set_fs(oldfs);
- 		goto out;
- 	}
--	header_pages = ((crypt_stat->header_extent_size
-+	header_pages = ((crypt_stat->extent_size
- 			 * crypt_stat->num_header_extents_at_front)
- 			/ PAGE_CACHE_SIZE);
- 	memset(page_virt, 0, PAGE_CACHE_SIZE);
-@@ -1532,17 +1534,16 @@ static int parse_header_metadata(struct 
- 	virt += 4;
- 	memcpy(&num_header_extents_at_front, virt, 2);
- 	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
--	crypt_stat->header_extent_size = (int)header_extent_size;
- 	crypt_stat->num_header_extents_at_front =
- 		(int)num_header_extents_at_front;
--	(*bytes_read) = 6;
-+	(*bytes_read) = (sizeof(u32) + sizeof(u16));
- 	if ((validate_header_size == ECRYPTFS_VALIDATE_HEADER_SIZE)
--	    && ((crypt_stat->header_extent_size
-+	    && ((crypt_stat->extent_size
- 		 * crypt_stat->num_header_extents_at_front)
- 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
- 		rc = -EINVAL;
--		ecryptfs_printk(KERN_WARNING, "Invalid header extent size: "
--				"[%d]\n", crypt_stat->header_extent_size);
-+		printk(KERN_WARNING "Invalid number of header extents: [%d]\n",
-+		       crypt_stat->num_header_extents_at_front);
- 	}
- 	return rc;
- }
-@@ -1557,8 +1558,7 @@ static int parse_header_metadata(struct 
-  */
- static void set_default_header_data(struct ecryptfs_crypt_stat *crypt_stat)
- {
--	crypt_stat->header_extent_size = 4096;
--	crypt_stat->num_header_extents_at_front = 1;
-+	crypt_stat->num_header_extents_at_front = 2;
- }
- 
- /**
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size
+-ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o crypto.o keystore.o messaging.o netlink.o debug.o
++ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o debug.o
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-read_writec-routines fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-read_writec-routines
 +++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -38,7 +38,7 @@
- /* Version verification for shared data structures w/ userspace */
- #define ECRYPTFS_VERSION_MAJOR 0x00
- #define ECRYPTFS_VERSION_MINOR 0x04
--#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x02
-+#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x03
- /* These flags indicate which features are supported by the kernel
-  * module; userspace tools such as the mount helper read
-  * ECRYPTFS_VERSIONING_MASK from a sysfs handle in order to determine
-@@ -67,8 +67,7 @@
- #define ECRYPTFS_MAX_KEY_BYTES 64
- #define ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES 512
- #define ECRYPTFS_DEFAULT_IV_BYTES 16
--#define ECRYPTFS_FILE_VERSION 0x02
--#define ECRYPTFS_DEFAULT_HEADER_EXTENT_SIZE 8192
-+#define ECRYPTFS_FILE_VERSION 0x03
- #define ECRYPTFS_DEFAULT_EXTENT_SIZE 4096
- #define ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE 8192
- #define ECRYPTFS_DEFAULT_MSG_CTX_ELEMS 32
-@@ -201,7 +200,7 @@ ecryptfs_get_key_payload_data(struct key
- #define ECRYPTFS_SALT_BYTES 2
- #define MAGIC_ECRYPTFS_MARKER 0x3c81b7f5
- #define MAGIC_ECRYPTFS_MARKER_SIZE_BYTES 8	/* 4*2 */
--#define ECRYPTFS_FILE_SIZE_BYTES 8
-+#define ECRYPTFS_FILE_SIZE_BYTES (sizeof(u64))
- #define ECRYPTFS_DEFAULT_CIPHER "aes"
- #define ECRYPTFS_DEFAULT_KEY_BYTES 16
- #define ECRYPTFS_DEFAULT_HASH "md5"
-@@ -238,7 +237,6 @@ struct ecryptfs_crypt_stat {
- 	u32 flags;
- 	unsigned int file_version;
- 	size_t iv_bytes;
--	size_t header_extent_size;
- 	size_t num_header_extents_at_front;
- 	size_t extent_size; /* Data extent size; default is 4096 */
- 	size_t key_size;
-@@ -273,6 +271,17 @@ struct ecryptfs_dentry_info {
+@@ -260,6 +260,8 @@ struct ecryptfs_crypt_stat {
+ struct ecryptfs_inode_info {
+ 	struct inode vfs_inode;
+ 	struct inode *wii_inode;
++	struct file *lower_file;
++	struct mutex lower_file_mutex;
+ 	struct ecryptfs_crypt_stat crypt_stat;
  };
  
- /**
-+ * ecryptfs_global_auth_tok - A key used to encrypt all new files under the mountpoint
-+ * @flags: Status flags
-+ * @mount_crypt_stat_list: These auth_toks hang off the mount-wide
-+ *                         cryptographic context. Every time a new
-+ *                         inode comes into existence, eCryptfs copies
-+ *                         the auth_toks on that list to the set of
-+ *                         auth_toks on the inode's crypt_stat
-+ * @global_auth_tok_key: The key from the user's keyring for the sig
-+ * @global_auth_tok: The key contents
-+ * @sig: The key identifier
-+ *
-  * ecryptfs_global_auth_tok structs refer to authentication token keys
-  * in the user keyring that apply to newly created files. A list of
-  * these objects hangs off of the mount_crypt_stat struct for any
-@@ -283,15 +292,21 @@ struct ecryptfs_dentry_info {
- struct ecryptfs_global_auth_tok {
- #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
- 	u32 flags;
--	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
--						 * the mount_crypt_stat */
--	struct key *global_auth_tok_key; /* The key from the user's keyring for
--					  * the sig */
--	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
--	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
-+	struct list_head mount_crypt_stat_list;
-+	struct key *global_auth_tok_key;
-+	struct ecryptfs_auth_tok *global_auth_tok;
-+	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
- };
+@@ -653,5 +655,21 @@ int ecryptfs_keyring_auth_tok_for_sig(st
+ 				      char *sig);
+ int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
+ 			 int num_zeros);
++int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
++			 loff_t offset, size_t size);
++int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
++				      struct page *page_for_lower,
++				      size_t offset_in_page, size_t size);
++int ecryptfs_write(struct file *ecryptfs_file, char *data, loff_t offset,
++		   size_t size);
++int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
++			struct inode *ecryptfs_inode);
++int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
++				     pgoff_t page_index,
++				     size_t offset_in_page, size_t size,
++				     struct inode *ecryptfs_inode);
++int ecryptfs_read(char *data, loff_t offset, size_t size,
++		  struct file *ecryptfs_file);
++struct page *ecryptfs_get1page(struct file *file, loff_t index);
  
- /**
-+ * ecryptfs_key_tfm - Persistent key tfm
-+ * @key_tfm: crypto API handle to the key
-+ * @key_size: Key size in bytes
-+ * @key_tfm_mutex: Mutex to ensure only one operation in eCryptfs is
-+ *                 using the persistent TFM at any point in time
-+ * @key_tfm_list: Handle to hang this off the module-wide TFM list
-+ * @cipher_name: String name for the cipher for this TFM
-+ *
-  * Typically, eCryptfs will use the same ciphers repeatedly throughout
-  * the course of its operations. In order to avoid unnecessarily
-  * destroying and initializing the same cipher repeatedly, eCryptfs
-@@ -301,7 +316,7 @@ struct ecryptfs_key_tfm {
- 	struct crypto_blkcipher *key_tfm;
- 	size_t key_size;
- 	struct mutex key_tfm_mutex;
--	struct list_head key_tfm_list; /* The module's tfm list */
-+	struct list_head key_tfm_list;
- 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
- };
- 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size
-+++ a/fs/ecryptfs/inode.c
-@@ -392,7 +392,8 @@ static struct dentry *ecryptfs_lookup(st
- 		dentry->d_sb)->mount_crypt_stat;
- 	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED) {
- 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
--			file_size = (crypt_stat->header_extent_size
-+			file_size = ((crypt_stat->extent_size
-+				      * crypt_stat->num_header_extents_at_front)
- 				     + i_size_read(lower_dentry->d_inode));
- 		else
- 			file_size = i_size_read(lower_dentry->d_inode);
-@@ -722,8 +723,8 @@ upper_size_to_lower_size(struct ecryptfs
- {
- 	loff_t lower_size;
- 
--	lower_size = ( crypt_stat->header_extent_size
--		       * crypt_stat->num_header_extents_at_front );
-+	lower_size = (crypt_stat->extent_size
-+		      * crypt_stat->num_header_extents_at_front);
- 	if (upper_size != 0) {
- 		loff_t num_extents;
- 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-read_writec-routines fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-read_writec-routines
 +++ a/fs/ecryptfs/mmap.c
-@@ -301,7 +301,7 @@ static int ecryptfs_readpage(struct file
- 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
- 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
- 			int num_pages_in_header_region =
--				(crypt_stat->header_extent_size
-+				(crypt_stat->extent_size
- 				 / PAGE_CACHE_SIZE);
- 
- 			if (page->index < num_pages_in_header_region) {
+@@ -44,7 +44,7 @@ struct kmem_cache *ecryptfs_lower_page_c
+  * Returns unlocked and up-to-date page (if ok), with increased
+  * refcnt.
+  */
+-static struct page *ecryptfs_get1page(struct file *file, int index)
++struct page *ecryptfs_get1page(struct file *file, loff_t index)
+ {
+ 	struct dentry *dentry;
+ 	struct inode *inode;
+diff -puN /dev/null fs/ecryptfs/read_write.c
+--- /dev/null
++++ a/fs/ecryptfs/read_write.c
+@@ -0,0 +1,359 @@
++/**
++ * eCryptfs: Linux filesystem encryption layer
++ *
++ * Copyright (C) 2007 International Business Machines Corp.
++ *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
++ * 02111-1307, USA.
++ */
++
++#include <linux/fs.h>
++#include <linux/pagemap.h>
++#include "ecryptfs_kernel.h"
++
++/**
++ * ecryptfs_write_lower
++ * @ecryptfs_inode: The eCryptfs inode
++ * @data: Data to write
++ * @offset: Byte offset in the lower file to which to write the data
++ * @size: Number of bytes from @data to write at @offset in the lower
++ *        file
++ *
++ * Write data to the lower file.
++ *
++ * Returns zero on success; non-zero on error
++ */
++int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
++			 loff_t offset, size_t size)
++{
++	struct ecryptfs_inode_info *inode_info;
++	ssize_t octets_written;
++	mm_segment_t fs_save;
++	int rc = 0;
++
++	inode_info = ecryptfs_inode_to_private(ecryptfs_inode);
++	mutex_lock(&inode_info->lower_file_mutex);
++	BUG_ON(!inode_info->lower_file);
++	inode_info->lower_file->f_pos = offset;
++	fs_save = get_fs();
++	set_fs(get_ds());
++	octets_written = vfs_write(inode_info->lower_file, data, size,
++				   &inode_info->lower_file->f_pos);
++	set_fs(fs_save);
++	if (octets_written < 0) {
++		printk(KERN_ERR "%s: octets_written = [%td]; "
++		       "expected [%td]\n", __FUNCTION__, octets_written, size);
++		rc = -EINVAL;
++	}
++	mutex_unlock(&inode_info->lower_file_mutex);
++	mark_inode_dirty_sync(ecryptfs_inode);
++	return rc;
++}
++
++/**
++ * ecryptfs_write_lower_page_segment
++ * @ecryptfs_inode: The eCryptfs inode
++ * @page_for_lower: The page containing the data to be written to the
++ *                  lower file
++ * @offset_in_page: The offset in the @page_for_lower from which to
++ *                  start writing the data
++ * @size: The amount of data from @page_for_lower to write to the
++ *        lower file
++ *
++ * Determines the byte offset in the file for the given page and
++ * offset within the page, maps the page, and makes the call to write
++ * the contents of @page_for_lower to the lower inode.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
++				      struct page *page_for_lower,
++				      size_t offset_in_page, size_t size)
++{
++	char *virt;
++	loff_t offset;
++	int rc;
++
++	offset = (page_for_lower->index << PAGE_CACHE_SHIFT) + offset_in_page;
++	virt = kmap(page_for_lower);
++	rc = ecryptfs_write_lower(ecryptfs_inode, virt, offset, size);
++	kunmap(page_for_lower);
++	return rc;
++}
++
++/**
++ * ecryptfs_write
++ * @ecryptfs_file: The eCryptfs file into which to write
++ * @data: Virtual address where data to write is located
++ * @offset: Offset in the eCryptfs file at which to begin writing the
++ *          data from @data
++ * @size: The number of bytes to write from @data
++ *
++ * Write an arbitrary amount of data to an arbitrary location in the
++ * eCryptfs inode page cache. This is done on a page-by-page, and then
++ * by an extent-by-extent, basis; individual extents are encrypted and
++ * written to the lower page cache (via VFS writes). This function
++ * takes care of all the address translation to locations in the lower
++ * filesystem; it also handles truncate events, writing out zeros
++ * where necessary.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_write(struct file *ecryptfs_file, char *data, loff_t offset,
++		   size_t size)
++{
++	struct page *ecryptfs_page;
++	char *ecryptfs_page_virt;
++	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t data_offset = 0;
++	loff_t pos;
++	int rc = 0;
++
++	if (offset > ecryptfs_file_size)
++		pos = ecryptfs_file_size;
++	else
++		pos = offset;
++	while (pos < (offset + size)) {
++		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
++		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
++		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
++		size_t total_remaining_bytes = ((offset + size) - pos);
++
++		if (num_bytes > total_remaining_bytes)
++			num_bytes = total_remaining_bytes;
++		if (pos < offset) {
++			size_t total_remaining_zeros = (offset - pos);
++
++			if (num_bytes > total_remaining_zeros)
++				num_bytes = total_remaining_zeros;
++		}
++		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
++						  ecryptfs_page_idx);
++		if (IS_ERR(ecryptfs_page)) {
++			rc = PTR_ERR(ecryptfs_page);
++			printk(KERN_ERR "%s: Error getting page at "
++			       "index [%ld] from eCryptfs inode "
++			       "mapping; rc = [%d]\n", __FUNCTION__,
++			       ecryptfs_page_idx, rc);
++			goto out;
++		}
++		if (start_offset_in_page) {
++			/* Read in the page from the lower
++			 * into the eCryptfs inode page cache,
++			 * decrypting */
++			if ((rc = ecryptfs_decrypt_page(NULL, /* placeholder for git-bisect */
++							ecryptfs_page))) {
++				printk(KERN_ERR "%s: Error decrypting "
++				       "page; rc = [%d]\n",
++				       __FUNCTION__, rc);
++				page_cache_release(ecryptfs_page);
++				goto out;
++			}
++		}
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		if (pos >= offset) {
++			memcpy(((char *)ecryptfs_page_virt
++				+ start_offset_in_page),
++			       (data + data_offset), num_bytes);
++			data_offset += num_bytes;
++		} else {
++			/* We are extending past the previous end of the file.
++			 * Fill in zero values up to the start of where we
++			 * will be writing data. */
++			memset(((char *)ecryptfs_page_virt
++				+ start_offset_in_page), 0, num_bytes);
++		}
++		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		flush_dcache_page(ecryptfs_page);
++		rc = ecryptfs_encrypt_page(NULL /* placeholder for git-bisect */);
++		if (rc) {
++			printk(KERN_ERR "%s: Error encrypting "
++			       "page; rc = [%d]\n", __FUNCTION__, rc);
++			page_cache_release(ecryptfs_page);
++			goto out;
++		}
++		page_cache_release(ecryptfs_page);
++		pos += num_bytes;
++	}
++	if ((offset + size) > ecryptfs_file_size) {
++		i_size_write(ecryptfs_file->f_dentry->d_inode, (offset + size));
++		rc = ecryptfs_write_inode_size_to_metadata(NULL, NULL, NULL,
++							   NULL, 0); /* placeholders for git-bisect */
++		if (rc) {
++			printk(KERN_ERR	"Problem with "
++			       "ecryptfs_write_inode_size_to_metadata; "
++			       "rc = [%d]\n", rc);
++			goto out;
++		}
++	}
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_read_lower
++ * @data: The read data is stored here by this function
++ * @offset: Byte offset in the lower file from which to read the data
++ * @size: Number of bytes to read from @offset of the lower file and
++ *        store into @data
++ * @ecryptfs_inode: The eCryptfs inode
++ *
++ * Read @size bytes of data at byte offset @offset from the lower
++ * inode into memory location @data.
++ *
++ * Returns zero on success; non-zero on error
++ */
++int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
++			struct inode *ecryptfs_inode)
++{
++	struct ecryptfs_inode_info *inode_info =
++		ecryptfs_inode_to_private(ecryptfs_inode);
++	ssize_t octets_read;
++	mm_segment_t fs_save;
++	size_t i;
++	int rc = 0;
++
++	mutex_lock(&inode_info->lower_file_mutex);
++	BUG_ON(!inode_info->lower_file);
++	inode_info->lower_file->f_pos = offset;
++	fs_save = get_fs();
++	set_fs(get_ds());
++	octets_read = vfs_read(inode_info->lower_file, data, size,
++			       &inode_info->lower_file->f_pos);
++	set_fs(fs_save);
++	if (octets_read < 0) {
++		printk(KERN_ERR "%s: octets_read = [%td]; "
++		       "expected [%td]\n", __FUNCTION__, octets_read, size);
++		rc = -EINVAL;
++	}
++	mutex_unlock(&inode_info->lower_file_mutex);
++	for (i = 0; i < size; i += PAGE_CACHE_SIZE) {
++		struct page *data_page;
++
++		data_page = virt_to_page(data + i);
++		flush_dcache_page(data_page);
++		if (rc)
++			ClearPageUptodate(data_page);
++		else
++			SetPageUptodate(data_page);
++	}
++	return rc;
++}
++
++/**
++ * ecryptfs_read_lower_page_segment
++ * @page_for_ecryptfs: The page into which data for eCryptfs will be
++ *                     written
++ * @offset_in_page: Offset in @page_for_ecryptfs from which to start
++ *                  writing
++ * @size: The number of bytes to write into @page_for_ecryptfs
++ * @ecryptfs_inode: The eCryptfs inode
++ *
++ * Determines the byte offset in the file for the given page and
++ * offset within the page, maps the page, and makes the call to read
++ * the contents of @page_for_ecryptfs from the lower inode.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
++				     pgoff_t page_index,
++				     size_t offset_in_page, size_t size,
++				     struct inode *ecryptfs_inode)
++{
++	char *virt;
++	loff_t offset;
++	int rc;
++
++	offset = ((page_index << PAGE_CACHE_SHIFT) + offset_in_page);
++	virt = kmap(page_for_ecryptfs);
++	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
++	kunmap(page_for_ecryptfs);
++	return rc;
++}
++
++/**
++ * ecryptfs_read
++ * @data: The virtual address into which to write the data read (and
++ *        possibly decrypted) from the lower file
++ * @offset: The offset in the decrypted view of the file from which to
++ *          read into @data
++ * @size: The number of bytes to read into @data
++ * @ecryptfs_file: The eCryptfs file from which to read
++ *
++ * Read an arbitrary amount of data from an arbitrary location in the
++ * eCryptfs page cache. This is done on an extent-by-extent basis;
++ * individual extents are decrypted and read from the lower page
++ * cache (via VFS reads). This function takes care of all the
++ * address translation to locations in the lower filesystem.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_read(char *data, loff_t offset, size_t size,
++		  struct file *ecryptfs_file)
++{
++	struct page *ecryptfs_page;
++	char *ecryptfs_page_virt;
++	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t data_offset = 0;
++	loff_t pos;
++	int rc = 0;
++
++	if ((offset + size) > ecryptfs_file_size) {
++		rc = -EINVAL;
++		printk(KERN_ERR "%s: Attempt to read data past the end of the "
++			"file; offset = [%lld]; size = [%td]; "
++		       "ecryptfs_file_size = [%lld]\n",
++		       __FUNCTION__, offset, size, ecryptfs_file_size);
++		goto out;
++	}
++	pos = offset;
++	while (pos < (offset + size)) {
++		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
++		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
++		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
++		size_t total_remaining_bytes = ((offset + size) - pos);
++
++		if (num_bytes > total_remaining_bytes)
++			num_bytes = total_remaining_bytes;
++		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
++						  ecryptfs_page_idx);
++		if (IS_ERR(ecryptfs_page)) {
++			rc = PTR_ERR(ecryptfs_page);
++			printk(KERN_ERR "%s: Error getting page at "
++			       "index [%ld] from eCryptfs inode "
++			       "mapping; rc = [%d]\n", __FUNCTION__,
++			       ecryptfs_page_idx, rc);
++			goto out;
++		}
++		rc = ecryptfs_decrypt_page(NULL /* placeholder for git-bisect */, ecryptfs_page);
++		if (rc) {
++			printk(KERN_ERR "%s: Error decrypting "
++			       "page; rc = [%d]\n", __FUNCTION__, rc);
++			page_cache_release(ecryptfs_page);
++			goto out;
++		}
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		memcpy((data + data_offset),
++		       ((char *)ecryptfs_page_virt + start_offset_in_page),
++		       num_bytes);
++		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		page_cache_release(ecryptfs_page);
++		pos += num_bytes;
++		data_offset += num_bytes;
++	}
++out:
++	return rc;
++}
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
