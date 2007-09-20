@@ -1,92 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - modpost-detect-unterminated-device-id-lists-fix.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:07 -0700
-Message-ID: <200709202115.l8KLF7f4002878@imap1.linux-foundation.org>
+Subject: - fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:10 -0700
+Message-ID: <200709202115.l8KLFAC1002886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47101 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbXITVP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751975AbXITVQO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:15:58 -0400
+	Thu, 20 Sep 2007 17:16:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, bcollins@ubuntu.com, flamingice@sourmilk.net, jeff@garzik.org, kees@ubuntu.com, rusty@rustcorp.com.au, sam@ravnborg.org, mm-commits@vge
+To: akpm@linux-foundation.org, alex@nibbles.it, dac@conglom-o.org, jeff@garzik.org, matthew@wil.cx, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modpost-detect-unterminated-device-id-lists-fix
+     Fix "Fix DAC960 driver on machines which don't support 64-bit DMA"
 has been removed from the -mm tree.  Its filename was
-     modpost-detect-unterminated-device-id-lists-fix.patch
+     fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: modpost-detect-unterminated-device-id-lists-fix
+Subject: Fix "Fix DAC960 driver on machines which don't support 64-bit DMA"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ben Collins <bcollins@ubuntu.com>
+sparc32:
+
+drivers/block/DAC960.c: In function 'DAC960_V1_EnableMemoryMailboxInterface':
+drivers/block/DAC960.c:1168: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+drivers/block/DAC960.c:1168: error: (Each undeclared identifier is reported only
+
+Cc: <dac@conglom-o.org>
+Cc: <stable@kernel.org>
+Cc: Alessandro Polverini <alex@nibbles.it>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Kees Cook <kees@ubuntu.com>
-Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/file2alias.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/block/DAC960.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists-fix scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~modpost-detect-unterminated-device-id-lists-fix
-+++ a/scripts/mod/file2alias.c
-@@ -62,6 +62,7 @@ static void device_id_check(const char *
- 			    void *symval)
- {
- 	int i;
-+
- 	if (size % id_size || size < id_size) {
- 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
- 		      "of the size of section __mod_%s_device_table=%lu.\n"
-@@ -71,11 +72,13 @@ static void device_id_check(const char *
- 	}
- 	/* Verify last one is a terminator */
- 	for (i = 0; i < id_size; i++ ) {
--		if ( *(uint8_t*)(symval+size-id_size+i) ) {
--			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  The last of %lu is:\n", modname, device_id, id_size, size / id_size);
--			for (i = 0; i < id_size; i++ ) {
--				fprintf(stderr,"0x%02x ", *(uint8_t*)(symval+size-id_size+i) );
--			}
-+		if (*(uint8_t*)(symval+size-id_size+i)) {
-+			fprintf(stderr,"%s: struct %s_device_id is %lu bytes.  "
-+				"The last of %lu is:\n",
-+				modname, device_id, id_size, size / id_size);
-+			for (i = 0; i < id_size; i++ )
-+				fprintf(stderr,"0x%02x ",
-+					*(uint8_t*)(symval+size-id_size+i) );
- 			fprintf(stderr,"\n");
- 			fatal("%s: struct %s_device_id is not terminated "
- 				"with a NULL entry!\n", modname, device_id);
-@@ -576,8 +579,7 @@ void handle_moddevtable(struct module *m
- 	if (info->sechdrs[sym->st_shndx].sh_type & SHT_NOBITS) {
- 		zeros = calloc(1, sym->st_size);
- 		symval = zeros;
--	}
--	else {
-+	} else {
- 		symval = (void *)info->hdr
- 			+ info->sechdrs[sym->st_shndx].sh_offset
- 			+ sym->st_value;
-@@ -650,7 +652,7 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct ssb_device_id), "ssb",
- 			 do_ssb_entry, mod);
--	if (zeros) free(zeros);
-+	free(zeros);
- }
- 
- /* Now add out buffered information to the generated C source */
+diff -puN drivers/block/DAC960.c~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix drivers/block/DAC960.c
+--- a/drivers/block/DAC960.c~fix-dac960-driver-on-machines-which-dont-support-64-bit-dma-fix
++++ a/drivers/block/DAC960.c
+@@ -31,6 +31,7 @@
+ #include <linux/genhd.h>
+ #include <linux/hdreg.h>
+ #include <linux/blkpg.h>
++#include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
+ #include <linux/ioport.h>
+ #include <linux/mm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
