@@ -1,104 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - routines-for-effect-processor-fx8010-use-list_for_each_entry.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:11 -0700
-Message-ID: <200709202116.l8KLGBpr002994@imap1.linux-foundation.org>
+Subject: - nfs-fix-oops-re-sysctls-and-v4-support.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:44 -0700
+Message-ID: <200709202115.l8KLFiu6002933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54717 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbXITV25 (ORCPT
+	by vger.kernel.org with ESMTP id S1752163AbXITV3T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:57 -0400
+	Thu, 20 Sep 2007 17:29:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, bfields@fieldses.org, stable@kernel.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Routines for effect processor FX8010: use list_for_each_entry
+     nfs: fix oops re sysctls and V4 support
 has been removed from the -mm tree.  Its filename was
-     routines-for-effect-processor-fx8010-use-list_for_each_entry.patch
+     nfs-fix-oops-re-sysctls-and-v4-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Routines for effect processor FX8010: use list_for_each_entry
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: nfs: fix oops re sysctls and V4 support
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Routines for effect processor FX8010: Use list_for_each_entry instead of
-list_for_each
+NFS unregisters sysctls only if V4 support is compiled in.  However, sysctl
+table is not V4 specific, so unregister it always.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Steps to reproduce:
+
+	[build nfs.ko with CONFIG_NFS_V4=n]
+	modrobe nfs
+	rmmod nfs
+	ls /proc/sys
+
+Unable to handle kernel paging request at ffffffff880661c0 RIP:
+ [<ffffffff802af8e3>] proc_sys_readdir+0xd3/0x350
+PGD 203067 PUD 207063 PMD 7e216067 PTE 0
+Oops: 0000 [1] SMP
+CPU 1
+Modules linked in: lockd nfs_acl sunrpc
+Pid: 3335, comm: ls Not tainted 2.6.23-rc3-bloat #2
+RIP: 0010:[<ffffffff802af8e3>]  [<ffffffff802af8e3>] proc_sys_readdir+0xd3/0x350
+RSP: 0018:ffff81007fd93e78  EFLAGS: 00010286
+RAX: ffffffff880661c0 RBX: ffffffff80466370 RCX: ffffffff880661c0
+RDX: 00000000000014c0 RSI: ffff81007f3ad020 RDI: ffff81007efd8b40
+RBP: 0000000000000018 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000001 R11: ffffffff802a8570 R12: ffffffff880661c0
+R13: ffff81007e219640 R14: ffff81007efd8b40 R15: ffff81007ded7280
+FS:  00002ba25ef03060(0000) GS:ffff81007ff81258(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: ffffffff880661c0 CR3: 000000007dfaf000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process ls (pid: 3335, threadinfo ffff81007fd92000, task ffff81007d8a0000)
+Stack:  ffff81007f3ad150 ffffffff80283f30 ffff81007fd93f48 ffff81007efd8b40
+ ffff81007ee00440 0000000422222222 0000000200035593 ffffffff88037e9a
+ 2222222222222222 ffffffff80466500 ffff81007e416400 ffff81007e219640
+Call Trace:
+ [<ffffffff80283f30>] filldir+0x0/0xf0
+ [<ffffffff80283f30>] filldir+0x0/0xf0
+ [<ffffffff802840c7>] vfs_readdir+0xa7/0xc0
+ [<ffffffff80284376>] sys_getdents+0x96/0xe0
+ [<ffffffff8020bb3e>] system_call+0x7e/0x83
+
+Code: 41 8b 14 24 85 d2 74 dc 49 8b 44 24 08 48 85 c0 74 e7 49 3b
+RIP  [<ffffffff802af8e3>] proc_sys_readdir+0xd3/0x350
+ RSP <ffff81007fd93e78>
+CR2: ffffffff880661c0
+Kernel panic - not syncing: Fatal exception
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/sound/emu10k1.h   |    2 --
- sound/pci/emu10k1/emufx.c |   10 +++-------
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ fs/nfs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/sound/emu10k1.h~routines-for-effect-processor-fx8010-use-list_for_each_entry include/sound/emu10k1.h
---- a/include/sound/emu10k1.h~routines-for-effect-processor-fx8010-use-list_for_each_entry
-+++ a/include/sound/emu10k1.h
-@@ -1408,8 +1408,6 @@ struct snd_emu10k1_fx8010 {
- 	struct snd_emu10k1_fx8010_irq *irq_handlers;
- };
+diff -puN fs/nfs/super.c~nfs-fix-oops-re-sysctls-and-v4-support fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-fix-oops-re-sysctls-and-v4-support
++++ a/fs/nfs/super.c
+@@ -345,8 +345,8 @@ void __exit unregister_nfs_fs(void)
+ 	unregister_shrinker(&acl_shrinker);
+ #ifdef CONFIG_NFS_V4
+ 	unregister_filesystem(&nfs4_fs_type);
+-	nfs_unregister_sysctl();
+ #endif
++	nfs_unregister_sysctl();
+ 	unregister_filesystem(&nfs_fs_type);
+ }
  
--#define emu10k1_gpr_ctl(n) list_entry(n, struct snd_emu10k1_fx8010_ctl, list)
--
- struct snd_emu10k1_midi {
- 	struct snd_emu10k1 *emu;
- 	struct snd_rawmidi *rmidi;
-diff -puN sound/pci/emu10k1/emufx.c~routines-for-effect-processor-fx8010-use-list_for_each_entry sound/pci/emu10k1/emufx.c
---- a/sound/pci/emu10k1/emufx.c~routines-for-effect-processor-fx8010-use-list_for_each_entry
-+++ a/sound/pci/emu10k1/emufx.c
-@@ -642,10 +642,8 @@ snd_emu10k1_look_for_ctl(struct snd_emu1
- {
- 	struct snd_emu10k1_fx8010_ctl *ctl;
- 	struct snd_kcontrol *kcontrol;
--	struct list_head *list;
--	
--	list_for_each(list, &emu->fx8010.gpr_ctl) {
--		ctl = emu10k1_gpr_ctl(list);
-+
-+	list_for_each_entry(ctl, &emu->fx8010.gpr_ctl, list) {
- 		kcontrol = ctl->kcontrol;
- 		if (kcontrol->id.iface == id->iface &&
- 		    !strcmp(kcontrol->id.name, id->name) &&
-@@ -895,14 +893,12 @@ static int snd_emu10k1_list_controls(str
- 	struct snd_emu10k1_fx8010_control_gpr *gctl;
- 	struct snd_emu10k1_fx8010_ctl *ctl;
- 	struct snd_ctl_elem_id *id;
--	struct list_head *list;
- 
- 	gctl = kmalloc(sizeof(*gctl), GFP_KERNEL);
- 	if (! gctl)
- 		return -ENOMEM;
- 
--	list_for_each(list, &emu->fx8010.gpr_ctl) {
--		ctl = emu10k1_gpr_ctl(list);
-+	list_for_each_entry(ctl, &emu->fx8010.gpr_ctl, list) {
- 		total++;
- 		if (icode->gpr_list_controls &&
- 		    i < icode->gpr_list_control_count) {
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-git-alsa.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-git-dvb.patch
-git-mtd.patch
-git-net.patch
-git-sched.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+git-kbuild.patch
+ifdef-struct-task_structsecurity.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+shrink-struct-task_structoomkilladj.patch
+remove-struct-task_structio_wait.patch
+drop-some-headers-from-mmh.patch
+revert-faster-ext2_clear_inode.patch
