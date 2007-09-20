@@ -1,31 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-wireless.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:01:40 -0700
-Message-ID: <200709202101.l8KL1fvu002323@imap1.linux-foundation.org>
+Subject: - git-net-vs-git-wireless-2.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:01:47 -0700
+Message-ID: <200709202101.l8KL1lrb002326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49461 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751449AbXITVCx (ORCPT
+	by vger.kernel.org with ESMTP id S1751435AbXITVC6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:02:53 -0400
+	Thu, 20 Sep 2007 17:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-wireless
+     git-net-vs-git-wireless-2
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-wireless.patch
+     git-net-vs-git-wireless-2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless
+Subject: git-net-vs-git-wireless-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-net/wireless/sysfs.c: In function '_store_remove_iface':                        net/wireless/sysfs.c:79: warning: passing argument 1 of 'dev_get_by_name' from incompatible pointer type                                                        net/wireless/sysfs.c:79: error: too few arguments to function 'dev_get_by_name'
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -33,21 +31,30 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/wireless/core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/wireless/sysfs.c~git-net-vs-git-wireless net/wireless/sysfs.c
---- a/net/wireless/sysfs.c~git-net-vs-git-wireless
-+++ a/net/wireless/sysfs.c
-@@ -76,7 +76,7 @@ static ssize_t _store_remove_iface(struc
- 	if (!rdev->ops->del_virtual_intf)
- 		return -ENOSYS;
+diff -puN net/wireless/core.c~git-net-vs-git-wireless-2 net/wireless/core.c
+--- a/net/wireless/core.c~git-net-vs-git-wireless-2
++++ a/net/wireless/core.c
+@@ -69,7 +69,7 @@ __cfg80211_drv_from_info(struct genl_inf
  
--	netdev = dev_get_by_name(buf);
-+	netdev = dev_get_by_name(&init_net, buf);
- 	if (!netdev)
- 		return -ENODEV;
- 	ifidx = netdev->ifindex;
+ 	if (info->attrs[NL80211_ATTR_IFINDEX]) {
+ 		ifindex = nla_get_u32(info->attrs[NL80211_ATTR_IFINDEX]);
+-		dev = dev_get_by_index(ifindex);
++		dev = dev_get_by_index(&init_net, ifindex);
+ 		if (dev) {
+ 			if (dev->ieee80211_ptr)
+ 				byifidx =
+@@ -120,7 +120,7 @@ cfg80211_get_dev_from_ifindex(int ifinde
+ 	struct net_device *dev;
+ 
+ 	mutex_lock(&cfg80211_drv_mutex);
+-	dev = dev_get_by_index(ifindex);
++	dev = dev_get_by_index(&init_net, ifindex);
+ 	if (!dev)
+ 		goto out;
+ 	if (dev->ieee80211_ptr) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,7 +130,6 @@ fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-git-net-vs-git-wireless.patch
 git-net-vs-git-wireless-2.patch
 net-add-ath5k-wireless-driver-fix.patch
 git-net-vs-git-wireless-3.patch
