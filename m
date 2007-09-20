@@ -1,76 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:51 -0700
-Message-ID: <200709202115.l8KLFpKH002949@imap1.linux-foundation.org>
+Subject: - therm_throtc-fix-section-mismatch.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:17:13 -0700
+Message-ID: <200709202117.l8KLHDJj003063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44133 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43560 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751995AbXITV2W (ORCPT
+	by vger.kernel.org with ESMTP id S1752273AbXITV23 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:22 -0400
+	Thu, 20 Sep 2007 17:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/user.c: Use list_for_each_entry instead of list_for_each
+     therm_throt.c: Fix section mismatch
 has been removed from the -mm tree.  Its filename was
-     kernel-userc-use-list_for_each_entry-instead-of-list_for_each.patch
+     therm_throtc-fix-section-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/user.c: Use list_for_each_entry instead of list_for_each
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: therm_throt.c: Fix section mismatch
+From: Satyam Sharma <satyam@infradead.org>
 
-kernel/user.c: Convert list_for_each to list_for_each_entry in
-uid_hash_find()
+Fix bugzilla #8679
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+WARNING: arch/i386/kernel/built-in.o(.data+0x2148): Section mismatch: reference
+to .init.text: (between 'thermal_throttle_cpu_notifier' and 'mtrr_mutex')
+
+comes because struct notifier_block thermal_throttle_cpu_notifier in
+arch/i386/kernel/cpu/mcheck/therm_throt.c goes in .data section but the
+notifier callback function itself has been marked __cpuinit which becomes
+__init == .init.text when HOTPLUG_CPU=n.  The warning is bogus because the
+callback will never be called out if HOTPLUG_CPU=n in the first place (as
+one can see from kernel/cpu.c, the cpu_chain itself is __cpuinitdata :-)
+
+So, let's mark thermal_throttle_cpu_notifier as __cpuinitdata to fix
+the section mismatch warning.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/i386/kernel/cpu/mcheck/therm_throt.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/user.c~kernel-userc-use-list_for_each_entry-instead-of-list_for_each kernel/user.c
---- a/kernel/user.c~kernel-userc-use-list_for_each_entry-instead-of-list_for_each
-+++ a/kernel/user.c
-@@ -67,13 +67,9 @@ static inline void uid_hash_remove(struc
+diff -puN arch/i386/kernel/cpu/mcheck/therm_throt.c~therm_throtc-fix-section-mismatch arch/i386/kernel/cpu/mcheck/therm_throt.c
+--- a/arch/i386/kernel/cpu/mcheck/therm_throt.c~therm_throtc-fix-section-mismatch
++++ a/arch/i386/kernel/cpu/mcheck/therm_throt.c
+@@ -152,7 +152,7 @@ static __cpuinit int thermal_throttle_cp
+ 	return NOTIFY_OK;
+ }
  
- static inline struct user_struct *uid_hash_find(uid_t uid, struct list_head *hashent)
+-static struct notifier_block thermal_throttle_cpu_notifier =
++static struct notifier_block thermal_throttle_cpu_notifier __cpuinitdata =
  {
--	struct list_head *up;
--
--	list_for_each(up, hashent) {
--		struct user_struct *user;
--
--		user = list_entry(up, struct user_struct, uidhash_list);
-+	struct user_struct *user;
- 
-+	list_for_each_entry(user, hashent, uidhash_list) {
- 		if(user->uid == uid) {
- 			atomic_inc(&user->__count);
- 			return user;
+ 	.notifier_call = thermal_throttle_cpu_callback,
+ };
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-git-alsa.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-git-dvb.patch
-git-mtd.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
 git-net.patch
-git-sched.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
 use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
