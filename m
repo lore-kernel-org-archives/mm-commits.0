@@ -1,70 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fix-failure-to-resume-from-initrds.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:15:17 -0700
-Message-ID: <200709202115.l8KLFHwC002894@imap1.linux-foundation.org>
+Subject: - pktgen-srcmac-fix.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:15:00 -0700
+Message-ID: <200709202115.l8KLF0Ce002791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41769 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41212 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751975AbXITVQR (ORCPT
+	by vger.kernel.org with ESMTP id S1752213AbXITVQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:16:17 -0400
+	Thu, 20 Sep 2007 17:16:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: adit.262@gmail.com, davem@davemloft.net, hadi@cyberus.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix failure to resume from initrds
+     Pktgen srcmac fix
 has been removed from the -mm tree.  Its filename was
-     fix-failure-to-resume-from-initrds.patch
+     pktgen-srcmac-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix failure to resume from initrds
-From: Nigel Cunningham <nigel@nigel.suspend2.net>
+Subject: Pktgen srcmac fix
+From: "Adit Ranadive" <adit.262@gmail.com>
 
-Commit 831441862956fffa17b9801db37e6ea1650b0f69 (Freezer: make kernel
-threads nonfreezable by default) breaks freezing when attempting to resume
-from an initrd, because the init (which is freezeable) spins while waiting
-for another thread to run /linuxrc, but doesn't check whether it has been
-told to enter the refrigerator.  The original patch replaced a call to
-try_to_freeze() with a call to yield().  I believe a simple reversion is
-wrong because if !CONFIG_PM_SLEEP, try_to_freeze() is a noop.  It should
-still yield.
-
-Signed-off-by: Nigel Cunningham <nigel@nigel.suspend2.net>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Jamal Hadi Salim <hadi@cyberus.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_initrd.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/core/pktgen.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN init/do_mounts_initrd.c~fix-failure-to-resume-from-initrds init/do_mounts_initrd.c
---- a/init/do_mounts_initrd.c~fix-failure-to-resume-from-initrds
-+++ a/init/do_mounts_initrd.c
-@@ -57,8 +57,10 @@ static void __init handle_initrd(void)
+diff -puN net/core/pktgen.c~pktgen-srcmac-fix net/core/pktgen.c
+--- a/net/core/pktgen.c~pktgen-srcmac-fix
++++ a/net/core/pktgen.c
+@@ -111,6 +111,9 @@
+  *
+  * 802.1Q/Q-in-Q support by Francesco Fondelli (FF) <francesco.fondelli@gmail.com>
+  *
++ * Fixed src_mac command to set source mac of packet to value specified in
++ * command by Adit Ranadive <adit.262@gmail.com>
++ *
+  */
+ #include <linux/sys.h>
+ #include <linux/types.h>
+@@ -1472,8 +1475,11 @@ static ssize_t pktgen_if_write(struct fi
+ 	}
+ 	if (!strcmp(name, "src_mac")) {
+ 		char *v = valstr;
++		unsigned char old_smac[ETH_ALEN];
+ 		unsigned char *m = pkt_dev->src_mac;
  
- 	pid = kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD);
- 	if (pid > 0)
--		while (pid != sys_wait4(-1, NULL, 0, NULL))
-+		while (pid != sys_wait4(-1, NULL, 0, NULL)) {
-+			try_to_freeze();
- 			yield();
-+		}
++		memcpy(old_smac, pkt_dev->src_mac, ETH_ALEN);
++
+ 		len = strn_len(&user_buffer[i], sizeof(valstr) - 1);
+ 		if (len < 0) {
+ 			return len;
+@@ -1502,6 +1508,10 @@ static ssize_t pktgen_if_write(struct fi
+ 			}
+ 		}
  
- 	/* move initrd to rootfs' /old */
- 	sys_fchdir(old_fd);
++		/* Set up Src MAC */
++		if (compare_ether_addr(old_smac, pkt_dev->src_mac))
++			memcpy(&(pkt_dev->hh[6]), pkt_dev->src_mac, ETH_ALEN);
++
+ 		sprintf(pg_result, "OK: srcmac");
+ 		return count;
+ 	}
 _
 
-Patches currently in -mm which might be from nigel@nigel.suspend2.net are
-
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-freezer-be-more-verbose.patch
+Patches currently in -mm which might be from adit.262@gmail.com are
