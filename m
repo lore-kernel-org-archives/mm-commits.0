@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch added to -mm tree
-Date: Wed, 19 Sep 2007 22:51:36 -0700
-Message-ID: <200709200551.l8K5paQH030767@imap1.linux-foundation.org>
+Subject: + ecryptfs-update-metadata-read-write-functions.patch added to -mm tree
+Date: Wed, 19 Sep 2007 22:51:34 -0700
+Message-ID: <200709200551.l8K5pYpD030764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43499 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53813 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754878AbXITFvw (ORCPT
+	by vger.kernel.org with ESMTP id S1754413AbXITFvt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 01:51:52 -0400
+	Thu, 20 Sep 2007 01:51:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     eCryptfs: make open, truncate, and setattr use persistent file
+     eCryptfs: update metadata read/write functions
 has been added to the -mm tree.  Its filename is
-     ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
+     ecryptfs-update-metadata-read-write-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,308 +26,493 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: make open, truncate, and setattr use persistent file
+Subject: eCryptfs: update metadata read/write functions
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Rather than open a new lower file for every eCryptfs file that is opened,
-truncated, or setattr'd, instead use the existing lower persistent file for
-the eCryptfs inode.  Change truncate to use read_write.c functions.  Change
-ecryptfs_getxattr() to use the common ecryptfs_getxattr_lower() function.
+Update the metadata read/write functions and grow_file() to use the
+read_write.c routines.  Do not open another lower file; use the persistent
+lower file instead.  Provide a separate function for
+crypto.c::ecryptfs_read_xattr_region() to get to the lower xattr without
+having to go through the eCryptfs getxattr.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 
- fs/ecryptfs/file.c   |   50 +++---------------
- fs/ecryptfs/inode.c  |  113 ++++++++++++-----------------------------
- 3 files changed, 44 insertions(+), 121 deletions(-)
+ fs/ecryptfs/crypto.c          |  126 ++++++++++++++------------------
+ fs/ecryptfs/ecryptfs_kernel.h |   15 ++-
+ fs/ecryptfs/file.c            |    2 
+ fs/ecryptfs/inode.c           |  101 +++++++++++--------------
+ fs/ecryptfs/mmap.c            |    2 
+ 5 files changed, 113 insertions(+), 133 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions
 +++ a/fs/ecryptfs/crypto.c
-@@ -1672,7 +1672,7 @@ out:
- /**
-  * ecryptfs_read_xattr_region
-  * @page_virt: The vitual address into which to read the xattr data
-- * @ecryptfs_dentry: The eCryptfs dentry
-+ * @ecryptfs_inode: The eCryptfs inode
-  *
-  * Attempts to read the crypto metadata from the extended attribute
-  * region of the lower file.
-diff -puN fs/ecryptfs/file.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file
-+++ a/fs/ecryptfs/file.c
-@@ -187,11 +187,7 @@ static int ecryptfs_open(struct inode *i
- 	/* Private value of ecryptfs_dentry allocated in
- 	 * ecryptfs_lookup() */
- 	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
--	struct inode *lower_inode = NULL;
--	struct file *lower_file = NULL;
--	struct vfsmount *lower_mnt;
- 	struct ecryptfs_file_info *file_info;
--	int lower_flags;
+@@ -1342,21 +1342,28 @@ out:
+ 	return rc;
+ }
  
- 	mount_crypt_stat = &ecryptfs_superblock_to_private(
- 		ecryptfs_dentry->d_sb)->mount_crypt_stat;
-@@ -219,26 +215,12 @@ static int ecryptfs_open(struct inode *i
- 	if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)) {
- 		ecryptfs_printk(KERN_DEBUG, "Setting flags for stat...\n");
- 		/* Policy code enabled in future release */
--		crypt_stat->flags |= ECRYPTFS_POLICY_APPLIED;
--		crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
-+		crypt_stat->flags |= (ECRYPTFS_POLICY_APPLIED
-+				      | ECRYPTFS_ENCRYPTED);
+-int ecryptfs_read_and_validate_header_region(char *data, struct dentry *dentry,
+-					     struct vfsmount *mnt)
++int ecryptfs_read_and_validate_header_region(char *data,
++					     struct inode *ecryptfs_inode)
+ {
++	struct ecryptfs_crypt_stat *crypt_stat =
++		&(ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat);
+ 	int rc;
+ 
+-	rc = ecryptfs_read_header_region(data, dentry, mnt);
+-	if (rc)
++	rc = ecryptfs_read_lower(data, 0, crypt_stat->extent_size,
++				 ecryptfs_inode);
++	if (rc) {
++		printk(KERN_ERR "%s: Error reading header region; rc = [%d]\n",
++		       __FUNCTION__, rc);
+ 		goto out;
+-	if (!contains_ecryptfs_marker(data + ECRYPTFS_FILE_SIZE_BYTES))
++	}
++	if (!contains_ecryptfs_marker(data + ECRYPTFS_FILE_SIZE_BYTES)) {
+ 		rc = -EINVAL;
++		ecryptfs_printk(KERN_DEBUG, "Valid marker not found\n");
++	}
+ out:
+ 	return rc;
+ }
+ 
+-
+ void
+ ecryptfs_write_header_metadata(char *virt,
+ 			       struct ecryptfs_crypt_stat *crypt_stat,
+@@ -1441,24 +1448,18 @@ static int ecryptfs_write_headers_virt(c
+ 
+ static int
+ ecryptfs_write_metadata_to_contents(struct ecryptfs_crypt_stat *crypt_stat,
+-				    struct file *lower_file, char *page_virt)
++				    struct dentry *ecryptfs_dentry,
++				    char *page_virt)
+ {
+-	mm_segment_t oldfs;
+ 	int current_header_page;
+ 	int header_pages;
+-	ssize_t size;
+-	int rc = 0;
++	int rc;
+ 
+-	lower_file->f_pos = 0;
+-	oldfs = get_fs();
+-	set_fs(get_ds());
+-	size = vfs_write(lower_file, (char __user *)page_virt, PAGE_CACHE_SIZE,
+-			 &lower_file->f_pos);
+-	if (size < 0) {
+-		rc = (int)size;
+-		printk(KERN_ERR "Error attempting to write lower page; "
+-		       "rc = [%d]\n", rc);
+-		set_fs(oldfs);
++	if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, page_virt,
++				       0, PAGE_CACHE_SIZE))) {
++		printk(KERN_ERR "%s: Error attempting to write header "
++		       "information to lower file; rc = [%d]\n", __FUNCTION__,
++		       rc);
+ 		goto out;
  	}
- 	mutex_unlock(&crypt_stat->cs_mutex);
--	lower_flags = file->f_flags;
--	if ((lower_flags & O_ACCMODE) == O_WRONLY)
--		lower_flags = (lower_flags & O_ACCMODE) | O_RDWR;
--	if (file->f_flags & O_APPEND)
--		lower_flags &= ~O_APPEND;
+ 	header_pages = ((crypt_stat->extent_size
+@@ -1467,18 +1468,19 @@ ecryptfs_write_metadata_to_contents(stru
+ 	memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 	current_header_page = 1;
+ 	while (current_header_page < header_pages) {
+-		size = vfs_write(lower_file, (char __user *)page_virt,
+-				 PAGE_CACHE_SIZE, &lower_file->f_pos);
+-		if (size < 0) {
+-			rc = (int)size;
+-			printk(KERN_ERR "Error attempting to write lower page; "
+-			       "rc = [%d]\n", rc);
+-			set_fs(oldfs);
++		loff_t offset;
++
++		offset = (current_header_page << PAGE_CACHE_SHIFT);
++		if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode,
++					       page_virt, offset,
++					       PAGE_CACHE_SIZE))) {
++			printk(KERN_ERR "%s: Error attempting to write header "
++			       "information to lower file; rc = [%d]\n",
++			       __FUNCTION__, rc);
+ 			goto out;
+ 		}
+ 		current_header_page++;
+ 	}
+-	set_fs(oldfs);
+ out:
+ 	return rc;
+ }
+@@ -1498,7 +1500,6 @@ ecryptfs_write_metadata_to_xattr(struct 
+ /**
+  * ecryptfs_write_metadata
+  * @ecryptfs_dentry: The eCryptfs dentry
+- * @lower_file: The lower file struct, which was returned from dentry_open
+  *
+  * Write the file headers out.  This will likely involve a userspace
+  * callout, in which the session key is encrypted with one or more
+@@ -1506,22 +1507,21 @@ ecryptfs_write_metadata_to_xattr(struct 
+  * retrieved via a prompt.  Exactly what happens at this point should
+  * be policy-dependent.
+  *
++ * TODO: Support header information spanning multiple pages
++ *
+  * Returns zero on success; non-zero on error
+  */
+-int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
+-			    struct file *lower_file)
++int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry)
+ {
+-	struct ecryptfs_crypt_stat *crypt_stat;
++	struct ecryptfs_crypt_stat *crypt_stat =
++		&ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
+ 	char *page_virt;
+-	size_t size;
++	size_t size = 0;
+ 	int rc = 0;
+ 
+-	crypt_stat = &ecryptfs_inode_to_private(
+-		ecryptfs_dentry->d_inode)->crypt_stat;
+ 	if (likely(crypt_stat->flags & ECRYPTFS_ENCRYPTED)) {
+ 		if (!(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
+-			ecryptfs_printk(KERN_DEBUG, "Key is "
+-					"invalid; bailing out\n");
++			printk(KERN_ERR "Key is invalid; bailing out\n");
+ 			rc = -EINVAL;
+ 			goto out;
+ 		}
+@@ -1550,7 +1550,8 @@ int ecryptfs_write_metadata(struct dentr
+ 						      crypt_stat, page_virt,
+ 						      size);
+ 	else
+-		rc = ecryptfs_write_metadata_to_contents(crypt_stat, lower_file,
++		rc = ecryptfs_write_metadata_to_contents(crypt_stat,
++							 ecryptfs_dentry,
+ 							 page_virt);
+ 	if (rc) {
+ 		printk(KERN_ERR "Error writing metadata out to lower file; "
+@@ -1678,15 +1679,17 @@ out:
+  *
+  * Returns zero on success; non-zero on error
+  */
+-int ecryptfs_read_xattr_region(char *page_virt, struct dentry *ecryptfs_dentry)
++int ecryptfs_read_xattr_region(char *page_virt, struct inode *ecryptfs_inode)
+ {
++	struct dentry *lower_dentry =
++		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
+ 	ssize_t size;
+ 	int rc = 0;
+ 
+-	size = ecryptfs_getxattr(ecryptfs_dentry, ECRYPTFS_XATTR_NAME,
+-				 page_virt, ECRYPTFS_DEFAULT_EXTENT_SIZE);
++	size = ecryptfs_getxattr_lower(lower_dentry, ECRYPTFS_XATTR_NAME,
++				       page_virt, ECRYPTFS_DEFAULT_EXTENT_SIZE);
+ 	if (size < 0) {
+-		printk(KERN_DEBUG "Error attempting to read the [%s] "
++		printk(KERN_ERR "Error attempting to read the [%s] "
+ 		       "xattr from the lower file; return value = [%zd]\n",
+ 		       ECRYPTFS_XATTR_NAME, size);
+ 		rc = -EINVAL;
+@@ -1701,7 +1704,7 @@ int ecryptfs_read_and_validate_xattr_reg
+ {
+ 	int rc;
+ 
+-	rc = ecryptfs_read_xattr_region(page_virt, ecryptfs_dentry);
++	rc = ecryptfs_read_xattr_region(page_virt, ecryptfs_dentry->d_inode);
+ 	if (rc)
+ 		goto out;
+ 	if (!contains_ecryptfs_marker(page_virt	+ ECRYPTFS_FILE_SIZE_BYTES)) {
+@@ -1715,8 +1718,6 @@ out:
+ 
+ /**
+  * ecryptfs_read_metadata
+- * @ecryptfs_dentry: The eCryptfs dentry
+- * @lower_file: The lower file from which to read the metadata
+  *
+  * Common entry point for reading file metadata. From here, we could
+  * retrieve the header information from the header region of the file,
+@@ -1727,15 +1728,13 @@ out:
+  *
+  * Returns zero if valid headers found and parsed; non-zero otherwise
+  */
+-int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry,
+-			   struct file *lower_file)
++int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry)
+ {
+ 	int rc = 0;
+ 	char *page_virt = NULL;
+-	mm_segment_t oldfs;
+-	ssize_t bytes_read;
++	struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
+ 	struct ecryptfs_crypt_stat *crypt_stat =
+-	    &ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
++	    &ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
+ 		&ecryptfs_superblock_to_private(
+ 			ecryptfs_dentry->d_sb)->mount_crypt_stat;
+@@ -1746,27 +1745,18 @@ int ecryptfs_read_metadata(struct dentry
+ 	page_virt = kmem_cache_alloc(ecryptfs_header_cache_1, GFP_USER);
+ 	if (!page_virt) {
+ 		rc = -ENOMEM;
+-		ecryptfs_printk(KERN_ERR, "Unable to allocate page_virt\n");
++		printk(KERN_ERR "%s: Unable to allocate page_virt\n",
++		       __FUNCTION__);
+ 		goto out;
+ 	}
+-	lower_file->f_pos = 0;
+-	oldfs = get_fs();
+-	set_fs(get_ds());
+-	bytes_read = lower_file->f_op->read(lower_file,
+-					    (char __user *)page_virt,
+-					    ECRYPTFS_DEFAULT_EXTENT_SIZE,
+-					    &lower_file->f_pos);
+-	set_fs(oldfs);
+-	if (bytes_read != ECRYPTFS_DEFAULT_EXTENT_SIZE) {
+-		rc = -EINVAL;
+-		goto out;
+-	}
+-	rc = ecryptfs_read_headers_virt(page_virt, crypt_stat,
+-					ecryptfs_dentry,
+-					ECRYPTFS_VALIDATE_HEADER_SIZE);
++	rc = ecryptfs_read_lower(page_virt, 0, crypt_stat->extent_size,
++				 ecryptfs_inode);
++	if (!rc)
++		rc = ecryptfs_read_headers_virt(page_virt, crypt_stat,
++						ecryptfs_dentry,
++						ECRYPTFS_VALIDATE_HEADER_SIZE);
+ 	if (rc) {
+-		rc = ecryptfs_read_xattr_region(page_virt,
+-						ecryptfs_dentry);
++		rc = ecryptfs_read_xattr_region(page_virt, ecryptfs_inode);
+ 		if (rc) {
+ 			printk(KERN_DEBUG "Valid eCryptfs headers not found in "
+ 			       "file header region or xattr region\n");
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-update-metadata-read-write-functions fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-update-metadata-read-write-functions
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -570,13 +570,11 @@ int ecryptfs_writepage_and_release_lower
+ 					      struct writeback_control *wbc);
+ int ecryptfs_encrypt_page(struct page *page);
+ int ecryptfs_decrypt_page(struct page *page);
+-int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry,
+-			    struct file *lower_file);
+-int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry,
+-			   struct file *lower_file);
++int ecryptfs_write_metadata(struct dentry *ecryptfs_dentry);
++int ecryptfs_read_metadata(struct dentry *ecryptfs_dentry);
+ int ecryptfs_new_file_context(struct dentry *ecryptfs_dentry);
+-int ecryptfs_read_and_validate_header_region(char *data, struct dentry *dentry,
+-					     struct vfsmount *mnt);
++int ecryptfs_read_and_validate_header_region(char *data,
++					     struct inode *ecryptfs_inode);
+ int ecryptfs_read_and_validate_xattr_region(char *page_virt,
+ 					    struct dentry *ecryptfs_dentry);
+ u16 ecryptfs_code_for_cipher_string(struct ecryptfs_crypt_stat *crypt_stat);
+@@ -599,10 +597,13 @@ int ecryptfs_open_lower_file(struct file
+ int ecryptfs_close_lower_file(struct file *lower_file);
+ ssize_t ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
+ 			  size_t size);
++ssize_t
++ecryptfs_getxattr_lower(struct dentry *lower_dentry, const char *name,
++			void *value, size_t size);
+ int
+ ecryptfs_setxattr(struct dentry *dentry, const char *name, const void *value,
+ 		  size_t size, int flags);
+-int ecryptfs_read_xattr_region(char *page_virt, struct dentry *ecryptfs_dentry);
++int ecryptfs_read_xattr_region(char *page_virt, struct inode *ecryptfs_inode);
+ int ecryptfs_process_helo(unsigned int transport, uid_t uid, pid_t pid);
+ int ecryptfs_process_quit(uid_t uid, pid_t pid);
+ int ecryptfs_process_response(struct ecryptfs_message *msg, uid_t uid,
+diff -puN fs/ecryptfs/file.c~ecryptfs-update-metadata-read-write-functions fs/ecryptfs/file.c
+--- a/fs/ecryptfs/file.c~ecryptfs-update-metadata-read-write-functions
++++ a/fs/ecryptfs/file.c
+@@ -248,7 +248,7 @@ static int ecryptfs_open(struct inode *i
+ 	mutex_lock(&crypt_stat->cs_mutex);
+ 	if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
+ 	    || !(crypt_stat->flags & ECRYPTFS_KEY_VALID)) {
+-		rc = ecryptfs_read_metadata(ecryptfs_dentry, lower_file);
++		rc = ecryptfs_read_metadata(ecryptfs_dentry);
+ 		if (rc) {
+ 			ecryptfs_printk(KERN_DEBUG,
+ 					"Valid headers not found\n");
+diff -puN fs/ecryptfs/inode.c~ecryptfs-update-metadata-read-write-functions fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-update-metadata-read-write-functions
++++ a/fs/ecryptfs/inode.c
+@@ -153,37 +153,30 @@ out:
+ 
+ /**
+  * grow_file
+- * @ecryptfs_dentry: the ecryptfs dentry
+- * @lower_file: The lower file
+- * @inode: The ecryptfs inode
+- * @lower_inode: The lower inode
++ * @ecryptfs_dentry: the eCryptfs dentry
+  *
+  * This is the code which will grow the file to its correct size.
+  */
+-static int grow_file(struct dentry *ecryptfs_dentry, struct file *lower_file,
+-		     struct inode *inode, struct inode *lower_inode)
++static int grow_file(struct dentry *ecryptfs_dentry)
+ {
+-	int rc = 0;
++	struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
+ 	struct file fake_file;
+ 	struct ecryptfs_file_info tmp_file_info;
++	char zero_virt[] = { 0x00 };
++	int rc = 0;
+ 
+ 	memset(&fake_file, 0, sizeof(fake_file));
+ 	fake_file.f_path.dentry = ecryptfs_dentry;
+ 	memset(&tmp_file_info, 0, sizeof(tmp_file_info));
+ 	ecryptfs_set_file_private(&fake_file, &tmp_file_info);
+-	ecryptfs_set_file_lower(&fake_file, lower_file);
+-	rc = ecryptfs_fill_zeros(&fake_file, 1);
+-	if (rc) {
+-		ecryptfs_inode_to_private(inode)->crypt_stat.flags |=
+-			ECRYPTFS_SECURITY_WARNING;
+-		ecryptfs_printk(KERN_WARNING, "Error attempting to fill zeros "
+-				"in file; rc = [%d]\n", rc);
+-		goto out;
+-	}
+-	i_size_write(inode, 0);
+-	rc = ecryptfs_write_inode_size_to_metadata(inode);
+-	ecryptfs_inode_to_private(inode)->crypt_stat.flags |= ECRYPTFS_NEW_FILE;
+-out:
++	ecryptfs_set_file_lower(
++		&fake_file,
++		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file);
++	rc = ecryptfs_write(&fake_file, zero_virt, 0, 1);
++	i_size_write(ecryptfs_inode, 0);
++	rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
++	ecryptfs_inode_to_private(ecryptfs_inode)->crypt_stat.flags |=
++		ECRYPTFS_NEW_FILE;
+ 	return rc;
+ }
+ 
+@@ -197,53 +190,31 @@ out:
+  */
+ static int ecryptfs_initialize_file(struct dentry *ecryptfs_dentry)
+ {
++	struct ecryptfs_crypt_stat *crypt_stat =
++		&ecryptfs_inode_to_private(ecryptfs_dentry->d_inode)->crypt_stat;
+ 	int rc = 0;
+-	int lower_flags;
+-	struct ecryptfs_crypt_stat *crypt_stat;
+-	struct dentry *lower_dentry;
+-	struct file *lower_file;
+-	struct inode *inode, *lower_inode;
+-	struct vfsmount *lower_mnt;
+ 
+-	lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
+-	ecryptfs_printk(KERN_DEBUG, "lower_dentry->d_name.name = [%s]\n",
+-			lower_dentry->d_name.name);
+-	inode = ecryptfs_dentry->d_inode;
+-	crypt_stat = &ecryptfs_inode_to_private(inode)->crypt_stat;
+-	lower_flags = ((O_CREAT | O_TRUNC) & O_ACCMODE) | O_RDWR;
 -	lower_mnt = ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
--	/* Corresponding fput() in ecryptfs_release() */
+-	/* Corresponding fput() at end of this function */
 -	rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
 -				      lower_flags);
 -	if (rc) {
--		ecryptfs_printk(KERN_ERR, "Error opening lower file\n");
--		goto out_puts;
+-		ecryptfs_printk(KERN_ERR,
+-				"Error opening dentry; rc = [%i]\n", rc);
+-		goto out;
 -	}
--	ecryptfs_set_file_lower(file, lower_file);
--	/* Isn't this check the same as the one in lookup? */
 -	lower_inode = lower_dentry->d_inode;
-+	ecryptfs_set_file_lower(
-+		file, ecryptfs_inode_to_private(inode)->lower_file);
  	if (S_ISDIR(ecryptfs_dentry->d_inode->i_mode)) {
  		ecryptfs_printk(KERN_DEBUG, "This is a directory\n");
  		crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
-@@ -260,7 +242,7 @@ static int ecryptfs_open(struct inode *i
- 				       "and plaintext passthrough mode is not "
- 				       "enabled; returning -EIO\n");
- 				mutex_unlock(&crypt_stat->cs_mutex);
--				goto out_puts;
-+				goto out_free;
- 			}
- 			rc = 0;
- 			crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
-@@ -272,11 +254,8 @@ static int ecryptfs_open(struct inode *i
- 	ecryptfs_printk(KERN_DEBUG, "inode w/ addr = [0x%p], i_ino = [0x%.16x] "
- 			"size: [0x%.16x]\n", inode, inode->i_ino,
- 			i_size_read(inode));
--	ecryptfs_set_file_lower(file, lower_file);
- 	goto out;
--out_puts:
--	mntput(lower_mnt);
--	dput(lower_dentry);
-+out_free:
- 	kmem_cache_free(ecryptfs_file_info_cache,
- 			ecryptfs_file_to_private(file));
- out:
-@@ -296,20 +275,9 @@ static int ecryptfs_flush(struct file *f
- 
- static int ecryptfs_release(struct inode *inode, struct file *file)
- {
--	struct file *lower_file = ecryptfs_file_to_lower(file);
--	struct ecryptfs_file_info *file_info = ecryptfs_file_to_private(file);
--	struct inode *lower_inode = ecryptfs_inode_to_lower(inode);
--	int rc;
--
--	rc = ecryptfs_close_lower_file(lower_file);
--	if (rc) {
--		printk(KERN_ERR "Error closing lower_file\n");
--		goto out;
--	}
--	inode->i_blocks = lower_inode->i_blocks;
--	kmem_cache_free(ecryptfs_file_info_cache, file_info);
--out:
--	return rc;
-+	kmem_cache_free(ecryptfs_file_info_cache,
-+			ecryptfs_file_to_private(file));
-+	return 0;
- }
- 
- static int
-diff -puN fs/ecryptfs/inode.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-make-open-truncate-and-setattr-use-persistent-file
-+++ a/fs/ecryptfs/inode.c
-@@ -739,8 +739,7 @@ int ecryptfs_truncate(struct dentry *den
- 	int rc = 0;
- 	struct inode *inode = dentry->d_inode;
- 	struct dentry *lower_dentry;
--	struct vfsmount *lower_mnt;
--	struct file fake_ecryptfs_file, *lower_file = NULL;
-+	struct file fake_ecryptfs_file;
- 	struct ecryptfs_crypt_stat *crypt_stat;
- 	loff_t i_size = i_size_read(inode);
- 	loff_t lower_size_before_truncate;
-@@ -763,51 +762,43 @@ int ecryptfs_truncate(struct dentry *den
- 		goto out;
+-		goto out_fput;
++		goto out;
  	}
- 	lower_dentry = ecryptfs_dentry_to_lower(dentry);
--	/* This dget & mntget is released through fput at out_fput: */
--	lower_mnt = ecryptfs_dentry_to_lower_mnt(dentry);
--	rc = ecryptfs_open_lower_file(&lower_file, lower_dentry, lower_mnt,
--				      O_RDWR);
--	if (rc) {
--		ecryptfs_printk(KERN_ERR,
--				"Error opening dentry; rc = [%i]\n", rc);
--		goto out_free;
--	}
--	ecryptfs_set_file_lower(&fake_ecryptfs_file, lower_file);
-+	ecryptfs_set_file_lower(
-+		&fake_ecryptfs_file,
-+		ecryptfs_inode_to_private(dentry->d_inode)->lower_file);
- 	/* Switch on growing or shrinking file */
- 	if (new_length > i_size) {
--		rc = ecryptfs_fill_zeros(&fake_ecryptfs_file, new_length);
--		if (rc) {
--			ecryptfs_printk(KERN_ERR,
--					"Problem with fill_zeros\n");
--			goto out_fput;
--		}
--		i_size_write(inode, new_length);
--		rc = ecryptfs_write_inode_size_to_metadata(inode);
--		if (rc) {
--			printk(KERN_ERR	"Problem with "
--			       "ecryptfs_write_inode_size_to_metadata; "
--			       "rc = [%d]\n", rc);
--			goto out_fput;
--		}
--	} else { /* new_length < i_size_read(inode) */
--		pgoff_t index = 0;
--		int end_pos_in_page = -1;
-+		char zero[] = { 0x00 };
- 
--		if (new_length != 0) {
--			index = ((new_length - 1) >> PAGE_CACHE_SHIFT);
--			end_pos_in_page = ((new_length - 1) & ~PAGE_CACHE_MASK);
--		}
--		if (end_pos_in_page != (PAGE_CACHE_SIZE - 1)) {
--			rc = ecryptfs_write_zeros(&fake_ecryptfs_file,
--						  index,
--						  (end_pos_in_page + 1),
--						  ((PAGE_CACHE_SIZE - 1)
--						   - end_pos_in_page));
-+		/* Write a single 0 at the last position of the file;
-+		 * this triggers code that will fill in 0's throughout
-+		 * the intermediate portion of the previous end of the
-+		 * file and the new and of the file */
-+		rc = ecryptfs_write(&fake_ecryptfs_file, zero,
-+				    (new_length - 1), 1);
-+	} else { /* new_length < i_size_read(inode) */
-+		/* We're chopping off all the pages down do the page
-+		 * in which new_length is located. Fill in the end of
-+		 * that page from (new_length & ~PAGE_CACHE_MASK) to
-+		 * PAGE_CACHE_SIZE with zeros. */
-+		size_t num_zeros = (PAGE_CACHE_SIZE
-+				    - (new_length & ~PAGE_CACHE_MASK));
-+
-+		if (num_zeros) {
-+			char *zeros_virt;
-+
-+			zeros_virt = kzalloc(num_zeros, GFP_KERNEL);
-+			if (!zeros_virt) {
-+				rc = -ENOMEM;
-+				goto out_free;
-+			}
-+			rc = ecryptfs_write(&fake_ecryptfs_file, zeros_virt,
-+					    new_length, num_zeros);
-+			kfree(zeros_virt);
- 			if (rc) {
- 				printk(KERN_ERR "Error attempting to zero out "
- 				       "the remainder of the end page on "
- 				       "reducing truncate; rc = [%d]\n", rc);
--				goto out_fput;
-+				goto out_free;
- 			}
- 		}
- 		vmtruncate(inode, new_length);
-@@ -816,7 +807,7 @@ int ecryptfs_truncate(struct dentry *den
- 			printk(KERN_ERR	"Problem with "
- 			       "ecryptfs_write_inode_size_to_metadata; "
- 			       "rc = [%d]\n", rc);
--			goto out_fput;
-+			goto out_free;
- 		}
- 		/* We are reducing the size of the ecryptfs file, and need to
- 		 * know if we need to reduce the size of the lower file. */
-@@ -828,14 +819,6 @@ int ecryptfs_truncate(struct dentry *den
- 			vmtruncate(lower_dentry->d_inode,
- 				   lower_size_after_truncate);
+ 	crypt_stat->flags |= ECRYPTFS_NEW_FILE;
+ 	ecryptfs_printk(KERN_DEBUG, "Initializing crypto context\n");
+ 	rc = ecryptfs_new_file_context(ecryptfs_dentry);
+ 	if (rc) {
+-		ecryptfs_printk(KERN_DEBUG, "Error creating new file "
+-				"context\n");
+-		goto out_fput;
++		ecryptfs_printk(KERN_ERR, "Error creating new file "
++				"context; rc = [%d]\n", rc);
++		goto out;
  	}
--	/* Update the access times */
--	lower_dentry->d_inode->i_mtime = lower_dentry->d_inode->i_ctime
--		= CURRENT_TIME;
--	mark_inode_dirty_sync(inode);
+-	rc = ecryptfs_write_metadata(ecryptfs_dentry, lower_file);
++	rc = ecryptfs_write_metadata(ecryptfs_dentry);
+ 	if (rc) {
+-		ecryptfs_printk(KERN_DEBUG, "Error writing headers\n");
+-		goto out_fput;
++		printk(KERN_ERR "Error writing headers; rc = [%d]\n", rc);
++		goto out;
+ 	}
+-	rc = grow_file(ecryptfs_dentry, lower_file, inode, lower_inode);
 -out_fput:
 -	rc = ecryptfs_close_lower_file(lower_file);
--	if (rc)
++	rc = grow_file(ecryptfs_dentry);
+ 	if (rc)
 -		printk(KERN_ERR "Error closing lower_file\n");
- out_free:
- 	if (ecryptfs_file_to_private(&fake_ecryptfs_file))
- 		kmem_cache_free(ecryptfs_file_info_cache,
-@@ -895,21 +878,8 @@ static int ecryptfs_setattr(struct dentr
- 	else if (S_ISREG(dentry->d_inode->i_mode)
- 		 && (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED)
- 		     || !(crypt_stat->flags & ECRYPTFS_KEY_VALID))) {
--		struct vfsmount *lower_mnt;
--		struct file *lower_file = NULL;
- 		struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
--		int lower_flags;
- 
--		lower_mnt = ecryptfs_dentry_to_lower_mnt(dentry);
--		lower_flags = O_RDONLY;
--		rc = ecryptfs_open_lower_file(&lower_file, lower_dentry,
--					      lower_mnt, lower_flags);
--		if (rc) {
--			printk(KERN_ERR
--			       "Error opening lower file; rc = [%d]\n", rc);
--			mutex_unlock(&crypt_stat->cs_mutex);
--			goto out;
--		}
++		printk(KERN_ERR "Error growing file; rc = [%d]\n", rc);
+ out:
+ 	return rc;
+ }
+@@ -389,8 +360,8 @@ static struct dentry *ecryptfs_lookup(st
+ 	crypt_stat = &ecryptfs_inode_to_private(dentry->d_inode)->crypt_stat;
+ 	if (!(crypt_stat->flags & ECRYPTFS_POLICY_APPLIED))
+ 		ecryptfs_set_default_sizes(crypt_stat);
+-	rc = ecryptfs_read_and_validate_header_region(page_virt, lower_dentry,
+-						      nd->mnt);
++	rc = ecryptfs_read_and_validate_header_region(page_virt,
++						      dentry->d_inode);
+ 	if (rc) {
+ 		rc = ecryptfs_read_and_validate_xattr_region(page_virt, dentry);
+ 		if (rc) {
+@@ -941,7 +912,7 @@ static int ecryptfs_setattr(struct dentr
+ 		}
  		mount_crypt_stat = &ecryptfs_superblock_to_private(
  			dentry->d_sb)->mount_crypt_stat;
- 		rc = ecryptfs_read_metadata(dentry);
-@@ -923,16 +893,13 @@ static int ecryptfs_setattr(struct dentr
- 				       "enabled; returning -EIO\n");
+-		rc = ecryptfs_read_metadata(dentry, lower_file);
++		rc = ecryptfs_read_metadata(dentry);
+ 		if (rc) {
+ 			if (!(mount_crypt_stat->flags
+ 			      & ECRYPTFS_PLAINTEXT_PASSTHROUGH_ENABLED)) {
+@@ -1003,6 +974,24 @@ out:
+ }
  
- 				mutex_unlock(&crypt_stat->cs_mutex);
--				fput(lower_file);
- 				goto out;
- 			}
- 			rc = 0;
- 			crypt_stat->flags &= ~(ECRYPTFS_ENCRYPTED);
- 			mutex_unlock(&crypt_stat->cs_mutex);
--			fput(lower_file);
- 			goto out;
- 		}
--		fput(lower_file);
- 	}
- 	mutex_unlock(&crypt_stat->cs_mutex);
- 	if (ia->ia_valid & ATTR_SIZE) {
-@@ -995,20 +962,8 @@ ssize_t
+ ssize_t
++ecryptfs_getxattr_lower(struct dentry *lower_dentry, const char *name,
++			void *value, size_t size)
++{
++	int rc = 0;
++
++	if (!lower_dentry->d_inode->i_op->getxattr) {
++		rc = -ENOSYS;
++		goto out;
++	}
++	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	rc = lower_dentry->d_inode->i_op->getxattr(lower_dentry, name, value,
++						   size);
++	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++out:
++	return rc;
++}
++
++ssize_t
  ecryptfs_getxattr(struct dentry *dentry, const char *name, void *value,
  		  size_t size)
  {
--	int rc = 0;
--	struct dentry *lower_dentry;
--
--	lower_dentry = ecryptfs_dentry_to_lower(dentry);
--	if (!lower_dentry->d_inode->i_op->getxattr) {
--		rc = -ENOSYS;
--		goto out;
--	}
--	mutex_lock(&lower_dentry->d_inode->i_mutex);
--	rc = lower_dentry->d_inode->i_op->getxattr(lower_dentry, name, value,
--						   size);
--	mutex_unlock(&lower_dentry->d_inode->i_mutex);
--out:
--	return rc;
-+	return ecryptfs_getxattr_lower(ecryptfs_dentry_to_lower(dentry), name,
-+				       value, size);
- }
- 
- static ssize_t
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-update-metadata-read-write-functions fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-update-metadata-read-write-functions
++++ a/fs/ecryptfs/mmap.c
+@@ -307,7 +307,7 @@ static int ecryptfs_readpage(struct file
+ 				memset(page_virt, 0, PAGE_CACHE_SIZE);
+ 				if (page->index == 0) {
+ 					rc = ecryptfs_read_xattr_region(
+-						page_virt, file->f_path.dentry);
++						page_virt, page->mapping->host);
+ 					set_header_info(page_virt, crypt_stat);
+ 				}
+ 				kunmap_atomic(page_virt, KM_USER0);
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
