@@ -1,179 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-irqstack-crash.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:02 -0700
-Message-ID: <200709202116.l8KLG2Hl002974@imap1.linux-foundation.org>
+Subject: - i386-cpuid_count-fix-argument-signedness-warnings.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:17:15 -0700
+Message-ID: <200709202117.l8KLHFEp003066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57381 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752710AbXITV2f (ORCPT
+	by vger.kernel.org with ESMTP id S1752892AbXITV2h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:35 -0400
+	Thu, 20 Sep 2007 17:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix irqstack crash
+     i386 cpuid_count: fix argument signedness warnings
 has been removed from the -mm tree.  Its filename was
-     uml-fix-irqstack-crash.patch
+     i386-cpuid_count-fix-argument-signedness-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix irqstack crash
-From: Jeff Dike <jdike@addtoit.com>
+Subject: i386 cpuid_count: fix argument signedness warnings
+From: Satyam Sharma <satyam@infradead.org>
 
-This patch fixes a crash caused by an interrupt coming in when an IRQ stack
-is being torn down.  When this happens, handle_signal will loop, setting up
-the IRQ stack again because the tearing down had finished, and handling
-whatever signals had come in.
+In file included from include/asm/thread_info.h:16,
+from include/linux/thread_info.h:21,
+from include/linux/preempt.h:9,
+from include/linux/spinlock.h:49,
+from include/linux/vmalloc.h:4,
+from arch/i386/boot/compressed/misc.c:14:
+include/asm/processor.h: In function `cpuid_count':
+include/asm/processor.h:615: warning: pointer targets in passing argument 1 of `native_cpuid' differ in signedness
+include/asm/processor.h:615: warning: pointer targets in passing argument 2 of `native_cpuid' differ in signedness
+include/asm/processor.h:615: warning: pointer targets in passing argument 3 of `native_cpuid' differ in signedness
+include/asm/processor.h:615: warning: pointer targets in passing argument 4 of `native_cpuid' differ in signedness
 
-However, to_irq_stack returns a mask of pending signals to be handled, plus
-bit zero is set if the IRQ stack was already active, and thus shouldn't be
-torn down.  This causes a problem because when handle_signal goes around
-the loop, sig will be zero, and to_irq_stack will duly set bit zero in the
-returned mask, faking handle_signal into believing that it shouldn't tear
-down the IRQ stack and return thread_info pointers back to their original
-values.
+come because the arguments have been specified as pointers to (signed) int
+types, not unsigned.  So let's specify those as unsigned.  Do some
+codingstyle here and there while at it.
 
-This will eventually cause a crash, as the IRQ stack thread_info will
-continue pointing to the original task_struct and an interrupt will look
-into it after it has been freed.
-
-The fix is to stop passing a signal number into to_irq_stack.  Rather, the
-pending signals mask is initialized beforehand with the bit for sig already
-set.  References to sig in to_irq_stack can be replaced with references to
-the mask.
-
-[akpm@linux-foundation.org: use UL]
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/kern_util.h |    2 +-
- arch/um/kernel/irq.c        |    7 ++++---
- arch/um/os-Linux/signal.c   |    4 ++--
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ include/asm-i386/processor.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/include/kern_util.h~uml-fix-irqstack-crash arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-fix-irqstack-crash
-+++ a/arch/um/include/kern_util.h
-@@ -117,7 +117,7 @@ extern void sigio_handler(int sig, union
- 
- extern void copy_sc(union uml_pt_regs *regs, void *from);
- 
--unsigned long to_irq_stack(int sig, unsigned long *mask_out);
-+extern unsigned long to_irq_stack(unsigned long *mask_out);
- unsigned long from_irq_stack(int nested);
- 
- #endif
-diff -puN arch/um/kernel/irq.c~uml-fix-irqstack-crash arch/um/kernel/irq.c
---- a/arch/um/kernel/irq.c~uml-fix-irqstack-crash
-+++ a/arch/um/kernel/irq.c
-@@ -518,13 +518,13 @@ int init_aio_irq(int irq, char *name, ir
- 
- static unsigned long pending_mask;
- 
--unsigned long to_irq_stack(int sig, unsigned long *mask_out)
-+unsigned long to_irq_stack(unsigned long *mask_out)
+diff -puN include/asm-i386/processor.h~i386-cpuid_count-fix-argument-signedness-warnings include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~i386-cpuid_count-fix-argument-signedness-warnings
++++ a/include/asm-i386/processor.h
+@@ -599,7 +599,9 @@ static inline void load_esp0(struct tss_
+  * clear %ecx since some cpus (Cyrix MII) do not set or clear %ecx
+  * resulting in stale register contents being returned.
+  */
+-static inline void cpuid(unsigned int op, unsigned int *eax, unsigned int *ebx, unsigned int *ecx, unsigned int *edx)
++static inline void cpuid(unsigned int op,
++			 unsigned int *eax, unsigned int *ebx,
++			 unsigned int *ecx, unsigned int *edx)
  {
- 	struct thread_info *ti;
- 	unsigned long mask, old;
- 	int nested;
+ 	*eax = op;
+ 	*ecx = 0;
+@@ -607,8 +609,9 @@ static inline void cpuid(unsigned int op
+ }
  
--	mask = xchg(&pending_mask, 1 << sig);
-+	mask = xchg(&pending_mask, *mask_out);
- 	if(mask != 0){
- 		/* If any interrupts come in at this point, we want to
- 		 * make sure that their bits aren't lost by our
-@@ -534,7 +534,7 @@ unsigned long to_irq_stack(int sig, unsi
- 		 * and pending_mask contains a bit for each interrupt
- 		 * that came in.
- 		 */
--		old = 1 << sig;
-+		old = *mask_out;
- 		do {
- 			old |= mask;
- 			mask = xchg(&pending_mask, old);
-@@ -550,6 +550,7 @@ unsigned long to_irq_stack(int sig, unsi
- 
- 		task = cpu_tasks[ti->cpu].task;
- 		tti = task_thread_info(task);
-+
- 		*ti = *tti;
- 		ti->real_thread = tti;
- 		task->stack = ti;
-diff -puN arch/um/os-Linux/signal.c~uml-fix-irqstack-crash arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-fix-irqstack-crash
-+++ a/arch/um/os-Linux/signal.c
-@@ -119,7 +119,7 @@ void (*handlers[_NSIG])(int sig, struct 
- 
- void handle_signal(int sig, struct sigcontext *sc)
+ /* Some CPUID calls want 'count' to be placed in ecx */
+-static inline void cpuid_count(int op, int count, int *eax, int *ebx, int *ecx,
+-			       int *edx)
++static inline void cpuid_count(unsigned int op, int count,
++			       unsigned int *eax, unsigned int *ebx,
++			       unsigned int *ecx, unsigned int *edx)
  {
--	unsigned long pending = 0;
-+	unsigned long pending = 1UL << sig;
- 
- 	do {
- 		int nested, bail;
-@@ -134,7 +134,7 @@ void handle_signal(int sig, struct sigco
- 		 * have to return, and the upper handler will deal
- 		 * with this interrupt.
- 		 */
--		bail = to_irq_stack(sig, &pending);
-+		bail = to_irq_stack(&pending);
- 		if(bail)
- 			return;
- 
+ 	*eax = op;
+ 	*ecx = count;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-stop-saving-process-fp-state-fix.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-rename-pt_regs-general-purpose-register-file-fix.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
-uml-dont-use-glibc-asm-userh.patch
-uml-floating-point-signal-delivery-fixes.patch
-uml-ptrace-floating-point-fixes.patch
-uml-coredumping-floating-point-fixes.patch
-uml-sysrq-and-mconsole-fixes.patch
-uml-style-fixes-in-fp-code.patch
-uml-eliminate-floating-point-state-from-register-file.patch
-uml-remove-unused-file.patch
-uml-more-idiomatic-parameter-parsing.patch
-bitops-introduce-lock-ops.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-net.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
+use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
