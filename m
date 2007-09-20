@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-potential-oops-in-generic_setlease.patch added to -mm tree
-Date: Thu, 20 Sep 2007 16:49:23 -0700
-Message-ID: <200709202349.l8KNnNBl008920@imap1.linux-foundation.org>
+Subject: + phylib-irq-event-workqueue-handling-fixes.patch added to -mm tree
+Date: Thu, 20 Sep 2007 16:53:52 -0700
+Message-ID: <200709202353.l8KNrqMP009064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34968 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751600AbXITXtf (ORCPT
+	by vger.kernel.org with ESMTP id S1752192AbXITXyl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 19:49:35 -0400
+	Thu, 20 Sep 2007 19:54:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, bfields@fieldses.org
+Cc: macro@linux-mips.org, afleming@freescale.com, jgarzik@pobox.com
 
 
 The patch titled
-     Fix potential OOPS in generic_setlease()
+     PHYLIB: IRQ event workqueue handling fixes
 has been added to the -mm tree.  Its filename is
-     fix-potential-oops-in-generic_setlease.patch
+     phylib-irq-event-workqueue-handling-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,178 +26,160 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix potential OOPS in generic_setlease()
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: PHYLIB: IRQ event workqueue handling fixes
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This code is run under lock_kernel(), which is dropped during sleeping
-operations, so the following race is possible:
+Keep track of disable_irq_nosync() invocations and call enable_irq() the
+right number of times if work has been cancelled that would include them.
 
-CPU1:                                CPU2:
-  vfs_setlease();                    vfs_setlease();
-  lock_kernel();
-                                     lock_kernel(); /* spin */
-  generic_setlease():
-    ...
-    for (before = ...)
-    /* here we found some lease after
-     * which we will insert the new one
-     */
-    fl = locks_alloc_lock();
-    /* go to sleep in this allocation and
-     * drop the BKL
-     */
-                                     generic_setlease():
-                                       ...
-                                       for (before = ...)
-                                       /* here we find the "before" pointing
-                                        * at the one we found on CPU1
-                                        */
-                                      ->fl_change(my_before, arg);
-                                              lease_modify();
-                                                     locks_free_lock();
-                                                     /* and we freed it */
-                                     ...
-                                     unlock_kernel();
-   locks_insert_lock(before, fl);
-   /* OOPS! We have just tried to add the lease
-    * at the tail of already removed one
-    */
+Now that the call to flush_work_keventd() (problematic because of
+rtnl_mutex being held) has been replaced by cancel_work_sync() another
+issue has arisen and been left unresolved.  As the MDIO bus cannot be
+accessed from the interrupt context the PHY interrupt handler uses
+disable_irq_nosync() to prevent from looping and schedules some work to be
+done as a softirq, which, apart from handling the state change of the
+originating PHY, is responsible for reenabling the interrupt.  Now if the
+interrupt line is shared by another device and a call to the softirq
+handler has been cancelled, that call to enable_irq() never happens and the
+other device cannot use its interrupt anymore as its stuck disabled.
 
-The similar races are already handled in other code - all the
-allocations are performed before any checks/updates.
+I decided to use a counter rather than a flag because there may be more
+than one call to phy_change() cancelled in the queue -- a real one and a
+fake one triggered by free_irq() if DEBUG_SHIRQ is used, if nothing else. 
+Therefore because of its nesting property enable_irq() has to be called the
+right number of times to match the number disable_irq_nosync() was called
+and restore the original state.  This DEBUG_SHIRQ feature is also the
+reason why free_irq() has to be called before cancel_work_sync().
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+While at it I updated the comment about phy_stop_interrupts() being called
+from `keventd' -- this is no longer relevant as the use of
+cancel_work_sync() makes such an approach unnecessary.  OTOH a similar
+comment referring to flush_scheduled_work() in phy_stop() still applies as
+using cancel_work_sync() there would be dangerous.
+
+Checked with checkpatch.pl and at the run time (with and without
+DEBUG_SHIRQ).
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Andy Fleming <afleming@freescale.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   17 ++++++++++-------
- 1 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/net/phy/phy.c |   24 +++++++++++++++++++-----
+ include/linux/phy.h   |    3 +++
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN fs/locks.c~fix-potential-oops-in-generic_setlease fs/locks.c
---- a/fs/locks.c~fix-potential-oops-in-generic_setlease
-+++ a/fs/locks.c
-@@ -1339,7 +1339,7 @@ int fcntl_getlease(struct file *filp)
-  */
- int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
- {
--	struct file_lock *fl, **before, **my_before = NULL, *lease;
-+	struct file_lock *fl = NULL, **before, **my_before = NULL, *lease;
- 	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
- 	int error, rdlease_count = 0, wrlease_count = 0;
-@@ -1366,6 +1366,11 @@ int generic_setlease(struct file *filp, 
- 		|| (atomic_read(&inode->i_count) > 1)))
- 		goto out;
+diff -puN drivers/net/phy/phy.c~phylib-irq-event-workqueue-handling-fixes drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~phylib-irq-event-workqueue-handling-fixes
++++ a/drivers/net/phy/phy.c
+@@ -7,7 +7,7 @@
+  * Author: Andy Fleming
+  *
+  * Copyright (c) 2004 Freescale Semiconductor, Inc.
+- * Copyright (c) 2006  Maciej W. Rozycki
++ * Copyright (c) 2006, 2007  Maciej W. Rozycki
+  *
+  * This program is free software; you can redistribute  it and/or modify it
+  * under  the terms of  the GNU General  Public License as published by the
+@@ -35,6 +35,7 @@
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
  
-+	error = -ENOMEM;
-+	fl = locks_alloc_lock();
-+	if (fl == NULL)
-+		goto out;
++#include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+@@ -562,6 +563,7 @@ static irqreturn_t phy_interrupt(int irq
+ 	 * queue will write the PHY to disable and clear the
+ 	 * interrupt, and then reenable the irq line. */
+ 	disable_irq_nosync(irq);
++	atomic_inc(&phydev->irq_disable);
+ 
+ 	schedule_work(&phydev->phy_queue);
+ 
+@@ -632,6 +634,7 @@ int phy_start_interrupts(struct phy_devi
+ 
+ 	INIT_WORK(&phydev->phy_queue, phy_change);
+ 
++	atomic_set(&phydev->irq_disable, 0);
+ 	if (request_irq(phydev->irq, phy_interrupt,
+ 				IRQF_SHARED,
+ 				"phy_interrupt",
+@@ -662,13 +665,22 @@ int phy_stop_interrupts(struct phy_devic
+ 	if (err)
+ 		phy_error(phydev);
+ 
++	free_irq(phydev->irq, phydev);
 +
  	/*
- 	 * At this point, we know that if there is an exclusive
- 	 * lease on this file, then we hold it on this filp
-@@ -1408,18 +1413,16 @@ int generic_setlease(struct file *filp, 
- 	if (!leases_enable)
- 		goto out;
- 
--	error = -ENOMEM;
--	fl = locks_alloc_lock();
--	if (fl == NULL)
--		goto out;
+-	 * Finish any pending work; we might have been scheduled to be called
+-	 * from keventd ourselves, but cancel_work_sync() handles that.
++	 * Cannot call flush_scheduled_work() here as desired because
++	 * of rtnl_lock(), but we do not really care about what would
++	 * be done, except from enable_irq(), so cancel any work
++	 * possibly pending and take care of the matter below.
+ 	 */
+ 	cancel_work_sync(&phydev->phy_queue);
 -
- 	locks_copy_lock(fl, lease);
+-	free_irq(phydev->irq, phydev);
++	/*
++	 * If work indeed has been cancelled, disable_irq() will have
++	 * been left unbalanced from phy_interrupt() and enable_irq()
++	 * has to be called so that other devices on the line work.
++	 */
++	while (atomic_dec_return(&phydev->irq_disable) >= 0)
++		enable_irq(phydev->irq);
  
- 	locks_insert_lock(before, fl);
- 
- 	*flp = fl;
--	error = 0;
-+	return 0;
-+
- out:
-+	if (fl != NULL)
-+		locks_free_lock(fl);
- 	return error;
+ 	return err;
  }
- EXPORT_SYMBOL(generic_setlease);
+@@ -695,6 +707,7 @@ static void phy_change(struct work_struc
+ 		phydev->state = PHY_CHANGELINK;
+ 	spin_unlock_bh(&phydev->lock);
+ 
++	atomic_dec(&phydev->irq_disable);
+ 	enable_irq(phydev->irq);
+ 
+ 	/* Reenable interrupts */
+@@ -708,6 +721,7 @@ static void phy_change(struct work_struc
+ 
+ irq_enable_err:
+ 	disable_irq(phydev->irq);
++	atomic_inc(&phydev->irq_disable);
+ phy_err:
+ 	phy_error(phydev);
+ }
+diff -puN include/linux/phy.h~phylib-irq-event-workqueue-handling-fixes include/linux/phy.h
+--- a/include/linux/phy.h~phylib-irq-event-workqueue-handling-fixes
++++ a/include/linux/phy.h
+@@ -25,6 +25,8 @@
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
+ 
++#include <asm/atomic.h>
++
+ #define PHY_BASIC_FEATURES	(SUPPORTED_10baseT_Half | \
+ 				 SUPPORTED_10baseT_Full | \
+ 				 SUPPORTED_100baseT_Half | \
+@@ -281,6 +283,7 @@ struct phy_device {
+ 	/* Interrupt and Polling infrastructure */
+ 	struct work_struct phy_queue;
+ 	struct timer_list phy_timer;
++	atomic_t irq_disable;
+ 
+ 	spinlock_t lock;
+ 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-fix-potential-oops-in-generic_setlease.patch
+git-mips.patch
 git-net.patch
-git-nfsd.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-isolate-some-explicit-usage-of-task-tgid-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-cleanup-macros-for-distinguishing-mandatory-locks.patch
-gfs2-cleanup-explicit-check-for-mandatory-locks.patch
-9pfs-cleanup-explicit-check-for-mandatory-locks.patch
-afs-cleanup-explicit-check-for-mandatory-locks.patch
-nfs-cleanup-explicit-check-for-mandatory-locks.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-use-list_first_entry-in-locks_wake_up_blocks.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+phylib-spinlock-fixes-for-softirqs.patch
+phylib-irq-event-workqueue-handling-fixes.patch
+include-linux-typesh-in-if_fddih.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+lk201-remove-obsolete-driver.patch
+drivers-video-kconfig-fix-fb_pmagb_b-dependencies.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
