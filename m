@@ -1,13945 +1,3300 @@
 From: akpm@linux-foundation.org
-Subject: - git-tehuti.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:16:58 -0700
-Message-ID: <200709202116.l8KLGw1f003043@imap1.linux-foundation.org>
+Subject: - ipg-add-ip1000a-driver-to-kernel-tree.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:48 -0700
+Message-ID: <200709202116.l8KLGmNS003037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbXITV3K (ORCPT
+	by vger.kernel.org with ESMTP id S1752186AbXITV3N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:29:10 -0400
+	Thu, 20 Sep 2007 17:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andy@greyhouse.net, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, jesse@icplus.com.tw, s.l-h@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-tehuti.patch
+     ipg: add IP1000A driver to kernel tree
 has been removed from the -mm tree.  Its filename was
-     git-tehuti.patch
+     ipg-add-ip1000a-driver-to-kernel-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-tehuti.patch
+Subject: ipg: add IP1000A driver to kernel tree
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-GIT b542a79f873ffa8037087c4fe73e085068351fef git://porch.greyhouse.net/gospo/tehuti-2.6.git
+Signed-off-by: Jesse Huang <jesse@icplus.com.tw>
+Signed-off-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-commit ca3bb6d580ab8a67ed3cbe5bb9f2f2ef7669f5c8
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Tue Sep 11 12:20:26 2007 -0400
-
-    Makefile fixup since we moved the tehuti driver.
-
-commit 34a9cc31a2c5628c99e3fac972fbd17f0cba3869
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Tue Sep 11 12:16:17 2007 -0400
-
-    Delete drivers/net/tehuti/ directory
-
-commit 988e3de6eee3c69a1a580c7b6fe6335ac7900bf0
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Tue Sep 11 12:15:33 2007 -0400
-
-    Move tehuti driver out of it's own directory since it's really not needed.
-
-commit a9ae94ecfae0567065b3110d91ced379f31d5ced
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Mon Sep 10 23:57:30 2007 -0400
-
-    Tehuti Makefile change -- remove unused part.
-
-commit 72aeb899bc35c18fa9fb3320fbabcb432ac7fe51
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Mon Sep 10 23:56:11 2007 -0400
-
-    A few style changes -- #define's inside structs are not ideal.
-
-commit 5544280fc3d8c1bf578878e32ec1abc6d80bbdce
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Mon Sep 10 23:43:28 2007 -0400
-
-    Adding actual Tehuti driver files.
-
-commit 8e170bb21a4b756311bdbc467e2e7cf07421b706
-Author: Andy Gospodarek <andy@greyhouse.net>
-Date:   Mon Sep 10 22:47:52 2007 -0400
-
-    Initial import of Tehuti network driver.
- MAINTAINERS             |    8 
- drivers/net/Kconfig     |    6 
+ MAINTAINERS             |   10 
+ drivers/net/Kconfig     |    9 
  drivers/net/Makefile    |    1 
- drivers/net/tehuti.c    | 2506 +++++++++++
- drivers/net/tehuti.h    |  562 ++
- drivers/net/tehuti_fw.h |10712 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h |    5 
- 7 files changed, 13800 insertions(+), 0 deletions(-)
+ drivers/net/ipg.c       | 2327 ++++++++++++++++++++++++++++++++++++++
+ drivers/net/ipg.h       |  856 +++++++++++++
+ include/linux/pci_ids.h |    2 
+ 6 files changed, 3205 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9c54a5e..c756aee 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3614,6 +3614,14 @@ M:	hlhung3i@gmail.com
- W:	http://tcp-lp-mod.sourceforge.net/
- S:	Maintained
- 
-+TEHUTI ETHERNET DRIVER
-+P:	Alexander Indenbaum
-+M:	baum@tehutinetworks.net
-+P:	Andy Gospodarek
-+M:	andy@greyhouse.net
-+L:	netdev@vger.kernel.org
-+S:	Supported
-+
- TI FLASH MEDIA INTERFACE DRIVER
- P:      Alex Dubov
- M:      oakad@yahoo.com
-diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
-index c551925..ad15c6c 100644
---- a/drivers/net/Kconfig
-+++ b/drivers/net/Kconfig
-@@ -2617,6 +2617,12 @@ config MLX4_DEBUG
- 	  debug_level module parameter (which can also be set after
- 	  the driver is loaded through sysfs).
- 
-+config TEHUTI
-+	tristate "Tehuti Networks 10G Ethernet"
-+	depends on PCI
-+	help
-+	  Tehuti Networks 10G Ethernet NIC
-+
- endif # NETDEV_10000
- 
- source "drivers/net/tokenring/Kconfig"
-diff --git a/drivers/net/Makefile b/drivers/net/Makefile
-index 9c928a8..2f94ee8 100644
---- a/drivers/net/Makefile
-+++ b/drivers/net/Makefile
-@@ -11,6 +11,7 @@ obj-$(CONFIG_EHEA) += ehea/
- obj-$(CONFIG_BONDING) += bonding/
- obj-$(CONFIG_ATL1) += atl1/
- obj-$(CONFIG_GIANFAR) += gianfar_driver.o
-+obj-$(CONFIG_TEHUTI) += tehuti.o
- 
- gianfar_driver-objs := gianfar.o \
- 		gianfar_ethtool.o \
-diff --git a/drivers/net/tehuti.c b/drivers/net/tehuti.c
-new file mode 100644
-index 0000000..b65e1e7
+diff -puN /dev/null drivers/net/ipg.c
 --- /dev/null
-+++ b/drivers/net/tehuti.c
-@@ -0,0 +1,2506 @@
++++ a/drivers/net/ipg.c
+@@ -0,0 +1,2327 @@
 +/*
-+ * Tehuti Networks(R) Network Driver
-+ * ethtool interface implementation
-+ * Copyright (C) 2007 Tehuti Networks Ltd. All rights reserved
++ * ipg.c: Device Driver for the IP1000 Gigabit Ethernet Adapter
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Copyright (C) 2003, 2007  IC Plus Corp
++ *
++ * Original Author:
++ *
++ *   Craig Rich
++ *   Sundance Technology, Inc.
++ *   www.sundanceti.com
++ *   craig_rich@sundanceti.com
++ *
++ * Current Maintainer:
++ *
++ *   Sorbica Shieh.
++ *   http://www.icplus.com.tw
++ *   sorbica@icplus.com.tw
++ *
++ *   Jesse Huang
++ *   http://www.icplus.com.tw
++ *   jesse@icplus.com.tw
 + */
++#include <linux/crc32.h>
++#include <linux/ethtool.h>
++#include <linux/mii.h>
++#include <linux/mutex.h>
 +
-+/*
-+ * RX HW/SW interaction overview
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ * There are 2 types of RX communication channels betwean driver and NIC.
-+ * 1) RX Free Fifo - RXF - holds descriptors of empty buffers to accept incoming
-+ * traffic. This Fifo is filled by SW and is readen by HW. Each descriptor holds
-+ * info about buffer's location, size and ID. An ID field is used to identify a
-+ * buffer when it's returned with data via RXD Fifo (see below)
-+ * 2) RX Data Fifo - RXD - holds descriptors of full buffers. This Fifo is
-+ * filled by HW and is readen by SW. Each descriptor holds status and ID.
-+ * HW pops descriptor from RXF Fifo, stores ID, fills buffer with incoming data,
-+ * via dma moves it into host memory, builds new RXD descriptor with same ID,
-+ * pushes it into RXD Fifo and raises interrupt to indicate new RX data.
-+ *
-+ * Current NIC configuration (registers + firmware) makes NIC use 2 RXF Fifos.
-+ * One holds 1.5K packets and another - 26K packets. Depending on incoming
-+ * packet size, HW desides on a RXF Fifo to pop buffer from. When packet is
-+ * filled with data, HW builds new RXD descriptor for it and push it into single
-+ * RXD Fifo.
-+ *
-+ * RX SW Data Structures
-+ * ~~~~~~~~~~~~~~~~~~~~~
-+ * skb db - used to keep track of all skbs owned by SW and their dma addresses.
-+ * For RX case, ownership lasts from allocating new empty skb for RXF until
-+ * accepting full skb from RXD and passing it to OS. Each RXF Fifo has its own
-+ * skb db. Implemented as array with bitmask.
-+ * fifo - keeps info about fifo's size and location, relevant HW registers,
-+ * usage and skb db. Each RXD and RXF Fifo has its own fifo structure.
-+ * Implemented as simple struct.
-+ *
-+ * RX SW Execution Flow
-+ * ~~~~~~~~~~~~~~~~~~~~
-+ * Upon initialization (ifconfig up) driver creates RX fifos and initializes
-+ * relevant registers. At the end of init phase, driver enables interrupts.
-+ * NIC sees that there is no RXF buffers and raises
-+ * RD_INTR interrupt, isr fills skbs and Rx begins.
-+ * Driver has two receive operation modes:
-+ *    NAPI - interrupt-driven mixed with polling
-+ *    interrupt-driven only
-+ *
-+ * Interrupt-driven only flow is following. When buffer is ready, HW raises
-+ * interrupt and isr is called. isr collects all available packets
-+ * (bdx_rx_receive), refills skbs (bdx_rx_alloc_skbs) and exit.
++#define IPG_RX_RING_BYTES	(sizeof(struct ipg_rx) * IPG_RFDLIST_LENGTH)
++#define IPG_TX_RING_BYTES	(sizeof(struct ipg_tx) * IPG_TFDLIST_LENGTH)
++#define IPG_RESET_MASK \
++	(IPG_AC_GLOBAL_RESET | IPG_AC_RX_RESET | IPG_AC_TX_RESET | \
++	 IPG_AC_DMA | IPG_AC_FIFO | IPG_AC_NETWORK | IPG_AC_HOST | \
++	 IPG_AC_AUTO_INIT)
 +
-+ * Rx buffer allocation note
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~
-+ * Driver cares to feed such amount of RxF descriptors that respective amount of
-+ * RxD descriptors can not fill entire RxD fifo. The main reason is lack of
-+ * overflow check in Bordeaux for RxD fifo free/used size.
-+ * FIXME: this is NOT fully implemented, more work should be done
-+ *
-+ */
++#define ipg_w32(val32,reg)	iowrite32((val32), ioaddr + (reg))
++#define ipg_w16(val16,reg)	iowrite16((val16), ioaddr + (reg))
++#define ipg_w8(val8,reg)	iowrite8((val8), ioaddr + (reg))
 +
-+#include "tehuti.h"
-+#include "tehuti_fw.h"
++#define ipg_r32(reg)		ioread32(ioaddr + (reg))
++#define ipg_r16(reg)		ioread16(ioaddr + (reg))
++#define ipg_r8(reg)		ioread8(ioaddr + (reg))
 +
-+static struct pci_device_id __devinitdata bdx_pci_tbl[] = {
-+	{0x1FC9, 0x3009, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{0x1FC9, 0x3010, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{0x1FC9, 0x3014, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{0}
++#define JUMBO_FRAME_4k_ONLY
++enum {
++	netdev_io_size = 128
 +};
 +
-+MODULE_DEVICE_TABLE(pci, bdx_pci_tbl);
++#include "ipg.h"
++#define DRV_NAME	"ipg"
 +
-+/* Definitions needed by ISR or NAPI functions */
-+static void bdx_rx_alloc_skbs(struct bdx_priv *priv, struct rxf_fifo *f);
-+static void bdx_tx_cleanup(struct bdx_priv *priv);
-+static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int *budget);
++MODULE_AUTHOR("IC Plus Corp. 2003");
++MODULE_DESCRIPTION("IC Plus IP1000 Gigabit Ethernet Adapter Linux Driver "
++		   DrvVer);
++MODULE_LICENSE("GPL");
 +
-+/* Definitions needed by FW loading */
-+static void bdx_tx_push_desc_safe(struct bdx_priv *priv, void *data, int size);
++static const char *ipg_brand_name[] = {
++	"IC PLUS IP1000 1000/100/10 based NIC",
++	"Sundance Technology ST2021 based NIC",
++	"Tamarack Microelectronics TC9020/9021 based NIC",
++	"Tamarack Microelectronics TC9020/9021 based NIC",
++	"D-Link NIC",
++	"D-Link NIC IP1000A"
++};
 +
-+/* Definitions needed by hw_start */
-+static int bdx_tx_init(struct bdx_priv *priv);
-+static int bdx_rx_init(struct bdx_priv *priv);
++static struct pci_device_id ipg_pci_tbl[] __devinitdata = {
++	{ PCI_VDEVICE(SUNDANCE,	0x1023), 0 },
++	{ PCI_VDEVICE(SUNDANCE,	0x2021), 1 },
++	{ PCI_VDEVICE(SUNDANCE,	0x1021), 2 },
++	{ PCI_VDEVICE(DLINK,	0x9021), 3 },
++	{ PCI_VDEVICE(DLINK,	0x4000), 4 },
++	{ PCI_VDEVICE(DLINK,	0x4020), 5 },
++	{ 0, }
++};
 +
-+/* Definitions needed by bdx_close */
-+static void bdx_rx_free(struct bdx_priv *priv);
-+static void bdx_tx_free(struct bdx_priv *priv);
++MODULE_DEVICE_TABLE(pci, ipg_pci_tbl);
 +
-+/* Definitions needed by bdx_probe */
-+static void bdx_ethtool_ops(struct net_device *netdev);
-+
-+/*************************************************************************
-+ *    Print Info                                                         *
-+ *************************************************************************/
-+
-+static void print_hw_id(struct pci_dev *pdev)
++static inline void __iomem *ipg_ioaddr(struct net_device *dev)
 +{
-+	struct pci_nic *nic = pci_get_drvdata(pdev);
-+	u16 pci_link_status = 0;
-+	u16 pci_ctrl = 0;
-+
-+	pci_read_config_word(pdev, PCI_LINK_STATUS_REG, &pci_link_status);
-+	pci_read_config_word(pdev, PCI_DEV_CTRL_REG, &pci_ctrl);
-+
-+	printk(KERN_INFO "tehuti: %s%s\n", BDX_NIC_NAME,
-+	       nic->port_num == 1 ? "" : ", 2-Port");
-+	printk(KERN_INFO
-+	       "tehuti: srom 0x%x fpga %d build %u lane# %d"
-+	       " max_pl 0x%x mrrs 0x%x\n",
-+	       readl(nic->regs + SROM_VER), readl(nic->regs + FPGA_VER) & 0xFFF,
-+	       readl(nic->regs + FPGA_SEED),
-+	       GET_LINK_STATUS_LANES(pci_link_status),
-+	       GET_DEV_CTRL_MAXPL(pci_ctrl), GET_DEV_CTRL_MRRS(pci_ctrl));
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	return sp->ioaddr;
 +}
 +
-+static void print_fw_id(struct pci_nic *nic)
++#ifdef IPG_DEBUG
++static void ipg_dump_rfdlist(struct net_device *dev)
 +{
-+	printk(KERN_INFO "tehuti: fw 0x%x\n", readl(nic->regs + FW_VER));
-+}
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++	u32 offset;
 +
-+static void print_eth_id(struct net_device *ndev)
-+{
-+	printk(KERN_INFO "%s: %s, Port %c\n", ndev->name, BDX_NIC_NAME,
-+	       (ndev->if_port == 0) ? 'A' : 'B');
++	IPG_DEBUG_MSG("_dump_rfdlist\n");
 +
-+}
++	printk(KERN_INFO "rx_current = %2.2x\n", sp->rx_current);
++	printk(KERN_INFO "rx_dirty   = %2.2x\n", sp->rx_dirty);
++	printk(KERN_INFO "RFDList start address = %16.16lx\n",
++	       (unsigned long) sp->rxd_map);
++	printk(KERN_INFO "RFDListPtr register   = %8.8x%8.8x\n",
++	       ipg_r32(IPG_RFDLISTPTR1), ipg_r32(IPG_RFDLISTPTR0));
 +
-+/*************************************************************************
-+ *    Code                                                               *
-+ *************************************************************************/
-+
-+#define bdx_enable_interrupts(priv)	\
-+	do { WRITE_REG(priv, regIMR, IR_RUN); } while (0)
-+#define bdx_disable_interrupts(priv)	\
-+	do { WRITE_REG(priv, regIMR, 0); } while (0)
-+
-+/* bdx_fifo_init
-+ * create TX/RX descriptor fifo for host-NIC communication.
-+ * 1K extra space is allocated at the end of the fifo to simplify
-+ * processing of descriptors that wraps around fifo's end
-+ * @priv - NIC private structure
-+ * @f - fifo to initialize
-+ * @fsz_type - fifo size type: 0-4KB, 1-8KB, 2-16KB, 3-32KB
-+ * @reg_XXX - offsets of registers relative to base address
-+ *
-+ * Returns 0 on success, negative value on failure
-+ *
-+ */
-+static int
-+bdx_fifo_init(struct bdx_priv *priv, struct fifo *f, int fsz_type,
-+	      u16 reg_CFG0, u16 reg_CFG1, u16 reg_RPTR, u16 reg_WPTR)
-+{
-+	u16 memsz = FIFO_SIZE * (1 << fsz_type);
-+
-+	memset(f, 0, sizeof(struct fifo));
-+	/* pci_alloc_consistent gives us 4k-aligned memory */
-+	f->va = pci_alloc_consistent(priv->pdev,
-+				     memsz + FIFO_EXTRA_SPACE, &f->da);
-+	if (!f->va) {
-+		ERR("pci_alloc_consistent failed\n");
-+		RET(-ENOMEM);
++	for (i = 0; i < IPG_RFDLIST_LENGTH; i++) {
++		offset = (u32) &sp->rxd[i].next_desc - (u32) sp->rxd;
++		printk(KERN_INFO "%2.2x %4.4x RFDNextPtr = %16.16lx\n", i,
++		       offset, (unsigned long) sp->rxd[i].next_desc);
++		offset = (u32) &sp->rxd[i].rfs - (u32) sp->rxd;
++		printk(KERN_INFO "%2.2x %4.4x RFS        = %16.16lx\n", i,
++		       offset, (unsigned long) sp->rxd[i].rfs);
++		offset = (u32) &sp->rxd[i].frag_info - (u32) sp->rxd;
++		printk(KERN_INFO "%2.2x %4.4x frag_info   = %16.16lx\n", i,
++		       offset, (unsigned long) sp->rxd[i].frag_info);
 +	}
-+	f->reg_CFG0 = reg_CFG0;
-+	f->reg_CFG1 = reg_CFG1;
-+	f->reg_RPTR = reg_RPTR;
-+	f->reg_WPTR = reg_WPTR;
-+	f->rptr = 0;
-+	f->wptr = 0;
-+	f->memsz = memsz;
-+	f->size_mask = memsz - 1;
-+	WRITE_REG(priv, reg_CFG0, (u32) ((f->da & TX_RX_CFG0_BASE) | fsz_type));
-+	WRITE_REG(priv, reg_CFG1, H32_64(f->da));
-+
-+	RET(0);
 +}
 +
-+/* bdx_fifo_free - free all resources used by fifo
-+ * @priv - NIC private structure
-+ * @f - fifo to release
-+ */
-+static void bdx_fifo_free(struct bdx_priv *priv, struct fifo *f)
++static void ipg_dump_tfdlist(struct net_device *dev)
 +{
-+	ENTER;
-+	if (f->va) {
-+		pci_free_consistent(priv->pdev,
-+				    f->memsz + FIFO_EXTRA_SPACE, f->va, f->da);
-+		f->va = NULL;
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++	u32 offset;
++
++	IPG_DEBUG_MSG("_dump_tfdlist\n");
++
++	printk(KERN_INFO "tx_current         = %2.2x\n", sp->tx_current);
++	printk(KERN_INFO "tx_dirty = %2.2x\n", sp->tx_dirty);
++	printk(KERN_INFO "TFDList start address = %16.16lx\n",
++	       (unsigned long) sp->txd_map);
++	printk(KERN_INFO "TFDListPtr register   = %8.8x%8.8x\n",
++	       ipg_r32(IPG_TFDLISTPTR1), ipg_r32(IPG_TFDLISTPTR0));
++
++	for (i = 0; i < IPG_TFDLIST_LENGTH; i++) {
++		offset = (u32) &sp->txd[i].next_desc - (u32) sp->txd;
++		printk(KERN_INFO "%2.2x %4.4x TFDNextPtr = %16.16lx\n", i,
++		       offset, (unsigned long) sp->txd[i].next_desc);
++
++		offset = (u32) &sp->txd[i].tfc - (u32) sp->txd;
++		printk(KERN_INFO "%2.2x %4.4x TFC        = %16.16lx\n", i,
++		       offset, (unsigned long) sp->txd[i].tfc);
++		offset = (u32) &sp->txd[i].frag_info - (u32) sp->txd;
++		printk(KERN_INFO "%2.2x %4.4x frag_info   = %16.16lx\n", i,
++		       offset, (unsigned long) sp->txd[i].frag_info);
 +	}
-+	RET();
++}
++#endif
++
++static void ipg_write_phy_ctl(void __iomem *ioaddr, u8 data)
++{
++	ipg_w8(IPG_PC_RSVD_MASK & data, PHY_CTRL);
++	ndelay(IPG_PC_PHYCTRLWAIT_NS);
++}
++
++static void ipg_drive_phy_ctl_low_high(void __iomem *ioaddr, u8 data)
++{
++	ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_LO | data);
++	ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_HI | data);
++}
++
++static void send_three_state(void __iomem *ioaddr, u8 phyctrlpolarity)
++{
++	phyctrlpolarity |= (IPG_PC_MGMTDATA & 0) | IPG_PC_MGMTDIR;
++
++	ipg_drive_phy_ctl_low_high(ioaddr, phyctrlpolarity);
++}
++
++static void send_end(void __iomem *ioaddr, u8 phyctrlpolarity)
++{
++	ipg_w8((IPG_PC_MGMTCLK_LO | (IPG_PC_MGMTDATA & 0) | IPG_PC_MGMTDIR |
++		phyctrlpolarity) & IPG_PC_RSVD_MASK, PHY_CTRL);
++}
++
++static u16 read_phy_bit(void __iomem * ioaddr, u8 phyctrlpolarity)
++{
++	u16 bit_data;
++
++	ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_LO | phyctrlpolarity);
++
++	bit_data = ((ipg_r8(PHY_CTRL) & IPG_PC_MGMTDATA) >> 1) & 1;
++
++	ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_HI | phyctrlpolarity);
++
++	return bit_data;
 +}
 +
 +/*
-+ * bdx_link_changed - notifies OS about hw link state.
-+ * @bdx_priv - hw adapter structure
++ * Read a register from the Physical Layer device located
++ * on the IPG NIC, using the IPG PHYCTRL register.
 + */
-+static void bdx_link_changed(struct bdx_priv *priv)
++static int mdio_read(struct net_device * dev, int phy_id, int phy_reg)
 +{
-+	u32 link = READ_REG(priv, regMAC_LNK_STAT) & MAC_LINK_STAT;
++	void __iomem *ioaddr = ipg_ioaddr(dev);
++	/*
++	 * The GMII mangement frame structure for a read is as follows:
++	 *
++	 * |Preamble|st|op|phyad|regad|ta|      data      |idle|
++	 * |< 32 1s>|01|10|AAAAA|RRRRR|z0|DDDDDDDDDDDDDDDD|z   |
++	 *
++	 * <32 1s> = 32 consecutive logic 1 values
++	 * A = bit of Physical Layer device address (MSB first)
++	 * R = bit of register address (MSB first)
++	 * z = High impedance state
++	 * D = bit of read data (MSB first)
++	 *
++	 * Transmission order is 'Preamble' field first, bits transmitted
++	 * left to right (first to last).
++	 */
++	struct {
++		u32 field;
++		unsigned int len;
++	} p[] = {
++		{ GMII_PREAMBLE,	32 },	/* Preamble */
++		{ GMII_ST,		2  },	/* ST */
++		{ GMII_READ,		2  },	/* OP */
++		{ phy_id,		5  },	/* PHYAD */
++		{ phy_reg,		5  },	/* REGAD */
++		{ 0x0000,		2  },	/* TA */
++		{ 0x0000,		16 },	/* DATA */
++		{ 0x0000,		1  }	/* IDLE */
++	};
++	unsigned int i, j;
++	u8 polarity, data;
 +
-+	if (!link) {
-+		if (netif_carrier_ok(priv->ndev)) {
-+			netif_stop_queue(priv->ndev);
-+			netif_carrier_off(priv->ndev);
-+			ERR("%s: Link Down\n", priv->ndev->name);
-+		}
-+	} else {
-+		if (!netif_carrier_ok(priv->ndev)) {
-+			netif_wake_queue(priv->ndev);
-+			netif_carrier_on(priv->ndev);
-+			ERR("%s: Link Up\n", priv->ndev->name);
++	polarity  = ipg_r8(PHY_CTRL);
++	polarity &= (IPG_PC_DUPLEX_POLARITY | IPG_PC_LINK_POLARITY);
++
++	/* Create the Preamble, ST, OP, PHYAD, and REGAD field. */
++	for (j = 0; j < 5; j++) {
++		for (i = 0; i < p[j].len; i++) {
++			/* For each variable length field, the MSB must be
++			 * transmitted first. Rotate through the field bits,
++			 * starting with the MSB, and move each bit into the
++			 * the 1st (2^1) bit position (this is the bit position
++			 * corresponding to the MgmtData bit of the PhyCtrl
++			 * register for the IPG).
++			 *
++			 * Example: ST = 01;
++			 *
++			 *          First write a '0' to bit 1 of the PhyCtrl
++			 *          register, then write a '1' to bit 1 of the
++			 *          PhyCtrl register.
++			 *
++			 * To do this, right shift the MSB of ST by the value:
++			 * [field length - 1 - #ST bits already written]
++			 * then left shift this result by 1.
++			 */
++			data  = (p[j].field >> (p[j].len - 1 - i)) << 1;
++			data &= IPG_PC_MGMTDATA;
++			data |= polarity | IPG_PC_MGMTDIR;
++
++			ipg_drive_phy_ctl_low_high(ioaddr, data);
 +		}
 +	}
-+}
 +
-+static void bdx_isr_extra(struct bdx_priv *priv, u32 isr)
-+{
-+	if (isr & IR_RX_FREE_0) {
-+		bdx_rx_alloc_skbs(priv, &priv->rxf_fifo0);
-+		DBG("RX_FREE_0\n");
++	send_three_state(ioaddr, polarity);
++
++	read_phy_bit(ioaddr, polarity);
++
++	/*
++	 * For a read cycle, the bits for the next two fields (TA and
++	 * DATA) are driven by the PHY (the IPG reads these bits).
++	 */
++	for (i = 0; i < p[6].len; i++) {
++		p[6].field |=
++		    (read_phy_bit(ioaddr, polarity) << (p[6].len - 1 - i));
 +	}
 +
-+	if (isr & IR_LNKCHG0)
-+		bdx_link_changed(priv);
++	send_three_state(ioaddr, polarity);
++	send_three_state(ioaddr, polarity);
++	send_three_state(ioaddr, polarity);
++	send_end(ioaddr, polarity);
 +
-+	if (isr & IR_PCIE_LINK)
-+		ERR("%s: PCI-E Link Fault\n", priv->ndev->name);
-+
-+	if (isr & IR_PCIE_TOUT)
-+		ERR("%s: PCI-E Time Out\n", priv->ndev->name);
-+
++	/* Return the value of the DATA field. */
++	return p[6].field;
 +}
 +
-+/* bdx_isr - Interrupt Service Routine for Bordeaux NIC
-+ * @irq - interrupt number
-+ * @ndev - network device
-+ * @regs - CPU registers
-+ *
-+ * Return IRQ_NONE if it was not our interrupt, IRQ_HANDLED - otherwise
-+ *
-+ * It reads ISR register to know interrupt reasons, and proceed them one by one.
-+ * Reasons of interest are:
-+ *    RX_DESC - new packet has arrived and RXD fifo holds its descriptor
-+ *    RX_FREE - number of free Rx buffers in RXF fifo gets low
-+ *    TX_FREE - packet was transmited and RXF fifo holds its descriptor
++/*
++ * Write to a register from the Physical Layer device located
++ * on the IPG NIC, using the IPG PHYCTRL register.
 + */
-+
-+static irqreturn_t bdx_isr_napi(int irq, void *dev)
++static void mdio_write(struct net_device *dev, int phy_id, int phy_reg, int val)
 +{
-+	struct net_device *ndev = dev;
-+	struct bdx_priv *priv = ndev->priv;
-+	u32 isr;
++	void __iomem *ioaddr = ipg_ioaddr(dev);
++	/*
++	 * The GMII mangement frame structure for a read is as follows:
++	 *
++	 * |Preamble|st|op|phyad|regad|ta|      data      |idle|
++	 * |< 32 1s>|01|10|AAAAA|RRRRR|z0|DDDDDDDDDDDDDDDD|z   |
++	 *
++	 * <32 1s> = 32 consecutive logic 1 values
++	 * A = bit of Physical Layer device address (MSB first)
++	 * R = bit of register address (MSB first)
++	 * z = High impedance state
++	 * D = bit of write data (MSB first)
++	 *
++	 * Transmission order is 'Preamble' field first, bits transmitted
++	 * left to right (first to last).
++	 */
++	struct {
++		u32 field;
++		unsigned int len;
++	} p[] = {
++		{ GMII_PREAMBLE,	32 },	/* Preamble */
++		{ GMII_ST,		2  },	/* ST */
++		{ GMII_WRITE,		2  },	/* OP */
++		{ phy_id,		5  },	/* PHYAD */
++		{ phy_reg,		5  },	/* REGAD */
++		{ 0x0002,		2  },	/* TA */
++		{ val & 0xffff,		16 },	/* DATA */
++		{ 0x0000,		1  }	/* IDLE */
++	};
++	unsigned int i, j;
++	u8 polarity, data;
 +
-+	ENTER;
-+	isr = (READ_REG(priv, regISR) & IR_RUN);
-+	if (unlikely(!isr)) {
-+		bdx_enable_interrupts(priv);
-+		return IRQ_NONE;	/* Not our interrupt */
-+	}
++	polarity  = ipg_r8(PHY_CTRL);
++	polarity &= (IPG_PC_DUPLEX_POLARITY | IPG_PC_LINK_POLARITY);
 +
-+	if (isr & IR_EXTRA)
-+		bdx_isr_extra(priv, isr);
++	/* Create the Preamble, ST, OP, PHYAD, and REGAD field. */
++	for (j = 0; j < 7; j++) {
++		for (i = 0; i < p[j].len; i++) {
++			/* For each variable length field, the MSB must be
++			 * transmitted first. Rotate through the field bits,
++			 * starting with the MSB, and move each bit into the
++			 * the 1st (2^1) bit position (this is the bit position
++			 * corresponding to the MgmtData bit of the PhyCtrl
++			 * register for the IPG).
++			 *
++			 * Example: ST = 01;
++			 *
++			 *          First write a '0' to bit 1 of the PhyCtrl
++			 *          register, then write a '1' to bit 1 of the
++			 *          PhyCtrl register.
++			 *
++			 * To do this, right shift the MSB of ST by the value:
++			 * [field length - 1 - #ST bits already written]
++			 * then left shift this result by 1.
++			 */
++			data  = (p[j].field >> (p[j].len - 1 - i)) << 1;
++			data &= IPG_PC_MGMTDATA;
++			data |= polarity | IPG_PC_MGMTDIR;
 +
-+	if (isr & (IR_RX_DESC_0 | IR_TX_FREE_0)) {
-+		if (likely(netif_rx_schedule_prep(ndev))) {
-+			__netif_rx_schedule(ndev);
-+			RET(IRQ_HANDLED);
-+		} else {
-+			/* NOTE: we get here if intr has slipped into window
-+			 * between these lines in bdx_poll:
-+			 *    bdx_enable_interrupts(priv);
-+			 *    return 0;
-+			 * currently intrs are disabled (since we read ISR),
-+			 * and we have failed to register next poll.
-+			 * so we read the regs to trigger chip
-+			 * and allow further interupts. */
-+			READ_REG(priv, regTXF_WPTR_0);
-+			READ_REG(priv, regRXD_WPTR_0);
++			ipg_drive_phy_ctl_low_high(ioaddr, data);
 +		}
 +	}
 +
-+	bdx_enable_interrupts(priv);
-+	RET(IRQ_HANDLED);
++	/* The last cycle is a tri-state, so read from the PHY. */
++	for (j = 7; j < 8; j++) {
++		for (i = 0; i < p[j].len; i++) {
++			ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_LO | polarity);
++
++			p[j].field |= ((ipg_r8(PHY_CTRL) &
++				IPG_PC_MGMTDATA) >> 1) << (p[j].len - 1 - i);
++
++			ipg_write_phy_ctl(ioaddr, IPG_PC_MGMTCLK_HI | polarity);
++		}
++	}
 +}
 +
-+static int bdx_poll(struct net_device *ndev, int *budget)
++/* Set LED_Mode JES20040127EEPROM */
++static void ipg_set_led_mode(struct net_device *dev)
 +{
-+	struct bdx_priv *priv = ndev->priv;
-+	ENTER;
-+	bdx_tx_cleanup(priv);
-+	if (!bdx_rx_receive(priv, &priv->rxd_fifo0, budget)
-+	    || (priv->napi_stop++ >= 30)) {
-+		DBG("rx poll is done. backing to isr-driven\n");
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	u32 mode;
 +
-+		/* from time to time we exit to let NAPI layer release
-+		 * device lock and allow waiting tasks (eg rmmod) to advance) */
-+		priv->napi_stop = 0;
++	mode = ipg_r32(ASIC_CTRL);
++	mode &= ~(IPG_AC_LED_MODE_BIT_1 | IPG_AC_LED_MODE | IPG_AC_LED_SPEED);
 +
-+		netif_rx_complete(ndev);
-+		bdx_enable_interrupts(priv);
++	if ((sp->LED_Mode & 0x03) > 1)
++		mode |= IPG_AC_LED_MODE_BIT_1;	/* Write Asic Control Bit 29 */
++
++	if ((sp->LED_Mode & 0x01) == 1)
++		mode |= IPG_AC_LED_MODE;	/* Write Asic Control Bit 14 */
++
++	if ((sp->LED_Mode & 0x08) == 8)
++		mode |= IPG_AC_LED_SPEED;	/* Write Asic Control Bit 27 */
++
++	ipg_w32(mode, ASIC_CTRL);
++}
++
++/* Set PHYSet JES20040127EEPROM */
++static void ipg_set_phy_set(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	int physet;
++
++	physet = ipg_r8(PHY_SET);
++	physet &= ~(IPG_PS_MEM_LENB9B | IPG_PS_MEM_LEN9 | IPG_PS_NON_COMPDET);
++	physet |= ((sp->LED_Mode & 0x70) >> 4);
++	ipg_w8(physet, PHY_SET);
++}
++
++static int ipg_reset(struct net_device *dev, u32 resetflags)
++{
++	/* Assert functional resets via the IPG AsicCtrl
++	 * register as specified by the 'resetflags' input
++	 * parameter.
++	 */
++	void __iomem *ioaddr = ipg_ioaddr(dev);	//JES20040127EEPROM:
++	unsigned int timeout_count = 0;
++
++	IPG_DEBUG_MSG("_reset\n");
++
++	ipg_w32(ipg_r32(ASIC_CTRL) | resetflags, ASIC_CTRL);
++
++	/* Delay added to account for problem with 10Mbps reset. */
++	mdelay(IPG_AC_RESETWAIT);
++
++	while (IPG_AC_RESET_BUSY & ipg_r32(ASIC_CTRL)) {
++		mdelay(IPG_AC_RESETWAIT);
++		if (++timeout_count > IPG_AC_RESET_TIMEOUT)
++			return -ETIME;
++	}
++	/* Set LED Mode in Asic Control JES20040127EEPROM */
++	ipg_set_led_mode(dev);
++
++	/* Set PHYSet Register Value JES20040127EEPROM */
++	ipg_set_phy_set(dev);
++	return 0;
++}
++
++/* Find the GMII PHY address. */
++static int ipg_find_phyaddr(struct net_device *dev)
++{
++	unsigned int phyaddr, i;
++
++	for (i = 0; i < 32; i++) {
++		u32 status;
++
++		/* Search for the correct PHY address among 32 possible. */
++		phyaddr = (IPG_NIC_PHY_ADDRESS + i) % 32;
++
++		/* 10/22/03 Grace change verify from GMII_PHY_STATUS to
++		   GMII_PHY_ID1
++		 */
++
++		status = mdio_read(dev, phyaddr, MII_BMSR);
++
++		if ((status != 0xFFFF) && (status != 0))
++			return phyaddr;
++	}
++
++	return 0x1f;
++}
++
++/*
++ * Configure IPG based on result of IEEE 802.3 PHY
++ * auto-negotiation.
++ */
++static int ipg_config_autoneg(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int txflowcontrol;
++	unsigned int rxflowcontrol;
++	unsigned int fullduplex;
++	unsigned int gig;
++	u32 mac_ctrl_val;
++	u32 asicctrl;
++	u8 phyctrl;
++
++	IPG_DEBUG_MSG("_config_autoneg\n");
++
++	asicctrl = ipg_r32(ASIC_CTRL);
++	phyctrl = ipg_r8(PHY_CTRL);
++	mac_ctrl_val = ipg_r32(MAC_CTRL);
++
++	/* Set flags for use in resolving auto-negotation, assuming
++	 * non-1000Mbps, half duplex, no flow control.
++	 */
++	fullduplex = 0;
++	txflowcontrol = 0;
++	rxflowcontrol = 0;
++	gig = 0;
++
++	/* To accomodate a problem in 10Mbps operation,
++	 * set a global flag if PHY running in 10Mbps mode.
++	 */
++	sp->tenmbpsmode = 0;
++
++	printk(KERN_INFO "%s: Link speed = ", dev->name);
++
++	/* Determine actual speed of operation. */
++	switch (phyctrl & IPG_PC_LINK_SPEED) {
++	case IPG_PC_LINK_SPEED_10MBPS:
++		printk("10Mbps.\n");
++		printk(KERN_INFO "%s: 10Mbps operational mode enabled.\n",
++		       dev->name);
++		sp->tenmbpsmode = 1;
++		break;
++	case IPG_PC_LINK_SPEED_100MBPS:
++		printk("100Mbps.\n");
++		break;
++	case IPG_PC_LINK_SPEED_1000MBPS:
++		printk("1000Mbps.\n");
++		gig = 1;
++		break;
++	default:
++		printk("undefined!\n");
 +		return 0;
 +	}
-+	return 1;
-+}
 +
-+/* bdx_fw_load - loads firmware to NIC
-+ * @priv - NIC private structure
-+ * Firmware is loaded via TXD fifo, so it must be initialized first.
-+ * Firware must be loaded once per NIC not per PCI device provided by NIC (NIC
-+ * can have few of them). So all drivers use semaphore register to choose one
-+ * that will actually load FW to NIC.
-+ */
-+
-+static int bdx_fw_load(struct bdx_priv *priv)
-+{
-+	int master, i;
-+
-+	ENTER;
-+	master = READ_REG(priv, regINIT_SEMAPHORE);
-+	if (!READ_REG(priv, regINIT_STATUS) && master) {
-+		bdx_tx_push_desc_safe(priv, s_firmLoad, sizeof(s_firmLoad));
-+		mdelay(100);
++	if (phyctrl & IPG_PC_DUPLEX_STATUS) {
++		fullduplex = 1;
++		txflowcontrol = 1;
++		rxflowcontrol = 1;
 +	}
-+	for (i = 0; i < 200; i++) {
-+		if (READ_REG(priv, regINIT_STATUS))
-+			break;
-+		mdelay(2);
-+	}
-+	if (master)
-+		WRITE_REG(priv, regINIT_SEMAPHORE, 1);
 +
-+	if (i == 200) {
-+		ERR("%s: firmware loading failed\n", priv->ndev->name);
-+		DBG("VPC = 0x%x VIC = 0x%x INIT_STATUS = 0x%x i=%d\n",
-+		    READ_REG(priv, regVPC),
-+		    READ_REG(priv, regVIC), READ_REG(priv, regINIT_STATUS), i);
-+		RET(-EIO);
++	/* Configure full duplex, and flow control. */
++	if (fullduplex == 1) {
++		/* Configure IPG for full duplex operation. */
++		printk(KERN_INFO "%s: setting full duplex, ", dev->name);
++
++		mac_ctrl_val |= IPG_MC_DUPLEX_SELECT_FD;
++
++		if (txflowcontrol == 1) {
++			printk("TX flow control");
++			mac_ctrl_val |= IPG_MC_TX_FLOW_CONTROL_ENABLE;
++		} else {
++			printk("no TX flow control");
++			mac_ctrl_val &= ~IPG_MC_TX_FLOW_CONTROL_ENABLE;
++		}
++
++		if (rxflowcontrol == 1) {
++			printk(", RX flow control.");
++			mac_ctrl_val |= IPG_MC_RX_FLOW_CONTROL_ENABLE;
++		} else {
++			printk(", no RX flow control.");
++			mac_ctrl_val &= ~IPG_MC_RX_FLOW_CONTROL_ENABLE;
++		}
++
++		printk("\n");
 +	} else {
-+		DBG("%s: firmware loading success\n", priv->ndev->name);
-+		RET(0);
++		/* Configure IPG for half duplex operation. */
++	        printk(KERN_INFO "%s: setting half duplex, "
++		       "no TX flow control, no RX flow control.\n", dev->name);
++
++		mac_ctrl_val &= ~IPG_MC_DUPLEX_SELECT_FD &
++			~IPG_MC_TX_FLOW_CONTROL_ENABLE &
++			~IPG_MC_RX_FLOW_CONTROL_ENABLE;
 +	}
++	ipg_w32(mac_ctrl_val, MAC_CTRL);
++	return 0;
 +}
 +
-+static void bdx_restore_mac(struct net_device *ndev, struct bdx_priv *priv)
-+{
-+	u32 val;
-+
-+	ENTER;
-+	DBG("mac0=%x mac1=%x mac2=%x\n",
-+	    READ_REG(priv, regUNC_MAC0_A),
-+	    READ_REG(priv, regUNC_MAC1_A), READ_REG(priv, regUNC_MAC2_A));
-+
-+	val = (ndev->dev_addr[0] << 8) | (ndev->dev_addr[1]);
-+	WRITE_REG(priv, regUNC_MAC2_A, val);
-+	val = (ndev->dev_addr[2] << 8) | (ndev->dev_addr[3]);
-+	WRITE_REG(priv, regUNC_MAC1_A, val);
-+	val = (ndev->dev_addr[4] << 8) | (ndev->dev_addr[5]);
-+	WRITE_REG(priv, regUNC_MAC0_A, val);
-+
-+	DBG("mac0=%x mac1=%x mac2=%x\n",
-+	    READ_REG(priv, regUNC_MAC0_A),
-+	    READ_REG(priv, regUNC_MAC1_A), READ_REG(priv, regUNC_MAC2_A));
-+	RET();
-+}
-+
-+/* bdx_hw_start - inits registers and starts HW's Rx and Tx engines
-+ * @priv - NIC private structure
++/* Determine and configure multicast operation and set
++ * receive mode for IPG.
 + */
-+static int bdx_hw_start(struct bdx_priv *priv)
++static void ipg_nic_set_multicast_list(struct net_device *dev)
 +{
-+	int rc = -EIO;
-+	struct net_device *ndev = priv->ndev;
++	void __iomem *ioaddr = ipg_ioaddr(dev);
++	struct dev_mc_list *mc_list_ptr;
++	unsigned int hashindex;
++	u32 hashtable[2];
++	u8 receivemode;
 +
-+	ENTER;
-+	bdx_link_changed(priv);
++	IPG_DEBUG_MSG("_nic_set_multicast_list\n");
 +
-+	/* 10G overall max length (vlan, eth&ip header, ip payload, crc) */
-+	WRITE_REG(priv, regFRM_LENGTH, 0X3FE0);
-+	WRITE_REG(priv, regPAUSE_QUANT, 0x96);
-+	WRITE_REG(priv, regRX_FIFO_SECTION, 0x800010);
-+	WRITE_REG(priv, regTX_FIFO_SECTION, 0xE00010);
-+	WRITE_REG(priv, regRX_FULLNESS, 0);
-+	WRITE_REG(priv, regTX_FULLNESS, 0);
-+	WRITE_REG(priv, regCTRLST,
-+		  regCTRLST_BASE | regCTRLST_RX_ENA | regCTRLST_TX_ENA);
++	receivemode = IPG_RM_RECEIVEUNICAST | IPG_RM_RECEIVEBROADCAST;
 +
-+	WRITE_REG(priv, regVGLB, 0);
-+	WRITE_REG(priv, regMAX_FRAME_A,
-+		  priv->rxf_fifo0.m.pktsz & MAX_FRAME_AB_VAL);
-+
-+	DBG("RDINTCM=%08x\n", priv->rdintcm);	/*NOTE: test script uses this */
-+	WRITE_REG(priv, regRDINTCM0, priv->rdintcm);
-+	WRITE_REG(priv, regRDINTCM2, 0);	/*cpu_to_le32(rcm.val)); */
-+
-+	DBG("TDINTCM=%08x\n", priv->tdintcm);	/*NOTE: test script uses this */
-+	WRITE_REG(priv, regTDINTCM0, priv->tdintcm);	/* old val = 0x300064 */
-+
-+	/* Enable timer interrupt once in 2 secs. */
-+	/*WRITE_REG(priv, regGTMR0, ((GTMR_SEC * 2) & GTMR_DATA)); */
-+	bdx_restore_mac(priv->ndev, priv);
-+
-+	WRITE_REG(priv, regGMAC_RXF_A, GMAC_RX_FILTER_OSEN |
-+		  GMAC_RX_FILTER_AM | GMAC_RX_FILTER_AB);
-+
-+#define BDX_IRQ_TYPE	((priv->nic->irq_type == IRQ_MSI)?0:IRQF_SHARED)
-+	if ((rc = request_irq(priv->pdev->irq, &bdx_isr_napi, BDX_IRQ_TYPE,
-+			 ndev->name, ndev)))
-+		goto err_irq;
-+	bdx_enable_interrupts(priv);
-+
-+	netif_poll_enable(priv->ndev);
-+
-+	RET(0);
-+
-+err_irq:
-+	RET(rc);
-+}
-+
-+static void bdx_hw_stop(struct bdx_priv *priv)
-+{
-+	ENTER;
-+	bdx_disable_interrupts(priv);
-+	free_irq(priv->pdev->irq, priv->ndev);
-+
-+	netif_poll_disable(priv->ndev);
-+	netif_carrier_off(priv->ndev);
-+	netif_stop_queue(priv->ndev);
-+
-+	RET();
-+}
-+
-+static int bdx_hw_reset_direct(void __iomem *regs)
-+{
-+	u32 val, i;
-+	ENTER;
-+
-+	/* reset sequences: read, write 1, read, write 0 */
-+	val = readl(regs + regCLKPLL);
-+	writel((val | CLKPLL_SFTRST) + 0x8, regs + regCLKPLL);
-+	udelay(50);
-+	val = readl(regs + regCLKPLL);
-+	writel(val & ~CLKPLL_SFTRST, regs + regCLKPLL);
-+
-+	/* check that the PLLs are locked and reset ended */
-+	for (i = 0; i < 70; i++, mdelay(10))
-+		if ((readl(regs + regCLKPLL) & CLKPLL_LKD) == CLKPLL_LKD) {
-+			/* do any PCI-E read transaction */
-+			readl(regs + regRXD_CFG0_0);
-+			return 0;
-+		}
-+	ERR("tehuti: HW reset failed\n");
-+	return 1;		/* failure */
-+}
-+
-+static int bdx_hw_reset(struct bdx_priv *priv)
-+{
-+	u32 val, i;
-+	ENTER;
-+
-+	if (priv->port == 0) {
-+		/* reset sequences: read, write 1, read, write 0 */
-+		val = READ_REG(priv, regCLKPLL);
-+		WRITE_REG(priv, regCLKPLL, (val | CLKPLL_SFTRST) + 0x8);
-+		udelay(50);
-+		val = READ_REG(priv, regCLKPLL);
-+		WRITE_REG(priv, regCLKPLL, val & ~CLKPLL_SFTRST);
++	if (dev->flags & IFF_PROMISC) {
++		/* NIC to be configured in promiscuous mode. */
++		receivemode = IPG_RM_RECEIVEALLFRAMES;
++	} else if ((dev->flags & IFF_ALLMULTI) ||
++		   (dev->flags & IFF_MULTICAST &
++		    (dev->mc_count > IPG_MULTICAST_HASHTABLE_SIZE))) {
++		/* NIC to be configured to receive all multicast
++		 * frames. */
++		receivemode |= IPG_RM_RECEIVEMULTICAST;
++	} else if (dev->flags & IFF_MULTICAST & (dev->mc_count > 0)) {
++		/* NIC to be configured to receive selected
++		 * multicast addresses. */
++		receivemode |= IPG_RM_RECEIVEMULTICASTHASH;
 +	}
-+	/* check that the PLLs are locked and reset ended */
-+	for (i = 0; i < 70; i++, mdelay(10))
-+		if ((READ_REG(priv, regCLKPLL) & CLKPLL_LKD) == CLKPLL_LKD) {
-+			/* do any PCI-E read transaction */
-+			READ_REG(priv, regRXD_CFG0_0);
-+			return 0;
-+		}
-+	ERR("tehuti: HW reset failed\n");
-+	return 1;		/* failure */
++
++	/* Calculate the bits to set for the 64 bit, IPG HASHTABLE.
++	 * The IPG applies a cyclic-redundancy-check (the same CRC
++	 * used to calculate the frame data FCS) to the destination
++	 * address all incoming multicast frames whose destination
++	 * address has the multicast bit set. The least significant
++	 * 6 bits of the CRC result are used as an addressing index
++	 * into the hash table. If the value of the bit addressed by
++	 * this index is a 1, the frame is passed to the host system.
++	 */
++
++	/* Clear hashtable. */
++	hashtable[0] = 0x00000000;
++	hashtable[1] = 0x00000000;
++
++	/* Cycle through all multicast addresses to filter. */
++	for (mc_list_ptr = dev->mc_list;
++	     mc_list_ptr != NULL; mc_list_ptr = mc_list_ptr->next) {
++		/* Calculate CRC result for each multicast address. */
++		hashindex = crc32_le(0xffffffff, mc_list_ptr->dmi_addr,
++				     ETH_ALEN);
++
++		/* Use only the least significant 6 bits. */
++		hashindex = hashindex & 0x3F;
++
++		/* Within "hashtable", set bit number "hashindex"
++		 * to a logic 1.
++		 */
++		set_bit(hashindex, (void *)hashtable);
++	}
++
++	/* Write the value of the hashtable, to the 4, 16 bit
++	 * HASHTABLE IPG registers.
++	 */
++	ipg_w32(hashtable[0], HASHTABLE_0);
++	ipg_w32(hashtable[1], HASHTABLE_1);
++
++	ipg_w8(IPG_RM_RSVD_MASK & receivemode, RECEIVE_MODE);
++
++	IPG_DEBUG_MSG("ReceiveMode = %x\n", ipg_r8(RECEIVE_MODE));
 +}
 +
-+static int bdx_sw_reset(struct bdx_priv *priv)
++static int ipg_io_config(struct net_device *dev)
 +{
-+	int i;
++	void __iomem *ioaddr = ipg_ioaddr(dev);
++	u32 origmacctrl;
++	u32 restoremacctrl;
 +
-+	ENTER;
-+	/* 1. load MAC (obsolete) */
-+	/* 2. disable Rx (and Tx) */
-+	WRITE_REG(priv, regGMAC_RXF_A, 0);
-+	mdelay(100);
-+	/* 3. disable port */
-+	WRITE_REG(priv, regDIS_PORT, 1);
-+	/* 4. disable queue */
-+	WRITE_REG(priv, regDIS_QU, 1);
-+	/* 5. wait until hw is disabled */
-+	for (i = 0; i < 50; i++) {
-+		if (READ_REG(priv, regRST_PORT) & 1)
++	IPG_DEBUG_MSG("_io_config\n");
++
++	origmacctrl = ipg_r32(MAC_CTRL);
++
++	restoremacctrl = origmacctrl | IPG_MC_STATISTICS_ENABLE;
++
++	/* Based on compilation option, determine if FCS is to be
++	 * stripped on receive frames by IPG.
++	 */
++	if (!IPG_STRIP_FCS_ON_RX)
++		restoremacctrl |= IPG_MC_RCV_FCS;
++
++	/* Determine if transmitter and/or receiver are
++	 * enabled so we may restore MACCTRL correctly.
++	 */
++	if (origmacctrl & IPG_MC_TX_ENABLED)
++		restoremacctrl |= IPG_MC_TX_ENABLE;
++
++	if (origmacctrl & IPG_MC_RX_ENABLED)
++		restoremacctrl |= IPG_MC_RX_ENABLE;
++
++	/* Transmitter and receiver must be disabled before setting
++	 * IFSSelect.
++	 */
++	ipg_w32((origmacctrl & (IPG_MC_RX_DISABLE | IPG_MC_TX_DISABLE)) &
++		IPG_MC_RSVD_MASK, MAC_CTRL);
++
++	/* Now that transmitter and receiver are disabled, write
++	 * to IFSSelect.
++	 */
++	ipg_w32((origmacctrl & IPG_MC_IFS_96BIT) & IPG_MC_RSVD_MASK, MAC_CTRL);
++
++	/* Set RECEIVEMODE register. */
++	ipg_nic_set_multicast_list(dev);
++
++	ipg_w16(IPG_MAX_RXFRAME_SIZE, MAX_FRAME_SIZE);
++
++	ipg_w8(IPG_RXDMAPOLLPERIOD_VALUE,   RX_DMA_POLL_PERIOD);
++	ipg_w8(IPG_RXDMAURGENTTHRESH_VALUE, RX_DMA_URGENT_THRESH);
++	ipg_w8(IPG_RXDMABURSTTHRESH_VALUE,  RX_DMA_BURST_THRESH);
++	ipg_w8(IPG_TXDMAPOLLPERIOD_VALUE,   TX_DMA_POLL_PERIOD);
++	ipg_w8(IPG_TXDMAURGENTTHRESH_VALUE, TX_DMA_URGENT_THRESH);
++	ipg_w8(IPG_TXDMABURSTTHRESH_VALUE,  TX_DMA_BURST_THRESH);
++	ipg_w16((IPG_IE_HOST_ERROR | IPG_IE_TX_DMA_COMPLETE |
++		 IPG_IE_TX_COMPLETE | IPG_IE_INT_REQUESTED |
++		 IPG_IE_UPDATE_STATS | IPG_IE_LINK_EVENT |
++		 IPG_IE_RX_DMA_COMPLETE | IPG_IE_RX_DMA_PRIORITY), INT_ENABLE);
++	ipg_w16(IPG_FLOWONTHRESH_VALUE,  FLOW_ON_THRESH);
++	ipg_w16(IPG_FLOWOFFTHRESH_VALUE, FLOW_OFF_THRESH);
++
++	/* IPG multi-frag frame bug workaround.
++	 * Per silicon revision B3 eratta.
++	 */
++	ipg_w16(ipg_r16(DEBUG_CTRL) | 0x0200, DEBUG_CTRL);
++
++	/* IPG TX poll now bug workaround.
++	 * Per silicon revision B3 eratta.
++	 */
++	ipg_w16(ipg_r16(DEBUG_CTRL) | 0x0010, DEBUG_CTRL);
++
++	/* IPG RX poll now bug workaround.
++	 * Per silicon revision B3 eratta.
++	 */
++	ipg_w16(ipg_r16(DEBUG_CTRL) | 0x0020, DEBUG_CTRL);
++
++	/* Now restore MACCTRL to original setting. */
++	ipg_w32(IPG_MC_RSVD_MASK & restoremacctrl, MAC_CTRL);
++
++	/* Disable unused RMON statistics. */
++	ipg_w32(IPG_RZ_ALL, RMON_STATISTICS_MASK);
++
++	/* Disable unused MIB statistics. */
++	ipg_w32(IPG_SM_MACCONTROLFRAMESXMTD | IPG_SM_MACCONTROLFRAMESRCVD |
++		IPG_SM_BCSTOCTETXMTOK_BCSTFRAMESXMTDOK | IPG_SM_TXJUMBOFRAMES |
++		IPG_SM_MCSTOCTETXMTOK_MCSTFRAMESXMTDOK | IPG_SM_RXJUMBOFRAMES |
++		IPG_SM_BCSTOCTETRCVDOK_BCSTFRAMESRCVDOK |
++		IPG_SM_UDPCHECKSUMERRORS | IPG_SM_TCPCHECKSUMERRORS |
++		IPG_SM_IPCHECKSUMERRORS, STATISTICS_MASK);
++
++	return 0;
++}
++
++/*
++ * Create a receive buffer within system memory and update
++ * NIC private structure appropriately.
++ */
++static int ipg_get_rxbuff(struct net_device *dev, int entry)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	struct ipg_rx *rxfd = sp->rxd + entry;
++	struct sk_buff *skb;
++	u64 rxfragsize;
++
++	IPG_DEBUG_MSG("_get_rxbuff\n");
++
++	skb = netdev_alloc_skb(dev, IPG_RXSUPPORT_SIZE + NET_IP_ALIGN);
++	if (!skb) {
++		sp->RxBuff[entry] = NULL;
++		return -ENOMEM;
++	}
++
++	/* Adjust the data start location within the buffer to
++	 * align IP address field to a 16 byte boundary.
++	 */
++	skb_reserve(skb, NET_IP_ALIGN);
++
++	/* Associate the receive buffer with the IPG NIC. */
++	skb->dev = dev;
++
++	/* Save the address of the sk_buff structure. */
++	sp->RxBuff[entry] = skb;
++
++	rxfd->frag_info = cpu_to_le64(pci_map_single(sp->pdev, skb->data,
++		sp->rx_buf_sz, PCI_DMA_FROMDEVICE));
++
++	/* Set the RFD fragment length. */
++	rxfragsize = IPG_RXFRAG_SIZE;
++	rxfd->frag_info |= cpu_to_le64((rxfragsize << 48) & IPG_RFI_FRAGLEN);
++
++	return 0;
++}
++
++static int init_rfdlist(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++
++	IPG_DEBUG_MSG("_init_rfdlist\n");
++
++	for (i = 0; i < IPG_RFDLIST_LENGTH; i++) {
++		struct ipg_rx *rxfd = sp->rxd + i;
++
++		if (sp->RxBuff[i]) {
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++				sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++			IPG_DEV_KFREE_SKB(sp->RxBuff[i]);
++			sp->RxBuff[i] = NULL;
++		}
++
++		/* Clear out the RFS field. */
++		rxfd->rfs = 0x0000000000000000;
++
++		if (ipg_get_rxbuff(dev, i) < 0) {
++			/*
++			 * A receive buffer was not ready, break the
++			 * RFD list here.
++			 */
++			IPG_DEBUG_MSG("Cannot allocate Rx buffer.\n");
++
++			/* Just in case we cannot allocate a single RFD.
++			 * Should not occur.
++			 */
++			if (i == 0) {
++				printk(KERN_ERR "%s: No memory available"
++					" for RFD list.\n", dev->name);
++				return -ENOMEM;
++			}
++		}
++
++		rxfd->next_desc = cpu_to_le64(sp->rxd_map +
++			sizeof(struct ipg_rx)*(i + 1));
++	}
++	sp->rxd[i - 1].next_desc = cpu_to_le64(sp->rxd_map);
++
++	sp->rx_current = 0;
++	sp->rx_dirty = 0;
++
++	/* Write the location of the RFDList to the IPG. */
++	ipg_w32((u32) sp->rxd_map, RFD_LIST_PTR_0);
++	ipg_w32(0x00000000, RFD_LIST_PTR_1);
++
++	return 0;
++}
++
++static void init_tfdlist(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++
++	IPG_DEBUG_MSG("_init_tfdlist\n");
++
++	for (i = 0; i < IPG_TFDLIST_LENGTH; i++) {
++		struct ipg_tx *txfd = sp->txd + i;
++
++		txfd->tfc = cpu_to_le64(IPG_TFC_TFDDONE);
++
++		if (sp->TxBuff[i]) {
++			IPG_DEV_KFREE_SKB(sp->TxBuff[i]);
++			sp->TxBuff[i] = NULL;
++		}
++
++		txfd->next_desc = cpu_to_le64(sp->txd_map +
++			sizeof(struct ipg_tx)*(i + 1));
++	}
++	sp->txd[i - 1].next_desc = cpu_to_le64(sp->txd_map);
++
++	sp->tx_current = 0;
++	sp->tx_dirty = 0;
++
++	/* Write the location of the TFDList to the IPG. */
++	IPG_DDEBUG_MSG("Starting TFDListPtr = %8.8x\n",
++		       (u32) sp->txd_map);
++	ipg_w32((u32) sp->txd_map, TFD_LIST_PTR_0);
++	ipg_w32(0x00000000, TFD_LIST_PTR_1);
++
++	sp->ResetCurrentTFD = 1;
++}
++
++/*
++ * Free all transmit buffers which have already been transfered
++ * via DMA to the IPG.
++ */
++static void ipg_nic_txfree(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	const unsigned int curr = ipg_r32(TFD_LIST_PTR_0) -
++		(sp->txd_map / sizeof(struct ipg_tx)) - 1;
++	unsigned int released, pending;
++
++	IPG_DEBUG_MSG("_nic_txfree\n");
++
++	pending = sp->tx_current - sp->tx_dirty;
++
++	for (released = 0; released < pending; released++) {
++		unsigned int dirty = sp->tx_dirty % IPG_TFDLIST_LENGTH;
++		struct sk_buff *skb = sp->TxBuff[dirty];
++		struct ipg_tx *txfd = sp->txd + dirty;
++
++		IPG_DEBUG_MSG("TFC = %16.16lx\n", (unsigned long) txfd->tfc);
++
++		/* Look at each TFD's TFC field beginning
++		 * at the last freed TFD up to the current TFD.
++		 * If the TFDDone bit is set, free the associated
++		 * buffer.
++		 */
++		if (dirty == curr)
 +			break;
-+		mdelay(10);
++
++		/* Setup TFDDONE for compatible issue. */
++		txfd->tfc |= cpu_to_le64(IPG_TFC_TFDDONE);
++
++		/* Free the transmit buffer. */
++		if (skb) {
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(txfd->frag_info & ~IPG_TFI_FRAGLEN),
++				skb->len, PCI_DMA_TODEVICE);
++
++			IPG_DEV_KFREE_SKB(skb);
++
++			sp->TxBuff[dirty] = NULL;
++		}
 +	}
-+	if (i == 50)
-+		ERR("%s: SW reset timeout. continuing anyway\n",
-+		    priv->ndev->name);
 +
-+	/* 6. disable intrs */
-+	WRITE_REG(priv, regRDINTCM0, 0);
-+	WRITE_REG(priv, regTDINTCM0, 0);
-+	WRITE_REG(priv, regIMR, 0);
-+	READ_REG(priv, regISR);
++	sp->tx_dirty += released;
 +
-+	/* 7. reset queue */
-+	WRITE_REG(priv, regRST_QU, 1);
-+	/* 8. reset port */
-+	WRITE_REG(priv, regRST_PORT, 1);
-+	/* 9. zero all read and write pointers */
-+	for (i = regTXD_WPTR_0; i <= regTXF_RPTR_3; i += 0x10)
-+		DBG("%x = %x\n", i, READ_REG(priv, i) & TXF_WPTR_WR_PTR);
-+	for (i = regTXD_WPTR_0; i <= regTXF_RPTR_3; i += 0x10)
-+		WRITE_REG(priv, i, 0);
-+	/* 10. unseet port disable */
-+	WRITE_REG(priv, regDIS_PORT, 0);
-+	/* 11. unset queue disable */
-+	WRITE_REG(priv, regDIS_QU, 0);
-+	/* 12. unset queue reset */
-+	WRITE_REG(priv, regRST_QU, 0);
-+	/* 13. unset port reset */
-+	WRITE_REG(priv, regRST_PORT, 0);
-+	/* 14. enable Rx */
-+	/* skiped. will be done later */
-+	/* 15. save MAC (obsolete) */
-+	for (i = regTXD_WPTR_0; i <= regTXF_RPTR_3; i += 0x10)
-+		DBG("%x = %x\n", i, READ_REG(priv, i) & TXF_WPTR_WR_PTR);
-+
-+	RET(0);
++	if (netif_queue_stopped(dev) &&
++	    (sp->tx_current != (sp->tx_dirty + IPG_TFDLIST_LENGTH))) {
++		netif_wake_queue(dev);
++	}
 +}
 +
-+/* bdx_reset - performs right type of reset depending on hw type */
-+static int bdx_reset(struct bdx_priv *priv)
++static void ipg_tx_timeout(struct net_device *dev)
 +{
-+	ENTER;
-+	RET((priv->pdev->device == 0x3009)
-+	    ? bdx_hw_reset(priv)
-+	    : bdx_sw_reset(priv));
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++
++	ipg_reset(dev, IPG_AC_TX_RESET | IPG_AC_DMA | IPG_AC_NETWORK |
++		  IPG_AC_FIFO);
++
++	spin_lock_irq(&sp->lock);
++
++	/* Re-configure after DMA reset. */
++	if (ipg_io_config(dev) < 0) {
++		printk(KERN_INFO "%s: Error during re-configuration.\n",
++		       dev->name);
++	}
++
++	init_tfdlist(dev);
++
++	spin_unlock_irq(&sp->lock);
++
++	ipg_w32((ipg_r32(MAC_CTRL) | IPG_MC_TX_ENABLE) & IPG_MC_RSVD_MASK,
++		MAC_CTRL);
 +}
 +
-+/**
-+ * bdx_close - Disables a network interface
-+ * @netdev: network interface device structure
-+ *
-+ * Returns 0, this is not allowed to fail
-+ *
-+ * The close entry point is called when an interface is de-activated
-+ * by the OS.  The hardware is still under the drivers control, but
-+ * needs to be disabled.  A global MAC reset is issued to stop the
-+ * hardware, and all transmit and receive resources are freed.
-+ **/
-+static int bdx_close(struct net_device *ndev)
++/*
++ * For TxComplete interrupts, free all transmit
++ * buffers which have already been transfered via DMA
++ * to the IPG.
++ */
++static void ipg_nic_txcleanup(struct net_device *dev)
 +{
-+	struct bdx_priv *priv = NULL;
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
 +
-+	ENTER;
-+	priv = ndev->priv;
-+	bdx_reset(priv);
-+	bdx_hw_stop(priv);
-+	bdx_rx_free(priv);
-+	bdx_tx_free(priv);
-+	RET(0);
++	IPG_DEBUG_MSG("_nic_txcleanup\n");
++
++	for (i = 0; i < IPG_TFDLIST_LENGTH; i++) {
++		/* Reading the TXSTATUS register clears the
++		 * TX_COMPLETE interrupt.
++		 */
++		u32 txstatusdword = ipg_r32(TX_STATUS);
++
++		IPG_DEBUG_MSG("TxStatus = %8.8x\n", txstatusdword);
++
++		/* Check for Transmit errors. Error bits only valid if
++		 * TX_COMPLETE bit in the TXSTATUS register is a 1.
++		 */
++		if (!(txstatusdword & IPG_TS_TX_COMPLETE))
++			break;
++
++		/* If in 10Mbps mode, indicate transmit is ready. */
++		if (sp->tenmbpsmode) {
++			netif_wake_queue(dev);
++		}
++
++		/* Transmit error, increment stat counters. */
++		if (txstatusdword & IPG_TS_TX_ERROR) {
++			IPG_DEBUG_MSG("Transmit error.\n");
++			sp->stats.tx_errors++;
++		}
++
++		/* Late collision, re-enable transmitter. */
++		if (txstatusdword & IPG_TS_LATE_COLLISION) {
++			IPG_DEBUG_MSG("Late collision on transmit.\n");
++			ipg_w32((ipg_r32(MAC_CTRL) | IPG_MC_TX_ENABLE) &
++				IPG_MC_RSVD_MASK, MAC_CTRL);
++		}
++
++		/* Maximum collisions, re-enable transmitter. */
++		if (txstatusdword & IPG_TS_TX_MAX_COLL) {
++			IPG_DEBUG_MSG("Maximum collisions on transmit.\n");
++			ipg_w32((ipg_r32(MAC_CTRL) | IPG_MC_TX_ENABLE) &
++				IPG_MC_RSVD_MASK, MAC_CTRL);
++		}
++
++		/* Transmit underrun, reset and re-enable
++		 * transmitter.
++		 */
++		if (txstatusdword & IPG_TS_TX_UNDERRUN) {
++			IPG_DEBUG_MSG("Transmitter underrun.\n");
++			sp->stats.tx_fifo_errors++;
++			ipg_reset(dev, IPG_AC_TX_RESET | IPG_AC_DMA |
++				  IPG_AC_NETWORK | IPG_AC_FIFO);
++
++			/* Re-configure after DMA reset. */
++			if (ipg_io_config(dev) < 0) {
++				printk(KERN_INFO
++				       "%s: Error during re-configuration.\n",
++				       dev->name);
++			}
++			init_tfdlist(dev);
++
++			ipg_w32((ipg_r32(MAC_CTRL) | IPG_MC_TX_ENABLE) &
++				IPG_MC_RSVD_MASK, MAC_CTRL);
++		}
++	}
++
++	ipg_nic_txfree(dev);
 +}
 +
-+/**
-+ * bdx_open - Called when a network interface is made active
-+ * @netdev: network interface device structure
-+ *
-+ * Returns 0 on success, negative value on failure
-+ *
-+ * The open entry point is called when a network interface is made
-+ * active by the system (IFF_UP).  At this point all resources needed
-+ * for transmit and receive operations are allocated, the interrupt
-+ * handler is registered with the OS, the watchdog timer is started,
-+ * and the stack is notified that the interface is ready.
-+ **/
-+static int bdx_open(struct net_device *ndev)
++/* Provides statistical information about the IPG NIC. */
++struct net_device_stats *ipg_nic_get_stats(struct net_device *dev)
 +{
-+	struct bdx_priv *priv;
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	u16 temp1;
++	u16 temp2;
++
++	IPG_DEBUG_MSG("_nic_get_stats\n");
++
++	/* Check to see if the NIC has been initialized via nic_open,
++	 * before trying to read statistic registers.
++	 */
++	if (!test_bit(__LINK_STATE_START, &dev->state))
++		return &sp->stats;
++
++	sp->stats.rx_packets += ipg_r32(IPG_FRAMESRCVDOK);
++	sp->stats.tx_packets += ipg_r32(IPG_FRAMESXMTDOK);
++	sp->stats.rx_bytes += ipg_r32(IPG_OCTETRCVOK);
++	sp->stats.tx_bytes += ipg_r32(IPG_OCTETXMTOK);
++	temp1 = ipg_r16(IPG_FRAMESLOSTRXERRORS);
++	sp->stats.rx_errors += temp1;
++	sp->stats.rx_missed_errors += temp1;
++	temp1 = ipg_r32(IPG_SINGLECOLFRAMES) + ipg_r32(IPG_MULTICOLFRAMES) +
++		ipg_r32(IPG_LATECOLLISIONS);
++	temp2 = ipg_r16(IPG_CARRIERSENSEERRORS);
++	sp->stats.collisions += temp1;
++	sp->stats.tx_dropped += ipg_r16(IPG_FRAMESABORTXSCOLLS);
++	sp->stats.tx_errors += ipg_r16(IPG_FRAMESWEXDEFERRAL) +
++		ipg_r32(IPG_FRAMESWDEFERREDXMT) + temp1 + temp2;
++	sp->stats.multicast += ipg_r32(IPG_MCSTOCTETRCVDOK);
++
++	/* detailed tx_errors */
++	sp->stats.tx_carrier_errors += temp2;
++
++	/* detailed rx_errors */
++	sp->stats.rx_length_errors += ipg_r16(IPG_INRANGELENGTHERRORS) +
++		ipg_r16(IPG_FRAMETOOLONGERRRORS);
++	sp->stats.rx_crc_errors += ipg_r16(IPG_FRAMECHECKSEQERRORS);
++
++	/* Unutilized IPG statistic registers. */
++	ipg_r32(IPG_MCSTFRAMESRCVDOK);
++
++	return &sp->stats;
++}
++
++/* Restore used receive buffers. */
++static int ipg_nic_rxrestore(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	const unsigned int curr = sp->rx_current;
++	unsigned int dirty = sp->rx_dirty;
++
++	IPG_DEBUG_MSG("_nic_rxrestore\n");
++
++	for (dirty = sp->rx_dirty; curr - dirty > 0; dirty++) {
++		unsigned int entry = dirty % IPG_RFDLIST_LENGTH;
++
++		/* rx_copybreak may poke hole here and there. */
++		if (sp->RxBuff[entry])
++			continue;
++
++		/* Generate a new receive buffer to replace the
++		 * current buffer (which will be released by the
++		 * Linux system).
++		 */
++		if (ipg_get_rxbuff(dev, entry) < 0) {
++			IPG_DEBUG_MSG("Cannot allocate new Rx buffer.\n");
++
++			break;
++		}
++
++		/* Reset the RFS field. */
++		sp->rxd[entry].rfs = 0x0000000000000000;
++	}
++	sp->rx_dirty = dirty;
++
++	return 0;
++}
++
++#ifdef JUMBO_FRAME
++
++/* use jumboindex and jumbosize to control jumbo frame status
++   initial status is jumboindex=-1 and jumbosize=0
++   1. jumboindex = -1 and jumbosize=0 : previous jumbo frame has been done.
++   2. jumboindex != -1 and jumbosize != 0 : jumbo frame is not over size and receiving
++   3. jumboindex = -1 and jumbosize != 0 : jumbo frame is over size, already dump
++                previous receiving and need to continue dumping the current one
++*/
++enum {
++	NormalPacket,
++	ErrorPacket
++};
++
++enum {
++	Frame_NoStart_NoEnd	= 0,
++	Frame_WithStart		= 1,
++	Frame_WithEnd		= 10,
++	Frame_WithStart_WithEnd = 11
++};
++
++inline void ipg_nic_rx_free_skb(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	unsigned int entry = sp->rx_current % IPG_RFDLIST_LENGTH;
++
++	if (sp->RxBuff[entry]) {
++		struct ipg_rx *rxfd = sp->rxd + entry;
++
++		pci_unmap_single(sp->pdev,
++			le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++			sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++		IPG_DEV_KFREE_SKB(sp->RxBuff[entry]);
++		sp->RxBuff[entry] = NULL;
++	}
++}
++
++inline int ipg_nic_rx_check_frame_type(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	struct ipg_rx *rxfd = sp->rxd + (sp->rx_current % IPG_RFDLIST_LENGTH);
++	int type = Frame_NoStart_NoEnd;
++
++	if (le64_to_cpu(rxfd->rfs) & IPG_RFS_FRAMESTART)
++		type += Frame_WithStart;
++	if (le64_to_cpu(rxfd->rfs) & IPG_RFS_FRAMEEND)
++		type += Frame_WithEnd;
++	return type;
++}
++
++inline int ipg_nic_rx_check_error(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	unsigned int entry = sp->rx_current % IPG_RFDLIST_LENGTH;
++	struct ipg_rx *rxfd = sp->rxd + entry;
++
++	if (IPG_DROP_ON_RX_ETH_ERRORS && (le64_to_cpu(rxfd->rfs) &
++	     (IPG_RFS_RXFIFOOVERRUN | IPG_RFS_RXRUNTFRAME |
++	      IPG_RFS_RXALIGNMENTERROR | IPG_RFS_RXFCSERROR |
++	      IPG_RFS_RXOVERSIZEDFRAME | IPG_RFS_RXLENGTHERROR))) {
++		IPG_DEBUG_MSG("Rx error, RFS = %16.16lx\n",
++			      (unsigned long) rxfd->rfs);
++
++		/* Increment general receive error statistic. */
++		sp->stats.rx_errors++;
++
++		/* Increment detailed receive error statistics. */
++		if (le64_to_cpu(rxfd->rfs) & IPG_RFS_RXFIFOOVERRUN) {
++			IPG_DEBUG_MSG("RX FIFO overrun occured.\n");
++
++			sp->stats.rx_fifo_errors++;
++		}
++
++		if (le64_to_cpu(rxfd->rfs) & IPG_RFS_RXRUNTFRAME) {
++			IPG_DEBUG_MSG("RX runt occured.\n");
++			sp->stats.rx_length_errors++;
++		}
++
++		/* Do nothing for IPG_RFS_RXOVERSIZEDFRAME,
++		 * error count handled by a IPG statistic register.
++		 */
++
++		if (le64_to_cpu(rxfd->rfs) & IPG_RFS_RXALIGNMENTERROR) {
++			IPG_DEBUG_MSG("RX alignment error occured.\n");
++			sp->stats.rx_frame_errors++;
++		}
++
++		/* Do nothing for IPG_RFS_RXFCSERROR, error count
++		 * handled by a IPG statistic register.
++		 */
++
++		/* Free the memory associated with the RX
++		 * buffer since it is erroneous and we will
++		 * not pass it to higher layer processes.
++		 */
++		if (sp->RxBuff[entry]) {
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++				sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++
++			IPG_DEV_KFREE_SKB(sp->RxBuff[entry]);
++			sp->RxBuff[entry] = NULL;
++		}
++		return ErrorPacket;
++	}
++	return NormalPacket;
++}
++
++static void ipg_nic_rx_with_start_and_end(struct net_device *dev,
++					  struct ipg_nic_private *sp,
++					  struct ipg_rx *rxfd, unsigned entry)
++{
++	struct SJumbo *jumbo = &sp->Jumbo;
++	struct sk_buff *skb;
++	int framelen;
++
++	if (jumbo->FoundStart) {
++		IPG_DEV_KFREE_SKB(jumbo->skb);
++		jumbo->FoundStart = 0;
++		jumbo->CurrentSize = 0;
++		jumbo->skb = NULL;
++	}
++
++	// 1: found error, 0 no error
++	if (ipg_nic_rx_check_error(dev) != NormalPacket)
++		return;
++
++	skb = sp->RxBuff[entry];
++	if (!skb)
++		return;
++
++	// accept this frame and send to upper layer
++	framelen = le64_to_cpu(rxfd->rfs) & IPG_RFS_RXFRAMELEN;
++	if (framelen > IPG_RXFRAG_SIZE)
++		framelen = IPG_RXFRAG_SIZE;
++
++	skb_put(skb, framelen);
++	skb->protocol = eth_type_trans(skb, dev);
++	skb->ip_summed = CHECKSUM_NONE;
++	netif_rx(skb);
++	dev->last_rx = jiffies;
++	sp->RxBuff[entry] = NULL;
++}
++
++static void ipg_nic_rx_with_start(struct net_device *dev,
++				  struct ipg_nic_private *sp,
++				  struct ipg_rx *rxfd, unsigned entry)
++{
++	struct SJumbo *jumbo = &sp->Jumbo;
++	struct pci_dev *pdev = sp->pdev;
++	struct sk_buff *skb;
++
++	// 1: found error, 0 no error
++	if (ipg_nic_rx_check_error(dev) != NormalPacket)
++		return;
++
++	// accept this frame and send to upper layer
++	skb = sp->RxBuff[entry];
++	if (!skb)
++		return;
++
++	if (jumbo->FoundStart)
++		IPG_DEV_KFREE_SKB(jumbo->skb);
++
++	pci_unmap_single(pdev, le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++			 sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++
++	skb_put(skb, IPG_RXFRAG_SIZE);
++
++	jumbo->FoundStart = 1;
++	jumbo->CurrentSize = IPG_RXFRAG_SIZE;
++	jumbo->skb = skb;
++
++	sp->RxBuff[entry] = NULL;
++	dev->last_rx = jiffies;
++}
++
++static void ipg_nic_rx_with_end(struct net_device *dev,
++				struct ipg_nic_private *sp,
++				struct ipg_rx *rxfd, unsigned entry)
++{
++	struct SJumbo *jumbo = &sp->Jumbo;
++
++	//1: found error, 0 no error
++	if (ipg_nic_rx_check_error(dev) == NormalPacket) {
++		struct sk_buff *skb = sp->RxBuff[entry];
++
++		if (!skb)
++			return;
++
++		if (jumbo->FoundStart) {
++			int framelen, endframelen;
++
++			framelen = le64_to_cpu(rxfd->rfs) & IPG_RFS_RXFRAMELEN;
++
++			endframeLen = framelen - jumbo->CurrentSize;
++			/*
++			if (framelen > IPG_RXFRAG_SIZE)
++				framelen=IPG_RXFRAG_SIZE;
++			 */
++			if (framelen > IPG_RXSUPPORT_SIZE)
++				IPG_DEV_KFREE_SKB(jumbo->skb);
++			else {
++				memcpy(skb_put(jumbo->skb, endframeLen),
++				       skb->data, endframeLen);
++
++				jumbo->skb->protocol =
++				    eth_type_trans(jumbo->skb, dev);
++
++				jumbo->skb->ip_summed = CHECKSUM_NONE;
++				netif_rx(jumbo->skb);
++			}
++		}
++
++		dev->last_rx = jiffies;
++		jumbo->FoundStart = 0;
++		jumbo->CurrentSize = 0;
++		jumbo->skb = NULL;
++
++		ipg_nic_rx_free_skb(dev);
++	} else {
++		IPG_DEV_KFREE_SKB(jumbo->skb);
++		jumbo->FoundStart = 0;
++		jumbo->CurrentSize = 0;
++		jumbo->skb = NULL;
++	}
++}
++
++static void ipg_nic_rx_no_start_no_end(struct net_device *dev,
++				       struct ipg_nic_private *sp,
++				       struct ipg_rx *rxfd, unsigned entry)
++{
++	struct SJumbo *jumbo = &sp->Jumbo;
++
++	//1: found error, 0 no error
++	if (ipg_nic_rx_check_error(dev) == NormalPacket) {
++		struct sk_buff *skb = sp->RxBuff[entry];
++
++		if (skb) {
++			if (jumbo->FoundStart) {
++				jumbo->CurrentSize += IPG_RXFRAG_SIZE;
++				if (jumbo->CurrentSize <= IPG_RXSUPPORT_SIZE) {
++					memcpy(skb_put(jumbo->skb,
++						       IPG_RXFRAG_SIZE),
++					       skb->data, IPG_RXFRAG_SIZE);
++				}
++			}
++			dev->last_rx = jiffies;
++			ipg_nic_rx_free_skb(dev);
++		}
++	} else {
++		IPG_DEV_KFREE_SKB(jumbo->skb);
++		jumbo->FoundStart = 0;
++		jumbo->CurrentSize = 0;
++		jumbo->skb = NULL;
++	}
++}
++
++static int ipg_nic_rx(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	unsigned int curr = sp->rx_current;
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++
++	IPG_DEBUG_MSG("_nic_rx\n");
++
++	for (i = 0; i < IPG_MAXRFDPROCESS_COUNT; i++, curr++) {
++		unsigned int entry = curr % IPG_RFDLIST_LENGTH;
++		struct ipg_rx *rxfd = sp->rxd + entry;
++
++		if (!(rxfd->rfs & le64_to_cpu(IPG_RFS_RFDDONE)))
++			break;
++
++		switch (ipg_nic_rx_check_frame_type(dev)) {
++		case Frame_WithStart_WithEnd:
++			ipg_nic_rx_with_start_and_end(dev, tp, rxfd, entry);
++			break;
++		case Frame_WithStart:
++			ipg_nic_rx_with_start(dev, tp, rxfd, entry);
++			break;
++		case Frame_WithEnd:
++			ipg_nic_rx_with_end(dev, tp, rxfd, entry);
++			break;
++		case Frame_NoStart_NoEnd:
++			ipg_nic_rx_no_start_no_end(dev, tp, rxfd, entry);
++			break;
++		}
++	}
++
++	sp->rx_current = curr;
++
++	if (i == IPG_MAXRFDPROCESS_COUNT) {
++		/* There are more RFDs to process, however the
++		 * allocated amount of RFD processing time has
++		 * expired. Assert Interrupt Requested to make
++		 * sure we come back to process the remaining RFDs.
++		 */
++		ipg_w32(ipg_r32(ASIC_CTRL) | IPG_AC_INT_REQUEST, ASIC_CTRL);
++	}
++
++	ipg_nic_rxrestore(dev);
++
++	return 0;
++}
++
++#else
++static int ipg_nic_rx(struct net_device *dev)
++{
++	/* Transfer received Ethernet frames to higher network layers. */
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	unsigned int curr = sp->rx_current;
++	void __iomem *ioaddr = sp->ioaddr;
++	struct ipg_rx *rxfd;
++	unsigned int i;
++
++	IPG_DEBUG_MSG("_nic_rx\n");
++
++#define __RFS_MASK \
++	cpu_to_le64(IPG_RFS_RFDDONE | IPG_RFS_FRAMESTART | IPG_RFS_FRAMEEND)
++
++	for (i = 0; i < IPG_MAXRFDPROCESS_COUNT; i++, curr++) {
++		unsigned int entry = curr % IPG_RFDLIST_LENGTH;
++		struct sk_buff *skb = sp->RxBuff[entry];
++		unsigned int framelen;
++
++		rxfd = sp->rxd + entry;
++
++		if (((rxfd->rfs & __RFS_MASK) != __RFS_MASK) || !skb)
++			break;
++
++		/* Get received frame length. */
++		framelen = le64_to_cpu(rxfd->rfs) & IPG_RFS_RXFRAMELEN;
++
++		/* Check for jumbo frame arrival with too small
++		 * RXFRAG_SIZE.
++		 */
++		if (framelen > IPG_RXFRAG_SIZE) {
++			IPG_DEBUG_MSG
++			    ("RFS FrameLen > allocated fragment size.\n");
++
++			framelen = IPG_RXFRAG_SIZE;
++		}
++
++		if ((IPG_DROP_ON_RX_ETH_ERRORS && (le64_to_cpu(rxfd->rfs &
++		       (IPG_RFS_RXFIFOOVERRUN | IPG_RFS_RXRUNTFRAME |
++			IPG_RFS_RXALIGNMENTERROR | IPG_RFS_RXFCSERROR |
++			IPG_RFS_RXOVERSIZEDFRAME | IPG_RFS_RXLENGTHERROR))))) {
++
++			IPG_DEBUG_MSG("Rx error, RFS = %16.16lx\n",
++				      (unsigned long int) rxfd->rfs);
++
++			/* Increment general receive error statistic. */
++			sp->stats.rx_errors++;
++
++			/* Increment detailed receive error statistics. */
++			if (le64_to_cpu(rxfd->rfs & IPG_RFS_RXFIFOOVERRUN)) {
++				IPG_DEBUG_MSG("RX FIFO overrun occured.\n");
++				sp->stats.rx_fifo_errors++;
++			}
++
++			if (le64_to_cpu(rxfd->rfs & IPG_RFS_RXRUNTFRAME)) {
++				IPG_DEBUG_MSG("RX runt occured.\n");
++				sp->stats.rx_length_errors++;
++			}
++
++			if (le64_to_cpu(rxfd->rfs & IPG_RFS_RXOVERSIZEDFRAME)) ;
++			/* Do nothing, error count handled by a IPG
++			 * statistic register.
++			 */
++
++			if (le64_to_cpu(rxfd->rfs & IPG_RFS_RXALIGNMENTERROR)) {
++				IPG_DEBUG_MSG("RX alignment error occured.\n");
++				sp->stats.rx_frame_errors++;
++			}
++
++			if (le64_to_cpu(rxfd->rfs & IPG_RFS_RXFCSERROR)) ;
++			/* Do nothing, error count handled by a IPG
++			 * statistic register.
++			 */
++
++			/* Free the memory associated with the RX
++			 * buffer since it is erroneous and we will
++			 * not pass it to higher layer processes.
++			 */
++			if (skb) {
++				u64 info = rxfd->frag_info;
++
++				pci_unmap_single(sp->pdev,
++					le64_to_cpu(info & ~IPG_RFI_FRAGLEN),
++					sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++
++				IPG_DEV_KFREE_SKB(skb);
++			}
++		} else {
++
++			/* Adjust the new buffer length to accomodate the size
++			 * of the received frame.
++			 */
++			skb_put(skb, framelen);
++
++			/* Set the buffer's protocol field to Ethernet. */
++			skb->protocol = eth_type_trans(skb, dev);
++
++			/* If the frame contains an IP/TCP/UDP frame,
++			 * determine if upper layer must check IP/TCP/UDP
++			 * checksums.
++			 *
++			 * NOTE: DO NOT RELY ON THE TCP/UDP CHECKSUM
++			 *       VERIFICATION FOR SILICON REVISIONS B3
++			 *       AND EARLIER!
++			 *
++			 if ((le64_to_cpu(rxfd->rfs &
++			     (IPG_RFS_TCPDETECTED | IPG_RFS_UDPDETECTED |
++			      IPG_RFS_IPDETECTED))) &&
++			    !(le64_to_cpu(rxfd->rfs &
++			      (IPG_RFS_TCPERROR | IPG_RFS_UDPERROR |
++			       IPG_RFS_IPERROR)))) {
++				 * Indicate IP checksums were performed
++				 * by the IPG.
++				 *
++			 	skb->ip_summed = CHECKSUM_UNNECESSARY;
++			 } else
++			 */
++			 {
++				/* The IPG encountered an error with (or
++				 * there were no) IP/TCP/UDP checksums.
++				 * This may or may not indicate an invalid
++				 * IP/TCP/UDP frame was received. Let the
++				 * upper layer decide.
++				 */
++				skb->ip_summed = CHECKSUM_NONE;
++			}
++
++			/* Hand off frame for higher layer processing.
++			 * The function netif_rx() releases the sk_buff
++			 * when processing completes.
++			 */
++			netif_rx(skb);
++
++			/* Record frame receive time (jiffies = Linux
++			 * kernel current time stamp).
++			 */
++			dev->last_rx = jiffies;
++		}
++
++		/* Assure RX buffer is not reused by IPG. */
++		sp->RxBuff[entry] = NULL;
++	}
++
++	/*
++	 * If there are more RFDs to proces and the allocated amount of RFD
++	 * processing time has expired, assert Interrupt Requested to make
++	 * sure we come back to process the remaining RFDs.
++	 */
++	if (i == IPG_MAXRFDPROCESS_COUNT)
++		ipg_w32(ipg_r32(ASIC_CTRL) | IPG_AC_INT_REQUEST, ASIC_CTRL);
++
++#ifdef IPG_DEBUG
++	/* Check if the RFD list contained no receive frame data. */
++	if (!i)
++		sp->EmptyRFDListCount++;
++#endif
++	while ((le64_to_cpu(rxfd->rfs & IPG_RFS_RFDDONE)) &&
++	       !((le64_to_cpu(rxfd->rfs & IPG_RFS_FRAMESTART)) &&
++		 (le64_to_cpu(rxfd->rfs & IPG_RFS_FRAMEEND)))) {
++		unsigned int entry = curr++ % IPG_RFDLIST_LENGTH;
++
++		rxfd = sp->rxd + entry;
++
++		IPG_DEBUG_MSG("Frame requires multiple RFDs.\n");
++
++		/* An unexpected event, additional code needed to handle
++		 * properly. So for the time being, just disregard the
++		 * frame.
++		 */
++
++		/* Free the memory associated with the RX
++		 * buffer since it is erroneous and we will
++		 * not pass it to higher layer processes.
++		 */
++		if (sp->RxBuff[entry]) {
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++				sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++			IPG_DEV_KFREE_SKB(sp->RxBuff[entry]);
++		}
++
++		/* Assure RX buffer is not reused by IPG. */
++		sp->RxBuff[entry] = NULL;
++	}
++
++	sp->rx_current = curr;
++
++	/* Check to see if there are a minimum number of used
++	 * RFDs before restoring any (should improve performance.)
++	 */
++	if ((curr - sp->rx_dirty) >= IPG_MINUSEDRFDSTOFREE)
++		ipg_nic_rxrestore(dev);
++
++	return 0;
++}
++#endif
++
++static void ipg_reset_after_host_error(struct work_struct *work)
++{
++	struct ipg_nic_private *sp =
++		container_of(work, struct ipg_nic_private, task.work);
++	struct net_device *dev = sp->dev;
++
++	IPG_DDEBUG_MSG("DMACtrl = %8.8x\n", ioread32(sp->ioaddr + IPG_DMACTRL));
++
++	/*
++	 * Acknowledge HostError interrupt by resetting
++	 * IPG DMA and HOST.
++	 */
++	ipg_reset(dev, IPG_AC_GLOBAL_RESET | IPG_AC_HOST | IPG_AC_DMA);
++
++	init_rfdlist(dev);
++	init_tfdlist(dev);
++
++	if (ipg_io_config(dev) < 0) {
++		printk(KERN_INFO "%s: Cannot recover from PCI error.\n",
++		       dev->name);
++		schedule_delayed_work(&sp->task, HZ);
++	}
++}
++
++static irqreturn_t ipg_interrupt_handler(int irq, void *dev_inst)
++{
++	struct net_device *dev = dev_inst;
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int handled = 0;
++	u16 status;
++
++	IPG_DEBUG_MSG("_interrupt_handler\n");
++
++#ifdef JUMBO_FRAME
++	ipg_nic_rxrestore(dev);
++#endif
++	/* Get interrupt source information, and acknowledge
++	 * some (i.e. TxDMAComplete, RxDMAComplete, RxEarly,
++	 * IntRequested, MacControlFrame, LinkEvent) interrupts
++	 * if issued. Also, all IPG interrupts are disabled by
++	 * reading IntStatusAck.
++	 */
++	status = ipg_r16(INT_STATUS_ACK);
++
++	IPG_DEBUG_MSG("IntStatusAck = %4.4x\n", status);
++
++	/* Shared IRQ of remove event. */
++	if (!(status & IPG_IS_RSVD_MASK))
++		goto out_enable;
++
++	handled = 1;
++
++	if (unlikely(!netif_running(dev)))
++		goto out;
++
++	spin_lock(&sp->lock);
++
++	/* If RFDListEnd interrupt, restore all used RFDs. */
++	if (status & IPG_IS_RFD_LIST_END) {
++		IPG_DEBUG_MSG("RFDListEnd Interrupt.\n");
++
++		/* The RFD list end indicates an RFD was encountered
++		 * with a 0 NextPtr, or with an RFDDone bit set to 1
++		 * (indicating the RFD is not read for use by the
++		 * IPG.) Try to restore all RFDs.
++		 */
++		ipg_nic_rxrestore(dev);
++
++#ifdef IPG_DEBUG
++		/* Increment the RFDlistendCount counter. */
++		sp->RFDlistendCount++;
++#endif
++	}
++
++	/* If RFDListEnd, RxDMAPriority, RxDMAComplete, or
++	 * IntRequested interrupt, process received frames. */
++	if ((status & IPG_IS_RX_DMA_PRIORITY) ||
++	    (status & IPG_IS_RFD_LIST_END) ||
++	    (status & IPG_IS_RX_DMA_COMPLETE) ||
++	    (status & IPG_IS_INT_REQUESTED)) {
++#ifdef IPG_DEBUG
++		/* Increment the RFD list checked counter if interrupted
++		 * only to check the RFD list. */
++		if (status & (~(IPG_IS_RX_DMA_PRIORITY | IPG_IS_RFD_LIST_END |
++				IPG_IS_RX_DMA_COMPLETE | IPG_IS_INT_REQUESTED) &
++			       (IPG_IS_HOST_ERROR | IPG_IS_TX_DMA_COMPLETE |
++				IPG_IS_LINK_EVENT | IPG_IS_TX_COMPLETE |
++				IPG_IS_UPDATE_STATS)))
++			sp->RFDListCheckedCount++;
++#endif
++
++		ipg_nic_rx(dev);
++	}
++
++	/* If TxDMAComplete interrupt, free used TFDs. */
++	if (status & IPG_IS_TX_DMA_COMPLETE)
++		ipg_nic_txfree(dev);
++
++	/* TxComplete interrupts indicate one of numerous actions.
++	 * Determine what action to take based on TXSTATUS register.
++	 */
++	if (status & IPG_IS_TX_COMPLETE)
++		ipg_nic_txcleanup(dev);
++
++	/* If UpdateStats interrupt, update Linux Ethernet statistics */
++	if (status & IPG_IS_UPDATE_STATS)
++		ipg_nic_get_stats(dev);
++
++	/* If HostError interrupt, reset IPG. */
++	if (status & IPG_IS_HOST_ERROR) {
++		IPG_DDEBUG_MSG("HostError Interrupt\n");
++
++		schedule_delayed_work(&sp->task, 0);
++	}
++
++	/* If LinkEvent interrupt, resolve autonegotiation. */
++	if (status & IPG_IS_LINK_EVENT) {
++		if (ipg_config_autoneg(dev) < 0)
++			printk(KERN_INFO "%s: Auto-negotiation error.\n",
++			       dev->name);
++	}
++
++	/* If MACCtrlFrame interrupt, do nothing. */
++	if (status & IPG_IS_MAC_CTRL_FRAME)
++		IPG_DEBUG_MSG("MACCtrlFrame interrupt.\n");
++
++	/* If RxComplete interrupt, do nothing. */
++	if (status & IPG_IS_RX_COMPLETE)
++		IPG_DEBUG_MSG("RxComplete interrupt.\n");
++
++	/* If RxEarly interrupt, do nothing. */
++	if (status & IPG_IS_RX_EARLY)
++		IPG_DEBUG_MSG("RxEarly interrupt.\n");
++
++out_enable:
++	/* Re-enable IPG interrupts. */
++	ipg_w16(IPG_IE_TX_DMA_COMPLETE | IPG_IE_RX_DMA_COMPLETE |
++		IPG_IE_HOST_ERROR | IPG_IE_INT_REQUESTED | IPG_IE_TX_COMPLETE |
++		IPG_IE_LINK_EVENT | IPG_IE_UPDATE_STATS, INT_ENABLE);
++
++	spin_unlock(&sp->lock);
++out:
++	return IRQ_RETVAL(handled);
++}
++
++static void ipg_rx_clear(struct ipg_nic_private *sp)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPG_RFDLIST_LENGTH; i++) {
++		if (sp->RxBuff[i]) {
++			struct ipg_rx *rxfd = sp->rxd + i;
++
++			IPG_DEV_KFREE_SKB(sp->RxBuff[i]);
++			sp->RxBuff[i] = NULL;
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(rxfd->frag_info & ~IPG_RFI_FRAGLEN),
++				sp->rx_buf_sz, PCI_DMA_FROMDEVICE);
++		}
++	}
++}
++
++static void ipg_tx_clear(struct ipg_nic_private *sp)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPG_TFDLIST_LENGTH; i++) {
++		if (sp->TxBuff[i]) {
++			struct ipg_tx *txfd = sp->txd + i;
++
++			pci_unmap_single(sp->pdev,
++				le64_to_cpu(txfd->frag_info & ~IPG_TFI_FRAGLEN),
++				sp->TxBuff[i]->len, PCI_DMA_TODEVICE);
++
++			IPG_DEV_KFREE_SKB(sp->TxBuff[i]);
++
++			sp->TxBuff[i] = NULL;
++		}
++	}
++}
++
++static int ipg_nic_open(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	struct pci_dev *pdev = sp->pdev;
 +	int rc;
 +
-+	ENTER;
-+	priv = ndev->priv;
-+	bdx_reset(priv);
-+	if (netif_running(ndev))
-+		netif_stop_queue(priv->ndev);
++	IPG_DEBUG_MSG("_nic_open\n");
 +
-+	if ((rc = bdx_tx_init(priv)))
-+		goto err;
++	sp->rx_buf_sz = IPG_RXSUPPORT_SIZE;
 +
-+	if ((rc = bdx_rx_init(priv)))
-+		goto err;
-+
-+	if ((rc = bdx_fw_load(priv)))
-+		goto err;
-+
-+	bdx_rx_alloc_skbs(priv, &priv->rxf_fifo0);
-+
-+	if ((rc = bdx_hw_start(priv)))
-+		goto err;
-+
-+	print_fw_id(priv->nic);
-+
-+	RET(0);
-+
-+err:
-+	bdx_close(ndev);
-+	RET(rc);
-+}
-+
-+static void __init bdx_firmware_endianess(void)
-+{
-+	int i;
-+	for (i = 0; i < sizeof(s_firmLoad) / sizeof(u32); i++)
-+		s_firmLoad[i] = CPU_CHIP_SWAP32(s_firmLoad[i]);
-+}
-+
-+static int bdx_ioctl_priv(struct net_device *ndev, struct ifreq *ifr, int cmd)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+	u32 data[3];
-+	int error;
-+
-+	ENTER;
-+
-+	DBG("jiffies=%ld cmd=%d\n", jiffies, cmd);
-+	if (cmd != SIOCDEVPRIVATE) {
-+		error = copy_from_user(data, ifr->ifr_data, sizeof(data));
-+		if (error) {
-+			ERR("cant copy from user\n");
-+			RET(error);
-+		}
-+		DBG("%d 0x%x 0x%x\n", data[0], data[1], data[2]);
-+	}
-+
-+	switch (data[0]) {
-+
-+	case BDX_OP_READ:
-+		data[2] = READ_REG(priv, data[1]);
-+		DBG("read_reg(0x%x)=0x%x (dec %d)\n", data[1], data[2],
-+		    data[2]);
-+		error = copy_to_user(ifr->ifr_data, data, sizeof(data));
-+		if (error)
-+			RET(error);
-+		break;
-+
-+	case BDX_OP_WRITE:
-+		WRITE_REG(priv, data[1], data[2]);
-+		DBG("write_reg(0x%x, 0x%x)\n", data[1], data[2]);
-+		break;
-+
-+	default:
-+		RET(-EOPNOTSUPP);
-+	}
-+	return 0;
-+}
-+
-+static int bdx_ioctl(struct net_device *ndev, struct ifreq *ifr, int cmd)
-+{
-+	ENTER;
-+	if (cmd >= SIOCDEVPRIVATE && cmd <= (SIOCDEVPRIVATE + 15))
-+		RET(bdx_ioctl_priv(ndev, ifr, cmd));
-+	else
-+		RET(-EOPNOTSUPP);
-+}
-+
-+/*
-+ * __bdx_vlan_rx_vid - private helper for adding/killing VLAN vid
-+ *                     by passing VLAN filter table to hardware
-+ * @ndev network device
-+ * @vid  VLAN vid
-+ * @op   add or kill operation
-+ */
-+static void __bdx_vlan_rx_vid(struct net_device *ndev, uint16_t vid, int enable)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+	u32 reg, bit, val;
-+
-+	ENTER;
-+	DBG2("vid=%d value=%d\n", (int)vid, enable);
-+	if (unlikely(vid >= 4096)) {
-+		ERR("tehuti: invalid VID: %u (> 4096)\n", vid);
-+		RET();
-+	}
-+	reg = regVLAN_0 + (vid / 32) * 4;
-+	bit = 1 << vid % 32;
-+	val = READ_REG(priv, reg);
-+	DBG2("reg=%x, val=%x, bit=%d\n", reg, val, bit);
-+	if (enable)
-+		val |= bit;
-+	else
-+		val &= ~bit;
-+	DBG2("new val %x\n", val);
-+	WRITE_REG(priv, reg, val);
-+	RET();
-+}
-+
-+/*
-+ * bdx_vlan_rx_add_vid - kernel hook for adding VLAN vid to hw filtering table
-+ * @ndev network device
-+ * @vid  VLAN vid to add
-+ */
-+static void bdx_vlan_rx_add_vid(struct net_device *ndev, uint16_t vid)
-+{
-+	__bdx_vlan_rx_vid(ndev, vid, 1);
-+}
-+
-+/*
-+ * bdx_vlan_rx_kill_vid - kernel hook for killing VLAN vid in hw filtering table
-+ * @ndev network device
-+ * @vid  VLAN vid to kill
-+ */
-+static void bdx_vlan_rx_kill_vid(struct net_device *ndev, unsigned short vid)
-+{
-+	__bdx_vlan_rx_vid(ndev, vid, 0);
-+}
-+
-+/*
-+ * bdx_vlan_rx_register - kernel hook for adding VLAN group
-+ * @ndev network device
-+ * @grp  VLAN group
-+ */
-+static void
-+bdx_vlan_rx_register(struct net_device *ndev, struct vlan_group *grp)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+
-+	ENTER;
-+	DBG("device='%s', group='%p'\n", ndev->name, grp);
-+	priv->vlgrp = grp;
-+	RET();
-+}
-+
-+/**
-+ * bdx_change_mtu - Change the Maximum Transfer Unit
-+ * @netdev: network interface device structure
-+ * @new_mtu: new value for maximum frame size
-+ *
-+ * Returns 0 on success, negative on failure
-+ */
-+static int bdx_change_mtu(struct net_device *ndev, int new_mtu)
-+{
-+	BDX_ASSERT(ndev == 0);
-+	ENTER;
-+
-+	if (new_mtu == ndev->mtu)
-+		RET(0);
-+
-+	/* enforce minimum frame size */
-+	if (new_mtu < ETH_ZLEN) {
-+		ERR("%s: %s mtu %d is less then minimal %d\n",
-+		    BDX_DRV_NAME, ndev->name, new_mtu, ETH_ZLEN);
-+		RET(-EINVAL);
-+	}
-+
-+	ndev->mtu = new_mtu;
-+	if (netif_running(ndev)) {
-+		bdx_close(ndev);
-+		bdx_open(ndev);
-+	}
-+	RET(0);
-+}
-+
-+static void bdx_setmulti(struct net_device *ndev)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+
-+	u32 rxf_val =
-+	    GMAC_RX_FILTER_AM | GMAC_RX_FILTER_AB | GMAC_RX_FILTER_OSEN;
-+	int i;
-+
-+	ENTER;
-+	/* IMF - imperfect (hash) rx multicat filter */
-+	/* PMF - perfect rx multicat filter */
-+
-+	/* FIXME: RXE(OFF) */
-+	if (ndev->flags & IFF_PROMISC) {
-+		rxf_val |= GMAC_RX_FILTER_PRM;
-+	} else if (ndev->flags & IFF_ALLMULTI) {
-+		/* set IMF to accept all multicast frmaes */
-+		for (i = 0; i < MAC_MCST_HASH_NUM; i++)
-+			WRITE_REG(priv, regRX_MCST_HASH0 + i * 4, ~0);
-+	} else if (ndev->mc_count) {
-+		u8 hash;
-+		struct dev_mc_list *mclist;
-+		u32 reg, val;
-+
-+		/* set IMF to deny all multicast frames */
-+		for (i = 0; i < MAC_MCST_HASH_NUM; i++)
-+			WRITE_REG(priv, regRX_MCST_HASH0 + i * 4, 0);
-+		/* set PMF to deny all multicast frames */
-+		for (i = 0; i < MAC_MCST_NUM; i++) {
-+			WRITE_REG(priv, regRX_MAC_MCST0 + i * 8, 0);
-+			WRITE_REG(priv, regRX_MAC_MCST1 + i * 8, 0);
-+		}
-+
-+		/* use PMF to accept first MAC_MCST_NUM (15) addresses */
-+		/* TBD: sort addreses and write them in ascending order
-+		 * into RX_MAC_MCST regs. we skip this phase now and accept ALL
-+		 * multicast frames throu IMF */
-+		mclist = ndev->mc_list;
-+
-+		/* accept the rest of addresses throu IMF */
-+		for (; mclist; mclist = mclist->next) {
-+			hash = 0;
-+			for (i = 0; i < ETH_ALEN; i++)
-+				hash ^= mclist->dmi_addr[i];
-+			reg = regRX_MCST_HASH0 + ((hash >> 5) << 2);
-+			val = READ_REG(priv, reg);
-+			val |= (1 << (hash % 32));
-+			WRITE_REG(priv, reg, val);
-+		}
-+
-+	} else {
-+		DBG("only own mac %d\n", ndev->mc_count);
-+		rxf_val |= GMAC_RX_FILTER_AB;
-+	}
-+	WRITE_REG(priv, regGMAC_RXF_A, rxf_val);
-+	/* enable RX */
-+	/* FIXME: RXE(ON) */
-+	RET();
-+}
-+
-+static int bdx_set_mac(struct net_device *ndev, void *p)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+	struct sockaddr *addr = p;
-+
-+	ENTER;
-+	/*
-+	   if (netif_running(dev))
-+	   return -EBUSY
++	/* Check for interrupt line conflicts, and request interrupt
++	 * line for IPG.
++	 *
++	 * IMPORTANT: Disable IPG interrupts prior to registering
++	 *            IRQ.
 +	 */
-+	memcpy(ndev->dev_addr, addr->sa_data, ndev->addr_len);
-+	bdx_restore_mac(ndev, priv);
-+	RET(0);
-+}
++	ipg_w16(0x0000, INT_ENABLE);
 +
-+static int bdx_read_mac(struct bdx_priv *priv)
-+{
-+	u16 macAddress[3], i;
-+	ENTER;
-+
-+	macAddress[2] = READ_REG(priv, regUNC_MAC0_A);
-+	macAddress[2] = READ_REG(priv, regUNC_MAC0_A);
-+	macAddress[1] = READ_REG(priv, regUNC_MAC1_A);
-+	macAddress[1] = READ_REG(priv, regUNC_MAC1_A);
-+	macAddress[0] = READ_REG(priv, regUNC_MAC2_A);
-+	macAddress[0] = READ_REG(priv, regUNC_MAC2_A);
-+	for (i = 0; i < 3; i++) {
-+		priv->ndev->dev_addr[i * 2 + 1] = macAddress[i];
-+		priv->ndev->dev_addr[i * 2] = macAddress[i] >> 8;
-+	}
-+	RET(0);
-+}
-+
-+static u64 bdx_read_l2stat(struct bdx_priv *priv, int reg)
-+{
-+	u64 val;
-+
-+	val = READ_REG(priv, reg);
-+	val |= ((u64) READ_REG(priv, reg + 8)) << 32;
-+	return val;
-+}
-+
-+/*Do the statistics-update work*/
-+static void bdx_update_stats(struct bdx_priv *priv)
-+{
-+	struct bdx_stats *stats = &priv->hw_stats;
-+	u64 *stats_vector = (u64 *) stats;
-+	int i;
-+	int addr;
-+
-+	/*Fill HW structure */
-+	addr = 0x7200;
-+	/*First 12 statistics - 0x7200 - 0x72B0 */
-+	for (i = 0; i < 12; i++) {
-+		stats_vector[i] = bdx_read_l2stat(priv, addr);
-+		addr += 0x10;
-+	}
-+	BDX_ASSERT(addr != 0x72C0);
-+	/* 0x72C0-0x72E0 RSRV */
-+	addr = 0x72F0;
-+	for (; i < 16; i++) {
-+		stats_vector[i] = bdx_read_l2stat(priv, addr);
-+		addr += 0x10;
-+	}
-+	BDX_ASSERT(addr != 0x7330);
-+	/* 0x7330-0x7360 RSRV */
-+	addr = 0x7370;
-+	for (; i < 19; i++) {
-+		stats_vector[i] = bdx_read_l2stat(priv, addr);
-+		addr += 0x10;
-+	}
-+	BDX_ASSERT(addr != 0x73A0);
-+	/* 0x73A0-0x73B0 RSRV */
-+	addr = 0x73C0;
-+	for (; i < 23; i++) {
-+		stats_vector[i] = bdx_read_l2stat(priv, addr);
-+		addr += 0x10;
-+	}
-+	BDX_ASSERT(addr != 0x7400);
-+	BDX_ASSERT((sizeof(struct bdx_stats) / sizeof(u64)) != i);
-+}
-+
-+static struct net_device_stats *bdx_get_stats(struct net_device *ndev)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+	struct net_device_stats *net_stat = &priv->net_stats;
-+	return net_stat;
-+}
-+
-+static void print_rxdd(struct rxd_desc *rxdd, u32 rxd_val1, u16 len,
-+		       u16 rxd_vlan);
-+static void print_rxfd(struct rxf_desc *rxfd);
-+
-+/*************************************************************************
-+ *     Rx DB                                                             *
-+ *************************************************************************/
-+
-+static void bdx_rxdb_destroy(struct rxdb *db)
-+{
-+	if (db)
-+		vfree(db);
-+}
-+
-+static struct rxdb *bdx_rxdb_create(int nelem)
-+{
-+	struct rxdb *db;
-+	int i;
-+
-+	db = vmalloc(sizeof(struct rxdb)
-+		     + (nelem * sizeof(int))
-+		     + (nelem * sizeof(struct rx_map)));
-+	if (likely(db != NULL)) {
-+		db->stack = (int *)(db + 1);
-+		db->elems = (void *)(db->stack + nelem);
-+		db->nelem = nelem;
-+		db->top = nelem;
-+		for (i = 0; i < nelem; i++)
-+			db->stack[i] = nelem - i - 1;	/* to make first allocs
-+							   close to db struct*/
-+	}
-+
-+	return db;
-+}
-+
-+static inline int bdx_rxdb_alloc_elem(struct rxdb *db)
-+{
-+	BDX_ASSERT(db->top <= 0);
-+	return db->stack[--(db->top)];
-+}
-+
-+static inline void *bdx_rxdb_addr_elem(struct rxdb *db, int n)
-+{
-+	BDX_ASSERT((n < 0) || (n >= db->nelem));
-+	return db->elems + n;
-+}
-+
-+static inline int bdx_rxdb_available(struct rxdb *db)
-+{
-+	return db->top;
-+}
-+
-+static inline void bdx_rxdb_free_elem(struct rxdb *db, int n)
-+{
-+	BDX_ASSERT((n >= db->nelem) || (n < 0));
-+	db->stack[(db->top)++] = n;
-+}
-+
-+/*************************************************************************
-+ *     Rx Init                                                           *
-+ *************************************************************************/
-+
-+/* bdx_rx_init - initialize RX all related HW and SW resources
-+ * @priv - NIC private structure
-+ *
-+ * Returns 0 on success, negative value on failure
-+ *
-+ * It creates rxf and rxd fifos, update relevant HW registers, preallocate
-+ * skb for rx. It assumes that Rx is desabled in HW
-+ * funcs are grouped for better cache usage
-+ *
-+ * RxD fifo is smaller then RxF fifo by design. Upon high load, RxD will be
-+ * filled and packets will be dropped by nic without getting into host or
-+ * cousing interrupt. Anyway, in that condition, host has no chance to proccess
-+ * all packets, but dropping in nic is cheaper, since it takes 0 cpu cycles
-+ */
-+
-+/* TBD: ensure proper packet size */
-+
-+static int bdx_rx_init(struct bdx_priv *priv)
-+{
-+	ENTER;
-+	BDX_ASSERT(priv == 0);
-+	if (bdx_fifo_init(priv, &priv->rxd_fifo0.m, priv->rxd_size,
-+			  regRXD_CFG0_0, regRXD_CFG1_0,
-+			  regRXD_RPTR_0, regRXD_WPTR_0))
-+		goto err_mem;
-+	if (bdx_fifo_init(priv, &priv->rxf_fifo0.m, priv->rxf_size,
-+			  regRXF_CFG0_0, regRXF_CFG1_0,
-+			  regRXF_RPTR_0, regRXF_WPTR_0))
-+		goto err_mem;
-+	if (!
-+	    (priv->rxdb =
-+	     bdx_rxdb_create(priv->rxf_fifo0.m.memsz /
-+			     sizeof(struct rxf_desc))))
-+		goto err_mem;
-+
-+	priv->rxf_fifo0.m.pktsz = priv->ndev->mtu + VLAN_ETH_HLEN;
-+	return 0;
-+
-+err_mem:
-+	ERR("%s: %s: Rx init failed\n", BDX_DRV_NAME, priv->ndev->name);
-+	return -ENOMEM;
-+}
-+
-+/* bdx_rx_free_skbs - frees and unmaps all skbs allocated for the fifo
-+ * @priv - NIC private structure
-+ * @f - RXF fifo
-+ */
-+static void bdx_rx_free_skbs(struct bdx_priv *priv, struct rxf_fifo *f)
-+{
-+	struct rx_map *dm;
-+	struct rxdb *db = priv->rxdb;
-+	u16 i;
-+
-+	ENTER;
-+	DBG("total=%d free=%d busy=%d\n", db->nelem, bdx_rxdb_available(db),
-+	    db->nelem - bdx_rxdb_available(db));
-+	while (bdx_rxdb_available(db) > 0) {
-+		i = bdx_rxdb_alloc_elem(db);
-+		dm = bdx_rxdb_addr_elem(db, i);
-+		dm->dma = 0;
-+	}
-+	for (i = 0; i < db->nelem; i++) {
-+		dm = bdx_rxdb_addr_elem(db, i);
-+		if (dm->dma) {
-+			pci_unmap_single(priv->pdev,
-+					 dm->dma, f->m.pktsz,
-+					 PCI_DMA_FROMDEVICE);
-+			dev_kfree_skb(dm->skb);
-+		}
-+	}
-+}
-+
-+/* bdx_rx_free - release all Rx resources
-+ * @priv - NIC private structure
-+ * It assumes that Rx is desabled in HW
-+ */
-+static void bdx_rx_free(struct bdx_priv *priv)
-+{
-+	ENTER;
-+	if (priv->rxdb) {
-+		bdx_rx_free_skbs(priv, &priv->rxf_fifo0);
-+		bdx_rxdb_destroy(priv->rxdb);
-+		priv->rxdb = NULL;
-+	}
-+	bdx_fifo_free(priv, &priv->rxf_fifo0.m);
-+	bdx_fifo_free(priv, &priv->rxd_fifo0.m);
-+
-+	RET();
-+}
-+
-+/*************************************************************************
-+ *     Rx Engine                                                         *
-+ *************************************************************************/
-+
-+/* bdx_rx_alloc_skbs - fill rxf fifo with new skbs
-+ * @priv - nic's private structure
-+ * @f - RXF fifo that needs skbs
-+ * It allocates skbs, build rxf descs and push it (rxf descr) into rxf fifo.
-+ * skb's virtual and physical addresses are stored in skb db.
-+ * To calculate free space, func uses cached values of RPTR and WPTR
-+ * When needed, it also updates RPTR and WPTR.
-+ */
-+
-+/* TBD: do not update WPTR if no desc were written */
-+
-+static void bdx_rx_alloc_skbs(struct bdx_priv *priv, struct rxf_fifo *f)
-+{
-+	struct sk_buff *skb;
-+	struct rxf_desc *rxfd;
-+	struct rx_map *dm;
-+	int dno, delta, idx;
-+	struct rxdb *db = priv->rxdb;
-+
-+	ENTER;
-+	dno = bdx_rxdb_available(db) - 1;
-+	while (dno > 0) {
-+		if (!(skb = dev_alloc_skb(f->m.pktsz + NET_IP_ALIGN))) {
-+			ERR("NO MEM: dev_alloc_skb failed\n");
-+			break;
-+		}
-+		skb->dev = priv->ndev;
-+		skb_reserve(skb, NET_IP_ALIGN);
-+
-+		idx = bdx_rxdb_alloc_elem(db);
-+		dm = bdx_rxdb_addr_elem(db, idx);
-+		dm->dma = pci_map_single(priv->pdev,
-+					 skb->data, f->m.pktsz,
-+					 PCI_DMA_FROMDEVICE);
-+		dm->skb = skb;
-+		rxfd = (struct rxf_desc *)(f->m.va + f->m.wptr);
-+		rxfd->info = CPU_CHIP_SWAP32(0x10003);	/* INFO=1 BC=3 */
-+		rxfd->va_lo = idx;
-+		rxfd->pa_lo = CPU_CHIP_SWAP32(L32_64(dm->dma));
-+		rxfd->pa_hi = CPU_CHIP_SWAP32(H32_64(dm->dma));
-+		rxfd->len = CPU_CHIP_SWAP32(f->m.pktsz);
-+		print_rxfd(rxfd);
-+
-+		f->m.wptr += sizeof(struct rxf_desc);
-+		delta = f->m.wptr - f->m.memsz;
-+		if (unlikely(delta >= 0)) {
-+			f->m.wptr = delta;
-+			if (delta > 0) {
-+				memcpy(f->m.va, f->m.va + f->m.memsz, delta);
-+				DBG("wrapped descriptor\n");
-+			}
-+		}
-+		dno--;
-+	}
-+	/*TBD: to do - delayed rxf wptr like in txd */
-+	WRITE_REG(priv, f->m.reg_WPTR, f->m.wptr & TXF_WPTR_WR_PTR);
-+	RET();
-+}
-+
-+static inline void
-+NETIF_RX_MUX(struct bdx_priv *priv, u32 rxd_val1, u16 rxd_vlan,
-+	     struct sk_buff *skb)
-+{
-+	ENTER;
-+	DBG("rxdd->flags.bits.vtag=%d vlgrp=%p\n", GET_RXD_VTAG(rxd_val1),
-+	    priv->vlgrp);
-+	if (priv->vlgrp && GET_RXD_VTAG(rxd_val1)) {
-+		DBG("%s: vlan rcv vlan '%x' vtag '%x', device name '%s'\n",
-+		    priv->ndev->name,
-+		    GET_RXD_VLAN_ID(rxd_vlan),
-+		    GET_RXD_VTAG(rxd_val1),
-+		    vlan_group_get_device(priv->vlgrp,
-+					  GET_RXD_VLAN_ID(rxd_vlan))->name);
-+		/* NAPI variant of receive functions */
-+		vlan_hwaccel_receive_skb(skb, priv->vlgrp,
-+					 GET_RXD_VLAN_ID(rxd_vlan));
-+	} else {
-+		netif_receive_skb(skb);
-+	}
-+}
-+
-+static void bdx_recycle_skb(struct bdx_priv *priv, struct rxd_desc *rxdd)
-+{
-+	struct rxf_desc *rxfd;
-+	struct rx_map *dm;
-+	struct rxf_fifo *f;
-+	struct rxdb *db;
-+	struct sk_buff *skb;
-+	int delta;
-+
-+	ENTER;
-+	DBG("priv=%p rxdd=%p\n", priv, rxdd);
-+	f = &priv->rxf_fifo0;
-+	db = priv->rxdb;
-+	DBG("db=%p f=%p\n", db, f);
-+	dm = bdx_rxdb_addr_elem(db, rxdd->va_lo);
-+	DBG("dm=%p\n", dm);
-+	skb = dm->skb;
-+	rxfd = (struct rxf_desc *)(f->m.va + f->m.wptr);
-+	rxfd->info = CPU_CHIP_SWAP32(0x10003);	/* INFO=1 BC=3 */
-+	rxfd->va_lo = rxdd->va_lo;
-+	rxfd->pa_lo = CPU_CHIP_SWAP32(L32_64(dm->dma));
-+	rxfd->pa_hi = CPU_CHIP_SWAP32(H32_64(dm->dma));
-+	rxfd->len = CPU_CHIP_SWAP32(f->m.pktsz);
-+	print_rxfd(rxfd);
-+
-+	f->m.wptr += sizeof(struct rxf_desc);
-+	delta = f->m.wptr - f->m.memsz;
-+	if (unlikely(delta >= 0)) {
-+		f->m.wptr = delta;
-+		if (delta > 0) {
-+			memcpy(f->m.va, f->m.va + f->m.memsz, delta);
-+			DBG("wrapped descriptor\n");
-+		}
-+	}
-+	RET();
-+}
-+
-+/* bdx_rx_receive - recieves full packets from RXD fifo and pass them to OS
-+ * NOTE: a special treatment is given to non-continous descriptors
-+ * that start near the end, wraps around and continue at the beginning. a second
-+ * part is copied right after the first, and then descriptor is interpreted as
-+ * normal. fifo has an extra space to allow such operations
-+ * @priv - nic's private structure
-+ * @f - RXF fifo that needs skbs
-+ */
-+
-+/* TBD: replace memcpy func call by explicite inline asm */
-+
-+static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int *budget)
-+{
-+	struct sk_buff *skb, *skb2;
-+	struct rxd_desc *rxdd;
-+	struct rx_map *dm;
-+	struct rxf_fifo *rxf_fifo;
-+	int tmp_len, size;
-+	int done = 0;
-+	int max_done = BDX_MAX_RX_DONE;
-+	struct rxdb *db = NULL;
-+	/* Unmarshalled descriptor - copy of descriptor in host order */
-+	u32 rxd_val1;
-+	u16 len;
-+	u16 rxd_vlan;
-+
-+	ENTER;
-+	max_done = min(*budget, priv->ndev->quota);
-+
-+	priv->ndev->last_rx = jiffies;
-+	f->m.wptr = READ_REG(priv, f->m.reg_WPTR) & TXF_WPTR_WR_PTR;
-+
-+	size = f->m.wptr - f->m.rptr;
-+	if (size < 0)
-+		size = f->m.memsz + size;	/* size is negative :-) */
-+
-+	while (size > 0) {
-+
-+		rxdd = (struct rxd_desc *)(f->m.va + f->m.rptr);
-+		rxd_val1 = CPU_CHIP_SWAP32(rxdd->rxd_val1);
-+
-+		len = CPU_CHIP_SWAP16(rxdd->len);
-+
-+		rxd_vlan = CPU_CHIP_SWAP16(rxdd->rxd_vlan);
-+
-+		print_rxdd(rxdd, rxd_val1, len, rxd_vlan);
-+
-+		tmp_len = GET_RXD_BC(rxd_val1) << 3;
-+		BDX_ASSERT(tmp_len <= 0);
-+		size -= tmp_len;
-+		if (size < 0)	/* test for partially arrived descriptor */
-+			break;
-+
-+		f->m.rptr += tmp_len;
-+
-+		tmp_len = f->m.rptr - f->m.memsz;
-+		if (unlikely(tmp_len >= 0)) {
-+			f->m.rptr = tmp_len;
-+			if (tmp_len > 0) {
-+				DBG("wrapped desc rptr=%d tmp_len=%d\n",
-+				    f->m.rptr, tmp_len);
-+				memcpy(f->m.va + f->m.memsz, f->m.va, tmp_len);
-+			}
-+		}
-+
-+		if (unlikely(GET_RXD_ERR(rxd_val1))) {
-+			DBG("rxd_err = 0x%x\n", GET_RXD_ERR(rxd_val1));
-+			priv->net_stats.rx_errors++;
-+			bdx_recycle_skb(priv, rxdd);
-+			continue;
-+		}
-+
-+		rxf_fifo = &priv->rxf_fifo0;
-+		db = priv->rxdb;
-+		dm = bdx_rxdb_addr_elem(db, rxdd->va_lo);
-+		skb = dm->skb;
-+
-+		if (len < BDX_COPYBREAK &&
-+		    (skb2 = dev_alloc_skb(len + NET_IP_ALIGN))) {
-+			skb_reserve(skb2, NET_IP_ALIGN);
-+			/*skb_put(skb2, len); */
-+			pci_dma_sync_single_for_cpu(priv->pdev,
-+						    dm->dma, rxf_fifo->m.pktsz,
-+						    PCI_DMA_FROMDEVICE);
-+			memcpy(skb2->data, skb->data, len);
-+			bdx_recycle_skb(priv, rxdd);
-+			skb = skb2;
-+		} else {
-+			pci_unmap_single(priv->pdev,
-+					 dm->dma, rxf_fifo->m.pktsz,
-+					 PCI_DMA_FROMDEVICE);
-+			bdx_rxdb_free_elem(db, rxdd->va_lo);
-+		}
-+
-+		priv->net_stats.rx_bytes += len;
-+
-+		skb_put(skb, len);
-+		skb->dev = priv->ndev;
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
-+		skb->protocol = eth_type_trans(skb, priv->ndev);
-+
-+		/* Non-IP packets aren't checksum-offloaded */
-+		if (GET_RXD_PKT_ID(rxd_val1) == 0)
-+			skb->ip_summed = CHECKSUM_NONE;
-+
-+		NETIF_RX_MUX(priv, rxd_val1, rxd_vlan, skb);
-+
-+		if (++done >= max_done)
-+			break;
-+	}
-+
-+	priv->net_stats.rx_packets += done;
-+
-+	/* FIXME: do smth to minimize pci accesses    */
-+	WRITE_REG(priv, f->m.reg_RPTR, f->m.rptr & TXF_WPTR_WR_PTR);
-+
-+	bdx_rx_alloc_skbs(priv, &priv->rxf_fifo0);
-+
-+	*budget -= done;
-+	priv->ndev->quota -= done;
-+	RET(done == max_done);
-+}
-+
-+/*************************************************************************
-+ * Debug / Temprorary Code                                               *
-+ *************************************************************************/
-+static void print_rxdd(struct rxd_desc *rxdd, u32 rxd_val1, u16 len,
-+		       u16 rxd_vlan)
-+{
-+	DBG("ERROR: rxdd bc %d rxfq %d to %d type %d err %d rxp %d "
-+	    "pkt_id %d vtag %d len %d vlan_id %d cfi %d prio %d "
-+	    "va_lo %d va_hi %d\n",
-+	    GET_RXD_BC(rxd_val1), GET_RXD_RXFQ(rxd_val1), GET_RXD_TO(rxd_val1),
-+	    GET_RXD_TYPE(rxd_val1), GET_RXD_ERR(rxd_val1),
-+	    GET_RXD_RXP(rxd_val1), GET_RXD_PKT_ID(rxd_val1),
-+	    GET_RXD_VTAG(rxd_val1), len, GET_RXD_VLAN_ID(rxd_vlan),
-+	    GET_RXD_CFI(rxd_vlan), GET_RXD_PRIO(rxd_vlan), rxdd->va_lo,
-+	    rxdd->va_hi);
-+}
-+
-+static void print_rxfd(struct rxf_desc *rxfd)
-+{
-+	DBG("=== RxF desc CHIP ORDER/ENDIANESS =============\n"
-+	    "info 0x%x va_lo %u pa_lo 0x%x pa_hi 0x%x len 0x%x\n",
-+	    rxfd->info, rxfd->va_lo, rxfd->pa_lo, rxfd->pa_hi, rxfd->len);
-+}
-+
-+/*
-+ * TX HW/SW interaction overview
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ * There are 2 types of TX communication channels betwean driver and NIC.
-+ * 1) TX Free Fifo - TXF - holds ack descriptors for sent packets
-+ * 2) TX Data Fifo - TXD - holds descriptors of full buffers.
-+ *
-+ * Currently NIC supports TSO, checksuming and gather DMA
-+ * UFO and IP fragmentation is on the way
-+ *
-+ * RX SW Data Structures
-+ * ~~~~~~~~~~~~~~~~~~~~~
-+ * txdb - used to keep track of all skbs owned by SW and their dma addresses.
-+ * For TX case, ownership lasts from geting packet via hard_xmit and until HW
-+ * acknowledges sent by TXF descriptors.
-+ * Implemented as cyclic buffer.
-+ * fifo - keeps info about fifo's size and location, relevant HW registers,
-+ * usage and skb db. Each RXD and RXF Fifo has its own fifo structure.
-+ * Implemented as simple struct.
-+ *
-+ * TX SW Execution Flow
-+ * ~~~~~~~~~~~~~~~~~~~~
-+ * OS calls driver's hard_xmit method with packet to sent.
-+ * Driver creates DMA mappings, builds TXD descriptors and kicks HW
-+ * by updating TXD WPTR.
-+ * When packet is sent, HW write us TXF descriptor and SW frees original skb.
-+ * To prevent TXD fifo overflow without reading HW registers every time,
-+ * SW deploys "tx level" technique.
-+ * Upon strart up, tx level is initialized to TXD fifo length.
-+ * For every sent packet, SW gets its TXD descriptor sizei
-+ * (from precalculated array) and substructs it from tx level.
-+ * The size is also stored in txdb. When TXF ack arrives, SW fetch size of
-+ * original TXD descriptor from txdb and adds it to tx level.
-+ * When Tx level drops under some predefined treshhold, the driver
-+ * stops the TX queue. When TX level rises above that level,
-+ * the tx queue is enabled again.
-+ *
-+ * This technique avoids eccessive reading of RPTR and WPTR registers.
-+ * As our benchmarks shows, it adds 1.5 Gbit/sec to NIS's throuput.
-+ */
-+
-+/*************************************************************************
-+ *     Tx DB                                                             *
-+ *************************************************************************/
-+static inline int bdx_tx_db_size(struct txdb *db)
-+{
-+	int taken = db->wptr - db->rptr;
-+	if (taken < 0)
-+		taken = db->size + 1 + taken;	/* (size + 1) equals memsz */
-+
-+	return db->size - taken;
-+}
-+
-+/* __bdx_tx_ptr_next - helper function, increment read/write pointer + wrap
-+ * @d   - tx data base
-+ * @ptr - read or write pointer
-+ */
-+static inline void __bdx_tx_db_ptr_next(struct txdb *db, struct tx_map **pptr)
-+{
-+	BDX_ASSERT(db == NULL || pptr == NULL);	/* sanity */
-+
-+	BDX_ASSERT(*pptr != db->rptr &&	/* expect either read */
-+		   *pptr != db->wptr);	/* or write pointer */
-+
-+	BDX_ASSERT(*pptr < db->start ||	/* pointer has to be */
-+		   *pptr >= db->end);	/* in range */
-+
-+	++*pptr;
-+	if (unlikely(*pptr == db->end))
-+		*pptr = db->start;
-+}
-+
-+/* bdx_tx_db_inc_rptr - increment read pointer
-+ * @d   - tx data base
-+ */
-+static inline void bdx_tx_db_inc_rptr(struct txdb *db)
-+{
-+	BDX_ASSERT(db->rptr == db->wptr);	/* can't read from empty db */
-+	__bdx_tx_db_ptr_next(db, &db->rptr);
-+}
-+
-+/* bdx_tx_db_inc_rptr - increment write pointer
-+ * @d   - tx data base
-+ */
-+static inline void bdx_tx_db_inc_wptr(struct txdb *db)
-+{
-+	__bdx_tx_db_ptr_next(db, &db->wptr);
-+	BDX_ASSERT(db->rptr == db->wptr);	/* we can not get empty db as
-+						   a result of write */
-+}
-+
-+/* bdx_tx_db_init - creates and initializes tx db
-+ * @d       - tx data base
-+ * @sz_type - size of tx fifo
-+ * Returns 0 on success, error code otherwise
-+ */
-+static int bdx_tx_db_init(struct txdb *d, int sz_type)
-+{
-+	int memsz = FIFO_SIZE * (1 << (sz_type + 1));
-+
-+	d->start = vmalloc(memsz);
-+	if (!d->start)
-+		return -ENOMEM;
-+
-+	/*
-+	 * In order to differentiate between db is empty and db is full
-+	 * states at least one element should always be empty in order to
-+	 * avoid rptr == wptr which means db is empty
++	/* Register the interrupt line to be used by the IPG within
++	 * the Linux system.
 +	 */
-+	d->size = memsz / sizeof(struct tx_map) - 1;
-+	d->end = d->start + d->size + 1;	/* just after last element */
-+
-+	/* all dbs are created equally empty */
-+	d->rptr = d->start;
-+	d->wptr = d->start;
-+
-+	return 0;
-+}
-+
-+/* bdx_tx_db_close - closes tx db and frees all memory
-+ * @d - tx data base
-+ */
-+static void bdx_tx_db_close(struct txdb *d)
-+{
-+	BDX_ASSERT(d == NULL);
-+
-+	if (d->start) {
-+		vfree(d->start);
-+		d->start = NULL;
-+	}
-+}
-+
-+/*************************************************************************
-+ *     Tx Engine                                                         *
-+ *************************************************************************/
-+
-+/* sizes of tx desc (including padding if needed) as function
-+ * of skb's frag number */
-+static struct {
-+	u16 bytes;
-+	u16 qwords;		/* qword = 64 bit */
-+} txd_sizes[MAX_SKB_FRAGS + 1];
-+
-+/* txdb_map_skb - creates and stores dma mappings for skb's data blocks
-+ * @priv - NIC private structure
-+ * @skb  - socket buffer to map
-+ *
-+ * It makes dma mappings for skb's data blocks and writes them to PBL of
-+ * new tx descriptor. It also stores them in the tx db, so they could be
-+ * unmaped after data was sent. It is reponsibility of a caller to make
-+ * sure that there is enough space in the tx db. Last element holds pointer
-+ * to skb itself and marked with zero length
-+ */
-+static inline void
-+bdx_tx_map_skb(struct bdx_priv *priv, struct sk_buff *skb,
-+	       struct txd_desc *txdd)
-+{
-+	struct txdb *db = &priv->txdb;
-+	struct pbl *pbl = &txdd->pbl[0];
-+	int nr_frags = skb_shinfo(skb)->nr_frags;
-+	int i;
-+
-+	db->wptr->len = skb->len - skb->data_len;
-+	db->wptr->addr.dma = pci_map_single(priv->pdev, skb->data,
-+					    db->wptr->len, PCI_DMA_TODEVICE);
-+	pbl->len = CPU_CHIP_SWAP32(db->wptr->len);
-+	pbl->pa_lo = CPU_CHIP_SWAP32(L32_64(db->wptr->addr.dma));
-+	pbl->pa_hi = CPU_CHIP_SWAP32(H32_64(db->wptr->addr.dma));
-+	DBG("=== pbl   len: 0x%x ================\n", pbl->len);
-+	DBG("=== pbl pa_lo: 0x%x ================\n", pbl->pa_lo);
-+	DBG("=== pbl pa_hi: 0x%x ================\n", pbl->pa_hi);
-+	bdx_tx_db_inc_wptr(db);
-+
-+	for (i = 0; i < nr_frags; i++) {
-+		struct skb_frag_struct *frag;
-+
-+		frag = &skb_shinfo(skb)->frags[i];
-+		db->wptr->len = frag->size;
-+		db->wptr->addr.dma =
-+		    pci_map_page(priv->pdev, frag->page, frag->page_offset,
-+				 frag->size, PCI_DMA_TODEVICE);
-+
-+		pbl++;
-+		pbl->len = CPU_CHIP_SWAP32(db->wptr->len);
-+		pbl->pa_lo = CPU_CHIP_SWAP32(L32_64(db->wptr->addr.dma));
-+		pbl->pa_hi = CPU_CHIP_SWAP32(H32_64(db->wptr->addr.dma));
-+		bdx_tx_db_inc_wptr(db);
++	rc = request_irq(pdev->irq, &ipg_interrupt_handler, IRQF_SHARED,
++			 dev->name, dev);
++	if (rc < 0) {
++		printk(KERN_INFO "%s: Error when requesting interrupt.\n",
++		       dev->name);
++		goto out;
 +	}
 +
-+	/* add skb clean up info. */
-+	db->wptr->len = -txd_sizes[nr_frags].bytes;
-+	db->wptr->addr.skb = skb;
-+	bdx_tx_db_inc_wptr(db);
-+}
++	dev->irq = pdev->irq;
 +
-+/* init_txd_sizes - precalculate sizes of descriptors for skbs up to 16 frags
-+ * number of frags is used as index to fetch correct descriptors size,
-+ * instead of calculating it each time */
-+static void __init init_txd_sizes(void)
-+{
-+	int i, lwords;
++	rc = -ENOMEM;
 +
-+	/* 7 - is number of lwords in txd with one phys buffer
-+	 * 3 - is number of lwords used for every additional phys buffer */
-+	for (i = 0; i < MAX_SKB_FRAGS + 1; i++) {
-+		lwords = 7 + (i * 3);
-+		if (lwords & 1)
-+			lwords++;	/* pad it with 1 lword */
-+		txd_sizes[i].qwords = lwords >> 1;
-+		txd_sizes[i].bytes = lwords << 2;
++	sp->rxd = dma_alloc_coherent(&pdev->dev, IPG_RX_RING_BYTES,
++				     &sp->rxd_map, GFP_KERNEL);
++	if (!sp->rxd)
++		goto err_free_irq_0;
++
++	sp->txd = dma_alloc_coherent(&pdev->dev, IPG_TX_RING_BYTES,
++				     &sp->txd_map, GFP_KERNEL);
++	if (!sp->txd)
++		goto err_free_rx_1;
++
++	rc = init_rfdlist(dev);
++	if (rc < 0) {
++		printk(KERN_INFO "%s: Error during configuration.\n",
++		       dev->name);
++		goto err_free_tx_2;
 +	}
-+}
 +
-+/* bdx_tx_init - initialize all Tx related stuff.
-+ * Namely, TXD and TXF fifos, database etc */
-+static int bdx_tx_init(struct bdx_priv *priv)
-+{
-+	if (bdx_fifo_init(priv, &priv->txd_fifo0.m, priv->txd_size,
-+			  regTXD_CFG0_0,
-+			  regTXD_CFG1_0, regTXD_RPTR_0, regTXD_WPTR_0))
-+		goto err_mem;
-+	if (bdx_fifo_init(priv, &priv->txf_fifo0.m, priv->txf_size,
-+			  regTXF_CFG0_0,
-+			  regTXF_CFG1_0, regTXF_RPTR_0, regTXF_WPTR_0))
-+		goto err_mem;
++	init_tfdlist(dev);
 +
-+	/* The TX db has to keep mappings for all packets sent (on TxD)
-+	 * and not yet reclaimed (on TxF) */
-+	if (bdx_tx_db_init(&priv->txdb, max(priv->txd_size, priv->txf_size)))
-+		goto err_mem;
++	rc = ipg_io_config(dev);
++	if (rc < 0) {
++		printk(KERN_INFO "%s: Error during configuration.\n",
++		       dev->name);
++		goto err_release_tfdlist_3;
++	}
 +
-+	priv->tx_level = BDX_MAX_TX_LEVEL;
-+#ifdef BDX_DELAY_WPTR
-+	priv->tx_update_mark = priv->tx_level - 1024;
++	/* Resolve autonegotiation. */
++	if (ipg_config_autoneg(dev) < 0)
++		printk(KERN_INFO "%s: Auto-negotiation error.\n", dev->name);
++
++#ifdef JUMBO_FRAME
++	/* initialize JUMBO Frame control variable */
++	sp->Jumbo.FoundStart = 0;
++	sp->Jumbo.CurrentSize = 0;
++	sp->Jumbo.skb = 0;
++	dev->mtu = IPG_TXFRAG_SIZE;
 +#endif
++
++	/* Enable transmit and receive operation of the IPG. */
++	ipg_w32((ipg_r32(MAC_CTRL) | IPG_MC_RX_ENABLE | IPG_MC_TX_ENABLE) &
++		 IPG_MC_RSVD_MASK, MAC_CTRL);
++
++	netif_start_queue(dev);
++out:
++	return rc;
++
++err_release_tfdlist_3:
++	ipg_tx_clear(sp);
++	ipg_rx_clear(sp);
++err_free_tx_2:
++	dma_free_coherent(&pdev->dev, IPG_TX_RING_BYTES, sp->txd, sp->txd_map);
++err_free_rx_1:
++	dma_free_coherent(&pdev->dev, IPG_RX_RING_BYTES, sp->rxd, sp->rxd_map);
++err_free_irq_0:
++	free_irq(pdev->irq, dev);
++	goto out;
++}
++
++static int ipg_nic_stop(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	struct pci_dev *pdev = sp->pdev;
++
++	IPG_DEBUG_MSG("_nic_stop\n");
++
++	netif_stop_queue(dev);
++
++	IPG_DDEBUG_MSG("RFDlistendCount = %i\n", sp->RFDlistendCount);
++	IPG_DDEBUG_MSG("RFDListCheckedCount = %i\n", sp->rxdCheckedCount);
++	IPG_DDEBUG_MSG("EmptyRFDListCount = %i\n", sp->EmptyRFDListCount);
++	IPG_DUMPTFDLIST(dev);
++
++	do {
++		(void) ipg_r16(INT_STATUS_ACK);
++
++		ipg_reset(dev, IPG_AC_GLOBAL_RESET | IPG_AC_HOST | IPG_AC_DMA);
++
++		synchronize_irq(pdev->irq);
++	} while (ipg_r16(INT_ENABLE) & IPG_IE_RSVD_MASK);
++
++	ipg_rx_clear(sp);
++
++	ipg_tx_clear(sp);
++
++	pci_free_consistent(pdev, IPG_RX_RING_BYTES, sp->rxd, sp->rxd_map);
++	pci_free_consistent(pdev, IPG_TX_RING_BYTES, sp->txd, sp->txd_map);
++
++	free_irq(pdev->irq, dev);
++
 +	return 0;
-+
-+err_mem:
-+	ERR("tehuti: %s: Tx init failed\n", priv->ndev->name);
-+	return -ENOMEM;
 +}
 +
-+/*
-+ * bdx_tx_space - calculates avalable space in TX fifo
-+ * @priv - NIC private structure
-+ * Returns avaliable space in TX fifo in bytes
-+ */
-+static inline int bdx_tx_space(struct bdx_priv *priv)
++static int ipg_nic_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
 +{
-+	struct txd_fifo *f = &priv->txd_fifo0;
-+	int fsize;
-+
-+	f->m.rptr = READ_REG(priv, f->m.reg_RPTR) & TXF_WPTR_WR_PTR;
-+	fsize = f->m.rptr - f->m.wptr;
-+	if (fsize <= 0)
-+		fsize = f->m.memsz + fsize;
-+	return (fsize);
-+}
-+
-+/* bdx_tx_transmit - send packet to NIC
-+ * @skb - packet to send
-+ * ndev - network device assigned to NIC
-+ * Return codes:
-+ * o NETDEV_TX_OK everything ok.
-+ * o NETDEV_TX_BUSY Cannot transmit packet, try later
-+ *   Usually a bug, means queue start/stop flow control is broken in
-+ *   the driver. Note: the driver must NOT put the skb in its DMA ring.
-+ * o NETDEV_TX_LOCKED Locking failed, please retry quickly.
-+ */
-+static int bdx_tx_transmit(struct sk_buff *skb, struct net_device *ndev)
-+{
-+	struct bdx_priv *priv = ndev->priv;
-+	struct txd_fifo *f = &priv->txd_fifo0;
-+	int txd_checksum = 7;	/* full checksum */
-+	int txd_lgsnd = 0;
-+	int txd_vlan_id = 0;
-+	int txd_vtag = 0;
-+	int txd_mss = 0;
-+
-+	int nr_frags = skb_shinfo(skb)->nr_frags;
-+	struct txd_desc *txdd;
-+	int len;
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int entry = sp->tx_current % IPG_TFDLIST_LENGTH;
 +	unsigned long flags;
++	struct ipg_tx *txfd;
 +
-+	ENTER;
-+	local_irq_save(flags);
-+	if (!spin_trylock(&priv->tx_lock)) {
-+		local_irq_restore(flags);
-+		DBG("%s[%s]: TX locked, returning NETDEV_TX_LOCKED\n",
-+		    BDX_DRV_NAME, ndev->name);
-+		return NETDEV_TX_LOCKED;
++	IPG_DDEBUG_MSG("_nic_hard_start_xmit\n");
++
++	/* If in 10Mbps mode, stop the transmit queue so
++	 * no more transmit frames are accepted.
++	 */
++	if (sp->tenmbpsmode)
++		netif_stop_queue(dev);
++
++	if (sp->ResetCurrentTFD) {
++		sp->ResetCurrentTFD = 0;
++		entry = 0;
 +	}
 +
-+	/* build tx descriptor */
-+	BDX_ASSERT(f->m.wptr >= f->m.memsz);	/* started with valid wptr */
-+	txdd = (struct txd_desc *)(f->m.va + f->m.wptr);
-+	if (unlikely(skb->ip_summed != CHECKSUM_PARTIAL))
-+		txd_checksum = 0;
++	txfd = sp->txd + entry;
 +
-+	if (skb_shinfo(skb)->gso_size) {
-+		txd_mss = skb_shinfo(skb)->gso_size;
-+		txd_lgsnd = 1;
-+		DBG("skb %p skb len %d gso size = %d\n", skb, skb->len,
-+		    txd_mss);
++	sp->TxBuff[entry] = skb;
++
++	/* Clear all TFC fields, except TFDDONE. */
++	txfd->tfc = cpu_to_le64(IPG_TFC_TFDDONE);
++
++	/* Specify the TFC field within the TFD. */
++	txfd->tfc |= cpu_to_le64(IPG_TFC_WORDALIGNDISABLED |
++		(IPG_TFC_FRAMEID & cpu_to_le64(sp->tx_current)) |
++		(IPG_TFC_FRAGCOUNT & (1 << 24)));
++
++	/* Request TxComplete interrupts at an interval defined
++	 * by the constant IPG_FRAMESBETWEENTXCOMPLETES.
++	 * Request TxComplete interrupt for every frame
++	 * if in 10Mbps mode to accomodate problem with 10Mbps
++	 * processing.
++	 */
++	if (sp->tenmbpsmode)
++		txfd->tfc |= cpu_to_le64(IPG_TFC_TXINDICATE);
++	else if (!((sp->tx_current - sp->tx_dirty + 1) >
++	    IPG_FRAMESBETWEENTXDMACOMPLETES)) {
++		txfd->tfc |= cpu_to_le64(IPG_TFC_TXDMAINDICATE);
++	}
++	/* Based on compilation option, determine if FCS is to be
++	 * appended to transmit frame by IPG.
++	 */
++	if (!(IPG_APPEND_FCS_ON_TX))
++		txfd->tfc |= cpu_to_le64(IPG_TFC_FCSAPPENDDISABLE);
++
++	/* Based on compilation option, determine if IP, TCP and/or
++	 * UDP checksums are to be added to transmit frame by IPG.
++	 */
++	if (IPG_ADD_IPCHECKSUM_ON_TX)
++		txfd->tfc |= cpu_to_le64(IPG_TFC_IPCHECKSUMENABLE);
++
++	if (IPG_ADD_TCPCHECKSUM_ON_TX)
++		txfd->tfc |= cpu_to_le64(IPG_TFC_TCPCHECKSUMENABLE);
++
++	if (IPG_ADD_UDPCHECKSUM_ON_TX)
++		txfd->tfc |= cpu_to_le64(IPG_TFC_UDPCHECKSUMENABLE);
++
++	/* Based on compilation option, determine if VLAN tag info is to be
++	 * inserted into transmit frame by IPG.
++	 */
++	if (IPG_INSERT_MANUAL_VLAN_TAG) {
++		txfd->tfc |= cpu_to_le64(IPG_TFC_VLANTAGINSERT |
++			((u64) IPG_MANUAL_VLAN_VID << 32) |
++			((u64) IPG_MANUAL_VLAN_CFI << 44) |
++			((u64) IPG_MANUAL_VLAN_USERPRIORITY << 45));
 +	}
 +
-+	if (vlan_tx_tag_present(skb)) {
-+		/*Cut VLAN ID to 12 bits */
-+		txd_vlan_id = vlan_tx_tag_get(skb) & BITS_MASK(12);
-+		txd_vtag = 1;
-+	}
++	/* The fragment start location within system memory is defined
++	 * by the sk_buff structure's data field. The physical address
++	 * of this location within the system's virtual memory space
++	 * is determined using the IPG_HOST2BUS_MAP function.
++	 */
++	txfd->frag_info = cpu_to_le64(pci_map_single(sp->pdev, skb->data,
++		skb->len, PCI_DMA_TODEVICE));
 +
-+	txdd->length = CPU_CHIP_SWAP16(skb->len);
-+	txdd->mss = CPU_CHIP_SWAP16(txd_mss);
-+	txdd->txd_val1 =
-+	    CPU_CHIP_SWAP32(TXD_W1_VAL
-+			    (txd_sizes[nr_frags].qwords, txd_checksum, txd_vtag,
-+			     txd_lgsnd, txd_vlan_id));
-+	DBG("=== TxD desc =====================\n");
-+	DBG("=== w1: 0x%x ================\n", txdd->txd_val1);
-+	DBG("=== w2: mss 0x%x len 0x%x\n", txdd->mss, txdd->length);
++	/* The length of the fragment within system memory is defined by
++	 * the sk_buff structure's len field.
++	 */
++	txfd->frag_info |= cpu_to_le64(IPG_TFI_FRAGLEN &
++		((u64) (skb->len & 0xffff) << 48));
 +
-+	bdx_tx_map_skb(priv, skb, txdd);
++	/* Clear the TFDDone bit last to indicate the TFD is ready
++	 * for transfer to the IPG.
++	 */
++	txfd->tfc &= cpu_to_le64(~IPG_TFC_TFDDONE);
 +
-+	/* increment TXD write pointer. In case of
-+	   fifo wrapping copy reminder of the descriptor
-+	   to the beginning */
-+	f->m.wptr += txd_sizes[nr_frags].bytes;
-+	len = f->m.wptr - f->m.memsz;
-+	if (unlikely(len >= 0)) {
-+		f->m.wptr = len;
-+		if (len > 0) {
-+			BDX_ASSERT(len > f->m.memsz);
-+			memcpy(f->m.va, f->m.va + f->m.memsz, len);
-+		}
-+	}
-+	BDX_ASSERT(f->m.wptr >= f->m.memsz);	/* finished with valid wptr */
++	spin_lock_irqsave(&sp->lock, flags);
 +
-+	priv->tx_level -= txd_sizes[nr_frags].bytes;
-+	BDX_ASSERT(priv->tx_level <= 0 || priv->tx_level > BDX_MAX_TX_LEVEL);
-+#ifdef BDX_DELAY_WPTR
-+	if (priv->tx_level > priv->tx_update_mark) {
-+		/* Force memory writes to complete before letting h/w
-+		   know there are new descriptors to fetch.
-+		   (might be needed on platforms like IA64)
-+		   wmb(); */
-+		WRITE_REG(priv, f->m.reg_WPTR, f->m.wptr & TXF_WPTR_WR_PTR);
-+	} else {
-+		if (priv->tx_noupd++ > BDX_NO_UPD_PACKETS) {
-+			priv->tx_noupd = 0;
-+			WRITE_REG(priv, f->m.reg_WPTR,
-+				  f->m.wptr & TXF_WPTR_WR_PTR);
-+		}
-+	}
-+#else
-+	/* Force memory writes to complete before letting h/w
-+	   know there are new descriptors to fetch.
-+	   (might be needed on platforms like IA64)
-+	   wmb(); */
-+	WRITE_REG(priv, f->m.reg_WPTR, f->m.wptr & TXF_WPTR_WR_PTR);
++	sp->tx_current++;
 +
-+#endif
-+	ndev->trans_start = jiffies;
++	mmiowb();
 +
-+	priv->net_stats.tx_packets++;
-+	priv->net_stats.tx_bytes += skb->len;
++	ipg_w32(IPG_DC_TX_DMA_POLL_NOW, DMA_CTRL);
 +
-+	if (priv->tx_level < BDX_MIN_TX_LEVEL) {
-+		DBG("%s: %s: TX Q STOP level %d\n",
-+		    BDX_DRV_NAME, ndev->name, priv->tx_level);
-+		netif_stop_queue(ndev);
-+	}
++	if (sp->tx_current == (sp->tx_dirty + IPG_TFDLIST_LENGTH))
++		netif_wake_queue(dev);
 +
-+	spin_unlock_irqrestore(&priv->tx_lock, flags);
++	spin_unlock_irqrestore(&sp->lock, flags);
++
 +	return NETDEV_TX_OK;
 +}
 +
-+/* bdx_tx_cleanup - clean TXF fifo, run in the context of IRQ.
-+ * @priv - bdx adapter
-+ * It scans TXF fifo for descriptors, frees DMA mappings and reports to OS
-+ * that those packets were sent
-+ */
-+static void bdx_tx_cleanup(struct bdx_priv *priv)
++static void ipg_set_phy_default_param(unsigned char rev,
++				      struct net_device *dev, int phy_address)
 +{
-+	struct txf_fifo *f = &priv->txf_fifo0;
-+	struct txdb *db = &priv->txdb;
-+	int tx_level = 0;
++	unsigned short length;
++	unsigned char revision;
++	unsigned short *phy_param;
++	unsigned short address, value;
 +
-+	ENTER;
-+	f->m.wptr = READ_REG(priv, f->m.reg_WPTR) & TXF_WPTR_MASK;
-+	BDX_ASSERT(f->m.rptr >= f->m.memsz);	/* started with valid rptr */
-+
-+	while (f->m.wptr != f->m.rptr) {
-+		f->m.rptr += BDX_TXF_DESC_SZ;
-+		f->m.rptr &= f->m.size_mask;
-+
-+		/* unmap all the fragments */
-+		/* first has to come tx_maps containing dma */
-+		BDX_ASSERT(db->rptr->len == 0);
-+		do {
-+			BDX_ASSERT(db->rptr->addr.dma == 0);
-+			pci_unmap_page(priv->pdev, db->rptr->addr.dma,
-+				       db->rptr->len, PCI_DMA_TODEVICE);
-+			bdx_tx_db_inc_rptr(db);
-+		} while (db->rptr->len > 0);
-+		tx_level -= db->rptr->len;	/* '-' koz len is negative */
-+
-+		/* now should come skb pointer - free it */
-+		BDX_ASSERT(db->rptr->addr.skb == 0);
-+		dev_kfree_skb_irq(db->rptr->addr.skb);
-+		bdx_tx_db_inc_rptr(db);
-+	}
-+
-+	/* let h/w know which TXF descriptors were cleaned */
-+	BDX_ASSERT((f->m.wptr & TXF_WPTR_WR_PTR) >= f->m.memsz);
-+	WRITE_REG(priv, f->m.reg_RPTR, f->m.rptr & TXF_WPTR_WR_PTR);
-+
-+	/* We reclaimed resources, so in case the Q is stopped by xmit callback,
-+	 * we resume the transmition and use tx_lock to synchronize with xmit.*/
-+	spin_lock(&priv->tx_lock);
-+	priv->tx_level += tx_level;
-+	BDX_ASSERT(priv->tx_level <= 0 || priv->tx_level > BDX_MAX_TX_LEVEL);
-+#ifdef BDX_DELAY_WPTR
-+	if (priv->tx_noupd) {
-+		priv->tx_noupd = 0;
-+		WRITE_REG(priv, priv->txd_fifo0.m.reg_WPTR,
-+			  priv->txd_fifo0.m.wptr & TXF_WPTR_WR_PTR);
-+	}
-+#endif
-+
-+	if (unlikely(netif_queue_stopped(priv->ndev)
-+		     && netif_carrier_ok(priv->ndev)
-+		     && (priv->tx_level >= BDX_MIN_TX_LEVEL))) {
-+		DBG("%s: %s: TX Q WAKE level %d\n",
-+		    BDX_DRV_NAME, priv->ndev->name, priv->tx_level);
-+		netif_wake_queue(priv->ndev);
-+	}
-+	spin_unlock(&priv->tx_lock);
-+}
-+
-+/* bdx_tx_free_skbs - frees all skbs from TXD fifo.
-+ * It gets called when OS stops this dev, eg upon "ifconfig down" or rmmod
-+ */
-+static void bdx_tx_free_skbs(struct bdx_priv *priv)
-+{
-+	struct txdb *db = &priv->txdb;
-+
-+	ENTER;
-+	while (db->rptr != db->wptr) {
-+		if (likely(db->rptr->len))
-+			pci_unmap_page(priv->pdev, db->rptr->addr.dma,
-+				       db->rptr->len, PCI_DMA_TODEVICE);
-+		else
-+			dev_kfree_skb(db->rptr->addr.skb);
-+		bdx_tx_db_inc_rptr(db);
-+	}
-+	RET();
-+}
-+
-+/* bdx_tx_free - frees all Tx resources */
-+static void bdx_tx_free(struct bdx_priv *priv)
-+{
-+	ENTER;
-+	bdx_tx_free_skbs(priv);
-+	bdx_fifo_free(priv, &priv->txd_fifo0.m);
-+	bdx_fifo_free(priv, &priv->txf_fifo0.m);
-+	bdx_tx_db_close(&priv->txdb);
-+}
-+
-+/* bdx_tx_push_desc - push descriptor to TxD fifo
-+ * @priv - NIC private structure
-+ * @data - desc's data
-+ * @size - desc's size
-+ *
-+ * Pushes desc to TxD fifo and overlaps it if needed.
-+ * NOTE: this func does not check for available space. this is responsibility
-+ *    of the caller. Neither does it check that data size is smaller then
-+ *    fifo size.
-+ */
-+static void bdx_tx_push_desc(struct bdx_priv *priv, void *data, int size)
-+{
-+	struct txd_fifo *f = &priv->txd_fifo0;
-+	int i = f->m.memsz - f->m.wptr;
-+
-+	if (size == 0)
-+		return;
-+
-+	if (i > size) {
-+		memcpy(f->m.va + f->m.wptr, data, size);
-+		f->m.wptr += size;
-+	} else {
-+		memcpy(f->m.va + f->m.wptr, data, i);
-+		f->m.wptr = size - i;
-+		memcpy(f->m.va, data + i, f->m.wptr);
-+	}
-+	WRITE_REG(priv, f->m.reg_WPTR, f->m.wptr & TXF_WPTR_WR_PTR);
-+}
-+
-+/* bdx_tx_push_desc_safe - push descriptor to TxD fifo in a safe way
-+ * @priv - NIC private structure
-+ * @data - desc's data
-+ * @size - desc's size
-+ *
-+ * NOTE: this func does check for available space and, if neccessary, waits for
-+ *   NIC to read existing data before writing new one.
-+ */
-+static void bdx_tx_push_desc_safe(struct bdx_priv *priv, void *data, int size)
-+{
-+	int timer = 0;
-+	ENTER;
-+
-+	while (size > 0) {
-+		/* we substruct 8 because when fifo is full rptr == wptr
-+		   which also means that fifo is empty, we can understand
-+		   the difference, but could hw do the same ??? :) */
-+		int avail = bdx_tx_space(priv) - 8;
-+		if (avail <= 0) {
-+			if (timer++ > 300) {	/* prevent endless loop */
-+				DBG("timeout while writing desc to TxD fifo\n");
-+				break;
++	phy_param = &DefaultPhyParam[0];
++	length = *phy_param & 0x00FF;
++	revision = (unsigned char)((*phy_param) >> 8);
++	phy_param++;
++	while (length != 0) {
++		if (rev == revision) {
++			while (length > 1) {
++				address = *phy_param;
++				value = *(phy_param + 1);
++				phy_param += 2;
++				mdio_write(dev, phy_address, address, value);
++				length -= 4;
 +			}
-+			udelay(50);	/* give hw a chance to clean fifo */
-+			continue;
++			break;
++		} else {
++			phy_param += length / 2;
++			length = *phy_param & 0x00FF;
++			revision = (unsigned char)((*phy_param) >> 8);
++			phy_param++;
 +		}
-+		avail = MIN(avail, size);
-+		DBG("about to push  %d bytes starting %p size %d\n", avail,
-+		    data, size);
-+		bdx_tx_push_desc(priv, data, avail);
-+		size -= avail;
-+		data += avail;
 +	}
-+	RET();
 +}
 +
-+/**
-+ * bdx_probe - Device Initialization Routine
-+ * @pdev: PCI device information struct
-+ * @ent: entry in bdx_pci_tbl
-+ *
-+ * Returns 0 on success, negative on failure
-+ *
-+ * bdx_probe initializes an adapter identified by a pci_dev structure.
-+ * The OS initialization, configuring of the adapter private structure,
-+ * and a hardware reset occur.
-+ *
-+ * functions and their order used as explained in
-+ * /usr/src/linux/Documentation/DMA-{API,mapping}.txt
-+ *
-+ */
-+
-+/* TBD: netif_msg should be checked and implemented. I disable it for now */
-+static int __devinit
-+bdx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++/* JES20040127EEPROM */
++static int read_eeprom(struct net_device *dev, int eep_addr)
 +{
-+	struct net_device *ndev;
-+	struct bdx_priv *priv;
-+	int err, pci_using_dac, port;
-+	unsigned long pciaddr;
-+	u32 regionSize;
-+	struct pci_nic *nic;
++	void __iomem *ioaddr = ipg_ioaddr(dev);
++	unsigned int i;
++	int ret = 0;
++	u16 value;
 +
-+	ENTER;
++	value = IPG_EC_EEPROM_READOPCODE | (eep_addr & 0xff);
++	ipg_w16(value, EEPROM_CTRL);
 +
-+	nic = vmalloc(sizeof(*nic));
-+	if (!nic)
-+		RET(-ENOMEM);
++	for (i = 0; i < 1000; i++) {
++		u16 data;
 +
-+    /************** pci *****************/
-+	if ((err = pci_enable_device(pdev)))	/* it trigers interrupt, dunno why. */
-+		RET(err);			/* it's not a problem though */
-+
-+	if (!(err = pci_set_dma_mask(pdev, DMA_64BIT_MASK)) &&
-+	    !(err = pci_set_consistent_dma_mask(pdev, DMA_64BIT_MASK))) {
-+		pci_using_dac = 1;
-+	} else {
-+		if ((err = pci_set_dma_mask(pdev, DMA_32BIT_MASK)) ||
-+		    (err = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK))) {
-+			printk(KERN_ERR "tehuti: No usable DMA configuration"
-+					", aborting\n");
-+			goto err_dma;
++		mdelay(10);
++		data = ipg_r16(EEPROM_CTRL);
++		if (!(data & IPG_EC_EEPROM_BUSY)) {
++			ret = ipg_r16(EEPROM_DATA);
++			break;
 +		}
-+		pci_using_dac = 0;
 +	}
++	return ret;
++}
 +
-+	if ((err = pci_request_regions(pdev, BDX_DRV_NAME)))
-+		goto err_dma;
++static void ipg_init_mii(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	struct mii_if_info *mii_if = &sp->mii_if;
++	int phyaddr;
++
++	mii_if->dev          = dev;
++	mii_if->mdio_read    = mdio_read;
++	mii_if->mdio_write   = mdio_write;
++	mii_if->phy_id_mask  = 0x1f;
++	mii_if->reg_num_mask = 0x1f;
++
++	mii_if->phy_id = phyaddr = ipg_find_phyaddr(dev);
++
++	if (phyaddr != 0x1f) {
++		u16 mii_phyctrl, mii_1000cr;
++		u8 revisionid = 0;
++
++		mii_1000cr  = mdio_read(dev, phyaddr, MII_CTRL1000);
++		mii_1000cr |= ADVERTISE_1000FULL | ADVERTISE_1000HALF |
++			GMII_PHY_1000BASETCONTROL_PreferMaster;
++		mdio_write(dev, phyaddr, MII_CTRL1000, mii_1000cr);
++
++		mii_phyctrl = mdio_read(dev, phyaddr, MII_BMCR);
++
++		/* Set default phyparam */
++		pci_read_config_byte(sp->pdev, PCI_REVISION_ID, &revisionid);
++		ipg_set_phy_default_param(revisionid, dev, phyaddr);
++
++		/* Reset PHY */
++		mii_phyctrl |= BMCR_RESET | BMCR_ANRESTART;
++		mdio_write(dev, phyaddr, MII_BMCR, mii_phyctrl);
++
++	}
++}
++
++static int ipg_hw_init(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	void __iomem *ioaddr = sp->ioaddr;
++	unsigned int i;
++	int rc;
++
++	/* Read/Write and Reset EEPROM Value Jesse20040128EEPROM_VALUE */
++	/* Read LED Mode Configuration from EEPROM */
++	sp->LED_Mode = read_eeprom(dev, 6);
++
++	/* Reset all functions within the IPG. Do not assert
++	 * RST_OUT as not compatible with some PHYs.
++	 */
++	rc = ipg_reset(dev, IPG_RESET_MASK);
++	if (rc < 0)
++		goto out;
++
++	ipg_init_mii(dev);
++
++	/* Read MAC Address from EEPROM */
++	for (i = 0; i < 3; i++)
++		sp->station_addr[i] = read_eeprom(dev, 16 + i);
++
++	for (i = 0; i < 3; i++)
++		ipg_w16(sp->station_addr[i], STATION_ADDRESS_0 + 2*i);
++
++	/* Set station address in ethernet_device structure. */
++	dev->dev_addr[0] =  ipg_r16(STATION_ADDRESS_0) & 0x00ff;
++	dev->dev_addr[1] = (ipg_r16(STATION_ADDRESS_0) & 0xff00) >> 8;
++	dev->dev_addr[2] =  ipg_r16(STATION_ADDRESS_1) & 0x00ff;
++	dev->dev_addr[3] = (ipg_r16(STATION_ADDRESS_1) & 0xff00) >> 8;
++	dev->dev_addr[4] =  ipg_r16(STATION_ADDRESS_2) & 0x00ff;
++	dev->dev_addr[5] = (ipg_r16(STATION_ADDRESS_2) & 0xff00) >> 8;
++out:
++	return rc;
++}
++
++static int ipg_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	int rc;
++
++	mutex_lock(&sp->mii_mutex);
++	rc = generic_mii_ioctl(&sp->mii_if, if_mii(ifr), cmd, NULL);
++	mutex_unlock(&sp->mii_mutex);
++
++	return rc;
++}
++
++static int ipg_nic_change_mtu(struct net_device *dev, int new_mtu)
++{
++	/* Function to accomodate changes to Maximum Transfer Unit
++	 * (or MTU) of IPG NIC. Cannot use default function since
++	 * the default will not allow for MTU > 1500 bytes.
++	 */
++
++	IPG_DEBUG_MSG("_nic_change_mtu\n");
++
++	/* Check that the new MTU value is between 68 (14 byte header, 46
++	 * byte payload, 4 byte FCS) and IPG_MAX_RXFRAME_SIZE, which
++	 * corresponds to the MAXFRAMESIZE register in the IPG.
++	 */
++	if ((new_mtu < 68) || (new_mtu > IPG_MAX_RXFRAME_SIZE))
++		return -EINVAL;
++
++	dev->mtu = new_mtu;
++
++	return 0;
++}
++
++static int ipg_get_settings(struct net_device *dev, struct ethtool_cmd *cmd)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	int rc;
++
++	mutex_lock(&sp->mii_mutex);
++	rc = mii_ethtool_gset(&sp->mii_if, cmd);
++	mutex_unlock(&sp->mii_mutex);
++
++	return rc;
++}
++
++static int ipg_set_settings(struct net_device *dev, struct ethtool_cmd *cmd)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	int rc;
++
++	mutex_lock(&sp->mii_mutex);
++	rc = mii_ethtool_sset(&sp->mii_if, cmd);
++	mutex_unlock(&sp->mii_mutex);
++
++	return rc;
++}
++
++static int ipg_nway_reset(struct net_device *dev)
++{
++	struct ipg_nic_private *sp = netdev_priv(dev);
++	int rc;
++
++	mutex_lock(&sp->mii_mutex);
++	rc = mii_nway_restart(&sp->mii_if);
++	mutex_unlock(&sp->mii_mutex);
++
++	return rc;
++}
++
++static struct ethtool_ops ipg_ethtool_ops = {
++	.get_settings = ipg_get_settings,
++	.set_settings = ipg_set_settings,
++	.nway_reset   = ipg_nway_reset,
++};
++
++static void ipg_remove(struct pci_dev *pdev)
++{
++	struct net_device *dev = pci_get_drvdata(pdev);
++	struct ipg_nic_private *sp = netdev_priv(dev);
++
++	IPG_DEBUG_MSG("_remove\n");
++
++	/* Un-register Ethernet device. */
++	unregister_netdev(dev);
++
++	pci_iounmap(pdev, sp->ioaddr);
++
++	pci_release_regions(pdev);
++
++	free_netdev(dev);
++	pci_disable_device(pdev);
++	pci_set_drvdata(pdev, NULL);
++}
++
++static int __devinit ipg_probe(struct pci_dev *pdev,
++			       const struct pci_device_id *id)
++{
++	unsigned int i = id->driver_data;
++	struct ipg_nic_private *sp;
++	struct net_device *dev;
++	void __iomem *ioaddr;
++	int rc;
++
++	rc = pci_enable_device(pdev);
++	if (rc < 0)
++		goto out;
++
++	printk(KERN_INFO "%s: %s\n", pci_name(pdev), ipg_brand_name[i]);
 +
 +	pci_set_master(pdev);
 +
-+	pciaddr = pci_resource_start(pdev, 0);
-+	if (!pciaddr) {
-+		err = -EIO;
-+		ERR("tehuti: no MMIO resource\n");
-+		goto err_out_res;
-+	}
-+	if ((regionSize = pci_resource_len(pdev, 0)) < BDX_REGS_SIZE) {
-+		err = -EIO;
-+		ERR("tehuti: MMIO resource (%x) too small\n", regionSize);
-+		goto err_out_res;
-+	}
-+
-+	nic->regs = ioremap(pciaddr, regionSize);
-+	if (!nic->regs) {
-+		err = -EIO;
-+		ERR("tehuti: ioremap failed\n");
-+		goto err_out_res;
-+	}
-+
-+	if (pdev->irq < 2) {
-+		err = -EIO;
-+		ERR("tehuti: invalid irq (%d)\n", pdev->irq);
-+		goto err_out_iomap;
-+	}
-+	pci_set_drvdata(pdev, nic);
-+
-+	if (pdev->device == 0x3014)
-+		nic->port_num = 2;
-+	else
-+		nic->port_num = 1;
-+
-+	print_hw_id(pdev);
-+
-+	bdx_hw_reset_direct(nic->regs);
-+
-+	nic->irq_type = IRQ_INTX;
-+#ifdef BDX_MSI
-+	if ((readl(nic->regs + FPGA_VER) & 0xFFF) >= 378) {
-+		if ((err = pci_enable_msi(pdev)))
-+			ERR("Tehuti: Can't eneble msi. error is %d\n", err);
-+		else
-+			nic->irq_type = IRQ_MSI;
-+	} else
-+		DBG("HW does not support MSI\n");
-+#endif
-+
-+    /************** netdev **************/
-+	for (port = 0; port < nic->port_num; port++) {
-+		if (!(ndev = alloc_etherdev(sizeof(struct bdx_priv)))) {
-+			err = -ENOMEM;
-+			printk(KERN_ERR "tehuti: alloc_etherdev failed\n");
-+			goto err_out_iomap;
++	rc = pci_set_dma_mask(pdev, DMA_40BIT_MASK);
++	if (rc < 0) {
++		rc = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++		if (rc < 0) {
++			printk(KERN_ERR "%s: DMA config failed.\n",
++			       pci_name(pdev));
++			goto err_disable_0;
 +		}
-+
-+		ndev->open = bdx_open;
-+		ndev->stop = bdx_close;
-+		ndev->hard_start_xmit = bdx_tx_transmit;
-+		ndev->do_ioctl = bdx_ioctl;
-+		ndev->set_multicast_list = bdx_setmulti;
-+		ndev->get_stats = bdx_get_stats;
-+		ndev->change_mtu = bdx_change_mtu;
-+		ndev->set_mac_address = bdx_set_mac;
-+		ndev->tx_queue_len = BDX_NDEV_TXQ_LEN;
-+		ndev->vlan_rx_register = bdx_vlan_rx_register;
-+		ndev->vlan_rx_add_vid = bdx_vlan_rx_add_vid;
-+		ndev->vlan_rx_kill_vid = bdx_vlan_rx_kill_vid;
-+		ndev->poll = bdx_poll;
-+		ndev->weight = 64;
-+
-+		bdx_ethtool_ops(ndev);	/* ethtool interface */
-+
-+		/* these fields are used for info purposes only
-+		 * so we can have them same for all ports of the board */
-+		ndev->if_port = port;
-+		ndev->base_addr = pciaddr;
-+		ndev->mem_start = pciaddr;
-+		ndev->mem_end = pciaddr + regionSize;
-+		ndev->irq = pdev->irq;
-+		ndev->features = NETIF_F_IP_CSUM | NETIF_F_SG | NETIF_F_TSO
-+		    | NETIF_F_HW_VLAN_TX | NETIF_F_HW_VLAN_RX |
-+		    NETIF_F_HW_VLAN_FILTER
-+		    /*| NETIF_F_FRAGLIST */
-+		    ;
-+
-+		if (pci_using_dac)
-+			ndev->features |= NETIF_F_HIGHDMA;
-+
-+	/************** priv ****************/
-+		priv = nic->priv[port] = ndev->priv;
-+
-+		memset(priv, 0, sizeof(struct bdx_priv));
-+		priv->pBdxRegs = nic->regs + port * 0x8000;
-+		priv->port = port;
-+		priv->pdev = pdev;
-+		priv->ndev = ndev;
-+		priv->nic = nic;
-+		priv->msg_enable = BDX_DEF_MSG_ENABLE;
-+
-+		if ((readl(nic->regs + FPGA_VER) & 0xFFF) == 308) {
-+			DBG("HW statistics not supported\n");
-+			priv->stats_flag = 0;
-+		} else {
-+			priv->stats_flag = 1;
-+		}
-+
-+		/* Initialize fifo sizes. */
-+		priv->txd_size = 2;
-+		priv->txf_size = 2;
-+		priv->rxd_size = 2;
-+		priv->rxf_size = 3;
-+
-+		/* Initialize the initial coalescing registers. */
-+		priv->rdintcm = INT_REG_VAL(0x20, 1, 4, 12);
-+		priv->tdintcm = INT_REG_VAL(0x20, 1, 0, 12);
-+
-+		/* ndev->xmit_lock spinlock is not used.
-+		 * Private priv->tx_lock is used for synchronization
-+		 * between transmit and TX irq cleanup.  In addition
-+		 * set multicast list callback has to use priv->tx_lock.
-+		 */
-+#ifdef BDX_LLTX
-+		ndev->features |= NETIF_F_LLTX;
-+#endif
-+		spin_lock_init(&priv->tx_lock);
-+
-+		/*bdx_hw_reset(priv); */
-+		if (bdx_read_mac(priv)) {
-+			printk(KERN_ERR "tehuti: load MAC address failed\n");
-+			goto err_out_iomap;
-+		}
-+		SET_MODULE_OWNER(ndev);
-+		SET_NETDEV_DEV(ndev, &pdev->dev);
-+		if ((err = register_netdev(ndev))) {
-+			printk(KERN_ERR "tehuti: register_netdev failed\n");
-+			goto err_out_free;
-+		}
-+		netif_carrier_off(ndev);
-+		netif_stop_queue(ndev);
-+
-+		print_eth_id(ndev);
 +	}
-+	RET(0);
 +
-+err_out_free:
-+	free_netdev(ndev);
-+err_out_iomap:
-+	iounmap(nic->regs);
-+err_out_res:
++	/*
++	 * Initialize net device.
++	 */
++	dev = alloc_etherdev(sizeof(struct ipg_nic_private));
++	if (!dev) {
++		printk(KERN_ERR "%s: alloc_etherdev failed\n", pci_name(pdev));
++		rc = -ENOMEM;
++		goto err_disable_0;
++	}
++
++	sp = netdev_priv(dev);
++	spin_lock_init(&sp->lock);
++	mutex_init(&sp->mii_mutex);
++
++	/* Declare IPG NIC functions for Ethernet device methods.
++	 */
++	dev->open = &ipg_nic_open;
++	dev->stop = &ipg_nic_stop;
++	dev->hard_start_xmit = &ipg_nic_hard_start_xmit;
++	dev->get_stats = &ipg_nic_get_stats;
++	dev->set_multicast_list = &ipg_nic_set_multicast_list;
++	dev->do_ioctl = ipg_ioctl;
++	dev->tx_timeout = ipg_tx_timeout;
++	dev->change_mtu = &ipg_nic_change_mtu;
++
++	SET_MODULE_OWNER(dev);
++	SET_NETDEV_DEV(dev, &pdev->dev);
++	SET_ETHTOOL_OPS(dev, &ipg_ethtool_ops);
++
++	rc = pci_request_regions(pdev, DRV_NAME);
++	if (rc)
++		goto err_free_dev_1;
++
++	ioaddr = pci_iomap(pdev, 1, pci_resource_len(pdev, 1));
++	if (!ioaddr) {
++		printk(KERN_ERR "%s cannot map MMIO\n", pci_name(pdev));
++		rc = -EIO;
++		goto err_release_regions_2;
++	}
++
++	/* Save the pointer to the PCI device information. */
++	sp->ioaddr = ioaddr;
++	sp->pdev = pdev;
++	sp->dev = dev;
++
++	INIT_DELAYED_WORK(&sp->task, ipg_reset_after_host_error);
++
++	pci_set_drvdata(pdev, dev);
++
++	rc = ipg_hw_init(dev);
++	if (rc < 0)
++		goto err_unmap_3;
++
++	rc = register_netdev(dev);
++	if (rc < 0)
++		goto err_unmap_3;
++
++	printk(KERN_INFO "Ethernet device registered as: %s\n", dev->name);
++out:
++	return rc;
++
++err_unmap_3:
++	pci_iounmap(pdev, ioaddr);
++err_release_regions_2:
 +	pci_release_regions(pdev);
-+err_dma:
++err_free_dev_1:
++	free_netdev(dev);
++err_disable_0:
 +	pci_disable_device(pdev);
-+	vfree(nic);
-+
-+	RET(err);
++	goto out;
 +}
 +
-+/****************** Ethtool interface *********************/
-+/* get strings for tests */
-+static const char
-+ bdx_test_names[][ETH_GSTRING_LEN] = {
-+	"No tests defined"
++static struct pci_driver ipg_pci_driver = {
++	.name		= IPG_DRIVER_NAME,
++	.id_table	= ipg_pci_tbl,
++	.probe		= ipg_probe,
++	.remove		= __devexit_p(ipg_remove),
 +};
 +
-+/* get strings for statistics counters */
-+static const char
-+ bdx_stat_names[][ETH_GSTRING_LEN] = {
-+	"InUCast",		/* 0x7200 */
-+	"InMCast",		/* 0x7210 */
-+	"InBCast",		/* 0x7220 */
-+	"InPkts",		/* 0x7230 */
-+	"InErrors",		/* 0x7240 */
-+	"InDropped",		/* 0x7250 */
-+	"FrameTooLong",		/* 0x7260 */
-+	"FrameSequenceErrors",	/* 0x7270 */
-+	"InVLAN",		/* 0x7280 */
-+	"InDroppedDFE",		/* 0x7290 */
-+	"InDroppedIntFull",	/* 0x72A0 */
-+	"InFrameAlignErrors",	/* 0x72B0 */
-+
-+	/* 0x72C0-0x72E0 RSRV */
-+
-+	"OutUCast",		/* 0x72F0 */
-+	"OutMCast",		/* 0x7300 */
-+	"OutBCast",		/* 0x7310 */
-+	"OutPkts",		/* 0x7320 */
-+
-+	/* 0x7330-0x7360 RSRV */
-+
-+	"OutVLAN",		/* 0x7370 */
-+	"InUCastOctects",	/* 0x7380 */
-+	"OutUCastOctects",	/* 0x7390 */
-+
-+	/* 0x73A0-0x73B0 RSRV */
-+
-+	"InBCastOctects",	/* 0x73C0 */
-+	"OutBCastOctects",	/* 0x73D0 */
-+	"InOctects",		/* 0x73E0 */
-+	"OutOctects",		/* 0x73F0 */
-+};
-+
-+/*
-+ * bdx_get_settings - get device-specific settings
-+ * @netdev
-+ * @ecmd
-+ */
-+static int bdx_get_settings(struct net_device *netdev, struct ethtool_cmd *ecmd)
++static int __init ipg_init_module(void)
 +{
-+	u32 rdintcm;
-+	u32 tdintcm;
-+	struct bdx_priv *priv = netdev->priv;
-+
-+	rdintcm = priv->rdintcm;
-+	tdintcm = priv->tdintcm;
-+
-+	ecmd->supported = (SUPPORTED_10000baseT_Full | SUPPORTED_FIBRE);
-+	ecmd->advertising = (ADVERTISED_10000baseT_Full | ADVERTISED_FIBRE);
-+	ecmd->speed = SPEED_10000;
-+	ecmd->duplex = DUPLEX_FULL;
-+	ecmd->port = PORT_FIBRE;
-+	ecmd->transceiver = XCVR_EXTERNAL;	/* what does it mean? */
-+	ecmd->autoneg = AUTONEG_DISABLE;
-+
-+	/* PCK_TH measures in multiples of FIFO bytes
-+	   We translate to packets */
-+	ecmd->maxtxpkt =
-+	    ((GET_PCK_TH(tdintcm) * PCK_TH_MULT) / BDX_TXF_DESC_SZ);
-+	ecmd->maxrxpkt =
-+	    ((GET_PCK_TH(rdintcm) * PCK_TH_MULT) / sizeof(struct rxf_desc));
-+
-+	return 0;
++	return pci_register_driver(&ipg_pci_driver);
 +}
 +
-+/*
-+ * bdx_get_drvinfo - report driver information
-+ * @netdev
-+ * @drvinfo
-+ */
-+static void
-+bdx_get_drvinfo(struct net_device *netdev, struct ethtool_drvinfo *drvinfo)
++static void __exit ipg_exit_module(void)
 +{
-+	struct bdx_priv *priv = netdev->priv;
-+
-+	strncat(drvinfo->driver, BDX_DRV_NAME, sizeof(drvinfo->driver));
-+	strncat(drvinfo->version, BDX_DRV_VERSION, sizeof(drvinfo->version));
-+	strncat(drvinfo->fw_version, "N/A", sizeof(drvinfo->fw_version));
-+	strncat(drvinfo->bus_info, pci_name(priv->pdev),
-+		sizeof(drvinfo->bus_info));
-+
-+	drvinfo->n_stats = ((priv->stats_flag) ?
-+			    (sizeof(bdx_stat_names) / ETH_GSTRING_LEN) : 0);
-+	drvinfo->testinfo_len = 0;
-+	drvinfo->regdump_len = 0;
-+	drvinfo->eedump_len = 0;
++	pci_unregister_driver(&ipg_pci_driver);
 +}
 +
-+/*
-+ * bdx_get_rx_csum - report whether receive checksums are turned on or off
-+ * @netdev
-+ */
-+static u32 bdx_get_rx_csum(struct net_device *netdev)
-+{
-+	return 1;		/* always on */
-+}
-+
-+/*
-+ * bdx_get_tx_csum - report whether transmit checksums are turned on or off
-+ * @netdev
-+ */
-+static u32 bdx_get_tx_csum(struct net_device *netdev)
-+{
-+	return (netdev->features & NETIF_F_IP_CSUM) != 0;
-+}
-+
-+/*
-+ * bdx_get_coalesce - get interrupt coalescing parameters
-+ * @netdev
-+ * @ecoal
-+ */
-+static int
-+bdx_get_coalesce(struct net_device *netdev, struct ethtool_coalesce *ecoal)
-+{
-+	u32 rdintcm;
-+	u32 tdintcm;
-+	struct bdx_priv *priv = netdev->priv;
-+
-+	rdintcm = priv->rdintcm;
-+	tdintcm = priv->tdintcm;
-+
-+	/* PCK_TH measures in multiples of FIFO bytes
-+	   We translate to packets */
-+	ecoal->rx_coalesce_usecs = GET_INT_COAL(rdintcm) * INT_COAL_MULT;
-+	ecoal->rx_max_coalesced_frames =
-+	    ((GET_PCK_TH(rdintcm) * PCK_TH_MULT) / sizeof(struct rxf_desc));
-+
-+	ecoal->tx_coalesce_usecs = GET_INT_COAL(tdintcm) * INT_COAL_MULT;
-+	ecoal->tx_max_coalesced_frames =
-+	    ((GET_PCK_TH(tdintcm) * PCK_TH_MULT) / BDX_TXF_DESC_SZ);
-+
-+	/* adaptive parameters ignored */
-+	return 0;
-+}
-+
-+/*
-+ * bdx_set_coalesce - set interrupt coalescing parameters
-+ * @netdev
-+ * @ecoal
-+ */
-+static int
-+bdx_set_coalesce(struct net_device *netdev, struct ethtool_coalesce *ecoal)
-+{
-+	u32 rdintcm;
-+	u32 tdintcm;
-+	struct bdx_priv *priv = netdev->priv;
-+	int rx_coal;
-+	int tx_coal;
-+	int rx_max_coal;
-+	int tx_max_coal;
-+
-+	/* Check for valid input */
-+	rx_coal = ecoal->rx_coalesce_usecs / INT_COAL_MULT;
-+	tx_coal = ecoal->tx_coalesce_usecs / INT_COAL_MULT;
-+	rx_max_coal = ecoal->rx_max_coalesced_frames;
-+	tx_max_coal = ecoal->tx_max_coalesced_frames;
-+
-+	/* Translate from packets to multiples of FIFO bytes */
-+	rx_max_coal =
-+	    (((rx_max_coal * sizeof(struct rxf_desc)) + PCK_TH_MULT - 1)
-+	     / PCK_TH_MULT);
-+	tx_max_coal =
-+	    (((tx_max_coal * BDX_TXF_DESC_SZ) + PCK_TH_MULT - 1)
-+	     / PCK_TH_MULT);
-+
-+	if ((rx_coal > 0x7FFF) || (tx_coal > 0x7FFF)
-+	    || (rx_max_coal > 0xF) || (tx_max_coal > 0xF))
-+		return -EINVAL;
-+
-+	rdintcm = INT_REG_VAL(rx_coal, GET_INT_COAL_RC(priv->rdintcm),
-+			      GET_RXF_TH(priv->rdintcm), rx_max_coal);
-+	tdintcm = INT_REG_VAL(tx_coal, GET_INT_COAL_RC(priv->tdintcm), 0,
-+			      tx_max_coal);
-+
-+	priv->rdintcm = rdintcm;
-+	priv->tdintcm = tdintcm;
-+
-+	WRITE_REG(priv, regRDINTCM0, rdintcm);
-+	WRITE_REG(priv, regTDINTCM0, tdintcm);
-+
-+	return 0;
-+}
-+
-+/* Convert RX fifo size to number of pending packets */
-+static inline int bdx_rx_fifo_size_to_packets(int rx_size)
-+{
-+	return ((FIFO_SIZE * (1 << rx_size)) / sizeof(struct rxf_desc));
-+}
-+
-+/* Convert TX fifo size to number of pending packets */
-+static inline int bdx_tx_fifo_size_to_packets(int tx_size)
-+{
-+	return ((FIFO_SIZE * (1 << tx_size)) / BDX_TXF_DESC_SZ);
-+}
-+
-+/*
-+ * bdx_get_ringparam - report ring sizes
-+ * @netdev
-+ * @ring
-+ */
-+static void
-+bdx_get_ringparam(struct net_device *netdev, struct ethtool_ringparam *ring)
-+{
-+	struct bdx_priv *priv = netdev->priv;
-+
-+	/*max_pending - the maximum-sized FIFO we allow */
-+	ring->rx_max_pending = bdx_rx_fifo_size_to_packets(3);
-+	ring->tx_max_pending = bdx_tx_fifo_size_to_packets(3);
-+	ring->rx_pending = bdx_rx_fifo_size_to_packets(priv->rxf_size);
-+	ring->tx_pending = bdx_tx_fifo_size_to_packets(priv->txd_size);
-+}
-+
-+/*
-+ * bdx_set_ringparam - set ring sizes
-+ * @netdev
-+ * @ring
-+ */
-+static int
-+bdx_set_ringparam(struct net_device *netdev, struct ethtool_ringparam *ring)
-+{
-+	struct bdx_priv *priv = netdev->priv;
-+	int rx_size = 0;
-+	int tx_size = 0;
-+
-+	for (; rx_size < 4; rx_size++) {
-+		if (bdx_rx_fifo_size_to_packets(rx_size) >= ring->rx_pending)
-+			break;
-+	}
-+	if (rx_size == 4)
-+		rx_size = 3;
-+
-+	for (; tx_size < 4; tx_size++) {
-+		if (bdx_tx_fifo_size_to_packets(tx_size) >= ring->tx_pending)
-+			break;
-+	}
-+	if (tx_size == 4)
-+		tx_size = 3;
-+
-+	/*Is there anything to do? */
-+	if ((rx_size == priv->rxf_size)
-+	    && (tx_size == priv->txd_size))
-+		return 0;
-+
-+	priv->rxf_size = rx_size;
-+	if (rx_size > 1)
-+		priv->rxd_size = rx_size - 1;
-+	else
-+		priv->rxd_size = rx_size;
-+
-+	priv->txf_size = priv->txd_size = tx_size;
-+
-+	if (netif_running(netdev)) {
-+		bdx_close(netdev);
-+		bdx_open(netdev);
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * bdx_get_strings - return a set of strings that describe the requested objects
-+ * @netdev
-+ * @data
-+ */
-+static void bdx_get_strings(struct net_device *netdev, u32 stringset, u8 *data)
-+{
-+	switch (stringset) {
-+	case ETH_SS_TEST:
-+		memcpy(data, *bdx_test_names, sizeof(bdx_test_names));
-+		break;
-+	case ETH_SS_STATS:
-+		memcpy(data, *bdx_stat_names, sizeof(bdx_stat_names));
-+		break;
-+	}
-+}
-+
-+/*
-+ * bdx_get_stats_count - return number of 64bit statistics counters
-+ * @netdev
-+ */
-+static int bdx_get_stats_count(struct net_device *netdev)
-+{
-+	struct bdx_priv *priv = netdev->priv;
-+	BDX_ASSERT(sizeof(bdx_stat_names) / ETH_GSTRING_LEN
-+		   != sizeof(struct bdx_stats) / sizeof(u64));
-+	return ((priv->stats_flag) ? (sizeof(bdx_stat_names) / ETH_GSTRING_LEN)
-+		: 0);
-+}
-+
-+/*
-+ * bdx_get_ethtool_stats - return device's hardware L2 statistics
-+ * @netdev
-+ * @stats
-+ * @data
-+ */
-+static void bdx_get_ethtool_stats(struct net_device *netdev,
-+				  struct ethtool_stats *stats, u64 *data)
-+{
-+	struct bdx_priv *priv = netdev->priv;
-+
-+	if (priv->stats_flag) {
-+
-+		/* Update stats from HW */
-+		bdx_update_stats(priv);
-+
-+		/* Copy data to user buffer */
-+		memcpy(data, &priv->hw_stats, sizeof(priv->hw_stats));
-+	}
-+}
-+
-+/*
-+ * bdx_ethtool_ops - ethtool interface implementation
-+ * @netdev
-+ */
-+static void bdx_ethtool_ops(struct net_device *netdev)
-+{
-+	static struct ethtool_ops bdx_ethtool_ops = {
-+		.get_settings = bdx_get_settings,
-+		.get_drvinfo = bdx_get_drvinfo,
-+		.get_link = ethtool_op_get_link,
-+		.get_coalesce = bdx_get_coalesce,
-+		.set_coalesce = bdx_set_coalesce,
-+		.get_ringparam = bdx_get_ringparam,
-+		.set_ringparam = bdx_set_ringparam,
-+		.get_rx_csum = bdx_get_rx_csum,
-+		.get_tx_csum = bdx_get_tx_csum,
-+		.get_sg = ethtool_op_get_sg,
-+		.get_tso = ethtool_op_get_tso,
-+		.get_strings = bdx_get_strings,
-+		.get_stats_count = bdx_get_stats_count,
-+		.get_ethtool_stats = bdx_get_ethtool_stats,
-+	};
-+
-+	SET_ETHTOOL_OPS(netdev, &bdx_ethtool_ops);
-+}
-+
-+/**
-+ * bdx_remove - Device Removal Routine
-+ * @pdev: PCI device information struct
-+ *
-+ * bdx_remove is called by the PCI subsystem to alert the driver
-+ * that it should release a PCI device.  The could be caused by a
-+ * Hot-Plug event, or because the driver is going to be removed from
-+ * memory.
-+ **/
-+static void __devexit bdx_remove(struct pci_dev *pdev)
-+{
-+	struct pci_nic *nic = pci_get_drvdata(pdev);
-+	struct net_device *ndev;
-+	int port;
-+
-+	for (port = 0; port < nic->port_num; port++) {
-+		ndev = nic->priv[port]->ndev;
-+		unregister_netdev(ndev);
-+		free_netdev(ndev);
-+	}
-+
-+	/*bdx_hw_reset_direct(nic->regs); */
-+#ifdef BDX_MSI
-+	if (nic->irq_type == IRQ_MSI)
-+		pci_disable_msi(pdev);
-+#endif
-+
-+	iounmap(nic->regs);
-+	pci_release_regions(pdev);
-+	pci_disable_device(pdev);
-+	pci_set_drvdata(pdev, NULL);
-+	vfree(nic);
-+
-+	RET();
-+}
-+
-+static struct pci_driver bdx_pci_driver = {
-+	.name = BDX_DRV_NAME,
-+	.id_table = bdx_pci_tbl,
-+	.probe = bdx_probe,
-+	.remove = __devexit_p(bdx_remove),
-+};
-+
-+/*
-+ * print_driver_id - print parameters of the driver build
-+ */
-+static void __init print_driver_id(void)
-+{
-+	printk(KERN_INFO "%s: %s, %s\n", BDX_DRV_NAME, BDX_DRV_DESC,
-+	       BDX_DRV_VERSION);
-+	printk(KERN_INFO "%s: Options: hw_csum %s\n", BDX_DRV_NAME,
-+	       BDX_MSI_STRING);
-+}
-+
-+static int __init bdx_module_init(void)
-+{
-+	ENTER;
-+	bdx_firmware_endianess();
-+	init_txd_sizes();
-+	print_driver_id();
-+	RET(pci_register_driver(&bdx_pci_driver));
-+}
-+
-+module_init(bdx_module_init);
-+
-+static void __exit bdx_module_exit(void)
-+{
-+	ENTER;
-+	pci_unregister_driver(&bdx_pci_driver);
-+	RET();
-+}
-+
-+module_exit(bdx_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR(DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(BDX_DRV_DESC);
-diff --git a/drivers/net/tehuti.h b/drivers/net/tehuti.h
-new file mode 100644
-index 0000000..9868976
++module_init(ipg_init_module);
++module_exit(ipg_exit_module);
+diff -puN /dev/null drivers/net/ipg.h
 --- /dev/null
-+++ b/drivers/net/tehuti.h
-@@ -0,0 +1,562 @@
++++ a/drivers/net/ipg.h
+@@ -0,0 +1,856 @@
 +/*
-+ * Tehuti Networks(R) Network Driver
-+ * Copyright (C) 2007 Tehuti Networks Ltd. All rights reserved
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * ipg.h
++ *
++ * Include file for Gigabit Ethernet device driver for Network
++ * Interface Cards (NICs) utilizing the Tamarack Microelectronics
++ * Inc. IPG Gigabit or Triple Speed Ethernet Media Access
++ * Controller.
++ *
++ * Craig Rich
++ * Sundance Technology, Inc.
++ * 1485 Saratoga Avenue
++ * Suite 200
++ * San Jose, CA 95129
++ * 408 873 4117
++ * www.sundanceti.com
++ * craig_rich@sundanceti.com
 + */
++#ifndef __LINUX_IPG_H
++#define __LINUX_IPG_H
 +
-+#ifndef _TEHUTI_H
-+#define _TEHUTI_H
-+
++#include <linux/version.h>
 +#include <linux/module.h>
++
 +#include <linux/kernel.h>
++#include <linux/pci.h>
++#include <linux/ioport.h>
++#include <linux/errno.h>
++#include <asm/io.h>
++#include <linux/delay.h>
++#include <linux/types.h>
 +#include <linux/netdevice.h>
 +#include <linux/etherdevice.h>
-+#include <linux/pci.h>
-+#include <linux/delay.h>
-+#include <linux/ethtool.h>
-+#include <linux/mii.h>
-+#include <linux/crc32.h>
-+#include <linux/uaccess.h>
-+#include <linux/in.h>
-+#include <linux/ip.h>
-+#include <linux/tcp.h>
-+#include <linux/sched.h>
-+#include <linux/tty.h>
-+#include <linux/if_vlan.h>
++#include <linux/init.h>
++#include <linux/skbuff.h>
 +#include <linux/version.h>
-+#include <linux/interrupt.h>
-+#include <linux/vmalloc.h>
-+#include <asm/byteorder.h>
++#include <asm/bitops.h>
++/*#include <asm/spinlock.h>*/
 +
-+/* Compile Time Switches */
-+/* start */
-+#define BDX_TSO
-+#define BDX_LLTX
-+#define BDX_DELAY_WPTR
-+/* #define BDX_MSI */
-+/* end */
++#define DrvVer "2.09d"
 +
-+#if !defined CONFIG_PCI_MSI
-+#   undef BDX_MSI
-+#endif
-+
-+#define BDX_DEF_MSG_ENABLE	(NETIF_MSG_DRV          | \
-+				NETIF_MSG_PROBE        | \
-+				NETIF_MSG_LINK)
-+
-+/* ioctl ops */
-+#define BDX_OP_READ  1
-+#define BDX_OP_WRITE 2
-+
-+/* RX copy break size */
-+#define BDX_COPYBREAK    257
-+
-+#define DRIVER_AUTHOR     "Tehuti Networks(R)"
-+#define BDX_DRV_DESC      "Tehuti Networks(R) Network Driver"
-+#define BDX_DRV_NAME      "tehuti"
-+#define BDX_NIC_NAME      "Tehuti 10 Giga TOE SmartNIC"
-+#define BDX_NIC2PORT_NAME "Tehuti 2-Port 10 Giga TOE SmartNIC"
-+#define BDX_DRV_VERSION   "7.29.3"
-+
-+#ifdef BDX_MSI
-+#    define BDX_MSI_STRING "msi "
-+#else
-+#    define BDX_MSI_STRING ""
-+#endif
-+
-+/* netdev tx queue len for Luxor. default value is, btw, 1000
-+ * ifcontig eth1 txqueuelen 3000 - to change it at runtime */
-+#define BDX_NDEV_TXQ_LEN 3000
-+
-+#define FIFO_SIZE  4096
-+#define FIFO_EXTRA_SPACE            1024
-+
-+#define MIN(x, y)  ((x) < (y) ? (x) : (y))
-+
-+#if BITS_PER_LONG == 64
-+#    define H32_64(x)  (u32) ((u64)(x) >> 32)
-+#    define L32_64(x)  (u32) ((u64)(x) & 0xffffffff)
-+#elif BITS_PER_LONG == 32
-+#    define H32_64(x)  0
-+#    define L32_64(x)  ((u32) (x))
-+#else				/* BITS_PER_LONG == ?? */
-+#    error BITS_PER_LONG is undefined. Must be 64 or 32
-+#endif				/* BITS_PER_LONG */
-+
-+#ifdef __BIG_ENDIAN
-+#   define CPU_CHIP_SWAP32(x) swab32(x)
-+#   define CPU_CHIP_SWAP16(x) swab16(x)
-+#else
-+#   define CPU_CHIP_SWAP32(x) (x)
-+#   define CPU_CHIP_SWAP16(x) (x)
-+#endif
-+
-+#define READ_REG(pp, reg)         readl(pp->pBdxRegs + reg)
-+#define WRITE_REG(pp, reg, val)   writel(val, pp->pBdxRegs + reg)
-+
-+#ifndef DMA_64BIT_MASK
-+#   define DMA_64BIT_MASK  0xffffffffffffffffULL
-+#endif
-+
-+#ifndef DMA_32BIT_MASK
-+#   define DMA_32BIT_MASK  0x00000000ffffffffULL
-+#endif
-+
-+#ifndef NET_IP_ALIGN
-+#   define NET_IP_ALIGN 2
-+#endif
-+
-+#ifndef NETDEV_TX_OK
-+#   define NETDEV_TX_OK 0
-+#endif
-+
-+#define LUXOR_MAX_PORT     2
-+#define BDX_MAX_RX_DONE    150
-+#define BDX_TXF_DESC_SZ    16
-+#define BDX_MAX_TX_LEVEL   (priv->txd_fifo0.m.memsz - 16)
-+#define BDX_MIN_TX_LEVEL   256
-+#define BDX_NO_UPD_PACKETS 40
-+
-+struct pci_nic {
-+	int port_num;
-+	void __iomem *regs;
-+	int irq_type;
-+	struct bdx_priv *priv[LUXOR_MAX_PORT];
-+};
-+
-+enum { IRQ_INTX, IRQ_MSI, IRQ_MSIX };
-+
-+#define PCK_TH_MULT   128
-+#define INT_COAL_MULT 2
-+
-+#define BITS_MASK(nbits)			((1<<nbits)-1)
-+#define GET_BITS_SHIFT(x, nbits, nshift)	(((x)>>nshift)&BITS_MASK(nbits))
-+#define BITS_SHIFT_MASK(nbits, nshift)		(BITS_MASK(nbits)<<nshift)
-+#define BITS_SHIFT_VAL(x, nbits, nshift)	(((x)&BITS_MASK(nbits))<<nshift)
-+#define BITS_SHIFT_CLEAR(x, nbits, nshift)	\
-+	((x)&(~BITS_SHIFT_MASK(nbits, nshift)))
-+
-+#define GET_INT_COAL(x)				GET_BITS_SHIFT(x, 15, 0)
-+#define GET_INT_COAL_RC(x)			GET_BITS_SHIFT(x, 1, 15)
-+#define GET_RXF_TH(x)				GET_BITS_SHIFT(x, 4, 16)
-+#define GET_PCK_TH(x)				GET_BITS_SHIFT(x, 4, 20)
-+
-+#define INT_REG_VAL(coal, coal_rc, rxf_th, pck_th)	\
-+	((coal)|((coal_rc)<<15)|((rxf_th)<<16)|((pck_th)<<20))
-+
-+struct fifo {
-+	dma_addr_t da;		/* physical address of fifo (used by HW) */
-+	char *va;		/* virtual address of fifo (used by SW) */
-+	u32 rptr, wptr;		/* cached values of RPTR and WPTR registers,
-+				   they're 32 bits on both 32 and 64 archs */
-+	u16 reg_CFG0, reg_CFG1;
-+	u16 reg_RPTR, reg_WPTR;
-+	u16 memsz;		/* memory size allocated for fifo */
-+	u16 size_mask;
-+	u16 pktsz;		/* skb packet size to allocate */
-+	u16 rcvno;		/* number of buffers that come from this RXF */
-+};
-+
-+struct txf_fifo {
-+	struct fifo m;		/* minimal set of variables used by all fifos */
-+};
-+
-+struct txd_fifo {
-+	struct fifo m;		/* minimal set of variables used by all fifos */
-+};
-+
-+struct rxf_fifo {
-+	struct fifo m;		/* minimal set of variables used by all fifos */
-+};
-+
-+struct rxd_fifo {
-+	struct fifo m;		/* minimal set of variables used by all fifos */
-+};
-+
-+struct rx_map {
-+	u64 dma;
-+	struct sk_buff *skb;
-+};
-+
-+struct rxdb {
-+	int *stack;
-+	struct rx_map *elems;
-+	int nelem;
-+	int top;
-+};
-+
-+union bdx_dma_addr {
-+	dma_addr_t dma;
-+	struct sk_buff *skb;
-+};
-+
-+/* Entry in the db.
-+ * if len == 0 addr is dma
-+ * if len != 0 addr is skb */
-+struct tx_map {
-+	union bdx_dma_addr addr;
-+	int len;
-+};
-+
-+/* tx database - implemented as circular fifo buffer*/
-+struct txdb {
-+	struct tx_map *start;	/* points to the first element */
-+	struct tx_map *end;	/* points just AFTER the last element */
-+	struct tx_map *rptr;	/* points to the next element to read */
-+	struct tx_map *wptr;	/* points to the next element to write */
-+	int size;		/* number of elements in the db */
-+};
-+
-+/*Internal stats structure*/
-+struct bdx_stats {
-+	u64 InUCast;			/* 0x7200 */
-+	u64 InMCast;			/* 0x7210 */
-+	u64 InBCast;			/* 0x7220 */
-+	u64 InPkts;			/* 0x7230 */
-+	u64 InErrors;			/* 0x7240 */
-+	u64 InDropped;			/* 0x7250 */
-+	u64 FrameTooLong;		/* 0x7260 */
-+	u64 FrameSequenceErrors;	/* 0x7270 */
-+	u64 InVLAN;			/* 0x7280 */
-+	u64 InDroppedDFE;		/* 0x7290 */
-+	u64 InDroppedIntFull;		/* 0x72A0 */
-+	u64 InFrameAlignErrors;		/* 0x72B0 */
-+
-+	/* 0x72C0-0x72E0 RSRV */
-+
-+	u64 OutUCast;			/* 0x72F0 */
-+	u64 OutMCast;			/* 0x7300 */
-+	u64 OutBCast;			/* 0x7310 */
-+	u64 OutPkts;			/* 0x7320 */
-+
-+	/* 0x7330-0x7360 RSRV */
-+
-+	u64 OutVLAN;			/* 0x7370 */
-+	u64 InUCastOctects;		/* 0x7380 */
-+	u64 OutUCastOctects;		/* 0x7390 */
-+
-+	/* 0x73A0-0x73B0 RSRV */
-+
-+	u64 InBCastOctects;		/* 0x73C0 */
-+	u64 OutBCastOctects;		/* 0x73D0 */
-+	u64 InOctects;			/* 0x73E0 */
-+	u64 OutOctects;			/* 0x73F0 */
-+};
-+
-+struct bdx_priv {
-+	void __iomem *pBdxRegs;
-+	struct net_device *ndev;
-+
-+	/* RX FIFOs: 1 for data (full) descs, and 2 for free descs */
-+	struct rxd_fifo rxd_fifo0;
-+	struct rxf_fifo rxf_fifo0;
-+	struct rxdb *rxdb;	/* rx dbs to store skb pointers */
-+	int napi_stop;
-+	struct vlan_group *vlgrp;
-+
-+	/* Tx FIFOs: 1 for data desc, 1 for empty (acks) desc */
-+	struct txd_fifo txd_fifo0;
-+	struct txf_fifo txf_fifo0;
-+
-+	struct txdb txdb;
-+	int tx_level;
-+#ifdef BDX_DELAY_WPTR
-+	int tx_update_mark;
-+	int tx_noupd;
-+#endif
-+	spinlock_t tx_lock;	/* NETIF_F_LLTX mode */
-+
-+	/* rarely used */
-+	u8 port;
-+	u32 msg_enable;
-+	int stats_flag;
-+	struct bdx_stats hw_stats;
-+	struct net_device_stats net_stats;
-+	struct pci_dev *pdev;
-+
-+	struct pci_nic *nic;
-+
-+	u8 txd_size;
-+	u8 txf_size;
-+	u8 rxd_size;
-+	u8 rxf_size;
-+	u32 rdintcm;
-+	u32 tdintcm;
-+};
-+
-+/* RX FREE descriptor - 64bit*/
-+struct rxf_desc {
-+	u32 info;		/* Buffer Count + Info - described below */
-+	u32 va_lo;		/* VAdr[31:0] */
-+	u32 va_hi;		/* VAdr[63:32] */
-+	u32 pa_lo;		/* PAdr[31:0] */
-+	u32 pa_hi;		/* PAdr[63:32] */
-+	u32 len;		/* Buffer Length */
-+};
-+
-+#define GET_RXD_BC(x)			GET_BITS_SHIFT((x), 5, 0)
-+#define GET_RXD_RXFQ(x)			GET_BITS_SHIFT((x), 2, 8)
-+#define GET_RXD_TO(x)			GET_BITS_SHIFT((x), 1, 15)
-+#define GET_RXD_TYPE(x)			GET_BITS_SHIFT((x), 4, 16)
-+#define GET_RXD_ERR(x)			GET_BITS_SHIFT((x), 6, 21)
-+#define GET_RXD_RXP(x)			GET_BITS_SHIFT((x), 1, 27)
-+#define GET_RXD_PKT_ID(x)		GET_BITS_SHIFT((x), 3, 28)
-+#define GET_RXD_VTAG(x)			GET_BITS_SHIFT((x), 1, 31)
-+#define GET_RXD_VLAN_ID(x)		GET_BITS_SHIFT((x), 12, 0)
-+#define GET_RXD_CFI(x)			GET_BITS_SHIFT((x), 1, 12)
-+#define GET_RXD_PRIO(x)			GET_BITS_SHIFT((x), 3, 13)
-+
-+struct rxd_desc {
-+	u32 rxd_val1;
-+	u16 len;
-+	u16 rxd_vlan;
-+	u32 va_lo;
-+	u32 va_hi;
-+};
-+
-+/* PBL describes each virtual buffer to be */
-+/* transmitted from the host.*/
-+struct pbl {
-+	u32 pa_lo;
-+	u32 pa_hi;
-+	u32 len;
-+};
-+
-+/* First word for TXD descriptor. It means: type = 3 for regular Tx packet,
-+ * hw_csum = 7 for ip+udp+tcp hw checksums */
-+#define TXD_W1_VAL(bc, checksum, vtag, lgsnd, vlan_id)	\
-+	((bc) | ((checksum)<<5) | ((vtag)<<8) | \
-+	((lgsnd)<<9) | (0x30000) | ((vlan_id)<<20))
-+
-+struct txd_desc {
-+	u32 txd_val1;
-+	u16 mss;
-+	u16 length;
-+	u32 va_lo;
-+	u32 va_hi;
-+	struct pbl pbl[0];	/* Fragments */
-+} __attribute__ ((packed));
-+
-+/* Register region size */
-+#define BDX_REGS_SIZE	  0x1000
-+
-+/* Registers from 0x0000-0x00fc were remapped to 0x4000-0x40fc */
-+#define regTXD_CFG1_0   0x4000
-+#define regRXF_CFG1_0   0x4010
-+#define regRXD_CFG1_0   0x4020
-+#define regTXF_CFG1_0   0x4030
-+#define regTXD_CFG0_0   0x4040
-+#define regRXF_CFG0_0   0x4050
-+#define regRXD_CFG0_0   0x4060
-+#define regTXF_CFG0_0   0x4070
-+#define regTXD_WPTR_0   0x4080
-+#define regRXF_WPTR_0   0x4090
-+#define regRXD_WPTR_0   0x40A0
-+#define regTXF_WPTR_0   0x40B0
-+#define regTXD_RPTR_0   0x40C0
-+#define regRXF_RPTR_0   0x40D0
-+#define regRXD_RPTR_0   0x40E0
-+#define regTXF_RPTR_0   0x40F0
-+#define regTXF_RPTR_3   0x40FC
-+
-+/* hardware versioning */
-+#define  FW_VER         0x5010
-+#define  SROM_VER       0x5020
-+#define  FPGA_VER       0x5030
-+#define  FPGA_SEED      0x5040
-+
-+/* Registers from 0x0100-0x0150 were remapped to 0x5100-0x5150 */
-+#define regISR regISR0
-+#define regISR0          0x5100
-+
-+#define regIMR regIMR0
-+#define regIMR0          0x5110
-+
-+#define regRDINTCM0      0x5120
-+#define regRDINTCM2      0x5128
-+
-+#define regTDINTCM0      0x5130
-+
-+#define regISR_MSK0      0x5140
-+
-+#define regINIT_SEMAPHORE 0x5170
-+#define regINIT_STATUS    0x5180
-+
-+#define regMAC_LNK_STAT  0x0200
-+#define MAC_LINK_STAT    0x4	/* Link state */
-+
-+#define regGMAC_RXF_A   0x1240
-+
-+#define regUNC_MAC0_A   0x1250
-+#define regUNC_MAC1_A   0x1260
-+#define regUNC_MAC2_A   0x1270
-+
-+#define regVLAN_0       0x1800
-+
-+#define regMAX_FRAME_A  0x12C0
-+
-+#define regRX_MAC_MCST0    0x1A80
-+#define regRX_MAC_MCST1    0x1A84
-+#define MAC_MCST_NUM       15
-+#define regRX_MCST_HASH0   0x1A00
-+#define MAC_MCST_HASH_NUM  8
-+
-+#define regVPC                  0x2300
-+#define regVIC                  0x2320
-+#define regVGLB                 0x2340
-+
-+#define regCLKPLL               0x5000
-+
-+/*for 10G only*/
-+#define regREVISION        0x6000
-+#define regSCRATCH         0x6004
-+#define regCTRLST          0x6008
-+#define regMAC_ADDR_0      0x600C
-+#define regMAC_ADDR_1      0x6010
-+#define regFRM_LENGTH      0x6014
-+#define regPAUSE_QUANT     0x6018
-+#define regRX_FIFO_SECTION 0x601C
-+#define regTX_FIFO_SECTION 0x6020
-+#define regRX_FULLNESS     0x6024
-+#define regTX_FULLNESS     0x6028
-+#define regHASHTABLE       0x602C
-+#define regMDIO_ST         0x6030
-+#define regMDIO_CTL        0x6034
-+#define regMDIO_DATA       0x6038
-+#define regMDIO_ADDR       0x603C
-+
-+#define regRST_PORT        0x7000
-+#define regDIS_PORT        0x7010
-+#define regRST_QU          0x7020
-+#define regDIS_QU          0x7030
-+
-+#define regCTRLST_TX_ENA   0x0001
-+#define regCTRLST_RX_ENA   0x0002
-+#define regCTRLST_PRM_ENA  0x0010
-+#define regCTRLST_PAD_ENA  0x0020
-+
-+#define regCTRLST_BASE     (regCTRLST_PAD_ENA|regCTRLST_PRM_ENA)
-+
-+#define regRX_FLT   0x1400
-+
-+/* TXD TXF RXF RXD  CONFIG 0x0000 --- 0x007c*/
-+#define  TX_RX_CFG1_BASE          0xffffffff	/*0-31 */
-+#define  TX_RX_CFG0_BASE          0xfffff000	/*31:12 */
-+#define  TX_RX_CFG0_RSVD          0x0ffc	/*11:2 */
-+#define  TX_RX_CFG0_SIZE          0x0003	/*1:0 */
-+
-+/*  TXD TXF RXF RXD  WRITE 0x0080 --- 0x00BC */
-+#define  TXF_WPTR_WR_PTR        0x7ff8	/*14:3 */
-+
-+/*  TXD TXF RXF RXD  READ  0x00CO --- 0x00FC */
-+#define  TXF_RPTR_RD_PTR        0x7ff8	/*14:3 */
-+
-+#define TXF_WPTR_MASK 0x7ff0	/* last 4 bits are dropped
-+				 * size is rounded to 16 */
-+
-+/*  regISR 0x0100 */
-+/*  regIMR 0x0110 */
-+#define  IMR_INPROG   0x80000000	/*31 */
-+#define  IR_LNKCHG1   0x10000000	/*28 */
-+#define  IR_LNKCHG0   0x08000000	/*27 */
-+#define  IR_GPIO      0x04000000	/*26 */
-+#define  IR_RFRSH     0x02000000	/*25 */
-+#define  IR_RSVD      0x01000000	/*24 */
-+#define  IR_SWI       0x00800000	/*23 */
-+#define  IR_RX_FREE_3 0x00400000	/*22 */
-+#define  IR_RX_FREE_2 0x00200000	/*21 */
-+#define  IR_RX_FREE_1 0x00100000	/*20 */
-+#define  IR_RX_FREE_0 0x00080000	/*19 */
-+#define  IR_TX_FREE_3 0x00040000	/*18 */
-+#define  IR_TX_FREE_2 0x00020000	/*17 */
-+#define  IR_TX_FREE_1 0x00010000	/*16 */
-+#define  IR_TX_FREE_0 0x00008000	/*15 */
-+#define  IR_RX_DESC_3 0x00004000	/*14 */
-+#define  IR_RX_DESC_2 0x00002000	/*13 */
-+#define  IR_RX_DESC_1 0x00001000	/*12 */
-+#define  IR_RX_DESC_0 0x00000800	/*11 */
-+#define  IR_PSE       0x00000400	/*10 */
-+#define  IR_TMR3      0x00000200	/*9 */
-+#define  IR_TMR2      0x00000100	/*8 */
-+#define  IR_TMR1      0x00000080	/*7 */
-+#define  IR_TMR0      0x00000040	/*6 */
-+#define  IR_VNT       0x00000020	/*5 */
-+#define  IR_RxFL      0x00000010	/*4 */
-+#define  IR_SDPERR    0x00000008	/*3 */
-+#define  IR_TR        0x00000004	/*2 */
-+#define  IR_PCIE_LINK 0x00000002	/*1 */
-+#define  IR_PCIE_TOUT 0x00000001	/*0 */
-+
-+#define  IR_EXTRA (IR_RX_FREE_0 | IR_LNKCHG0 | IR_PSE | \
-+    IR_TMR0 | IR_PCIE_LINK | IR_PCIE_TOUT)
-+#define  IR_RUN (IR_EXTRA | IR_RX_DESC_0 | IR_TX_FREE_0)
-+#define  IR_ALL 0xfdfffff7
-+
-+#define  IR_LNKCHG0_ofst        27
-+
-+#define  GMAC_RX_FILTER_OSEN  0x1000	/* shared OS enable */
-+#define  GMAC_RX_FILTER_TXFC  0x0400	/* Tx flow control */
-+#define  GMAC_RX_FILTER_RSV0  0x0200	/* reserved */
-+#define  GMAC_RX_FILTER_FDA   0x0100	/* filter out direct address */
-+#define  GMAC_RX_FILTER_AOF   0x0080	/* accept over run */
-+#define  GMAC_RX_FILTER_ACF   0x0040	/* accept control frames */
-+#define  GMAC_RX_FILTER_ARUNT 0x0020	/* accept under run */
-+#define  GMAC_RX_FILTER_ACRC  0x0010	/* accept crc error */
-+#define  GMAC_RX_FILTER_AM    0x0008	/* accept multicast */
-+#define  GMAC_RX_FILTER_AB    0x0004	/* accept broadcast */
-+#define  GMAC_RX_FILTER_PRM   0x0001	/* [0:1] promiscous mode */
-+
-+#define  MAX_FRAME_AB_VAL       0x3fff	/* 13:0 */
-+
-+#define  CLKPLL_PLLLKD          0x0200	/*9 */
-+#define  CLKPLL_RSTEND          0x0100	/*8 */
-+#define  CLKPLL_SFTRST          0x0001	/*0 */
-+
-+#define  CLKPLL_LKD             (CLKPLL_PLLLKD|CLKPLL_RSTEND)
++#define IPG_DEV_KFREE_SKB(skb) dev_kfree_skb_irq(skb)
 +
 +/*
-+ * PCI-E Device Control Register (Offset 0x88)
-+ * Source: Luxor Data Sheet, 7.1.3.3.3
++ *	Constants
 + */
-+#define PCI_DEV_CTRL_REG 0x88
-+#define GET_DEV_CTRL_MAXPL(x)           GET_BITS_SHIFT(x, 3, 5)
-+#define GET_DEV_CTRL_MRRS(x)            GET_BITS_SHIFT(x, 3, 12)
++
++/* GMII based PHY IDs */
++#define		NS				0x2000
++#define		MARVELL				0x0141
++#define		ICPLUS_PHY		0x243
++
++/* NIC Physical Layer Device MII register fields. */
++#define         MII_PHY_SELECTOR_IEEE8023       0x0001
++#define         MII_PHY_TECHABILITYFIELD        0x1FE0
++
++/* GMII_PHY_1000 need to set to prefer master */
++#define         GMII_PHY_1000BASETCONTROL_PreferMaster 0x0400
++
++/* NIC Physical Layer Device GMII constants. */
++#define         GMII_PREAMBLE                    0xFFFFFFFF
++#define         GMII_ST                          0x1
++#define         GMII_READ                        0x2
++#define         GMII_WRITE                       0x1
++#define         GMII_TA_READ_MASK                0x1
++#define         GMII_TA_WRITE                    0x2
++
++/* I/O register offsets. */
++enum ipg_regs {
++	DMA_CTRL		= 0x00,
++	RX_DMA_STATUS		= 0x08, // Unused + reserved
++	TFD_LIST_PTR_0		= 0x10,
++	TFD_LIST_PTR_1		= 0x14,
++	TX_DMA_BURST_THRESH	= 0x18,
++	TX_DMA_URGENT_THRESH	= 0x19,
++	TX_DMA_POLL_PERIOD	= 0x1a,
++	RFD_LIST_PTR_0		= 0x1c,
++	RFD_LIST_PTR_1		= 0x20,
++	RX_DMA_BURST_THRESH	= 0x24,
++	RX_DMA_URGENT_THRESH	= 0x25,
++	RX_DMA_POLL_PERIOD	= 0x26,
++	DEBUG_CTRL		= 0x2c,
++	ASIC_CTRL		= 0x30,
++	FIFO_CTRL		= 0x38, // Unused
++	FLOW_OFF_THRESH		= 0x3c,
++	FLOW_ON_THRESH		= 0x3e,
++	EEPROM_DATA		= 0x48,
++	EEPROM_CTRL		= 0x4a,
++	EXPROM_ADDR		= 0x4c, // Unused
++	EXPROM_DATA		= 0x50, // Unused
++	WAKE_EVENT		= 0x51, // Unused
++	COUNTDOWN		= 0x54, // Unused
++	INT_STATUS_ACK		= 0x5a,
++	INT_ENABLE		= 0x5c,
++	INT_STATUS		= 0x5e, // Unused
++	TX_STATUS		= 0x60,
++	MAC_CTRL		= 0x6c,
++	VLAN_TAG		= 0x70, // Unused
++	PHY_SET			= 0x75,	// JES20040127EEPROM
++	PHY_CTRL		= 0x76,
++	STATION_ADDRESS_0	= 0x78,
++	STATION_ADDRESS_1	= 0x7a,
++	STATION_ADDRESS_2	= 0x7c,
++	MAX_FRAME_SIZE		= 0x86,
++	RECEIVE_MODE		= 0x88,
++	HASHTABLE_0		= 0x8c,
++	HASHTABLE_1		= 0x90,
++	RMON_STATISTICS_MASK	= 0x98,
++	STATISTICS_MASK		= 0x9c,
++	RX_JUMBO_FRAMES		= 0xbc, // Unused
++	TCP_CHECKSUM_ERRORS	= 0xc0, // Unused
++	IP_CHECKSUM_ERRORS	= 0xc2, // Unused
++	UDP_CHECKSUM_ERRORS	= 0xc4, // Unused
++	TX_JUMBO_FRAMES		= 0xf4  // Unused
++};
++
++/* Ethernet MIB statistic register offsets. */
++#define	IPG_OCTETRCVOK		0xA8
++#define	IPG_MCSTOCTETRCVDOK		0xAC
++#define	IPG_BCSTOCTETRCVOK		0xB0
++#define	IPG_FRAMESRCVDOK		0xB4
++#define	IPG_MCSTFRAMESRCVDOK		0xB8
++#define	IPG_BCSTFRAMESRCVDOK		0xBE
++#define	IPG_MACCONTROLFRAMESRCVD	0xC6
++#define	IPG_FRAMETOOLONGERRRORS	0xC8
++#define	IPG_INRANGELENGTHERRORS	0xCA
++#define	IPG_FRAMECHECKSEQERRORS	0xCC
++#define	IPG_FRAMESLOSTRXERRORS	0xCE
++#define	IPG_OCTETXMTOK		0xD0
++#define	IPG_MCSTOCTETXMTOK		0xD4
++#define	IPG_BCSTOCTETXMTOK		0xD8
++#define	IPG_FRAMESXMTDOK		0xDC
++#define	IPG_MCSTFRAMESXMTDOK		0xE0
++#define	IPG_FRAMESWDEFERREDXMT	0xE4
++#define	IPG_LATECOLLISIONS		0xE8
++#define	IPG_MULTICOLFRAMES		0xEC
++#define	IPG_SINGLECOLFRAMES		0xF0
++#define	IPG_BCSTFRAMESXMTDOK		0xF6
++#define	IPG_CARRIERSENSEERRORS	0xF8
++#define	IPG_MACCONTROLFRAMESXMTDOK	0xFA
++#define	IPG_FRAMESABORTXSCOLLS	0xFC
++#define	IPG_FRAMESWEXDEFERRAL	0xFE
++
++/* RMON statistic register offsets. */
++#define	IPG_ETHERSTATSCOLLISIONS			0x100
++#define	IPG_ETHERSTATSOCTETSTRANSMIT			0x104
++#define	IPG_ETHERSTATSPKTSTRANSMIT			0x108
++#define	IPG_ETHERSTATSPKTS64OCTESTSTRANSMIT		0x10C
++#define	IPG_ETHERSTATSPKTS65TO127OCTESTSTRANSMIT	0x110
++#define	IPG_ETHERSTATSPKTS128TO255OCTESTSTRANSMIT	0x114
++#define	IPG_ETHERSTATSPKTS256TO511OCTESTSTRANSMIT	0x118
++#define	IPG_ETHERSTATSPKTS512TO1023OCTESTSTRANSMIT	0x11C
++#define	IPG_ETHERSTATSPKTS1024TO1518OCTESTSTRANSMIT	0x120
++#define	IPG_ETHERSTATSCRCALIGNERRORS			0x124
++#define	IPG_ETHERSTATSUNDERSIZEPKTS			0x128
++#define	IPG_ETHERSTATSFRAGMENTS			0x12C
++#define	IPG_ETHERSTATSJABBERS			0x130
++#define	IPG_ETHERSTATSOCTETS				0x134
++#define	IPG_ETHERSTATSPKTS				0x138
++#define	IPG_ETHERSTATSPKTS64OCTESTS			0x13C
++#define	IPG_ETHERSTATSPKTS65TO127OCTESTS		0x140
++#define	IPG_ETHERSTATSPKTS128TO255OCTESTS		0x144
++#define	IPG_ETHERSTATSPKTS256TO511OCTESTS		0x148
++#define	IPG_ETHERSTATSPKTS512TO1023OCTESTS		0x14C
++#define	IPG_ETHERSTATSPKTS1024TO1518OCTESTS		0x150
++
++/* RMON statistic register equivalents. */
++#define	IPG_ETHERSTATSMULTICASTPKTSTRANSMIT		0xE0
++#define	IPG_ETHERSTATSBROADCASTPKTSTRANSMIT		0xF6
++#define	IPG_ETHERSTATSMULTICASTPKTS			0xB8
++#define	IPG_ETHERSTATSBROADCASTPKTS			0xBE
++#define	IPG_ETHERSTATSOVERSIZEPKTS			0xC8
++#define	IPG_ETHERSTATSDROPEVENTS			0xCE
++
++/* Serial EEPROM offsets */
++#define	IPG_EEPROM_CONFIGPARAM	0x00
++#define	IPG_EEPROM_ASICCTRL		0x01
++#define	IPG_EEPROM_SUBSYSTEMVENDORID	0x02
++#define	IPG_EEPROM_SUBSYSTEMID	0x03
++#define	IPG_EEPROM_STATIONADDRESS0	0x10
++#define	IPG_EEPROM_STATIONADDRESS1	0x11
++#define	IPG_EEPROM_STATIONADDRESS2	0x12
++
++/* Register & data structure bit masks */
++
++/* PCI register masks. */
++
++/* IOBaseAddress */
++#define         IPG_PIB_RSVD_MASK		0xFFFFFE01
++#define         IPG_PIB_IOBASEADDRESS	0xFFFFFF00
++#define         IPG_PIB_IOBASEADDRIND	0x00000001
++
++/* MemBaseAddress */
++#define         IPG_PMB_RSVD_MASK		0xFFFFFE07
++#define         IPG_PMB_MEMBASEADDRIND	0x00000001
++#define         IPG_PMB_MEMMAPTYPE		0x00000006
++#define         IPG_PMB_MEMMAPTYPE0		0x00000002
++#define         IPG_PMB_MEMMAPTYPE1		0x00000004
++#define         IPG_PMB_MEMBASEADDRESS	0xFFFFFE00
++
++/* ConfigStatus */
++#define IPG_CS_RSVD_MASK                0xFFB0
++#define IPG_CS_CAPABILITIES             0x0010
++#define IPG_CS_66MHZCAPABLE             0x0020
++#define IPG_CS_FASTBACK2BACK            0x0080
++#define IPG_CS_DATAPARITYREPORTED       0x0100
++#define IPG_CS_DEVSELTIMING             0x0600
++#define IPG_CS_SIGNALEDTARGETABORT      0x0800
++#define IPG_CS_RECEIVEDTARGETABORT      0x1000
++#define IPG_CS_RECEIVEDMASTERABORT      0x2000
++#define IPG_CS_SIGNALEDSYSTEMERROR      0x4000
++#define IPG_CS_DETECTEDPARITYERROR      0x8000
++
++/* TFD data structure masks. */
++
++/* TFDList, TFC */
++#define	IPG_TFC_RSVD_MASK			0x0000FFFF9FFFFFFF
++#define	IPG_TFC_FRAMEID			0x000000000000FFFF
++#define	IPG_TFC_WORDALIGN			0x0000000000030000
++#define	IPG_TFC_WORDALIGNTODWORD		0x0000000000000000
++#define	IPG_TFC_WORDALIGNTOWORD		0x0000000000020000
++#define	IPG_TFC_WORDALIGNDISABLED		0x0000000000030000
++#define	IPG_TFC_TCPCHECKSUMENABLE		0x0000000000040000
++#define	IPG_TFC_UDPCHECKSUMENABLE		0x0000000000080000
++#define	IPG_TFC_IPCHECKSUMENABLE		0x0000000000100000
++#define	IPG_TFC_FCSAPPENDDISABLE		0x0000000000200000
++#define	IPG_TFC_TXINDICATE			0x0000000000400000
++#define	IPG_TFC_TXDMAINDICATE		0x0000000000800000
++#define	IPG_TFC_FRAGCOUNT			0x000000000F000000
++#define	IPG_TFC_VLANTAGINSERT		0x0000000010000000
++#define	IPG_TFC_TFDDONE			0x0000000080000000
++#define	IPG_TFC_VID				0x00000FFF00000000
++#define	IPG_TFC_CFI				0x0000100000000000
++#define	IPG_TFC_USERPRIORITY			0x0000E00000000000
++
++/* TFDList, FragInfo */
++#define	IPG_TFI_RSVD_MASK			0xFFFF00FFFFFFFFFF
++#define	IPG_TFI_FRAGADDR			0x000000FFFFFFFFFF
++#define	IPG_TFI_FRAGLEN			0xFFFF000000000000LL
++
++/* RFD data structure masks. */
++
++/* RFDList, RFS */
++#define	IPG_RFS_RSVD_MASK			0x0000FFFFFFFFFFFF
++#define	IPG_RFS_RXFRAMELEN			0x000000000000FFFF
++#define	IPG_RFS_RXFIFOOVERRUN		0x0000000000010000
++#define	IPG_RFS_RXRUNTFRAME			0x0000000000020000
++#define	IPG_RFS_RXALIGNMENTERROR		0x0000000000040000
++#define	IPG_RFS_RXFCSERROR			0x0000000000080000
++#define	IPG_RFS_RXOVERSIZEDFRAME		0x0000000000100000
++#define	IPG_RFS_RXLENGTHERROR		0x0000000000200000
++#define	IPG_RFS_VLANDETECTED			0x0000000000400000
++#define	IPG_RFS_TCPDETECTED			0x0000000000800000
++#define	IPG_RFS_TCPERROR			0x0000000001000000
++#define	IPG_RFS_UDPDETECTED			0x0000000002000000
++#define	IPG_RFS_UDPERROR			0x0000000004000000
++#define	IPG_RFS_IPDETECTED			0x0000000008000000
++#define	IPG_RFS_IPERROR			0x0000000010000000
++#define	IPG_RFS_FRAMESTART			0x0000000020000000
++#define	IPG_RFS_FRAMEEND			0x0000000040000000
++#define	IPG_RFS_RFDDONE			0x0000000080000000
++#define	IPG_RFS_TCI				0x0000FFFF00000000
++
++/* RFDList, FragInfo */
++#define	IPG_RFI_RSVD_MASK			0xFFFF00FFFFFFFFFF
++#define	IPG_RFI_FRAGADDR			0x000000FFFFFFFFFF
++#define	IPG_RFI_FRAGLEN			0xFFFF000000000000LL
++
++/* I/O Register masks. */
++
++/* RMON Statistics Mask */
++#define	IPG_RZ_ALL					0x0FFFFFFF
++
++/* Statistics Mask */
++#define	IPG_SM_ALL					0x0FFFFFFF
++#define	IPG_SM_OCTETRCVOK_FRAMESRCVDOK		0x00000001
++#define	IPG_SM_MCSTOCTETRCVDOK_MCSTFRAMESRCVDOK	0x00000002
++#define	IPG_SM_BCSTOCTETRCVDOK_BCSTFRAMESRCVDOK	0x00000004
++#define	IPG_SM_RXJUMBOFRAMES				0x00000008
++#define	IPG_SM_TCPCHECKSUMERRORS			0x00000010
++#define	IPG_SM_IPCHECKSUMERRORS			0x00000020
++#define	IPG_SM_UDPCHECKSUMERRORS			0x00000040
++#define	IPG_SM_MACCONTROLFRAMESRCVD			0x00000080
++#define	IPG_SM_FRAMESTOOLONGERRORS			0x00000100
++#define	IPG_SM_INRANGELENGTHERRORS			0x00000200
++#define	IPG_SM_FRAMECHECKSEQERRORS			0x00000400
++#define	IPG_SM_FRAMESLOSTRXERRORS			0x00000800
++#define	IPG_SM_OCTETXMTOK_FRAMESXMTOK		0x00001000
++#define	IPG_SM_MCSTOCTETXMTOK_MCSTFRAMESXMTDOK	0x00002000
++#define	IPG_SM_BCSTOCTETXMTOK_BCSTFRAMESXMTDOK	0x00004000
++#define	IPG_SM_FRAMESWDEFERREDXMT			0x00008000
++#define	IPG_SM_LATECOLLISIONS			0x00010000
++#define	IPG_SM_MULTICOLFRAMES			0x00020000
++#define	IPG_SM_SINGLECOLFRAMES			0x00040000
++#define	IPG_SM_TXJUMBOFRAMES				0x00080000
++#define	IPG_SM_CARRIERSENSEERRORS			0x00100000
++#define	IPG_SM_MACCONTROLFRAMESXMTD			0x00200000
++#define	IPG_SM_FRAMESABORTXSCOLLS			0x00400000
++#define	IPG_SM_FRAMESWEXDEFERAL			0x00800000
++
++/* Countdown */
++#define	IPG_CD_RSVD_MASK		0x0700FFFF
++#define	IPG_CD_COUNT			0x0000FFFF
++#define	IPG_CD_COUNTDOWNSPEED	0x01000000
++#define	IPG_CD_COUNTDOWNMODE		0x02000000
++#define	IPG_CD_COUNTINTENABLED	0x04000000
++
++/* TxDMABurstThresh */
++#define IPG_TB_RSVD_MASK                0xFF
++
++/* TxDMAUrgentThresh */
++#define IPG_TU_RSVD_MASK                0xFF
++
++/* TxDMAPollPeriod */
++#define IPG_TP_RSVD_MASK                0xFF
++
++/* RxDMAUrgentThresh */
++#define IPG_RU_RSVD_MASK                0xFF
++
++/* RxDMAPollPeriod */
++#define IPG_RP_RSVD_MASK                0xFF
++
++/* ReceiveMode */
++#define IPG_RM_RSVD_MASK                0x3F
++#define IPG_RM_RECEIVEUNICAST           0x01
++#define IPG_RM_RECEIVEMULTICAST         0x02
++#define IPG_RM_RECEIVEBROADCAST         0x04
++#define IPG_RM_RECEIVEALLFRAMES         0x08
++#define IPG_RM_RECEIVEMULTICASTHASH     0x10
++#define IPG_RM_RECEIVEIPMULTICAST       0x20
++
++/* PhySet JES20040127EEPROM*/
++#define IPG_PS_MEM_LENB9B               0x01
++#define IPG_PS_MEM_LEN9                 0x02
++#define IPG_PS_NON_COMPDET              0x04
++
++/* PhyCtrl */
++#define IPG_PC_RSVD_MASK                0xFF
++#define IPG_PC_MGMTCLK_LO               0x00
++#define IPG_PC_MGMTCLK_HI               0x01
++#define IPG_PC_MGMTCLK                  0x01
++#define IPG_PC_MGMTDATA                 0x02
++#define IPG_PC_MGMTDIR                  0x04
++#define IPG_PC_DUPLEX_POLARITY          0x08
++#define IPG_PC_DUPLEX_STATUS            0x10
++#define IPG_PC_LINK_POLARITY            0x20
++#define IPG_PC_LINK_SPEED               0xC0
++#define IPG_PC_LINK_SPEED_10MBPS        0x40
++#define IPG_PC_LINK_SPEED_100MBPS       0x80
++#define IPG_PC_LINK_SPEED_1000MBPS      0xC0
++
++/* DMACtrl */
++#define IPG_DC_RSVD_MASK                0xC07D9818
++#define IPG_DC_RX_DMA_COMPLETE          0x00000008
++#define IPG_DC_RX_DMA_POLL_NOW          0x00000010
++#define IPG_DC_TX_DMA_COMPLETE          0x00000800
++#define IPG_DC_TX_DMA_POLL_NOW          0x00001000
++#define IPG_DC_TX_DMA_IN_PROG           0x00008000
++#define IPG_DC_RX_EARLY_DISABLE         0x00010000
++#define IPG_DC_MWI_DISABLE              0x00040000
++#define IPG_DC_TX_WRITE_BACK_DISABLE    0x00080000
++#define IPG_DC_TX_BURST_LIMIT           0x00700000
++#define IPG_DC_TARGET_ABORT             0x40000000
++#define IPG_DC_MASTER_ABORT             0x80000000
++
++/* ASICCtrl */
++#define IPG_AC_RSVD_MASK                0x07FFEFF2
++#define IPG_AC_EXP_ROM_SIZE             0x00000002
++#define IPG_AC_PHY_SPEED10              0x00000010
++#define IPG_AC_PHY_SPEED100             0x00000020
++#define IPG_AC_PHY_SPEED1000            0x00000040
++#define IPG_AC_PHY_MEDIA                0x00000080
++#define IPG_AC_FORCED_CFG               0x00000700
++#define IPG_AC_D3RESETDISABLE           0x00000800
++#define IPG_AC_SPEED_UP_MODE            0x00002000
++#define IPG_AC_LED_MODE                 0x00004000
++#define IPG_AC_RST_OUT_POLARITY         0x00008000
++#define IPG_AC_GLOBAL_RESET             0x00010000
++#define IPG_AC_RX_RESET                 0x00020000
++#define IPG_AC_TX_RESET                 0x00040000
++#define IPG_AC_DMA                      0x00080000
++#define IPG_AC_FIFO                     0x00100000
++#define IPG_AC_NETWORK                  0x00200000
++#define IPG_AC_HOST                     0x00400000
++#define IPG_AC_AUTO_INIT                0x00800000
++#define IPG_AC_RST_OUT                  0x01000000
++#define IPG_AC_INT_REQUEST              0x02000000
++#define IPG_AC_RESET_BUSY               0x04000000
++#define IPG_AC_LED_SPEED                0x08000000	//JES20040127EEPROM
++#define IPG_AC_LED_MODE_BIT_1           0x20000000	//JES20040127EEPROM
++
++/* EepromCtrl */
++#define IPG_EC_RSVD_MASK                0x83FF
++#define IPG_EC_EEPROM_ADDR              0x00FF
++#define IPG_EC_EEPROM_OPCODE            0x0300
++#define IPG_EC_EEPROM_SUBCOMMAD         0x0000
++#define IPG_EC_EEPROM_WRITEOPCODE       0x0100
++#define IPG_EC_EEPROM_READOPCODE        0x0200
++#define IPG_EC_EEPROM_ERASEOPCODE       0x0300
++#define IPG_EC_EEPROM_BUSY              0x8000
++
++/* FIFOCtrl */
++#define IPG_FC_RSVD_MASK                0xC001
++#define IPG_FC_RAM_TEST_MODE            0x0001
++#define IPG_FC_TRANSMITTING             0x4000
++#define IPG_FC_RECEIVING                0x8000
++
++/* TxStatus */
++#define IPG_TS_RSVD_MASK                0xFFFF00DD
++#define IPG_TS_TX_ERROR                 0x00000001
++#define IPG_TS_LATE_COLLISION           0x00000004
++#define IPG_TS_TX_MAX_COLL              0x00000008
++#define IPG_TS_TX_UNDERRUN              0x00000010
++#define IPG_TS_TX_IND_REQD              0x00000040
++#define IPG_TS_TX_COMPLETE              0x00000080
++#define IPG_TS_TX_FRAMEID               0xFFFF0000
++
++/* WakeEvent */
++#define IPG_WE_WAKE_PKT_ENABLE          0x01
++#define IPG_WE_MAGIC_PKT_ENABLE         0x02
++#define IPG_WE_LINK_EVT_ENABLE          0x04
++#define IPG_WE_WAKE_POLARITY            0x08
++#define IPG_WE_WAKE_PKT_EVT             0x10
++#define IPG_WE_MAGIC_PKT_EVT            0x20
++#define IPG_WE_LINK_EVT                 0x40
++#define IPG_WE_WOL_ENABLE               0x80
++
++/* IntEnable */
++#define IPG_IE_RSVD_MASK                0x1FFE
++#define IPG_IE_HOST_ERROR               0x0002
++#define IPG_IE_TX_COMPLETE              0x0004
++#define IPG_IE_MAC_CTRL_FRAME           0x0008
++#define IPG_IE_RX_COMPLETE              0x0010
++#define IPG_IE_RX_EARLY                 0x0020
++#define IPG_IE_INT_REQUESTED            0x0040
++#define IPG_IE_UPDATE_STATS             0x0080
++#define IPG_IE_LINK_EVENT               0x0100
++#define IPG_IE_TX_DMA_COMPLETE          0x0200
++#define IPG_IE_RX_DMA_COMPLETE          0x0400
++#define IPG_IE_RFD_LIST_END             0x0800
++#define IPG_IE_RX_DMA_PRIORITY          0x1000
++
++/* IntStatus */
++#define IPG_IS_RSVD_MASK                0x1FFF
++#define IPG_IS_INTERRUPT_STATUS         0x0001
++#define IPG_IS_HOST_ERROR               0x0002
++#define IPG_IS_TX_COMPLETE              0x0004
++#define IPG_IS_MAC_CTRL_FRAME           0x0008
++#define IPG_IS_RX_COMPLETE              0x0010
++#define IPG_IS_RX_EARLY                 0x0020
++#define IPG_IS_INT_REQUESTED            0x0040
++#define IPG_IS_UPDATE_STATS             0x0080
++#define IPG_IS_LINK_EVENT               0x0100
++#define IPG_IS_TX_DMA_COMPLETE          0x0200
++#define IPG_IS_RX_DMA_COMPLETE          0x0400
++#define IPG_IS_RFD_LIST_END             0x0800
++#define IPG_IS_RX_DMA_PRIORITY          0x1000
++
++/* MACCtrl */
++#define IPG_MC_RSVD_MASK                0x7FE33FA3
++#define IPG_MC_IFS_SELECT               0x00000003
++#define IPG_MC_IFS_4352BIT              0x00000003
++#define IPG_MC_IFS_1792BIT              0x00000002
++#define IPG_MC_IFS_1024BIT              0x00000001
++#define IPG_MC_IFS_96BIT                0x00000000
++#define IPG_MC_DUPLEX_SELECT            0x00000020
++#define IPG_MC_DUPLEX_SELECT_FD         0x00000020
++#define IPG_MC_DUPLEX_SELECT_HD         0x00000000
++#define IPG_MC_TX_FLOW_CONTROL_ENABLE   0x00000080
++#define IPG_MC_RX_FLOW_CONTROL_ENABLE   0x00000100
++#define IPG_MC_RCV_FCS                  0x00000200
++#define IPG_MC_FIFO_LOOPBACK            0x00000400
++#define IPG_MC_MAC_LOOPBACK             0x00000800
++#define IPG_MC_AUTO_VLAN_TAGGING        0x00001000
++#define IPG_MC_AUTO_VLAN_UNTAGGING      0x00002000
++#define IPG_MC_COLLISION_DETECT         0x00010000
++#define IPG_MC_CARRIER_SENSE            0x00020000
++#define IPG_MC_STATISTICS_ENABLE        0x00200000
++#define IPG_MC_STATISTICS_DISABLE       0x00400000
++#define IPG_MC_STATISTICS_ENABLED       0x00800000
++#define IPG_MC_TX_ENABLE                0x01000000
++#define IPG_MC_TX_DISABLE               0x02000000
++#define IPG_MC_TX_ENABLED               0x04000000
++#define IPG_MC_RX_ENABLE                0x08000000
++#define IPG_MC_RX_DISABLE               0x10000000
++#define IPG_MC_RX_ENABLED               0x20000000
++#define IPG_MC_PAUSED                   0x40000000
 +
 +/*
-+ * PCI-E Link Status Register (Offset 0x92)
-+ * Source: Luxor Data Sheet, 7.1.3.3.7
++ *	Tune
 + */
-+#define PCI_LINK_STATUS_REG 0x92
-+#define GET_LINK_STATUS_LANES(x)		GET_BITS_SHIFT(x, 6, 4)
 +
-+/* Debugging Macros */
++/* Miscellaneous Constants. */
++#define   TRUE  1
++#define   FALSE 0
 +
-+#define ERR(fmt, args...) printk(KERN_ERR fmt, ## args)
-+#define DBG2(fmt, args...)	\
-+	printk(KERN_ERR  "%s:%-5d: " fmt, __FUNCTION__, __LINE__, ## args)
++/* Assign IPG_APPEND_FCS_ON_TX > 0 for auto FCS append on TX. */
++#define         IPG_APPEND_FCS_ON_TX         TRUE
 +
-+#define BDX_ASSERT(x) BUG_ON(x)
++/* Assign IPG_APPEND_FCS_ON_TX > 0 for auto FCS strip on RX. */
++#define         IPG_STRIP_FCS_ON_RX          TRUE
 +
-+#ifdef DEBUG
++/* Assign IPG_DROP_ON_RX_ETH_ERRORS > 0 to drop RX frames with
++ * Ethernet errors.
++ */
++#define         IPG_DROP_ON_RX_ETH_ERRORS    TRUE
 +
-+#define ENTER          do { \
-+	printk(KERN_ERR  "%s:%-5d: ENTER\n", __FUNCTION__, __LINE__); \
-+} while (0)
++/* Assign IPG_INSERT_MANUAL_VLAN_TAG > 0 to insert VLAN tags manually
++ * (via TFC).
++ */
++#define		IPG_INSERT_MANUAL_VLAN_TAG   FALSE
 +
-+#define RET(args...)   do { \
-+	printk(KERN_ERR  "%s:%-5d: RETURN\n", __FUNCTION__, __LINE__); \
-+return args; } while (0)
++/* Assign IPG_ADD_IPCHECKSUM_ON_TX > 0 for auto IP checksum on TX. */
++#define         IPG_ADD_IPCHECKSUM_ON_TX     FALSE
 +
-+#define DBG(fmt, args...)	\
-+	printk(KERN_ERR  "%s:%-5d: " fmt, __FUNCTION__, __LINE__, ## args)
-+#else
-+#define ENTER         do {  } while (0)
-+#define RET(args...)   return args
-+#define DBG(fmt, args...)   do {  } while (0)
++/* Assign IPG_ADD_TCPCHECKSUM_ON_TX > 0 for auto TCP checksum on TX.
++ * DO NOT USE FOR SILICON REVISIONS B3 AND EARLIER.
++ */
++#define         IPG_ADD_TCPCHECKSUM_ON_TX    FALSE
++
++/* Assign IPG_ADD_UDPCHECKSUM_ON_TX > 0 for auto UDP checksum on TX.
++ * DO NOT USE FOR SILICON REVISIONS B3 AND EARLIER.
++ */
++#define         IPG_ADD_UDPCHECKSUM_ON_TX    FALSE
++
++/* If inserting VLAN tags manually, assign the IPG_MANUAL_VLAN_xx
++ * constants as desired.
++ */
++#define		IPG_MANUAL_VLAN_VID		0xABC
++#define		IPG_MANUAL_VLAN_CFI		0x1
++#define		IPG_MANUAL_VLAN_USERPRIORITY 0x5
++
++#define         IPG_IO_REG_RANGE		0xFF
++#define         IPG_MEM_REG_RANGE		0x154
++#define         IPG_DRIVER_NAME		"Sundance Technology IPG Triple-Speed Ethernet"
++#define         IPG_NIC_PHY_ADDRESS          0x01
++#define		IPG_DMALIST_ALIGN_PAD	0x07
++#define		IPG_MULTICAST_HASHTABLE_SIZE	0x40
++
++/* Number of miliseconds to wait after issuing a software reset.
++ * 0x05 <= IPG_AC_RESETWAIT to account for proper 10Mbps operation.
++ */
++#define         IPG_AC_RESETWAIT             0x05
++
++/* Number of IPG_AC_RESETWAIT timeperiods before declaring timeout. */
++#define         IPG_AC_RESET_TIMEOUT         0x0A
++
++/* Minimum number of nanoseconds used to toggle MDC clock during
++ * MII/GMII register access.
++ */
++#define		IPG_PC_PHYCTRLWAIT_NS		200
++
++#define		IPG_TFDLIST_LENGTH		0x100
++
++/* Number of frames between TxDMAComplete interrupt.
++ * 0 < IPG_FRAMESBETWEENTXDMACOMPLETES <= IPG_TFDLIST_LENGTH
++ */
++#define		IPG_FRAMESBETWEENTXDMACOMPLETES 0x1
++
++#ifdef JUMBO_FRAME
++
++# ifdef JUMBO_FRAME_SIZE_2K
++# define JUMBO_FRAME_SIZE 2048
++# define __IPG_RXFRAG_SIZE 2048
++# else
++#  ifdef JUMBO_FRAME_SIZE_3K
++#  define JUMBO_FRAME_SIZE 3072
++#  define __IPG_RXFRAG_SIZE 3072
++#  else
++#   ifdef JUMBO_FRAME_SIZE_4K
++#   define JUMBO_FRAME_SIZE 4096
++#   define __IPG_RXFRAG_SIZE 4088
++#   else
++#    ifdef JUMBO_FRAME_SIZE_5K
++#    define JUMBO_FRAME_SIZE 5120
++#    define __IPG_RXFRAG_SIZE 4088
++#    else
++#     ifdef JUMBO_FRAME_SIZE_6K
++#     define JUMBO_FRAME_SIZE 6144
++#     define __IPG_RXFRAG_SIZE 4088
++#     else
++#      ifdef JUMBO_FRAME_SIZE_7K
++#      define JUMBO_FRAME_SIZE 7168
++#      define __IPG_RXFRAG_SIZE 4088
++#      else
++#       ifdef JUMBO_FRAME_SIZE_8K
++#       define JUMBO_FRAME_SIZE 8192
++#       define __IPG_RXFRAG_SIZE 4088
++#       else
++#        ifdef JUMBO_FRAME_SIZE_9K
++#        define JUMBO_FRAME_SIZE 9216
++#        define __IPG_RXFRAG_SIZE 4088
++#        else
++#         ifdef JUMBO_FRAME_SIZE_10K
++#         define JUMBO_FRAME_SIZE 10240
++#         define __IPG_RXFRAG_SIZE 4088
++#         else
++#         define JUMBO_FRAME_SIZE 4096
++#         endif
++#        endif
++#       endif
++#      endif
++#     endif
++#    endif
++#   endif
++#  endif
++# endif
 +#endif
 +
-+#endif /* _BDX__H */
-diff --git a/drivers/net/tehuti_fw.h b/drivers/net/tehuti_fw.h
-new file mode 100644
-index 0000000..2c603a8
---- /dev/null
-+++ b/drivers/net/tehuti_fw.h
-@@ -0,0 +1,10712 @@
-+/*
-+ * Tehuti Networks(R) Network Driver
-+ * Copyright (C) 2007 Tehuti Networks Ltd. All rights reserved
++/* Size of allocated received buffers. Nominally 0x0600.
++ * Define larger if expecting jumbo frames.
++ */
++#ifdef JUMBO_FRAME
++//IPG_TXFRAG_SIZE must <= 0x2b00, or TX will crash
++#define		IPG_TXFRAG_SIZE		JUMBO_FRAME_SIZE
++#endif
++
++/* Size of allocated received buffers. Nominally 0x0600.
++ * Define larger if expecting jumbo frames.
++ */
++#ifdef JUMBO_FRAME
++//4088=4096-8
++#define		IPG_RXFRAG_SIZE		__IPG_RXFRAG_SIZE
++#define     IPG_RXSUPPORT_SIZE   IPG_MAX_RXFRAME_SIZE
++#else
++#define		IPG_RXFRAG_SIZE		0x0600
++#define     IPG_RXSUPPORT_SIZE   IPG_RXFRAG_SIZE
++#endif
++
++/* IPG_MAX_RXFRAME_SIZE <= IPG_RXFRAG_SIZE */
++#ifdef JUMBO_FRAME
++#define		IPG_MAX_RXFRAME_SIZE		JUMBO_FRAME_SIZE
++#else
++#define		IPG_MAX_RXFRAME_SIZE		0x0600
++#endif
++
++#define		IPG_RFDLIST_LENGTH		0x100
++
++/* Maximum number of RFDs to process per interrupt.
++ * 1 < IPG_MAXRFDPROCESS_COUNT < IPG_RFDLIST_LENGTH
++ */
++#define		IPG_MAXRFDPROCESS_COUNT	0x80
++
++/* Minimum margin between last freed RFD, and current RFD.
++ * 1 < IPG_MINUSEDRFDSTOFREE < IPG_RFDLIST_LENGTH
++ */
++#define		IPG_MINUSEDRFDSTOFREE	0x80
++
++/* specify the jumbo frame maximum size
++ * per unit is 0x600 (the RxBuffer size that one RFD can carry)
++ */
++#define     MAX_JUMBOSIZE	        0x8	// max is 12K
++
++/* Key register values loaded at driver start up. */
++
++/* TXDMAPollPeriod is specified in 320ns increments.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Value	Time
++ * ---------------------
++ * 0x00-0x01	320ns
++ * 0x03		~1us
++ * 0x1F		~10us
++ * 0xFF		~82us
++ */
++#define		IPG_TXDMAPOLLPERIOD_VALUE	0x26
++
++/* TxDMAUrgentThresh specifies the minimum amount of
++ * data in the transmit FIFO before asserting an
++ * urgent transmit DMA request.
++ *
++ * Value	Min TxFIFO occupied space before urgent TX request
++ * ---------------------------------------------------------------
++ * 0x00-0x04	128 bytes (1024 bits)
++ * 0x27		1248 bytes (~10000 bits)
++ * 0x30		1536 bytes (12288 bits)
++ * 0xFF		8192 bytes (65535 bits)
++ */
++#define		IPG_TXDMAURGENTTHRESH_VALUE	0x04
++
++/* TxDMABurstThresh specifies the minimum amount of
++ * free space in the transmit FIFO before asserting an
++ * transmit DMA request.
++ *
++ * Value	Min TxFIFO free space before TX request
++ * ----------------------------------------------------
++ * 0x00-0x08	256 bytes
++ * 0x30		1536 bytes
++ * 0xFF		8192 bytes
++ */
++#define		IPG_TXDMABURSTTHRESH_VALUE	0x30
++
++/* RXDMAPollPeriod is specified in 320ns increments.
++ *
++ * Value	Time
++ * ---------------------
++ * 0x00-0x01	320ns
++ * 0x03		~1us
++ * 0x1F		~10us
++ * 0xFF		~82us
++ */
++#define		IPG_RXDMAPOLLPERIOD_VALUE	0x01
++
++/* RxDMAUrgentThresh specifies the minimum amount of
++ * free space within the receive FIFO before asserting
++ * a urgent receive DMA request.
++ *
++ * Value	Min RxFIFO free space before urgent RX request
++ * ---------------------------------------------------------------
++ * 0x00-0x04	128 bytes (1024 bits)
++ * 0x27		1248 bytes (~10000 bits)
++ * 0x30		1536 bytes (12288 bits)
++ * 0xFF		8192 bytes (65535 bits)
++ */
++#define		IPG_RXDMAURGENTTHRESH_VALUE	0x30
++
++/* RxDMABurstThresh specifies the minimum amount of
++ * occupied space within the receive FIFO before asserting
++ * a receive DMA request.
++ *
++ * Value	Min TxFIFO free space before TX request
++ * ----------------------------------------------------
++ * 0x00-0x08	256 bytes
++ * 0x30		1536 bytes
++ * 0xFF		8192 bytes
++ */
++#define		IPG_RXDMABURSTTHRESH_VALUE	0x30
++
++/* FlowOnThresh specifies the maximum amount of occupied
++ * space in the receive FIFO before a PAUSE frame with
++ * maximum pause time transmitted.
++ *
++ * Value	Max RxFIFO occupied space before PAUSE
++ * ---------------------------------------------------
++ * 0x0000	0 bytes
++ * 0x0740	29,696 bytes
++ * 0x07FF	32,752 bytes
++ */
++#define		IPG_FLOWONTHRESH_VALUE	0x0740
++
++/* FlowOffThresh specifies the minimum amount of occupied
++ * space in the receive FIFO before a PAUSE frame with
++ * zero pause time is transmitted.
++ *
++ * Value	Max RxFIFO occupied space before PAUSE
++ * ---------------------------------------------------
++ * 0x0000	0 bytes
++ * 0x00BF	3056 bytes
++ * 0x07FF	32,752 bytes
++ */
++#define		IPG_FLOWOFFTHRESH_VALUE	0x00BF
++
++/*
++ * Miscellaneous macros.
 + */
 +
-+/* Loading Firmware */
-+/* INT_MEM Ver */
-+static u32 s_firmLoad[] = {
-+	0x000f0002,
-+	0x40718000,
-+	0x0000002d,
-+	0xc0000000,
-+	0x000f0002,
-+	0x00718001,
-+	0x0000002d,
-+	0xc0800000,
-+	0x000f0002,
-+	0x00718002,
-+	0x0000002d,
-+	0xc1000000,
-+	0x000f0002,
-+	0x00718003,
-+	0x0000002d,
-+	0xc1800000,
-+	0x000f0002,
-+	0x00718004,
-+	0x0000002d,
-+	0xc2000000,
-+	0x000f0002,
-+	0x00718005,
-+	0x0000002d,
-+	0xc2800000,
-+	0x000f0002,
-+	0x00718006,
-+	0x0000002d,
-+	0xc3000000,
-+	0x000f0002,
-+	0x00718007,
-+	0x0000002d,
-+	0xc3800000,
-+	0x000f0002,
-+	0x00718008,
-+	0x0000002d,
-+	0xc4000000,
-+	0x000f0002,
-+	0x00718009,
-+	0x0000002d,
-+	0xc4800000,
-+	0x000f0002,
-+	0x0071800a,
-+	0x0000002d,
-+	0xc5000000,
-+	0x000f0002,
-+	0x0071800b,
-+	0x0000002d,
-+	0xc5800000,
-+	0x000f0002,
-+	0x0071800c,
-+	0x0000002d,
-+	0xc6000000,
-+	0x000f0002,
-+	0x0071800d,
-+	0x0000002d,
-+	0xc6800000,
-+	0x000f0002,
-+	0x0071800e,
-+	0x0000002d,
-+	0xc7000000,
-+	0x000f0002,
-+	0x0071800f,
-+	0x0000002d,
-+	0xc7800000,
-+	0x000f0002,
-+	0x00718010,
-+	0x0000002d,
-+	0xc8000000,
-+	0x000f0002,
-+	0x00718011,
-+	0x0000002d,
-+	0xc8800000,
-+	0x000f0002,
-+	0x00718012,
-+	0x0000002d,
-+	0xc9000000,
-+	0x000f0002,
-+	0x00718013,
-+	0x0000002d,
-+	0xc9800000,
-+	0x000f0002,
-+	0x00718014,
-+	0x0000002d,
-+	0xca000000,
-+	0x000f0002,
-+	0x00718015,
-+	0x0000002d,
-+	0xca800000,
-+	0x000f0002,
-+	0x00718016,
-+	0x0000002d,
-+	0xcb000000,
-+	0x000f0002,
-+	0x00718017,
-+	0x0000002d,
-+	0xcb800000,
-+	0x000f0002,
-+	0x00718018,
-+	0x0000002d,
-+	0xcc000000,
-+	0x000f0002,
-+	0x00718019,
-+	0x0000002d,
-+	0xcc800000,
-+	0x000f0002,
-+	0x0071801a,
-+	0x0000002d,
-+	0xcd000000,
-+	0x000f0002,
-+	0x0071801b,
-+	0x0000002d,
-+	0xcd800000,
-+	0x000f0002,
-+	0x0071801c,
-+	0x0000002d,
-+	0xce000000,
-+	0x000f0002,
-+	0x0071801d,
-+	0x0000002d,
-+	0xce800000,
-+	0x000f0002,
-+	0x0071801e,
-+	0x0000002d,
-+	0xcf000000,
-+	0x000f0002,
-+	0x0071801f,
-+	0x0000002d,
-+	0xcf800000,
-+	0x000f0002,
-+	0x00718020,
-+	0x0000002d,
-+	0xd0000000,
-+	0x000f0002,
-+	0x00718021,
-+	0x0000002d,
-+	0xd0800000,
-+	0x000f0002,
-+	0x00718022,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x00718023,
-+	0x0000002d,
-+	0xd1800000,
-+	0x000f0002,
-+	0x00718024,
-+	0x0000002d,
-+	0xd2000000,
-+	0x000f0002,
-+	0x00718025,
-+	0x0000002d,
-+	0xd2800000,
-+	0x000f0002,
-+	0x00718026,
-+	0x0000002d,
-+	0xd3000000,
-+	0x000f0002,
-+	0x00718027,
-+	0x0000002d,
-+	0xd3800000,
-+	0x000f0002,
-+	0x00718028,
-+	0x0000002d,
-+	0xd4000000,
-+	0x000f0002,
-+	0x00718029,
-+	0x0000002d,
-+	0xd4800000,
-+	0x000f0002,
-+	0x0071802a,
-+	0x0000002d,
-+	0xd5000000,
-+	0x000f0002,
-+	0x0071802b,
-+	0x0000002d,
-+	0xd5800000,
-+	0x000f0002,
-+	0x0071802c,
-+	0x0000002d,
-+	0xd6000000,
-+	0x000f0002,
-+	0x0071802d,
-+	0x0000002d,
-+	0xd6800000,
-+	0x000f0002,
-+	0x0071802e,
-+	0x0000002d,
-+	0xd7000000,
-+	0x000f0002,
-+	0x0071802f,
-+	0x0000002d,
-+	0xd7800000,
-+	0x000f0002,
-+	0x00718030,
-+	0x0000002d,
-+	0xd8000000,
-+	0x000f0002,
-+	0x00718031,
-+	0x0000002d,
-+	0xd8800000,
-+	0x000f0002,
-+	0x00718032,
-+	0x0000002d,
-+	0xd9000000,
-+	0x000f0002,
-+	0x00718033,
-+	0x0000002d,
-+	0xd9800000,
-+	0x000f0002,
-+	0x00718034,
-+	0x0000002d,
-+	0xda000000,
-+	0x000f0002,
-+	0x00718035,
-+	0x0000002d,
-+	0xda800000,
-+	0x000f0002,
-+	0x00718036,
-+	0x0000002d,
-+	0xdb000000,
-+	0x000f0002,
-+	0x00718037,
-+	0x0000002d,
-+	0xdb800000,
-+	0x000f0002,
-+	0x00718038,
-+	0x0000007b,
-+	0xdd608000,
-+	0x000f0002,
-+	0x00718039,
-+	0x0000002d,
-+	0xdd000000,
-+	0x000f0002,
-+	0x0071803a,
-+	0x0000002d,
-+	0xdb800000,
-+	0x000f0002,
-+	0x0071803b,
-+	0x0000002d,
-+	0xdd000000,
-+	0x000f0002,
-+	0x0071803c,
-+	0x0000002d,
-+	0xdd000000,
-+	0x000f0002,
-+	0x0071803d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718040,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718041,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718042,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718043,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718044,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718045,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718046,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718047,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718048,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718049,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718050,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718051,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718052,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718053,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718054,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718055,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718056,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718057,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718058,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718059,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718060,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718061,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718062,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718063,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718064,
-+	0x0000002d,
-+	0xdb000000,
-+	0x000f0002,
-+	0x00718065,
-+	0x0000003f,
-+	0xdd000104,
-+	0x000f0002,
-+	0x00718066,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718067,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718068,
-+	0x0000003f,
-+	0xdd000804,
-+	0x000f0002,
-+	0x00718069,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071806a,
-+	0x0000003f,
-+	0xdd003004,
-+	0x000f0002,
-+	0x0071806b,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071806c,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071806d,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x0071806e,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071806f,
-+	0x0000003f,
-+	0xdd003d04,
-+	0x000f0002,
-+	0x00718070,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718071,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718072,
-+	0x0000003f,
-+	0xdd000704,
-+	0x000f0002,
-+	0x00718073,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718074,
-+	0x0000003f,
-+	0xdd002884,
-+	0x000f0002,
-+	0x00718075,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718076,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718077,
-+	0x0000003f,
-+	0xdd003704,
-+	0x000f0002,
-+	0x00718078,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718079,
-+	0x0000003f,
-+	0xdd002904,
-+	0x000f0002,
-+	0x0071807a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071807b,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071807c,
-+	0x0000003f,
-+	0xdd04aa04,
-+	0x000f0002,
-+	0x0071807d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071807e,
-+	0x0000003f,
-+	0xdd002804,
-+	0x000f0002,
-+	0x0071807f,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718080,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718081,
-+	0x0000003f,
-+	0xdd003104,
-+	0x000f0002,
-+	0x00718082,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718083,
-+	0x0000003f,
-+	0xdd002b84,
-+	0x000f0002,
-+	0x00718084,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718085,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718086,
-+	0x0000003f,
-+	0xdd01e404,
-+	0x000f0002,
-+	0x00718087,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718088,
-+	0x0000003f,
-+	0xd7800084,
-+	0x000f0002,
-+	0x00718089,
-+	0x0000003f,
-+	0xd7980001,
-+	0x000f0002,
-+	0x0071808a,
-+	0x00000059,
-+	0xd78037ef,
-+	0x000f0002,
-+	0x0071808b,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071808c,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071808d,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071808e,
-+	0x0000002d,
-+	0xd7d6027f,
-+	0x000f0002,
-+	0x0071808f,
-+	0x00000018,
-+	0x17ff0081,
-+	0x000f0002,
-+	0x00718090,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718091,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718092,
-+	0x0000002d,
-+	0xd7d800b8,
-+	0x000f0002,
-+	0x00718093,
-+	0x00000018,
-+	0x17eb0081,
-+	0x000f0002,
-+	0x00718094,
-+	0x0000003f,
-+	0xdd002904,
-+	0x000f0002,
-+	0x00718095,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718096,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718097,
-+	0x0000003f,
-+	0xdd04aa84,
-+	0x000f0002,
-+	0x00718098,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718099,
-+	0x0000003f,
-+	0xdd002b04,
-+	0x000f0002,
-+	0x0071809a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071809b,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071809c,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x0071809d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071809e,
-+	0x0000003f,
-+	0xdd002984,
-+	0x000f0002,
-+	0x0071809f,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180a0,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180a1,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007180a2,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180a3,
-+	0x0000003f,
-+	0xdd002a04,
-+	0x000f0002,
-+	0x007180a4,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180a5,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180a6,
-+	0x0000003f,
-+	0xdd009184,
-+	0x000f0002,
-+	0x007180a7,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180a8,
-+	0x0000003f,
-+	0xd6801984,
-+	0x000f0002,
-+	0x007180a9,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007180aa,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007180ab,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007180ac,
-+	0x0000003f,
-+	0xdd002b04,
-+	0x000f0002,
-+	0x007180ad,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180ae,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180af,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007180b0,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180b1,
-+	0x0000003f,
-+	0xdd002a84,
-+	0x000f0002,
-+	0x007180b2,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180b3,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180b4,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007180b5,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180b6,
-+	0x0000003f,
-+	0xd6800c84,
-+	0x000f0002,
-+	0x007180b7,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007180b8,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007180b9,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007180ba,
-+	0x0000003f,
-+	0xdd002a84,
-+	0x000f0002,
-+	0x007180bb,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180bc,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180bd,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007180be,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180bf,
-+	0x0000003f,
-+	0xd6800f84,
-+	0x000f0002,
-+	0x007180c0,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007180c1,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007180c2,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007180c3,
-+	0x0000003f,
-+	0xdd002a04,
-+	0x000f0002,
-+	0x007180c4,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180c5,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180c6,
-+	0x0000003f,
-+	0xdd001184,
-+	0x000f0002,
-+	0x007180c7,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180c8,
-+	0x0000003f,
-+	0xdd002884,
-+	0x000f0002,
-+	0x007180c9,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180ca,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180cb,
-+	0x0000003f,
-+	0xdd003784,
-+	0x000f0002,
-+	0x007180cc,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180cd,
-+	0x0000002d,
-+	0xd3800000,
-+	0x000f0002,
-+	0x007180ce,
-+	0x0000003f,
-+	0xd2003780,
-+	0x000f0002,
-+	0x007180cf,
-+	0x0000003f,
-+	0xd1800404,
-+	0x000f0002,
-+	0x007180d0,
-+	0x0000003f,
-+	0xd1840001,
-+	0x000f0002,
-+	0x007180d1,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d2,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d3,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d4,
-+	0x0000003f,
-+	0xd17fff84,
-+	0x000f0002,
-+	0x007180d5,
-+	0x0000003f,
-+	0xd17fff81,
-+	0x000f0002,
-+	0x007180d6,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d7,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d8,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180d9,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180da,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180db,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180dc,
-+	0x0000003f,
-+	0xd6800784,
-+	0x000f0002,
-+	0x007180dd,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007180de,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007180df,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007180e0,
-+	0x00000049,
-+	0xdd003b63,
-+	0x000f0002,
-+	0x007180e1,
-+	0x00000059,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180e2,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180e3,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180e4,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180e5,
-+	0x0000002d,
-+	0xdd06027f,
-+	0x000f0002,
-+	0x007180e6,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x007180e7,
-+	0x00000045,
-+	0xdd003139,
-+	0x000f0002,
-+	0x007180e8,
-+	0x00000094,
-+	0x000b313b,
-+	0x000f0002,
-+	0x007180e9,
-+	0x00000094,
-+	0x0009313d,
-+	0x000f0002,
-+	0x007180ea,
-+	0x00000094,
-+	0x0007313f,
-+	0x000f0002,
-+	0x007180eb,
-+	0x00000094,
-+	0x00053b76,
-+	0x000f0002,
-+	0x007180ec,
-+	0x00000009,
-+	0xc1ed3d7a,
-+	0x000f0002,
-+	0x007180ed,
-+	0x0000003f,
-+	0xd200b780,
-+	0x000f0002,
-+	0x007180ee,
-+	0x0000003f,
-+	0xdd002884,
-+	0x000f0002,
-+	0x007180ef,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007180f0,
-+	0x00000069,
-+	0xdd003264,
-+	0x000f0002,
-+	0x007180f1,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007180f2,
-+	0x0000003f,
-+	0xd6800784,
-+	0x000f0002,
-+	0x007180f3,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007180f4,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007180f5,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007180f6,
-+	0x00000049,
-+	0xdd003b63,
-+	0x000f0002,
-+	0x007180f7,
-+	0x00000059,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007180f8,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180f9,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180fa,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180fb,
-+	0x0000002d,
-+	0xdd06027f,
-+	0x000f0002,
-+	0x007180fc,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x007180fd,
-+	0x00000045,
-+	0xdd00313a,
-+	0x000f0002,
-+	0x007180fe,
-+	0x00000018,
-+	0x1d2d3b76,
-+	0x000f0002,
-+	0x007180ff,
-+	0x00000045,
-+	0xdd00313c,
-+	0x000f0002,
-+	0x00718100,
-+	0x00000018,
-+	0x1d133b76,
-+	0x000f0002,
-+	0x00718101,
-+	0x00000045,
-+	0xdd00313e,
-+	0x000f0002,
-+	0x00718102,
-+	0x00000018,
-+	0x1d1b3b76,
-+	0x000f0002,
-+	0x00718103,
-+	0x0000003f,
-+	0xdd003004,
-+	0x000f0002,
-+	0x00718104,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718105,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718106,
-+	0x0000003f,
-+	0xdd000104,
-+	0x000f0002,
-+	0x00718107,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718108,
-+	0x00000009,
-+	0xc52d3d7a,
-+	0x000f0002,
-+	0x00718109,
-+	0x00000029,
-+	0xd2010064,
-+	0x000f0002,
-+	0x0071810a,
-+	0x0000003f,
-+	0xdd002884,
-+	0x000f0002,
-+	0x0071810b,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071810c,
-+	0x00000069,
-+	0xdd003264,
-+	0x000f0002,
-+	0x0071810d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071810e,
-+	0x00000009,
-+	0xc2293d7a,
-+	0x000f0002,
-+	0x0071810f,
-+	0x00000029,
-+	0xd2000064,
-+	0x000f0002,
-+	0x00718110,
-+	0x0000003f,
-+	0xdd002884,
-+	0x000f0002,
-+	0x00718111,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718112,
-+	0x00000069,
-+	0xdd003264,
-+	0x000f0002,
-+	0x00718113,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718114,
-+	0x00000049,
-+	0xdd003b63,
-+	0x000f0002,
-+	0x00718115,
-+	0x00000059,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718116,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718117,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718118,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718119,
-+	0x0000002d,
-+	0xdd06027f,
-+	0x000f0002,
-+	0x0071811a,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x0071811b,
-+	0x00000045,
-+	0xdd00313a,
-+	0x000f0002,
-+	0x0071811c,
-+	0x00000018,
-+	0x1d0f3b76,
-+	0x000f0002,
-+	0x0071811d,
-+	0x0000003f,
-+	0xdd003004,
-+	0x000f0002,
-+	0x0071811e,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071811f,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718120,
-+	0x0000003f,
-+	0xdd000104,
-+	0x000f0002,
-+	0x00718121,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718122,
-+	0x00000009,
-+	0xc52d3d7a,
-+	0x000f0002,
-+	0x00718123,
-+	0x0000002d,
-+	0xd1080082,
-+	0x000f0002,
-+	0x00718124,
-+	0x00000008,
-+	0x23c33d7a,
-+	0x000f0002,
-+	0x00718125,
-+	0x00000049,
-+	0xd6003b0a,
-+	0x000f0002,
-+	0x00718126,
-+	0x0000003f,
-+	0xd3000004,
-+	0x000f0002,
-+	0x00718127,
-+	0x0000003f,
-+	0xd3040001,
-+	0x000f0002,
-+	0x00718128,
-+	0x0000002f,
-+	0xd6814085,
-+	0x000f0002,
-+	0x00718129,
-+	0x0000003f,
-+	0xd4ffff84,
-+	0x000f0002,
-+	0x0071812a,
-+	0x0000003f,
-+	0xd4800781,
-+	0x000f0002,
-+	0x0071812b,
-+	0x0000003f,
-+	0xd1ffff84,
-+	0x000f0002,
-+	0x0071812c,
-+	0x0000003f,
-+	0xd1800001,
-+	0x000f0002,
-+	0x0071812d,
-+	0x00000049,
-+	0xdd003666,
-+	0x000f0002,
-+	0x0071812e,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x0071812f,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718130,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718131,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x00718132,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718133,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718134,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x00718135,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x00718136,
-+	0x00000061,
-+	0xf600046c,
-+	0x000f0002,
-+	0x00718137,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x00718138,
-+	0x00000018,
-+	0x3d6b0081,
-+	0x000f0002,
-+	0x00718139,
-+	0x00000049,
-+	0xd600058b,
-+	0x000f0002,
-+	0x0071813a,
-+	0x0000002f,
-+	0xd6810106,
-+	0x000f0002,
-+	0x0071813b,
-+	0x0000002d,
-+	0xd2000000,
-+	0x000f0002,
-+	0x0071813c,
-+	0x00000021,
-+	0xd20000e4,
-+	0x000f0002,
-+	0x0071813d,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071813e,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x0071813f,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718140,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718141,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718142,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718143,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718144,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x00718145,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x00718146,
-+	0x00000049,
-+	0xd17a33e4,
-+	0x000f0002,
-+	0x00718147,
-+	0x0000002f,
-+	0xd1710162,
-+	0x000f0002,
-+	0x00718148,
-+	0x0000002f,
-+	0xd1610162,
-+	0x000f0002,
-+	0x00718149,
-+	0x00000049,
-+	0xd14033e3,
-+	0x000f0002,
-+	0x0071814a,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071814b,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x0071814c,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x0071814d,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x0071814e,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x0071814f,
-+	0x00000069,
-+	0xd8003162,
-+	0x000f0002,
-+	0x00718150,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718151,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x00718152,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718153,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x00718154,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718155,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718156,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718157,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718158,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718159,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x0071815a,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x0071815b,
-+	0x0000002d,
-+	0xd16c07e4,
-+	0x000f0002,
-+	0x0071815c,
-+	0x00000049,
-+	0xd14033e3,
-+	0x000f0002,
-+	0x0071815d,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071815e,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x0071815f,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718160,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718161,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718162,
-+	0x00000069,
-+	0xd8003162,
-+	0x000f0002,
-+	0x00718163,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718164,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x00718165,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718166,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x00718167,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718168,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718169,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x0071816a,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x0071816b,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x0071816c,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x0071816d,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x0071816e,
-+	0x00000049,
-+	0xd17833e4,
-+	0x000f0002,
-+	0x0071816f,
-+	0x0000002f,
-+	0xd1710162,
-+	0x000f0002,
-+	0x00718170,
-+	0x0000002f,
-+	0xd1610162,
-+	0x000f0002,
-+	0x00718171,
-+	0x00000049,
-+	0xd14033e3,
-+	0x000f0002,
-+	0x00718172,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718173,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x00718174,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718175,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718176,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718177,
-+	0x00000069,
-+	0xd8003162,
-+	0x000f0002,
-+	0x00718178,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718179,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x0071817a,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x0071817b,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x0071817c,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x0071817d,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x0071817e,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x0071817f,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x00718180,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x00718181,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x00718182,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x00718183,
-+	0x0000002d,
-+	0xd16807e4,
-+	0x000f0002,
-+	0x00718184,
-+	0x00000049,
-+	0xd14033e3,
-+	0x000f0002,
-+	0x00718185,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718186,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x00718187,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x00718188,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x00718189,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x0071818a,
-+	0x00000069,
-+	0xd8003162,
-+	0x000f0002,
-+	0x0071818b,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x0071818c,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x0071818d,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x0071818e,
-+	0x00000008,
-+	0x22790081,
-+	0x000f0002,
-+	0x0071818f,
-+	0x00000049,
-+	0xd600060c,
-+	0x000f0002,
-+	0x00718190,
-+	0x0000002f,
-+	0xd6810106,
-+	0x000f0002,
-+	0x00718191,
-+	0x0000003f,
-+	0xd4800002,
-+	0x000f0002,
-+	0x00718192,
-+	0x0000003f,
-+	0xd4800084,
-+	0x000f0002,
-+	0x00718193,
-+	0x0000003f,
-+	0xd5000102,
-+	0x000f0002,
-+	0x00718194,
-+	0x0000003f,
-+	0xd5000184,
-+	0x000f0002,
-+	0x00718195,
-+	0x0000003f,
-+	0xd5800202,
-+	0x000f0002,
-+	0x00718196,
-+	0x0000003f,
-+	0xd5800204,
-+	0x000f0002,
-+	0x00718197,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718198,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x00718199,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x0071819a,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x0071819b,
-+	0x00000069,
-+	0xd80034e9,
-+	0x000f0002,
-+	0x0071819c,
-+	0x00000069,
-+	0xd800356a,
-+	0x000f0002,
-+	0x0071819d,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x0071819e,
-+	0x00000031,
-+	0xd600016c,
-+	0x000f0002,
-+	0x0071819f,
-+	0x00000041,
-+	0xd48034eb,
-+	0x000f0002,
-+	0x007181a0,
-+	0x00000041,
-+	0xd500356b,
-+	0x000f0002,
-+	0x007181a1,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181a2,
-+	0x00000018,
-+	0x37eb0081,
-+	0x000f0002,
-+	0x007181a3,
-+	0x00000049,
-+	0xd6003b0d,
-+	0x000f0002,
-+	0x007181a4,
-+	0x00000049,
-+	0xd6803b07,
-+	0x000f0002,
-+	0x007181a5,
-+	0x0000002d,
-+	0xd1000000,
-+	0x000f0002,
-+	0x007181a6,
-+	0x00000049,
-+	0xdd003666,
-+	0x000f0002,
-+	0x007181a7,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181a8,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181a9,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181aa,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181ab,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181ac,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181ad,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181ae,
-+	0x00000069,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x007181af,
-+	0x00000061,
-+	0xf600046c,
-+	0x000f0002,
-+	0x007181b0,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181b1,
-+	0x00000018,
-+	0x37eb0081,
-+	0x000f0002,
-+	0x007181b2,
-+	0x00000049,
-+	0xd6003b0e,
-+	0x000f0002,
-+	0x007181b3,
-+	0x00000049,
-+	0xd6803b08,
-+	0x000f0002,
-+	0x007181b4,
-+	0x00000049,
-+	0xd5803b09,
-+	0x000f0002,
-+	0x007181b5,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181b6,
-+	0x0000002d,
-+	0xdd06017f,
-+	0x000f0002,
-+	0x007181b7,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x007181b8,
-+	0x00000049,
-+	0xd800366c,
-+	0x000f0002,
-+	0x007181b9,
-+	0x00000069,
-+	0xd80035eb,
-+	0x000f0002,
-+	0x007181ba,
-+	0x00000069,
-+	0xd80033e7,
-+	0x000f0002,
-+	0x007181bb,
-+	0x00000069,
-+	0xd80037ef,
-+	0x000f0002,
-+	0x007181bc,
-+	0x00000041,
-+	0xd60007ec,
-+	0x000f0002,
-+	0x007181bd,
-+	0x00000041,
-+	0xd580086b,
-+	0x000f0002,
-+	0x007181be,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181bf,
-+	0x00000018,
-+	0x37ed0081,
-+	0x000f0002,
-+	0x007181c0,
-+	0x0000003f,
-+	0xd4ffff80,
-+	0x000f0002,
-+	0x007181c1,
-+	0x0000003f,
-+	0xd5020004,
-+	0x000f0002,
-+	0x007181c2,
-+	0x0000003f,
-+	0xd5180001,
-+	0x000f0002,
-+	0x007181c3,
-+	0x00000049,
-+	0xdd003b6a,
-+	0x000f0002,
-+	0x007181c4,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x007181c5,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x007181c6,
-+	0x00000021,
-+	0xd50000ea,
-+	0x000f0002,
-+	0x007181c7,
-+	0x00000049,
-+	0xdd0e3b6a,
-+	0x000f0002,
-+	0x007181c8,
-+	0x00000035,
-+	0xd104007a,
-+	0x000f0002,
-+	0x007181c9,
-+	0x00000018,
-+	0x37f50081,
-+	0x000f0002,
-+	0x007181ca,
-+	0x0000003f,
-+	0xd4ffff80,
-+	0x000f0002,
-+	0x007181cb,
-+	0x0000003f,
-+	0xd5040004,
-+	0x000f0002,
-+	0x007181cc,
-+	0x0000003f,
-+	0xd5180001,
-+	0x000f0002,
-+	0x007181cd,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x007181ce,
-+	0x00000069,
-+	0xdd003b69,
-+	0x000f0002,
-+	0x007181cf,
-+	0x00000049,
-+	0xdd003b6a,
-+	0x000f0002,
-+	0x007181d0,
-+	0x00000051,
-+	0xf50000ea,
-+	0x000f0002,
-+	0x007181d1,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181d2,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181d3,
-+	0x00000049,
-+	0xdd0e3b6a,
-+	0x000f0002,
-+	0x007181d4,
-+	0x00000035,
-+	0xd104807a,
-+	0x000f0002,
-+	0x007181d5,
-+	0x00000018,
-+	0x37f50081,
-+	0x000f0002,
-+	0x007181d6,
-+	0x0000003f,
-+	0xc77f7f04,
-+	0x000f0002,
-+	0x007181d7,
-+	0x0000003f,
-+	0xc77f7f01,
-+	0x000f0002,
-+	0x007181d8,
-+	0x0000003f,
-+	0xd6804000,
-+	0x000f0002,
-+	0x007181d9,
-+	0x0000003f,
-+	0xd103c000,
-+	0x000f0002,
-+	0x007181da,
-+	0x00000025,
-+	0xde2000e2,
-+	0x000f0002,
-+	0x007181db,
-+	0x00000049,
-+	0xde80274e,
-+	0x000f0002,
-+	0x007181dc,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181dd,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181de,
-+	0x00000035,
-+	0xd10000e2,
-+	0x000f0002,
-+	0x007181df,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181e0,
-+	0x00000018,
-+	0x37f50081,
-+	0x000f0002,
-+	0x007181e1,
-+	0x0000003f,
-+	0xdd003004,
-+	0x000f0002,
-+	0x007181e2,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007181e3,
-+	0x00000069,
-+	0xdd001d3a,
-+	0x000f0002,
-+	0x007181e4,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007181e5,
-+	0x0000007d,
-+	0xc760a713,
-+	0x000f0002,
-+	0x007181e6,
-+	0x00000031,
-+	0xc0800041,
-+	0x000f0002,
-+	0x007181e7,
-+	0x00000031,
-+	0xc4000048,
-+	0x000f0002,
-+	0x007181e8,
-+	0x00000031,
-+	0xc2800045,
-+	0x000f0002,
-+	0x007181e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f4,
-+	0x0000002d,
-+	0xdb000000,
-+	0x000f0002,
-+	0x007181f5,
-+	0x0000003f,
-+	0xdd003004,
-+	0x000f0002,
-+	0x007181f6,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007181f7,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007181f8,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007181f9,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007181fa,
-+	0x0000002d,
-+	0xd3800000,
-+	0x000f0002,
-+	0x007181fb,
-+	0x0000003f,
-+	0xdd000404,
-+	0x000f0002,
-+	0x007181fc,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007181fd,
-+	0x00000069,
-+	0xdd000a14,
-+	0x000f0002,
-+	0x007181fe,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x007181ff,
-+	0x00000049,
-+	0xd1043394,
-+	0x000f0002,
-+	0x00718200,
-+	0x0000003f,
-+	0xdd000484,
-+	0x000f0002,
-+	0x00718201,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718202,
-+	0x00000069,
-+	0xdd003162,
-+	0x000f0002,
-+	0x00718203,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718204,
-+	0x0000003f,
-+	0xdd000504,
-+	0x000f0002,
-+	0x00718205,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718206,
-+	0x00000069,
-+	0xdd000a95,
-+	0x000f0002,
-+	0x00718207,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718208,
-+	0x00000049,
-+	0xd1043395,
-+	0x000f0002,
-+	0x00718209,
-+	0x0000003f,
-+	0xdd000584,
-+	0x000f0002,
-+	0x0071820a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071820b,
-+	0x00000069,
-+	0xdd003162,
-+	0x000f0002,
-+	0x0071820c,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071820d,
-+	0x0000003f,
-+	0xdd000604,
-+	0x000f0002,
-+	0x0071820e,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071820f,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718210,
-+	0x0000003f,
-+	0xdd000084,
-+	0x000f0002,
-+	0x00718211,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718212,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718213,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718214,
-+	0x00000069,
-+	0xdd000b16,
-+	0x000f0002,
-+	0x00718215,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718216,
-+	0x0000003f,
-+	0xdd001004,
-+	0x000f0002,
-+	0x00718217,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718218,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718219,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x0071821a,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071821b,
-+	0x0000003f,
-+	0xdd001084,
-+	0x000f0002,
-+	0x0071821c,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071821d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071821e,
-+	0x0000003f,
-+	0xdd018004,
-+	0x000f0002,
-+	0x0071821f,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718220,
-+	0x0000003f,
-+	0xdd001104,
-+	0x000f0002,
-+	0x00718221,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718222,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718223,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718224,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718225,
-+	0x0000003f,
-+	0xdd001184,
-+	0x000f0002,
-+	0x00718226,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718227,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718228,
-+	0x0000003f,
-+	0xdd160004,
-+	0x000f0002,
-+	0x00718229,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071822a,
-+	0x0000003f,
-+	0xdd001204,
-+	0x000f0002,
-+	0x0071822b,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071822c,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071822d,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x0071822e,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071822f,
-+	0x0000003f,
-+	0xdd001284,
-+	0x000f0002,
-+	0x00718230,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718231,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718232,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718233,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718234,
-+	0x0000003f,
-+	0xdd001304,
-+	0x000f0002,
-+	0x00718235,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718236,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718237,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718238,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718239,
-+	0x0000003f,
-+	0xdd001384,
-+	0x000f0002,
-+	0x0071823a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071823b,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071823c,
-+	0x0000003f,
-+	0xdd050004,
-+	0x000f0002,
-+	0x0071823d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071823e,
-+	0x0000003f,
-+	0xdd002004,
-+	0x000f0002,
-+	0x0071823f,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718240,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718241,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718242,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718243,
-+	0x0000003f,
-+	0xdd002084,
-+	0x000f0002,
-+	0x00718244,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718245,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718246,
-+	0x0000003f,
-+	0xdd019004,
-+	0x000f0002,
-+	0x00718247,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718248,
-+	0x0000003f,
-+	0xdd002104,
-+	0x000f0002,
-+	0x00718249,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071824a,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071824b,
-+	0x0000003f,
-+	0xdd000084,
-+	0x000f0002,
-+	0x0071824c,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071824d,
-+	0x0000003f,
-+	0xdd002184,
-+	0x000f0002,
-+	0x0071824e,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071824f,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718250,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718251,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718252,
-+	0x0000003f,
-+	0xdd002204,
-+	0x000f0002,
-+	0x00718253,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718254,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718255,
-+	0x0000003f,
-+	0xdd000284,
-+	0x000f0002,
-+	0x00718256,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718257,
-+	0x0000003f,
-+	0xdd002284,
-+	0x000f0002,
-+	0x00718258,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718259,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071825a,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x0071825b,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071825c,
-+	0x0000003f,
-+	0xdd002304,
-+	0x000f0002,
-+	0x0071825d,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071825e,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071825f,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718260,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718261,
-+	0x0000003f,
-+	0xdd001804,
-+	0x000f0002,
-+	0x00718262,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718263,
-+	0x00000069,
-+	0xdd000b97,
-+	0x000f0002,
-+	0x00718264,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718265,
-+	0x00000049,
-+	0xd1043397,
-+	0x000f0002,
-+	0x00718266,
-+	0x0000003f,
-+	0xdd001884,
-+	0x000f0002,
-+	0x00718267,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718268,
-+	0x00000069,
-+	0xdd003162,
-+	0x000f0002,
-+	0x00718269,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071826a,
-+	0x0000003f,
-+	0xdd001904,
-+	0x000f0002,
-+	0x0071826b,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071826c,
-+	0x00000069,
-+	0xdd000c18,
-+	0x000f0002,
-+	0x0071826d,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071826e,
-+	0x00000049,
-+	0xd1043398,
-+	0x000f0002,
-+	0x0071826f,
-+	0x0000003f,
-+	0xdd001984,
-+	0x000f0002,
-+	0x00718270,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718271,
-+	0x00000069,
-+	0xdd003162,
-+	0x000f0002,
-+	0x00718272,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718273,
-+	0x0000003f,
-+	0xdd001a04,
-+	0x000f0002,
-+	0x00718274,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718275,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718276,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x00718277,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718278,
-+	0x0000003f,
-+	0xdd001a84,
-+	0x000f0002,
-+	0x00718279,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071827a,
-+	0x00000069,
-+	0xdd000b16,
-+	0x000f0002,
-+	0x0071827b,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071827c,
-+	0x0000003f,
-+	0xdd001c04,
-+	0x000f0002,
-+	0x0071827d,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071827e,
-+	0x00000069,
-+	0xdd000c99,
-+	0x000f0002,
-+	0x0071827f,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718280,
-+	0x0000003f,
-+	0xdd001c84,
-+	0x000f0002,
-+	0x00718281,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718282,
-+	0x00000069,
-+	0xdd000d1a,
-+	0x000f0002,
-+	0x00718283,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718284,
-+	0x0000003f,
-+	0xdd001d04,
-+	0x000f0002,
-+	0x00718285,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718286,
-+	0x00000069,
-+	0xdd000d9b,
-+	0x000f0002,
-+	0x00718287,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718288,
-+	0x00000049,
-+	0xd104339b,
-+	0x000f0002,
-+	0x00718289,
-+	0x0000003f,
-+	0xdd001d84,
-+	0x000f0002,
-+	0x0071828a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071828b,
-+	0x00000069,
-+	0xdd003162,
-+	0x000f0002,
-+	0x0071828c,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x0071828d,
-+	0x0000003f,
-+	0xdd001e04,
-+	0x000f0002,
-+	0x0071828e,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071828f,
-+	0x00000069,
-+	0xdd000e1c,
-+	0x000f0002,
-+	0x00718290,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718291,
-+	0x0000003f,
-+	0xdd000104,
-+	0x000f0002,
-+	0x00718292,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x00718293,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718294,
-+	0x0000003f,
-+	0xdd000f04,
-+	0x000f0002,
-+	0x00718295,
-+	0x00000069,
-+	0xdd003d7a,
-+	0x000f0002,
-+	0x00718296,
-+	0x0000007d,
-+	0xc760a713,
-+	0x000f0002,
-+	0x00718297,
-+	0x00000031,
-+	0xc0800041,
-+	0x000f0002,
-+	0x00718298,
-+	0x00000031,
-+	0xc4000048,
-+	0x000f0002,
-+	0x00718299,
-+	0x00000031,
-+	0xc2800045,
-+	0x000f0002,
-+	0x0071829a,
-+	0x00000031,
-+	0xd680006d,
-+/* BRDX_INIT_SDRAM */
-+	0x000f000f,
-+	0x00700064,
-+	0x00000000,
-+	0x00000000,
-+	0x00000000,
-+	0x00000040,
-+	0x00000100,
-+	0x00000400,
-+	0x00000064,
-+	0x00000054,
-+	0x00000000,
-+	0x00002400,
-+	0x00002800,
-+	0x00000400,
-+	0x00002880,
-+	0x00000180,
-+	0x00000003,
-+	0x00000000,
-+	0x00000000,
-+	0x00000000,
-+	0x00000051,
-+	0x0000017d,
-+	0x00000008,
-+	0x00000051,
-+	0x0000005d,
-+	0x00000000,
-+	0x00000009,
-+	0x00005000,
-+	0x00000000,
-+	0x00000000,
-+/* BRDX_INIT */
-+	0x000f000f,
-+	0x007001f4,
-+	0x00000000,
-+	0x00000000,
-+	0x00000000,
-+	0x00000040,
-+	0x00000100,
-+	0x00000400,
-+	0x00000064,
-+	0x00000054,
-+	0x00000000,
-+	0x00002400,
-+	0x00002800,
-+	0x00000400,
-+	0x00002880,
-+	0x00000180,
-+	0x00000003,
-+	0x00000000,
-+	0x00000000,
-+	0x00000000,
-+	0x00000051,
-+	0x0000017d,
-+	0x00000008,
-+	0x00000051,
-+	0x0000005d,
-+	0x00000000,
-+	0x00000009,
-+	0x00005000,
-+	0x00000000,
-+	0x00000000,
-+/* ZERO_INIT */
-+	0x000f0002,
-+	0x00700000,
-+	0x00000001,
-+	0x00000000,
-+/* ZERO_INIT */
-+	0x000f0002,
-+	0x00700000,
-+	0x00000001,
-+	0x00000000,
-+/* Loading operational Firmware */
-+	0x000f0002,
-+	0x00718000,
-+	0x00000025,
-+	0xdd0e0002,
-+	0x000f0002,
-+	0x00718001,
-+	0x00000004,
-+	0x01d13b76,
-+	0x000f0002,
-+	0x00718002,
-+	0x00000025,
-+	0xdd0e0082,
-+	0x000f0002,
-+	0x00718003,
-+	0x00000004,
-+	0x02893b76,
-+	0x000f0002,
-+	0x00718004,
-+	0x00000025,
-+	0xdd0e0102,
-+	0x000f0002,
-+	0x00718005,
-+	0x00000004,
-+	0x02853b76,
-+	0x000f0002,
-+	0x00718006,
-+	0x00000025,
-+	0xdd0e0182,
-+	0x000f0002,
-+	0x00718007,
-+	0x00000004,
-+	0x03fd3b76,
-+	0x000f0002,
-+	0x00718008,
-+	0x00000009,
-+	0xcf813b76,
-+	0x000f0002,
-+	0x00718009,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071800f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718010,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718011,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718012,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718013,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718014,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718015,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718016,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718017,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718018,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718019,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071801f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718020,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718021,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718022,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718023,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718024,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718025,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718026,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718027,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718028,
-+	0x00000049,
-+	0xc0003b00,
-+	0x000f0002,
-+	0x00718029,
-+	0x00000049,
-+	0xc0803b02,
-+	0x000f0002,
-+	0x0071802a,
-+	0x00000049,
-+	0xc1003b03,
-+	0x000f0002,
-+	0x0071802b,
-+	0x00000049,
-+	0xc1803b04,
-+	0x000f0002,
-+	0x0071802c,
-+	0x00000029,
-+	0xdf600076,
-+	0x000f0002,
-+	0x0071802d,
-+	0x00000049,
-+	0xdf443b7d,
-+	0x000f0002,
-+	0x0071802e,
-+	0x00000079,
-+	0xfd609076,
-+	0x000f0002,
-+	0x0071802f,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718030,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718031,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718032,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718033,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718034,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718035,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718036,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718037,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718038,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718039,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071803f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718040,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718041,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718042,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718043,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718044,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718045,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718046,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718047,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718048,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718049,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071804f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718050,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718051,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718052,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718053,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718054,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718055,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718056,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718057,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718058,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718059,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071805f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718060,
-+	0x0000003f,
-+	0xdf000003,
-+	0x000f0002,
-+	0x00718061,
-+	0x0000002d,
-+	0xdde00f81,
-+	0x000f0002,
-+	0x00718062,
-+	0x0000003f,
-+	0xdd800283,
-+	0x000f0002,
-+	0x00718063,
-+	0x0000002d,
-+	0xdd040180,
-+	0x000f0002,
-+	0x00718064,
-+	0x0000007d,
-+	0xfd150080,
-+	0x000f0002,
-+	0x00718065,
-+	0x0000007a,
-+	0x10203b76,
-+	0x000f0002,
-+	0x00718066,
-+	0x0000007a,
-+	0x30207b76,
-+	0x000f0002,
-+	0x00718067,
-+	0x00000021,
-+	0xd0240060,
-+	0x000f0002,
-+	0x00718068,
-+	0x0000003f,
-+	0xdd000104,
-+	0x000f0002,
-+	0x00718069,
-+	0x0000003f,
-+	0xdd400281,
-+	0x000f0002,
-+	0x0071806a,
-+	0x00000079,
-+	0xdd31bb03,
-+	0x000f0002,
-+	0x0071806b,
-+	0x00000079,
-+	0xdd31fb04,
-+	0x000f0002,
-+	0x0071806c,
-+	0x00000079,
-+	0xdd31bb76,
-+	0x000f0002,
-+	0x0071806d,
-+	0x00000079,
-+	0xdd31fb76,
-+	0x000f0002,
-+	0x0071806e,
-+	0x00000079,
-+	0xfd210101,
-+	0x000f0002,
-+	0x0071806f,
-+	0x0000007d,
-+	0xfd2b4081,
-+	0x000f0002,
-+	0x00718070,
-+	0x00000040,
-+	0x3d003002,
-+	0x000f0002,
-+	0x00718071,
-+	0x00000048,
-+	0x1d003b02,
-+	0x000f0002,
-+	0x00718072,
-+	0x00000079,
-+	0xdd217b76,
-+	0x000f0002,
-+	0x00718073,
-+	0x0000002d,
-+	0xdd04057f,
-+	0x000f0002,
-+	0x00718074,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x00718075,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718076,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718077,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718078,
-+	0x00000021,
-+	0xe3371f76,
-+	0x000f0002,
-+	0x00718079,
-+	0x00000049,
-+	0xdd003b79,
-+	0x000f0002,
-+	0x0071807a,
-+	0x00000079,
-+	0xdd21bb76,
-+	0x000f0002,
-+	0x0071807b,
-+	0x00000049,
-+	0xdd003b79,
-+	0x000f0002,
-+	0x0071807c,
-+	0x00000079,
-+	0xdd21bb76,
-+	0x000f0002,
-+	0x0071807d,
-+	0x00000049,
-+	0xdd003b79,
-+	0x000f0002,
-+	0x0071807e,
-+	0x00000079,
-+	0xdd21bb76,
-+	0x000f0002,
-+	0x0071807f,
-+	0x00000079,
-+	0xfd609076,
-+	0x000f0002,
-+	0x00718080,
-+	0x00000079,
-+	0xdd21fb76,
-+	0x000f0002,
-+	0x00718081,
-+	0x0000003f,
-+	0xdf000083,
-+	0x000f0002,
-+	0x00718082,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718083,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718084,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718085,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718086,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718087,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718088,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718089,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071808f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718090,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718091,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718092,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718093,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718094,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718095,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718096,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718097,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718098,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718099,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071809f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180a0,
-+	0x0000002d,
-+	0xd0080803,
-+	0x000f0002,
-+	0x007180a1,
-+	0x00000008,
-+	0x21b5fb76,
-+	0x000f0002,
-+	0x007180a2,
-+	0x00000079,
-+	0xdd010081,
-+	0x000f0002,
-+	0x007180a3,
-+	0x00000079,
-+	0xdd018102,
-+	0x000f0002,
-+	0x007180a4,
-+	0x0000007d,
-+	0xfd018083,
-+	0x000f0002,
-+	0x007180a5,
-+	0x00000079,
-+	0xd0903b76,
-+	0x000f0002,
-+	0x007180a6,
-+	0x00000049,
-+	0xd0583b7a,
-+	0x000f0002,
-+	0x007180a7,
-+	0x00000049,
-+	0xd2043b00,
-+	0x000f0002,
-+	0x007180a8,
-+	0x0000003d,
-+	0xdd400003,
-+	0x000f0002,
-+	0x007180a9,
-+	0x00000024,
-+	0x32000264,
-+	0x000f0002,
-+	0x007180aa,
-+	0x0000003d,
-+	0xdd7ff803,
-+	0x000f0002,
-+	0x007180ab,
-+	0x00000029,
-+	0xd020017a,
-+	0x000f0002,
-+	0x007180ac,
-+	0x00000049,
-+	0xd0a43b0e,
-+	0x000f0002,
-+	0x007180ad,
-+	0x0000002d,
-+	0xdd0442ff,
-+	0x000f0002,
-+	0x007180ae,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x007180af,
-+	0x0000002d,
-+	0xdd060082,
-+	0x000f0002,
-+	0x007180b0,
-+	0x00000038,
-+	0x300001e0,
-+	0x000f0002,
-+	0x007180b1,
-+	0x00000039,
-+	0xd0000160,
-+	0x000f0002,
-+	0x007180b2,
-+	0x00000079,
-+	0xd1b13b7c,
-+	0x000f0002,
-+	0x007180b3,
-+	0x0000002d,
-+	0xdde00fe3,
-+	0x000f0002,
-+	0x007180b4,
-+	0x00000049,
-+	0xd08030e4,
-+	0x000f0002,
-+	0x007180b5,
-+	0x00000079,
-+	0xdd317b7c,
-+	0x000f0002,
-+	0x007180b6,
-+	0x00000079,
-+	0xdd313b7c,
-+	0x000f0002,
-+	0x007180b7,
-+	0x0000007d,
-+	0xfd374082,
-+	0x000f0002,
-+	0x007180b8,
-+	0x00000008,
-+	0x017d3b76,
-+	0x000f0002,
-+	0x007180b9,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180ba,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180bb,
-+	0x00000049,
-+	0xdd000387,
-+	0x000f0002,
-+	0x007180bc,
-+	0x00000079,
-+	0xdd310408,
-+	0x000f0002,
-+	0x007180bd,
-+	0x00000079,
-+	0xdd317d7a,
-+	0x000f0002,
-+	0x007180be,
-+	0x00000049,
-+	0xd3003b7c,
-+	0x000f0002,
-+	0x007180bf,
-+	0x00000079,
-+	0xd381bb7c,
-+	0x000f0002,
-+	0x007180c0,
-+	0x0000007f,
-+	0xd101b27c,
-+	0x000f0002,
-+	0x007180c1,
-+	0x00000048,
-+	0x51003264,
-+	0x000f0002,
-+	0x007180c2,
-+	0x0000003d,
-+	0xdd400003,
-+	0x000f0002,
-+	0x007180c3,
-+	0x00000008,
-+	0x01953162,
-+	0x000f0002,
-+	0x007180c4,
-+	0x00000021,
-+	0xd3000666,
-+	0x000f0002,
-+	0x007180c5,
-+	0x00000020,
-+	0x538000e7,
-+	0x000f0002,
-+	0x007180c6,
-+	0x0000003f,
-+	0xdd000800,
-+	0x000f0002,
-+	0x007180c7,
-+	0x00000079,
-+	0xdd01b366,
-+	0x000f0002,
-+	0x007180c8,
-+	0x00000079,
-+	0xdd01b3e7,
-+	0x000f0002,
-+	0x007180c9,
-+	0x00000075,
-+	0xf1018662,
-+	0x000f0002,
-+	0x007180ca,
-+	0x00000075,
-+	0xd201b164,
-+	0x000f0002,
-+	0x007180cb,
-+	0x00000078,
-+	0x1d007b76,
-+	0x000f0002,
-+	0x007180cc,
-+	0x00000025,
-+	0xdd0001e3,
-+	0x000f0002,
-+	0x007180cd,
-+	0x00000008,
-+	0x01b13162,
-+	0x000f0002,
-+	0x007180ce,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180cf,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180d0,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180d1,
-+	0x00000021,
-+	0xe3379f63,
-+	0x000f0002,
-+	0x007180d2,
-+	0x00000049,
-+	0xd3003b7c,
-+	0x000f0002,
-+	0x007180d3,
-+	0x00000079,
-+	0xd381bb7c,
-+	0x000f0002,
-+	0x007180d4,
-+	0x0000007f,
-+	0xd101b27c,
-+	0x000f0002,
-+	0x007180d5,
-+	0x00000048,
-+	0x51003264,
-+	0x000f0002,
-+	0x007180d6,
-+	0x00000075,
-+	0xd201b164,
-+	0x000f0002,
-+	0x007180d7,
-+	0x00000078,
-+	0x1d007b76,
-+	0x000f0002,
-+	0x007180d8,
-+	0x0000003f,
-+	0xdd000004,
-+	0x000f0002,
-+	0x007180d9,
-+	0x00000079,
-+	0xdd01c081,
-+	0x000f0002,
-+	0x007180da,
-+	0x00000079,
-+	0xfd609076,
-+	0x000f0002,
-+	0x007180db,
-+	0x0000002d,
-+	0xdd080803,
-+	0x000f0002,
-+	0x007180dc,
-+	0x00000078,
-+	0x3d01c081,
-+	0x000f0002,
-+	0x007180dd,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007180de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007180e8,
-+	0x00000049,
-+	0xd18e3b03,
-+	0x000f0002,
-+	0x007180e9,
-+	0x0000002f,
-+	0xd18100e3,
-+	0x000f0002,
-+	0x007180ea,
-+	0x0000003f,
-+	0xd1801803,
-+	0x000f0002,
-+	0x007180eb,
-+	0x00000049,
-+	0xd1043b03,
-+	0x000f0002,
-+	0x007180ec,
-+	0x0000003f,
-+	0xdd800203,
-+	0x000f0002,
-+	0x007180ed,
-+	0x00000049,
-+	0xd2043b02,
-+	0x000f0002,
-+	0x007180ee,
-+	0x00000049,
-+	0xd2843b00,
-+	0x000f0002,
-+	0x007180ef,
-+	0x00000025,
-+	0xdd0000e2,
-+	0x000f0002,
-+	0x007180f0,
-+	0x00000094,
-+	0x00134162,
-+	0x000f0002,
-+	0x007180f1,
-+	0x00000094,
-+	0x000b4362,
-+	0x000f0002,
-+	0x007180f2,
-+	0x00000094,
-+	0x001548e2,
-+	0x000f0002,
-+	0x007180f3,
-+	0x00000094,
-+	0x001b4962,
-+	0x000f0002,
-+	0x007180f4,
-+	0x00000094,
-+	0x002f4076,
-+	0x000f0002,
-+	0x007180f5,
-+	0x00000009,
-+	0xcf813d7a,
-+	0x000f0002,
-+	0x007180f6,
-+	0x0000001d,
-+	0xfd2b80e5,
-+	0x000f0002,
-+	0x007180f7,
-+	0x00000030,
-+	0x31838063,
-+	0x000f0002,
-+	0x007180f8,
-+	0x00000030,
-+	0x11828063,
-+	0x000f0002,
-+	0x007180f9,
-+	0x0000001d,
-+	0xfd2580e5,
-+	0x000f0002,
-+	0x007180fa,
-+	0x00000030,
-+	0x31830063,
-+	0x000f0002,
-+	0x007180fb,
-+	0x00000030,
-+	0x11820063,
-+	0x000f0002,
-+	0x007180fc,
-+	0x0000002f,
-+	0xd18100e3,
-+	0x000f0002,
-+	0x007180fd,
-+	0x0000001d,
-+	0xfd0980e5,
-+	0x000f0002,
-+	0x007180fe,
-+	0x00000030,
-+	0x3183d363,
-+	0x000f0002,
-+	0x007180ff,
-+	0x00000030,
-+	0x1183d263,
-+	0x000f0002,
-+	0x00718100,
-+	0x0000002f,
-+	0xd18100e3,
-+	0x000f0002,
-+	0x00718101,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x00718102,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x00718103,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x00718104,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x00718105,
-+	0x00000025,
-+	0xd2000264,
-+	0x000f0002,
-+	0x00718106,
-+	0x00000018,
-+	0x7d77fd7a,
-+	0x000f0002,
-+	0x00718107,
-+	0x00000049,
-+	0xde203b63,
-+	0x000f0002,
-+	0x00718108,
-+	0x00000049,
-+	0xde803b79,
-+	0x000f0002,
-+	0x00718109,
-+	0x00000021,
-+	0xd18000e3,
-+	0x000f0002,
-+	0x0071810a,
-+	0x00000009,
-+	0xcf813d7a,
-+	0x000f0002,
-+	0x0071810b,
-+	0x00000049,
-+	0xdd0031e3,
-+	0x000f0002,
-+	0x0071810c,
-+	0x00000069,
-+	0xdd0e3b78,
-+	0x000f0002,
-+	0x0071810d,
-+	0x00000061,
-+	0xdd003b76,
-+	0x000f0002,
-+	0x0071810e,
-+	0x0000003f,
-+	0xdd000184,
-+	0x000f0002,
-+	0x0071810f,
-+	0x0000003f,
-+	0xdd000001,
-+	0x000f0002,
-+	0x00718110,
-+	0x00000035,
-+	0xdd0000fa,
-+	0x000f0002,
-+	0x00718111,
-+	0x00000018,
-+	0x3b7f3b76,
-+	0x000f0002,
-+	0x00718112,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718113,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718114,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x00718115,
-+	0x00000021,
-+	0xd18000e3,
-+	0x000f0002,
-+	0x00718116,
-+	0x00000069,
-+	0xdd043b79,
-+	0x000f0002,
-+	0x00718117,
-+	0x00000061,
-+	0xf18000e3,
-+	0x000f0002,
-+	0x00718118,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x00718119,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x0071811a,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x0071811b,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x0071811c,
-+	0x00000025,
-+	0xd2000264,
-+	0x000f0002,
-+	0x0071811d,
-+	0x00000098,
-+	0x605dbb76,
-+	0x000f0002,
-+	0x0071811e,
-+	0x00000009,
-+	0xcf813d7a,
-+	0x000f0002,
-+	0x0071811f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718120,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718121,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718122,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718123,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718124,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718125,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718126,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718127,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718128,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718129,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071812f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718130,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718131,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718132,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718133,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718134,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718135,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718136,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718137,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718138,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718139,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071813f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718140,
-+	0x00000049,
-+	0xd4083b01,
-+	0x000f0002,
-+	0x00718141,
-+	0x00000009,
-+	0xc28b3d7a,
-+	0x000f0002,
-+	0x00718142,
-+	0x0000003f,
-+	0xd4000380,
-+	0x000f0002,
-+	0x00718143,
-+	0x00000009,
-+	0xc28b3d7a,
-+	0x000f0002,
-+	0x00718144,
-+	0x00000049,
-+	0xd40e3b03,
-+	0x000f0002,
-+	0x00718145,
-+	0x0000003f,
-+	0xd6420000,
-+	0x000f0002,
-+	0x00718146,
-+	0x0000002f,
-+	0xd2814080,
-+	0x000f0002,
-+	0x00718147,
-+	0x0000002d,
-+	0xd2840365,
-+	0x000f0002,
-+	0x00718148,
-+	0x0000003f,
-+	0xd6800080,
-+	0x000f0002,
-+	0x00718149,
-+	0x0000003f,
-+	0xdd040004,
-+	0x000f0002,
-+	0x0071814a,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x0071814b,
-+	0x00000069,
-+	0xdd003b6d,
-+	0x000f0002,
-+	0x0071814c,
-+	0x00000069,
-+	0xdd003b6d,
-+	0x000f0002,
-+	0x0071814d,
-+	0x00000031,
-+	0xd303d265,
-+	0x000f0002,
-+	0x0071814e,
-+	0x00000049,
-+	0xde403b66,
-+	0x000f0002,
-+	0x0071814f,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x00718150,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x00718151,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x00718152,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x00718153,
-+	0x00000049,
-+	0xd5803b7e,
-+	0x000f0002,
-+	0x00718154,
-+	0x00000021,
-+	0xde4000e6,
-+	0x000f0002,
-+	0x00718155,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x00718156,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x00718157,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x00718158,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x00718159,
-+	0x00000049,
-+	0xd5003b7e,
-+	0x000f0002,
-+	0x0071815a,
-+	0x00000079,
-+	0xdd013b76,
-+	0x000f0002,
-+	0x0071815b,
-+	0x0000002d,
-+	0xdd04407f,
-+	0x000f0002,
-+	0x0071815c,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x0071815d,
-+	0x00000079,
-+	0xdd01bb76,
-+	0x000f0002,
-+	0x0071815e,
-+	0x00000075,
-+	0xfd0180e8,
-+	0x000f0002,
-+	0x0071815f,
-+	0x00000094,
-+	0x00154168,
-+	0x000f0002,
-+	0x00718160,
-+	0x00000094,
-+	0x002544e8,
-+	0x000f0002,
-+	0x00718161,
-+	0x00000094,
-+	0x002341e8,
-+	0x000f0002,
-+	0x00718162,
-+	0x00000094,
-+	0x00174568,
-+	0x000f0002,
-+	0x00718163,
-+	0x00000094,
-+	0x00154268,
-+	0x000f0002,
-+	0x00718164,
-+	0x00000094,
-+	0x002742e8,
-+	0x000f0002,
-+	0x00718165,
-+	0x00000094,
-+	0x002d4368,
-+	0x000f0002,
-+	0x00718166,
-+	0x00000094,
-+	0x002d4468,
-+	0x000f0002,
-+	0x00718167,
-+	0x00000094,
-+	0x003343e8,
-+	0x000f0002,
-+	0x00718168,
-+	0x00000004,
-+	0x03973b76,
-+	0x000f0002,
-+	0x00718169,
-+	0x0000000d,
-+	0xe30dc165,
-+	0x000f0002,
-+	0x0071816a,
-+	0x00000030,
-+	0x32030076,
-+	0x000f0002,
-+	0x0071816b,
-+	0x00000030,
-+	0x12020076,
-+	0x000f0002,
-+	0x0071816c,
-+	0x0000003f,
-+	0xd4800000,
-+	0x000f0002,
-+	0x0071816d,
-+	0x0000003f,
-+	0xd1808000,
-+	0x000f0002,
-+	0x0071816e,
-+	0x0000000d,
-+	0xe33fc165,
-+	0x000f0002,
-+	0x0071816f,
-+	0x00000030,
-+	0x32046076,
-+	0x000f0002,
-+	0x00718170,
-+	0x00000030,
-+	0x12044076,
-+	0x000f0002,
-+	0x00718171,
-+	0x0000003f,
-+	0xd4828000,
-+	0x000f0002,
-+	0x00718172,
-+	0x0000003f,
-+	0xd1808000,
-+	0x000f0002,
-+	0x00718173,
-+	0x0000000d,
-+	0xe33fc165,
-+	0x000f0002,
-+	0x00718174,
-+	0x00000030,
-+	0x32042076,
-+	0x000f0002,
-+	0x00718175,
-+	0x00000030,
-+	0x12040076,
-+	0x000f0002,
-+	0x00718176,
-+	0x0000003f,
-+	0xd4820000,
-+	0x000f0002,
-+	0x00718177,
-+	0x0000000d,
-+	0xe363c165,
-+	0x000f0002,
-+	0x00718178,
-+	0x00000030,
-+	0x32032076,
-+	0x000f0002,
-+	0x00718179,
-+	0x00000030,
-+	0x12030076,
-+	0x000f0002,
-+	0x0071817a,
-+	0x0000003f,
-+	0xd4830000,
-+	0x000f0002,
-+	0x0071817b,
-+	0x00000049,
-+	0xd2803b76,
-+	0x000f0002,
-+	0x0071817c,
-+	0x0000000d,
-+	0xe30dc165,
-+	0x000f0002,
-+	0x0071817d,
-+	0x00000030,
-+	0x32038076,
-+	0x000f0002,
-+	0x0071817e,
-+	0x00000030,
-+	0x12028076,
-+	0x000f0002,
-+	0x0071817f,
-+	0x0000003f,
-+	0xd4810000,
-+	0x000f0002,
-+	0x00718180,
-+	0x0000003f,
-+	0xd6020000,
-+	0x000f0002,
-+	0x00718181,
-+	0x0000003f,
-+	0xd1810000,
-+	0x000f0002,
-+	0x00718182,
-+	0x0000000d,
-+	0xe33fc165,
-+	0x000f0002,
-+	0x00718183,
-+	0x00000030,
-+	0x32042076,
-+	0x000f0002,
-+	0x00718184,
-+	0x00000030,
-+	0x12040076,
-+	0x000f0002,
-+	0x00718185,
-+	0x0000003f,
-+	0xd4820000,
-+	0x000f0002,
-+	0x00718186,
-+	0x00000041,
-+	0xd48034eb,
-+	0x000f0002,
-+	0x00718187,
-+	0x00000079,
-+	0xdd01bb6a,
-+	0x000f0002,
-+	0x00718188,
-+	0x00000079,
-+	0xdd01bb76,
-+	0x000f0002,
-+	0x00718189,
-+	0x0000003f,
-+	0xd2001803,
-+	0x000f0002,
-+	0x0071818a,
-+	0x0000003f,
-+	0xd1810000,
-+	0x000f0002,
-+	0x0071818b,
-+	0x00000075,
-+	0xfd018063,
-+	0x000f0002,
-+	0x0071818c,
-+	0x00000098,
-+	0x80693b64,
-+	0x000f0002,
-+	0x0071818d,
-+	0x00000051,
-+	0xf20000e4,
-+	0x000f0002,
-+	0x0071818e,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x0071818f,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x00718190,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x00718191,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x00718192,
-+	0x0000002d,
-+	0xdd04407f,
-+	0x000f0002,
-+	0x00718193,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x00718194,
-+	0x00000049,
-+	0xd3c03b38,
-+	0x000f0002,
-+	0x00718195,
-+	0x00000049,
-+	0xdd003b64,
-+	0x000f0002,
-+	0x00718196,
-+	0x00000051,
-+	0xf20000e4,
-+	0x000f0002,
-+	0x00718197,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x00718198,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x00718199,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x0071819a,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x0071819b,
-+	0x00000049,
-+	0xd3a03b38,
-+	0x000f0002,
-+	0x0071819c,
-+	0x00000019,
-+	0xdd61bb76,
-+	0x000f0002,
-+	0x0071819d,
-+	0x00000049,
-+	0xdd003b67,
-+	0x000f0002,
-+	0x0071819e,
-+	0x00000075,
-+	0xf1818263,
-+	0x000f0002,
-+	0x0071819f,
-+	0x00000041,
-+	0xd48034eb,
-+	0x000f0002,
-+	0x007181a0,
-+	0x00000079,
-+	0xdd01bb6a,
-+	0x000f0002,
-+	0x007181a1,
-+	0x00000079,
-+	0xdd01bb76,
-+	0x000f0002,
-+	0x007181a2,
-+	0x0000003f,
-+	0xd2001803,
-+	0x000f0002,
-+	0x007181a3,
-+	0x0000003f,
-+	0xd1808000,
-+	0x000f0002,
-+	0x007181a4,
-+	0x00000075,
-+	0xfd018063,
-+	0x000f0002,
-+	0x007181a5,
-+	0x00000098,
-+	0x80373b64,
-+	0x000f0002,
-+	0x007181a6,
-+	0x00000051,
-+	0xf20000e4,
-+	0x000f0002,
-+	0x007181a7,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x007181a8,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007181a9,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181aa,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007181ab,
-+	0x0000002d,
-+	0xdd04407f,
-+	0x000f0002,
-+	0x007181ac,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x007181ad,
-+	0x00000049,
-+	0xd3803b38,
-+	0x000f0002,
-+	0x007181ae,
-+	0x00000019,
-+	0xdd6fbb76,
-+	0x000f0002,
-+	0x007181af,
-+	0x00000049,
-+	0xdd003b67,
-+	0x000f0002,
-+	0x007181b0,
-+	0x00000075,
-+	0xf1818263,
-+	0x000f0002,
-+	0x007181b1,
-+	0x00000041,
-+	0xd48034eb,
-+	0x000f0002,
-+	0x007181b2,
-+	0x00000079,
-+	0xdd01bb6a,
-+	0x000f0002,
-+	0x007181b3,
-+	0x00000079,
-+	0xdd01bb63,
-+	0x000f0002,
-+	0x007181b4,
-+	0x00000075,
-+	0xfd018063,
-+	0x000f0002,
-+	0x007181b5,
-+	0x00000098,
-+	0x80173b64,
-+	0x000f0002,
-+	0x007181b6,
-+	0x00000049,
-+	0xde403b64,
-+	0x000f0002,
-+	0x007181b7,
-+	0x0000003f,
-+	0xd6800184,
-+	0x000f0002,
-+	0x007181b8,
-+	0x0000003f,
-+	0xd6800001,
-+	0x000f0002,
-+	0x007181b9,
-+	0x00000035,
-+	0xd68000ed,
-+	0x000f0002,
-+	0x007181ba,
-+	0x00000018,
-+	0x37ff0081,
-+	0x000f0002,
-+	0x007181bb,
-+	0x0000002d,
-+	0xdd04407f,
-+	0x000f0002,
-+	0x007181bc,
-+	0x00000018,
-+	0x3d7f3b76,
-+	0x000f0002,
-+	0x007181bd,
-+	0x00000021,
-+	0xd20000e4,
-+	0x000f0002,
-+	0x007181be,
-+	0x00000019,
-+	0xd3ef7b7e,
-+	0x000f0002,
-+	0x007181bf,
-+	0x00000075,
-+	0xf1818263,
-+	0x000f0002,
-+	0x007181c0,
-+	0x0000003f,
-+	0xd6800000,
-+	0x000f0002,
-+	0x007181c1,
-+	0x0000003f,
-+	0xdd040004,
-+	0x000f0002,
-+	0x007181c2,
-+	0x0000003f,
-+	0xdd180001,
-+	0x000f0002,
-+	0x007181c3,
-+	0x00000069,
-+	0xdd003b6d,
-+	0x000f0002,
-+	0x007181c4,
-+	0x00000069,
-+	0xdd003b6d,
-+	0x000f0002,
-+	0x007181c5,
-+	0x0000003f,
-+	0xdd000000,
-+	0x000f0002,
-+	0x007181c6,
-+	0x0000002d,
-+	0xdd540180,
-+	0x000f0002,
-+	0x007181c7,
-+	0x00000079,
-+	0xf3e08076,
-+	0x000f0002,
-+	0x007181c8,
-+	0x00000049,
-+	0xd600367a,
-+	0x000f0002,
-+	0x007181c9,
-+	0x00000079,
-+	0xdd01fb76,
-+	0x000f0002,
-+	0x007181ca,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181cb,
-+	0x00000049,
-+	0xdd003b03,
-+	0x000f0002,
-+	0x007181cc,
-+	0x00000059,
-+	0xfd003b76,
-+	0x000f0002,
-+	0x007181cd,
-+	0x0000003f,
-+	0xdd801c03,
-+	0x000f0002,
-+	0x007181ce,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181cf,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181d0,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007181d1,
-+	0x0000002d,
-+	0xdd06027f,
-+	0x000f0002,
-+	0x007181d2,
-+	0x00000018,
-+	0x1d7f3d7a,
-+	0x000f0002,
-+	0x007181d3,
-+	0x00000031,
-+	0xd483886b,
-+	0x000f0002,
-+	0x007181d4,
-+	0x00000079,
-+	0xdd01bb6a,
-+	0x000f0002,
-+	0x007181d5,
-+	0x00000079,
-+	0xf1819076,
-+	0x000f0002,
-+	0x007181d6,
-+	0x00000075,
-+	0xfd018063,
-+	0x000f0002,
-+	0x007181d7,
-+	0x00000098,
-+	0x8053bb76,
-+	0x000f0002,
-+	0x007181d8,
-+	0x00000019,
-+	0xdd7f7b79,
-+	0x000f0002,
-+	0x007181d9,
-+	0x00000075,
-+	0xf1818263,
-+	0x000f0002,
-+	0x007181da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007181fe,
-+	0x0000003f,
-+	0xdd800203,
-+	0x000f0002,
-+	0x007181ff,
-+	0x00000049,
-+	0xd1843b02,
-+	0x000f0002,
-+	0x00718200,
-+	0x00000049,
-+	0xdd003b03,
-+	0x000f0002,
-+	0x00718201,
-+	0x00000069,
-+	0xdd003b7a,
-+	0x000f0002,
-+	0x00718202,
-+	0x00000049,
-+	0xdd003b79,
-+	0x000f0002,
-+	0x00718203,
-+	0x00000065,
-+	0xf1800263,
-+	0x000f0002,
-+	0x00718204,
-+	0x00000018,
-+	0x7d7d3b76,
-+	0x000f0002,
-+	0x00718205,
-+	0x00000009,
-+	0xcf813d7a,
-+	0x000f0002,
-+	0x00718206,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718207,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718208,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718209,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071820f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718210,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718211,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718212,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718213,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718214,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718215,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718216,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718217,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718218,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718219,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071821f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718220,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718221,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718222,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718223,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718224,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718225,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718226,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718227,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718228,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718229,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071822f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718230,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718231,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718232,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718233,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718234,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718235,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718236,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718237,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718238,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718239,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071823f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718240,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718241,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718242,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718243,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718244,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718245,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718246,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718247,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718248,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718249,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071824f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718250,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718251,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718252,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718253,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718254,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718255,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718256,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718257,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718258,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718259,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071825f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718260,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718261,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718262,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718263,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718264,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718265,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718266,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718267,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718268,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718269,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071826f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718270,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718271,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718272,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718273,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718274,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718275,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718276,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718277,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718278,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718279,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071827f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718280,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718281,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718282,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718283,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718284,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718285,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718286,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718287,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718288,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718289,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071828f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718290,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718291,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718292,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718293,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718294,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718295,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718296,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718297,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718298,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718299,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071829f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182c9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ca,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182cb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182cc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182cd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ce,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182cf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182d9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182fe,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007182ff,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718300,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718301,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718302,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718303,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718304,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718305,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718306,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718307,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718308,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718309,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071830f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718310,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718311,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718312,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718313,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718314,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718315,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718316,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718317,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718318,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718319,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071831f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718320,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718321,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718322,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718323,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718324,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718325,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718326,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718327,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718328,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718329,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071832f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718330,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718331,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718332,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718333,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718334,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718335,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718336,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718337,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718338,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718339,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071833f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718340,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718341,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718342,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718343,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718344,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718345,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718346,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718347,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718348,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718349,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071834f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718350,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718351,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718352,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718353,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718354,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718355,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718356,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718357,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718358,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718359,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071835f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718360,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718361,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718362,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718363,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718364,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718365,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718366,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718367,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718368,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718369,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071836f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718370,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718371,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718372,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718373,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718374,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718375,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718376,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718377,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718378,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718379,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071837f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718380,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718381,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718382,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718383,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718384,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718385,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718386,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718387,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718388,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718389,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071838f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718390,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718391,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718392,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718393,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718394,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718395,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718396,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718397,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718398,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718399,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071839f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183c9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ca,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183cb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183cc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183cd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ce,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183cf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183d9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183fe,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007183ff,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718400,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718401,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718402,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718403,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718404,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718405,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718406,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718407,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718408,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718409,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071840f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718410,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718411,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718412,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718413,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718414,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718415,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718416,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718417,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718418,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718419,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071841f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718420,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718421,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718422,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718423,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718424,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718425,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718426,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718427,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718428,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718429,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071842f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718430,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718431,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718432,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718433,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718434,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718435,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718436,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718437,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718438,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718439,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071843f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718440,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718441,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718442,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718443,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718444,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718445,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718446,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718447,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718448,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718449,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071844f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718450,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718451,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718452,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718453,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718454,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718455,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718456,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718457,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718458,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718459,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071845f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718460,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718461,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718462,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718463,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718464,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718465,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718466,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718467,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718468,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718469,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071846f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718470,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718471,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718472,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718473,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718474,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718475,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718476,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718477,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718478,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718479,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071847f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718480,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718481,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718482,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718483,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718484,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718485,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718486,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718487,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718488,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718489,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071848f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718490,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718491,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718492,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718493,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718494,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718495,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718496,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718497,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718498,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718499,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071849f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184c9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ca,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184cb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184cc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184cd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ce,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184cf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184d9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184fe,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007184ff,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718500,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718501,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718502,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718503,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718504,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718505,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718506,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718507,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718508,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718509,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071850f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718510,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718511,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718512,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718513,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718514,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718515,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718516,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718517,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718518,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718519,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071851f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718520,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718521,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718522,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718523,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718524,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718525,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718526,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718527,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718528,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718529,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071852f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718530,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718531,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718532,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718533,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718534,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718535,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718536,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718537,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718538,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718539,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071853f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718540,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718541,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718542,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718543,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718544,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718545,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718546,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718547,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718548,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718549,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071854f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718550,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718551,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718552,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718553,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718554,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718555,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718556,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718557,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718558,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718559,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071855f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718560,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718561,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718562,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718563,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718564,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718565,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718566,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718567,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718568,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718569,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071856f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718570,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718571,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718572,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718573,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718574,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718575,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718576,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718577,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718578,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718579,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071857f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718580,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718581,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718582,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718583,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718584,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718585,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718586,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718587,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718588,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718589,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071858f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718590,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718591,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718592,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718593,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718594,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718595,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718596,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718597,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718598,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718599,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071859f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185c9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ca,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185cb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185cc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185cd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ce,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185cf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185d9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185fe,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007185ff,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718600,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718601,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718602,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718603,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718604,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718605,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718606,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718607,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718608,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718609,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071860f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718610,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718611,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718612,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718613,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718614,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718615,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718616,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718617,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718618,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718619,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071861f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718620,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718621,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718622,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718623,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718624,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718625,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718626,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718627,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718628,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718629,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071862f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718630,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718631,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718632,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718633,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718634,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718635,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718636,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718637,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718638,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718639,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071863f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718640,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718641,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718642,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718643,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718644,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718645,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718646,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718647,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718648,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718649,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071864f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718650,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718651,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718652,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718653,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718654,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718655,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718656,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718657,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718658,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718659,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071865f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718660,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718661,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718662,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718663,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718664,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718665,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718666,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718667,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718668,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718669,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071866f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718670,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718671,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718672,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718673,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718674,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718675,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718676,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718677,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718678,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718679,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071867f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718680,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718681,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718682,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718683,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718684,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718685,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718686,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718687,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718688,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718689,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071868f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718690,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718691,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718692,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718693,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718694,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718695,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718696,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718697,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718698,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718699,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071869f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186c9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ca,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186cb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186cc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186cd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ce,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186cf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186d9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186da,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186db,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186dc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186dd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186de,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186df,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186e9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ea,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186eb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ec,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ed,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ee,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ef,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186f9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186fa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186fb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186fc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186fd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186fe,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007186ff,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718700,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718701,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718702,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718703,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718704,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718705,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718706,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718707,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718708,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718709,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071870f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718710,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718711,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718712,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718713,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718714,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718715,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718716,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718717,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718718,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718719,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071871f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718720,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718721,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718722,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718723,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718724,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718725,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718726,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718727,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718728,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718729,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071872f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718730,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718731,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718732,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718733,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718734,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718735,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718736,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718737,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718738,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718739,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071873f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718740,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718741,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718742,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718743,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718744,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718745,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718746,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718747,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718748,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718749,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071874f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718750,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718751,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718752,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718753,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718754,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718755,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718756,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718757,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718758,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718759,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071875f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718760,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718761,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718762,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718763,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718764,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718765,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718766,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718767,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718768,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718769,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071876f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718770,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718771,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718772,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718773,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718774,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718775,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718776,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718777,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718778,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718779,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071877f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718780,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718781,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718782,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718783,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718784,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718785,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718786,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718787,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718788,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718789,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071878f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718790,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718791,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718792,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718793,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718794,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718795,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718796,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718797,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718798,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x00718799,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879a,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879b,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879c,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879d,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879e,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x0071879f,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187a9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187aa,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187ab,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187ac,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187ad,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187ae,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187af,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b0,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b1,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b2,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b3,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b4,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b5,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b6,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b7,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b8,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187b9,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187ba,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187bb,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187bc,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187bd,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187be,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187bf,
-+	0x00000000,
-+	0x00000000,
-+	0x000f0002,
-+	0x007187c0,
-+	0x00000079,
-+	0xfd609076,
-+	0x000f0002,
-+	0x007187c1,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007187c2,
-+	0x0000003d,
-+	0xf780006f,
-+	0x000f0002,
-+	0x007187c3,
-+	0x0000003d,
-+	0xf780006f,
-+/* FINISH INIT Descriptor */
-+	0x000f0002,
-+	0x807187c4,
-+	0x0000003d,
-+	0xf780006f,
-+};
-diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-index 55f307f..785c4d8 100644
---- a/include/linux/pci_ids.h
-+++ b/include/linux/pci_ids.h
-@@ -2123,6 +2123,11 @@ #define PCI_DEVICE_ID_KORENIX_JETCARDF1	
- #define PCI_VENDOR_ID_TEKRAM		0x1de1
- #define PCI_DEVICE_ID_TEKRAM_DC290	0xdc29
- 
-+#define PCI_VENDOR_ID_TEHUTI		0x1fc9
-+#define PCI_DEVICE_ID_TEHUTI_3009	0x3009
-+#define PCI_DEVICE_ID_TEHUTI_3010	0x3010
-+#define PCI_DEVICE_ID_TEHUTI_3014	0x3014
++/* Marco for printing debug statements.
++#  define IPG_DDEBUG_MSG(args...) printk(KERN_DEBUG "IPG: " ## args) */
++#ifdef IPG_DEBUG
++#  define IPG_DEBUG_MSG(args...)
++#  define IPG_DDEBUG_MSG(args...) printk(KERN_DEBUG "IPG: " args)
++#  define IPG_DUMPRFDLIST(args) ipg_dump_rfdlist(args)
++#  define IPG_DUMPTFDLIST(args) ipg_dump_tfdlist(args)
++#else
++#  define IPG_DEBUG_MSG(args...)
++#  define IPG_DDEBUG_MSG(args...)
++#  define IPG_DUMPRFDLIST(args)
++#  define IPG_DUMPTFDLIST(args)
++#endif
 +
- #define PCI_VENDOR_ID_HINT             0x3388
- #define PCI_DEVICE_ID_HINT_VXPROII_IDE 0x8013
++/*
++ * End miscellaneous macros.
++ */
++
++/* Transmit Frame Descriptor. The IPG supports 15 fragments,
++ * however Linux requires only a single fragment. Note, each
++ * TFD field is 64 bits wide.
++ */
++struct ipg_tx {
++	u64 next_desc;
++	u64 tfc;
++	u64 frag_info;
++};
++
++/* Receive Frame Descriptor. Note, each RFD field is 64 bits wide.
++ */
++struct ipg_rx {
++	u64 next_desc;
++	u64 rfs;
++	u64 frag_info;
++};
++
++struct SJumbo {
++	int FoundStart;
++	int CurrentSize;
++	struct sk_buff *skb;
++};
++/* Structure of IPG NIC specific data. */
++struct ipg_nic_private {
++	void __iomem *ioaddr;
++	struct ipg_tx *txd;
++	struct ipg_rx *rxd;
++	dma_addr_t txd_map;
++	dma_addr_t rxd_map;
++	struct sk_buff *TxBuff[IPG_TFDLIST_LENGTH];
++	struct sk_buff *RxBuff[IPG_RFDLIST_LENGTH];
++	unsigned int tx_current;
++	unsigned int tx_dirty;
++	unsigned int rx_current;
++	unsigned int rx_dirty;
++// Add by Grace 2005/05/19
++#ifdef JUMBO_FRAME
++	struct SJumbo Jumbo;
++#endif
++	unsigned int rx_buf_sz;
++	struct pci_dev *pdev;
++	struct net_device *dev;
++	struct net_device_stats stats;
++	spinlock_t lock;
++	int tenmbpsmode;
++
++	/*Jesse20040128EEPROM_VALUE */
++	u16 LED_Mode;
++	u16 station_addr[3];	/* Station Address in EEPROM Reg 0x10..0x12 */
++
++	struct mutex		mii_mutex;
++	struct mii_if_info	mii_if;
++	int ResetCurrentTFD;
++#ifdef IPG_DEBUG
++	int RFDlistendCount;
++	int RFDListCheckedCount;
++	int EmptyRFDListCount;
++#endif
++	struct delayed_work task;
++};
++
++//variable record -- index by leading revision/length
++//Revision/Length(=N*4), Address1, Data1, Address2, Data2,...,AddressN,DataN
++unsigned short DefaultPhyParam[] = {
++	// 11/12/03 IP1000A v1-3 rev=0x40
++	/*--------------------------------------------------------------------------
++	(0x4000|(15*4)), 31, 0x0001, 27, 0x01e0, 31, 0x0002, 22, 0x85bd, 24, 0xfff2,
++				 27, 0x0c10, 28, 0x0c10, 29, 0x2c10, 31, 0x0003, 23, 0x92f6,
++				 31, 0x0000, 23, 0x003d, 30, 0x00de, 20, 0x20e7,  9, 0x0700,
++	  --------------------------------------------------------------------------*/
++	// 12/17/03 IP1000A v1-4 rev=0x40
++	(0x4000 | (07 * 4)), 31, 0x0001, 27, 0x01e0, 31, 0x0002, 27, 0xeb8e, 31,
++	    0x0000,
++	30, 0x005e, 9, 0x0700,
++	// 01/09/04 IP1000A v1-5 rev=0x41
++	(0x4100 | (07 * 4)), 31, 0x0001, 27, 0x01e0, 31, 0x0002, 27, 0xeb8e, 31,
++	    0x0000,
++	30, 0x005e, 9, 0x0700,
++	0x0000
++};
++
++#endif				/* __LINUX_IPG_H */
+diff -puN drivers/net/Kconfig~ipg-add-ip1000a-driver-to-kernel-tree drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ipg-add-ip1000a-driver-to-kernel-tree
++++ a/drivers/net/Kconfig
+@@ -165,6 +165,15 @@ config NET_SB1000
  
+ 	  If you don't have this card, of course say N.
+ 
++config IP1000
++       tristate "IP1000 Gigabit Ethernet support"
++       depends on PCI && EXPERIMENTAL
++       ---help---
++         This driver supports IP1000 gigabit Ethernet cards.
++
++         To compile this driver as a module, choose M here: the module
++         will be called ipg.  This is recommended.
++
+ source "drivers/net/arcnet/Kconfig"
+ 
+ source "drivers/net/phy/Kconfig"
+diff -puN drivers/net/Makefile~ipg-add-ip1000a-driver-to-kernel-tree drivers/net/Makefile
+--- a/drivers/net/Makefile~ipg-add-ip1000a-driver-to-kernel-tree
++++ a/drivers/net/Makefile
+@@ -7,6 +7,7 @@ obj-$(CONFIG_E1000E) += e1000e/
+ obj-$(CONFIG_IBM_EMAC) += ibm_emac/
+ obj-$(CONFIG_IXGBE) += ixgbe/
+ obj-$(CONFIG_IXGB) += ixgb/
++obj-$(CONFIG_IP1000) += ipg.o
+ obj-$(CONFIG_CHELSIO_T1) += chelsio/
+ obj-$(CONFIG_CHELSIO_T3) += cxgb3/
+ obj-$(CONFIG_EHEA) += ehea/
+diff -puN include/linux/pci_ids.h~ipg-add-ip1000a-driver-to-kernel-tree include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~ipg-add-ip1000a-driver-to-kernel-tree
++++ a/include/linux/pci_ids.h
+@@ -1841,6 +1841,8 @@
+ #define PCI_VENDOR_ID_ABOCOM		0x13D1
+ #define PCI_DEVICE_ID_ABOCOM_2BD1       0x2BD1
+ 
++#define PCI_VENDOR_ID_SUNDANCE		0x13f0
++
+ #define PCI_VENDOR_ID_CMEDIA		0x13f6
+ #define PCI_DEVICE_ID_CMEDIA_CM8338A	0x0100
+ #define PCI_DEVICE_ID_CMEDIA_CM8338B	0x0101
+diff -puN MAINTAINERS~ipg-add-ip1000a-driver-to-kernel-tree MAINTAINERS
+--- a/MAINTAINERS~ipg-add-ip1000a-driver-to-kernel-tree
++++ a/MAINTAINERS
+@@ -2081,6 +2081,16 @@ P:	Juanjo Ciarlante
+ M:	jjciarla@raiz.uncu.edu.ar
+ S:	Maintained
+ 
++IP1000A 10/100/1000 GIGABIT ETHERNET DRIVER
++P:	Francois Romieu
++M:	romieu@fr.zoreil.com
++P:	Sorbica Shieh
++M:	sorbica@icplus.com.tw
++P:	Jesse Huang
++M:	jesse@icplus.com.tw
++L:	netdev@vger.kernel.org
++S:	Maintained
++
+ IPATH DRIVER:
+ P:	Arthur Jones
+ M:	infinipath@qlogic.com
+_
 
-Patches currently in -mm which might be from andy@greyhouse.net are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 git-net.patch
-fix-config_debug_shirq-trigger-on-free_irq.patch
+git-r8169.patch
