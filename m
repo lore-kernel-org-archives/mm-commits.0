@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + mac_hid-fix-build-error-if-mac_emumousebtn-input.patch added to -mm tree
-Date: Wed, 19 Sep 2007 22:18:04 -0700
-Message-ID: <200709200518.l8K5I4xZ029599@imap1.linux-foundation.org>
+Subject: - fix-x86_64-mm-cpa-clflush.patch removed from -mm tree
+Date: Wed, 19 Sep 2007 22:19:59 -0700
+Message-ID: <200709200520.l8K5Jxfb029632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38064 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54600 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187AbXITFSe (ORCPT
+	by vger.kernel.org with ESMTP id S1752610AbXITFUS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 01:18:34 -0400
+	Thu, 20 Sep 2007 01:20:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aherrman@arcor.de, dtor@mail.ru, jikos@jikos.cz
+To: andi@firstfloor.org, ak@suse.de, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac_hid: fix build error if MAC_EMUMOUSEBTN && !INPUT
-has been added to the -mm tree.  Its filename is
-     mac_hid-fix-build-error-if-mac_emumousebtn-input.patch
+     Flush uncached AGP pages before freeing
+has been removed from the -mm tree.  Its filename was
+     fix-x86_64-mm-cpa-clflush.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mac_hid: fix build error if MAC_EMUMOUSEBTN && !INPUT
-From: Andreas Herrmann <aherrman@arcor.de>
+Subject: Flush uncached AGP pages before freeing
+From: Andi Kleen <andi@firstfloor.org>
 
-Build error if MAC_EMUMOUSEBTN && !INPUT:
+Flush uncached AGP pages before freeing
 
-  LD      .tmp_vmlinux1
-drivers/built-in.o: In function `input_report_key':
-include/linux/input.h:1158: undefined reference to `input_event'
-    ...
-
-Auto-select INPUT for MAC_EMUMOUSEBTN option.
-
-Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Andi Kleen <ak@suse.de>
+Tested-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/agp/generic.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN drivers/macintosh/Kconfig~mac_hid-fix-build-error-if-mac_emumousebtn-input drivers/macintosh/Kconfig
---- a/drivers/macintosh/Kconfig~mac_hid-fix-build-error-if-mac_emumousebtn-input
-+++ a/drivers/macintosh/Kconfig
-@@ -172,6 +172,7 @@ config INPUT_ADBHID
+diff -puN drivers/char/agp/generic.c~fix-x86_64-mm-cpa-clflush drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~fix-x86_64-mm-cpa-clflush
++++ a/drivers/char/agp/generic.c
+@@ -1185,6 +1185,7 @@ void agp_generic_destroy_page(void *addr
  
- config MAC_EMUMOUSEBTN
- 	bool "Support for mouse button 2+3 emulation"
-+	select INPUT
- 	help
- 	  This provides generic support for emulating the 2nd and 3rd mouse
- 	  button with keypresses.  If you say Y here, the emulation is still
+ 	page = virt_to_page(addr);
+ 	unmap_page_from_agp(page);
++	flush_agp_mappings();
+ 	put_page(page);
+ 	free_page((unsigned long)addr);
+ 	atomic_dec(&agp_bridge->current_memory_agp);
 _
 
-Patches currently in -mm which might be from aherrman@arcor.de are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-origin.patch
-mac_hid-fix-build-error-if-mac_emumousebtn-input.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+fix-x86_64-mm-cpa-clflush.patch
+readahead-compacting-file_ra_state.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
