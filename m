@@ -1,109 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - i386-cpuid_count-fix-argument-signedness-warnings.patch removed from -mm tree
-Date: Thu, 20 Sep 2007 14:17:15 -0700
-Message-ID: <200709202117.l8KLHFEp003066@imap1.linux-foundation.org>
+Subject: - build-failure-on-ppc64-drivers-net-ehea-ehea_mainc.patch removed from -mm tree
+Date: Thu, 20 Sep 2007 14:16:37 -0700
+Message-ID: <200709202116.l8KLGbid003022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57381 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43390 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752892AbXITV2h (ORCPT
+	by vger.kernel.org with ESMTP id S1752215AbXITV2d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 17:28:37 -0400
+	Thu, 20 Sep 2007 17:28:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, ak@suse.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386 cpuid_count: fix argument signedness warnings
+     Build failure on ppc64 drivers/net/ehea/ehea_main.c
 has been removed from the -mm tree.  Its filename was
-     i386-cpuid_count-fix-argument-signedness-warnings.patch
+     build-failure-on-ppc64-drivers-net-ehea-ehea_mainc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386 cpuid_count: fix argument signedness warnings
-From: Satyam Sharma <satyam@infradead.org>
+Subject: Build failure on ppc64 drivers/net/ehea/ehea_main.c
+From: mel@skynet.ie (Mel Gorman)
 
-In file included from include/asm/thread_info.h:16,
-from include/linux/thread_info.h:21,
-from include/linux/preempt.h:9,
-from include/linux/spinlock.h:49,
-from include/linux/vmalloc.h:4,
-from arch/i386/boot/compressed/misc.c:14:
-include/asm/processor.h: In function `cpuid_count':
-include/asm/processor.h:615: warning: pointer targets in passing argument 1 of `native_cpuid' differ in signedness
-include/asm/processor.h:615: warning: pointer targets in passing argument 2 of `native_cpuid' differ in signedness
-include/asm/processor.h:615: warning: pointer targets in passing argument 3 of `native_cpuid' differ in signedness
-include/asm/processor.h:615: warning: pointer targets in passing argument 4 of `native_cpuid' differ in signedness
+PPC64 failed to build with the driver drivers/net/ehea with the
+following error
 
-come because the arguments have been specified as pointers to (signed) int
-types, not unsigned.  So let's specify those as unsigned.  Do some
-codingstyle here and there while at it.
+  CC [M]  drivers/net/ehea/ehea_main.o
+drivers/net/ehea/ehea_main.c: In function `ehea_open':
+drivers/net/ehea/ehea_main.c:2322: error: implicit declaration of function `port_napi_enable'
+drivers/net/ehea/ehea_main.c: At top level:
+drivers/net/ehea/ehea_main.c:2340: error: conflicting types for 'port_napi_enable'
+drivers/net/ehea/ehea_main.c:2322: error: previous implicit declaration of 'port_napi_enable' was here
+make[1]: *** [drivers/net/ehea/ehea_main.o] Error 1
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Andi Kleen <ak@suse.de>
+It's buried in git-net.patch and I've cc'd a potential owner based simply
+on the mention of EHEA in a leader. I've included a candidate fix for the
+error. It seems to be a simple case of port_napi_enable being defined in
+the wrong place.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/processor.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/net/ehea/ehea_main.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN include/asm-i386/processor.h~i386-cpuid_count-fix-argument-signedness-warnings include/asm-i386/processor.h
---- a/include/asm-i386/processor.h~i386-cpuid_count-fix-argument-signedness-warnings
-+++ a/include/asm-i386/processor.h
-@@ -599,7 +599,9 @@ static inline void load_esp0(struct tss_
-  * clear %ecx since some cpus (Cyrix MII) do not set or clear %ecx
-  * resulting in stale register contents being returned.
-  */
--static inline void cpuid(unsigned int op, unsigned int *eax, unsigned int *ebx, unsigned int *ecx, unsigned int *edx)
-+static inline void cpuid(unsigned int op,
-+			 unsigned int *eax, unsigned int *ebx,
-+			 unsigned int *ecx, unsigned int *edx)
- {
- 	*eax = op;
- 	*ecx = 0;
-@@ -607,8 +609,9 @@ static inline void cpuid(unsigned int op
+diff -puN drivers/net/ehea/ehea_main.c~build-failure-on-ppc64-drivers-net-ehea-ehea_mainc drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~build-failure-on-ppc64-drivers-net-ehea-ehea_mainc
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2307,6 +2307,22 @@ out:
+ 	return ret;
  }
  
- /* Some CPUID calls want 'count' to be placed in ecx */
--static inline void cpuid_count(int op, int count, int *eax, int *ebx, int *ecx,
--			       int *edx)
-+static inline void cpuid_count(unsigned int op, int count,
-+			       unsigned int *eax, unsigned int *ebx,
-+			       unsigned int *ecx, unsigned int *edx)
++static void port_napi_disable(struct ehea_port *port)
++{
++	int i;
++
++	for (i = 0; i < port->num_def_qps; i++)
++		napi_disable(&port->port_res[i].napi);
++}
++
++static void port_napi_enable(struct ehea_port *port)
++{
++	int i;
++
++	for (i = 0; i < port->num_def_qps; i++)
++		napi_enable(&port->port_res[i].napi);
++}
++
+ static int ehea_open(struct net_device *dev)
  {
- 	*eax = op;
- 	*ecx = count;
+ 	int ret;
+@@ -2328,22 +2344,6 @@ static int ehea_open(struct net_device *
+ 	return ret;
+ }
+ 
+-static void port_napi_disable(struct ehea_port *port)
+-{
+-	int i;
+-
+-	for (i = 0; i < port->num_def_qps; i++)
+-		napi_disable(&port->port_res[i].napi);
+-}
+-
+-static void port_napi_enable(struct ehea_port *port)
+-{
+-	int i;
+-
+-	for (i = 0; i < port->num_def_qps; i++)
+-		napi_enable(&port->port_res[i].napi);
+-}
+-
+ static int ehea_down(struct net_device *dev)
+ {
+ 	int ret;
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
 git-net.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-remove-superfluous-definition-of-__setup_null_param-macro-and-broken-for-module-__setup_param.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+split-the-free-lists-for-movable-and-unmovable-allocations.patch
+choose-pages-from-the-per-cpu-list-based-on-migration-type.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+drain-per-cpu-lists-when-high-order-allocations-fail.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+group-high-order-atomic-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+bias-the-placement-of-kernel-pages-at-lower-pfns.patch
+be-more-agressive-about-stealing-when-migrate_reclaimable-allocations-fallback.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+have-kswapd-keep-a-minimum-order-free-other-than-order-0.patch
+only-check-absolute-watermarks-for-alloc_high-and-alloc_harder-allocations.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
+ext2-reservations.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
