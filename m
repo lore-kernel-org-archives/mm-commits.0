@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:19 -0700
-Message-ID: <200709210802.l8L82Jd1025718@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:16 -0700
+Message-ID: <200709210802.l8L82Gpp025712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55535 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754240AbXIUICz (ORCPT
+	by vger.kernel.org with ESMTP id S1754279AbXIUICy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:55 -0400
+	Fri, 21 Sep 2007 04:02:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for link and symlink calls
+     r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for link and symlink calls
+Subject: r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Pretty self-explanatory.  Fits in with the rest of the series.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    4 ++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
 +++ a/fs/namei.c
-@@ -2325,7 +2325,12 @@ asmlinkage long sys_symlinkat(const char
- 	if (IS_ERR(dentry))
- 		goto out_unlock;
+@@ -2052,7 +2052,12 @@ asmlinkage long sys_mkdirat(int dfd, con
  
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
 +	error = mnt_want_write(nd.mnt);
 +	if (error)
 +		goto out_dput;
- 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
+ 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
 +	mnt_drop_write(nd.mnt);
 +out_dput:
  	dput(dentry);
  out_unlock:
  	mutex_unlock(&nd.dentry->d_inode->i_mutex);
-@@ -2420,7 +2425,12 @@ asmlinkage long sys_linkat(int olddfd, c
- 	error = PTR_ERR(new_dentry);
- 	if (IS_ERR(new_dentry))
- 		goto out_unlock;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_dput;
- 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
-+	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(new_dentry);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -156,7 +156,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
+ 	}
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
  out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
