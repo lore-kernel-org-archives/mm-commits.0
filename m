@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + missing-null-termination-in-power-supply-uevent.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:39:07 -0700
-Message-ID: <200709210739.l8L7d78T024949@imap1.linux-foundation.org>
+Subject: + missing-null-termination-in-one-wire-uevent.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:40:15 -0700
+Message-ID: <200709210740.l8L7eFUV025013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52719 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750718AbXIUHji (ORCPT
+	by vger.kernel.org with ESMTP id S1751775AbXIUHk7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:39:38 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8L7d7gO019957
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2007 00:39:08 -0700
+	Fri, 21 Sep 2007 03:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org
+Cc: shemminger@linux-foundation.org, akpm@linux-foundation.org, gregkh@suse.de, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     missing null termination in power supply uevent
+     missing null termination in one wire uevent
 has been added to the -mm tree.  Its filename is
-     missing-null-termination-in-power-supply-uevent.patch
+     missing-null-termination-in-one-wire-uevent.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,35 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: missing null termination in power supply uevent
+Subject: missing null termination in one wire uevent
 From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Need to null terminate environment. Found by inspection
-while looking for similar problems to platform uevent bug
+Need to null terminate environment.  Found by inspection while looking for
+similar problems to platform uevent bug
 
 Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    1 +
+ drivers/w1/w1.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/power/power_supply_sysfs.c~missing-null-termination-in-power-supply-uevent drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~missing-null-termination-in-power-supply-uevent
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -283,6 +283,7 @@ int power_supply_uevent(struct device *d
- 		if (ret)
- 			goto out;
- 	}
-+	envp[i] = NULL;
+diff -puN drivers/w1/w1.c~missing-null-termination-in-one-wire-uevent drivers/w1/w1.c
+--- a/drivers/w1/w1.c~missing-null-termination-in-one-wire-uevent
++++ a/drivers/w1/w1.c
+@@ -431,6 +431,7 @@ static int w1_uevent(struct device *dev,
+ 	err = add_uevent_var(envp, num_envp, &cur_index, buffer, buffer_size,
+ 			&cur_len, "W1_SLAVE_ID=%024LX",
+ 			(unsigned long long)sl->reg_num.id);
++	envp[cur_index] = NULL;
+ 	if (err)
+ 		return err;
  
- out:
- 	free_page((unsigned long)prop_buf);
 _
 
 Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
+missing-null-termination-in-one-wire-uevent.patch
 fix-oops-in-platform-uevent.patch
 git-infiniband.patch
 git-input.patch
