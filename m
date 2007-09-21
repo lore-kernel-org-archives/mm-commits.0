@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-use-sec_per_sec-constants.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:45:37 -0700
-Message-ID: <200709210445.l8L4jb5E019121@imap1.linux-foundation.org>
+Subject: + uml-simplify-interval-setting.patch added to -mm tree
+Date: Thu, 20 Sep 2007 21:45:24 -0700
+Message-ID: <200709210445.l8L4jOBs019097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34971 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751687AbXIUEqT (ORCPT
+	by vger.kernel.org with ESMTP id S1751907AbXIUEq3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:46:19 -0400
+	Fri, 21 Sep 2007 00:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     uml: use *SEC_PER_*SEC constants
+     uml: simplify interval setting
 has been added to the -mm tree.  Its filename is
-     uml-use-sec_per_sec-constants.patch
+     uml-simplify-interval-setting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,161 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: use *SEC_PER_*SEC constants
+Subject: uml: simplify interval setting
 From: Jeff Dike <jdike@addtoit.com>
 
-There are various uses of powers of 1000, plus the odd BILLION constant in the
-time code.  However, there are perfectly good definitions of *SEC_PER_*SEC in
-linux/time.h which can be used instaed.
-
-These are replaced directly in kernel code.  Userspace code imports those
-constants as UM_*SEC_PER_*SEC and uses these.
+set_interval took a timer type as an argument, but it always specified a
+virtual timer.  So, it is not needed, and it is gone, and set_interval is
+simplified appropriately.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h |    4 ++++
- arch/um/include/os.h             |    2 --
- arch/um/kernel/time.c            |    9 +++++----
- arch/um/os-Linux/skas/process.c  |   12 +++++++-----
- arch/um/os-Linux/time.c          |   16 ++++++++--------
- 5 files changed, 24 insertions(+), 19 deletions(-)
+ arch/um/include/os.h            |    2 +-
+ arch/um/kernel/time.c           |    2 +-
+ arch/um/os-Linux/skas/process.c |    2 +-
+ arch/um/os-Linux/time.c         |    5 ++---
+ 4 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/include/common-offsets.h~uml-use-sec_per_sec-constants arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-use-sec_per_sec-constants
-+++ a/arch/um/include/common-offsets.h
-@@ -34,3 +34,7 @@ DEFINE(crypto_tfm_ctx_offset, offsetof(s
- DEFINE(UM_THREAD_SIZE, THREAD_SIZE);
- 
- DEFINE(UM_HZ, HZ);
-+
-+DEFINE(UM_USEC_PER_SEC, USEC_PER_SEC);
-+DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
-+DEFINE(UM_NSEC_PER_USEC, NSEC_PER_USEC);
-diff -puN arch/um/include/os.h~uml-use-sec_per_sec-constants arch/um/include/os.h
---- a/arch/um/include/os.h~uml-use-sec_per_sec-constants
+diff -puN arch/um/include/os.h~uml-simplify-interval-setting arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-simplify-interval-setting
 +++ a/arch/um/include/os.h
-@@ -249,8 +249,6 @@ extern int setjmp_wrapper(void (*proc)(v
- extern void os_dump_core(void);
+@@ -252,7 +252,7 @@ extern void os_dump_core(void);
  
- /* time.c */
--#define BILLION (1000 * 1000 * 1000)
--
- extern void idle_sleep(unsigned long long nsecs);
- extern int set_interval(void);
- extern int timer_one_shot(int ticks);
-diff -puN arch/um/kernel/time.c~uml-use-sec_per_sec-constants arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-use-sec_per_sec-constants
+ extern int switch_timers(int to_real);
+ extern void idle_sleep(int secs);
+-extern int set_interval(int is_virtual);
++extern int set_interval(void);
+ extern void disable_timer(void);
+ extern void uml_idle_timer(void);
+ extern unsigned long long os_nsecs(void);
+diff -puN arch/um/kernel/time.c~uml-simplify-interval-setting arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-simplify-interval-setting
 +++ a/arch/um/kernel/time.c
-@@ -17,7 +17,7 @@
-  */
- unsigned long long sched_clock(void)
- {
--	return (unsigned long long)jiffies_64 * (1000000000 / HZ);
-+	return (unsigned long long)jiffies_64 * (NSEC_PER_SEC / HZ);
- }
+@@ -102,7 +102,7 @@ static void register_timer(void)
+ 		printk(KERN_ERR "register_timer : request_irq failed - "
+ 		       "errno = %d\n", -err);
  
- void timer_handler(int sig, struct uml_pt_regs *regs)
-@@ -119,8 +119,9 @@ void __init time_init(void)
- 	timer_init();
- 
- 	nsecs = os_nsecs();
--	set_normalized_timespec(&wall_to_monotonic, -nsecs / BILLION,
--				-nsecs % BILLION);
--	set_normalized_timespec(&xtime, nsecs / BILLION, nsecs % BILLION);
-+	set_normalized_timespec(&wall_to_monotonic, -nsecs / NSEC_PER_SEC,
-+				-nsecs % NSEC_PER_SEC);
-+	set_normalized_timespec(&xtime, nsecs / NSEC_PER_SEC,
-+				nsecs % NSEC_PER_SEC);
- 	late_time_init = setup_itimer;
- }
-diff -puN arch/um/os-Linux/skas/process.c~uml-use-sec_per_sec-constants arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-use-sec_per_sec-constants
+-	err = set_interval(1);
++	err = set_interval();
+ 	if (err != 0)
+ 		printk(KERN_ERR "register_timer : set_interval failed - "
+ 		       "errno = %d\n", -err);
+diff -puN arch/um/os-Linux/skas/process.c~uml-simplify-interval-setting arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-simplify-interval-setting
 +++ a/arch/um/os-Linux/skas/process.c
-@@ -294,8 +294,8 @@ void userspace(struct uml_pt_regs *regs)
+@@ -178,7 +178,7 @@ static int userspace_tramp(void *stack)
+ 	ptrace(PTRACE_TRACEME, 0, 0, 0);
  
- 	if (getitimer(ITIMER_VIRTUAL, &timer))
- 		printk("Failed to get itimer, errno = %d\n", errno);
--	nsecs = timer.it_value.tv_sec * BILLION +
--		timer.it_value.tv_usec * 1000;
-+	nsecs = timer.it_value.tv_sec * UM_NSEC_PER_SEC +
-+		timer.it_value.tv_usec * UM_NSEC_PER_USEC;
- 	nsecs += os_nsecs();
- 
- 	while (1) {
-@@ -347,8 +347,10 @@ void userspace(struct uml_pt_regs *regs)
- 				block_signals();
- 				(*sig_info[sig])(sig, regs);
- 				unblock_signals();
--				nsecs = timer.it_value.tv_sec * BILLION +
--					timer.it_value.tv_usec * 1000;
-+				nsecs = timer.it_value.tv_sec *
-+					UM_NSEC_PER_SEC +
-+					timer.it_value.tv_usec *
-+					UM_NSEC_PER_USEC;
- 				nsecs += os_nsecs();
- 				break;
- 			case SIGIO:
-@@ -395,7 +397,7 @@ __initcall(init_thread_regs);
- 
- int copy_context_skas0(unsigned long new_stack, int pid)
- {
--	struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 / UM_HZ };
-+	struct timeval tv = { .tv_sec = 0, .tv_usec = UM_USEC_PER_SEC / UM_HZ };
- 	int err;
- 	unsigned long current_stack = current_stub_stack();
- 	struct stub_data *data = (struct stub_data *) current_stack;
-diff -puN arch/um/os-Linux/time.c~uml-use-sec_per_sec-constants arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-use-sec_per_sec-constants
+ 	init_new_thread_signals();
+-	err = set_interval(1);
++	err = set_interval();
+ 	if (err)
+ 		panic("userspace_tramp - setting timer failed, errno = %d\n",
+ 		      err);
+diff -puN arch/um/os-Linux/time.c~uml-simplify-interval-setting arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-simplify-interval-setting
 +++ a/arch/um/os-Linux/time.c
-@@ -14,7 +14,7 @@
+@@ -14,14 +14,13 @@
  
- int set_interval(void)
+ static int is_real_timer = 0;
+ 
+-int set_interval(int is_virtual)
++int set_interval(void)
  {
--	int usec = 1000000/UM_HZ;
-+	int usec = UM_USEC_PER_SEC / UM_HZ;
+ 	int usec = 1000000/UM_HZ;
+-	int timer_type = is_virtual ? ITIMER_VIRTUAL : ITIMER_REAL;
  	struct itimerval interval = ((struct itimerval) { { 0, usec },
  							  { 0, usec } });
  
-@@ -26,11 +26,11 @@ int set_interval(void)
+-	if (setitimer(timer_type, &interval, NULL) == -1)
++	if (setitimer(ITIMER_VIRTUAL, &interval, NULL) == -1)
+ 		return -errno;
  
- int timer_one_shot(int ticks)
- {
--	unsigned long usec = ticks * 1000000 / UM_HZ;
--	unsigned long sec = usec / 1000000;
-+	unsigned long usec = ticks * UM_USEC_PER_SEC / UM_HZ;
-+	unsigned long sec = usec / UM_USEC_PER_SEC;
- 	struct itimerval interval;
- 
--	usec %= 1000000;
-+	usec %= UM_USEC_PER_SEC;
- 	interval = ((struct itimerval) { { 0, 0 }, { sec, usec } });
- 
- 	if (setitimer(ITIMER_VIRTUAL, &interval, NULL) == -1)
-@@ -47,8 +47,8 @@ static inline unsigned long long tv_to_n
- 	 * return.
- 	 */
- 
--	return ((unsigned long long) tv->tv_sec) * BILLION +
--		tv->tv_usec * 1000;
-+	return ((unsigned long long) tv->tv_sec) * UM_NSEC_PER_SEC +
-+		tv->tv_usec * UM_NSEC_PER_USEC;
- }
- 
- unsigned long long disable_timer(void)
-@@ -74,8 +74,8 @@ extern void alarm_handler(int sig, struc
- 
- void idle_sleep(unsigned long long nsecs)
- {
--	struct timespec ts = { .tv_sec	= nsecs / BILLION,
--			       .tv_nsec = nsecs % BILLION };
-+	struct timespec ts = { .tv_sec	= nsecs / UM_NSEC_PER_SEC,
-+			       .tv_nsec = nsecs % UM_NSEC_PER_SEC };
- 
- 	if (nanosleep(&ts, &ts) == 0)
- 		alarm_handler(SIGVTALRM, NULL);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
