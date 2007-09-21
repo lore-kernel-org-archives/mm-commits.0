@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-clocksource-support-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:13:18 -0700
-Message-ID: <200709210713.l8L7DIn8024073@imap1.linux-foundation.org>
+Subject: + uml-tickless-support-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:18:04 -0700
+Message-ID: <200709210718.l8L7I4Ia024241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36386 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41725 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750748AbXIUHOC (ORCPT
+	by vger.kernel.org with ESMTP id S1751013AbXIUHSL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:14:02 -0400
+	Fri, 21 Sep 2007 03:18:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, tglx@li
 
 
 The patch titled
-     uml-clocksource-support-fix
+     uml-tickless-support-fix
 has been added to the -mm tree.  Its filename is
-     uml-clocksource-support-fix.patch
+     uml-tickless-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml-clocksource-support-fix
+Subject: uml-tickless-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jeff Dike <jdike@addtoit.com>
@@ -35,35 +35,40 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/time.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/um/os-Linux/time.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN arch/um/kernel/time.c~uml-clocksource-support-fix arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-clocksource-support-fix
-+++ a/arch/um/kernel/time.c
-@@ -121,17 +121,16 @@ static void __init setup_itimer(void)
- 		printk(KERN_ERR "register_timer : request_irq failed - "
- 		       "errno = %d\n", -err);
- 
--	err = clocksource_register(&itimer_clocksource);
--	if (err) {
--		printk(KERN_ERR "clocksource_register returned %d\n", err);
--		return;
--	}
--
- 	itimer_clockevent.mult = div_sc(HZ, NSEC_PER_SEC, 32);
- 	itimer_clockevent.max_delta_ns =
- 		clockevent_delta2ns(60 * HZ, &itimer_clockevent);
- 	itimer_clockevent.min_delta_ns =
- 		clockevent_delta2ns(1, &itimer_clockevent);
-+	err = clocksource_register(&itimer_clocksource);
-+	if (err) {
-+		printk(KERN_ERR "clocksource_register returned %d\n", err);
-+		return;
-+	}
- 	clockevents_register_device(&itimer_clockevent);
+diff -puN arch/um/os-Linux/time.c~uml-tickless-support-fix arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-tickless-support-fix
++++ a/arch/um/os-Linux/time.c
+@@ -41,18 +41,6 @@ int timer_one_shot(int ticks)
+ 	return 0;
  }
  
+-static inline unsigned long long tv_to_nsec(struct timeval *tv)
+-{
+-	/* Cast tv->tv_sec to a long long in order to force this whole
+-	 * calculation to 64 bits.  Otherwise, we'll get a negative
+-	 * 32-bit number getting cast to a very large 64-bit number on
+-	 * return.
+-	 */
+-
+-	return ((unsigned long long) tv->tv_sec) * BILLION +
+-		tv->tv_usec * 1000;
+-}
+-
+ void disable_timer(void)
+ {
+ 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
+@@ -101,7 +89,7 @@ unsigned long long os_nsecs(void)
+ 	struct timeval tv;
+ 
+ 	gettimeofday(&tv, NULL);
+-	return tv_to_nsec(&tv);
++	return timeval_to_ns(&tv);
+ }
+ 
+ void idle_sleep(int secs)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,6 +190,7 @@ file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
 uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
 cache-pipe-buf-page-address-for-non-highmem-arch.patch
 softlockup-add-a-proc-tuning-parameter-fix.patch
 force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
