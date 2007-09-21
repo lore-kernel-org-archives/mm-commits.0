@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:02 -0700
-Message-ID: <200709210802.l8L822kT025688@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:24 -0700
+Message-ID: <200709210802.l8L82OmD025733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753816AbXIUICc (ORCPT
+	by vger.kernel.org with ESMTP id S1754090AbXIUICf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:32 -0400
+	Fri, 21 Sep 2007 04:02:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de
+Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: rearrange may_open() to be r/o friendly
+     r/o bind mounts: nfs: check mnt instead of superblock directly
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
+     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: rearrange may_open() to be r/o friendly
+Subject: r/o bind mounts: nfs: check mnt instead of superblock directly
 From: Dave Hansen <haveblue@us.ibm.com>
 
-may_open() calls vfs_permission() before it does checks for IS_RDONLY(inode). 
-It checks _again_ inside of vfs_permission().
+If we depend on the inodes for writeability, we will not catch the r/o mounts
+when implemented.
 
-The check inside of vfs_permission() is going away eventually.  With the
-mnt_want/drop_write() functions, all of the r/o checks (except for this one)
-are consistently done before calling permission().  Because of this, I'd like
-to use permission() to hold a debugging check to make sure that the
-mnt_want/drop_write() calls are actually being made.
+This patches uses __mnt_want_write().  It does not guarantee that the mount
+will stay writeable after the check.  But, this is OK for one of the checks
+because it is just for a printk().
 
-So, to do this:
-1. remove the IS_RDONLY() check from permission()
-2. enforce that you must mnt_want_write() before
-   even calling permission()
-3. actually add the debugging check to permission()
+The other two are probably unnecessary and duplicate existing checks in the
+VFS.  This won't make them better checks than before, but it will make them
+detect r/o mounts.
 
-We need to rearrange may_open() to do r/o checks before calling permission(). 
-Here's the patch.
-
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nfs/dir.c  |    3 ++-
+ fs/nfsd/vfs.c |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly
-+++ a/fs/namei.c
-@@ -1605,10 +1605,6 @@ int may_open(struct nameidata *nd, int a
- 	if (S_ISDIR(inode->i_mode) && (flag & FMODE_WRITE))
- 		return -EISDIR;
- 
--	error = vfs_permission(nd, acc_mode);
--	if (error)
--		return error;
--
- 	/*
- 	 * FIFO's, sockets and device files are special: they don't
- 	 * actually live on the filesystem itself, and as such you
-@@ -1623,6 +1619,10 @@ int may_open(struct nameidata *nd, int a
- 		flag &= ~O_TRUNC;
- 	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
- 		return -EROFS;
-+
-+	error = vfs_permission(nd, acc_mode);
-+	if (error)
-+		return error;
- 	/*
- 	 * An append-only file must be opened in append mode for writing.
+diff -puN fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly fs/nfs/dir.c
+--- a/fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly
++++ a/fs/nfs/dir.c
+@@ -997,7 +997,8 @@ static int is_atomic_open(struct inode *
+ 	if (nd->flags & LOOKUP_DIRECTORY)
+ 		return 0;
+ 	/* Are we trying to write to a read only partition? */
+-	if (IS_RDONLY(dir) && (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
++	if (__mnt_is_readonly(nd->mnt) &&
++	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
+ 		return 0;
+ 	return 1;
+ }
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly
++++ a/fs/nfsd/vfs.c
+@@ -1863,7 +1863,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 		inode->i_mode,
+ 		IS_IMMUTABLE(inode)?	" immut" : "",
+ 		IS_APPEND(inode)?	" append" : "",
+-		IS_RDONLY(inode)?	" ro" : "");
++		__mnt_is_readonly(exp->ex_mnt)?	" ro" : "");
+ 	dprintk("      owner %d/%d user %d/%d\n",
+ 		inode->i_uid, inode->i_gid, current->fsuid, current->fsgid);
+ #endif
+@@ -1874,7 +1874,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
  	 */
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (exp_rdonly(rqstp, exp) || IS_RDONLY(inode))
++			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
