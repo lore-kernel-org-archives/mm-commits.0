@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:16 -0700
-Message-ID: <200709210802.l8L82Gpp025712@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-do_utimes.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:27 -0700
+Message-ID: <200709210802.l8L82R3w025739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754279AbXIUICy (ORCPT
+	by vger.kernel.org with ESMTP id S1754225AbXIUIDF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:54 -0400
+	Fri, 21 Sep 2007 04:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
+     r/o bind mounts: elevate write count for do_utimes()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
+Subject: r/o bind mounts: elevate write count for do_utimes()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Pretty self-explanatory.  Fits in with the rest of the series.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Acked-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    5 +++++
- fs/nfsd/nfs4recover.c |    4 ++++
- 2 files changed, 9 insertions(+)
+ fs/utimes.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
-+++ a/fs/namei.c
-@@ -2052,7 +2052,12 @@ asmlinkage long sys_mkdirat(int dfd, con
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
++++ a/fs/utimes.c
+@@ -2,6 +2,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/sched.h>
+ #include <linux/stat.h>
+@@ -88,8 +89,8 @@ long do_utimes(int dfd, char __user *fil
  
- 	if (!IS_POSIXACL(nd.dentry->d_inode))
- 		mode &= ~current->fs->umask;
+ 	inode = dentry->d_inode;
+ 
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
 +	error = mnt_want_write(nd.mnt);
 +	if (error)
-+		goto out_dput;
- 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
-+	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
-diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
---- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
-+++ a/fs/nfsd/nfs4recover.c
-@@ -156,7 +156,11 @@ nfsd4_create_clid_dir(struct nfs4_client
- 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
- 		goto out_put;
+ 		goto dput_and_out;
+ 
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+@@ -97,7 +98,7 @@ long do_utimes(int dfd, char __user *fil
+ 	if (times) {
+ 		error = -EPERM;
+                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (times[0].tv_nsec == UTIME_OMIT)
+ 			newattrs.ia_valid &= ~ATTR_ATIME;
+@@ -117,22 +118,24 @@ long do_utimes(int dfd, char __user *fil
+ 	} else {
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (!is_owner_or_cap(inode)) {
+ 			if (f) {
+ 				if (!(f->f_mode & FMODE_WRITE))
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			} else {
+ 				error = vfs_permission(&nd, MAY_WRITE);
+ 				if (error)
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			}
+ 		}
  	}
-+	status = mnt_want_write(rec_dir.mnt);
-+	if (status)
-+		goto out_put;
- 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
-+	mnt_drop_write(rec_dir.mnt);
- out_put:
- 	dput(dentry);
- out_unlock:
+ 	mutex_lock(&inode->i_mutex);
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
++mnt_drop_write_and_out:
++	mnt_drop_write(nd.mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
