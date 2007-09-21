@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mystery-usb-fix.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:48:20 -0700
-Message-ID: <200709210448.l8L4mKg6019238@imap1.linux-foundation.org>
+Subject: + kgdb-fix-docbook-and-kernel-doc-typos.patch added to -mm tree
+Date: Thu, 20 Sep 2007 21:49:53 -0700
+Message-ID: <200709210449.l8L4nrWb019268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41084 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751910AbXIUEso (ORCPT
+	by vger.kernel.org with ESMTP id S1750841AbXIUEuc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:48:44 -0400
+	Fri, 21 Sep 2007 00:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, greg@kroah.com, rjw@sisk.pl
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     mystery usb fix
+     kgdb: fix docbook and kernel-doc typos
 has been added to the -mm tree.  Its filename is
-     mystery-usb-fix.patch
+     kgdb-fix-docbook-and-kernel-doc-typos.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mystery usb fix
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: kgdb: fix docbook and kernel-doc typos
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On Wed, 19 Sep 2007, Rafael J. Wysocki wrote:
+Fix typos/spellos in kgdb docbook template and included kernel-doc
+file(s).
 
-> On Wednesday, 19 September 2007 16:22, Alan Stern wrote:
-> > On Tue, 18 Sep 2007, Rafael J. Wysocki wrote:
-> >
-> > > Additionally, I've got a couple of these:
-> > >
-> > > WARNING: at /home/rafael/src/mm/linux-2.6.23-rc6-mm1/drivers/usb/core/driver.c:1
-> > > 217 usb_autopm_do_device()
-> > >
-> > > Call Trace:
-> > >  [<ffffffff8813885e>] :usbcore:usb_autopm_do_device+0x60/0xe9
-> > >  [<ffffffff88138910>] :usbcore:usb_autosuspend_device+0xc/0xe
-> > >  [<ffffffff88131aa8>] :usbcore:usb_disconnect+0x15f/0x18c
-> > >  [<ffffffff88133305>] :usbcore:hub_thread+0x691/0x10a1
-> > >  [<ffffffff8024a077>] autoremove_wake_function+0x0/0x38
-> > >  [<ffffffff88132c74>] :usbcore:hub_thread+0x0/0x10a1
-> > >  [<ffffffff80249f50>] kthread+0x49/0x79
-> > >  [<ffffffff8020ce98>] child_rip+0xa/0x12
-> > >  [<ffffffff80249f07>] kthread+0x0/0x79
-> > >  [<ffffffff8020ce8e>] child_rip+0x0/0x12
-> >
-> > Please provide a complete dmesg log with CONFIG_USB_DEBUG enabled.
-
-Okay, I think I've got it.  The patch below should fix the problem -- I
-haven't tried it out yet so you're the guinea pig!
-
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/driver.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ Documentation/DocBook/kgdb.tmpl |   10 +++++-----
+ include/linux/kgdb.h            |   10 +++++-----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/core/driver.c~mystery-usb-fix drivers/usb/core/driver.c
---- a/drivers/usb/core/driver.c~mystery-usb-fix
-+++ a/drivers/usb/core/driver.c
-@@ -1097,7 +1097,12 @@ static int usb_suspend_both(struct usb_d
- 			usb_hcd_flush_endpoint(udev, udev->ep_out[i]);
- 			usb_hcd_flush_endpoint(udev, udev->ep_in[i]);
- 		}
--		if (parent)
-+
-+		/* If this is just a FREEZE or a PRETHAW, udev might
-+		 * not really be suspended.  Only true suspends get
-+		 * propagated up the device tree.
-+		 */
-+		if (parent && udev->state == USB_STATE_SUSPENDED)
- 			usb_autosuspend_device(parent);
- 	}
+diff -puN Documentation/DocBook/kgdb.tmpl~kgdb-fix-docbook-and-kernel-doc-typos Documentation/DocBook/kgdb.tmpl
+--- a/Documentation/DocBook/kgdb.tmpl~kgdb-fix-docbook-and-kernel-doc-typos
++++ a/Documentation/DocBook/kgdb.tmpl
+@@ -149,9 +149,9 @@
+     </itemizedlist>
+     </para>
+     <para>
+-    The <symbol>CONFIG_KGDBOE</symbol> driver can be reconfigured at run
+-    time, if <symbol>CONFIG_SYSFS</symbol> and
+-    <symbol>CONFIG_MODULES</symbol> by echo'ing a new config string to
++    The <symbol>CONFIG_KGDBOE</symbol> driver can be reconfigured at run time,
++    if <symbol>CONFIG_SYSFS</symbol> and <symbol>CONFIG_MODULES</symbol>
++    are enabled, by echo'ing a new config string to
+     <constant>/sys/module/kgdboe/parameter/kgdboe</constant>.  The
+     driver can be unconfigured with the special string
+     <constant>not_configured</constant>.
+@@ -213,7 +213,7 @@
+ 	  This must be larger than NUMREGBYTES.
+ 	  </para>
+ 	  <para>
+-	  CACHE_FLUSH_IS_SAFE: Set to one if it always safe to call
++	  CACHE_FLUSH_IS_SAFE: Set to one if it is always safe to call
+ 	  flush_cache_range or flush_icache_range.  On some architectures,
+ 	  these functions may not be safe to call on SMP since we keep other
+ 	  CPUs in a holding pattern.
+@@ -223,7 +223,7 @@
+       </para>
+       <para>
+       There are also the following functions for the common backend,
+-      found in kernel/kgdb.c that must be supplied by the
++      found in kernel/kgdb.c, that must be supplied by the
+       architecture-specific backend.  No weak version of these is provided.
+       </para>
+ !Iinclude/linux/kgdb.h
+diff -puN include/linux/kgdb.h~kgdb-fix-docbook-and-kernel-doc-typos include/linux/kgdb.h
+--- a/include/linux/kgdb.h~kgdb-fix-docbook-and-kernel-doc-typos
++++ a/include/linux/kgdb.h
+@@ -116,7 +116,7 @@ extern void sleeping_thread_to_gdb_regs(
  
+ /**
+  *	gdb_regs_to_regs - Convert GDB regs to ptrace regs.
+- *	@gdb_regs: A pointer to hold the registers we've recieved from GDB.
++ *	@gdb_regs: A pointer to hold the registers we've received from GDB.
+  *	@regs: A pointer to a &struct pt_regs to hold these values in.
+  *
+  *	Convert the GDB regs in @gdb_regs into the pt_regs, and store them
+@@ -130,7 +130,7 @@ extern void gdb_regs_to_regs(unsigned lo
+  *	@signo: The signal number of the exception that happened.
+  *	@err_code: The error code of the exception that happened.
+  *	@remcom_in_buffer: The buffer of the packet we have read.
+- *	@remcom_out_buffer: The buffer, of %BUFMAX to write a packet into.
++ *	@remcom_out_buffer: The buffer of %BUFMAX bytes to write a packet into.
+  *	@regs: The &struct pt_regs of the current process.
+  *
+  *	This function MUST handle the 'c' and 's' command packets,
+@@ -173,7 +173,7 @@ extern unsigned long kgdb_fault_jmp_regs
+  *	kgdb_fault_setjmp - Store state in case we fault.
+  *	@curr_context: An array to store state into.
+  *
+- *	Certain functions may try and access memory, and in doing so may
++ *	Certain functions may try to access memory, and in doing so may
+  *	cause a fault.  When this happens, we trap it, restore state to
+  *	this call, and let ourself know that something bad has happened.
+  */
+@@ -195,7 +195,7 @@ extern int kgdb_arch_set_breakpoint(unsi
+ extern int kgdb_arch_remove_breakpoint(unsigned long addr, char *bundle);
+ 
+ /**
+- * struct kgdb_arch - Desribe architecture specific values.
++ * struct kgdb_arch - Describe architecture specific values.
+  * @gdb_bpt_instr: The instruction to trigger a breakpoint.
+  * @flags: Flags for the breakpoint, currently just %KGDB_HW_BREAKPOINT.
+  * @shadowth: A value of %1 indicates we shadow information on processes.
+@@ -229,7 +229,7 @@ struct kgdb_arch {
+ };
+ 
+ /**
+- * struct kgdb_io - Desribe the interface for an I/O driver to talk with KGDB.
++ * struct kgdb_io - Describe the interface for an I/O driver to talk with KGDB.
+  * @read_char: Pointer to a function that will return one char.
+  * @write_char: Pointer to a function that will write one char.
+  * @flush: Pointer to a function that will flush any pending writes.
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-scsi-early-detection-of-medium-not-present-updated.patch
-mystery-usb-fix.patch
+git-acpi.patch
+sound-hda-fix-help-text.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+git-mtd.patch
+git-net.patch
+git-nfsd.patch
+fix-signedness-of-parameters-in-scsi-module.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+kgdb-fix-help-text.patch
+kgdb-fix-docbook-and-kernel-doc-typos.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+profile-likely-unlikely-macros.patch
