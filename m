@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-extended-crashkernel-command-line-on-x86_64.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:26:48 -0700
-Message-ID: <200709210726.l8L7Qmcm024513@imap1.linux-foundation.org>
+Subject: + use-extended-crashkernel-command-line-on-ppc64.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:26:50 -0700
+Message-ID: <200709210726.l8L7QoxC024522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44745 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752771AbXIUH1v (ORCPT
+	by vger.kernel.org with ESMTP id S1751499AbXIUH1q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:27:51 -0400
+	Fri, 21 Sep 2007 03:27:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com
+Cc: bwalle@suse.de, benh@kernel.crashing.org, ebiederm@xmission.com, paulus@samba.org, vgoyal@in.ibm.com
 
 
 The patch titled
-     Use extended crashkernel command line on x86_64
+     Use extended crashkernel command line on ppc64
 has been added to the -mm tree.  Its filename is
-     use-extended-crashkernel-command-line-on-x86_64.patch
+     use-extended-crashkernel-command-line-on-ppc64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use extended crashkernel command line on x86_64
+Subject: Use extended crashkernel command line on ppc64
 From: Bernhard Walle <bwalle@suse.de>
 
-This patch removes the crashkernel parsing from
-arch/x86_64/kernel/machine_kexec.c and calls the generic function, introduced
-in the last patch, in setup_bootmem_allocator().
-
-This is necessary because the amount of System RAM must be known in this
-function now because of the new syntax.
+This patch adapts the ppc64 code to use the generic parse_crashkernel()
+function introduced in the generic patch of that series.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/e820.c          |    3 +-
- arch/x86_64/kernel/machine_kexec.c |   27 ------------------
- arch/x86_64/kernel/setup.c         |   39 ++++++++++++++++++++++-----
- 3 files changed, 34 insertions(+), 35 deletions(-)
+ arch/powerpc/kernel/machine_kexec.c |   52 +++++++++++++-------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
-diff -puN arch/x86_64/kernel/e820.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/e820.c
---- a/arch/x86_64/kernel/e820.c~use-extended-crashkernel-command-line-on-x86_64
-+++ a/arch/x86_64/kernel/e820.c
-@@ -226,7 +226,8 @@ void __init e820_reserve_resources(void)
- 			request_resource(res, &code_resource);
- 			request_resource(res, &data_resource);
- #ifdef CONFIG_KEXEC
--			request_resource(res, &crashk_res);
-+			if (crashk_res.start != crashk_res.end)
-+				request_resource(res, &crashk_res);
- #endif
- 		}
- 	}
-diff -puN arch/x86_64/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/machine_kexec.c
---- a/arch/x86_64/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-x86_64
-+++ a/arch/x86_64/kernel/machine_kexec.c
-@@ -231,33 +231,6 @@ NORET_TYPE void machine_kexec(struct kim
- 			image->start);
+diff -puN arch/powerpc/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-ppc64 arch/powerpc/kernel/machine_kexec.c
+--- a/arch/powerpc/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-ppc64
++++ a/arch/powerpc/kernel/machine_kexec.c
+@@ -61,45 +61,39 @@ NORET_TYPE void machine_kexec(struct kim
+ 	for(;;);
  }
  
--/* crashkernel=size@addr specifies the location to reserve for
-- * a crash kernel.  By reserving this memory we guarantee
-- * that linux never set's it up as a DMA target.
-- * Useful for holding code to do something appropriate
-- * after a kernel panic.
-- */
--static int __init setup_crashkernel(char *arg)
--{
--	unsigned long size, base;
--	char *p;
--	if (!arg)
--		return -EINVAL;
--	size = memparse(arg, &p);
--	if (arg == p)
--		return -EINVAL;
--	if (*p == '@') {
--		base = memparse(p+1, &p);
--		/* FIXME: Do I want a sanity check to validate the
--		 * memory range?  Yes you do, but it's too early for
--		 * e820 -AK */
--		crashk_res.start = base;
--		crashk_res.end   = base + size - 1;
--	}
+-static int __init early_parse_crashk(char *p)
++void __init reserve_crashkernel(void)
+ {
+-	unsigned long size;
+-
+-	if (!p)
+-		return 1;
+-
+-	size = memparse(p, &p);
++	unsigned long long crash_size = 0, crash_base;
++	int ret;
+ 
+-	if (*p == '@')
+-		crashk_res.start = memparse(p + 1, &p);
+-	else
+-		crashk_res.start = KDUMP_KERNELBASE;
+-
+-	crashk_res.end = crashk_res.start + size - 1;
+-
 -	return 0;
 -}
--early_param("crashkernel", setup_crashkernel);
--
- void arch_crash_save_vmcoreinfo(void)
- {
- #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
-diff -puN arch/x86_64/kernel/setup.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~use-extended-crashkernel-command-line-on-x86_64
-+++ a/arch/x86_64/kernel/setup.c
-@@ -196,6 +196,37 @@ static inline void copy_edd(void)
- }
- #endif
+-early_param("crashkernel", early_parse_crashk);
++	/* this is necessary because of lmb_phys_mem_size() */
++	lmb_analyze();
  
-+#ifdef CONFIG_KEXEC
-+static void __init reserve_crashkernel(void)
-+{
-+	unsigned long long 	free_mem;
-+	unsigned long long 	crash_size, crash_base;
-+	int			ret;
-+
-+	free_mem = max_low_pfn << PAGE_SHIFT;
-+
-+	ret = parse_crashkernel(boot_command_line, free_mem,
+-void __init reserve_crashkernel(void)
+-{
+-	unsigned long size;
++	/* use common parsing */
++	ret = parse_crashkernel(boot_command_line, lmb_phys_mem_size(),
 +			&crash_size, &crash_base);
-+	if (ret == 0 && crash_size) {
-+		if (crash_base > 0) {
-+			printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
-+					"for crashkernel (System RAM: %ldMB)\n",
-+					(unsigned long)(crash_size >> 20),
-+					(unsigned long)(crash_base >> 20),
-+					(unsigned long)(free_mem >> 20));
-+			crashk_res.start = crash_base;
-+			crashk_res.end   = crash_base + crash_size - 1;
-+			reserve_bootmem(crash_base, crash_size);
-+		} else
-+			printk(KERN_INFO "crashkernel reservation failed - "
-+					"you have to specify a base address\n");
++	if (ret == 0 && crash_size > 0) {
++		if (crash_base == 0)
++			crash_base = KDUMP_KERNELBASE;
++		crashk_res.start = crash_base;
++	} else {
++		/* handle the device tree */
++		crash_size = crashk_res.end - crashk_res.start + 1;
 +	}
-+}
-+#else
-+static inline void __init reserve_crashkernel(void)
-+{}
-+#endif
-+
- #define EBDA_ADDR_POINTER 0x40E
  
- unsigned __initdata ebda_addr;
-@@ -367,13 +398,7 @@ void __init setup_arch(char **cmdline_p)
- 		}
- 	}
- #endif
--#ifdef CONFIG_KEXEC
--	if (crashk_res.start != crashk_res.end) {
--		reserve_bootmem_generic(crashk_res.start,
--			crashk_res.end - crashk_res.start + 1);
--	}
--#endif
+-	if (crashk_res.start == 0)
++	if (crash_size == 0)
+ 		return;
+ 
+ 	/* We might have got these values via the command line or the
+ 	 * device tree, either way sanitise them now. */
+ 
+-	size = crashk_res.end - crashk_res.start + 1;
 -
-+	reserve_crashkernel();
- 	paging_init();
+ 	if (crashk_res.start != KDUMP_KERNELBASE)
+ 		printk("Crash kernel location must be 0x%x\n",
+ 				KDUMP_KERNELBASE);
  
- #ifdef CONFIG_PCI
+ 	crashk_res.start = KDUMP_KERNELBASE;
+-	size = PAGE_ALIGN(size);
+-	crashk_res.end = crashk_res.start + size - 1;
++	crash_size = PAGE_ALIGN(crash_size);
++	crashk_res.end = crashk_res.start + crash_size - 1;
+ 
+ 	/* Crash kernel trumps memory limit */
+ 	if (memory_limit && memory_limit <= crashk_res.end) {
+@@ -108,7 +102,13 @@ void __init reserve_crashkernel(void)
+ 				memory_limit);
+ 	}
+ 
+-	lmb_reserve(crashk_res.start, size);
++	printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
++			"for crashkernel (System RAM: %ldMB)\n",
++			(unsigned long)(crash_size >> 20),
++			(unsigned long)(crashk_res.start >> 20),
++			(unsigned long)(lmb_phys_mem_size() >> 20));
++
++	lmb_reserve(crashk_res.start, crash_size);
+ }
+ 
+ int overlaps_crashkernel(unsigned long start, unsigned long size)
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
