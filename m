@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:34:11 -0700
-Message-ID: <200709210634.l8L6YBfa022702@imap1.linux-foundation.org>
+Subject: + ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:34:08 -0700
+Message-ID: <200709210634.l8L6Y8Z8022693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51937 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756223AbXIUGfR (ORCPT
+	by vger.kernel.org with ESMTP id S1753420AbXIUGgF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:35:17 -0400
+	Fri, 21 Sep 2007 02:36:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com, chris.mason@oracle.com, hch@lst.de, jeffm@suse.com, vs@namesys.com
+Cc: jlayton@redhat.com, bfields@fieldses.org, chris.mason@oracle.com, hch@lst.de, jeffm@suse.com, jsipek@cs.sunysb.edu, mhalcrow@us.ibm.com, neilb@suse.de, sfrench@us.ibm.com, trond.myklebust@fys.uio.no, vs@namesys.com
 
 
 The patch titled
-     reiserfs: turn of ATTR_KILL_S*ID at beginning of reiserfs_setattr
+     ecryptfs: allow lower fs to interpret ATTR_KILL_S*ID
 has been added to the -mm tree.  Its filename is
-     reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+     ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: turn of ATTR_KILL_S*ID at beginning of reiserfs_setattr
+Subject: ecryptfs: allow lower fs to interpret ATTR_KILL_S*ID
 From: Jeff Layton <jlayton@redhat.com>
 
-reiserfs_setattr can call notify_change recursively using the same
-iattr struct. This could cause it to trip the BUG() in notify_change.
-Fix reiserfs to clear those bits near the beginning of the function.
+Make sure ecryptfs doesn't trip the BUG() in notify_change.  This also allows
+the lower filesystem to interpret ATTR_KILL_S*ID in its own way.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Chris Mason <chris.mason@oracle.com>
 Cc: Jeff Mahoney <jeffm@suse.com>
 Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/ecryptfs/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr
-+++ a/fs/reiserfs/inode.c
-@@ -3061,7 +3061,11 @@ int reiserfs_setattr(struct dentry *dent
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
--	unsigned int ia_valid = attr->ia_valid;
-+	unsigned int ia_valid;
+diff -puN fs/ecryptfs/inode.c~ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid
++++ a/fs/ecryptfs/inode.c
+@@ -914,6 +914,14 @@ static int ecryptfs_setattr(struct dentr
+ 		if (rc < 0)
+ 			goto out;
+ 	}
 +
-+	/* must be turned off for recursive notify_change calls */
-+	ia_valid = attr->ia_valid &= ~(ATTR_KILL_SUID|ATTR_KILL_SGID);
++	/*
++	 * mode change is for clearing setuid/setgid bits. Allow lower fs
++	 * to interpret this in its own way.
++	 */
++	if (ia->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
++		ia->ia_valid &= ~ATTR_MODE;
 +
- 	reiserfs_write_lock(inode->i_sb);
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		/* version 2 items will be caught by the s_maxbytes check
+ 	rc = notify_change(lower_dentry, ia);
+ out:
+ 	fsstack_copy_attr_all(inode, lower_inode);
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
