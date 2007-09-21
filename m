@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-git-battery.patch added to -mm tree
-Date: Fri, 21 Sep 2007 16:01:31 -0700
-Message-ID: <200709212307.l8LN7JWt028369@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 16:11:39 -0700
+Message-ID: <200709212317.l8LNHRar028774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54305 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763125AbXIUXH2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752070AbXIUXRm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 19:07:28 -0400
+	Fri, 21 Sep 2007 19:17:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dedekind@infradead.org
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     revert git-battery
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
 has been added to the -mm tree.  Its filename is
-     revert-git-battery.patch
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert git-battery
+Subject: r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-greg's tree breaks this.
+fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
+fs/ncpfs/ioctl.c:852: error: label at end of compound statement
 
-drivers/power/power_supply_sysfs.c: In function 'power_supply_uevent':          drivers/power/power_supply_sysfs.c:286: error: 'envp' undeclared (first use in this function)                                                                   drivers/power/power_supply_sysfs.c:286: error: (Each undeclared identifier is reported only once                                                                drivers/power/power_supply_sysfs.c:286: error: for each function it appears in.)
-drivers/power/power_supply_sysfs.c:286: error: 'i' undeclared (first use in this
-
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ncpfs/ioctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/power/power_supply_sysfs.c~revert-git-battery drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~revert-git-battery
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -283,7 +283,6 @@ int power_supply_uevent(struct device *d
- 		if (ret)
- 			goto out;
+diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix fs/ncpfs/ioctl.c
+--- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
++++ a/fs/ncpfs/ioctl.c
+@@ -847,8 +847,8 @@ static int ncp_ioctl_need_write(unsigned
+ 	case NCP_IOC_GETROOT:
+ 	case NCP_IOC_SETROOT:
+ 		return 0;
+-	default:
+-		/* unkown IOCTL command, assume write */
++	default:	/* unkown IOCTL command, assume write */
++		;
  	}
--	envp[i] = NULL;
- 
- out:
- 	free_page((unsigned long)prop_buf);
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -262,3 +264,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
