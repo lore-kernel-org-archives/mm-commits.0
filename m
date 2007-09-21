@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:23 -0700
-Message-ID: <200709210802.l8L82N94025730@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:18 -0700
+Message-ID: <200709210802.l8L82IcY025715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50533 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754240AbXIUICm (ORCPT
+	by vger.kernel.org with ESMTP id S1754279AbXIUICj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:42 -0400
+	Fri, 21 Sep 2007 04:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org
+Cc: haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     r/o bind mounts: elevate write count over calls to vfs_rename()
+     r/o bind mounts: elevate write count during entire ncp_ioctl()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count over calls to vfs_rename()
+Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This also uses the little helper in the NFS code to make an if() a little bit
-less ugly.  We introduced the helper at the beginning of the series.
+Some ioctls need write access, but others don't.  Make a helper function to
+decide when write access is needed, and take it.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c    |    4 ++++
- fs/nfsd/vfs.c |   15 +++++++++++----
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ fs/ncpfs/ioctl.c |   54 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 53 insertions(+), 1 deletion(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/namei.c
-@@ -2656,8 +2656,12 @@ static int do_rename(int olddfd, const c
- 	if (new_dentry == trap)
- 		goto exit5;
+diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
+--- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
++++ a/fs/ncpfs/ioctl.c
+@@ -14,6 +14,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/time.h>
+ #include <linux/mm.h>
++#include <linux/mount.h>
+ #include <linux/highuid.h>
+ #include <linux/smp_lock.h>
+ #include <linux/vmalloc.h>
+@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
+ }
+ #endif /* CONFIG_NCPFS_NLS */
  
-+	error = mnt_want_write(oldnd.mnt);
-+	if (error)
-+		goto exit5;
- 	error = vfs_rename(old_dir->d_inode, old_dentry,
- 				   new_dir->d_inode, new_dentry);
-+	mnt_drop_write(oldnd.mnt);
- exit5:
- 	dput(new_dentry);
- exit4:
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename
-+++ a/fs/nfsd/vfs.c
-@@ -1669,13 +1669,20 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 	if (ndentry == trap)
- 		goto out_dput_new;
+-int ncp_ioctl(struct inode *inode, struct file *filp,
++static int __ncp_ioctl(struct inode *inode, struct file *filp,
+ 	      unsigned int cmd, unsigned long arg)
+ {
+ 	struct ncp_server *server = NCP_SERVER(inode);
+@@ -822,6 +823,57 @@ outrel:			
+ 	return -EINVAL;
+ }
  
--#ifdef MSNFS
--	if ((ffhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
-+	if (svc_msnfs(ffhp) &&
- 		((atomic_read(&odentry->d_count) > 1)
- 		 || (atomic_read(&ndentry->d_count) > 1))) {
- 			host_err = -EPERM;
--	} else
--#endif
-+			goto out_dput_new;
++static int ncp_ioctl_need_write(unsigned int cmd)
++{
++	switch (cmd) {
++	case NCP_IOC_GET_FS_INFO:
++	case NCP_IOC_GET_FS_INFO_V2:
++	case NCP_IOC_NCPREQUEST:
++	case NCP_IOC_SETDENTRYTTL:
++	case NCP_IOC_SIGN_INIT:
++	case NCP_IOC_LOCKUNLOCK:
++	case NCP_IOC_SET_SIGN_WANTED:
++		return 1;
++	case NCP_IOC_GETOBJECTNAME:
++	case NCP_IOC_SETOBJECTNAME:
++	case NCP_IOC_GETPRIVATEDATA:
++	case NCP_IOC_SETPRIVATEDATA:
++	case NCP_IOC_SETCHARSETS:
++	case NCP_IOC_GETCHARSETS:
++	case NCP_IOC_CONN_LOGGED_IN:
++	case NCP_IOC_GETDENTRYTTL:
++	case NCP_IOC_GETMOUNTUID2:
++	case NCP_IOC_SIGN_WANTED:
++	case NCP_IOC_GETROOT:
++	case NCP_IOC_SETROOT:
++		return 0;
++	default:
++		/* unkown IOCTL command, assume write */
 +	}
++	return 1;
++}
 +
-+	host_err = -EXDEV;
-+	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
-+		goto out_dput_new;
-+	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
-+	if (host_err)
-+		goto out_dput_new;
++int ncp_ioctl(struct inode *inode, struct file *filp,
++	      unsigned int cmd, unsigned long arg)
++{
++	int ret;
 +
- 	host_err = vfs_rename(fdir, odentry, tdir, ndentry);
- 	if (!host_err && EX_ISSYNC(tfhp->fh_export)) {
- 		host_err = nfsd_sync_dir(tdentry);
++	if (ncp_ioctl_need_write(cmd)) {
++		/*
++		 * inside the ioctl(), any failures which
++		 * are because of file_permission() are
++		 * -EACCESS, so it seems consistent to keep
++		 *  that here.
++		 */
++		if (mnt_want_write(filp->f_vfsmnt))
++			return -EACCES;
++	}
++	ret = __ncp_ioctl(inode, filp, cmd, arg);
++	if (ncp_ioctl_need_write(cmd))
++		mnt_drop_write(filp->f_vfsmnt);
++	return ret;
++}
++
+ #ifdef CONFIG_COMPAT
+ long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
