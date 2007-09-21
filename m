@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-wireless-kconfig.patch added to -mm tree
-Date: Fri, 21 Sep 2007 14:35:29 -0700
-Message-ID: <200709212141.l8LLfJwN024866@imap1.linux-foundation.org>
+Subject: + userc-ifdef-mq_bytes-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 14:50:40 -0700
+Message-ID: <200709212156.l8LLuS5N025373@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48228 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754801AbXIUVnG (ORCPT
+	by vger.kernel.org with ESMTP id S1750987AbXIUV5I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 17:43:06 -0400
+	Fri, 21 Sep 2007 17:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, adobriyan@sw.ru
 
 
 The patch titled
-     git-net: fix wireless Kconfig
+     userc-ifdef-mq_bytes-fix
 has been added to the -mm tree.  Its filename is
-     git-net-fix-wireless-kconfig.patch
+     userc-ifdef-mq_bytes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix wireless Kconfig
+Subject: userc-ifdef-mq_bytes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Seems that a bare "depends" is no longer allowed in Sam's kbuild tree.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/wireless/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/user.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/wireless/Kconfig~git-net-fix-wireless-kconfig net/wireless/Kconfig
---- a/net/wireless/Kconfig~git-net-fix-wireless-kconfig
-+++ a/net/wireless/Kconfig
-@@ -3,7 +3,7 @@ config CFG80211
+diff -puN include/linux/sched.h~userc-ifdef-mq_bytes-fix include/linux/sched.h
+diff -puN kernel/user.c~userc-ifdef-mq_bytes-fix kernel/user.c
+--- a/kernel/user.c~userc-ifdef-mq_bytes-fix
++++ a/kernel/user.c
+@@ -140,8 +140,9 @@ struct user_struct * alloc_uid(struct us
+ 		atomic_set(&new->inotify_watches, 0);
+ 		atomic_set(&new->inotify_devs, 0);
+ #endif
+-
++#ifdef CONFIG_POSIX_MQUEUE
+ 		new->mq_bytes = 0;
++#endif
+ 		new->locked_shm = 0;
  
- config NL80211
- 	bool "nl80211 new netlink interface support"
--	depends CFG80211
-+	depends on CFG80211
- 	default y
- 	---help---
-          This option turns on the new netlink interface
+ 		if (alloc_uid_keyring(new, current) < 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +102,7 @@ git-net.patch
 git-net-fixup.patch
 revert-8139too-clean-up-i-o-remapping.patch
 git-net-sky2-fixups.patch
+git-net-fix-wireless-kconfig.patch
 net-atm-lecc-printk-warning-fix.patch
 git-backlight.patch
 git-backlight-build-fix.patch
@@ -202,6 +202,7 @@ keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
 reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
@@ -257,4 +258,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-net-fix-wireless-kconfig.patch
