@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-new-export-ops.patch added to -mm tree
-Date: Thu, 20 Sep 2007 17:13:27 -0700
-Message-ID: <200709210013.l8L0DRfM009785@imap1.linux-foundation.org>
+Subject: + ocfs2-new-export-ops.patch added to -mm tree
+Date: Thu, 20 Sep 2007 17:13:31 -0700
+Message-ID: <200709210013.l8L0DVsm009791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752194AbXIUASn (ORCPT
+	by vger.kernel.org with ESMTP id S1751511AbXIUATI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 20:18:43 -0400
+	Thu, 20 Sep 2007 20:19:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, jeffm@suse.com, mason@suse.com, neilb@suse.de, vs@namesys.com
+Cc: hch@lst.de, bfields@fieldses.org, mark.fasheh@oracle.com, neilb@suse.de
 
 
 The patch titled
-     reiserfs: new export ops
+     ocfs2: new export ops
 has been added to the -mm tree.  Its filename is
-     reiserfs-new-export-ops.patch
+     ocfs2-new-export-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,167 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: new export ops
+Subject: ocfs2: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-Another nice little cleanup by using the new methods.
+OCFS2 has it's own 64bit-firendly filehandle format so we can't use the
+generic helpers here.  I'll add a struct for the types later.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Chris Mason <mason@suse.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c         |   62 ++++++++++++++--------------------
- fs/reiserfs/super.c         |    4 +-
- include/linux/reiserfs_fs.h |   12 +++---
- 3 files changed, 35 insertions(+), 43 deletions(-)
+ fs/ocfs2/export.c |   65 ++++++++++++++++----------------------------
+ 1 files changed, 24 insertions(+), 41 deletions(-)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-new-export-ops fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-new-export-ops
-+++ a/fs/reiserfs/inode.c
-@@ -1515,19 +1515,20 @@ struct inode *reiserfs_iget(struct super
- 	return inode;
- }
- 
--struct dentry *reiserfs_get_dentry(struct super_block *sb, void *vobjp)
-+static struct dentry *reiserfs_get_dentry(struct super_block *sb,
-+	u32 objectid, u32 dir_id, u32 generation)
-+
- {
--	__u32 *data = vobjp;
- 	struct cpu_key key;
- 	struct dentry *result;
- 	struct inode *inode;
- 
--	key.on_disk_key.k_objectid = data[0];
--	key.on_disk_key.k_dir_id = data[1];
-+	key.on_disk_key.k_objectid = objectid;
-+	key.on_disk_key.k_dir_id = dir_id;
- 	reiserfs_write_lock(sb);
- 	inode = reiserfs_iget(sb, &key);
--	if (inode && !IS_ERR(inode) && data[2] != 0 &&
--	    data[2] != inode->i_generation) {
-+	if (inode && !IS_ERR(inode) && generation != 0 &&
-+	    generation != inode->i_generation) {
- 		iput(inode);
- 		inode = NULL;
- 	}
-@@ -1544,14 +1545,9 @@ struct dentry *reiserfs_get_dentry(struc
- 	return result;
- }
- 
--struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
--				  int len, int fhtype,
--				  int (*acceptable) (void *contect,
--						     struct dentry * de),
--				  void *context)
-+struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
- {
--	__u32 obj[3], parent[3];
--
- 	/* fhtype happens to reflect the number of u32s encoded.
- 	 * due to a bug in earlier code, fhtype might indicate there
- 	 * are more u32s then actually fitted.
-@@ -1564,32 +1560,28 @@ struct dentry *reiserfs_decode_fh(struct
- 	 *   6 - as above plus generation of directory
- 	 * 6 does not fit in NFSv2 handles
- 	 */
--	if (fhtype > len) {
--		if (fhtype != 6 || len != 5)
-+	if (fh_type > fh_len) {
-+		if (fh_type != 6 || fh_len != 5)
- 			reiserfs_warning(sb,
--					 "nfsd/reiserfs, fhtype=%d, len=%d - odd",
--					 fhtype, len);
--		fhtype = 5;
-+				"nfsd/reiserfs, fhtype=%d, len=%d - odd",
-+				fh_type, fh_len);
-+		fh_type = 5;
- 	}
- 
--	obj[0] = data[0];
--	obj[1] = data[1];
--	if (fhtype == 3 || fhtype >= 5)
--		obj[2] = data[2];
--	else
--		obj[2] = 0;	/* generation number */
-+	return reiserfs_get_dentry(sb, fid->raw[0], fid->raw[1],
-+		(fh_type == 3 || fh_type >= 5) ? fid->raw[2] : 0);
-+}
- 
--	if (fhtype >= 4) {
--		parent[0] = data[fhtype >= 5 ? 3 : 2];
--		parent[1] = data[fhtype >= 5 ? 4 : 3];
--		if (fhtype == 6)
--			parent[2] = data[5];
--		else
--			parent[2] = 0;
--	}
--	return sb->s_export_op->find_exported_dentry(sb, obj,
--						     fhtype < 4 ? NULL : parent,
--						     acceptable, context);
-+struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	if (fh_type < 4)
-+		return NULL;
-+
-+	return reiserfs_get_dentry(sb,
-+		(fh_type >= 5) ? fid->raw[3] : fid->raw[2],
-+		(fh_type >= 5) ? fid->raw[4] : fid->raw[3],
-+		(fh_type == 6) ? fid->raw[5] : 0);
- }
- 
- int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
-diff -puN fs/reiserfs/super.c~reiserfs-new-export-ops fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-new-export-ops
-+++ a/fs/reiserfs/super.c
-@@ -663,9 +663,9 @@ static struct quotactl_ops reiserfs_qctl
- 
- static struct export_operations reiserfs_export_ops = {
- 	.encode_fh = reiserfs_encode_fh,
--	.decode_fh = reiserfs_decode_fh,
-+	.fh_to_dentry = reiserfs_fh_to_dentry,
-+	.fh_to_parent = reiserfs_fh_to_parent,
- 	.get_parent = reiserfs_get_parent,
--	.get_dentry = reiserfs_get_dentry,
+diff -puN fs/ocfs2/export.c~ocfs2-new-export-ops fs/ocfs2/export.c
+--- a/fs/ocfs2/export.c~ocfs2-new-export-ops
++++ a/fs/ocfs2/export.c
+@@ -45,9 +45,9 @@ struct ocfs2_inode_handle
+ 	u32 ih_generation;
  };
  
- /* this struct is used in reiserfs_getopt () for containing the value for those
-diff -puN include/linux/reiserfs_fs.h~reiserfs-new-export-ops include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-new-export-ops
-+++ a/include/linux/reiserfs_fs.h
-@@ -28,6 +28,8 @@
- #include <linux/reiserfs_fs_sb.h>
- #endif
+-static struct dentry *ocfs2_get_dentry(struct super_block *sb, void *vobjp)
++static struct dentry *ocfs2_get_dentry(struct super_block *sb,
++		struct ocfs2_inode_handle *handle)
+ {
+-	struct ocfs2_inode_handle *handle = vobjp;
+ 	struct inode *inode;
+ 	struct dentry *result;
  
-+struct fid;
-+
- /*
-  *  include/linux/reiser_fs.h
-  *
-@@ -1865,12 +1867,10 @@ void reiserfs_delete_inode(struct inode 
- int reiserfs_write_inode(struct inode *inode, int);
- int reiserfs_get_block(struct inode *inode, sector_t block,
- 		       struct buffer_head *bh_result, int create);
--struct dentry *reiserfs_get_dentry(struct super_block *, void *);
--struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
--				  int len, int fhtype,
--				  int (*acceptable) (void *contect,
--						     struct dentry * de),
--				  void *context);
-+struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+				     int fh_len, int fh_type);
-+struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+				     int fh_len, int fh_type);
- int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
- 		       int connectable);
+@@ -200,54 +200,37 @@ bail:
+ 	return type;
+ }
  
+-static struct dentry *ocfs2_decode_fh(struct super_block *sb, u32 *fh_in,
+-				      int fh_len, int fileid_type,
+-				      int (*acceptable)(void *context,
+-						        struct dentry *de),
+-				      void *context)
++static struct dentry *ocfs2_fh_to_dentry(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
+ {
+-	struct ocfs2_inode_handle handle, parent;
+-	struct dentry *ret = NULL;
+-	__le32 *fh = (__force __le32 *) fh_in;
+-
+-	mlog_entry("(0x%p, 0x%p, %d, %d, 0x%p, 0x%p)\n",
+-		   sb, fh, fh_len, fileid_type, acceptable, context);
++	struct ocfs2_inode_handle handle;
+ 
+-	if (fh_len < 3 || fileid_type > 2)
+-		goto bail;
++	if (fh_len < 3 || fh_type > 2)
++		return NULL;
+ 
+-	if (fileid_type == 2) {
+-		if (fh_len < 6)
+-			goto bail;
+-
+-		parent.ih_blkno = (u64)le32_to_cpu(fh[3]) << 32;
+-		parent.ih_blkno |= (u64)le32_to_cpu(fh[4]);
+-		parent.ih_generation = le32_to_cpu(fh[5]);
+-
+-		mlog(0, "Decoding parent: blkno: %llu, generation: %u\n",
+-		     (unsigned long long)parent.ih_blkno,
+-		     parent.ih_generation);
+-	}
+-
+-	handle.ih_blkno = (u64)le32_to_cpu(fh[0]) << 32;
+-	handle.ih_blkno |= (u64)le32_to_cpu(fh[1]);
+-	handle.ih_generation = le32_to_cpu(fh[2]);
++	handle.ih_blkno = (u64)le32_to_cpu(fid->raw[0]) << 32;
++	handle.ih_blkno |= (u64)le32_to_cpu(fid->raw[1]);
++	handle.ih_generation = le32_to_cpu(fid->raw[2]);
++	return ocfs2_get_dentry(sb, &handle);
++}
+ 
+-	mlog(0, "Encoding fh: blkno: %llu, generation: %u\n",
+-	     (unsigned long long)handle.ih_blkno, handle.ih_generation);
++static struct dentry *ocfs2_fh_to_parent(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
++{
++	struct ocfs2_inode_handle parent;
+ 
+-	ret = ocfs2_export_ops.find_exported_dentry(sb, &handle, &parent,
+-						    acceptable, context);
++	if (fh_type != 2 || fh_len < 6)
++		return NULL;
+ 
+-bail:
+-	mlog_exit_ptr(ret);
+-	return ret;
++	parent.ih_blkno = (u64)le32_to_cpu(fid->raw[3]) << 32;
++	parent.ih_blkno |= (u64)le32_to_cpu(fid->raw[4]);
++	parent.ih_generation = le32_to_cpu(fid->raw[5]);
++	return ocfs2_get_dentry(sb, &parent);
+ }
+ 
+ struct export_operations ocfs2_export_ops = {
+-	.decode_fh	= ocfs2_decode_fh,
+ 	.encode_fh	= ocfs2_encode_fh,
+-
++	.fh_to_dentry	= ocfs2_fh_to_dentry,
++	.fh_to_parent	= ocfs2_fh_to_parent,
+ 	.get_parent	= ocfs2_get_parent,
+-	.get_dentry	= ocfs2_get_dentry,
+ };
 _
 
 Patches currently in -mm which might be from hch@lst.de are
