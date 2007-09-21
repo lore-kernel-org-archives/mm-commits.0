@@ -1,312 +1,1193 @@
 From: akpm@linux-foundation.org
-Subject: + oom-do-not-take-callback_mutex-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2007 15:22:52 -0700
-Message-ID: <200709212228.l8LMSe9X026574@imap1.linux-foundation.org>
+Subject: - x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2.patch removed from -mm tree
+Date: Fri, 21 Sep 2007 15:40:40 -0700
+Message-ID: <200709212246.l8LMkTqa027479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58910 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46007 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755264AbXIUW3W (ORCPT
+	by vger.kernel.org with ESMTP id S932829AbXIUWqi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 18:29:22 -0400
+	Fri, 21 Sep 2007 18:46:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrea@suse.de, clameter@sgi.com, rientjes@google.com
+To: travis@sgi.com, ak@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom-do-not-take-callback_mutex-fix
-has been added to the -mm tree.  Its filename is
-     oom-do-not-take-callback_mutex-fix.patch
+     x86: Convert cpuinfo_x86 array to a per_cpu array
+has been removed from the -mm tree.  Its filename was
+     x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: oom-do-not-take-callback_mutex-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: Convert cpuinfo_x86 array to a per_cpu array
+From: travis@sgi.com
 
-put this back - hotplug-cpu-migrate-a-task-within-its-cpuset.patch uses it.
+cpu_data is currently an array defined using NR_CPUS.  This means that we
+overallocate since we will rarely really use maximum configured cpus.  When
+NR_CPU count is raised to 4096 the size of cpu_data becomes 3,145,728
+bytes.
 
-Cc: Andrea Arcangeli <andrea@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+These changes were adopted from the sparc64 (and ia64) code.  An additional
+field was added to cpuinfo_x86 to be a non-ambiguous cpu index.  This
+corresponds to the index into a cpumask_t as well as the per_cpu index. 
+It's used in various places like show_cpuinfo().
+
+cpu_data is defined to be the boot_cpu_data structure for the
+NON-SMP case.
+
+This patch is based on 2.6.23-rc6 with the prior per_cpu patches
+applied.  I can also provide a version based on 2.6.23-rc4-mm1
+which has some different changes.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    6 ++++++
- kernel/cpuset.c        |   27 +++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ arch/i386/kernel/acpi/cstate.c                    |    4 -
+ arch/i386/kernel/acpi/processor.c                 |    2 
+ arch/i386/kernel/alternative.c                    |    6 -
+ arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c       |    4 -
+ arch/i386/kernel/cpu/cpufreq/e_powersaver.c       |    2 
+ arch/i386/kernel/cpu/cpufreq/elanfreq.c           |    4 -
+ arch/i386/kernel/cpu/cpufreq/longhaul.c           |    4 -
+ arch/i386/kernel/cpu/cpufreq/longrun.c            |    4 -
+ arch/i386/kernel/cpu/cpufreq/p4-clockmod.c        |    4 -
+ arch/i386/kernel/cpu/cpufreq/powernow-k6.c        |    2 
+ arch/i386/kernel/cpu/cpufreq/powernow-k7.c        |    2 
+ arch/i386/kernel/cpu/cpufreq/sc520_freq.c         |    4 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    6 -
+ arch/i386/kernel/cpu/cpufreq/speedstep-lib.c      |    2 
+ arch/i386/kernel/cpu/intel_cacheinfo.c            |    8 +-
+ arch/i386/kernel/cpu/proc.c                       |    9 +-
+ arch/i386/kernel/cpuid.c                          |    2 
+ arch/i386/kernel/microcode.c                      |    6 -
+ arch/i386/kernel/msr.c                            |    2 
+ arch/i386/kernel/sched-clock.c                    |    2 
+ arch/i386/kernel/smp.c                            |    2 
+ arch/i386/kernel/smpboot.c                        |   45 ++++++------
+ arch/i386/kernel/tsc.c                            |    8 +-
+ arch/i386/lib/delay.c                             |    2 
+ arch/i386/mach-voyager/voyager_smp.c              |   12 +--
+ arch/x86_64/kernel/mce.c                          |    2 
+ arch/x86_64/kernel/mce_amd.c                      |    4 -
+ arch/x86_64/kernel/setup.c                        |   18 ++--
+ arch/x86_64/kernel/smpboot.c                      |   44 +++++------
+ arch/x86_64/kernel/tsc.c                          |    4 -
+ arch/x86_64/kernel/vsyscall.c                     |    2 
+ arch/x86_64/lib/delay.c                           |    2 
+ drivers/hwmon/coretemp.c                          |    6 -
+ drivers/hwmon/hwmon-vid.c                         |    2 
+ drivers/input/gameport/gameport.c                 |    2 
+ drivers/video/geode/video_gx.c                    |    2 
+ include/asm-i386/processor.h                      |   10 +-
+ include/asm-i386/topology.h                       |    4 -
+ include/asm-x86_64/processor.h                    |   10 +-
+ include/asm-x86_64/topology.h                     |    4 -
+ 40 files changed, 138 insertions(+), 126 deletions(-)
 
-diff -puN include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix include/linux/cpuset.h
---- a/include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix
-+++ a/include/linux/cpuset.h
-@@ -59,6 +59,9 @@ extern void __cpuset_memory_pressure_bum
- extern const struct file_operations proc_cpuset_operations;
- extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
- 
-+extern void cpuset_lock(void);
-+extern void cpuset_unlock(void);
-+
- extern int cpuset_mem_spread_node(void);
- 
- static inline int cpuset_do_page_mem_spread(void)
-@@ -125,6 +128,9 @@ static inline char *cpuset_task_status_a
- 	return buffer;
- }
- 
-+static inline void cpuset_lock(void) {}
-+static inline void cpuset_unlock(void) {}
-+
- static inline int cpuset_mem_spread_node(void)
+diff -puN arch/i386/kernel/acpi/cstate.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/acpi/cstate.c
+--- a/arch/i386/kernel/acpi/cstate.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/acpi/cstate.c
+@@ -29,7 +29,7 @@
+ void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
+ 					unsigned int cpu)
  {
- 	return 0;
-diff -puN kernel/cpuset.c~oom-do-not-take-callback_mutex-fix kernel/cpuset.c
---- a/kernel/cpuset.c~oom-do-not-take-callback_mutex-fix
-+++ a/kernel/cpuset.c
-@@ -2521,6 +2521,33 @@ int __cpuset_zone_allowed_hardwall(struc
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	flags->bm_check = 0;
+ 	if (num_online_cpus() == 1)
+@@ -72,7 +72,7 @@ int acpi_processor_ffh_cstate_probe(unsi
+ 		struct acpi_processor_cx *cx, struct acpi_power_register *reg)
+ {
+ 	struct cstate_entry *percpu_entry;
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	cpumask_t saved_mask;
+ 	int retval;
+diff -puN arch/i386/kernel/acpi/processor.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/acpi/processor.c
+--- a/arch/i386/kernel/acpi/processor.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/acpi/processor.c
+@@ -63,7 +63,7 @@ static void init_intel_pdc(struct acpi_p
+ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
+ {
+ 	unsigned int cpu = pr->id;
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	pr->pdc = NULL;
+ 	if (c->x86_vendor == X86_VENDOR_INTEL)
+diff -puN arch/i386/kernel/alternative.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/alternative.c
+@@ -356,14 +356,14 @@ void alternatives_smp_switch(int smp)
+ 	if (smp) {
+ 		printk(KERN_INFO "SMP alternatives: switching to SMP code\n");
+ 		clear_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+-		clear_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
++		clear_bit(X86_FEATURE_UP, cpu_data(0).x86_capability);
+ 		list_for_each_entry(mod, &smp_alt_modules, next)
+ 			alternatives_smp_lock(mod->locks, mod->locks_end,
+ 					      mod->text, mod->text_end);
+ 	} else {
+ 		printk(KERN_INFO "SMP alternatives: switching to UP code\n");
+ 		set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+-		set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
++		set_bit(X86_FEATURE_UP, cpu_data(0).x86_capability);
+ 		list_for_each_entry(mod, &smp_alt_modules, next)
+ 			alternatives_smp_unlock(mod->locks, mod->locks_end,
+ 						mod->text, mod->text_end);
+@@ -431,7 +431,7 @@ void __init alternative_instructions(voi
+ 		if (1 == num_possible_cpus()) {
+ 			printk(KERN_INFO "SMP alternatives: switching to UP code\n");
+ 			set_bit(X86_FEATURE_UP, boot_cpu_data.x86_capability);
+-			set_bit(X86_FEATURE_UP, cpu_data[0].x86_capability);
++			set_bit(X86_FEATURE_UP, cpu_data(0).x86_capability);
+ 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
+ 						_text, _etext);
+ 		}
+diff -puN arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -77,7 +77,7 @@ static unsigned int acpi_pstate_strict;
+ 
+ static int check_est_cpu(unsigned int cpuid)
+ {
+-	struct cpuinfo_x86 *cpu = &cpu_data[cpuid];
++	struct cpuinfo_x86 *cpu = &cpu_data(cpuid);
+ 
+ 	if (cpu->x86_vendor != X86_VENDOR_INTEL ||
+ 	    !cpu_has(cpu, X86_FEATURE_EST))
+@@ -560,7 +560,7 @@ static int acpi_cpufreq_cpu_init(struct 
+ 	unsigned int cpu = policy->cpu;
+ 	struct acpi_cpufreq_data *data;
+ 	unsigned int result = 0;
+-	struct cpuinfo_x86 *c = &cpu_data[policy->cpu];
++	struct cpuinfo_x86 *c = &cpu_data(policy->cpu);
+ 	struct acpi_processor_performance *perf;
+ 
+ 	dprintk("acpi_cpufreq_cpu_init\n");
+diff -puN arch/i386/kernel/cpu/cpufreq/elanfreq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/elanfreq.c
+--- a/arch/i386/kernel/cpu/cpufreq/elanfreq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/elanfreq.c
+@@ -199,7 +199,7 @@ static int elanfreq_target (struct cpufr
+ 
+ static int elanfreq_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	unsigned int i;
+ 	int result;
+ 
+@@ -280,7 +280,7 @@ static struct cpufreq_driver elanfreq_dr
+ 
+ static int __init elanfreq_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	/* Test if we have the right hardware */
+ 	if ((c->x86_vendor != X86_VENDOR_AMD) ||
+diff -puN arch/i386/kernel/cpu/cpufreq/e_powersaver.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/e_powersaver.c
+--- a/arch/i386/kernel/cpu/cpufreq/e_powersaver.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/e_powersaver.c
+@@ -305,7 +305,7 @@ static struct cpufreq_driver eps_driver 
+ 
+ static int __init eps_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	/* This driver will work only on Centaur C7 processors with
+ 	 * Enhanced SpeedStep/PowerSaver registers */
+diff -puN arch/i386/kernel/cpu/cpufreq/longhaul.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/longhaul.c
+--- a/arch/i386/kernel/cpu/cpufreq/longhaul.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/longhaul.c
+@@ -731,7 +731,7 @@ static int longhaul_setup_southbridge(vo
+ 
+ static int __init longhaul_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	char *cpuname=NULL;
+ 	int ret;
+ 	u32 lo, hi;
+@@ -910,7 +910,7 @@ static struct cpufreq_driver longhaul_dr
+ 
+ static int __init longhaul_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 
+ 	if (c->x86_vendor != X86_VENDOR_CENTAUR || c->x86 != 6)
+ 		return -ENODEV;
+diff -puN arch/i386/kernel/cpu/cpufreq/longrun.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/longrun.c
+--- a/arch/i386/kernel/cpu/cpufreq/longrun.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/longrun.c
+@@ -172,7 +172,7 @@ static unsigned int __init longrun_deter
+ 	u32 save_lo, save_hi;
+ 	u32 eax, ebx, ecx, edx;
+ 	u32 try_hi;
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	if (!low_freq || !high_freq)
+ 		return -EINVAL;
+@@ -298,7 +298,7 @@ static struct cpufreq_driver longrun_dri
+  */
+ static int __init longrun_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	if (c->x86_vendor != X86_VENDOR_TRANSMETA ||
+ 	    !cpu_has(c, X86_FEATURE_LONGRUN))
+diff -puN arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+--- a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/p4-clockmod.c
+@@ -195,7 +195,7 @@ static unsigned int cpufreq_p4_get_frequ
+ 
+ static int cpufreq_p4_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *c = &cpu_data[policy->cpu];
++	struct cpuinfo_x86 *c = &cpu_data(policy->cpu);
+ 	int cpuid = 0;
+ 	unsigned int i;
+ 
+@@ -279,7 +279,7 @@ static struct cpufreq_driver p4clockmod_
+ 
+ static int __init cpufreq_p4_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	int ret;
+ 
+ 	/*
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k6.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/powernow-k6.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k6.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k6.c
+@@ -215,7 +215,7 @@ static struct cpufreq_driver powernow_k6
+  */
+ static int __init powernow_k6_init(void)
+ {
+-	struct cpuinfo_x86      *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 
+ 	if ((c->x86_vendor != X86_VENDOR_AMD) || (c->x86 != 5) ||
+ 		((c->x86_model != 12) && (c->x86_model != 13)))
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k7.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+--- a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+@@ -114,7 +114,7 @@ static int check_fsb(unsigned int fsbspe
+ 
+ static int check_powernow(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	unsigned int maxei, eax, ebx, ecx, edx;
+ 
+ 	if ((c->x86_vendor != X86_VENDOR_AMD) || (c->x86 !=6)) {
+diff -puN arch/i386/kernel/cpu/cpufreq/sc520_freq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/sc520_freq.c
+--- a/arch/i386/kernel/cpu/cpufreq/sc520_freq.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/sc520_freq.c
+@@ -102,7 +102,7 @@ static int sc520_freq_target (struct cpu
+ 
+ static int sc520_freq_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	int result;
+ 
+ 	/* capability check */
+@@ -151,7 +151,7 @@ static struct cpufreq_driver sc520_freq_
+ 
+ static int __init sc520_freq_init(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	int err;
+ 
+ 	/* Test if we have the right hardware */
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+@@ -230,7 +230,7 @@ static struct cpu_model models[] =
+ 
+ static int centrino_cpu_init_table(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *cpu = &cpu_data[policy->cpu];
++	struct cpuinfo_x86 *cpu = &cpu_data(policy->cpu);
+ 	struct cpu_model *model;
+ 
+ 	for(model = models; model->cpu_id != NULL; model++)
+@@ -340,7 +340,7 @@ static unsigned int get_cur_freq(unsigne
+ 
+ static int centrino_cpu_init(struct cpufreq_policy *policy)
+ {
+-	struct cpuinfo_x86 *cpu = &cpu_data[policy->cpu];
++	struct cpuinfo_x86 *cpu = &cpu_data(policy->cpu);
+ 	unsigned freq;
+ 	unsigned l, h;
+ 	int ret;
+@@ -612,7 +612,7 @@ static struct cpufreq_driver centrino_dr
+  */
+ static int __init centrino_init(void)
+ {
+-	struct cpuinfo_x86 *cpu = cpu_data;
++	struct cpuinfo_x86 *cpu = &cpu_data(0);
+ 
+ 	if (!cpu_has(cpu, X86_FEATURE_EST))
+ 		return -ENODEV;
+diff -puN arch/i386/kernel/cpu/cpufreq/speedstep-lib.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+--- a/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/cpufreq/speedstep-lib.c
+@@ -228,7 +228,7 @@ EXPORT_SYMBOL_GPL(speedstep_get_processo
+ 
+ unsigned int speedstep_detect_processor (void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	u32 ebx, msr_lo, msr_hi;
+ 
+ 	dprintk("x86: %x, model: %x\n", c->x86, c->x86_model);
+diff -puN arch/i386/kernel/cpuid.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpuid.c
+--- a/arch/i386/kernel/cpuid.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpuid.c
+@@ -116,7 +116,7 @@ static ssize_t cpuid_read(struct file *f
+ static int cpuid_open(struct inode *inode, struct file *file)
+ {
+ 	unsigned int cpu = iminor(file->f_path.dentry->d_inode);
+-	struct cpuinfo_x86 *c = &(cpu_data)[cpu];
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	if (cpu >= NR_CPUS || !cpu_online(cpu))
+ 		return -ENXIO;	/* No such CPU */
+diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/intel_cacheinfo.c
+--- a/arch/i386/kernel/cpu/intel_cacheinfo.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/intel_cacheinfo.c
+@@ -295,7 +295,7 @@ unsigned int __cpuinit init_intel_cachei
+ 	unsigned int new_l2 = 0, new_l3 = 0, i; /* Cache sizes from cpuid(4) */
+ 	unsigned int l2_id = 0, l3_id = 0, num_threads_sharing, index_msb;
+ #ifdef CONFIG_X86_HT
+-	unsigned int cpu = (c == &boot_cpu_data) ? 0 : (c - cpu_data);
++	unsigned int cpu = c->cpu_index;
+ #endif
+ 
+ 	if (c->cpuid_level > 3) {
+@@ -459,7 +459,7 @@ static void __cpuinit cache_shared_cpu_m
+ 	struct _cpuid4_info	*this_leaf, *sibling_leaf;
+ 	unsigned long num_threads_sharing;
+ 	int index_msb, i;
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	this_leaf = CPUID4_INFO_IDX(cpu, index);
+ 	num_threads_sharing = 1 + this_leaf->eax.split.num_threads_sharing;
+@@ -470,8 +470,8 @@ static void __cpuinit cache_shared_cpu_m
+ 		index_msb = get_count_order(num_threads_sharing);
+ 
+ 		for_each_online_cpu(i) {
+-			if (c[i].apicid >> index_msb ==
+-			    c[cpu].apicid >> index_msb) {
++			if (cpu_data(i).apicid >> index_msb ==
++			    c->apicid >> index_msb) {
+ 				cpu_set(i, this_leaf->shared_cpu_map);
+ 				if (i != cpu && cpuid4_info[i])  {
+ 					sibling_leaf = CPUID4_INFO_IDX(i, index);
+diff -puN arch/i386/kernel/cpu/proc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/cpu/proc.c
+--- a/arch/i386/kernel/cpu/proc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/cpu/proc.c
+@@ -85,12 +85,13 @@ static int show_cpuinfo(struct seq_file 
+ 		/* nothing */
+ 	};
+ 	struct cpuinfo_x86 *c = v;
+-	int i, n = c - cpu_data;
++	int i, n = 0;
+ 	int fpu_exception;
+ 
+ #ifdef CONFIG_SMP
+ 	if (!cpu_online(n))
+ 		return 0;
++	n = c->cpu_index;
+ #endif
+ 	seq_printf(m, "processor\t: %d\n"
+ 		"vendor_id\t: %s\n"
+@@ -175,11 +176,13 @@ static int show_cpuinfo(struct seq_file 
+ 
+ static void *c_start(struct seq_file *m, loff_t *pos)
+ {
+-	return *pos < NR_CPUS ? cpu_data + *pos : NULL;
++	if (*pos == 0)	/* just in case, cpu 0 is not the first */
++		*pos = first_cpu(cpu_possible_map);
++	return cpu_possible(*pos) ? &cpu_data(*pos) : NULL;
+ }
+ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	++*pos;
++	*pos = next_cpu(*pos, cpu_possible_map);
+ 	return c_start(m, pos);
+ }
+ static void c_stop(struct seq_file *m, void *v)
+diff -puN arch/i386/kernel/microcode.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/microcode.c
+--- a/arch/i386/kernel/microcode.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/microcode.c
+@@ -132,7 +132,7 @@ static struct ucode_cpu_info {
+ 
+ static void collect_cpu_info(int cpu_num)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + cpu_num;
++	struct cpuinfo_x86 *c = &cpu_data(cpu_num);
+ 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu_num;
+ 	unsigned int val[2];
+ 
+@@ -522,7 +522,7 @@ static struct platform_device *microcode
+ static int cpu_request_microcode(int cpu)
+ {
+ 	char name[30];
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	const struct firmware *firmware;
+ 	void *buf;
+ 	unsigned long size;
+@@ -570,7 +570,7 @@ static int cpu_request_microcode(int cpu
+ 
+ static int apply_microcode_check_cpu(int cpu)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
+ 	cpumask_t old;
+ 	unsigned int val[2];
+diff -puN arch/i386/kernel/msr.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/msr.c
+--- a/arch/i386/kernel/msr.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/msr.c
+@@ -114,7 +114,7 @@ static ssize_t msr_write(struct file *fi
+ static int msr_open(struct inode *inode, struct file *file)
+ {
+ 	unsigned int cpu = iminor(file->f_path.dentry->d_inode);
+-	struct cpuinfo_x86 *c = &(cpu_data)[cpu];
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	if (cpu >= NR_CPUS || !cpu_online(cpu))
+ 		return -ENXIO;	/* No such CPU */
+diff -puN arch/i386/kernel/sched-clock.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/sched-clock.c
+--- a/arch/i386/kernel/sched-clock.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/sched-clock.c
+@@ -205,7 +205,7 @@ static int sc_freq_event(struct notifier
+ {
+ 	struct cpufreq_freqs *freq = data;
+ 
+-	if (cpu_has(&cpu_data[freq->cpu], X86_FEATURE_CONSTANT_TSC))
++	if (cpu_has(&cpu_data(freq->cpu), X86_FEATURE_CONSTANT_TSC))
+ 		return NOTIFY_DONE;
+ 	if (freq->old == freq->new)
+ 		return NOTIFY_DONE;
+diff -puN arch/i386/kernel/smpboot.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/smpboot.c
+--- a/arch/i386/kernel/smpboot.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/smpboot.c
+@@ -89,8 +89,8 @@ EXPORT_SYMBOL(cpu_possible_map);
+ static cpumask_t smp_commenced_mask;
+ 
+ /* Per CPU bogomips and other parameters */
+-struct cpuinfo_x86 cpu_data[NR_CPUS] __cacheline_aligned;
+-EXPORT_SYMBOL(cpu_data);
++DEFINE_PER_CPU_SHARED_ALIGNED(struct cpuinfo_x86, cpu_info);
++EXPORT_PER_CPU_SYMBOL(cpu_info);
+ 
+ /*
+  * The following static array is used during kernel startup
+@@ -158,9 +158,10 @@ void __init smp_alloc_memory(void)
+ 
+ void __cpuinit smp_store_cpu_info(int id)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + id;
++	struct cpuinfo_x86 *c = &cpu_data(id);
+ 
+ 	*c = boot_cpu_data;
++	c->cpu_index = id;
+ 	if (id!=0)
+ 		identify_secondary_cpu(c);
+ 	/*
+@@ -302,7 +303,7 @@ static int cpucount;
+ /* maps the cpu to the sched domain representing multi-core */
+ cpumask_t cpu_coregroup_map(int cpu)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	/*
+ 	 * For perf, we return last level cache shared map.
+ 	 * And for power savings, we return cpu_core_map
+@@ -319,41 +320,41 @@ static cpumask_t cpu_sibling_setup_map;
+ void __cpuinit set_cpu_sibling_map(int cpu)
+ {
+ 	int i;
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	cpu_set(cpu, cpu_sibling_setup_map);
+ 
+ 	if (smp_num_siblings > 1) {
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+-			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
+-			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
++			if (c->phys_proc_id == cpu_data(i).phys_proc_id &&
++			    c->cpu_core_id == cpu_data(i).cpu_core_id) {
+ 				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
+-				cpu_set(i, c[cpu].llc_shared_map);
+-				cpu_set(cpu, c[i].llc_shared_map);
++				cpu_set(i, c->llc_shared_map);
++				cpu_set(cpu, cpu_data(i).llc_shared_map);
+ 			}
+ 		}
+ 	} else {
+ 		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
+-	cpu_set(cpu, c[cpu].llc_shared_map);
++	cpu_set(cpu, c->llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+ 		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
+-		c[cpu].booted_cores = 1;
++		c->booted_cores = 1;
+ 		return;
+ 	}
+ 
+ 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
+ 		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
+-			cpu_set(i, c[cpu].llc_shared_map);
+-			cpu_set(cpu, c[i].llc_shared_map);
++			cpu_set(i, c->llc_shared_map);
++			cpu_set(cpu, cpu_data(i).llc_shared_map);
+ 		}
+-		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
++		if (c->phys_proc_id == cpu_data(i).phys_proc_id) {
+ 			cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+@@ -365,15 +366,15 @@ void __cpuinit set_cpu_sibling_map(int c
+ 				 * the booted_cores for this new cpu
+ 				 */
+ 				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+-					c[cpu].booted_cores++;
++					c->booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+ 				 * the other cpus in this package
+ 				 */
+ 				if (i != cpu)
+-					c[i].booted_cores++;
+-			} else if (i != cpu && !c[cpu].booted_cores)
+-				c[cpu].booted_cores = c[i].booted_cores;
++					cpu_data(i).booted_cores++;
++			} else if (i != cpu && !c->booted_cores)
++				c->booted_cores = cpu_data(i).booted_cores;
+ 		}
+ 	}
+ }
+@@ -852,7 +853,7 @@ static int __cpuinit do_boot_cpu(int api
+ 			/* number CPUs logically, starting from 1 (BSP is 0) */
+ 			Dprintk("OK.\n");
+ 			printk("CPU%d: ", cpu);
+-			print_cpu_info(&cpu_data[cpu]);
++			print_cpu_info(&cpu_data(cpu));
+ 			Dprintk("CPU has booted.\n");
+ 		} else {
+ 			boot_error= 1;
+@@ -969,7 +970,7 @@ static void __init smp_boot_cpus(unsigne
+ 	 */
+ 	smp_store_cpu_info(0); /* Final full version of the data */
+ 	printk("CPU%d: ", 0);
+-	print_cpu_info(&cpu_data[0]);
++	print_cpu_info(&cpu_data(0));
+ 
+ 	boot_cpu_physical_apicid = GET_APIC_ID(apic_read(APIC_ID));
+ 	boot_cpu_logical_apicid = logical_smp_processor_id();
+@@ -1084,7 +1085,7 @@ static void __init smp_boot_cpus(unsigne
+ 	Dprintk("Before bogomips.\n");
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++)
+ 		if (cpu_isset(cpu, cpu_callout_map))
+-			bogosum += cpu_data[cpu].loops_per_jiffy;
++			bogosum += cpu_data(cpu).loops_per_jiffy;
+ 	printk(KERN_INFO
+ 		"Total of %d processors activated (%lu.%02lu BogoMIPS).\n",
+ 		cpucount+1,
+@@ -1154,7 +1155,7 @@ void __init native_smp_prepare_boot_cpu(
+ void remove_siblinginfo(int cpu)
+ {
+ 	int sibling;
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 
+ 	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
+ 		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
+diff -puN arch/i386/kernel/smp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/smp.c
+--- a/arch/i386/kernel/smp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/smp.c
+@@ -610,7 +610,7 @@ static void stop_this_cpu (void * dummy)
+ 	 */
+ 	cpu_clear(smp_processor_id(), cpu_online_map);
+ 	disable_local_APIC();
+-	if (cpu_data[smp_processor_id()].hlt_works_ok)
++	if (cpu_data(smp_processor_id()).hlt_works_ok)
+ 		for(;;) halt();
+ 	for (;;);
+ }
+diff -puN arch/i386/kernel/tsc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/kernel/tsc.c
+--- a/arch/i386/kernel/tsc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/kernel/tsc.c
+@@ -119,8 +119,8 @@ int recalibrate_cpu_khz(void)
+ 	if (cpu_has_tsc) {
+ 		cpu_khz = calculate_cpu_khz();
+ 		tsc_khz = cpu_khz;
+-		cpu_data[0].loops_per_jiffy =
+-			cpufreq_scale(cpu_data[0].loops_per_jiffy,
++		cpu_data(0).loops_per_jiffy =
++			cpufreq_scale(cpu_data(0).loops_per_jiffy,
+ 					cpu_khz_old, cpu_khz);
+ 		return 0;
+ 	} else
+@@ -153,7 +153,7 @@ time_cpufreq_notifier(struct notifier_bl
+ 			return 0;
+ 		}
+ 		ref_freq = freq->old;
+-		loops_per_jiffy_ref = cpu_data[freq->cpu].loops_per_jiffy;
++		loops_per_jiffy_ref = cpu_data(freq->cpu).loops_per_jiffy;
+ 		cpu_khz_ref = cpu_khz;
+ 	}
+ 
+@@ -161,7 +161,7 @@ time_cpufreq_notifier(struct notifier_bl
+ 	    (val == CPUFREQ_POSTCHANGE && freq->old > freq->new) ||
+ 	    (val == CPUFREQ_RESUMECHANGE)) {
+ 		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+-			cpu_data[freq->cpu].loops_per_jiffy =
++			cpu_data(freq->cpu).loops_per_jiffy =
+ 				cpufreq_scale(loops_per_jiffy_ref,
+ 						ref_freq, freq->new);
+ 
+diff -puN arch/i386/lib/delay.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/lib/delay.c
+--- a/arch/i386/lib/delay.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/lib/delay.c
+@@ -82,7 +82,7 @@ inline void __const_udelay(unsigned long
+ 	__asm__("mull %0"
+ 		:"=d" (xloops), "=&a" (d0)
+ 		:"1" (xloops), "0"
+-		(cpu_data[raw_smp_processor_id()].loops_per_jiffy * (HZ/4)));
++		(cpu_data(raw_smp_processor_id()).loops_per_jiffy * (HZ/4)));
+ 
+ 	__delay(++xloops);
+ }
+diff -puN arch/i386/mach-voyager/voyager_smp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/i386/mach-voyager/voyager_smp.c
+--- a/arch/i386/mach-voyager/voyager_smp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/i386/mach-voyager/voyager_smp.c
+@@ -36,8 +36,8 @@ static unsigned long cpu_irq_affinity[NR
+ 
+ /* per CPU data structure (for /proc/cpuinfo et al), visible externally
+  * indexed physically */
+-struct cpuinfo_x86 cpu_data[NR_CPUS] __cacheline_aligned;
+-EXPORT_SYMBOL(cpu_data);
++DEFINE_PER_CPU(cpuinfo_x86, cpu_info) __cacheline_aligned;
++EXPORT_PER_CPU_SYMBOL(cpu_info);
+ 
+ /* physical ID of the CPU used to boot the system */
+ unsigned char boot_cpu_id;
+@@ -430,7 +430,7 @@ find_smp_config(void)
+ void __init
+ smp_store_cpu_info(int id)
+ {
+-	struct cpuinfo_x86 *c=&cpu_data[id];
++	struct cpuinfo_x86 *c=&cpu_data(id);
+ 
+ 	*c = boot_cpu_data;
+ 
+@@ -634,7 +634,7 @@ do_boot_cpu(__u8 cpu)
+ 			cpu, smp_processor_id()));
+ 	
+ 		printk("CPU%d: ", cpu);
+-		print_cpu_info(&cpu_data[cpu]);
++		print_cpu_info(&cpu_data(cpu));
+ 		wmb();
+ 		cpu_set(cpu, cpu_callout_map);
+ 		cpu_set(cpu, cpu_present_map);
+@@ -683,7 +683,7 @@ smp_boot_cpus(void)
+ 	 */
+ 	smp_store_cpu_info(boot_cpu_id);
+ 	printk("CPU%d: ", boot_cpu_id);
+-	print_cpu_info(&cpu_data[boot_cpu_id]);
++	print_cpu_info(&cpu_data(boot_cpu_id));
+ 
+ 	if(is_cpu_quad()) {
+ 		/* booting on a Quad CPU */
+@@ -714,7 +714,7 @@ smp_boot_cpus(void)
+ 		unsigned long bogosum = 0;
+ 		for (i = 0; i < NR_CPUS; i++)
+ 			if (cpu_isset(i, cpu_online_map))
+-				bogosum += cpu_data[i].loops_per_jiffy;
++				bogosum += cpu_data(i).loops_per_jiffy;
+ 		printk(KERN_INFO "Total of %d processors activated (%lu.%02lu BogoMIPS).\n",
+ 			cpucount+1,
+ 			bogosum/(500000/HZ),
+diff -puN arch/x86_64/kernel/mce_amd.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/mce_amd.c
+--- a/arch/x86_64/kernel/mce_amd.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/mce_amd.c
+@@ -472,11 +472,11 @@ static __cpuinit int threshold_create_ba
+ 	sprintf(name, "threshold_bank%i", bank);
+ 
+ #ifdef CONFIG_SMP
+-	if (cpu_data[cpu].cpu_core_id && shared_bank[bank]) {	/* symlink */
++	if (cpu_data(cpu).cpu_core_id && shared_bank[bank]) {	/* symlink */
+ 		i = first_cpu(per_cpu(cpu_core_map, cpu));
+ 
+ 		/* first core not up yet */
+-		if (cpu_data[i].cpu_core_id)
++		if (cpu_data(i).cpu_core_id)
+ 			goto out;
+ 
+ 		/* already linked */
+diff -puN arch/x86_64/kernel/mce.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/mce.c
+--- a/arch/x86_64/kernel/mce.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/mce.c
+@@ -816,7 +816,7 @@ static __cpuinit int mce_create_device(u
+ {
+ 	int err;
+ 	int i;
+-	if (!mce_available(&cpu_data[cpu]))
++	if (!mce_available(&cpu_data(cpu)))
+ 		return -EIO;
+ 
+ 	per_cpu(device_mce,cpu).id = cpu;
+diff -puN arch/x86_64/kernel/setup.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/setup.c
+@@ -551,7 +551,7 @@ static void __init amd_detect_cmp(struct
+  		   but in the same order as the HT nodeids.
+  		   If that doesn't result in a usable node fall back to the
+  		   path for the previous case.  */
+- 		int ht_nodeid = apicid - (cpu_data[0].phys_proc_id << bits);
++ 		int ht_nodeid = apicid - (cpu_data(0).phys_proc_id << bits);
+  		if (ht_nodeid >= 0 &&
+  		    apicid_to_node[ht_nodeid] != NUMA_NO_NODE)
+  			node = apicid_to_node[ht_nodeid];
+@@ -907,6 +907,7 @@ void __cpuinit early_identify_cpu(struct
+ 
+ #ifdef CONFIG_SMP
+ 	c->phys_proc_id = (cpuid_ebx(1) >> 24) & 0xff;
++	c->cpu_index = 0;
+ #endif
+ 	/* AMD-defined flags: level 0x80000001 */
+ 	xlvl = cpuid_eax(0x80000000);
+@@ -1019,6 +1020,7 @@ void __cpuinit print_cpu_info(struct cpu
+ static int show_cpuinfo(struct seq_file *m, void *v)
+ {
+ 	struct cpuinfo_x86 *c = v;
++	int cpu = 0;
+ 
+ 	/* 
+ 	 * These flag bits must match the definitions in <asm/cpufeature.h>.
+@@ -1097,8 +1099,9 @@ static int show_cpuinfo(struct seq_file 
+ 
+ 
+ #ifdef CONFIG_SMP
+-	if (!cpu_online(c-cpu_data))
++	if (!cpu_online(c->cpu_index))
+ 		return 0;
++	cpu = c->cpu_index;
+ #endif
+ 
+ 	seq_printf(m,"processor\t: %u\n"
+@@ -1106,7 +1109,7 @@ static int show_cpuinfo(struct seq_file 
+ 		     "cpu family\t: %d\n"
+ 		     "model\t\t: %d\n"
+ 		     "model name\t: %s\n",
+-		     (unsigned)(c-cpu_data),
++		     (unsigned)cpu,
+ 		     c->x86_vendor_id[0] ? c->x86_vendor_id : "unknown",
+ 		     c->x86,
+ 		     (int)c->x86_model,
+@@ -1118,7 +1121,7 @@ static int show_cpuinfo(struct seq_file 
+ 		seq_printf(m, "stepping\t: unknown\n");
+ 	
+ 	if (cpu_has(c,X86_FEATURE_TSC)) {
+-		unsigned int freq = cpufreq_quick_get((unsigned)(c-cpu_data));
++		unsigned int freq = cpufreq_quick_get((unsigned)cpu);
+ 		if (!freq)
+ 			freq = cpu_khz;
+ 		seq_printf(m, "cpu MHz\t\t: %u.%03u\n",
+@@ -1131,7 +1134,6 @@ static int show_cpuinfo(struct seq_file 
+ 	
+ #ifdef CONFIG_SMP
+ 	if (smp_num_siblings * c->x86_max_cores > 1) {
+-		int cpu = c - cpu_data;
+ 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
+ 		seq_printf(m, "siblings\t: %d\n",
+ 			       cpus_weight(per_cpu(cpu_core_map, cpu)));
+@@ -1189,12 +1191,14 @@ static int show_cpuinfo(struct seq_file 
+ 
+ static void *c_start(struct seq_file *m, loff_t *pos)
+ {
+-	return *pos < NR_CPUS ? cpu_data + *pos : NULL;
++	if (*pos == 0)	/* just in case, cpu 0 is not the first */
++		*pos = first_cpu(cpu_possible_map);
++	return cpu_possible(*pos) ? &cpu_data(*pos) : NULL;
  }
  
- /**
-+ * cpuset_lock - lock out any changes to cpuset structures
-+ *
-+ * The out of memory (oom) code needs to mutex_lock cpusets
-+ * from being changed while it scans the tasklist looking for a
-+ * task in an overlapping cpuset.  Expose callback_mutex via this
-+ * cpuset_lock() routine, so the oom code can lock it, before
-+ * locking the task list.  The tasklist_lock is a spinlock, so
-+ * must be taken inside callback_mutex.
-+ */
-+
-+void cpuset_lock(void)
-+{
-+	mutex_lock(&callback_mutex);
-+}
-+
-+/**
-+ * cpuset_unlock - release lock on cpuset changes
-+ *
-+ * Undo the lock taken in a previous cpuset_lock() call.
-+ */
-+
-+void cpuset_unlock(void)
-+{
-+	mutex_unlock(&callback_mutex);
-+}
-+
-+/**
-  * cpuset_mem_spread_node() - On which node to begin search for a page
-  *
-  * If a task is marked PF_SPREAD_PAGE or PF_SPREAD_SLAB (as for
+ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	++*pos;
++	*pos = next_cpu(*pos, cpu_possible_map);
+ 	return c_start(m, pos);
+ }
+ 
+diff -puN arch/x86_64/kernel/smpboot.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/smpboot.c
+--- a/arch/x86_64/kernel/smpboot.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/smpboot.c
+@@ -84,8 +84,8 @@ cpumask_t cpu_possible_map;
+ EXPORT_SYMBOL(cpu_possible_map);
+ 
+ /* Per CPU bogomips and other parameters */
+-struct cpuinfo_x86 cpu_data[NR_CPUS] __cacheline_aligned;
+-EXPORT_SYMBOL(cpu_data);
++DEFINE_PER_CPU_SHARED_ALIGNED(struct cpuinfo_x86, cpu_info);
++EXPORT_PER_CPU_SYMBOL(cpu_info);
+ 
+ /* Set when the idlers are all forked */
+ int smp_threads_ready;
+@@ -138,9 +138,10 @@ static unsigned long __cpuinit setup_tra
+ 
+ static void __cpuinit smp_store_cpu_info(int id)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + id;
++	struct cpuinfo_x86 *c = &cpu_data(id);
+ 
+ 	*c = boot_cpu_data;
++	c->cpu_index = id;
+ 	identify_cpu(c);
+ 	print_cpu_info(c);
+ }
+@@ -238,7 +239,7 @@ void __cpuinit smp_callin(void)
+ /* maps the cpu to the sched domain representing multi-core */
+ cpumask_t cpu_coregroup_map(int cpu)
+ {
+-	struct cpuinfo_x86 *c = cpu_data + cpu;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	/*
+ 	 * For perf, we return last level cache shared map.
+ 	 * And for power savings, we return cpu_core_map
+@@ -255,41 +256,41 @@ static cpumask_t cpu_sibling_setup_map;
+ static inline void set_cpu_sibling_map(int cpu)
+ {
+ 	int i;
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 
+ 	cpu_set(cpu, cpu_sibling_setup_map);
+ 
+ 	if (smp_num_siblings > 1) {
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+-			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
+-			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
++			if (c->phys_proc_id == cpu_data(i).phys_proc_id &&
++			    c->cpu_core_id == cpu_data(i).cpu_core_id) {
+ 				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
+-				cpu_set(i, c[cpu].llc_shared_map);
+-				cpu_set(cpu, c[i].llc_shared_map);
++				cpu_set(i, c->llc_shared_map);
++				cpu_set(cpu, cpu_data(i).llc_shared_map);
+ 			}
+ 		}
+ 	} else {
+ 		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
+-	cpu_set(cpu, c[cpu].llc_shared_map);
++	cpu_set(cpu, c->llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+ 		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
+-		c[cpu].booted_cores = 1;
++		c->booted_cores = 1;
+ 		return;
+ 	}
+ 
+ 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
+ 		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
+-			cpu_set(i, c[cpu].llc_shared_map);
+-			cpu_set(cpu, c[i].llc_shared_map);
++			cpu_set(i, c->llc_shared_map);
++			cpu_set(cpu, cpu_data(i).llc_shared_map);
+ 		}
+-		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
++		if (c->phys_proc_id == cpu_data(i).phys_proc_id) {
+ 			cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+@@ -301,15 +302,15 @@ static inline void set_cpu_sibling_map(i
+ 				 * the booted_cores for this new cpu
+ 				 */
+ 				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+-					c[cpu].booted_cores++;
++					c->booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+ 				 * the other cpus in this package
+ 				 */
+ 				if (i != cpu)
+-					c[i].booted_cores++;
+-			} else if (i != cpu && !c[cpu].booted_cores)
+-				c[cpu].booted_cores = c[i].booted_cores;
++					cpu_data(i).booted_cores++;
++			} else if (i != cpu && !c->booted_cores)
++				c->booted_cores = cpu_data(i).booted_cores;
+ 		}
+ 	}
+ }
+@@ -1000,7 +1001,6 @@ void __init smp_cpus_done(unsigned int m
+ static void remove_siblinginfo(int cpu)
+ {
+ 	int sibling;
+-	struct cpuinfo_x86 *c = cpu_data;
+ 
+ 	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
+ 		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
+@@ -1008,15 +1008,15 @@ static void remove_siblinginfo(int cpu)
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+ 		if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1)
+-			c[sibling].booted_cores--;
++			cpu_data(sibling).booted_cores--;
+ 	}
+ 			
+ 	for_each_cpu_mask(sibling, per_cpu(cpu_sibling_map, cpu))
+ 		cpu_clear(cpu, per_cpu(cpu_sibling_map, sibling));
+ 	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 	cpus_clear(per_cpu(cpu_core_map, cpu));
+-	c[cpu].phys_proc_id = 0;
+-	c[cpu].cpu_core_id = 0;
++	cpu_data(cpu).phys_proc_id = 0;
++	cpu_data(cpu).cpu_core_id = 0;
+ 	cpu_clear(cpu, cpu_sibling_setup_map);
+ }
+ 
+diff -puN arch/x86_64/kernel/tsc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/tsc.c
+--- a/arch/x86_64/kernel/tsc.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/tsc.c
+@@ -48,13 +48,13 @@ static int time_cpufreq_notifier(struct 
+ 	struct cpufreq_freqs *freq = data;
+ 	unsigned long *lpj, dummy;
+ 
+-	if (cpu_has(&cpu_data[freq->cpu], X86_FEATURE_CONSTANT_TSC))
++	if (cpu_has(&cpu_data(freq->cpu), X86_FEATURE_CONSTANT_TSC))
+ 		return 0;
+ 
+ 	lpj = &dummy;
+ 	if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+ #ifdef CONFIG_SMP
+-		lpj = &cpu_data[freq->cpu].loops_per_jiffy;
++		lpj = &cpu_data(freq->cpu).loops_per_jiffy;
+ #else
+ 		lpj = &boot_cpu_data.loops_per_jiffy;
+ #endif
+diff -puN arch/x86_64/kernel/vsyscall.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/kernel/vsyscall.c
+--- a/arch/x86_64/kernel/vsyscall.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/kernel/vsyscall.c
+@@ -292,7 +292,7 @@ static void __cpuinit vsyscall_set_cpu(i
+ #ifdef CONFIG_NUMA
+ 	node = cpu_to_node(cpu);
+ #endif
+-	if (cpu_has(&cpu_data[cpu], X86_FEATURE_RDTSCP))
++	if (cpu_has(&cpu_data(cpu), X86_FEATURE_RDTSCP))
+ 		write_rdtscp_aux((node << 12) | cpu);
+ 
+ 	/* Store cpu number in limit so that it can be loaded quickly
+diff -puN arch/x86_64/lib/delay.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 arch/x86_64/lib/delay.c
+--- a/arch/x86_64/lib/delay.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/arch/x86_64/lib/delay.c
+@@ -40,7 +40,7 @@ EXPORT_SYMBOL(__delay);
+ 
+ inline void __const_udelay(unsigned long xloops)
+ {
+-	__delay(((xloops * HZ * cpu_data[raw_smp_processor_id()].loops_per_jiffy) >> 32) + 1);
++	__delay(((xloops * HZ * cpu_data(raw_smp_processor_id()).loops_per_jiffy) >> 32) + 1);
+ }
+ EXPORT_SYMBOL(__const_udelay);
+ 
+diff -puN drivers/hwmon/coretemp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/drivers/hwmon/coretemp.c
+@@ -150,7 +150,7 @@ static struct coretemp_data *coretemp_up
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+ 	struct coretemp_data *data;
+-	struct cpuinfo_x86 *c = &(cpu_data)[pdev->id];
++	struct cpuinfo_x86 *c = &cpu_data(pdev->id);
+ 	int err;
+ 	u32 eax, edx;
+ 
+@@ -359,7 +359,7 @@ static int __init coretemp_init(void)
+ 	struct pdev_entry *p, *n;
+ 
+ 	/* quick check if we run Intel */
+-	if (cpu_data[0].x86_vendor != X86_VENDOR_INTEL)
++	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+ 		goto exit;
+ 
+ 	err = platform_driver_register(&coretemp_driver);
+@@ -367,7 +367,7 @@ static int __init coretemp_init(void)
+ 		goto exit;
+ 
+ 	for_each_online_cpu(i) {
+-		struct cpuinfo_x86 *c = &(cpu_data)[i];
++		struct cpuinfo_x86 *c = &cpu_data(i);
+ 
+ 		/* check if family 6, models e, f */
+ 		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
+diff -puN drivers/hwmon/hwmon-vid.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 drivers/hwmon/hwmon-vid.c
+--- a/drivers/hwmon/hwmon-vid.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/drivers/hwmon/hwmon-vid.c
+@@ -200,7 +200,7 @@ static u8 find_vrm(u8 eff_family, u8 eff
+ 
+ u8 vid_which_vrm(void)
+ {
+-	struct cpuinfo_x86 *c = cpu_data;
++	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	u32 eax;
+ 	u8 eff_family, eff_model, eff_stepping, vrm_ret;
+ 
+diff -puN drivers/input/gameport/gameport.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 drivers/input/gameport/gameport.c
+--- a/drivers/input/gameport/gameport.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/drivers/input/gameport/gameport.c
+@@ -136,7 +136,7 @@ static int gameport_measure_speed(struct
+ 	}
+ 
+ 	gameport_close(gameport);
+-	return (cpu_data[raw_smp_processor_id()].loops_per_jiffy * (unsigned long)HZ / (1000 / 50)) / (tx < 1 ? 1 : tx);
++	return (cpu_data(raw_smp_processor_id()).loops_per_jiffy * (unsigned long)HZ / (1000 / 50)) / (tx < 1 ? 1 : tx);
+ 
+ #else
+ 
+diff -puN drivers/video/geode/video_gx.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 drivers/video/geode/video_gx.c
+--- a/drivers/video/geode/video_gx.c~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/drivers/video/geode/video_gx.c
+@@ -127,7 +127,7 @@ static void gx_set_dclk_frequency(struct
+ 	int timeout = 1000;
+ 
+ 	/* Rev. 1 Geode GXs use a 14 MHz reference clock instead of 48 MHz. */
+-	if (cpu_data->x86_mask == 1) {
++	if (cpu_data(0).x86_mask == 1) {
+ 		pll_table = gx_pll_table_14MHz;
+ 		pll_table_len = ARRAY_SIZE(gx_pll_table_14MHz);
+ 	} else {
+diff -puN include/asm-i386/processor.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 include/asm-i386/processor.h
+--- a/include/asm-i386/processor.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/include/asm-i386/processor.h
+@@ -79,6 +79,7 @@ struct cpuinfo_x86 {
+ 	unsigned char booted_cores;	/* number of cores as seen by OS */
+ 	__u8 phys_proc_id; 		/* Physical processor id. */
+ 	__u8 cpu_core_id;  		/* Core id */
++	__u8 cpu_index;			/* index into per_cpu list */
+ #endif
+ } __attribute__((__aligned__(SMP_CACHE_BYTES)));
+ 
+@@ -103,11 +104,12 @@ extern struct tss_struct doublefault_tss
+ DECLARE_PER_CPU(struct tss_struct, init_tss);
+ 
+ #ifdef CONFIG_SMP
+-extern struct cpuinfo_x86 cpu_data[];
+-#define current_cpu_data cpu_data[smp_processor_id()]
++DECLARE_PER_CPU(struct cpuinfo_x86, cpu_info);
++#define cpu_data(cpu)		per_cpu(cpu_info, cpu)
++#define current_cpu_data	cpu_data(smp_processor_id())
+ #else
+-#define cpu_data (&boot_cpu_data)
+-#define current_cpu_data boot_cpu_data
++#define cpu_data(cpu)		boot_cpu_data
++#define current_cpu_data	boot_cpu_data
+ #endif
+ 
+ /*
+diff -puN include/asm-i386/topology.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 include/asm-i386/topology.h
+--- a/include/asm-i386/topology.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/include/asm-i386/topology.h
+@@ -28,8 +28,8 @@
+ #define _ASM_I386_TOPOLOGY_H
+ 
+ #ifdef CONFIG_X86_HT
+-#define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+-#define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
++#define topology_physical_package_id(cpu)	(cpu_data(cpu).phys_proc_id)
++#define topology_core_id(cpu)			(cpu_data(cpu).cpu_core_id)
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #endif
+diff -puN include/asm-x86_64/processor.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 include/asm-x86_64/processor.h
+--- a/include/asm-x86_64/processor.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/include/asm-x86_64/processor.h
+@@ -75,6 +75,7 @@ struct cpuinfo_x86 {
+ 	__u8	booted_cores;	/* number of cores as seen by OS */
+ 	__u8	phys_proc_id;	/* Physical Processor id. */
+ 	__u8	cpu_core_id;	/* Core id. */
++	__u8	cpu_index;	/* index into per_cpu list */
+ #endif
+ } ____cacheline_aligned;
+ 
+@@ -89,11 +90,12 @@ struct cpuinfo_x86 {
+ #define X86_VENDOR_UNKNOWN 0xff
+ 
+ #ifdef CONFIG_SMP
+-extern struct cpuinfo_x86 cpu_data[];
+-#define current_cpu_data cpu_data[smp_processor_id()]
++DECLARE_PER_CPU(struct cpuinfo_x86, cpu_info);
++#define cpu_data(cpu)		per_cpu(cpu_info, cpu)
++#define current_cpu_data	cpu_data(smp_processor_id())
+ #else
+-#define cpu_data (&boot_cpu_data)
+-#define current_cpu_data boot_cpu_data
++#define cpu_data(cpu)		boot_cpu_data
++#define current_cpu_data	boot_cpu_data
+ #endif
+ 
+ extern char ignore_irq13;
+diff -puN include/asm-x86_64/topology.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2 include/asm-x86_64/topology.h
+--- a/include/asm-x86_64/topology.h~x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2
++++ a/include/asm-x86_64/topology.h
+@@ -56,8 +56,8 @@ extern int __node_distance(int, int);
+ #endif
+ 
+ #ifdef CONFIG_SMP
+-#define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+-#define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
++#define topology_physical_package_id(cpu)	(cpu_data(cpu).phys_proc_id)
++#define topology_core_id(cpu)			(cpu_data(cpu).cpu_core_id)
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
-origin.patch
-missing-null-termination-in-one-wire-uevent.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-kconfig-fix.patch
-alsa-procfs-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
-fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mips-fixup.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-net.patch
-git-net-fixup.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net-sky2-fixups.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-block-fix-qlogicpti-build.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-iwl3945-is-bust.patch
-p54pci-terminate-pci-table.patch
-git-wireless-b44-is-bust.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array-v2.patch
