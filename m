@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + userc-deinline.patch added to -mm tree
-Date: Fri, 21 Sep 2007 12:35:03 -0700
-Message-ID: <200709211935.l8LJZ37w019076@imap1.linux-foundation.org>
+Subject: + userc-ifdef-mq_bytes.patch added to -mm tree
+Date: Fri, 21 Sep 2007 12:35:20 -0700
+Message-ID: <200709211935.l8LJZKaP019081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47500 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55444 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761503AbXIUTfk (ORCPT
+	by vger.kernel.org with ESMTP id S1751198AbXIUTf5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 15:35:40 -0400
+	Fri, 21 Sep 2007 15:35:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: adobriyan@sw.ru
 
 
 The patch titled
-     user.c: deinline
+     user.c: #ifdef ->mq_bytes
 has been added to the -mm tree.  Its filename is
-     userc-deinline.patch
+     userc-ifdef-mq_bytes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: user.c: deinline
+Subject: user.c: #ifdef ->mq_bytes
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Save some space because uid_hash_find() has 3 callsites.
+For those who deselect POSIX message queues.
+
+Reduces SLAB size of user_struct from 64 to 32 bytes here, SLUB size -- from
+40 bytes to 32 bytes.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/sched.h |    2 ++
+ kernel/user.c         |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/user.c~userc-deinline kernel/user.c
---- a/kernel/user.c~userc-deinline
+diff -puN include/linux/sched.h~userc-ifdef-mq_bytes include/linux/sched.h
+--- a/include/linux/sched.h~userc-ifdef-mq_bytes
++++ a/include/linux/sched.h
+@@ -515,8 +515,10 @@ struct user_struct {
+ 	atomic_t inotify_watches; /* How many inotify watches does this user have? */
+ 	atomic_t inotify_devs;	/* How many inotify devs does this user have opened? */
+ #endif
++#ifdef CONFIG_POSIX_MQUEUE
+ 	/* protected by mq_lock	*/
+ 	unsigned long mq_bytes;	/* How many bytes can be allocated to mqueue? */
++#endif
+ 	unsigned long locked_shm; /* How many pages of mlocked shm ? */
+ 
+ #ifdef CONFIG_KEYS
+diff -puN kernel/user.c~userc-ifdef-mq_bytes kernel/user.c
+--- a/kernel/user.c~userc-ifdef-mq_bytes
 +++ a/kernel/user.c
-@@ -55,17 +55,17 @@ struct user_struct root_user = {
- /*
-  * These routines must be called with the uidhash spinlock held!
-  */
--static inline void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
-+static void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
- {
- 	hlist_add_head(&up->uidhash_node, hashent);
- }
- 
--static inline void uid_hash_remove(struct user_struct *up)
-+static void uid_hash_remove(struct user_struct *up)
- {
- 	hlist_del_init(&up->uidhash_node);
- }
- 
--static inline struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
-+static struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
- {
- 	struct user_struct *user;
- 	struct hlist_node *h;
+@@ -44,7 +44,6 @@ struct user_struct root_user = {
+ 	.processes	= ATOMIC_INIT(1),
+ 	.files		= ATOMIC_INIT(0),
+ 	.sigpending	= ATOMIC_INIT(0),
+-	.mq_bytes	= 0,
+ 	.locked_shm     = 0,
+ #ifdef CONFIG_KEYS
+ 	.uid_keyring	= &root_user_keyring,
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
