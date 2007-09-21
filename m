@@ -1,67 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - missing-null-termination-in-power-supply-uevent.patch removed from -mm tree
-Date: Fri, 21 Sep 2007 14:08:26 -0700
-Message-ID: <200709212108.l8LL8QV2023575@imap1.linux-foundation.org>
+Subject: - libata-update-experimental-tags-to-reflect-reality-better.patch removed from -mm tree
+Date: Fri, 21 Sep 2007 14:08:16 -0700
+Message-ID: <200709212108.l8LL8GFF023560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762136AbXIUVJS (ORCPT
+	by vger.kernel.org with ESMTP id S1762839AbXIUVJU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 17:09:18 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8LL8Q3W003579
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2007 14:08:27 -0700
+	Fri, 21 Sep 2007 17:09:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     missing null termination in power supply uevent
+     libata: update experimental tags to reflect reality better
 has been removed from the -mm tree.  Its filename was
-     missing-null-termination-in-power-supply-uevent.patch
+     libata-update-experimental-tags-to-reflect-reality-better.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: missing null termination in power supply uevent
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: libata: update experimental tags to reflect reality better
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Need to null terminate environment. Found by inspection
-while looking for similar problems to platform uevent bug
-
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/Kconfig |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/power/power_supply_sysfs.c~missing-null-termination-in-power-supply-uevent drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~missing-null-termination-in-power-supply-uevent
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -283,6 +283,7 @@ int power_supply_uevent(struct device *d
- 		if (ret)
- 			goto out;
- 	}
-+	envp[i] = NULL;
+diff -puN drivers/ata/Kconfig~libata-update-experimental-tags-to-reflect-reality-better drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~libata-update-experimental-tags-to-reflect-reality-better
++++ a/drivers/ata/Kconfig
+@@ -201,8 +201,8 @@ config PATA_AMD
+ 	  If unsure, say N.
  
- out:
- 	free_page((unsigned long)prop_buf);
+ config PATA_ARTOP
+-	tristate "ARTOP 6210/6260 PATA support (Experimental)"
+-	depends on PCI && EXPERIMENTAL
++	tristate "ARTOP 6210/6260 PATA support"
++	depends on PCI
+ 	help
+ 	  This option enables support for ARTOP PATA controllers.
+ 
+@@ -218,8 +218,8 @@ config PATA_AT32
+ 	  If unsure, say N.
+ 
+ config PATA_ATIIXP
+-	tristate "ATI PATA support (Experimental)"
+-	depends on PCI && EXPERIMENTAL
++	tristate "ATI PATA support"
++	depends on PCI
+ 	help
+ 	  This option enables support for the ATI ATA interfaces
+ 	  found on the many ATI chipsets.
+@@ -237,8 +237,8 @@ config PATA_CMD640_PCI
+ 	  If unsure, say N.
+ 
+ config PATA_CMD64X
+-	tristate "CMD64x PATA support (Very Experimental)"
+-	depends on PCI&& EXPERIMENTAL
++	tristate "CMD64x PATA support"
++	depends on PCI
+ 	help
+ 	  This option enables support for the CMD64x series chips
+ 	  except for the CMD640.
+@@ -300,8 +300,8 @@ config ATA_GENERIC
+ 	  If unsure, say N.
+ 
+ config PATA_HPT366
+-	tristate "HPT 366/368 PATA support (Experimental)"
+-	depends on PCI && EXPERIMENTAL
++	tristate "HPT 366/368 PATA support"
++	depends on PCI
+ 	help
+ 	  This option enables support for the HPT 366 and 368
+ 	  PATA controllers via the new ATA layer.
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-missing-null-termination-in-one-wire-uevent.patch
-fix-oops-in-platform-uevent.patch
-git-infiniband.patch
-git-input.patch
-git-net.patch
-pci-x-pci-express-read-control-interfaces-e1000.patch
-export-reciprocal_value-for-modules.patch
-sky2-avoid-divide-in-receive-path.patch
-skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
-git-battery.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+pata_acpi-use-ata_sff_port_start.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-scsi-misc.patch
+dtc-fix-typo.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
