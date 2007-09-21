@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-new-export-ops.patch added to -mm tree
-Date: Thu, 20 Sep 2007 17:13:31 -0700
-Message-ID: <200709210013.l8L0DVsm009791@imap1.linux-foundation.org>
+Subject: + jfs-new-export-ops.patch added to -mm tree
+Date: Thu, 20 Sep 2007 17:13:15 -0700
+Message-ID: <200709210013.l8L0DFk5009767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58467 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38052 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751511AbXIUATI (ORCPT
+	by vger.kernel.org with ESMTP id S1752272AbXIUATW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 20:19:08 -0400
+	Thu, 20 Sep 2007 20:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, mark.fasheh@oracle.com, neilb@suse.de
+Cc: hch@lst.de, bfields@fieldses.org, neilb@suse.de, shaggy@austin.ibm.com
 
 
 The patch titled
-     ocfs2: new export ops
+     jfs: new export ops
 has been added to the -mm tree.  Its filename is
-     ocfs2-new-export-ops.patch
+     jfs-new-export-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ocfs2: new export ops
+Subject: jfs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-OCFS2 has it's own 64bit-firendly filehandle format so we can't use the
-generic helpers here.  I'll add a struct for the types later.
+Trivial switch over to the new generic helpers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/export.c |   65 ++++++++++++++++----------------------------
- 1 files changed, 24 insertions(+), 41 deletions(-)
+ fs/jfs/jfs_inode.h |    7 ++++++-
+ fs/jfs/namei.c     |   35 +++++++++++++++++++----------------
+ fs/jfs/super.c     |    3 ++-
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-diff -puN fs/ocfs2/export.c~ocfs2-new-export-ops fs/ocfs2/export.c
---- a/fs/ocfs2/export.c~ocfs2-new-export-ops
-+++ a/fs/ocfs2/export.c
-@@ -45,9 +45,9 @@ struct ocfs2_inode_handle
- 	u32 ih_generation;
- };
+diff -puN fs/jfs/jfs_inode.h~jfs-new-export-ops fs/jfs/jfs_inode.h
+--- a/fs/jfs/jfs_inode.h~jfs-new-export-ops
++++ a/fs/jfs/jfs_inode.h
+@@ -18,6 +18,8 @@
+ #ifndef	_H_JFS_INODE
+ #define _H_JFS_INODE
  
--static struct dentry *ocfs2_get_dentry(struct super_block *sb, void *vobjp)
-+static struct dentry *ocfs2_get_dentry(struct super_block *sb,
-+		struct ocfs2_inode_handle *handle)
- {
--	struct ocfs2_inode_handle *handle = vobjp;
- 	struct inode *inode;
- 	struct dentry *result;
++struct fid;
++
+ extern struct inode *ialloc(struct inode *, umode_t);
+ extern int jfs_fsync(struct file *, struct dentry *, int);
+ extern int jfs_ioctl(struct inode *, struct file *,
+@@ -32,7 +34,10 @@ extern void jfs_truncate_nolock(struct i
+ extern void jfs_free_zero_link(struct inode *);
+ extern struct dentry *jfs_get_parent(struct dentry *dentry);
+ extern void jfs_get_inode_flags(struct jfs_inode_info *);
+-extern struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp);
++extern struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++	int fh_len, int fh_type);
++extern struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++	int fh_len, int fh_type);
+ extern void jfs_set_inode_flags(struct inode *);
+ extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
  
-@@ -200,54 +200,37 @@ bail:
- 	return type;
+diff -puN fs/jfs/namei.c~jfs-new-export-ops fs/jfs/namei.c
+--- a/fs/jfs/namei.c~jfs-new-export-ops
++++ a/fs/jfs/namei.c
+@@ -20,6 +20,7 @@
+ #include <linux/fs.h>
+ #include <linux/ctype.h>
+ #include <linux/quotaops.h>
++#include <linux/exportfs.h>
+ #include "jfs_incore.h"
+ #include "jfs_superblock.h"
+ #include "jfs_inode.h"
+@@ -1477,13 +1478,10 @@ static struct dentry *jfs_lookup(struct 
+ 	return dentry;
  }
  
--static struct dentry *ocfs2_decode_fh(struct super_block *sb, u32 *fh_in,
--				      int fh_len, int fileid_type,
--				      int (*acceptable)(void *context,
--						        struct dentry *de),
--				      void *context)
-+static struct dentry *ocfs2_fh_to_dentry(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
+-struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *jfs_nfs_get_inode(struct super_block *sb,
++		u64 ino, u32 generation)
  {
--	struct ocfs2_inode_handle handle, parent;
--	struct dentry *ret = NULL;
--	__le32 *fh = (__force __le32 *) fh_in;
--
--	mlog_entry("(0x%p, 0x%p, %d, %d, 0x%p, 0x%p)\n",
--		   sb, fh, fh_len, fileid_type, acceptable, context);
-+	struct ocfs2_inode_handle handle;
+-	__u32 *objp = vobjp;
+-	unsigned long ino = objp[0];
+-	__u32 generation = objp[1];
+ 	struct inode *inode;
+-	struct dentry *result;
  
--	if (fh_len < 3 || fileid_type > 2)
--		goto bail;
-+	if (fh_len < 3 || fh_type > 2)
-+		return NULL;
+ 	if (ino == 0)
+ 		return ERR_PTR(-ESTALE);
+@@ -1493,20 +1491,25 @@ struct dentry *jfs_get_dentry(struct sup
  
--	if (fileid_type == 2) {
--		if (fh_len < 6)
--			goto bail;
--
--		parent.ih_blkno = (u64)le32_to_cpu(fh[3]) << 32;
--		parent.ih_blkno |= (u64)le32_to_cpu(fh[4]);
--		parent.ih_generation = le32_to_cpu(fh[5]);
--
--		mlog(0, "Decoding parent: blkno: %llu, generation: %u\n",
--		     (unsigned long long)parent.ih_blkno,
--		     parent.ih_generation);
+ 	if (is_bad_inode(inode) ||
+ 	    (generation && inode->i_generation != generation)) {
+-	    	result = ERR_PTR(-ESTALE);
+-		goto out_iput;
++		iput(inode);
++		return ERR_PTR(-ESTALE);
+ 	}
+ 
+-	result = d_alloc_anon(inode);
+-	if (!result) {
+-		result = ERR_PTR(-ENOMEM);
+-		goto out_iput;
 -	}
--
--	handle.ih_blkno = (u64)le32_to_cpu(fh[0]) << 32;
--	handle.ih_blkno |= (u64)le32_to_cpu(fh[1]);
--	handle.ih_generation = le32_to_cpu(fh[2]);
-+	handle.ih_blkno = (u64)le32_to_cpu(fid->raw[0]) << 32;
-+	handle.ih_blkno |= (u64)le32_to_cpu(fid->raw[1]);
-+	handle.ih_generation = le32_to_cpu(fid->raw[2]);
-+	return ocfs2_get_dentry(sb, &handle);
+-	return result;
++	return inode;
 +}
  
--	mlog(0, "Encoding fh: blkno: %llu, generation: %u\n",
--	     (unsigned long long)handle.ih_blkno, handle.ih_generation);
-+static struct dentry *ocfs2_fh_to_parent(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
+- out_iput:
+-	iput(inode);
+-	return result;
++struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
 +{
-+	struct ocfs2_inode_handle parent;
- 
--	ret = ocfs2_export_ops.find_exported_dentry(sb, &handle, &parent,
--						    acceptable, context);
-+	if (fh_type != 2 || fh_len < 6)
-+		return NULL;
- 
--bail:
--	mlog_exit_ptr(ret);
--	return ret;
-+	parent.ih_blkno = (u64)le32_to_cpu(fid->raw[3]) << 32;
-+	parent.ih_blkno |= (u64)le32_to_cpu(fid->raw[4]);
-+	parent.ih_generation = le32_to_cpu(fid->raw[5]);
-+	return ocfs2_get_dentry(sb, &parent);
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    jfs_nfs_get_inode);
++}
++
++struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    jfs_nfs_get_inode);
  }
  
- struct export_operations ocfs2_export_ops = {
--	.decode_fh	= ocfs2_decode_fh,
- 	.encode_fh	= ocfs2_encode_fh,
--
-+	.fh_to_dentry	= ocfs2_fh_to_dentry,
-+	.fh_to_parent	= ocfs2_fh_to_parent,
- 	.get_parent	= ocfs2_get_parent,
--	.get_dentry	= ocfs2_get_dentry,
+ struct dentry *jfs_get_parent(struct dentry *dentry)
+diff -puN fs/jfs/super.c~jfs-new-export-ops fs/jfs/super.c
+--- a/fs/jfs/super.c~jfs-new-export-ops
++++ a/fs/jfs/super.c
+@@ -738,7 +738,8 @@ static const struct super_operations jfs
  };
+ 
+ static struct export_operations jfs_export_operations = {
+-	.get_dentry	= jfs_get_dentry,
++	.fh_to_dentry	= jfs_fh_to_dentry,
++	.fh_to_parent	= jfs_fh_to_parent,
+ 	.get_parent	= jfs_get_parent,
+ };
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
