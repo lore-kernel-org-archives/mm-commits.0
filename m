@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:06 -0700
-Message-ID: <200709210802.l8L826mG025694@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-give-may_open-a-local-mnt-variable.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:04 -0700
+Message-ID: <200709210802.l8L8240F025691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55106 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712AbXIUICY (ORCPT
+	by vger.kernel.org with ESMTP id S1752712AbXIUICU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:24 -0400
+	Fri, 21 Sep 2007 04:02:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org
+Cc: haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     r/o bind mounts: create cleanup helper svc_msnfs()
+     r/o bind mounts: give may_open() a local 'mnt' variable
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
+     r-o-bind-mounts-give-may_open-a-local-mnt-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: create cleanup helper svc_msnfs()
+Subject: r/o bind mounts: give may_open() a local 'mnt' variable
 From: Dave Hansen <haveblue@us.ibm.com>
 
-I'm going to be modifying nfsd_rename() shortly to support read-only bind
-mounts.  This #ifdef is around the area I'm patching, and it starts to get
-really ugly if I just try to add my new code by itself.  Using this little
-helper makes things a lot cleaner to use.
+First of all, this makes the structure jumping look a little bit cleaner.  So,
+this stands alone as a tiny cleanup.  But, we also need 'mnt' by itself a few
+more times later in this series, so this isn't _just_ a cleanup.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/namei.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-create-cleanup-helper-svc_msnfs fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-create-cleanup-helper-svc_msnfs
-+++ a/fs/nfsd/vfs.c
-@@ -875,6 +875,15 @@ static int nfsd_direct_splice_actor(stru
- 	return __splice_from_pipe(pipe, sd, nfsd_splice_actor);
- }
- 
-+static inline int svc_msnfs(struct svc_fh *ffhp)
-+{
-+#ifdef MSNFS
-+	return (ffhp->fh_export->ex_flags & NFSEXP_MSNFS);
-+#else
-+	return 0;
-+#endif
-+}
+diff -puN fs/namei.c~r-o-bind-mounts-give-may_open-a-local-mnt-variable fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-give-may_open-a-local-mnt-variable
++++ a/fs/namei.c
+@@ -228,6 +228,10 @@ int generic_permission(struct inode *ino
+ int permission(struct inode *inode, int mask, struct nameidata *nd)
+ {
+ 	int retval, submask;
++	struct vfsmount *mnt = NULL;
 +
- static __be32
- nfsd_vfs_read(struct svc_rqst *rqstp, struct svc_fh *fhp, struct file *file,
-               loff_t offset, struct kvec *vec, int vlen, unsigned long *count)
-@@ -887,11 +896,9 @@ nfsd_vfs_read(struct svc_rqst *rqstp, st
++	if (nd)
++		mnt = nd->mnt;
  
- 	err = nfserr_perm;
- 	inode = file->f_path.dentry->d_inode;
--#ifdef MSNFS
--	if ((fhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
--		(!lock_may_read(inode, offset, *count)))
-+
-+	if (svc_msnfs(fhp) && !lock_may_read(inode, offset, *count))
- 		goto out;
--#endif
+ 	if (mask & MAY_WRITE) {
+ 		umode_t mode = inode->i_mode;
+@@ -251,7 +255,7 @@ int permission(struct inode *inode, int 
+ 		 * MAY_EXEC on regular files is denied if the fs is mounted
+ 		 * with the "noexec" flag.
+ 		 */
+-		if (nd && nd->mnt && (nd->mnt->mnt_flags & MNT_NOEXEC))
++		if (mnt && (mnt->mnt_flags & MNT_NOEXEC))
+ 			return -EACCES;
+ 	}
  
- 	/* Get readahead parameters */
- 	ra = nfsd_get_raparms(inode->i_sb->s_dev, inode->i_ino);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
