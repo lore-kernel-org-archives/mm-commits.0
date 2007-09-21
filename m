@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-new-export-ops.patch added to -mm tree
-Date: Thu, 20 Sep 2007 17:13:07 -0700
-Message-ID: <200709210013.l8L0D7cb009752@imap1.linux-foundation.org>
+Subject: + ext3-new-export-ops.patch added to -mm tree
+Date: Thu, 20 Sep 2007 17:13:09 -0700
+Message-ID: <200709210013.l8L0D9KZ009755__22711.986830882$1190333659$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49428 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750778AbXIUAOH (ORCPT
+	by vger.kernel.org with ESMTP id S1751364AbXIUAOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 20 Sep 2007 20:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, neilb@suse.de
+Cc: hch@lst.de, bfields@fieldses.org, linux-ext4@vger.kernel.org, neilb@suse.de
 
 
 The patch titled
-     ext2: new export ops
+     ext3: new export ops
 has been added to the -mm tree.  Its filename is
-     ext2-new-export-ops.patch
+     ext3-new-export-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2: new export ops
+Subject: ext3: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
 Trivial switch over to the new generic helpers.
@@ -34,21 +34,22 @@ Trivial switch over to the new generic helpers.
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |   34 +++++++++++++++++++---------------
- 1 files changed, 19 insertions(+), 15 deletions(-)
+ fs/ext3/super.c |   35 ++++++++++++++++++++---------------
+ 1 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-new-export-ops fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-new-export-ops
-+++ a/fs/ext2/super.c
-@@ -311,13 +311,10 @@ static const struct super_operations ext
- #endif
- };
+diff -puN fs/ext3/super.c~ext3-new-export-ops fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-new-export-ops
++++ a/fs/ext3/super.c
+@@ -631,13 +631,10 @@ static int ext3_show_options(struct seq_
+ }
  
--static struct dentry *ext2_get_dentry(struct super_block *sb, void *vobjp)
-+static struct inode *ext2_nfs_get_inode(struct super_block *sb,
+ 
+-static struct dentry *ext3_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *ext3_nfs_get_inode(struct super_block *sb,
 +		u64 ino, u32 generation)
  {
 -	__u32 *objp = vobjp;
@@ -57,9 +58,9 @@ diff -puN fs/ext2/super.c~ext2-new-export-ops fs/ext2/super.c
  	struct inode *inode;
 -	struct dentry *result;
  
- 	if (ino < EXT2_FIRST_INO(sb) && ino != EXT2_ROOT_INO)
+ 	if (ino < EXT3_FIRST_INO(sb) && ino != EXT3_ROOT_INO)
  		return ERR_PTR(-ESTALE);
-@@ -338,15 +335,21 @@ static struct dentry *ext2_get_dentry(st
+@@ -660,15 +657,22 @@ static struct dentry *ext3_get_dentry(st
  		iput(inode);
  		return ERR_PTR(-ESTALE);
  	}
@@ -72,35 +73,36 @@ diff -puN fs/ext2/super.c~ext2-new-export-ops fs/ext2/super.c
 -		return ERR_PTR(-ENOMEM);
 -	}
 -	return result;
++
 +	return inode;
 +}
 +
-+static struct dentry *ext2_fh_to_dentry(struct super_block *sb, struct fid *fid,
++static struct dentry *ext3_fh_to_dentry(struct super_block *sb, struct fid *fid,
 +		int fh_len, int fh_type)
 +{
 +	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    ext2_nfs_get_inode);
++				    ext3_nfs_get_inode);
 +}
 +
-+static struct dentry *ext2_fh_to_parent(struct super_block *sb, struct fid *fid,
++static struct dentry *ext3_fh_to_parent(struct super_block *sb, struct fid *fid,
 +		int fh_len, int fh_type)
 +{
 +	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    ext2_nfs_get_inode);
++				    ext3_nfs_get_inode);
  }
  
- /* Yes, most of these are left as NULL!!
-@@ -355,8 +358,9 @@ static struct dentry *ext2_get_dentry(st
-  * Currently only get_parent is required.
-  */
- static struct export_operations ext2_export_ops = {
-+	.fh_to_dentry = ext2_fh_to_dentry,
-+	.fh_to_parent = ext2_fh_to_parent,
- 	.get_parent = ext2_get_parent,
--	.get_dentry = ext2_get_dentry,
+ #ifdef CONFIG_QUOTA
+@@ -738,8 +742,9 @@ static const struct super_operations ext
  };
  
- static unsigned long get_sb_block(void **data)
+ static struct export_operations ext3_export_ops = {
++	.fh_to_dentry = ext3_fh_to_dentry,
++	.fh_to_parent = ext3_fh_to_parent,
+ 	.get_parent = ext3_get_parent,
+-	.get_dentry = ext3_get_dentry,
+ };
+ 
+ enum {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
