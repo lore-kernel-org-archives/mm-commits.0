@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:31 -0700
-Message-ID: <200709210802.l8L82Vht025748@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-do_rmdir-elevate-write-count.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:32 -0700
+Message-ID: <200709210802.l8L82WOi025751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55962 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754390AbXIUIIV (ORCPT
+	by vger.kernel.org with ESMTP id S1754728AbXIUII3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:08:21 -0400
+	Fri, 21 Sep 2007 04:08:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate mnt writers for vfs_unlink() callers
+     r/o bind mounts: do_rmdir(): elevate write count
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+     r-o-bind-mounts-do_rmdir-elevate-write-count.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate mnt writers for vfs_unlink() callers
+Subject: r/o bind mounts: do_rmdir(): elevate write count
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Elevate the write count during the vfs_rmdir() call.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c   |    4 ++++
- ipc/mqueue.c |    5 ++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ fs/namei.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
+diff -puN fs/namei.c~r-o-bind-mounts-do_rmdir-elevate-write-count fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-do_rmdir-elevate-write-count
 +++ a/fs/namei.c
-@@ -2254,7 +2254,11 @@ static long do_unlinkat(int dfd, const c
- 		inode = dentry->d_inode;
- 		if (inode)
- 			atomic_inc(&inode->i_count);
-+		error = mnt_want_write(nd.mnt);
-+		if (error)
-+			goto exit2;
- 		error = vfs_unlink(nd.dentry->d_inode, dentry);
-+		mnt_drop_write(nd.mnt);
- 	exit2:
- 		dput(dentry);
- 	}
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
-+++ a/ipc/mqueue.c
-@@ -750,8 +750,11 @@ asmlinkage long sys_mq_unlink(const char
- 	inode = dentry->d_inode;
- 	if (inode)
- 		atomic_inc(&inode->i_count);
--
-+	err = mnt_want_write(mqueue_mnt);
-+	if (err)
-+		goto out_err;
- 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
-+	mnt_drop_write(mqueue_mnt);
- out_err:
+@@ -2174,7 +2174,12 @@ static long do_rmdir(int dfd, const char
+ 	error = PTR_ERR(dentry);
+ 	if (IS_ERR(dentry))
+ 		goto exit2;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto exit3;
+ 	error = vfs_rmdir(nd.dentry->d_inode, dentry);
++	mnt_drop_write(nd.mnt);
++exit3:
  	dput(dentry);
- 
+ exit2:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
