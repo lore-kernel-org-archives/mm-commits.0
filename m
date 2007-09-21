@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-potential-oops-in-generic_setlease-v2.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:58:07 -0700
-Message-ID: <200709210458.l8L4w73a019551@imap1.linux-foundation.org>
+Subject: + ext4-uninitialized-block-groups-fix.patch added to -mm tree
+Date: Thu, 20 Sep 2007 22:02:17 -0700
+Message-ID: <200709210502.l8L52HRw019656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50926 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750850AbXIUE6V (ORCPT
+	by vger.kernel.org with ESMTP id S1750773AbXIUFCY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:58:21 -0400
+	Fri, 21 Sep 2007 01:02:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, bfields@fieldses.org
+Cc: mathur@linux.vnet.ibm.com, adilger@clusterfs.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mathur@us.ibm.com
 
 
 The patch titled
-     Fix potential OOPS in generic_setlease() (v2)
+     Ext4: Uninitialized Block Groups (fix)
 has been added to the -mm tree.  Its filename is
-     fix-potential-oops-in-generic_setlease-v2.patch
+     ext4-uninitialized-block-groups-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,140 +26,148 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix potential OOPS in generic_setlease() (v2)
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Ext4: Uninitialized Block Groups (fix)
+From: Avantika Mathur <mathur@linux.vnet.ibm.com>
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
+Andreas Dilger wrote:
+> On Sep 18, 2007  20:03 -0700, Andrew Morton wrote:
+>
+>> On Tue, 18 Sep 2007 17:25:31 -0700 Avantika Mathur <mathur@linux.vnet.ibm.com> wrote:
+>>
+>>
+>>> +#if !defined(CONFIG_CRC16)
+>>> +/** CRC table for the CRC-16. The poly is 0x8005 (x16 + x15 + x2 + 1) */
+>>> +__u16 const crc16_table[256] = { me
+>>> +	0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
+>>>
+>> That's rather sad.  A plain old "depends on" would be better.
+>>
+>
+> My bad.  We wrote this patch and it had to run on older kernels that might
+> not even have lib/crc16.c (it was added around 2.6.15 or so, so e.g. RHEL4
+> doesn't have it).  I forgot to remove it from the upstream submission,
+> and since it didn't cause problems nobody else complained...
+The incremental patch below removes the local crc16 code, and also resolves an
+issue with properly updating bg_itable_unused when an inode is allocated in an
+unused block groups.
+
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Avantika Mathur <mathur@us.ibm.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/Kconfig       |    1 
+ fs/ext4/ialloc.c |    8 ++++++-
+ fs/ext4/super.c  |   51 ---------------------------------------------
+ 3 files changed, 9 insertions(+), 51 deletions(-)
 
-diff -puN fs/locks.c~fix-potential-oops-in-generic_setlease-v2 fs/locks.c
---- a/fs/locks.c~fix-potential-oops-in-generic_setlease-v2
-+++ a/fs/locks.c
-@@ -1336,7 +1336,8 @@ int fcntl_getlease(struct file *filp)
-  */
- int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
- {
--	struct file_lock *fl = NULL, **before, **my_before = NULL, *lease;
-+	struct file_lock *fl, **before, **my_before = NULL, *lease;
-+	struct file_lock *new_fl = NULL;
- 	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
- 	int error, rdlease_count = 0, wrlease_count = 0;
-@@ -1364,8 +1365,8 @@ int generic_setlease(struct file *filp, 
- 		goto out;
+diff -puN fs/ext4/ialloc.c~ext4-uninitialized-block-groups-fix fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-uninitialized-block-groups-fix
++++ a/fs/ext4/ialloc.c
+@@ -632,12 +632,18 @@ got:
+ 	if (EXT4_HAS_RO_COMPAT_FEATURE(sb, EXT4_FEATURE_RO_COMPAT_GDT_CSUM)) {
+ 		if (gdp->bg_flags & cpu_to_le16(EXT4_BG_INODE_UNINIT)) {
+ 			gdp->bg_flags &= cpu_to_le16(~EXT4_BG_INODE_UNINIT);
+-			free = EXT4_INODES_PER_GROUP(sb);
++			free = 0;
+ 		} else {
+ 			free = EXT4_INODES_PER_GROUP(sb) -
+ 				le16_to_cpu(gdp->bg_itable_unused);
+ 		}
  
- 	error = -ENOMEM;
--	fl = locks_alloc_lock();
--	if (fl == NULL)
-+	new_fl = locks_alloc_lock();
-+	if (new_fl == NULL)
- 		goto out;
++		/*
++		 * Check the relative inode number against the last used
++		 * relative inode number in this group. if it is greater
++		 * we need to  update the bg_itable_unused count
++		 *
++		 */
+ 		if (ino > free)
+ 			gdp->bg_itable_unused =
+ 				cpu_to_le16(EXT4_INODES_PER_GROUP(sb) - ino);
+diff -puN fs/ext4/super.c~ext4-uninitialized-block-groups-fix fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-uninitialized-block-groups-fix
++++ a/fs/ext4/super.c
+@@ -37,6 +37,7 @@
+ #include <linux/quotaops.h>
+ #include <linux/seq_file.h>
+ #include <linux/log2.h>
++#include <linux/crc16.h>
  
- 	/*
-@@ -1410,16 +1411,15 @@ int generic_setlease(struct file *filp, 
- 	if (!leases_enable)
- 		goto out;
+ #include <asm/uaccess.h>
  
--	locks_copy_lock(fl, lease);
--
--	locks_insert_lock(before, fl);
-+	locks_copy_lock(new_fl, lease);
-+	locks_insert_lock(before, new_fl);
- 
- 	*flp = fl;
- 	return 0;
- 
- out:
--	if (fl != NULL)
--		locks_free_lock(fl);
-+	if (new_fl != NULL)
-+		locks_free_lock(new_fl);
- 	return error;
+@@ -1337,56 +1338,6 @@ static int ext4_setup_super(struct super
+ 	return res;
  }
- EXPORT_SYMBOL(generic_setlease);
+ 
+-#if !defined(CONFIG_CRC16)
+-/** CRC table for the CRC-16. The poly is 0x8005 (x16 + x15 + x2 + 1) */
+-__u16 const crc16_table[256] = {
+-	0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
+-	0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
+-	0xCC01, 0x0CC0, 0x0D80, 0xCD41, 0x0F00, 0xCFC1, 0xCE81, 0x0E40,
+-	0x0A00, 0xCAC1, 0xCB81, 0x0B40, 0xC901, 0x09C0, 0x0880, 0xC841,
+-	0xD801, 0x18C0, 0x1980, 0xD941, 0x1B00, 0xDBC1, 0xDA81, 0x1A40,
+-	0x1E00, 0xDEC1, 0xDF81, 0x1F40, 0xDD01, 0x1DC0, 0x1C80, 0xDC41,
+-	0x1400, 0xD4C1, 0xD581, 0x1540, 0xD701, 0x17C0, 0x1680, 0xD641,
+-	0xD201, 0x12C0, 0x1380, 0xD341, 0x1100, 0xD1C1, 0xD081, 0x1040,
+-	0xF001, 0x30C0, 0x3180, 0xF141, 0x3300, 0xF3C1, 0xF281, 0x3240,
+-	0x3600, 0xF6C1, 0xF781, 0x3740, 0xF501, 0x35C0, 0x3480, 0xF441,
+-	0x3C00, 0xFCC1, 0xFD81, 0x3D40, 0xFF01, 0x3FC0, 0x3E80, 0xFE41,
+-	0xFA01, 0x3AC0, 0x3B80, 0xFB41, 0x3900, 0xF9C1, 0xF881, 0x3840,
+-	0x2800, 0xE8C1, 0xE981, 0x2940, 0xEB01, 0x2BC0, 0x2A80, 0xEA41,
+-	0xEE01, 0x2EC0, 0x2F80, 0xEF41, 0x2D00, 0xEDC1, 0xEC81, 0x2C40,
+-	0xE401, 0x24C0, 0x2580, 0xE541, 0x2700, 0xE7C1, 0xE681, 0x2640,
+-	0x2200, 0xE2C1, 0xE381, 0x2340, 0xE101, 0x21C0, 0x2080, 0xE041,
+-	0xA001, 0x60C0, 0x6180, 0xA141, 0x6300, 0xA3C1, 0xA281, 0x6240,
+-	0x6600, 0xA6C1, 0xA781, 0x6740, 0xA501, 0x65C0, 0x6480, 0xA441,
+-	0x6C00, 0xACC1, 0xAD81, 0x6D40, 0xAF01, 0x6FC0, 0x6E80, 0xAE41,
+-	0xAA01, 0x6AC0, 0x6B80, 0xAB41, 0x6900, 0xA9C1, 0xA881, 0x6840,
+-	0x7800, 0xB8C1, 0xB981, 0x7940, 0xBB01, 0x7BC0, 0x7A80, 0xBA41,
+-	0xBE01, 0x7EC0, 0x7F80, 0xBF41, 0x7D00, 0xBDC1, 0xBC81, 0x7C40,
+-	0xB401, 0x74C0, 0x7580, 0xB541, 0x7700, 0xB7C1, 0xB681, 0x7640,
+-	0x7200, 0xB2C1, 0xB381, 0x7340, 0xB101, 0x71C0, 0x7080, 0xB041,
+-	0x5000, 0x90C1, 0x9181, 0x5140, 0x9301, 0x53C0, 0x5280, 0x9241,
+-	0x9601, 0x56C0, 0x5780, 0x9741, 0x5500, 0x95C1, 0x9481, 0x5440,
+-	0x9C01, 0x5CC0, 0x5D80, 0x9D41, 0x5F00, 0x9FC1, 0x9E81, 0x5E40,
+-	0x5A00, 0x9AC1, 0x9B81, 0x5B40, 0x9901, 0x59C0, 0x5880, 0x9841,
+-	0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40,
+-	0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
+-	0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
+-	0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
+-};
+-
+-static inline __u16 crc16_byte(__u16 crc, const __u8 data)
+-{
+-	return (crc >> 8) ^ crc16_table[(crc ^ data) & 0xff];
+-}
+-
+-__u16 crc16(__u16 crc, __u8 const *buffer, size_t len)
+-{
+-	while (len--)
+-		crc = crc16_byte(crc, *buffer++);
+-	return crc;
+-}
+-#endif
+-
+ __le16 ext4_group_desc_csum(struct ext4_sb_info *sbi, __u32 block_group,
+ 			    struct ext4_group_desc *gdp)
+ {
+diff -puN fs/Kconfig~ext4-uninitialized-block-groups-fix fs/Kconfig
+--- a/fs/Kconfig~ext4-uninitialized-block-groups-fix
++++ a/fs/Kconfig
+@@ -140,6 +140,7 @@ config EXT4DEV_FS
+ 	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	select JBD2
++	select CRC16
+ 	help
+ 	  Ext4dev is a predecessor filesystem of the next generation
+ 	  extended fs ext4, based on ext3 filesystem code. It will be
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from mathur@linux.vnet.ibm.com are
 
-fix-potential-oops-in-generic_setlease.patch
-fix-potential-oops-in-generic_setlease-v2.patch
-git-net.patch
-git-nfsd.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-isolate-some-explicit-usage-of-task-tgid-fix.patch
-isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-cleanup-macros-for-distinguishing-mandatory-locks.patch
-gfs2-cleanup-explicit-check-for-mandatory-locks.patch
-9pfs-cleanup-explicit-check-for-mandatory-locks.patch
-afs-cleanup-explicit-check-for-mandatory-locks.patch
-nfs-cleanup-explicit-check-for-mandatory-locks.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-use-list_first_entry-in-locks_wake_up_blocks.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+ext4-uninitialized-block-groups-fix.patch
