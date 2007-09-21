@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-eliminate-hz.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:45:20 -0700
-Message-ID: <200709210445.l8L4jKWx019091@imap1.linux-foundation.org>
+Subject: + uml-clocksource-support.patch added to -mm tree
+Date: Thu, 20 Sep 2007 21:45:30 -0700
+Message-ID: <200709210445.l8L4jUj5019109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43391 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750841AbXIUEqG (ORCPT
+	by vger.kernel.org with ESMTP id S1750867AbXIUEqH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:46:06 -0400
+	Fri, 21 Sep 2007 00:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     uml: eliminate hz()
+     uml: clocksource support
 has been added to the -mm tree.  Its filename is
-     uml-eliminate-hz.patch
+     uml-clocksource-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: eliminate hz()
+Subject: uml: clocksource support
 From: Jeff Dike <jdike@addtoit.com>
 
-Eliminate hz() since its only purpose was to provide a kernel-space constant
-to userspace code.  This can be done instead by providing the constant
-directly through kernel_constants.h.
+Add clocksource support.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h |    2 ++
- arch/um/include/kern_util.h      |    1 -
- arch/um/kernel/time.c            |    5 -----
- arch/um/os-Linux/skas/process.c  |    5 +++--
- arch/um/os-Linux/time.c          |    7 +++----
- 5 files changed, 8 insertions(+), 12 deletions(-)
+ arch/um/kernel/time.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN arch/um/include/common-offsets.h~uml-eliminate-hz arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-eliminate-hz
-+++ a/arch/um/include/common-offsets.h
-@@ -32,3 +32,5 @@ DEFINE(UM_GFP_ATOMIC, GFP_ATOMIC);
- DEFINE(crypto_tfm_ctx_offset, offsetof(struct crypto_tfm, __crt_ctx));
- 
- DEFINE(UM_THREAD_SIZE, THREAD_SIZE);
-+
-+DEFINE(UM_HZ, HZ);
-diff -puN arch/um/include/kern_util.h~uml-eliminate-hz arch/um/include/kern_util.h
---- a/arch/um/include/kern_util.h~uml-eliminate-hz
-+++ a/arch/um/include/kern_util.h
-@@ -64,7 +64,6 @@ extern void paging_init(void);
- extern void init_flush_vm(void);
- extern void *syscall_sp(void *t);
- extern void syscall_trace(struct uml_pt_regs *regs, int entryexit);
--extern int hz(void);
- extern unsigned int do_IRQ(int irq, struct uml_pt_regs *regs);
- extern void interrupt_end(void);
- extern void initial_thread_cb(void (*proc)(void *), void *arg);
-diff -puN arch/um/kernel/time.c~uml-eliminate-hz arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-eliminate-hz
+diff -puN arch/um/kernel/time.c~uml-clocksource-support arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-clocksource-support
 +++ a/arch/um/kernel/time.c
-@@ -11,11 +11,6 @@
- #include "kern_util.h"
- #include "os.h"
+@@ -97,6 +97,21 @@ static irqreturn_t um_timer(int irq, voi
+ 	return IRQ_HANDLED;
+ }
  
--int hz(void)
--{
--	return HZ;
--}
--
- /*
-  * Scheduler clock - returns current time in nanosec units.
-  */
-diff -puN arch/um/os-Linux/skas/process.c~uml-eliminate-hz arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-eliminate-hz
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -392,8 +392,9 @@ int copy_context_skas0(unsigned long new
- 	*data = ((struct stub_data) { .offset	= MMAP_OFFSET(new_offset),
- 				      .fd	= new_fd,
- 				      .timer    = ((struct itimerval)
--					            { { 0, 1000000 / hz() },
--						      { 0, 1000000 / hz() }})});
-+					            { { 0, 1000000 / UM_HZ },
-+						      { 0, 1000000 / UM_HZ }})
-+				 });
- 	err = ptrace_setregs(pid, thread_regs);
- 	if (err < 0)
- 		panic("copy_context_skas0 : PTRACE_SETREGS failed, "
-diff -puN arch/um/os-Linux/time.c~uml-eliminate-hz arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-eliminate-hz
-+++ a/arch/um/os-Linux/time.c
-@@ -8,14 +8,13 @@
- #include <signal.h>
- #include <time.h>
- #include <sys/time.h>
--#include "kern_util.h"
- #include "kern_constants.h"
- #include "os.h"
- #include "user.h"
- 
- int set_interval(int is_virtual)
++static cycle_t itimer_read(void)
++{
++	return os_nsecs();
++}
++
++static struct clocksource itimer_clocksource = {
++	.name		= "itimer",
++	.rating		= 300,
++	.read		= itimer_read,
++	.mask		= CLOCKSOURCE_MASK(64),
++	.mult		= 1,
++	.shift		= 0,
++	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
++};
++
+ static void __init setup_itimer(void)
  {
--	int usec = 1000000/hz();
-+	int usec = 1000000/UM_HZ;
- 	int timer_type = is_virtual ? ITIMER_VIRTUAL : ITIMER_REAL;
- 	struct itimerval interval = ((struct itimerval) { { 0, usec },
- 							  { 0, usec } });
-@@ -43,8 +42,8 @@ void disable_timer(void)
- void switch_timers(int to_real)
- {
- 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
--	struct itimerval enable = ((struct itimerval) { { 0, 1000000/hz() },
--							{ 0, 1000000/hz() }});
-+	struct itimerval enable = ((struct itimerval) { { 0, 1000000/UM_HZ },
-+							{ 0, 1000000/UM_HZ }});
- 	int old, new;
+ 	int err;
+@@ -106,6 +121,12 @@ static void __init setup_itimer(void)
+ 		printk(KERN_ERR "register_timer : request_irq failed - "
+ 		       "errno = %d\n", -err);
  
- 	if (to_real) {
++	err = clocksource_register(&itimer_clocksource);
++	if (err) {
++		printk(KERN_ERR "clocksource_register returned %d\n", err);
++		return;
++	}
++
+ 	itimer_clockevent.mult = div_sc(HZ, NSEC_PER_SEC, 32);
+ 	itimer_clockevent.max_delta_ns =
+ 		clockevent_delta2ns(60 * HZ, &itimer_clockevent);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
