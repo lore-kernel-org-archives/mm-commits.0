@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-separate-timer-initialization.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:45:26 -0700
-Message-ID: <200709210445.l8L4jQTg019100@imap1.linux-foundation.org>
+Subject: + uml-fix-timer-switching.patch added to -mm tree
+Date: Thu, 20 Sep 2007 21:45:22 -0700
+Message-ID: <200709210445.l8L4jM3C019094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58370 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751471AbXIUEqJ (ORCPT
+	by vger.kernel.org with ESMTP id S1750920AbXIUEqK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:46:09 -0400
+	Fri, 21 Sep 2007 00:46:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     uml: separate timer initialization
+     uml: fix timer switching
 has been added to the -mm tree.  Its filename is
-     uml-separate-timer-initialization.patch
+     uml-fix-timer-switching.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: separate timer initialization
+Subject: uml: fix timer switching
 From: Jeff Dike <jdike@addtoit.com>
 
-Move timer signal initialization from init_irq_signals to a new function,
-timer_init.
+Fix up the switching between virtual and real timers.  The idle loop sleeps,
+so the timer at that point must be real time.  At all other times, the timer
+must be virtual.  Even when userspace is running, and the kernel is asleep,
+the virtual timer is correct because the process timer will be running and the
+process timer will be firing.
+
+The timer switch used to be in the context switch and timer handler code. 
+This is moved to the idle loop and the signal handler, making it much more
+clear why it is happening.
+
+switch_timers now returns the old timer type so that it may be restored.  The
+signal handler uses this in order to restore the previous timer type when it
+returns.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h      |    1 +
- arch/um/kernel/time.c     |    2 ++
- arch/um/os-Linux/irq.c    |    4 ----
- arch/um/os-Linux/signal.c |   10 ++++++++++
- 4 files changed, 13 insertions(+), 4 deletions(-)
+ arch/um/include/os.h      |    2 +-
+ arch/um/kernel/process.c  |    9 ++-------
+ arch/um/os-Linux/signal.c |    9 +++------
+ arch/um/os-Linux/time.c   |   27 ++++++++++++++++++++-------
+ 4 files changed, 26 insertions(+), 21 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-separate-timer-initialization arch/um/include/os.h
---- a/arch/um/include/os.h~uml-separate-timer-initialization
+diff -puN arch/um/include/os.h~uml-fix-timer-switching arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-fix-timer-switching
 +++ a/arch/um/include/os.h
-@@ -227,6 +227,7 @@ extern int set_umid(char *name);
- extern char *get_umid(void);
+@@ -250,7 +250,7 @@ extern void os_dump_core(void);
+ /* time.c */
+ #define BILLION (1000 * 1000 * 1000)
  
- /* signal.c */
-+extern void timer_init(void);
- extern void set_sigstack(void *sig_stack, int size);
- extern void remove_sigstack(void);
- extern void set_handler(int sig, void (*handler)(int), int flags, ...);
-diff -puN arch/um/kernel/time.c~uml-separate-timer-initialization arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-separate-timer-initialization
-+++ a/arch/um/kernel/time.c
-@@ -97,6 +97,8 @@ static void register_timer(void)
- {
- 	int err;
+-extern void switch_timers(int to_real);
++extern int switch_timers(int to_real);
+ extern void idle_sleep(int secs);
+ extern int set_interval(int is_virtual);
+ extern void disable_timer(void);
+diff -puN arch/um/kernel/process.c~uml-fix-timer-switching arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-fix-timer-switching
++++ a/arch/um/kernel/process.c
+@@ -95,18 +95,11 @@ void *_switch_to(void *prev, void *next,
+ 	do {
+ 		current->thread.saved_task = NULL;
  
-+	timer_init();
-+
- 	err = request_irq(TIMER_IRQ, um_timer, IRQF_DISABLED, "timer", NULL);
- 	if (err != 0)
- 		printk(KERN_ERR "register_timer : request_irq failed - "
-diff -puN arch/um/os-Linux/irq.c~uml-separate-timer-initialization arch/um/os-Linux/irq.c
---- a/arch/um/os-Linux/irq.c~uml-separate-timer-initialization
-+++ a/arch/um/os-Linux/irq.c
-@@ -145,10 +145,6 @@ void init_irq_signals(int on_sigstack)
+-		/* XXX need to check runqueues[cpu].idle */
+-		if (current->pid == 0)
+-			switch_timers(0);
+-
+ 		switch_threads(&from->thread.switch_buf,
+ 			       &to->thread.switch_buf);
  
- 	flags = on_sigstack ? SA_ONSTACK : 0;
+ 		arch_switch_to(current->thread.prev_sched, current);
  
--	set_handler(SIGVTALRM, (__sighandler_t) alarm_handler,
--		    flags | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH, SIGALRM, -1);
--	set_handler(SIGALRM, (__sighandler_t) alarm_handler,
--		    flags | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH, SIGALRM, -1);
- 	set_handler(SIGIO, (__sighandler_t) sig_handler, flags | SA_RESTART,
- 		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
- 	signal(SIGWINCH, SIG_IGN);
-diff -puN arch/um/os-Linux/signal.c~uml-separate-timer-initialization arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-separate-timer-initialization
-+++ a/arch/um/os-Linux/signal.c
-@@ -85,6 +85,16 @@ void alarm_handler(int sig, struct sigco
- 	set_signals(enabled);
+-		if (current->pid == 0)
+-			switch_timers(1);
+-
+ 		if (current->thread.saved_task)
+ 			show_regs(&(current->thread.regs));
+ 		next= current->thread.saved_task;
+@@ -251,7 +244,9 @@ void default_idle(void)
+ 		if (need_resched())
+ 			schedule();
+ 
++		switch_timers(1);
+ 		idle_sleep(10);
++		switch_timers(0);
+ 	}
  }
  
-+void timer_init(void)
-+{
-+	set_handler(SIGVTALRM, (__sighandler_t) alarm_handler,
-+		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH,
-+		    SIGALRM, -1);
-+	set_handler(SIGALRM, (__sighandler_t) alarm_handler,
-+		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH,
-+		    SIGALRM, -1);
-+}
-+
- void set_sigstack(void *sig_stack, int size)
+diff -puN arch/um/os-Linux/signal.c~uml-fix-timer-switching arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-fix-timer-switching
++++ a/arch/um/os-Linux/signal.c
+@@ -59,17 +59,11 @@ static void real_alarm_handler(int sig, 
  {
- 	stack_t stack = ((stack_t) { .ss_flags	= 0,
+ 	struct uml_pt_regs regs;
+ 
+-	if (sig == SIGALRM)
+-		switch_timers(0);
+-
+ 	if (sc != NULL)
+ 		copy_sc(&regs, sc);
+ 	regs.is_user = 0;
+ 	unblock_signals();
+ 	timer_handler(sig, &regs);
+-
+-	if (sig == SIGALRM)
+-		switch_timers(1);
+ }
+ 
+ void alarm_handler(int sig, struct sigcontext *sc)
+@@ -116,6 +110,7 @@ void (*handlers[_NSIG])(int sig, struct 
+ void handle_signal(int sig, struct sigcontext *sc)
+ {
+ 	unsigned long pending = 1UL << sig;
++	int timer = switch_timers(0);
+ 
+ 	do {
+ 		int nested, bail;
+@@ -152,6 +147,8 @@ void handle_signal(int sig, struct sigco
+ 		if (!nested)
+ 			pending = from_irq_stack(nested);
+ 	} while (pending);
++
++	switch_timers(timer);
+ }
+ 
+ extern void hard_handler(int sig);
+diff -puN arch/um/os-Linux/time.c~uml-fix-timer-switching arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-fix-timer-switching
++++ a/arch/um/os-Linux/time.c
+@@ -12,6 +12,8 @@
+ #include "os.h"
+ #include "user.h"
+ 
++static int is_real_timer = 0;
++
+ int set_interval(int is_virtual)
+ {
+ 	int usec = 1000000/UM_HZ;
+@@ -39,12 +41,14 @@ void disable_timer(void)
+ 	signal(SIGVTALRM, SIG_IGN);
+ }
+ 
+-void switch_timers(int to_real)
++int switch_timers(int to_real)
+ {
+ 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
+-	struct itimerval enable = ((struct itimerval) { { 0, 1000000/UM_HZ },
+-							{ 0, 1000000/UM_HZ }});
+-	int old, new;
++	struct itimerval enable;
++	int old, new, old_type = is_real_timer;
++
++	if(to_real == old_type)
++		return to_real;
+ 
+ 	if (to_real) {
+ 		old = ITIMER_VIRTUAL;
+@@ -55,10 +59,19 @@ void switch_timers(int to_real)
+ 		new = ITIMER_VIRTUAL;
+ 	}
+ 
+-	if ((setitimer(old, &disable, NULL) < 0) ||
+-	    (setitimer(new, &enable, NULL)))
+-		printk(UM_KERN_ERR "switch_timers - setitimer failed, "
++	if (setitimer(old, &disable, &enable) < 0)
++		printk(UM_KERN_ERR "switch_timers - setitimer disable failed, "
++		       "errno = %d\n", errno);
++
++	if((enable.it_value.tv_sec == 0) && (enable.it_value.tv_usec == 0))
++		enable.it_value = enable.it_interval;
++
++	if (setitimer(new, &enable, NULL))
++		printk(UM_KERN_ERR "switch_timers - setitimer enable failed, "
+ 		       "errno = %d\n", errno);
++
++	is_real_timer = to_real;
++	return old_type;
+ }
+ 
+ unsigned long long os_nsecs(void)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
