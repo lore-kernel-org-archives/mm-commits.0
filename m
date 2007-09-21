@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-vs-nfs-convert-to-new-aops-fix.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:36:26 -0700
-Message-ID: <200709210636.l8L6aQIN022786@imap1.linux-foundation.org>
+Subject: + mm-per-device-dirty-threshold-fix.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:38:21 -0700
+Message-ID: <200709210638.l8L6cLjB022872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44303 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753428AbXIUGhp (ORCPT
+	by vger.kernel.org with ESMTP id S1751346AbXIUGic (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:37:45 -0400
+	Fri, 21 Sep 2007 02:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peterz@infradead.org, akpm@linux-foundation.org, nickpiggin@yahoo.com.au, trond.myklebust@fys.uio.no
+Cc: hugh@veritas.com, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     git-nfs-vs-nfs-convert-to-new-aops fix
+     mm per-device dirty threshold fix
 has been added to the -mm tree.  Its filename is
-     git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+     mm-per-device-dirty-threshold-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,128 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-vs-nfs-convert-to-new-aops fix
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: mm per-device dirty threshold fix
+From: Hugh Dickins <hugh@veritas.com>
 
-On Mon, 20 Aug 2007 15:56:10 -0700 akpm@linux-foundation.org wrote:
+Fix occasional hang when a task couldn't get out of balance_dirty_pages:
+mm-per-device-dirty-threshold.patch needs to reevaluate bdi_nr_writeback
+across all cpus when bdi_thresh is low, even in the case when there was no
+bdi_nr_reclaimable.
 
-> ------------------------------------------------------
-> Subject: git-nfs vs nfs-convert-to-new-aops
-> From: Andrew Morton <akpm@linux-foundation.org>
->
-> nfi if this is correct.  How am I supposed to know how to work out what to put
-> in `copied' in write_end?
-
-I can has broken NFS :-)
-
-nfs_write_begin wants to lock the page itself, but we pass it a locked
-page.
-
-> Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-> Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  fs/nfs/file.c |    9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->
-> diff -puN fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops fs/nfs/file.c
-> --- a/fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops
-> +++ a/fs/nfs/file.c
-> @@ -392,6 +392,7 @@ static int nfs_vm_page_mkwrite(struct vm
->  	struct file *filp = vma->vm_file;
->  	unsigned pagelen;
->  	int ret = -EINVAL;
-> +	void *fsdata;
->
->  	lock_page(page);
->  	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
-> @@ -399,9 +400,13 @@ static int nfs_vm_page_mkwrite(struct vm
->  	pagelen = nfs_page_length(page);
->  	if (pagelen == 0)
->  		goto out_unlock;
-> -	ret = nfs_prepare_write(filp, page, 0, pagelen);
-> +	ret = nfs_write_begin(filp, page->mapping,
-> +				(loff_t)page->index << PAGE_CACHE_SHIFT,
-> +				pagelen, 0, &page, &fsdata);
->  	if (!ret)
-> -		ret = nfs_commit_write(filp, page, 0, pagelen);
-> +		ret = nfs_write_end(filp, page->mapping,
-> +				(loff_t)page->index << PAGE_CACHE_SHIFT,
-> +				pagelen, pagelen, page, fsdata);
->  out_unlock:
->  	unlock_page(page);
->  	return ret;
-> _
-
-But even with this patch I deadlock on page lock, just not here
-anymore :-/
-
-/me continues the mmap write on nfs adventure...
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ mm/page-writeback.c |   53 +++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 29 deletions(-)
 
-diff -puN fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops-fix fs/nfs/file.c
---- a/fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops-fix
-+++ a/fs/nfs/file.c
-@@ -393,22 +393,34 @@ static int nfs_vm_page_mkwrite(struct vm
- 	unsigned pagelen;
- 	int ret = -EINVAL;
- 	void *fsdata;
-+	struct address_space *mapping;
-+	loff_t offset;
+diff -puN mm/page-writeback.c~mm-per-device-dirty-threshold-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-per-device-dirty-threshold-fix
++++ a/mm/page-writeback.c
+@@ -340,7 +340,7 @@ static void balance_dirty_pages(struct a
+ 		bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
+ 		bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
+ 		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-				break;
++			break;
  
- 	lock_page(page);
--	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
--		goto out_unlock;
-+	mapping = page->mapping;
-+	if (mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping) {
-+		unlock_page(page);
-+		return -EINVAL;
-+	}
- 	pagelen = nfs_page_length(page);
--	if (pagelen == 0)
--		goto out_unlock;
--	ret = nfs_write_begin(filp, page->mapping,
--				(loff_t)page->index << PAGE_CACHE_SHIFT,
--				pagelen, 0, &page, &fsdata);
--	if (!ret)
--		ret = nfs_write_end(filp, page->mapping,
--				(loff_t)page->index << PAGE_CACHE_SHIFT,
--				pagelen, pagelen, page, fsdata);
--out_unlock:
-+	offset = (loff_t)page->index << PAGE_CACHE_SHIFT;
- 	unlock_page(page);
-+
-+	/*
-+	 * we can use mapping after releasing the page lock, because:
-+	 * we hold mmap_sem on the fault path, which should pin the vma
-+	 * which should pin the file, which pins the dentry which should
-+	 * hold a reference on inode.
-+	 */
-+
-+	if (pagelen) {
-+		struct page *page2 = NULL;
-+		ret = nfs_write_begin(filp, mapping, offset, pagelen,
-+			       	0, &page2, &fsdata);
-+		if (!ret)
-+			ret = nfs_write_end(filp, mapping, offset, pagelen,
-+				       	pagelen, page2, fsdata);
-+	}
- 	return ret;
- }
+ 		if (!bdi->dirty_exceeded)
+ 			bdi->dirty_exceeded = 1;
+@@ -353,39 +353,34 @@ static void balance_dirty_pages(struct a
+ 		 */
+ 		if (bdi_nr_reclaimable) {
+ 			writeback_inodes(&wbc);
+-
++			pages_written += write_chunk - wbc.nr_to_write;
+ 			get_dirty_limits(&background_thresh, &dirty_thresh,
+ 				       &bdi_thresh, bdi);
++		}
+ 
+-			/*
+-			 * In order to avoid the stacked BDI deadlock we need
+-			 * to ensure we accurately count the 'dirty' pages when
+-			 * the threshold is low.
+-			 *
+-			 * Otherwise it would be possible to get thresh+n pages
+-			 * reported dirty, even though there are thresh-m pages
+-			 * actually dirty; with m+n sitting in the percpu
+-			 * deltas.
+-			 */
+-			if (bdi_thresh < 2*bdi_stat_error(bdi)) {
+-				bdi_nr_reclaimable =
+-					bdi_stat_sum(bdi, BDI_RECLAIMABLE);
+-				bdi_nr_writeback =
+-					bdi_stat_sum(bdi, BDI_WRITEBACK);
+-			} else {
+-				bdi_nr_reclaimable =
+-					bdi_stat(bdi, BDI_RECLAIMABLE);
+-				bdi_nr_writeback =
+-					bdi_stat(bdi, BDI_WRITEBACK);
+-			}
++		/*
++		 * In order to avoid the stacked BDI deadlock we need
++		 * to ensure we accurately count the 'dirty' pages when
++		 * the threshold is low.
++		 *
++		 * Otherwise it would be possible to get thresh+n pages
++		 * reported dirty, even though there are thresh-m pages
++		 * actually dirty; with m+n sitting in the percpu
++		 * deltas.
++		 */
++		if (bdi_thresh < 2*bdi_stat_error(bdi)) {
++			bdi_nr_reclaimable = bdi_stat_sum(bdi, BDI_RECLAIMABLE);
++			bdi_nr_writeback = bdi_stat_sum(bdi, BDI_WRITEBACK);
++		} else if (bdi_nr_reclaimable) {
++			bdi_nr_reclaimable = bdi_stat(bdi, BDI_RECLAIMABLE);
++			bdi_nr_writeback = bdi_stat(bdi, BDI_WRITEBACK);
++		}
+ 
+-			if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
+-				break;
++		if (bdi_nr_reclaimable + bdi_nr_writeback <= bdi_thresh)
++			break;
++		if (pages_written >= write_chunk)
++			break;		/* We've done our duty */
+ 
+-			pages_written += write_chunk - wbc.nr_to_write;
+-			if (pages_written >= write_chunk)
+-				break;		/* We've done our duty */
+-		}
+ 		congestion_wait(WRITE, HZ/10);
+ 	}
  
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+git-acpi.patch
+ata-increase-allowed-config-flags.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+mm-clarify-__add_to_swap_cache-locking-fix.patch
+radix-tree-use-indirect-bit.patch
+use-vm_read-write-exec-to-set-vm_page_prot.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+reiserfs-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix.patch
+affs-convert-to-new-aops-fix.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+mm-shmemc-make-3-functions-static.patch
+lib-percpu_counter_sub.patch
+mm-per-device-dirty-threshold-fix.patch
+ext2-reservations.patch
+fix-for-ext2-reservation.patch
+ext2-balloc-use-io_error-label.patch
+memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+shmem-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
+prio_tree-debugging-patch.patch
