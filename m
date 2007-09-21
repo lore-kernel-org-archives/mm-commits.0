@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-file_update_time.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:21 -0700
-Message-ID: <200709210802.l8L82LP2025724@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:19 -0700
+Message-ID: <200709210802.l8L82Jd1025718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55535 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754521AbXIUICt (ORCPT
+	by vger.kernel.org with ESMTP id S1754240AbXIUICz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:49 -0400
+	Fri, 21 Sep 2007 04:02:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for file_update_time()
+     r/o bind mounts: elevate write count for link and symlink calls
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for file_update_time()
+Subject: r/o bind mounts: elevate write count for link and symlink calls
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Acked-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ fs/namei.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time fs/inode.c
---- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time
-+++ a/fs/inode.c
-@@ -1241,10 +1241,19 @@ void file_update_time(struct file *file)
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct timespec now;
- 	int sync_it = 0;
-+	int err = 0;
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
++++ a/fs/namei.c
+@@ -2325,7 +2325,12 @@ asmlinkage long sys_symlinkat(const char
+ 	if (IS_ERR(dentry))
+ 		goto out_unlock;
  
- 	if (IS_NOCMTIME(inode))
- 		return;
--	if (IS_RDONLY(inode))
-+	/*
-+	 * Ideally, we want to guarantee that 'f_vfsmnt'
-+	 * is non-NULL here.  But, NFS exports need to
-+	 * be fixed up before we can do that.  So, check
-+	 * it for now. - Dave Hansen
-+	 */
-+	if (file->f_vfsmnt)
-+		err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
- 		return;
- 
- 	now = current_fs_time(inode->i_sb);
-@@ -1260,6 +1269,8 @@ void file_update_time(struct file *file)
- 
- 	if (sync_it)
- 		mark_inode_dirty_sync(inode);
-+	if (file->f_vfsmnt)
-+		mnt_drop_write(file->f_vfsmnt);
- }
- 
- EXPORT_SYMBOL(file_update_time);
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+@@ -2420,7 +2425,12 @@ asmlinkage long sys_linkat(int olddfd, c
+ 	error = PTR_ERR(new_dentry);
+ 	if (IS_ERR(new_dentry))
+ 		goto out_unlock;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(new_dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
