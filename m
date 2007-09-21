@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-stub-functions.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:08 -0700
-Message-ID: <200709210802.l8L828LJ025697@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-file_update_time.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:21 -0700
+Message-ID: <200709210802.l8L82LP2025724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34056 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754254AbXIUICi (ORCPT
+	by vger.kernel.org with ESMTP id S1754521AbXIUICt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:38 -0400
+	Fri, 21 Sep 2007 04:02:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de
+Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: stub functions
+     r/o bind mounts: elevate write count for file_update_time()
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-stub-functions.patch
+     r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,107 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: stub functions
+Subject: r/o bind mounts: elevate write count for file_update_time()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This patch adds two function mnt_want_write() and mnt_drop_write().  These are
-used like a lock pair around and fs operations that might cause a write to the
-filesystem.
-
-Before these can become useful, we must first cover each place in the VFS
-where writes are performed with a want/drop pair.  When that is complete, we
-can actually introduce code that will safely check the counts before allowing
-r/w<->r/o transitions to occur.
-
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   54 ++++++++++++++++++++++++++++++++++++++++
- include/linux/mount.h |    3 ++
- 2 files changed, 57 insertions(+)
+ fs/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-stub-functions fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-stub-functions
-+++ a/fs/namespace.c
-@@ -80,6 +80,60 @@ struct vfsmount *alloc_vfsmnt(const char
- 	return mnt;
+diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time fs/inode.c
+--- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time
++++ a/fs/inode.c
+@@ -1241,10 +1241,19 @@ void file_update_time(struct file *file)
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct timespec now;
+ 	int sync_it = 0;
++	int err = 0;
+ 
+ 	if (IS_NOCMTIME(inode))
+ 		return;
+-	if (IS_RDONLY(inode))
++	/*
++	 * Ideally, we want to guarantee that 'f_vfsmnt'
++	 * is non-NULL here.  But, NFS exports need to
++	 * be fixed up before we can do that.  So, check
++	 * it for now. - Dave Hansen
++	 */
++	if (file->f_vfsmnt)
++		err = mnt_want_write(file->f_vfsmnt);
++	if (err)
+ 		return;
+ 
+ 	now = current_fs_time(inode->i_sb);
+@@ -1260,6 +1269,8 @@ void file_update_time(struct file *file)
+ 
+ 	if (sync_it)
+ 		mark_inode_dirty_sync(inode);
++	if (file->f_vfsmnt)
++		mnt_drop_write(file->f_vfsmnt);
  }
  
-+/*
-+ * Most r/o checks on a fs are for operations that take
-+ * discrete amounts of time, like a write() or unlink().
-+ * We must keep track of when those operations start
-+ * (for permission checks) and when they end, so that
-+ * we can determine when writes are able to occur to
-+ * a filesystem.
-+ */
-+/**
-+ * mnt_want_write - get write access to a mount
-+ * @mnt: the mount on which to take a write
-+ *
-+ * This tells the low-level filesystem that a write is
-+ * about to be performed to it, and makes sure that
-+ * writes are allowed before returning success.  When
-+ * the write operation is finished, mnt_drop_write()
-+ * must be called.  This is effectively a refcount.
-+ */
-+int mnt_want_write(struct vfsmount *mnt)
-+{
-+	if (__mnt_is_readonly(mnt))
-+		return -EROFS;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mnt_want_write);
-+
-+/**
-+ * mnt_drop_write - give up write access to a mount
-+ * @mnt: the mount on which to give up write access
-+ *
-+ * Tells the low-level filesystem that we are done
-+ * performing writes to it.  Must be matched with
-+ * mnt_want_write() call above.
-+ */
-+void mnt_drop_write(struct vfsmount *mnt)
-+{
-+}
-+EXPORT_SYMBOL_GPL(mnt_drop_write);
-+
-+/*
-+ * __mnt_is_readonly: check whether a mount is read-only
-+ * @mnt: the mount to check for its write status
-+ *
-+ * This shouldn't be used directly ouside of the VFS.
-+ * It does not guarantee that the filesystem will stay
-+ * r/w, just that it is right *now*.  This can not and
-+ * should not be used in place of IS_RDONLY(inode).
-+ */
-+int __mnt_is_readonly(struct vfsmount *mnt)
-+{
-+	return (mnt->mnt_sb->s_flags & MS_RDONLY);
-+}
-+EXPORT_SYMBOL_GPL(__mnt_is_readonly);
-+
- int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
- {
- 	mnt->mnt_sb = sb;
-diff -puN include/linux/mount.h~r-o-bind-mounts-stub-functions include/linux/mount.h
---- a/include/linux/mount.h~r-o-bind-mounts-stub-functions
-+++ a/include/linux/mount.h
-@@ -74,9 +74,12 @@ static inline struct vfsmount *mntget(st
- 	return mnt;
- }
- 
-+extern int mnt_want_write(struct vfsmount *mnt);
-+extern void mnt_drop_write(struct vfsmount *mnt);
- extern void mntput_no_expire(struct vfsmount *mnt);
- extern void mnt_pin(struct vfsmount *mnt);
- extern void mnt_unpin(struct vfsmount *mnt);
-+extern int __mnt_is_readonly(struct vfsmount *mnt);
- 
- static inline void mntput(struct vfsmount *mnt)
- {
+ EXPORT_SYMBOL(file_update_time);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
