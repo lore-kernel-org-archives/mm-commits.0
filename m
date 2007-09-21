@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:42:53 -0700
-Message-ID: <200709210642.l8L6grUP022986@imap1.linux-foundation.org>
+Subject: + keys-missing-word-in-documentation.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:44:18 -0700
+Message-ID: <200709210644.l8L6iI7F023094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46128 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59885 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753192AbXIUGnl (ORCPT
+	by vger.kernel.org with ESMTP id S1750718AbXIUGoe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:43:41 -0400
+	Fri, 21 Sep 2007 02:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mingo@elte.hu, tglx@linutronix.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dhowells@redhat.com
 
 
 The patch titled
-     provide stubs for enable_irq_wake() and disable_irq_wake()
+     keys: missing word in documentation
 has been added to the -mm tree.  Its filename is
-     provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
+     keys-missing-word-in-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: provide stubs for enable_irq_wake() and disable_irq_wake()
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: keys: missing word in documentation
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Provide {enable,disable}_irq_wakeup dummies for undefined
-cross-compilers for platforms without CONFIG_GENERIC_IRQ.
-
-Needed by wake-up-from-a-serial-port.patch
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/keys.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/interrupt.h~provide-stubs-for-enable_irq_wake-and-disable_irq_wake include/linux/interrupt.h
---- a/include/linux/interrupt.h~provide-stubs-for-enable_irq_wake-and-disable_irq_wake
-+++ a/include/linux/interrupt.h
-@@ -205,6 +205,9 @@ static inline int disable_irq_wake(unsig
- 						enable_irq(irq)
- # endif
+diff -puN Documentation/keys.txt~keys-missing-word-in-documentation Documentation/keys.txt
+--- a/Documentation/keys.txt~keys-missing-word-in-documentation
++++ a/Documentation/keys.txt
+@@ -4,7 +4,7 @@
  
-+#define enable_irq_wake(irq) ({ (void)(irq); 0; })
-+#define disable_irq_wake(irq) ({ (void)(irq); 0; })
-+
- #endif /* CONFIG_GENERIC_HARDIRQS */
+ This service allows cryptographic keys, authentication tokens, cross-domain
+ user mappings, and similar to be cached in the kernel for the use of
+-filesystems other kernel services.
++filesystems and other kernel services.
  
- #ifndef __ARCH_SET_SOFTIRQ_PENDING
+ Keyrings are permitted; these are a special type of key that can hold links to
+ other keys. Processes each have three standard keyring subscriptions that a
 _
 
-Patches currently in -mm which might be from g.liakhovetski@gmx.de are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-powerpc.patch
-git-powerpc-galak.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+st340823a-hpa-and-libata.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
 wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-scsi-misc.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
