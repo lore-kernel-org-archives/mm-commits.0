@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-update-experimental-tags-to-reflect-reality-better.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:46:16 -0700
-Message-ID: <200709210646.l8L6kGRQ023149@imap1.linux-foundation.org>
+Subject: + libata-sff-fix-documentation.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:46:37 -0700
+Message-ID: <200709210646.l8L6kbKx023152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42379 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42779 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753238AbXIUGqh (ORCPT
+	by vger.kernel.org with ESMTP id S1753539AbXIUGrG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:46:37 -0400
+	Fri, 21 Sep 2007 02:47:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata: update experimental tags to reflect reality better
+     libata-sff: fix documentation
 has been added to the -mm tree.  Its filename is
-     libata-update-experimental-tags-to-reflect-reality-better.patch
+     libata-sff-fix-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: update experimental tags to reflect reality better
+Subject: libata-sff: fix documentation
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+Code moved to ioread/iowrite but the comment didn't.  Also note a posting
+issue.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/ata/libata-sff.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/Kconfig~libata-update-experimental-tags-to-reflect-reality-better drivers/ata/Kconfig
---- a/drivers/ata/Kconfig~libata-update-experimental-tags-to-reflect-reality-better
-+++ a/drivers/ata/Kconfig
-@@ -201,8 +201,8 @@ config PATA_AMD
- 	  If unsure, say N.
+diff -puN drivers/ata/libata-sff.c~libata-sff-fix-documentation drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~libata-sff-fix-documentation
++++ a/drivers/ata/libata-sff.c
+@@ -257,7 +257,7 @@ void ata_bmdma_start (struct ata_queued_
+ 	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
+ 	iowrite8(dmactl | ATA_DMA_START, ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
  
- config PATA_ARTOP
--	tristate "ARTOP 6210/6260 PATA support (Experimental)"
--	depends on PCI && EXPERIMENTAL
-+	tristate "ARTOP 6210/6260 PATA support"
-+	depends on PCI
- 	help
- 	  This option enables support for ARTOP PATA controllers.
+-	/* Strictly, one may wish to issue a readb() here, to
++	/* Strictly, one may wish to issue an ioread8() here, to
+ 	 * flush the mmio write.  However, control also passes
+ 	 * to the hardware at this point, and it will interrupt
+ 	 * us when we are to resume control.  So, in effect,
+@@ -267,6 +267,9 @@ void ata_bmdma_start (struct ata_queued_
+ 	 * is expected, so I think it is best to not add a readb()
+ 	 * without first all the MMIO ATA cards/mobos.
+ 	 * Or maybe I'm just being paranoid.
++	 *
++	 * FIXME: The posting of this write means I/O starts are
++	 * unneccessarily delayed for MMIO
+ 	 */
+ }
  
-@@ -218,8 +218,8 @@ config PATA_AT32
- 	  If unsure, say N.
- 
- config PATA_ATIIXP
--	tristate "ATI PATA support (Experimental)"
--	depends on PCI && EXPERIMENTAL
-+	tristate "ATI PATA support"
-+	depends on PCI
- 	help
- 	  This option enables support for the ATI ATA interfaces
- 	  found on the many ATI chipsets.
-@@ -237,8 +237,8 @@ config PATA_CMD640_PCI
- 	  If unsure, say N.
- 
- config PATA_CMD64X
--	tristate "CMD64x PATA support (Very Experimental)"
--	depends on PCI&& EXPERIMENTAL
-+	tristate "CMD64x PATA support"
-+	depends on PCI
- 	help
- 	  This option enables support for the CMD64x series chips
- 	  except for the CMD640.
-@@ -300,8 +300,8 @@ config ATA_GENERIC
- 	  If unsure, say N.
- 
- config PATA_HPT366
--	tristate "HPT 366/368 PATA support (Experimental)"
--	depends on PCI && EXPERIMENTAL
-+	tristate "HPT 366/368 PATA support"
-+	depends on PCI
- 	help
- 	  This option enables support for the HPT 366 and 368
- 	  PATA controllers via the new ATA layer.
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
