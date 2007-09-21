@@ -1,289 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-sky2-fixups.patch added to -mm tree
-Date: Fri, 21 Sep 2007 13:56:37 -0700
-Message-ID: <200709212056.l8LKub4a022378@imap1.linux-foundation.org>
+Subject: - isolate-some-explicit-usage-of-task-tgid-fix-fix.patch removed from -mm tree
+Date: Fri, 21 Sep 2007 14:04:54 -0700
+Message-ID: <200709212104.l8LL4sND023256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765248AbXIUU4k (ORCPT
+	by vger.kernel.org with ESMTP id S932377AbXIUVFf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 16:56:40 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8LKubic001021
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2007 13:56:38 -0700
+	Fri, 21 Sep 2007 17:05:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, sukadev@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-sky2-fixups
-has been added to the -mm tree.  Its filename is
-     git-net-sky2-fixups.patch
+     isolate-some-explicit-usage-of-task-tgid-fix-fix
+has been removed from the -mm tree.  Its filename was
+     isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-sky2-fixups
+Subject: isolate-some-explicit-usage-of-task-tgid-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sky2.c |  131 -------------------------------------------
- drivers/net/sky2.h |    6 -
- 2 files changed, 137 deletions(-)
+ fs/signalfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sky2.c~git-net-sky2-fixups drivers/net/sky2.c
---- a/drivers/net/sky2.c~git-net-sky2-fixups
-+++ a/drivers/net/sky2.c
-@@ -119,11 +119,8 @@ static const struct pci_device_id sky2_i
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4351) }, /* 88E8036 */
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4352) }, /* 88E8038 */
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4353) }, /* 88E8039 */
--<<<<<<< HEAD/drivers/net/sky2.c
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4354) }, /* 88E8040 */
--=======
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4356) }, /* 88E8033 */
-->>>>>>> /drivers/net/sky2.c
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4356) }, /* 88EC033 */
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x435A) }, /* 88E8048 */
- 	{ PCI_DEVICE(PCI_VENDOR_ID_MARVELL, 0x4360) }, /* 88E8052 */
-@@ -226,13 +223,9 @@ static void sky2_power_on(struct sky2_hw
- 	else
- 		sky2_write8(hw, B2_Y2_CLK_GATE, 0);
- 
--<<<<<<< HEAD/drivers/net/sky2.c
--	if (hw->flags & SKY2_HW_ADV_POWER_CTL) {
--=======
- 	if (hw->chip_id == CHIP_ID_YUKON_EC_U ||
- 	    hw->chip_id == CHIP_ID_YUKON_EX) {
- 		struct pci_dev *pdev = hw->pdev;
-->>>>>>> /drivers/net/sky2.c
- 		u32 reg;
- 
- 		pci_write_config_dword(pdev, PCI_DEV_REG3, 0);
-@@ -346,12 +339,8 @@ static void sky2_phy_init(struct sky2_hw
- 
- 	ctrl = gm_phy_read(hw, port, PHY_MARV_PHY_CTRL);
- 	if (sky2_is_copper(hw)) {
--<<<<<<< HEAD/drivers/net/sky2.c
--		if (!(hw->flags & SKY2_HW_GIGABIT)) {
--=======
- 		if (hw->chip_id == CHIP_ID_YUKON_FE ||
- 		    hw->chip_id == CHIP_ID_YUKON_FE_P) {
-->>>>>>> /drivers/net/sky2.c
- 			/* enable automatic crossover */
- 			ctrl |= PHY_M_PC_MDI_XMODE(PHY_M_PC_ENA_AUTO) >> 1;
- 		} else {
-@@ -470,11 +459,7 @@ static void sky2_phy_init(struct sky2_hw
- 
- 	gma_write16(hw, port, GM_GP_CTRL, reg);
- 
--<<<<<<< HEAD/drivers/net/sky2.c
--	if (hw->flags & SKY2_HW_GIGABIT)
--=======
- 	if (sky2_is_gigabit(hw))
-->>>>>>> /drivers/net/sky2.c
- 		gm_phy_write(hw, port, PHY_MARV_1000T_CTRL, ct1000);
- 
- 	gm_phy_write(hw, port, PHY_MARV_AUNE_ADV, adv);
-@@ -498,25 +483,6 @@ static void sky2_phy_init(struct sky2_hw
- 		gm_phy_write(hw, port, PHY_MARV_FE_LED_PAR, ctrl);
- 		break;
- 
--<<<<<<< HEAD/drivers/net/sky2.c
--	case CHIP_ID_YUKON_FE_P:
--		/* Enable Link Partner Next Page */
--		ctrl = gm_phy_read(hw, port, PHY_MARV_PHY_CTRL);
--		ctrl |= PHY_M_PC_ENA_LIP_NP;
--
--		/* disable Energy Detect and enable scrambler */
--		ctrl &= ~(PHY_M_PC_ENA_ENE_DT | PHY_M_PC_DIS_SCRAMB);
--		gm_phy_write(hw, port, PHY_MARV_PHY_CTRL, ctrl);
--
--		/* set LED2 -> ACT, LED1 -> LINK, LED0 -> SPEED */
--		ctrl = PHY_M_FELP_LED2_CTRL(LED_PAR_CTRL_ACT_BL) |
--			PHY_M_FELP_LED1_CTRL(LED_PAR_CTRL_LINK) |
--			PHY_M_FELP_LED0_CTRL(LED_PAR_CTRL_SPEED);
--
--		gm_phy_write(hw, port, PHY_MARV_FE_LED_PAR, ctrl);
--		break;
--
--=======
- 	case CHIP_ID_YUKON_FE_P:
- 		/* Enable Link Partner Next Page */
- 		ctrl |= PHY_M_PC_ENA_LIP_NP;
-@@ -533,7 +499,6 @@ static void sky2_phy_init(struct sky2_hw
- 		gm_phy_write(hw, port, PHY_MARV_FE_LED_PAR, ctrl);
- 		break;
- 
-->>>>>>> /drivers/net/sky2.c
- 	case CHIP_ID_YUKON_XL:
- 		pg = gm_phy_read(hw, port, PHY_MARV_EXT_ADR);
- 
-@@ -1777,21 +1742,12 @@ static u16 sky2_phy_speed(const struct s
- 	if (hw->flags & SKY2_HW_FIBRE_PHY)
- 		return SPEED_1000;
- 
--<<<<<<< HEAD/drivers/net/sky2.c
--	if (!(hw->flags & SKY2_HW_GIGABIT)) {
--		if (aux & PHY_M_PS_SPEED_100)
--			return SPEED_100;
--		else
--			return SPEED_10;
--	}
--=======
- 	if (!sky2_is_gigabit(hw)) {
- 		if (aux & PHY_M_PS_SPEED_100)
- 			return SPEED_100;
- 		else
- 			return SPEED_10;
+diff -puN fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix fs/signalfd.c
+--- a/fs/signalfd.c~isolate-some-explicit-usage-of-task-tgid-fix-fix
++++ a/fs/signalfd.c
+@@ -64,7 +64,7 @@ static int signalfd_lock(struct signalfd
+ 		return 0;
  	}
-->>>>>>> /drivers/net/sky2.c
  
- 	switch (aux & PHY_M_PS_SPEED_MSK) {
- 	case PHY_M_PS_SPEED_1000:
-@@ -2555,40 +2511,9 @@ static int sky2_rx_hung(struct net_devic
- static void sky2_watchdog(unsigned long arg)
- {
- 	struct sky2_hw *hw = (struct sky2_hw *) arg;
--	struct net_device *dev;
+-	if (same_thread_group(lk->tsk, current->tgid))
++	if (same_thread_group(lk->tsk, current))
+ 		lk->tsk = current;
  
--<<<<<<< HEAD/drivers/net/sky2.c
--	/* Check for lost IRQ once a second */
--	if (sky2_read32(hw, B0_ISRC)) {
--		dev = hw->dev[0];
--		if (__netif_rx_schedule_prep(dev))
--			__netif_rx_schedule(dev);
--	} else {
--		int i, active = 0;
--
--		for (i = 0; i < hw->ports; i++) {
--			dev = hw->dev[i];
--			if (!netif_running(dev))
--				continue;
--			++active;
--
--			/* For chips with Rx FIFO, check if stuck */
--			if ((hw->flags & SKY2_HW_RAMBUFFER) &&
--			     sky2_rx_hung(dev)) {
--				pr_info(PFX "%s: receiver hang detected\n",
--					dev->name);
--				schedule_work(&hw->restart_work);
--				return;
--			}
--		}
--
--		if (active == 0)
--			return;
--	}
--=======
- 	if (sky2_read32(hw, B0_ISRC))
- 		napi_schedule(&hw->napi);
-->>>>>>> /drivers/net/sky2.c
- 
- 	mod_timer(&hw->watchdog_timer, round_jiffies(jiffies + HZ));
- }
-@@ -2727,57 +2652,8 @@ static int __devinit sky2_init(struct sk
- 	sky2_write8(hw, B0_CTST, CS_RST_CLR);
- 
- 	hw->chip_id = sky2_read8(hw, B2_CHIP_ID);
--<<<<<<< HEAD/drivers/net/sky2.c
--	hw->chip_rev = (sky2_read8(hw, B2_MAC_CFG) & CFG_CHIP_R_MSK) >> 4;
--
--	switch(hw->chip_id) {
--	case CHIP_ID_YUKON_XL:
--		hw->flags = SKY2_HW_GIGABIT
--			| SKY2_HW_NEWER_PHY
--			| SKY2_HW_RAMBUFFER;
--		break;
--
--	case CHIP_ID_YUKON_EC_U:
--		hw->flags = SKY2_HW_GIGABIT
--			| SKY2_HW_NEWER_PHY
--			| SKY2_HW_ADV_POWER_CTL;
--		break;
--
--	case CHIP_ID_YUKON_EX:
--		hw->flags = SKY2_HW_GIGABIT
--			| SKY2_HW_NEWER_PHY
--			| SKY2_HW_NEW_LE
--			| SKY2_HW_ADV_POWER_CTL;
--
--		/* New transmit checksum */
--		if (hw->chip_rev != CHIP_REV_YU_EX_B0)
--			hw->flags |= SKY2_HW_AUTO_TX_SUM;
--		break;
--
--	case CHIP_ID_YUKON_EC:
--		/* This rev is really old, and requires untested workarounds */
--		if (hw->chip_rev == CHIP_REV_YU_EC_A1) {
--			dev_err(&hw->pdev->dev, "unsupported revision Yukon-EC rev A1\n");
--			return -EOPNOTSUPP;
--		}
--		hw->flags = SKY2_HW_GIGABIT | SKY2_HW_RAMBUFFER;
--		break;
--
--	case CHIP_ID_YUKON_FE:
--		hw->flags = SKY2_HW_RAMBUFFER;
--		break;
--
--	case CHIP_ID_YUKON_FE_P:
--		hw->flags = SKY2_HW_NEWER_PHY
--			| SKY2_HW_NEW_LE
--			| SKY2_HW_AUTO_TX_SUM
--			| SKY2_HW_ADV_POWER_CTL;
--		break;
--	default:
--=======
- 	if (hw->chip_id < CHIP_ID_YUKON_XL ||
- 	    hw->chip_id > CHIP_ID_YUKON_FE_P) {
-->>>>>>> /drivers/net/sky2.c
- 		dev_err(&hw->pdev->dev, "unsupported chip type 0x%x\n",
- 			hw->chip_id);
- 		return -EOPNOTSUPP;
-@@ -4344,15 +4220,8 @@ static int sky2_resume(struct pci_dev *p
- 	pci_enable_wake(pdev, PCI_D0, 0);
- 
- 	/* Re-enable all clocks */
--<<<<<<< HEAD/drivers/net/sky2.c
--	if (hw->chip_id == CHIP_ID_YUKON_EX ||
--	    hw->chip_id == CHIP_ID_YUKON_EC_U ||
--	    hw->chip_id == CHIP_ID_YUKON_FE_P)
--		sky2_pci_write32(hw, PCI_DEV_REG3, 0);
--=======
- 	if (hw->chip_id == CHIP_ID_YUKON_EX || hw->chip_id == CHIP_ID_YUKON_EC_U)
- 		pci_write_config_dword(pdev, PCI_DEV_REG3, 0);
-->>>>>>> /drivers/net/sky2.c
- 
- 	sky2_reset(hw);
- 
-diff -puN drivers/net/sky2.h~git-net-sky2-fixups drivers/net/sky2.h
---- a/drivers/net/sky2.h~git-net-sky2-fixups
-+++ a/drivers/net/sky2.h
-@@ -429,15 +429,9 @@ enum {
- 	CHIP_ID_YUKON_EX   = 0xb5, /* Chip ID for YUKON-2 Extreme */
- 	CHIP_ID_YUKON_EC   = 0xb6, /* Chip ID for YUKON-2 EC */
-  	CHIP_ID_YUKON_FE   = 0xb7, /* Chip ID for YUKON-2 FE */
--<<<<<<< HEAD/drivers/net/sky2.h
-- 	CHIP_ID_YUKON_FE_P = 0xb8, /* Chip ID for YUKON-2 FE+ */
--};
--enum yukon_ec_rev {
--=======
- 	CHIP_ID_YUKON_FE_P = 0xb8, /* Chip ID for YUKON-2 FE+ */
- };
- enum yukon_ec_rev {
-->>>>>>> /drivers/net/sky2.h
- 	CHIP_REV_YU_EC_A1    = 0,  /* Chip Rev. for Yukon-EC A1/A0 */
- 	CHIP_REV_YU_EC_A2    = 1,  /* Chip Rev. for Yukon-EC A2 */
- 	CHIP_REV_YU_EC_A3    = 2,  /* Chip Rev. for Yukon-EC A3 */
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
