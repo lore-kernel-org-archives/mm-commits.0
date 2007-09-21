@@ -1,92 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch removed from -mm tree
-Date: Fri, 21 Sep 2007 14:08:24 -0700
-Message-ID: <200709212108.l8LL8OlD023572@imap1.linux-foundation.org>
+Subject: - sound-hda-fix-help-text.patch removed from -mm tree
+Date: Fri, 21 Sep 2007 14:08:06 -0700
+Message-ID: <200709212108.l8LL86VR023544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39903 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761532AbXIUVJi (ORCPT
+	by vger.kernel.org with ESMTP id S1762337AbXIUVJq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 17:09:38 -0400
+	Fri, 21 Sep 2007 17:09:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ll_rw_blk: blk_cpu_notifier should be __cpuinitdata
+     sound/hda: fix help text
 has been removed from the -mm tree.  Its filename was
-     ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata.patch
+     sound-hda-fix-help-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ll_rw_blk: blk_cpu_notifier should be __cpuinitdata
-From: Satyam Sharma <satyam@infradead.org>
+Subject: sound/hda: fix help text
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-blk_cpu_notifier is marked as __devinitdata, but __devinitdata need not
-be __init even if HOTPLUG_CPU=n, which wastes space. It should be marked
-__cpuinitdata, and the callback itself as __cpuinit.
+Fix hda help text typo.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ sound/pci/Kconfig |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/ll_rw_blk.c~ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~ll_rw_blk-blk_cpu_notifier-should-be-__cpuinitdata
-+++ a/block/ll_rw_blk.c
-@@ -3633,7 +3633,7 @@ static void blk_done_softirq(struct soft
- 	}
- }
+diff -puN sound/pci/Kconfig~sound-hda-fix-help-text sound/pci/Kconfig
+--- a/sound/pci/Kconfig~sound-hda-fix-help-text
++++ a/sound/pci/Kconfig
+@@ -506,7 +506,7 @@ config SND_HDA_HWDEP
+ 	select SND_HWDEP
+ 	help
+ 	  Say Y here to build a hwdep interface for HD-audio driver.
+-	  This interface can be used for out-of-bound communication
++	  This interface can be used for out-of-band communication
+ 	  with codecs for debugging purposes.
  
--static int blk_cpu_notify(struct notifier_block *self, unsigned long action,
-+static int __cpuinit blk_cpu_notify(struct notifier_block *self, unsigned long action,
- 			  void *hcpu)
- {
- 	/*
-@@ -3654,7 +3654,7 @@ static int blk_cpu_notify(struct notifie
- }
- 
- 
--static struct notifier_block __devinitdata blk_cpu_notifier = {
-+static struct notifier_block blk_cpu_notifier __cpuinitdata = {
- 	.notifier_call	= blk_cpu_notify,
- };
- 
+ config SND_HDA_CODEC_REALTEK
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+git-acpi.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+git-mtd.patch
 git-net.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-git-block.patch
+git-nfsd.patch
+fix-signedness-of-parameters-in-scsi-module.patch
+git-unionfs.patch
 git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
+git-ipwireless_cs.patch
+kgdb-fix-help-text.patch
+kgdb-fix-docbook-and-kernel-doc-typos.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
 make-the-pr_-family-of-macros-in-kernelh-complete.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+doc-about-email-clients-for-linux-patches.patch
+aio-dont-confuse-debug-define-location.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+profile-likely-unlikely-macros.patch
