@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:20 -0700
-Message-ID: <200709210802.l8L82KsS025721@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-opend-files.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:10 -0700
+Message-ID: <200709210802.l8L82A8i025700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37559 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48950 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754088AbXIUICe (ORCPT
+	by vger.kernel.org with ESMTP id S1754055AbXIUICd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:34 -0400
+	Fri, 21 Sep 2007 04:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate mount count for extended attributes
+     r/o bind mounts: elevate write count open()'d files
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+     r-o-bind-mounts-elevate-write-count-opend-files.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate mount count for extended attributes
+Subject: r/o bind mounts: elevate write count open()'d files
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This basically audits the callers of xattr_permission(), which calls
-permission() and can perform writes to the filesystem.
+This is the first really tricky patch in the series.  It elevates the writer
+count on a mount each time a non-special file is opened for write.
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+This is not completely apparent in the patch because the two if() conditions
+in may_open() above the mnt_want_write() call are, combined, equivalent to
+special_file().
+
+There is also an elevated count around the vfs_create() call in open_namei(). 
+The count needs to be kept elevated all the way into the may_open() call. 
+Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
+would lead to having rw access on the newly created file, while the vfsmount
+is ro.  That is bad.
+
+Some filesystems forego the use of normal vfs calls to create struct files. 
+Make sure that these users elevate the mnt writer count because they will get
+__fput(), and we need to make sure they're balanced.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4proc.c |    7 ++++++-
- fs/xattr.c         |   16 ++++++++++++++--
- 2 files changed, 20 insertions(+), 3 deletions(-)
+ fs/file_table.c |    9 ++++++++-
+ fs/namei.c      |   20 ++++++++++++++++----
+ ipc/mqueue.c    |    3 +++
+ 3 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
-+++ a/fs/nfsd/nfs4proc.c
-@@ -658,14 +658,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
- 			return status;
- 		}
- 	}
-+	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
-+	if (status)
-+		return status;
- 	status = nfs_ok;
- 	if (setattr->sa_acl != NULL)
- 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
- 					    setattr->sa_acl);
- 	if (status)
--		return status;
-+		goto out;
- 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
- 				0, (time_t)0);
-+out:
-+	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
- 	return status;
+diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/fs/file_table.c
+@@ -193,6 +193,10 @@ int init_file(struct file *file, struct 
+ 	file->f_mapping = dentry->d_inode->i_mapping;
+ 	file->f_mode = mode;
+ 	file->f_op = fop;
++	if (mode & FMODE_WRITE) {
++		error = mnt_want_write(mnt);
++		WARN_ON(error);
++	}
+ 	return error;
  }
+ EXPORT_SYMBOL(init_file);
+@@ -230,8 +234,11 @@ void fastcall __fput(struct file *file)
+ 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
+ 		cdev_put(inode->i_cdev);
+ 	fops_put(file->f_op);
+-	if (file->f_mode & FMODE_WRITE)
++	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
++		if (!special_file(inode->i_mode))
++			mnt_drop_write(mnt);
++	}
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/fs/namei.c
+@@ -1621,8 +1621,15 @@ int may_open(struct nameidata *nd, int a
+ 			return -EACCES;
  
-diff -puN fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/xattr.c
---- a/fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
-+++ a/fs/xattr.c
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
- #include <linux/file.h>
- #include <linux/xattr.h>
-+#include <linux/mount.h>
- #include <linux/namei.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
-@@ -32,8 +33,6 @@ xattr_permission(struct inode *inode, co
- 	 * filesystem  or on an immutable / append-only inode.
- 	 */
- 	if (mask & MAY_WRITE) {
--		if (IS_RDONLY(inode))
--			return -EROFS;
- 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 			return -EPERM;
+ 		flag &= ~O_TRUNC;
+-	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
+-		return -EROFS;
++	} else if (flag & FMODE_WRITE) {
++		/*
++		 * effectively: !special_file()
++		 * balanced by __fput()
++		 */
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			return error;
++	}
+ 
+ 	error = vfs_permission(nd, acc_mode);
+ 	if (error)
+@@ -1765,14 +1772,17 @@ do_last:
  	}
-@@ -235,7 +234,11 @@ sys_setxattr(char __user *path, char __u
- 	error = user_path_walk(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.dentry, name, value, size, flags);
-+	mnt_drop_write(nd.mnt);
- 	path_release(&nd);
- 	return error;
- }
-@@ -250,7 +253,11 @@ sys_lsetxattr(char __user *path, char __
- 	error = user_path_walk_link(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.dentry, name, value, size, flags);
-+	mnt_drop_write(nd.mnt);
- 	path_release(&nd);
- 	return error;
- }
-@@ -266,9 +273,14 @@ sys_fsetxattr(int fd, char __user *name,
- 	f = fget(fd);
- 	if (!f)
- 		return error;
-+	error = mnt_want_write(f->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = f->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = setxattr(dentry, name, value, size, flags);
-+	mnt_drop_write(f->f_vfsmnt);
-+out_fput:
- 	fput(f);
- 	return error;
- }
+ 
+ 	if (IS_ERR(nd->intent.open.file)) {
+-		mutex_unlock(&dir->d_inode->i_mutex);
+ 		error = PTR_ERR(nd->intent.open.file);
+-		goto exit_dput;
++		goto exit_mutex_unlock;
+ 	}
+ 
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			goto exit_mutex_unlock;
+ 		error = open_namei_create(nd, &path, flag, mode);
++		mnt_drop_write(nd->mnt);
+ 		if (error)
+ 			goto exit;
+ 		return 0;
+@@ -1810,6 +1820,8 @@ ok:
+ 		goto exit;
+ 	return 0;
+ 
++exit_mutex_unlock:
++	mutex_unlock(&dir->d_inode->i_mutex);
+ exit_dput:
+ 	dput_path(&path, nd);
+ exit:
+diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files ipc/mqueue.c
+--- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/ipc/mqueue.c
+@@ -686,6 +686,9 @@ asmlinkage long sys_mq_open(const char _
+ 				goto out;
+ 			filp = do_open(dentry, oflag);
+ 		} else {
++			error = mnt_want_write(mqueue_mnt);
++			if (error)
++				goto out;
+ 			filp = do_create(mqueue_mnt->mnt_root, dentry,
+ 						oflag, mode, u_attr);
+ 		}
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
