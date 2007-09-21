@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-broken-netfilter-binary-sysctls-from-bridging-code.patch added to -mm tree
-Date: Fri, 21 Sep 2007 03:19:36 -0700
-Message-ID: <200709211019.l8LAJaRw030666@imap1.linux-foundation.org>
+Subject: + introduce-ext4_find_next_bit.patch added to -mm tree
+Date: Fri, 21 Sep 2007 03:21:47 -0700
+Message-ID: <200709211021.l8LALlhi030722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56668 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751958AbXIUKTw (ORCPT
+	by vger.kernel.org with ESMTP id S1754625AbXIUKV4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 06:19:52 -0400
+	Fri, 21 Sep 2007 06:21:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jfannin@gmail.com, davem@davemloft.net, ebiederm@xmission.com, kaber@trash.net
+Cc: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     Remove broken netfilter binary sysctls from bridging code
+     Introduce ext4_find_next_bit
 has been added to the -mm tree.  Its filename is
-     remove-broken-netfilter-binary-sysctls-from-bridging-code.patch
+     introduce-ext4_find_next_bit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,77 +26,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove broken netfilter binary sysctls from bridging code
-From: jfannin@gmail.com (Joseph Fannin)
+Subject: Introduce ext4_find_next_bit
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-The netfilter sysctls in the bridging code don't set strategy routines:
+Also add generic_find_next_le_bit
 
- sysctl table check failed: /net/bridge/bridge-nf-call-arptables .3.10.1 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-iptables .3.10.2 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-ip6tables .3.10.3 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-vlan-tagged .3.10.4 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-pppoe-tagged .3.10.5 Missing strategy
+This gets used by the ext4 multi block allocator patches.
 
-These binary sysctls can't work.  The binary sysctl numbers of other
-netfilter sysctls with this problem are being removed.  These need to go as
-well.
-
-Signed-off-by: Joseph Fannin <jfannin@gmail.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_netfilter.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/asm-generic/bitops/ext2-non-atomic.h |    2 
+ include/asm-generic/bitops/le.h              |    4 +
+ include/asm-powerpc/bitops.h                 |    4 +
+ include/linux/ext4_fs.h                      |    1 
+ lib/find_next_bit.c                          |   44 +++++++++++++++++
+ 5 files changed, 55 insertions(+)
 
-diff -puN net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code net/bridge/br_netfilter.c
---- a/net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code
-+++ a/net/bridge/br_netfilter.c
-@@ -904,7 +904,6 @@ int brnf_sysctl_call_tables(ctl_table * 
+diff -puN include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit include/asm-generic/bitops/ext2-non-atomic.h
+--- a/include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit
++++ a/include/asm-generic/bitops/ext2-non-atomic.h
+@@ -14,5 +14,7 @@
+ 	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
+ #define ext2_find_next_zero_bit(addr, size, off) \
+ 	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++#define ext2_find_next_bit(addr, size, off) \
++	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
  
- static ctl_table brnf_table[] = {
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_ARPTABLES,
- 		.procname	= "bridge-nf-call-arptables",
- 		.data		= &brnf_call_arptables,
- 		.maxlen		= sizeof(int),
-@@ -912,7 +911,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IPTABLES,
- 		.procname	= "bridge-nf-call-iptables",
- 		.data		= &brnf_call_iptables,
- 		.maxlen		= sizeof(int),
-@@ -920,7 +918,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IP6TABLES,
- 		.procname	= "bridge-nf-call-ip6tables",
- 		.data		= &brnf_call_ip6tables,
- 		.maxlen		= sizeof(int),
-@@ -928,7 +925,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_VLAN_TAGGED,
- 		.procname	= "bridge-nf-filter-vlan-tagged",
- 		.data		= &brnf_filter_vlan_tagged,
- 		.maxlen		= sizeof(int),
-@@ -936,7 +932,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_PPPOE_TAGGED,
- 		.procname	= "bridge-nf-filter-pppoe-tagged",
- 		.data		= &brnf_filter_pppoe_tagged,
- 		.maxlen		= sizeof(int),
+ #endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+diff -puN include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit
++++ a/include/asm-generic/bitops/le.h
+@@ -20,6 +20,8 @@
+ #define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
+ 
+ #define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++#define generic_find_next_le_bit(addr, size, offset) \
++			find_next_bit(addr, size, offset)
+ 
+ #elif defined(__BIG_ENDIAN)
+ 
+@@ -42,6 +44,8 @@
+ 
+ extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset);
++extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
+ 
+ #else
+ #error "Please fix <asm/byteorder.h>"
+diff -puN include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit
++++ a/include/asm-powerpc/bitops.h
+@@ -310,6 +310,8 @@ static __inline__ int test_le_bit(unsign
+ unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+ 				    unsigned long size, unsigned long offset);
+ 
++unsigned long generic_find_next_le_bit(const unsigned long *addr,
++				    unsigned long size, unsigned long offset);
+ /* Bitmap functions for the ext2 filesystem */
+ 
+ #define ext2_set_bit(nr,addr) \
+@@ -329,6 +331,8 @@ unsigned long generic_find_next_zero_le_
+ #define ext2_find_next_zero_bit(addr, size, off) \
+ 	generic_find_next_zero_le_bit((unsigned long*)addr, size, off)
+ 
++#define ext2_find_next_bit(addr, size, off) \
++	generic_find_next_le_bit((unsigned long *)addr, size, off)
+ /* Bitmap functions for the minix filesystem.  */
+ 
+ #define minix_test_and_set_bit(nr,addr) \
+diff -puN include/linux/ext4_fs.h~introduce-ext4_find_next_bit include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~introduce-ext4_find_next_bit
++++ a/include/linux/ext4_fs.h
+@@ -492,6 +492,7 @@ do {									       \
+ #define ext4_test_bit			ext2_test_bit
+ #define ext4_find_first_zero_bit	ext2_find_first_zero_bit
+ #define ext4_find_next_zero_bit		ext2_find_next_zero_bit
++#define ext4_find_next_bit		ext2_find_next_bit
+ 
+ /*
+  * Maximal mount counts between two filesystem checks
+diff -puN lib/find_next_bit.c~introduce-ext4_find_next_bit lib/find_next_bit.c
+--- a/lib/find_next_bit.c~introduce-ext4_find_next_bit
++++ a/lib/find_next_bit.c
+@@ -178,4 +178,48 @@ found_middle_swap:
+ 
+ EXPORT_SYMBOL(generic_find_next_zero_le_bit);
+ 
++unsigned long generic_find_next_le_bit(const unsigned long *addr, unsigned
++		long size, unsigned long offset)
++{
++	const unsigned long *p = addr + BITOP_WORD(offset);
++	unsigned long result = offset & ~(BITS_PER_LONG - 1);
++	unsigned long tmp;
++
++	if (offset >= size)
++		return size;
++	size -= result;
++	offset &= (BITS_PER_LONG - 1UL);
++	if (offset) {
++		tmp = ext2_swabp(p++);
++		tmp &= (~0UL << offset);
++		if (size < BITS_PER_LONG)
++			goto found_first;
++		if (tmp)
++			goto found_middle;
++		size -= BITS_PER_LONG;
++		result += BITS_PER_LONG;
++	}
++
++	while (size & ~(BITS_PER_LONG - 1)) {
++		tmp = *(p++);
++		if (tmp)
++			goto found_middle_swap;
++		result += BITS_PER_LONG;
++		size -= BITS_PER_LONG;
++	}
++	if (!size)
++		return result;
++	tmp = ext2_swabp(p);
++found_first:
++	tmp &= (~0UL >> (BITS_PER_LONG - size));
++	if (tmp == 0UL)		/* Are any bits set? */
++		return result + size; /* Nope. */
++found_middle:
++	return result + __ffs(tmp);
++
++found_middle_swap:
++	return result + __ffs(ext2_swab(tmp));
++}
++EXPORT_SYMBOL(generic_find_next_le_bit);
++
+ #endif /* __BIG_ENDIAN */
 _
 
-Patches currently in -mm which might be from jfannin@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-make-mv643xx_ethc-build-again.patch
-remove-broken-netfilter-binary-sysctls-from-bridging-code.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+ext4-uninitialized-block-groups.patch
+ext4-uninitialized-block-groups-fix.patch
+introduce-ext4_find_next_bit.patch
