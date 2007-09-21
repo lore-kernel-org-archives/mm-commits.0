@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:23:26 -0700
-Message-ID: <200709210723.l8L7NQFS024424@imap1.linux-foundation.org>
+Subject: + use-extended-crashkernel-command-line-on-x86_64.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:26:48 -0700
+Message-ID: <200709210726.l8L7Qmcm024513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60963 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbXIUHYA (ORCPT
+	by vger.kernel.org with ESMTP id S1752771AbXIUH1v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:24:00 -0400
+	Fri, 21 Sep 2007 03:27:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, ebiederm@xmission.com, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, serue@us.ibm.com, xemul@openvz.org
+Cc: bwalle@suse.de, ak@suse.de, ebiederm@xmission.com, vgoyal@in.ibm.com
 
 
 The patch titled
-     make-access-to-tasks-nsproxy-lighter.patch breaks unshare()
+     Use extended crashkernel command line on x86_64
 has been added to the -mm tree.  Its filename is
-     make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+     use-extended-crashkernel-command-line-on-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make-access-to-tasks-nsproxy-lighter.patch breaks unshare()
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: Use extended crashkernel command line on x86_64
+From: Bernhard Walle <bwalle@suse.de>
 
-make-access-to-tasks-nsproxy-lighter.patch breaks unshare()
+This patch removes the crashkernel parsing from
+arch/x86_64/kernel/machine_kexec.c and calls the generic function, introduced
+in the last patch, in setup_bootmem_allocator().
 
-When called from unshare(), switch_task_namespaces() takes an extra
-refcount on the nsproxy, leading to a memory leak of nsproxy objects.
+This is necessary because the amount of System RAM must be known in this
+function now because of the new syntax.
 
-Now the problem is that we still need that extra ref when called
-from daemonize(). Here's an ugly fix for it.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nsproxy.h |    5 +++++
- kernel/exit.c           |    5 ++++-
- kernel/nsproxy.c        |    9 ---------
- 3 files changed, 9 insertions(+), 10 deletions(-)
+ arch/x86_64/kernel/e820.c          |    3 +-
+ arch/x86_64/kernel/machine_kexec.c |   27 ------------------
+ arch/x86_64/kernel/setup.c         |   39 ++++++++++++++++++++++-----
+ 3 files changed, 34 insertions(+), 35 deletions(-)
 
-diff -puN include/linux/nsproxy.h~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare
-+++ a/include/linux/nsproxy.h
-@@ -77,6 +77,11 @@ static inline void put_nsproxy(struct ns
+diff -puN arch/x86_64/kernel/e820.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/e820.c
+--- a/arch/x86_64/kernel/e820.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86_64/kernel/e820.c
+@@ -226,7 +226,8 @@ void __init e820_reserve_resources(void)
+ 			request_resource(res, &code_resource);
+ 			request_resource(res, &data_resource);
+ #ifdef CONFIG_KEXEC
+-			request_resource(res, &crashk_res);
++			if (crashk_res.start != crashk_res.end)
++				request_resource(res, &crashk_res);
+ #endif
+ 		}
  	}
+diff -puN arch/x86_64/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/machine_kexec.c
+--- a/arch/x86_64/kernel/machine_kexec.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86_64/kernel/machine_kexec.c
+@@ -231,33 +231,6 @@ NORET_TYPE void machine_kexec(struct kim
+ 			image->start);
  }
  
-+static inline void get_nsproxy(struct nsproxy *ns)
-+{
-+	atomic_inc(&ns->count);
-+}
-+
- #ifdef CONFIG_CGROUP_NS
- int ns_cgroup_clone(struct task_struct *tsk);
- #else
-diff -puN kernel/exit.c~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare kernel/exit.c
---- a/kernel/exit.c~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare
-+++ a/kernel/exit.c
-@@ -408,7 +408,10 @@ void daemonize(const char *name, ...)
- 	current->fs = fs;
- 	atomic_inc(&fs->count);
- 
--	switch_task_namespaces(current, init_task.nsproxy);
-+	if (current->nsproxy != init_task.nsproxy) {
-+		get_nsproxy(init_task.nsproxy);
-+		switch_task_namespaces(current, init_task.nsproxy);
-+	}
- 
-  	exit_files(current);
- 	current->files = init_task.files;
-diff -puN kernel/nsproxy.c~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare kernel/nsproxy.c
---- a/kernel/nsproxy.c~make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare
-+++ a/kernel/nsproxy.c
-@@ -25,11 +25,6 @@ static struct kmem_cache *nsproxy_cachep
- 
- struct nsproxy init_nsproxy = INIT_NSPROXY(init_nsproxy);
- 
--static inline void get_nsproxy(struct nsproxy *ns)
+-/* crashkernel=size@addr specifies the location to reserve for
+- * a crash kernel.  By reserving this memory we guarantee
+- * that linux never set's it up as a DMA target.
+- * Useful for holding code to do something appropriate
+- * after a kernel panic.
+- */
+-static int __init setup_crashkernel(char *arg)
 -{
--	atomic_inc(&ns->count);
+-	unsigned long size, base;
+-	char *p;
+-	if (!arg)
+-		return -EINVAL;
+-	size = memparse(arg, &p);
+-	if (arg == p)
+-		return -EINVAL;
+-	if (*p == '@') {
+-		base = memparse(p+1, &p);
+-		/* FIXME: Do I want a sanity check to validate the
+-		 * memory range?  Yes you do, but it's too early for
+-		 * e820 -AK */
+-		crashk_res.start = base;
+-		crashk_res.end   = base + size - 1;
+-	}
+-	return 0;
 -}
+-early_param("crashkernel", setup_crashkernel);
 -
- /*
-  * creates a copy of "orig" with refcount 1.
-  */
-@@ -204,11 +199,7 @@ void switch_task_namespaces(struct task_
- 	might_sleep();
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+diff -puN arch/x86_64/kernel/setup.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86_64/kernel/setup.c
+@@ -196,6 +196,37 @@ static inline void copy_edd(void)
+ }
+ #endif
  
- 	ns = p->nsproxy;
--	if (ns == new)
--		return;
++#ifdef CONFIG_KEXEC
++static void __init reserve_crashkernel(void)
++{
++	unsigned long long 	free_mem;
++	unsigned long long 	crash_size, crash_base;
++	int			ret;
++
++	free_mem = max_low_pfn << PAGE_SHIFT;
++
++	ret = parse_crashkernel(boot_command_line, free_mem,
++			&crash_size, &crash_base);
++	if (ret == 0 && crash_size) {
++		if (crash_base > 0) {
++			printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
++					"for crashkernel (System RAM: %ldMB)\n",
++					(unsigned long)(crash_size >> 20),
++					(unsigned long)(crash_base >> 20),
++					(unsigned long)(free_mem >> 20));
++			crashk_res.start = crash_base;
++			crashk_res.end   = crash_base + crash_size - 1;
++			reserve_bootmem(crash_base, crash_size);
++		} else
++			printk(KERN_INFO "crashkernel reservation failed - "
++					"you have to specify a base address\n");
++	}
++}
++#else
++static inline void __init reserve_crashkernel(void)
++{}
++#endif
++
+ #define EBDA_ADDR_POINTER 0x40E
  
--	if (new)
--		get_nsproxy(new);
- 	rcu_assign_pointer(p->nsproxy, new);
+ unsigned __initdata ebda_addr;
+@@ -367,13 +398,7 @@ void __init setup_arch(char **cmdline_p)
+ 		}
+ 	}
+ #endif
+-#ifdef CONFIG_KEXEC
+-	if (crashk_res.start != crashk_res.end) {
+-		reserve_bootmem_generic(crashk_res.start,
+-			crashk_res.end - crashk_res.start + 1);
+-	}
+-#endif
+-
++	reserve_crashkernel();
+ 	paging_init();
  
- 	if (ns && atomic_dec_and_test(&ns->count)) {
+ #ifdef CONFIG_PCI
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-handle-the-multi-threaded-inits-exit-properly.patch
-ipc-namespace-remove-config-ipc-ns-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+add-vmcoreinfo.patch
+express-relocatability-of-kernel-on-x86_64-in-documentation.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+express-new-elf32-mechanisms-in-documentation.patch
+add-reset_devices-to-the-recommended-parameters.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
