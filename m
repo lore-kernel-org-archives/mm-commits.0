@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:24 -0700
-Message-ID: <200709210802.l8L82OmD025733@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:20 -0700
+Message-ID: <200709210802.l8L82KsS025721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754090AbXIUICf (ORCPT
+	by vger.kernel.org with ESMTP id S1754088AbXIUICe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:35 -0400
+	Fri, 21 Sep 2007 04:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: nfs: check mnt instead of superblock directly
+     r/o bind mounts: elevate mount count for extended attributes
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+     r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: nfs: check mnt instead of superblock directly
+Subject: r/o bind mounts: elevate mount count for extended attributes
 From: Dave Hansen <haveblue@us.ibm.com>
 
-If we depend on the inodes for writeability, we will not catch the r/o mounts
-when implemented.
-
-This patches uses __mnt_want_write().  It does not guarantee that the mount
-will stay writeable after the check.  But, this is OK for one of the checks
-because it is just for a printk().
-
-The other two are probably unnecessary and duplicate existing checks in the
-VFS.  This won't make them better checks than before, but it will make them
-detect r/o mounts.
+This basically audits the callers of xattr_permission(), which calls
+permission() and can perform writes to the filesystem.
 
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/dir.c  |    3 ++-
- fs/nfsd/vfs.c |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/nfsd/nfs4proc.c |    7 ++++++-
+ fs/xattr.c         |   16 ++++++++++++++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly fs/nfs/dir.c
---- a/fs/nfs/dir.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly
-+++ a/fs/nfs/dir.c
-@@ -997,7 +997,8 @@ static int is_atomic_open(struct inode *
- 	if (nd->flags & LOOKUP_DIRECTORY)
- 		return 0;
- 	/* Are we trying to write to a read only partition? */
--	if (IS_RDONLY(dir) && (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
-+	if (__mnt_is_readonly(nd->mnt) &&
-+	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
- 		return 0;
- 	return 1;
+diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/nfsd/nfs4proc.c
+--- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/nfsd/nfs4proc.c
+@@ -658,14 +658,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
+ 			return status;
+ 		}
+ 	}
++	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
++	if (status)
++		return status;
+ 	status = nfs_ok;
+ 	if (setattr->sa_acl != NULL)
+ 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
+ 					    setattr->sa_acl);
+ 	if (status)
+-		return status;
++		goto out;
+ 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
+ 				0, (time_t)0);
++out:
++	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
+ 	return status;
  }
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly
-+++ a/fs/nfsd/vfs.c
-@@ -1863,7 +1863,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
- 		inode->i_mode,
- 		IS_IMMUTABLE(inode)?	" immut" : "",
- 		IS_APPEND(inode)?	" append" : "",
--		IS_RDONLY(inode)?	" ro" : "");
-+		__mnt_is_readonly(exp->ex_mnt)?	" ro" : "");
- 	dprintk("      owner %d/%d user %d/%d\n",
- 		inode->i_uid, inode->i_gid, current->fsuid, current->fsgid);
- #endif
-@@ -1874,7 +1874,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 
+diff -puN fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes fs/xattr.c
+--- a/fs/xattr.c~r-o-bind-mounts-elevate-mount-count-for-extended-attributes
++++ a/fs/xattr.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/xattr.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+@@ -32,8 +33,6 @@ xattr_permission(struct inode *inode, co
+ 	 * filesystem  or on an immutable / append-only inode.
  	 */
- 	if (!(acc & MAY_LOCAL_ACCESS))
- 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
--			if (exp_rdonly(rqstp, exp) || IS_RDONLY(inode))
-+			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
- 				return nfserr_rofs;
- 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
- 				return nfserr_perm;
+ 	if (mask & MAY_WRITE) {
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+ 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 			return -EPERM;
+ 	}
+@@ -235,7 +234,11 @@ sys_setxattr(char __user *path, char __u
+ 	error = user_path_walk(path, &nd);
+ 	if (error)
+ 		return error;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
++	mnt_drop_write(nd.mnt);
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -250,7 +253,11 @@ sys_lsetxattr(char __user *path, char __
+ 	error = user_path_walk_link(path, &nd);
+ 	if (error)
+ 		return error;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		return error;
+ 	error = setxattr(nd.dentry, name, value, size, flags);
++	mnt_drop_write(nd.mnt);
+ 	path_release(&nd);
+ 	return error;
+ }
+@@ -266,9 +273,14 @@ sys_fsetxattr(int fd, char __user *name,
+ 	f = fget(fd);
+ 	if (!f)
+ 		return error;
++	error = mnt_want_write(f->f_vfsmnt);
++	if (error)
++		goto out_fput;
+ 	dentry = f->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+ 	error = setxattr(dentry, name, value, size, flags);
++	mnt_drop_write(f->f_vfsmnt);
++out_fput:
+ 	fput(f);
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
