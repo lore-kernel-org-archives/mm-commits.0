@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + userc-ifdef-mq_bytes-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2007 14:50:40 -0700
-Message-ID: <200709212156.l8LLuS5N025373@imap1.linux-foundation.org>
+Subject: + memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch added to -mm tree
+Date: Fri, 21 Sep 2007 15:13:12 -0700
+Message-ID: <200709212219.l8LMJ0Cm026218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbXIUV5I (ORCPT
+	by vger.kernel.org with ESMTP id S1757227AbXIUWUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 17:57:08 -0400
+	Fri, 21 Sep 2007 18:20:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@sw.ru
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     userc-ifdef-mq_bytes-fix
+     memory-controller-oom-handling-v7-vs-oom-killer-stuff
 has been added to the -mm tree.  Its filename is
-     userc-ifdef-mq_bytes-fix.patch
+     memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: userc-ifdef-mq_bytes-fix
+Subject: memory-controller-oom-handling-v7-vs-oom-killer-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    2 +-
+ mm/oom_kill.c              |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/sched.h~userc-ifdef-mq_bytes-fix include/linux/sched.h
-diff -puN kernel/user.c~userc-ifdef-mq_bytes-fix kernel/user.c
---- a/kernel/user.c~userc-ifdef-mq_bytes-fix
-+++ a/kernel/user.c
-@@ -140,8 +140,9 @@ struct user_struct * alloc_uid(struct us
- 		atomic_set(&new->inotify_watches, 0);
- 		atomic_set(&new->inotify_devs, 0);
- #endif
--
-+#ifdef CONFIG_POSIX_MQUEUE
- 		new->mq_bytes = 0;
-+#endif
- 		new->locked_shm = 0;
+diff -puN include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff
++++ a/include/linux/memcontrol.h
+@@ -39,7 +39,7 @@ extern unsigned long mem_cgroup_isolate_
+ 					int mode, struct zone *z,
+ 					struct mem_cgroup *mem_cont,
+ 					int active);
+-extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem);
++extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
  
- 		if (alloc_uid_keyring(new, current) < 0) {
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+diff -puN mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff mm/oom_kill.c
+--- a/mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff
++++ a/mm/oom_kill.c
+@@ -379,7 +379,7 @@ static int oom_kill_process(struct task_
+ }
+ 
+ #ifdef CONFIG_CGROUP_MEM_CONT
+-void mem_cgroup_out_of_memory(struct mem_cgroup *mem)
++void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
+ {
+ 	unsigned long points = 0;
+ 	struct task_struct *p;
+@@ -394,7 +394,8 @@ retry:
+ 	if (!p)
+ 		p = current;
+ 
+-	if (oom_kill_process(p, points, "Memory cgroup out of memory"))
++	if (oom_kill_process(p, gfp_mask, 0, points,
++				"Memory cgroup out of memory"))
+ 		goto retry;
+ out:
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -242,6 +271,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
