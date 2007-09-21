@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-slab-cleanups-3.patch added to -mm tree
-Date: Thu, 20 Sep 2007 21:53:42 -0700
-Message-ID: <200709210453.l8L4rgWI019399@imap1.linux-foundation.org>
+Subject: + fix-potential-oops-in-generic_setlease-v2.patch added to -mm tree
+Date: Thu, 20 Sep 2007 21:58:07 -0700
+Message-ID: <200709210458.l8L4w73a019551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41039 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750717AbXIUEzo (ORCPT
+	by vger.kernel.org with ESMTP id S1750850AbXIUE6V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 00:55:44 -0400
+	Fri, 21 Sep 2007 00:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com
+Cc: xemul@openvz.org, bfields@fieldses.org
 
 
 The patch titled
-     JBD slab cleanups 3
+     Fix potential OOPS in generic_setlease() (v2)
 has been added to the -mm tree.  Its filename is
-     jbd-slab-cleanups-3.patch
+     fix-potential-oops-in-generic_setlease-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,140 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: JBD slab cleanups 3
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: Fix potential OOPS in generic_setlease() (v2)
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Here is the patch to clean up __GFP_NOFAIL flag in jbd/jbd2. In all
-cases except one handles memory allocation failure so I get rid of those
-GFP_NOFAIL flags.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c      |    2 +-
- fs/jbd/transaction.c  |    3 +--
- fs/jbd2/journal.c     |    2 +-
- fs/jbd2/transaction.c |    3 +--
- 4 files changed, 4 insertions(+), 6 deletions(-)
+ fs/locks.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/jbd2/journal.c~jbd-slab-cleanups-3 fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd-slab-cleanups-3
-+++ a/fs/jbd2/journal.c
-@@ -654,7 +654,7 @@ static journal_t * journal_init_common (
- 	journal_t *journal;
- 	int err;
+diff -puN fs/locks.c~fix-potential-oops-in-generic_setlease-v2 fs/locks.c
+--- a/fs/locks.c~fix-potential-oops-in-generic_setlease-v2
++++ a/fs/locks.c
+@@ -1336,7 +1336,8 @@ int fcntl_getlease(struct file *filp)
+  */
+ int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
+ {
+-	struct file_lock *fl = NULL, **before, **my_before = NULL, *lease;
++	struct file_lock *fl, **before, **my_before = NULL, *lease;
++	struct file_lock *new_fl = NULL;
+ 	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	int error, rdlease_count = 0, wrlease_count = 0;
+@@ -1364,8 +1365,8 @@ int generic_setlease(struct file *filp, 
+ 		goto out;
  
--	journal = kmalloc(sizeof(*journal), GFP_KERNEL|__GFP_NOFAIL);
-+	journal = kmalloc(sizeof(*journal), GFP_KERNEL);
- 	if (!journal)
- 		goto fail;
- 	memset(journal, 0, sizeof(*journal));
-diff -puN fs/jbd2/transaction.c~jbd-slab-cleanups-3 fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd-slab-cleanups-3
-+++ a/fs/jbd2/transaction.c
-@@ -96,8 +96,7 @@ static int start_this_handle(journal_t *
+ 	error = -ENOMEM;
+-	fl = locks_alloc_lock();
+-	if (fl == NULL)
++	new_fl = locks_alloc_lock();
++	if (new_fl == NULL)
+ 		goto out;
  
- alloc_transaction:
- 	if (!journal->j_running_transaction) {
--		new_transaction = kmalloc(sizeof(*new_transaction),
--						GFP_NOFS|__GFP_NOFAIL);
-+		new_transaction = kmalloc(sizeof(*new_transaction), GFP_NOFS);
- 		if (!new_transaction) {
- 			ret = -ENOMEM;
- 			goto out;
-diff -puN fs/jbd/journal.c~jbd-slab-cleanups-3 fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-slab-cleanups-3
-+++ a/fs/jbd/journal.c
-@@ -653,7 +653,7 @@ static journal_t * journal_init_common (
- 	journal_t *journal;
- 	int err;
+ 	/*
+@@ -1410,16 +1411,15 @@ int generic_setlease(struct file *filp, 
+ 	if (!leases_enable)
+ 		goto out;
  
--	journal = kmalloc(sizeof(*journal), GFP_KERNEL|__GFP_NOFAIL);
-+	journal = kmalloc(sizeof(*journal), GFP_KERNEL);
- 	if (!journal)
- 		goto fail;
- 	memset(journal, 0, sizeof(*journal));
-diff -puN fs/jbd/transaction.c~jbd-slab-cleanups-3 fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-slab-cleanups-3
-+++ a/fs/jbd/transaction.c
-@@ -96,8 +96,7 @@ static int start_this_handle(journal_t *
+-	locks_copy_lock(fl, lease);
+-
+-	locks_insert_lock(before, fl);
++	locks_copy_lock(new_fl, lease);
++	locks_insert_lock(before, new_fl);
  
- alloc_transaction:
- 	if (!journal->j_running_transaction) {
--		new_transaction = kmalloc(sizeof(*new_transaction),
--						GFP_NOFS|__GFP_NOFAIL);
-+		new_transaction = kmalloc(sizeof(*new_transaction), GFP_NOFS);
- 		if (!new_transaction) {
- 			ret = -ENOMEM;
- 			goto out;
+ 	*flp = fl;
+ 	return 0;
+ 
+ out:
+-	if (fl != NULL)
+-		locks_free_lock(fl);
++	if (new_fl != NULL)
++		locks_free_lock(new_fl);
+ 	return error;
+ }
+ EXPORT_SYMBOL(generic_setlease);
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-convert-ill-defined-log2-to-ilog2.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-jbd-slab-cleanups.patch
-jbd-slab-cleanups-2.patch
-jbd-slab-cleanups-3.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-ext4-uninitialized-block-groups.patch
+fix-potential-oops-in-generic_setlease.patch
+fix-potential-oops-in-generic_setlease-v2.patch
+git-net.patch
+git-nfsd.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+isolate-some-explicit-usage-of-task-tgid-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+cleanup-macros-for-distinguishing-mandatory-locks.patch
+gfs2-cleanup-explicit-check-for-mandatory-locks.patch
+9pfs-cleanup-explicit-check-for-mandatory-locks.patch
+afs-cleanup-explicit-check-for-mandatory-locks.patch
+nfs-cleanup-explicit-check-for-mandatory-locks.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+use-list_first_entry-in-locks_wake_up_blocks.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
