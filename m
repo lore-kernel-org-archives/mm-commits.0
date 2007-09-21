@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch added to -mm tree
-Date: Fri, 21 Sep 2007 15:13:12 -0700
-Message-ID: <200709212219.l8LMJ0Cm026218@imap1.linux-foundation.org>
+Subject: + oom-do-not-take-callback_mutex-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 15:22:52 -0700
+Message-ID: <200709212228.l8LMSe9X026574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56048 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757227AbXIUWUK (ORCPT
+	by vger.kernel.org with ESMTP id S1755264AbXIUW3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 18:20:10 -0400
+	Fri, 21 Sep 2007 18:29:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, andrea@suse.de, clameter@sgi.com, rientjes@google.com
 
 
 The patch titled
-     memory-controller-oom-handling-v7-vs-oom-killer-stuff
+     oom-do-not-take-callback_mutex-fix
 has been added to the -mm tree.  Its filename is
-     memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+     oom-do-not-take-callback_mutex-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-controller-oom-handling-v7-vs-oom-killer-stuff
+Subject: oom-do-not-take-callback_mutex-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+put this back - hotplug-cpu-migrate-a-task-within-its-cpuset.patch uses it.
+
+Cc: Andrea Arcangeli <andrea@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/oom_kill.c              |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/linux/cpuset.h |    6 ++++++
+ kernel/cpuset.c        |   27 +++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff
-+++ a/include/linux/memcontrol.h
-@@ -39,7 +39,7 @@ extern unsigned long mem_cgroup_isolate_
- 					int mode, struct zone *z,
- 					struct mem_cgroup *mem_cont,
- 					int active);
--extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem);
-+extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
+diff -puN include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix include/linux/cpuset.h
+--- a/include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix
++++ a/include/linux/cpuset.h
+@@ -59,6 +59,9 @@ extern void __cpuset_memory_pressure_bum
+ extern const struct file_operations proc_cpuset_operations;
+ extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
  
- static inline void mem_cgroup_uncharge_page(struct page *page)
- {
-diff -puN mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff mm/oom_kill.c
---- a/mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff
-+++ a/mm/oom_kill.c
-@@ -379,7 +379,7 @@ static int oom_kill_process(struct task_
++extern void cpuset_lock(void);
++extern void cpuset_unlock(void);
++
+ extern int cpuset_mem_spread_node(void);
+ 
+ static inline int cpuset_do_page_mem_spread(void)
+@@ -125,6 +128,9 @@ static inline char *cpuset_task_status_a
+ 	return buffer;
  }
  
- #ifdef CONFIG_CGROUP_MEM_CONT
--void mem_cgroup_out_of_memory(struct mem_cgroup *mem)
-+void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
++static inline void cpuset_lock(void) {}
++static inline void cpuset_unlock(void) {}
++
+ static inline int cpuset_mem_spread_node(void)
  {
- 	unsigned long points = 0;
- 	struct task_struct *p;
-@@ -394,7 +394,8 @@ retry:
- 	if (!p)
- 		p = current;
+ 	return 0;
+diff -puN kernel/cpuset.c~oom-do-not-take-callback_mutex-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~oom-do-not-take-callback_mutex-fix
++++ a/kernel/cpuset.c
+@@ -2521,6 +2521,33 @@ int __cpuset_zone_allowed_hardwall(struc
+ }
  
--	if (oom_kill_process(p, points, "Memory cgroup out of memory"))
-+	if (oom_kill_process(p, gfp_mask, 0, points,
-+				"Memory cgroup out of memory"))
- 		goto retry;
- out:
- 	rcu_read_unlock();
+ /**
++ * cpuset_lock - lock out any changes to cpuset structures
++ *
++ * The out of memory (oom) code needs to mutex_lock cpusets
++ * from being changed while it scans the tasklist looking for a
++ * task in an overlapping cpuset.  Expose callback_mutex via this
++ * cpuset_lock() routine, so the oom code can lock it, before
++ * locking the task list.  The tasklist_lock is a spinlock, so
++ * must be taken inside callback_mutex.
++ */
++
++void cpuset_lock(void)
++{
++	mutex_lock(&callback_mutex);
++}
++
++/**
++ * cpuset_unlock - release lock on cpuset changes
++ *
++ * Undo the lock taken in a previous cpuset_lock() call.
++ */
++
++void cpuset_unlock(void)
++{
++	mutex_unlock(&callback_mutex);
++}
++
++/**
+  * cpuset_mem_spread_node() - On which node to begin search for a page
+  *
+  * If a task is marked PF_SPREAD_PAGE or PF_SPREAD_SLAB (as for
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -198,6 +219,7 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
