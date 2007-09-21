@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:18 -0700
-Message-ID: <200709210802.l8L82IcY025715@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-stub-functions.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:08 -0700
+Message-ID: <200709210802.l8L828LJ025697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50533 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34002 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754279AbXIUICj (ORCPT
+	by vger.kernel.org with ESMTP id S1754254AbXIUICi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:39 -0400
+	Fri, 21 Sep 2007 04:02:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     r/o bind mounts: elevate write count during entire ncp_ioctl()
+     r/o bind mounts: stub functions
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+     r-o-bind-mounts-stub-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
+Subject: r/o bind mounts: stub functions
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Some ioctls need write access, but others don't.  Make a helper function to
-decide when write access is needed, and take it.
+This patch adds two function mnt_want_write() and mnt_drop_write().  These are
+used like a lock pair around and fs operations that might cause a write to the
+filesystem.
+
+Before these can become useful, we must first cover each place in the VFS
+where writes are performed with a want/drop pair.  When that is complete, we
+can actually introduce code that will safely check the counts before allowing
+r/w<->r/o transitions to occur.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   54 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 53 insertions(+), 1 deletion(-)
+ fs/namespace.c        |   54 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/mount.h |    3 ++
+ 2 files changed, 57 insertions(+)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
+diff -puN fs/namespace.c~r-o-bind-mounts-stub-functions fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-stub-functions
++++ a/fs/namespace.c
+@@ -80,6 +80,60 @@ struct vfsmount *alloc_vfsmnt(const char
+ 	return mnt;
  }
- #endif /* CONFIG_NCPFS_NLS */
  
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
++/*
++ * Most r/o checks on a fs are for operations that take
++ * discrete amounts of time, like a write() or unlink().
++ * We must keep track of when those operations start
++ * (for permission checks) and when they end, so that
++ * we can determine when writes are able to occur to
++ * a filesystem.
++ */
++/**
++ * mnt_want_write - get write access to a mount
++ * @mnt: the mount on which to take a write
++ *
++ * This tells the low-level filesystem that a write is
++ * about to be performed to it, and makes sure that
++ * writes are allowed before returning success.  When
++ * the write operation is finished, mnt_drop_write()
++ * must be called.  This is effectively a refcount.
++ */
++int mnt_want_write(struct vfsmount *mnt)
++{
++	if (__mnt_is_readonly(mnt))
++		return -EROFS;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mnt_want_write);
++
++/**
++ * mnt_drop_write - give up write access to a mount
++ * @mnt: the mount on which to give up write access
++ *
++ * Tells the low-level filesystem that we are done
++ * performing writes to it.  Must be matched with
++ * mnt_want_write() call above.
++ */
++void mnt_drop_write(struct vfsmount *mnt)
++{
++}
++EXPORT_SYMBOL_GPL(mnt_drop_write);
++
++/*
++ * __mnt_is_readonly: check whether a mount is read-only
++ * @mnt: the mount to check for its write status
++ *
++ * This shouldn't be used directly ouside of the VFS.
++ * It does not guarantee that the filesystem will stay
++ * r/w, just that it is right *now*.  This can not and
++ * should not be used in place of IS_RDONLY(inode).
++ */
++int __mnt_is_readonly(struct vfsmount *mnt)
++{
++	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++}
++EXPORT_SYMBOL_GPL(__mnt_is_readonly);
++
+ int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
  {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -822,6 +823,57 @@ outrel:			
- 	return -EINVAL;
+ 	mnt->mnt_sb = sb;
+diff -puN include/linux/mount.h~r-o-bind-mounts-stub-functions include/linux/mount.h
+--- a/include/linux/mount.h~r-o-bind-mounts-stub-functions
++++ a/include/linux/mount.h
+@@ -74,9 +74,12 @@ static inline struct vfsmount *mntget(st
+ 	return mnt;
  }
  
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+	}
-+	return 1;
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
-+		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
-+		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++extern int mnt_want_write(struct vfsmount *mnt);
++extern void mnt_drop_write(struct vfsmount *mnt);
+ extern void mntput_no_expire(struct vfsmount *mnt);
+ extern void mnt_pin(struct vfsmount *mnt);
+ extern void mnt_unpin(struct vfsmount *mnt);
++extern int __mnt_is_readonly(struct vfsmount *mnt);
+ 
+ static inline void mntput(struct vfsmount *mnt)
  {
 _
 
