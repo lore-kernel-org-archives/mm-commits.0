@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-new-export-ops.patch added to -mm tree
-Date: Thu, 20 Sep 2007 17:13:09 -0700
-Message-ID: <200709210013.l8L0D9KZ009755__22711.986830882$1190333659$gmane$org@imap1.linux-foundation.org>
+Subject: + efs-new-export-ops.patch added to -mm tree
+Date: Thu, 20 Sep 2007 17:13:13 -0700
+Message-ID: <200709210013.l8L0DDC0009764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751364AbXIUAOH (ORCPT
+	by vger.kernel.org with ESMTP id S1752129AbXIUAOQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 20:14:07 -0400
+	Thu, 20 Sep 2007 20:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, linux-ext4@vger.kernel.org, neilb@suse.de
+Cc: hch@lst.de, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     ext3: new export ops
+     efs: new export ops
 has been added to the -mm tree.  Its filename is
-     ext3-new-export-ops.patch
+     efs-new-export-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: new export ops
+Subject: efs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
 Trivial switch over to the new generic helpers.
@@ -34,23 +34,33 @@ Trivial switch over to the new generic helpers.
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   35 ++++++++++++++++++++---------------
- 1 files changed, 20 insertions(+), 15 deletions(-)
+ fs/efs/namei.c         |   36 ++++++++++++++++++++----------------
+ fs/efs/super.c         |    3 ++-
+ include/linux/efs_fs.h |    6 +++++-
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-new-export-ops fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-new-export-ops
-+++ a/fs/ext3/super.c
-@@ -631,13 +631,10 @@ static int ext3_show_options(struct seq_
+diff -puN fs/efs/namei.c~efs-new-export-ops fs/efs/namei.c
+--- a/fs/efs/namei.c~efs-new-export-ops
++++ a/fs/efs/namei.c
+@@ -10,6 +10,8 @@
+ #include <linux/string.h>
+ #include <linux/efs_fs.h>
+ #include <linux/smp_lock.h>
++#include <linux/exportfs.h>
++
+ 
+ static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
+ 	struct buffer_head *bh;
+@@ -75,13 +77,10 @@ struct dentry *efs_lookup(struct inode *
+ 	return NULL;
  }
  
- 
--static struct dentry *ext3_get_dentry(struct super_block *sb, void *vobjp)
-+static struct inode *ext3_nfs_get_inode(struct super_block *sb,
-+		u64 ino, u32 generation)
+-struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *efs_nfs_get_inode(struct super_block *sb, u64 ino,
++		u32 generation)
  {
 -	__u32 *objp = vobjp;
 -	unsigned long ino = objp[0];
@@ -58,51 +68,81 @@ diff -puN fs/ext3/super.c~ext3-new-export-ops fs/ext3/super.c
  	struct inode *inode;
 -	struct dentry *result;
  
- 	if (ino < EXT3_FIRST_INO(sb) && ino != EXT3_ROOT_INO)
+ 	if (ino == 0)
  		return ERR_PTR(-ESTALE);
-@@ -660,15 +657,22 @@ static struct dentry *ext3_get_dentry(st
- 		iput(inode);
- 		return ERR_PTR(-ESTALE);
+@@ -91,20 +90,25 @@ struct dentry *efs_get_dentry(struct sup
+ 
+ 	if (is_bad_inode(inode) ||
+ 	    (generation && inode->i_generation != generation)) {
+-	    	result = ERR_PTR(-ESTALE);
+-		goto out_iput;
++		iput(inode);
++		return ERR_PTR(-ESTALE);
  	}
--	/* now to find a dentry.
--	 * If possible, get a well-connected one
--	 */
+ 
 -	result = d_alloc_anon(inode);
 -	if (!result) {
--		iput(inode);
--		return ERR_PTR(-ENOMEM);
+-		result = ERR_PTR(-ENOMEM);
+-		goto out_iput;
 -	}
 -	return result;
-+
 +	return inode;
 +}
-+
-+static struct dentry *ext3_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 
+- out_iput:
+-	iput(inode);
+-	return result;
++struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
 +		int fh_len, int fh_type)
 +{
 +	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    ext3_nfs_get_inode);
++				    efs_nfs_get_inode);
 +}
 +
-+static struct dentry *ext3_fh_to_parent(struct super_block *sb, struct fid *fid,
++struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
 +		int fh_len, int fh_type)
 +{
 +	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    ext3_nfs_get_inode);
++				    efs_nfs_get_inode);
  }
  
- #ifdef CONFIG_QUOTA
-@@ -738,8 +742,9 @@ static const struct super_operations ext
+ struct dentry *efs_get_parent(struct dentry *child)
+diff -puN fs/efs/super.c~efs-new-export-ops fs/efs/super.c
+--- a/fs/efs/super.c~efs-new-export-ops
++++ a/fs/efs/super.c
+@@ -114,7 +114,8 @@ static const struct super_operations efs
  };
  
- static struct export_operations ext3_export_ops = {
-+	.fh_to_dentry = ext3_fh_to_dentry,
-+	.fh_to_parent = ext3_fh_to_parent,
- 	.get_parent = ext3_get_parent,
--	.get_dentry = ext3_get_dentry,
+ static struct export_operations efs_export_ops = {
+-	.get_dentry	= efs_get_dentry,
++	.fh_to_dentry	= efs_fh_to_dentry,
++	.fh_to_parent	= efs_fh_to_parent,
+ 	.get_parent	= efs_get_parent,
  };
  
- enum {
+diff -puN include/linux/efs_fs.h~efs-new-export-ops include/linux/efs_fs.h
+--- a/include/linux/efs_fs.h~efs-new-export-ops
++++ a/include/linux/efs_fs.h
+@@ -35,6 +35,7 @@ static inline struct efs_sb_info *SUPER_
+ }
+ 
+ struct statfs;
++struct fid;
+ 
+ extern const struct inode_operations efs_dir_inode_operations;
+ extern const struct file_operations efs_dir_operations;
+@@ -45,7 +46,10 @@ extern efs_block_t efs_map_block(struct 
+ extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ 
+ extern struct dentry *efs_lookup(struct inode *, struct dentry *, struct nameidata *);
+-extern struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp);
++extern struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
++extern struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
+ extern struct dentry *efs_get_parent(struct dentry *);
+ extern int efs_bmap(struct inode *, int);
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
