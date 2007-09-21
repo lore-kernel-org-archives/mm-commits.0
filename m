@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2007 03:18:45 -0700
-Message-ID: <200709211018.l8LAIj64030631@imap1.linux-foundation.org>
+Subject: + remove-broken-netfilter-binary-sysctls-from-bridging-code.patch added to -mm tree
+Date: Fri, 21 Sep 2007 03:19:36 -0700
+Message-ID: <200709211019.l8LAJaRw030666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47340 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752868AbXIUKSw (ORCPT
+	by vger.kernel.org with ESMTP id S1751958AbXIUKTw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 06:18:52 -0400
+	Fri, 21 Sep 2007 06:19:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+Cc: jfannin@gmail.com, davem@davemloft.net, ebiederm@xmission.com, kaber@trash.net
 
 
 The patch titled
-     eCryptfs: Convert mmap functions to use persistent file (fix)
+     Remove broken netfilter binary sysctls from bridging code
 has been added to the -mm tree.  Its filename is
-     ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
+     remove-broken-netfilter-binary-sysctls-from-bridging-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: eCryptfs: Convert mmap functions to use persistent file (fix)
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: Remove broken netfilter binary sysctls from bridging code
+From: jfannin@gmail.com (Joseph Fannin)
 
-On Wed, Sep 19, 2007 at 10:50:57PM -0700, Andrew Morton wrote:
-> On Mon, 17 Sep 2007 16:50:16 -0500 Michael Halcrow <mhalcrow@us.ibm.com> wrote:
-> > +ecryptfs_copy_up_encrypted_with_header(struct page *page,
-> > +				       struct ecryptfs_crypt_stat *crypt_stat)
-> > +{
-...
-> > +			flush_dcache_page(page);
-> > +			if (rc) {
-> > +				ClearPageUptodate(page);
-> > +				printk(KERN_ERR "%s: Error reading xattr "
-> > +				       "region; rc = [%d]\n", __FUNCTION__, rc);
-> > +				goto out;
-> > +			}
-> > +			SetPageUptodate(page);
->
-> I don't know what sort of page `page' refers to here, but normally we only
-> manipulate the page uptodate status under lock_page().
+The netfilter sysctls in the bridging code don't set strategy routines:
 
-This is the page that eCryptfs gets via
-ecryptfs_aops->ecryptfs_readpage(), so this should be okay. The
-comment should make the fact that the page is locked explicit.
+ sysctl table check failed: /net/bridge/bridge-nf-call-arptables .3.10.1 Missing strategy
+ sysctl table check failed: /net/bridge/bridge-nf-call-iptables .3.10.2 Missing strategy
+ sysctl table check failed: /net/bridge/bridge-nf-call-ip6tables .3.10.3 Missing strategy
+ sysctl table check failed: /net/bridge/bridge-nf-filter-vlan-tagged .3.10.4 Missing strategy
+ sysctl table check failed: /net/bridge/bridge-nf-filter-pppoe-tagged .3.10.5 Missing strategy
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+These binary sysctls can't work.  The binary sysctl numbers of other
+netfilter sysctls with this problem are being removed.  These need to go as
+well.
+
+Signed-off-by: Joseph Fannin <jfannin@gmail.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/bridge/br_netfilter.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-convert-mmap-functions-to-use-persistent-file-fix fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-convert-mmap-functions-to-use-persistent-file-fix
-+++ a/fs/ecryptfs/mmap.c
-@@ -270,7 +270,7 @@ static void set_header_info(char *page_v
-  * ecryptfs_copy_up_encrypted_with_header
-  * @page: Sort of a ``virtual'' representation of the encrypted lower
-  *        file. The actual lower file does not have the metadata in
-- *        the header.
-+ *        the header. This is locked.
-  * @crypt_stat: The eCryptfs inode's cryptographic context
-  *
-  * The ``view'' is the version of the file that userspace winds up
+diff -puN net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code net/bridge/br_netfilter.c
+--- a/net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code
++++ a/net/bridge/br_netfilter.c
+@@ -904,7 +904,6 @@ int brnf_sysctl_call_tables(ctl_table * 
+ 
+ static ctl_table brnf_table[] = {
+ 	{
+-		.ctl_name	= NET_BRIDGE_NF_CALL_ARPTABLES,
+ 		.procname	= "bridge-nf-call-arptables",
+ 		.data		= &brnf_call_arptables,
+ 		.maxlen		= sizeof(int),
+@@ -912,7 +911,6 @@ static ctl_table brnf_table[] = {
+ 		.proc_handler	= &brnf_sysctl_call_tables,
+ 	},
+ 	{
+-		.ctl_name	= NET_BRIDGE_NF_CALL_IPTABLES,
+ 		.procname	= "bridge-nf-call-iptables",
+ 		.data		= &brnf_call_iptables,
+ 		.maxlen		= sizeof(int),
+@@ -920,7 +918,6 @@ static ctl_table brnf_table[] = {
+ 		.proc_handler	= &brnf_sysctl_call_tables,
+ 	},
+ 	{
+-		.ctl_name	= NET_BRIDGE_NF_CALL_IP6TABLES,
+ 		.procname	= "bridge-nf-call-ip6tables",
+ 		.data		= &brnf_call_ip6tables,
+ 		.maxlen		= sizeof(int),
+@@ -928,7 +925,6 @@ static ctl_table brnf_table[] = {
+ 		.proc_handler	= &brnf_sysctl_call_tables,
+ 	},
+ 	{
+-		.ctl_name	= NET_BRIDGE_NF_FILTER_VLAN_TAGGED,
+ 		.procname	= "bridge-nf-filter-vlan-tagged",
+ 		.data		= &brnf_filter_vlan_tagged,
+ 		.maxlen		= sizeof(int),
+@@ -936,7 +932,6 @@ static ctl_table brnf_table[] = {
+ 		.proc_handler	= &brnf_sysctl_call_tables,
+ 	},
+ 	{
+-		.ctl_name	= NET_BRIDGE_NF_FILTER_PPPOE_TAGGED,
+ 		.procname	= "bridge-nf-filter-pppoe-tagged",
+ 		.data		= &brnf_filter_pppoe_tagged,
+ 		.maxlen		= sizeof(int),
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from jfannin@gmail.com are
 
-git-unionfs.patch
-fs-remove-some-aop_truncated_page.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
-ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
-ecryptfs-fix-tag-1-parsing-code.patch
-ecryptfs-fix-tag-3-parsing-code.patch
-ecryptfs-fix-tag-11-parsing-code.patch
-ecryptfs-fix-tag-11-writing-code.patch
-ecryptfs-update-comment-and-debug-statement.patch
-ecryptfs-printk-warning-fixes.patch
-ecryptfs-remove-unnecessary-bug_on.patch
-ecryptfs-collapse-flag-set-into-one-statement.patch
-ecryptfs-grammatical-fix-destruct-to-destroy.patch
-ecryptfs-comments-for-some-structs.patch
-ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
-ecryptfs-remove-unnecessary-variable-initializations.patch
-ecryptfs-make-needlessly-global-symbols-static.patch
-ecryptfs-use-generic_file_splice_read.patch
-ecryptfs-remove-header_extent_size.patch
-ecryptfs-remove-assignments-in-if-statements.patch
-ecryptfs-read_writec-routines.patch
-ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
-ecryptfs-set-up-and-destroy-persistent-lower-file.patch
-ecryptfs-update-metadata-read-write-functions.patch
-ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
-ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
-ecryptfs-remove-unused-functions-and-kmem_cache.patch
-ecryptfs-replace-magic-numbers.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+make-mv643xx_ethc-build-again.patch
+remove-broken-netfilter-binary-sysctls-from-bridging-code.patch
