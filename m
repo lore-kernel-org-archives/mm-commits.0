@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + keys-missing-word-in-documentation.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:44:18 -0700
-Message-ID: <200709210644.l8L6iI7F023094@imap1.linux-foundation.org>
+Subject: + pata_acpi-use-ata_sff_port_start.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:45:53 -0700
+Message-ID: <200709210645.l8L6jrhB023134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59885 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750718AbXIUGoe (ORCPT
+	by vger.kernel.org with ESMTP id S1751403AbXIUGqP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:44:34 -0400
+	Fri, 21 Sep 2007 02:46:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dhowells@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     keys: missing word in documentation
+     pata_acpi: use ata_sff_port_start
 has been added to the -mm tree.  Its filename is
-     keys-missing-word-in-documentation.patch
+     pata_acpi-use-ata_sff_port_start.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: keys: missing word in documentation
+Subject: pata_acpi: use ata_sff_port_start
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+Purely a stylistic issue currently but best done while I notice it.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/keys.txt |    2 +-
+ drivers/ata/pata_acpi.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/keys.txt~keys-missing-word-in-documentation Documentation/keys.txt
---- a/Documentation/keys.txt~keys-missing-word-in-documentation
-+++ a/Documentation/keys.txt
-@@ -4,7 +4,7 @@
+diff -puN drivers/ata/pata_acpi.c~pata_acpi-use-ata_sff_port_start drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~pata_acpi-use-ata_sff_port_start
++++ a/drivers/ata/pata_acpi.c
+@@ -270,7 +270,7 @@ static int pacpi_port_start(struct ata_p
+ 	acpi->mask[0] = pacpi_discover_modes(ap, &ap->device[0]);
+ 	acpi->mask[1] = pacpi_discover_modes(ap, &ap->device[1]);
  
- This service allows cryptographic keys, authentication tokens, cross-domain
- user mappings, and similar to be cached in the kernel for the use of
--filesystems other kernel services.
-+filesystems and other kernel services.
+-	ret = ata_port_start(ap);
++	ret = ata_sff_port_start(ap);
+ 	if (ret < 0)
+ 		return ret;
  
- Keyrings are permitted; these are a special type of key that can hold links to
- other keys. Processes each have three standard keyring subscriptions that a
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 git-libata-all.patch
 pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+pata_acpi-use-ata_sff_port_start.patch
 libata-correct-handling-of-srst-reset-sequences.patch
 libata-add-a-drivers-ide-style-dma-disable.patch
 ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
 drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-update-experimental-tags-to-reflect-reality-better.patch
+libata-sff-fix-documentation.patch
 st340823a-hpa-and-libata.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
