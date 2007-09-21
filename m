@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata-update-the-blacklist-with-a-few-more-devices.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:56:44 -0700
-Message-ID: <200709210656.l8L6uiO7023476@imap1.linux-foundation.org>
+Subject: + libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:57:53 -0700
+Message-ID: <200709210657.l8L6vrfc023485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbXIUG5G (ORCPT
+	by vger.kernel.org with ESMTP id S1751129AbXIUG6K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:57:06 -0400
+	Fri, 21 Sep 2007 02:58:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata: update the blacklist with a few more devices
+     libata: add a horkage entry for DRQ mishandling (atapi tapes)
 has been added to the -mm tree.  Its filename is
-     libata-update-the-blacklist-with-a-few-more-devices.patch
+     libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: update the blacklist with a few more devices
+Subject: libata: add a horkage entry for DRQ mishandling (atapi tapes)
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+This will allow us to handle the tape drive problems Mark Lord reported
+
+On Thu, 20 Sep 2007 22:42:17 +0100 Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+
+> > According to information I have received, some ATA (and possibly ATAPI?) 
+> > devices intentionally return some data in these cases.  In the case of 
+> > certain ATA devices, this returned data permits inspection of the 
+> > incorrected data.
+> 
+> News to me. ATA like ST-506/ST-412 exposes error data on I/O READ/WRITE
+> via the READ_BUFFER functionality but its basically useless without a lot
+> of knowledge of the drive on anything post ST-412 era.
+> 
+> Got any references ?
+> 
+> The other possibility is to whine but accept it happens - on the other
+> hand being lax about HSM errors is asking for corruption and it seems
+> to be unique to this tape device.
+> 
+> (and someone please don't tell me early pre ATAPI standard devices are
+> trying to return the sense data in this way or I'll be ill)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/ata/libata-core.c |    9 +++++++--
+ include/linux/libata.h    |    1 +
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-update-the-blacklist-with-a-few-more-devices drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-update-the-blacklist-with-a-few-more-devices
+diff -puN drivers/ata/libata-core.c~libata-add-a-horkage-entry-for-drq-mishandling-atapi drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-add-a-horkage-entry-for-drq-mishandling-atapi
 +++ a/drivers/ata/libata-core.c
-@@ -3899,6 +3899,9 @@ static const struct ata_blacklist_entry 
- 	{ "Maxtor 6L250S0",     "BANC1G10",     ATA_HORKAGE_NONCQ },
- 	{ "Maxtor 6B200M0",	"BANC1BM0",	ATA_HORKAGE_NONCQ },
- 	{ "Maxtor 6B200M0",	"BANC1B10",	ATA_HORKAGE_NONCQ },
-+	{ "Maxtor 7B250S0",	"BANC1B70",	ATA_HORKAGE_NONCQ, },
-+	{ "Maxtor 7B300S0",	"BANC1B70",	ATA_HORKAGE_NONCQ },
-+	{ "Maxtor 7V300F0",	"VA111630",	ATA_HORKAGE_NONCQ },
- 	{ "HITACHI HDS7250SASUN500G 0621KTAWSD", "K2AOAJ0AHITACHI",
- 	 ATA_HORKAGE_NONCQ },
- 	/* NCQ hard hangs device under heavier load, needs hard power cycle */
-@@ -3915,6 +3918,7 @@ static const struct ata_blacklist_entry 
- 	{ "WDC WD740ADFD-00NLR1", NULL,		ATA_HORKAGE_NONCQ, },
- 	{ "FUJITSU MHV2080BH",	"00840028",	ATA_HORKAGE_NONCQ, },
- 	{ "ST9160821AS",	"3.CLF",	ATA_HORKAGE_NONCQ, },
-+	{ "ST3160812AS",	"3.AD",		ATA_HORKAGE_NONCQ, },
- 	{ "SAMSUNG HD401LJ",	"ZZ100-15",	ATA_HORKAGE_NONCQ, },
+@@ -5097,8 +5097,13 @@ fsm_start:
+ 		if (unlikely(status & (ATA_ERR | ATA_DF))) {
+ 			ata_port_printk(ap, KERN_WARNING, "DRQ=1 with device "
+ 					"error, dev_stat 0x%X\n", status);
+-			qc->err_mask |= AC_ERR_HSM;
+-			ap->hsm_task_state = HSM_ST_ERR;
++
++			/* Some tape drives muck this up so don't explode
++			   in those cases */
++			if (!(qc->dev->horkage & ATA_HORKAGE_DRQ)) {
++				qc->err_mask |= AC_ERR_HSM;
++				ap->hsm_task_state = HSM_ST_ERR;
++			}
+ 			goto fsm_start;
+ 		}
  
- 	/* devices which puke on READ_NATIVE_MAX */
-@@ -3925,6 +3929,7 @@ static const struct ata_blacklist_entry 
+diff -puN include/linux/libata.h~libata-add-a-horkage-entry-for-drq-mishandling-atapi include/linux/libata.h
+--- a/include/linux/libata.h~libata-add-a-horkage-entry-for-drq-mishandling-atapi
++++ a/include/linux/libata.h
+@@ -316,6 +316,7 @@ enum {
+ 	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
+ 	ATA_HORKAGE_BROKEN_HPA	= (1 << 4),	/* Broken HPA */
+ 	ATA_HORKAGE_HPA_SIZE	= (1 << 5), 	/* Reports native size off by one */
++	ATA_HORKAGE_DRQ		= (1 << 6),	/* Device forgets to clear DRQ on error */
  
- 	/* Devices which report 1 sector over size HPA */
- 	{ "ST340823A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
-+	{ "ST320413A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
- 
- 	/* End Marker */
- 	{ }
+ 	/* DMA mask for user DMA control: User visible values do not
+ 	   renumber */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -81,6 +105,7 @@ libata-update-experimental-tags-to-reflect-reality-better.patch
 libata-sff-fix-documentation.patch
 st340823a-hpa-and-libata.patch
 libata-update-the-blacklist-with-a-few-more-devices.patch
+libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
 introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
 pcmcia-use-dma_mask_none-for-the-default-for-all.patch
