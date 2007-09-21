@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-make-access-use-mnt-check.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:15 -0700
-Message-ID: <200709210802.l8L82Ff2025709@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:02 -0700
+Message-ID: <200709210802.l8L822kT025688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35396 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754037AbXIUIC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753816AbXIUICc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:27 -0400
+	Fri, 21 Sep 2007 04:02:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org
+Cc: haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     r/o bind mounts: make access() use mnt check
+     r/o bind mounts: rearrange may_open() to be r/o friendly
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-make-access-use-mnt-check.patch
+     r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: make access() use mnt check
+Subject: r/o bind mounts: rearrange may_open() to be r/o friendly
 From: Dave Hansen <haveblue@us.ibm.com>
 
-It is OK to let access() go without using a mnt_want/drop_write() pair because
-it doesn't actually do writes to the filesystem, and it is inherently racy
-anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
-directly.
+may_open() calls vfs_permission() before it does checks for IS_RDONLY(inode). 
+It checks _again_ inside of vfs_permission().
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+The check inside of vfs_permission() is going away eventually.  With the
+mnt_want/drop_write() functions, all of the r/o checks (except for this one)
+are consistently done before calling permission().  Because of this, I'd like
+to use permission() to hold a debugging check to make sure that the
+mnt_want/drop_write() calls are actually being made.
+
+So, to do this:
+1. remove the IS_RDONLY() check from permission()
+2. enforce that you must mnt_want_write() before
+   even calling permission()
+3. actually add the debugging check to permission()
+
+We need to rearrange may_open() to do r/o checks before calling permission(). 
+Here's the patch.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/namei.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
---- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
-+++ a/fs/open.c
-@@ -457,8 +457,17 @@ asmlinkage long sys_faccessat(int dfd, c
- 	if(res || !(mode & S_IWOTH) ||
- 	   special_file(nd.dentry->d_inode->i_mode))
- 		goto out_path_release;
--
--	if(IS_RDONLY(nd.dentry->d_inode))
-+	/*
-+	 * This is a rare case where using __mnt_is_readonly()
-+	 * is OK without a mnt_want/drop_write() pair.  Since
-+	 * no actual write to the fs is performed here, we do
-+	 * not need to telegraph to that to anyone.
-+	 *
-+	 * By doing this, we accept that this access is
-+	 * inherently racy and know that the fs may change
-+	 * state before we even see this result.
-+	 */
-+	if (__mnt_is_readonly(nd.mnt))
- 		res = -EROFS;
+diff -puN fs/namei.c~r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly
++++ a/fs/namei.c
+@@ -1605,10 +1605,6 @@ int may_open(struct nameidata *nd, int a
+ 	if (S_ISDIR(inode->i_mode) && (flag & FMODE_WRITE))
+ 		return -EISDIR;
  
- out_path_release:
+-	error = vfs_permission(nd, acc_mode);
+-	if (error)
+-		return error;
+-
+ 	/*
+ 	 * FIFO's, sockets and device files are special: they don't
+ 	 * actually live on the filesystem itself, and as such you
+@@ -1623,6 +1619,10 @@ int may_open(struct nameidata *nd, int a
+ 		flag &= ~O_TRUNC;
+ 	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
+ 		return -EROFS;
++
++	error = vfs_permission(nd, acc_mode);
++	if (error)
++		return error;
+ 	/*
+ 	 * An append-only file must be opened in append mode for writing.
+ 	 */
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
