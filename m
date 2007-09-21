@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-opend-files.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:10 -0700
-Message-ID: <200709210802.l8L82A8i025700@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:14 -0700
+Message-ID: <200709210802.l8L82Ebg025706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48950 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754055AbXIUICd (ORCPT
+	by vger.kernel.org with ESMTP id S1754112AbXIUICg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:02:33 -0400
+	Fri, 21 Sep 2007 04:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count open()'d files
+     r/o bind mounts: elevate writer count for chown and friends
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-opend-files.patch
+     r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,142 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count open()'d files
+Subject: r/o bind mounts: elevate writer count for chown and friends
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This is the first really tricky patch in the series.  It elevates the writer
-count on a mount each time a non-special file is opened for write.
+chown/chmod,etc...  don't call permission in the same way that the normal
+"open for write" calls do.  They still write to the filesystem, so bump the
+write count during these operations.
 
-This is not completely apparent in the patch because the two if() conditions
-in may_open() above the mnt_want_write() call are, combined, equivalent to
-special_file().
-
-There is also an elevated count around the vfs_create() call in open_namei(). 
-The count needs to be kept elevated all the way into the may_open() call. 
-Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
-would lead to having rw access on the newly created file, while the vfsmount
-is ro.  That is bad.
-
-Some filesystems forego the use of normal vfs calls to create struct files. 
-Make sure that these users elevate the mnt writer count because they will get
-__fput(), and we need to make sure they're balanced.
+This conflicts with the current (~2.6.23-rc7) audit git tree in -mm. 
+wiggle'ing the patch merges it.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    9 ++++++++-
- fs/namei.c      |   20 ++++++++++++++++----
- ipc/mqueue.c    |    3 +++
- 3 files changed, 27 insertions(+), 5 deletions(-)
+ fs/open.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files
-+++ a/fs/file_table.c
-@@ -193,6 +193,10 @@ int init_file(struct file *file, struct 
- 	file->f_mapping = dentry->d_inode->i_mapping;
- 	file->f_mode = mode;
- 	file->f_op = fop;
-+	if (mode & FMODE_WRITE) {
-+		error = mnt_want_write(mnt);
-+		WARN_ON(error);
-+	}
- 	return error;
- }
- EXPORT_SYMBOL(init_file);
-@@ -230,8 +234,11 @@ void fastcall __fput(struct file *file)
- 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
- 		cdev_put(inode->i_cdev);
- 	fops_put(file->f_op);
--	if (file->f_mode & FMODE_WRITE)
-+	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
-+		if (!special_file(inode->i_mode))
-+			mnt_drop_write(mnt);
-+	}
- 	put_pid(file->f_owner.pid);
- 	file_kill(file);
- 	file->f_path.dentry = NULL;
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files
-+++ a/fs/namei.c
-@@ -1621,8 +1621,15 @@ int may_open(struct nameidata *nd, int a
- 			return -EACCES;
+diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends
++++ a/fs/open.c
+@@ -571,12 +571,12 @@ asmlinkage long sys_fchmod(unsigned int 
  
- 		flag &= ~O_TRUNC;
--	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
--		return -EROFS;
-+	} else if (flag & FMODE_WRITE) {
-+		/*
-+		 * effectively: !special_file()
-+		 * balanced by __fput()
-+		 */
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			return error;
-+	}
+ 	audit_inode(NULL, dentry);
  
- 	error = vfs_permission(nd, acc_mode);
+-	err = -EROFS;
+-	if (IS_RDONLY(inode))
++	err = mnt_want_write(file->f_vfsmnt);
++	if (err)
+ 		goto out_putf;
+ 	err = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+-		goto out_putf;
++		goto out_drop_write;
+ 	mutex_lock(&inode->i_mutex);
+ 	if (mode == (mode_t) -1)
+ 		mode = inode->i_mode;
+@@ -585,6 +585,8 @@ asmlinkage long sys_fchmod(unsigned int 
+ 	err = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ 
++out_drop_write:
++	mnt_drop_write(file->f_vfsmnt);
+ out_putf:
+ 	fput(file);
+ out:
+@@ -604,13 +606,13 @@ asmlinkage long sys_fchmodat(int dfd, co
+ 		goto out;
+ 	inode = nd.dentry->d_inode;
+ 
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(nd.mnt);
++	if (error)
+ 		goto dput_and_out;
+ 
+ 	error = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+-		goto dput_and_out;
++		goto out_drop_write;
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 	if (mode == (mode_t) -1)
+@@ -620,6 +622,8 @@ asmlinkage long sys_fchmodat(int dfd, co
+ 	error = notify_change(nd.dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ 
++out_drop_write:
++	mnt_drop_write(nd.mnt);
+ dput_and_out:
+ 	path_release(&nd);
+ out:
+@@ -642,9 +646,6 @@ static int chown_common(struct dentry * 
+ 		printk(KERN_ERR "chown_common: NULL inode\n");
+ 		goto out;
+ 	}
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
+-		goto out;
+ 	error = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 		goto out;
+@@ -675,7 +676,12 @@ asmlinkage long sys_chown(const char __u
+ 	error = user_path_walk(filename, &nd);
  	if (error)
-@@ -1765,14 +1772,17 @@ do_last:
- 	}
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -695,7 +701,12 @@ asmlinkage long sys_fchownat(int dfd, co
+ 	error = __user_walk_fd(dfd, filename, follow, &nd);
+ 	if (error)
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -709,7 +720,12 @@ asmlinkage long sys_lchown(const char __
+ 	error = user_path_walk_link(filename, &nd);
+ 	if (error)
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -726,9 +742,14 @@ asmlinkage long sys_fchown(unsigned int 
+ 	if (!file)
+ 		goto out;
  
- 	if (IS_ERR(nd->intent.open.file)) {
--		mutex_unlock(&dir->d_inode->i_mutex);
- 		error = PTR_ERR(nd->intent.open.file);
--		goto exit_dput;
-+		goto exit_mutex_unlock;
- 	}
- 
- 	/* Negative dentry, just create the file */
- 	if (!path.dentry->d_inode) {
-+		error = mnt_want_write(nd->mnt);
-+		if (error)
-+			goto exit_mutex_unlock;
- 		error = open_namei_create(nd, &path, flag, mode);
-+		mnt_drop_write(nd->mnt);
- 		if (error)
- 			goto exit;
- 		return 0;
-@@ -1810,6 +1820,8 @@ ok:
- 		goto exit;
- 	return 0;
- 
-+exit_mutex_unlock:
-+	mutex_unlock(&dir->d_inode->i_mutex);
- exit_dput:
- 	dput_path(&path, nd);
- exit:
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files
-+++ a/ipc/mqueue.c
-@@ -686,6 +686,9 @@ asmlinkage long sys_mq_open(const char _
- 				goto out;
- 			filp = do_open(dentry, oflag);
- 		} else {
-+			error = mnt_want_write(mqueue_mnt);
-+			if (error)
-+				goto out;
- 			filp = do_create(mqueue_mnt->mnt_root, dentry,
- 						oflag, mode, u_attr);
- 		}
++	error = mnt_want_write(file->f_vfsmnt);
++	if (error)
++		goto out_fput;
+ 	dentry = file->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+ 	error = chown_common(dentry, user, group);
++	mnt_drop_write(file->f_vfsmnt);
++out_fput:
+ 	fput(file);
+ out:
+ 	return error;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
