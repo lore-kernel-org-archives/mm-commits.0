@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-add-the-mcp79-support-to-hda_intel-driver.patch added to -mm tree
-Date: Fri, 21 Sep 2007 03:31:49 -0700
-Message-ID: <200709211031.l8LAVnPG031078@imap1.linux-foundation.org>
+Subject: + acpi-sbs-fix-sbs-add-alarm-patch.patch added to -mm tree
+Date: Fri, 21 Sep 2007 03:46:24 -0700
+Message-ID: <200709211046.l8LAkOE8031578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755170AbXIUKcX (ORCPT
+	by vger.kernel.org with ESMTP id S1751151AbXIUKql (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 06:32:23 -0400
+	Fri, 21 Sep 2007 06:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peerchen@gmail.com, perex@suse.cz, tiwai@suse.de
+Cc: astarikovskiy@suse.de, lenb@kernel.org
 
 
 The patch titled
-     alsa: add the MCP79 support to hda_intel driver
+     ACPI: SBS: fix sbs add alarm patch
 has been added to the -mm tree.  Its filename is
-     alsa-add-the-mcp79-support-to-hda_intel-driver.patch
+     acpi-sbs-fix-sbs-add-alarm-patch.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alsa: add the MCP79 support to hda_intel driver
-From: "Peer Chen" <peerchen@gmail.com>
+Subject: ACPI: SBS: fix sbs add alarm patch
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Add the MCP73/MCP77 support to hda driver.
-The patch base on kernel 2.6.22-rc4
+drivers/acpi/sbs.c: In function \u2018acpi_battery_alarm_show\u2019:
+drivers/acpi/sbs.c:457: error: implicit declaration of function \u2018acpi_battery_get_alarm\u2019
+drivers/acpi/sbs.c: In function \u2018acpi_battery_alarm_store\u2019:
+drivers/acpi/sbs.c:472: error: implicit declaration of function \u2018acpi_battery_set_alarm\u2019
+drivers/acpi/sbs.c: In function \u2018acpi_battery_add\u2019:
 
-Signed-off-by: Peer Chen <peerchen@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/sbs.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN sound/pci/hda/hda_intel.c~alsa-add-the-mcp79-support-to-hda_intel-driver sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~alsa-add-the-mcp79-support-to-hda_intel-driver
-+++ a/sound/pci/hda/hda_intel.c
-@@ -1959,6 +1959,10 @@ static struct pci_device_id azx_ids[] = 
- 	{ 0x10de, 0x0775, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP77 */
- 	{ 0x10de, 0x0776, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP77 */
- 	{ 0x10de, 0x0777, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP77 */
-+	{ 0x10de, 0x0ac0, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP79 */
-+	{ 0x10de, 0x0ac1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP79 */
-+	{ 0x10de, 0x0ac2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP79 */
-+	{ 0x10de, 0x0ac3, PCI_ANY_ID, PCI_ANY_ID, 0, 0, AZX_DRIVER_NVIDIA }, /* NVIDIA MCP79 */
- 	{ 0, }
- };
- MODULE_DEVICE_TABLE(pci, azx_ids);
+diff -puN drivers/acpi/sbs.c~acpi-sbs-fix-sbs-add-alarm-patch drivers/acpi/sbs.c
+--- a/drivers/acpi/sbs.c~acpi-sbs-fix-sbs-add-alarm-patch
++++ a/drivers/acpi/sbs.c
+@@ -395,8 +395,6 @@ static int acpi_battery_get_state(struct
+ 	return result;
+ }
+ 
+-#ifdef CONFIG_ACPI_PROCFS
+-
+ static int acpi_battery_get_alarm(struct acpi_battery *battery)
+ {
+ 	return acpi_smbus_read(battery->sbs->hc, SMBUS_READ_WORD,
+@@ -433,8 +431,6 @@ static int acpi_battery_set_alarm(struct
+ 	return ret;
+ }
+ 
+-#endif
+-
+ static int acpi_ac_get_present(struct acpi_sbs *sbs)
+ {
+ 	int result;
 _
 
-Patches currently in -mm which might be from peerchen@gmail.com are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-alsa-add-the-mcp79-support-to-hda_intel-driver.patch
-ahci-enable-ghcae-bit-before-set-ghchr.patch
-ahci-enable-ghcae-bit-before-set-ghchr-fix.patch
-ahci-add-mcp79-support-to-ahci-driver.patch
+git-acpi.patch
+acpi-sbs-fix-sbs-add-alarm-patch.patch
+acpi-suspend-consolidate-handling-of-sx-states.patch
