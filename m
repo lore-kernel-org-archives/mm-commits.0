@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-new-export-ops.patch added to -mm tree
-Date: Thu, 20 Sep 2007 17:13:21 -0700
-Message-ID: <200709210013.l8L0DLFV009776@imap1.linux-foundation.org>
+Subject: + shmem-new-export-ops.patch added to -mm tree
+Date: Thu, 20 Sep 2007 17:13:25 -0700
+Message-ID: <200709210013.l8L0DPlR009782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37105 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbXIUASe (ORCPT
+	by vger.kernel.org with ESMTP id S1751378AbXIUASh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Sep 2007 20:18:34 -0400
+	Thu, 20 Sep 2007 20:18:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, neilb@suse.de
+Cc: hch@lst.de, bfields@fieldses.org, hugh@veritas.com, neilb@suse.de
 
 
 The patch titled
-     fat: new export ops
+     shmem: new export ops
 has been added to the -mm tree.  Its filename is
-     fat-new-export-ops.patch
+     shmem-new-export-ops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fat: new export ops
+Subject: shmem: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-Very little changes here, fat had a mostly no op decode_fh before and does not
-store any parent information.
+I'm not sure what people were thinking when adding support to export tmpfs,
+but here's the conversion anyway:
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   24 +++++++-----------------
- 1 files changed, 7 insertions(+), 17 deletions(-)
+ mm/shmem.c |   35 +++++++++++++----------------------
+ 1 files changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN fs/fat/inode.c~fat-new-export-ops fs/fat/inode.c
---- a/fs/fat/inode.c~fat-new-export-ops
-+++ a/fs/fat/inode.c
-@@ -653,24 +653,15 @@ static const struct super_operations fat
-  * of i_logstart is used to store the directory entry offset.
-  */
- 
--static struct dentry *
--fat_decode_fh(struct super_block *sb, __u32 *fh, int len, int fhtype,
--	      int (*acceptable)(void *context, struct dentry *de),
--	      void *context)
--{
--	if (fhtype != 3)
--		return ERR_PTR(-ESTALE);
--	if (len < 5)
--		return ERR_PTR(-ESTALE);
--
--	return sb->s_export_op->find_exported_dentry(sb, fh, NULL, acceptable, context);
--}
--
--static struct dentry *fat_get_dentry(struct super_block *sb, void *inump)
-+static struct dentry *fat_fh_to_dentry(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
- {
- 	struct inode *inode = NULL;
- 	struct dentry *result;
--	__u32 *fh = inump;
-+	u32 *fh = fid->raw;
-+
-+	if (fh_len < 5 || fh_type != 3)
-+		return NULL;
- 
- 	inode = iget(sb, fh[0]);
- 	if (!inode || is_bad_inode(inode) || inode->i_generation != fh[1]) {
-@@ -784,9 +775,8 @@ out:
+diff -puN mm/shmem.c~shmem-new-export-ops mm/shmem.c
+--- a/mm/shmem.c~shmem-new-export-ops
++++ a/mm/shmem.c
+@@ -2020,33 +2020,25 @@ static int shmem_match(struct inode *ino
+ 	return ino->i_ino == inum && fh[0] == ino->i_generation;
  }
  
- static struct export_operations fat_export_ops = {
--	.decode_fh	= fat_decode_fh,
- 	.encode_fh	= fat_encode_fh,
--	.get_dentry	= fat_get_dentry,
-+	.fh_to_dentry	= fat_fh_to_dentry,
- 	.get_parent	= fat_get_parent,
+-static struct dentry *shmem_get_dentry(struct super_block *sb, void *vfh)
++static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
+ {
+-	struct dentry *de = NULL;
+ 	struct inode *inode;
+-	__u32 *fh = vfh;
+-	__u64 inum = fh[2];
+-	inum = (inum << 32) | fh[1];
++	struct dentry *dentry = NULL;
++	u64 inum = fid->raw[2];
++	inum = (inum << 32) | fid->raw[1];
+ 
+-	inode = ilookup5(sb, (unsigned long)(inum+fh[0]), shmem_match, vfh);
++	if (fh_len < 3)
++		return NULL;
++
++	inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
++			shmem_match, fid->raw);
+ 	if (inode) {
+-		de = d_find_alias(inode);
++		dentry = d_find_alias(inode);
+ 		iput(inode);
+ 	}
+ 
+-	return de? de: ERR_PTR(-ESTALE);
+-}
+-
+-static struct dentry *shmem_decode_fh(struct super_block *sb, __u32 *fh,
+-		int len, int type,
+-		int (*acceptable)(void *context, struct dentry *de),
+-		void *context)
+-{
+-	if (len < 3)
+-		return ERR_PTR(-ESTALE);
+-
+-	return sb->s_export_op->find_exported_dentry(sb, fh, NULL, acceptable,
+-							context);
++	return dentry;
+ }
+ 
+ static int shmem_encode_fh(struct dentry *dentry, __u32 *fh, int *len,
+@@ -2081,9 +2073,8 @@ static int shmem_encode_fh(struct dentry
+ 
+ static struct export_operations shmem_export_ops = {
+ 	.get_parent     = shmem_get_parent,
+-	.get_dentry     = shmem_get_dentry,
+ 	.encode_fh      = shmem_encode_fh,
+-	.decode_fh      = shmem_decode_fh,
++	.fh_to_dentry	= shmem_fh_to_dentry,
  };
  
+ static int shmem_parse_options(char *options, int *mode, uid_t *uid,
 _
 
 Patches currently in -mm which might be from hch@lst.de are
