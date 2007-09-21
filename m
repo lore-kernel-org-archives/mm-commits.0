@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-suspend-consolidate-handling-of-sx-states.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:32:14 -0700
-Message-ID: <200709210732.l8L7WEAx024688@imap1.linux-foundation.org>
+Subject: + patch-getrusage-return-ru_maxrss.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:34:41 -0700
+Message-ID: <200709210734.l8L7Yf1q024811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51399 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39423 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753392AbXIUHdH (ORCPT
+	by vger.kernel.org with ESMTP id S1750718AbXIUHfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:33:07 -0400
+	Fri, 21 Sep 2007 03:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: astarikovskiy@suse.de, akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl
+Cc: fmayhar@google.com, oleg@tv-sign.ru, riel@redhat.com
 
 
 The patch titled
-     ACPI: suspend: consolidate handling of Sx states.
+     getrusage: return ru_maxrss
 has been added to the -mm tree.  Its filename is
-     acpi-suspend-consolidate-handling-of-sx-states.patch
+     patch-getrusage-return-ru_maxrss.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,217 +26,151 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: suspend: consolidate handling of Sx states.
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: getrusage: return ru_maxrss
+From: Frank Mayhar <fmayhar@google.com>
 
-Recent changes to sleep initialization in ACPI dropped reporting of
-supported Sx states above S3.  Fix that and also move S5 init into same
-file as other Sx.  The only functional change is adding printk() for S4 and
-S5 cases.
+Properly support the ru_maxrss field of the rusage structure returned by
+getrusage().  This patch includes documentation both of the getrusage()
+implementation in general and of the ru_maxrss implementation specifically.
+ This implementation matches that of FreeBSD, which is the only other OS of
+which I'm aware that implements this field.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Like a number of other folks, we recently had a need for a non-/proc way of
+getting the RSS of a process and happened on getrusage().  Unlike the rest,
+though, we fixed the system call to do what we want.  I wrote a wrong
+implementation and submitted it while I was sick; this time I took my time
+and I think I got it right.
+
+A test program that has been run against a number of systems (of which
+only FreeBSD and Linux 2.6 with this patch applied passed) is also
+available at
+	http://www.exit.com/Archives/Linux/
+
+Signed-off-by: Frank Mayhar <fmayhar@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/Makefile   |    2 
- drivers/acpi/sleep/main.c     |   53 ++++++++++++++++++++--
- drivers/acpi/sleep/poweroff.c |   75 --------------------------------
- 3 files changed, 49 insertions(+), 81 deletions(-)
+ include/linux/sched.h |    3 +++
+ kernel/exit.c         |   21 +++++++++++++++++++++
+ kernel/fork.c         |    2 ++
+ kernel/sys.c          |    5 +++++
+ 4 files changed, 31 insertions(+)
 
-diff -puN drivers/acpi/sleep/main.c~acpi-suspend-consolidate-handling-of-sx-states drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~acpi-suspend-consolidate-handling-of-sx-states
-+++ a/drivers/acpi/sleep/main.c
-@@ -15,6 +15,9 @@
- #include <linux/dmi.h>
- #include <linux/device.h>
- #include <linux/suspend.h>
-+
-+#include <asm/io.h>
-+
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
- #include "sleep.h"
-@@ -57,6 +60,27 @@ static int acpi_pm_set_target(suspend_st
- 	return error;
- }
+diff -puN include/linux/sched.h~patch-getrusage-return-ru_maxrss include/linux/sched.h
+--- a/include/linux/sched.h~patch-getrusage-return-ru_maxrss
++++ a/include/linux/sched.h
+@@ -449,6 +449,7 @@ struct signal_struct {
+ 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
+ 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
+ 	unsigned long inblock, oublock, cinblock, coublock;
++	unsigned long cmaxrss;
  
-+int acpi_sleep_prepare(u32 acpi_state)
-+{
-+#ifdef CONFIG_ACPI_SLEEP
-+	/* do we have a wakeup address for S2 and S3? */
-+	if (acpi_state == ACPI_STATE_S3) {
-+		if (!acpi_wakeup_address) {
-+			return -EFAULT;
-+		}
-+		acpi_set_firmware_waking_vector((acpi_physical_address)
-+						virt_to_phys((void *)
-+							     acpi_wakeup_address));
-+
-+	}
-+	ACPI_FLUSH_CPU_CACHE();
-+	acpi_enable_wakeup_device_prep(acpi_state);
-+#endif
-+	acpi_gpe_sleep_prepare(acpi_state);
-+	acpi_enter_sleep_state_prep(acpi_state);
-+	return 0;
-+}
-+
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-  *	@pm_state: ignored
-@@ -355,6 +379,20 @@ int acpi_pm_device_sleep_state(struct de
- 	return d_max;
- }
+ 	/*
+ 	 * Cumulative ns of scheduled CPU time for dead threads in the
+@@ -942,6 +943,8 @@ struct task_struct {
+ 	struct timespec real_start_time;	/* boot based time */
+ /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
+ 	unsigned long min_flt, maj_flt;
++/* maxrss gets the hiwater_rss in do_exit() */
++	unsigned long maxrss;
  
-+static void acpi_power_off_prepare(void)
-+{
-+	/* Prepare to power off the system */
-+	acpi_sleep_prepare(ACPI_STATE_S5);
-+}
-+
-+static void acpi_power_off(void)
-+{
-+	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
-+	printk("%s called\n", __FUNCTION__);
-+	local_irq_disable();
-+	acpi_enter_sleep_state(ACPI_STATE_S5);
-+}
-+
- int __init acpi_sleep_init(void)
- {
- 	acpi_status status;
-@@ -368,8 +406,8 @@ int __init acpi_sleep_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
-+printk(KERN_INFO PREFIX "(supports");
- #ifdef CONFIG_SUSPEND
--	printk(KERN_INFO PREFIX "(supports");
- 	for (i = ACPI_STATE_S0; i < ACPI_STATE_S4; i++) {
- 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
- 		if (ACPI_SUCCESS(status)) {
-@@ -377,7 +415,6 @@ int __init acpi_sleep_init(void)
- 			printk(" S%d", i);
- 		}
+   	cputime_t it_prof_expires, it_virt_expires;
+ 	unsigned long long it_sched_expires;
+diff -puN kernel/exit.c~patch-getrusage-return-ru_maxrss kernel/exit.c
+--- a/kernel/exit.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/exit.c
+@@ -125,6 +125,8 @@ static void __exit_signal(struct task_st
+ 		sig->inblock += task_io_get_inblock(tsk);
+ 		sig->oublock += task_io_get_oublock(tsk);
+ 		sig->sum_sched_runtime += tsk->se.sum_exec_runtime;
++		if (tsk->maxrss > sig->cmaxrss)
++			sig->cmaxrss = tsk->maxrss;
+ 		sig = NULL; /* Marker for below. */
  	}
--	printk(")\n");
  
- 	pm_set_ops(&acpi_pm_ops);
- #endif
-@@ -387,10 +424,16 @@ int __init acpi_sleep_init(void)
- 	if (ACPI_SUCCESS(status)) {
- 		hibernation_set_ops(&acpi_hibernation_ops);
- 		sleep_states[ACPI_STATE_S4] = 1;
-+		printk(" S4");
+@@ -947,6 +949,14 @@ fastcall NORET_TYPE void do_exit(long co
+ 	if (tsk->mm) {
+ 		update_hiwater_rss(tsk->mm);
+ 		update_hiwater_vm(tsk->mm);
++		BUG_ON(tsk->maxrss != 0);
++		/*
++		 * Store the hiwater_rss in a task field, since when we need
++		 * it in __exit_signal() the mm structure is gone; we can't
++		 * stuff it in the signal structure since then we would be
++		 * racing with wait_task_zombie().
++		 */
++		tsk->maxrss = tsk->mm->hiwater_rss;
  	}
--#else
--	sleep_states[ACPI_STATE_S4] = 0;
- #endif
--
-+	status = acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
-+	if (ACPI_SUCCESS(status)) {
-+		sleep_states[ACPI_STATE_S5] = 1;
-+		printk(" S5");
-+		pm_power_off_prepare = acpi_power_off_prepare;
-+		pm_power_off = acpi_power_off;
-+	}
-+	printk(")\n");
- 	return 0;
- }
-diff -puN drivers/acpi/sleep/Makefile~acpi-suspend-consolidate-handling-of-sx-states drivers/acpi/sleep/Makefile
---- a/drivers/acpi/sleep/Makefile~acpi-suspend-consolidate-handling-of-sx-states
-+++ a/drivers/acpi/sleep/Makefile
-@@ -1,4 +1,4 @@
--obj-y					:= poweroff.o wakeup.o
-+obj-y					:= wakeup.o
- obj-$(CONFIG_ACPI_SLEEP)		+= main.o
- obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+@@ -1255,6 +1265,17 @@ static int wait_task_zombie(struct task_
+ 		psig->coublock +=
+ 			task_io_get_oublock(p) +
+ 			sig->oublock + sig->coublock;
++		/*
++		 * Save the maximum RSS of this task and all its terminated,
++		 * waited-for children.  Don't accumulate the RSS since, one,
++		 * other operating systems (FreeBSD, AIX) do it this way and,
++		 * two, the cumulative RSS of a long-lived process with lots
++		 * of sequential child process would be meaningless.
++		 */
++		if (sig->cmaxrss > psig->cmaxrss)
++			psig->cmaxrss = sig->cmaxrss;
++		if (p->maxrss > psig->cmaxrss)
++			psig->cmaxrss = p->maxrss;
+ 		spin_unlock_irq(&p->parent->sighand->siglock);
+ 	}
  
-diff -puN drivers/acpi/sleep/poweroff.c~acpi-suspend-consolidate-handling-of-sx-states /dev/null
---- a/drivers/acpi/sleep/poweroff.c
-+++ /dev/null
-@@ -1,75 +0,0 @@
--/*
-- * poweroff.c - ACPI handler for powering off the system.
-- *
-- * AKA S5, but it is independent of whether or not the kernel supports
-- * any other sleep support in the system.
-- *
-- * Copyright (c) 2005 Alexey Starikovskiy <alexey.y.starikovskiy@intel.com>
-- *
-- * This file is released under the GPLv2.
-- */
--
--#include <linux/pm.h>
--#include <linux/init.h>
--#include <acpi/acpi_bus.h>
--#include <linux/sysdev.h>
--#include <asm/io.h>
--#include "sleep.h"
--
--int acpi_sleep_prepare(u32 acpi_state)
--{
--#ifdef CONFIG_ACPI_SLEEP
--	/* do we have a wakeup address for S2 and S3? */
--	if (acpi_state == ACPI_STATE_S3) {
--		if (!acpi_wakeup_address) {
--			return -EFAULT;
--		}
--		acpi_set_firmware_waking_vector((acpi_physical_address)
--						virt_to_phys((void *)
--							     acpi_wakeup_address));
--
--	}
--	ACPI_FLUSH_CPU_CACHE();
--	acpi_enable_wakeup_device_prep(acpi_state);
--#endif
--	acpi_gpe_sleep_prepare(acpi_state);
--	acpi_enter_sleep_state_prep(acpi_state);
--	return 0;
--}
--
--#ifdef CONFIG_PM
--
--static void acpi_power_off_prepare(void)
--{
--	/* Prepare to power off the system */
--	acpi_sleep_prepare(ACPI_STATE_S5);
--}
--
--static void acpi_power_off(void)
--{
--	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
--	printk("%s called\n", __FUNCTION__);
--	local_irq_disable();
--	/* Some SMP machines only can poweroff in boot CPU */
--	acpi_enter_sleep_state(ACPI_STATE_S5);
--}
--
--static int acpi_poweroff_init(void)
--{
--	if (!acpi_disabled) {
--		u8 type_a, type_b;
--		acpi_status status;
--
--		status =
--		    acpi_get_sleep_type_data(ACPI_STATE_S5, &type_a, &type_b);
--		if (ACPI_SUCCESS(status)) {
--			pm_power_off_prepare = acpi_power_off_prepare;
--			pm_power_off = acpi_power_off;
--		}
--	}
--	return 0;
--}
--
--late_initcall(acpi_poweroff_init);
--
--#endif				/* CONFIG_PM */
+diff -puN kernel/fork.c~patch-getrusage-return-ru_maxrss kernel/fork.c
+--- a/kernel/fork.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/fork.c
+@@ -546,6 +546,7 @@ static int copy_mm(unsigned long clone_f
+ 
+ 	tsk->min_flt = tsk->maj_flt = 0;
+ 	tsk->nvcsw = tsk->nivcsw = 0;
++	tsk->maxrss = 0;
+ 
+ 	tsk->mm = NULL;
+ 	tsk->active_mm = NULL;
+@@ -891,6 +892,7 @@ static inline int copy_signal(unsigned l
+ 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
+ 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
+ 	sig->sum_sched_runtime = 0;
++	sig->cmaxrss = 0;
+ 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[2]);
+diff -puN kernel/sys.c~patch-getrusage-return-ru_maxrss kernel/sys.c
+--- a/kernel/sys.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/sys.c
+@@ -1567,6 +1567,7 @@ static void k_getrusage(struct task_stru
+ 			r->ru_majflt = p->signal->cmaj_flt;
+ 			r->ru_inblock = p->signal->cinblock;
+ 			r->ru_oublock = p->signal->coublock;
++			r->ru_maxrss = p->signal->cmaxrss;
+ 
+ 			if (who == RUSAGE_CHILDREN)
+ 				break;
+@@ -1592,11 +1593,15 @@ static void k_getrusage(struct task_stru
+ 				r->ru_oublock += task_io_get_oublock(t);
+ 				t = next_thread(t);
+ 			} while (t != p);
++			update_hiwater_rss(p->mm);
++			if (r->ru_maxrss < p->mm->hiwater_rss)
++				r->ru_maxrss = p->mm->hiwater_rss;
+ 			break;
+ 
+ 		default:
+ 			BUG();
+ 	}
++	r->ru_maxrss <<= PAGE_SHIFT - 10; /* Convert from pages to kilobytes. */
+ 
+ 	unlock_task_sighand(p, &flags);
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from fmayhar@google.com are
 
-git-acpi.patch
-acpi-suspend-consolidate-handling-of-sx-states.patch
+patch-getrusage-return-ru_maxrss.patch
