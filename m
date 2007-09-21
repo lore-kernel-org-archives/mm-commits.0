@@ -1,76 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - st340823a-hpa-and-libata.patch removed from -mm tree
-Date: Fri, 21 Sep 2007 13:40:17 -0700
-Message-ID: <200709212040.l8LKeHt0021515@imap1.linux-foundation.org>
+Subject: - libata-update-the-blacklist-with-a-few-more-devices.patch removed from -mm tree
+Date: Fri, 21 Sep 2007 13:41:14 -0700
+Message-ID: <200709212041.l8LKfE9a021626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757503AbXIUUlC (ORCPT
+	by vger.kernel.org with ESMTP id S1750987AbXIUUl7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 16:41:02 -0400
+	Fri, 21 Sep 2007 16:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ST340823A, HPA and libata
+     libata: update the blacklist with a few more devices
 has been removed from the -mm tree.  Its filename was
-     st340823a-hpa-and-libata.patch
+     libata-update-the-blacklist-with-a-few-more-devices.patch
 
 This patch was dropped because Jeff deleted the code with it patches
 
 ------------------------------------------------------
-Subject: ST340823A, HPA and libata
+Subject: libata: update the blacklist with a few more devices
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Ok this is a different approach to handling it - knowing it is an off by one
-so we can handle the drive if clipped
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    7 +++++++
- include/linux/libata.h    |    1 +
- 2 files changed, 8 insertions(+)
+ drivers/ata/libata-core.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~st340823a-hpa-and-libata drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~st340823a-hpa-and-libata
+diff -puN drivers/ata/libata-core.c~libata-update-the-blacklist-with-a-few-more-devices drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-update-the-blacklist-with-a-few-more-devices
 +++ a/drivers/ata/libata-core.c
-@@ -996,6 +996,10 @@ static u64 ata_hpa_resize(struct ata_dev
- 	else
- 		hpa_sectors = ata_read_native_max_address(dev);
+@@ -3899,6 +3899,9 @@ static const struct ata_blacklist_entry 
+ 	{ "Maxtor 6L250S0",     "BANC1G10",     ATA_HORKAGE_NONCQ },
+ 	{ "Maxtor 6B200M0",	"BANC1BM0",	ATA_HORKAGE_NONCQ },
+ 	{ "Maxtor 6B200M0",	"BANC1B10",	ATA_HORKAGE_NONCQ },
++	{ "Maxtor 7B250S0",	"BANC1B70",	ATA_HORKAGE_NONCQ, },
++	{ "Maxtor 7B300S0",	"BANC1B70",	ATA_HORKAGE_NONCQ },
++	{ "Maxtor 7V300F0",	"VA111630",	ATA_HORKAGE_NONCQ },
+ 	{ "HITACHI HDS7250SASUN500G 0621KTAWSD", "K2AOAJ0AHITACHI",
+ 	 ATA_HORKAGE_NONCQ },
+ 	/* NCQ hard hangs device under heavier load, needs hard power cycle */
+@@ -3915,6 +3918,7 @@ static const struct ata_blacklist_entry 
+ 	{ "WDC WD740ADFD-00NLR1", NULL,		ATA_HORKAGE_NONCQ, },
+ 	{ "FUJITSU MHV2080BH",	"00840028",	ATA_HORKAGE_NONCQ, },
+ 	{ "ST9160821AS",	"3.CLF",	ATA_HORKAGE_NONCQ, },
++	{ "ST3160812AS",	"3.AD",		ATA_HORKAGE_NONCQ, },
+ 	{ "SAMSUNG HD401LJ",	"ZZ100-15",	ATA_HORKAGE_NONCQ, },
  
-+	/* Reports one sector too many */
-+	if (hpa_sectors && (dev->horkage & ATA_HORKAGE_HPA_SIZE))
-+		hpa_sectors--;
-+
- 	if (hpa_sectors > sectors) {
- 		ata_dev_printk(dev, KERN_INFO,
- 			"Host Protected Area detected:\n"
-@@ -3919,6 +3923,9 @@ static const struct ata_blacklist_entry 
- 	{ "WDC WD2500JD-00HBB0", "WD-WMAL71490727", ATA_HORKAGE_BROKEN_HPA },
- 	{ "MAXTOR 6L080L4",	"A93.0500",	ATA_HORKAGE_BROKEN_HPA },
+ 	/* devices which puke on READ_NATIVE_MAX */
+@@ -3925,6 +3929,7 @@ static const struct ata_blacklist_entry 
  
-+	/* Devices which report 1 sector over size HPA */
-+	{ "ST340823A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
-+
+ 	/* Devices which report 1 sector over size HPA */
+ 	{ "ST340823A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
++	{ "ST320413A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
+ 
  	/* End Marker */
  	{ }
- };
-diff -puN include/linux/libata.h~st340823a-hpa-and-libata include/linux/libata.h
---- a/include/linux/libata.h~st340823a-hpa-and-libata
-+++ a/include/linux/libata.h
-@@ -315,6 +315,7 @@ enum {
- 	ATA_HORKAGE_NONCQ	= (1 << 2),	/* Don't use NCQ */
- 	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
- 	ATA_HORKAGE_BROKEN_HPA	= (1 << 4),	/* Broken HPA */
-+	ATA_HORKAGE_HPA_SIZE	= (1 << 5), 	/* Reports native size off by one */
- 
- 	/* DMA mask for user DMA control: User visible values do not
- 	   renumber */
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -83,7 +73,6 @@ libata-correct-handling-of-srst-reset-sequences.patch
 libata-add-a-drivers-ide-style-dma-disable.patch
 ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
 drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
-st340823a-hpa-and-libata.patch
 libata-update-the-blacklist-with-a-few-more-devices.patch
 libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
 libata-fix-hopefully-all-the-remaining-problems-with.patch
