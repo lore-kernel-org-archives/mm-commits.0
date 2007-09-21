@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfsd-fixup.patch removed from -mm tree
-Date: Fri, 21 Sep 2007 13:43:55 -0700
-Message-ID: <200709212043.l8LKhtNc021687@imap1.linux-foundation.org>
+Subject: + git-alsa-kconfig-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 13:52:30 -0700
+Message-ID: <200709212052.l8LKqUJ3022163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756692AbXIUUoZ (ORCPT
+	by vger.kernel.org with ESMTP id S1764805AbXIUUxD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 16:44:25 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8LKhtle000502
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2007 13:43:56 -0700
+	Fri, 21 Sep 2007 16:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     git-nfsd-fixup
-has been removed from the -mm tree.  Its filename was
-     git-nfsd-fixup.patch
+     git-alsa kconfig fix
+has been added to the -mm tree.  Its filename is
+     git-alsa-kconfig-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfsd-fixup
+Subject: git-alsa kconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/svcsock.c |    4 ----
- 1 file changed, 4 deletions(-)
+ sound/pci/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/sunrpc/svcsock.c~git-nfsd-fixup net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~git-nfsd-fixup
-+++ a/net/sunrpc/svcsock.c
-@@ -1594,12 +1594,8 @@ svc_age_temp_sockets(unsigned long closu
+diff -puN sound/pci/Kconfig~git-alsa-kconfig-fix sound/pci/Kconfig
+--- a/sound/pci/Kconfig~git-alsa-kconfig-fix
++++ a/sound/pci/Kconfig
+@@ -900,6 +900,7 @@ config SND_AC97_POWER_SAVE_DEFAULT
+ 	int "Default time-out for AC97 power-save mode"
+ 	depends on SND_AC97_POWER_SAVE
+ 	default 0
++	help
+ 	  The default time-out value in seconds for AC97 automatic
+ 	  power-save mode.  0 means to disable the power-save mode.
  
- 		if (!test_and_set_bit(SK_OLD, &svsk->sk_flags))
- 			continue;
--<<<<<<< HEAD/net/sunrpc/svcsock.c
--		if (atomic_read(&svsk->sk_inuse) > 1 || test_bit(SK_BUSY, &svsk->sk_flags))
--=======
- 		if (atomic_read(&svsk->sk_inuse) > 1
- 		    || test_bit(SK_BUSY, &svsk->sk_flags))
-->>>>>>> /net/sunrpc/svcsock.c
- 			continue;
- 		atomic_inc(&svsk->sk_inuse);
- 		list_move(le, &to_be_aged);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,7 +104,6 @@ git-backlight-dependency-fix.patch
 git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
-git-nfsd-fixup.patch
 git-ocfs2.patch
 revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
@@ -256,3 +252,5 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
+git-net-sky2-fixups.patch
+git-alsa-kconfig-fix.patch
