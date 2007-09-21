@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-sff-fix-documentation.patch added to -mm tree
-Date: Thu, 20 Sep 2007 23:46:37 -0700
-Message-ID: <200709210646.l8L6kbKx023152@imap1.linux-foundation.org>
+Subject: + dtc-fix-typo.patch added to -mm tree
+Date: Thu, 20 Sep 2007 23:47:43 -0700
+Message-ID: <200709210647.l8L6lhi2023161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42779 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46118 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753539AbXIUGrG (ORCPT
+	by vger.kernel.org with ESMTP id S1751844AbXIUGsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 02:47:06 -0400
+	Fri, 21 Sep 2007 02:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, James.Bottomley@steeleye.com, alan@redhat.com
 
 
 The patch titled
-     libata-sff: fix documentation
+     dtc: Fix typo
 has been added to the -mm tree.  Its filename is
-     libata-sff-fix-documentation.patch
+     dtc-fix-typo.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata-sff: fix documentation
+Subject: dtc: Fix typo
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Code moved to ioread/iowrite but the comment didn't.  Also note a posting
-issue.
+(and pointed out by several people)
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-sff.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/scsi/dtc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-sff.c~libata-sff-fix-documentation drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~libata-sff-fix-documentation
-+++ a/drivers/ata/libata-sff.c
-@@ -257,7 +257,7 @@ void ata_bmdma_start (struct ata_queued_
- 	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
- 	iowrite8(dmactl | ATA_DMA_START, ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
- 
--	/* Strictly, one may wish to issue a readb() here, to
-+	/* Strictly, one may wish to issue an ioread8() here, to
- 	 * flush the mmio write.  However, control also passes
- 	 * to the hardware at this point, and it will interrupt
- 	 * us when we are to resume control.  So, in effect,
-@@ -267,6 +267,9 @@ void ata_bmdma_start (struct ata_queued_
- 	 * is expected, so I think it is best to not add a readb()
- 	 * without first all the MMIO ATA cards/mobos.
- 	 * Or maybe I'm just being paranoid.
-+	 *
-+	 * FIXME: The posting of this write means I/O starts are
-+	 * unneccessarily delayed for MMIO
- 	 */
- }
- 
+diff -puN drivers/scsi/dtc.c~dtc-fix-typo drivers/scsi/dtc.c
+--- a/drivers/scsi/dtc.c~dtc-fix-typo
++++ a/drivers/scsi/dtc.c
+@@ -242,7 +242,7 @@ static int __init dtc_detect(struct scsi
+ 					if (check_signature(base + signatures[sig].offset, signatures[sig].string, strlen(signatures[sig].string))) {
+ 						addr = bases[current_base].address;
+ #if (DTCDEBUG & DTCDEBUG_INIT)
+-						printk(KERB_DEBUG "scsi-dtc : detected board.\n");
++						printk(KERN_DEBUG "scsi-dtc : detected board.\n");
+ #endif
+ 						goto found;
+ 					}
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -86,6 +76,7 @@ wake-up-from-a-serial-port.patch
 fix-ide-legacy-mode-resources.patch
 fix-ide-legacy-mode-resources-fix.patch
 git-scsi-misc.patch
+dtc-fix-typo.patch
 geode-mfgpt-support-for-geode-class-machines.patch
 geode-mfgpt-clock-event-device-support.patch
 security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
