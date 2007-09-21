@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-expose-new-methods-needed-for-drivers-to-get-termios.patch added to -mm tree
-Date: Fri, 21 Sep 2007 00:01:51 -0700
-Message-ID: <200709210701.l8L71p7W023650@imap1.linux-foundation.org>
+Subject: + tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch added to -mm tree
+Date: Fri, 21 Sep 2007 00:01:53 -0700
+Message-ID: <200709210701.l8L71r30023653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43561 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751844AbXIUHCl (ORCPT
+	by vger.kernel.org with ESMTP id S1753526AbXIUHCs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 03:02:41 -0400
+	Fri, 21 Sep 2007 03:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     tty: expose new methods needed for drivers to get termios right
+     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
 has been added to the -mm tree.  Its filename is
-     tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,272 +26,240 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: expose new methods needed for drivers to get termios right
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds three new functions (or in one case to be more exact makes it
-always available)
-
-tty_termios_copy_hw
-
-Copies all the hardware settings from one termios structure to the other. 
-This is intended for drivers that support little or no hardware setting
-
-tty_termios_encode_baud_rate
-
-Allows you to set the input and output baud rate in a termios structure.  A
-driver is supposed to set the resulting baud rate from a request so most
-will want to use this function to set the resulting input and output rates
-to match the hardware values.  Internally it knows about keeping Bxxx
-encoding when possible to maximise compatibility.
-
-tty_encode_baud_rate
-
-As above but for the tty's own current termios structure
-
-I suspect this will initially need some tweaking as it gets enabled by
-driver patches over the next few mm cycles so consider this lot -mm only
-for the moment so it can stabilize and end up neat before it goes to base.
-
-I've tried not to break any obscure architectures - if you get a speed you
-can't represent the code will print warnings on non updated termios systems
-but not break.
-
-Once this is merged and seems sane I've got a growing pile of driver
-updates to use it - notably for USB serial drivers.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   81 ++++++++++++++++++++++++++++++++-----
- include/linux/tty.h      |    3 +
- 2 files changed, 75 insertions(+), 9 deletions(-)
+ drivers/char/tty_ioctl.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios
+diff -puN drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
 +++ a/drivers/char/tty_ioctl.c
-@@ -206,8 +206,6 @@ speed_t tty_termios_input_baud_rate(stru
- 
- EXPORT_SYMBOL(tty_termios_input_baud_rate);
- 
--#ifdef BOTHER
--
- /**
-  *	tty_termios_encode_baud_rate
-  *	@termios: ktermios structure holding user requested state
-@@ -225,6 +223,9 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
-  *
-  *	Locking: Caller should hold termios lock. This is already held
-  *	when calling this function from the driver termios handler.
-+ *
-+ *	The ifdefs deal with platforms whose owners have yet to update them
-+ *	and will all go away once this is done.
-  */
- 
- void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud)
-@@ -234,9 +235,13 @@ void tty_termios_encode_baud_rate(struct
- 	int iclose = ibaud/50, oclose = obaud/50;
- 	int ibinput = 0;
- 
-+	if (obaud == 0)			/* CD dropped 		  */
-+		ibaud = 0;		/* Clear ibaud to be sure */
-+
- 	termios->c_ispeed = ibaud;
- 	termios->c_ospeed = obaud;
- 
-+#ifdef BOTHER
- 	/* If the user asked for a precise weird speed give a precise weird
- 	   answer. If they asked for a Bfoo speed they many have problems
- 	   digesting non-exact replies so fuzz a bit */
-@@ -247,32 +252,61 @@ void tty_termios_encode_baud_rate(struct
- 		iclose = 0;
- 	if ((termios->c_cflag >> IBSHIFT) & CBAUD)
- 		ibinput = 1;	/* An input speed was specified */
--
-+#endif
- 	termios->c_cflag &= ~CBAUD;
- 
-+	/*
-+	 *	Our goal is to find a close match to the standard baud rate
-+	 *	returned. Walk the baud rate table and if we get a very close
-+	 *	match then report back the speed as a POSIX Bxxxx value by
-+	 *	preference
-+	 */
-+
- 	do {
- 		if (obaud - oclose >= baud_table[i] && obaud + oclose <= baud_table[i]) {
- 			termios->c_cflag |= baud_bits[i];
- 			ofound = i;
- 		}
- 		if (ibaud - iclose >= baud_table[i] && ibaud + iclose <= baud_table[i]) {
--			/* For the case input == output don't set IBAUD bits if the user didn't do so */
--			if (ofound != i || ibinput)
-+			if (ofound == i && !ibinput)
-+				ifound  = i;
-+#ifdef IBSHIFT
-+			else {
-+				ifound = i;
- 				termios->c_cflag |= (baud_bits[i] << IBSHIFT);
--			ifound = i;
-+			}
-+#endif
- 		}
- 	} while (++i < n_baud_table);
-+
-+	/*
-+	 *	If we found no match then use BOTHER if provided or warn
-+	 *	the user their platform maintainer needs to wake up if not.
-+	 */
-+#ifdef BOTHER
- 	if (ofound == -1)
- 		termios->c_cflag |= BOTHER;
- 	/* Set exact input bits only if the input and output differ or the
- 	   user already did */
- 	if (ifound == -1 && (ibaud != obaud || ibinput))
+@@ -292,20 +292,19 @@ void tty_termios_encode_baud_rate(struct
  		termios->c_cflag |= (BOTHER << IBSHIFT);
-+#else
-+	if (ifound == -1 || ofound == -1) {
-+		static int warned = 0;
-+		if (!warned++)
-+			printk(KERN_WARNING "tty: Unable to return correct speed data as your architecture needs updating.\n");
-+	}
-+#endif
+ #else
+ 	if (ifound == -1 || ofound == -1) {
+-		static int warned = 0;
++		static int warned;
+ 		if (!warned++)
+-			printk(KERN_WARNING "tty: Unable to return correct speed data as your architecture needs updating.\n");
++			printk(KERN_WARNING "tty: Unable to return correct "
++			  "speed data as your architecture needs updating.\n");
+ 	}
+ #endif
  }
- 
+-
  EXPORT_SYMBOL_GPL(tty_termios_encode_baud_rate);
  
--#endif
-+void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud)
-+{
-+	tty_termios_encode_baud_rate(tty->termios, ibaud, obaud);
-+}
-+
-+EXPORT_SYMBOL_GPL(tty_encode_baud_rate);
- 
- /**
-  *	tty_get_baud_rate	-	get tty bit rates
-@@ -304,6 +338,29 @@ speed_t tty_get_baud_rate(struct tty_str
- EXPORT_SYMBOL(tty_get_baud_rate);
- 
- /**
-+ *	tty_termios_copy_hw	-	copy hardware settings
-+ *	@new: New termios
-+ *	@old: Old termios
-+ *
-+ *	Propogate the hardware specific terminal setting bits from
-+ *	the old termios structure to the new one. This is used in cases
-+ *	where the hardware does not support reconfiguration or as a helper
-+ *	in some cases where only minimal reconfiguration is supported
-+ */
-+
-+void tty_termios_copy_hw(struct ktermios *new, struct ktermios *old)
-+{
-+	/* The bits a dumb device handles in software. Smart devices need
-+	   to always provide a set_termios method */
-+	new->c_cflag &= HUPCL | CREAD | CLOCAL;
-+	new->c_cflag |= old->c_cflag & ~(HUPCL | CREAD | CLOCAL);
-+	new->c_ispeed = old->c_ispeed;
-+	new->c_ospeed = old->c_ospeed;
-+}
-+
-+EXPORT_SYMBOL(tty_termios_copy_hw);
-+
-+/**
-  *	change_termios		-	update termios values
-  *	@tty: tty to update
-  *	@new_termios: desired new value
-@@ -340,13 +397,12 @@ static void change_termios(struct tty_st
- 		tty->erasing = 0;
- 	}
- 	
--	
-+	/* This bit should be in the ldisc code */
- 	if (canon_change && !L_ICANON(tty) && tty->read_cnt)
- 		/* Get characters left over from canonical mode. */
- 		wake_up_interruptible(&tty->read_wait);
- 
- 	/* See if packet mode change of state. */
--
- 	if (tty->link && tty->link->packet) {
- 		int old_flow = ((old_termios.c_iflag & IXON) &&
- 				(old_termios.c_cc[VSTOP] == '\023') &&
-@@ -366,6 +422,8 @@ static void change_termios(struct tty_st
- 	   
- 	if (tty->driver->set_termios)
- 		(*tty->driver->set_termios)(tty, &old_termios);
-+	else
-+		tty_termios_copy_hw(tty->termios, &old_termios);
- 
- 	ld = tty_ldisc_ref(tty);
- 	if (ld != NULL) {
-@@ -440,6 +498,11 @@ static int set_termios(struct tty_struct
- 	}
- 
- 	change_termios(tty, &tmp_termios);
-+
-+	/* FIXME: Arguably if tmp_termios == tty->termios AND the
-+	   actual requested termios was not tmp_termios then we may
-+	   want to return an error as no user requested change has
-+	   succeeded */
- 	return 0;
+ void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud)
+ {
+ 	tty_termios_encode_baud_rate(tty->termios, ibaud, obaud);
  }
+-
+ EXPORT_SYMBOL_GPL(tty_encode_baud_rate);
  
-diff -puN include/linux/tty.h~tty-expose-new-methods-needed-for-drivers-to-get-termios include/linux/tty.h
---- a/include/linux/tty.h~tty-expose-new-methods-needed-for-drivers-to-get-termios
-+++ a/include/linux/tty.h
-@@ -316,6 +316,9 @@ extern void tty_flip_buffer_push(struct 
- extern speed_t tty_get_baud_rate(struct tty_struct *tty);
- extern speed_t tty_termios_baud_rate(struct ktermios *termios);
- extern speed_t tty_termios_input_baud_rate(struct ktermios *termios);
-+extern void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud);
-+extern void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud);
-+extern void tty_termios_copy_hw(struct ktermios *new, struct ktermios *old);
- 
- extern struct tty_ldisc *tty_ldisc_ref(struct tty_struct *);
- extern void tty_ldisc_deref(struct tty_ldisc *);
+ /**
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dtc-fix-typo.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+alsa-procfs-fix.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
+fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
 git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-pata_acpi-use-ata_sff_port_start.patch
-libata-correct-handling-of-srst-reset-sequences.patch
-libata-add-a-drivers-ide-style-dma-disable.patch
-ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
-drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
-libata-update-experimental-tags-to-reflect-reality-better.patch
-libata-sff-fix-documentation.patch
-st340823a-hpa-and-libata.patch
-libata-update-the-blacklist-with-a-few-more-devices.patch
-libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
-pcmcia-use-dma_mask_none-for-the-default-for-all.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-8250_pci-autodetect-mainpine-cards-fix.patch
-wake-up-from-a-serial-port.patch
-fix-ide-legacy-mode-resources.patch
+ata-add-the-sw-ncq-support-to-sata_nv-for-mcp51-mcp55-mcp61patch.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-net.patch
+git-net-fixup.patch
+revert-8139too-clean-up-i-o-remapping.patch
+net-atm-lecc-printk-warning-fix.patch
+git-backlight.patch
+git-backlight-build-fix.patch
+git-backlight-dependency-fix.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
+i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
+git-s390.patch
 git-scsi-misc.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fix-headers_check.patch
+git-block-fix-qlogicpti-build.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+iwl3945-is-bust.patch
+p54pci-terminate-pci-table.patch
+git-wireless-b44-is-bust.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+64-bit-i_version-afs-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+isolate-some-explicit-usage-of-task-tgid-fix-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
