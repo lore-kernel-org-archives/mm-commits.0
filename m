@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-confuse-debug-define-location.patch added to -mm tree
-Date: Fri, 21 Sep 2007 12:27:59 -0700
-Message-ID: <200709211927.l8LJRxrD018845@imap1.linux-foundation.org>
+Subject: + userc-deinline.patch added to -mm tree
+Date: Fri, 21 Sep 2007 12:35:03 -0700
+Message-ID: <200709211935.l8LJZ37w019076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47500 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755313AbXIUT2O (ORCPT
+	by vger.kernel.org with ESMTP id S1761503AbXIUTfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 15:28:14 -0400
+	Fri, 21 Sep 2007 15:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, zach.brown@oracle.com
+Cc: adobriyan@sw.ru
 
 
 The patch titled
-     aio: don't confuse DEBUG define location
+     user.c: deinline
 has been added to the -mm tree.  Its filename is
-     aio-dont-confuse-debug-define-location.patch
+     userc-deinline.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aio: don't confuse DEBUG define location
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: user.c: deinline
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-I was debugging (via pr_debug()) why one test app was getting EINVAL
-returns from aio.  However, using DEBUG to enable pr_debug() needs to be
-done before #include linux/kernel.h, so remove it from below there so that
-someone doesn't have to debug pr_debug().
+Save some space because uid_hash_find() has 3 callsites.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ kernel/user.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/aio.c~aio-dont-confuse-debug-define-location fs/aio.c
---- a/fs/aio.c~aio-dont-confuse-debug-define-location
-+++ a/fs/aio.c
-@@ -8,6 +8,7 @@
-  *
-  *	See ../COPYING for licensing terms.
+diff -puN kernel/user.c~userc-deinline kernel/user.c
+--- a/kernel/user.c~userc-deinline
++++ a/kernel/user.c
+@@ -55,17 +55,17 @@ struct user_struct root_user = {
+ /*
+  * These routines must be called with the uidhash spinlock held!
   */
-+
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/errno.h>
-@@ -17,8 +18,6 @@
- #include <linux/syscalls.h>
- #include <linux/uio.h>
+-static inline void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
++static void uid_hash_insert(struct user_struct *up, struct hlist_head *hashent)
+ {
+ 	hlist_add_head(&up->uidhash_node, hashent);
+ }
  
--#define DEBUG 0
--
- #include <linux/sched.h>
- #include <linux/fs.h>
- #include <linux/file.h>
+-static inline void uid_hash_remove(struct user_struct *up)
++static void uid_hash_remove(struct user_struct *up)
+ {
+ 	hlist_del_init(&up->uidhash_node);
+ }
+ 
+-static inline struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
++static struct user_struct *uid_hash_find(uid_t uid, struct hlist_head *hashent)
+ {
+ 	struct user_struct *user;
+ 	struct hlist_node *h;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-git-acpi.patch
-sound-hda-fix-help-text.patch
-fix-auditscc-kernel-doc.patch
+consolidate-ptrace_detach.patch
 git-kbuild.patch
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
-git-mtd.patch
-git-net.patch
-git-nfsd.patch
-fix-signedness-of-parameters-in-scsi-module.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-kgdb-fix-help-text.patch
-kgdb-fix-docbook-and-kernel-doc-typos.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-aio-dont-confuse-debug-define-location.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-profile-likely-unlikely-macros.patch
+slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab-fix.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+userc-deinline.patch
+userc-ifdef-mq_bytes.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+single_open-seq_release-leak-diagnostics.patch
