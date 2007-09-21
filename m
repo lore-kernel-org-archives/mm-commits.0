@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch added to -mm tree
-Date: Fri, 21 Sep 2007 01:02:28 -0700
-Message-ID: <200709210802.l8L82SoC025742@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch added to -mm tree
+Date: Fri, 21 Sep 2007 01:02:31 -0700
+Message-ID: <200709210802.l8L82Vht025748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53349 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46287 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754459AbXIUIIY (ORCPT
+	by vger.kernel.org with ESMTP id S1754390AbXIUIIV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Sep 2007 04:08:24 -0400
+	Fri, 21 Sep 2007 04:08:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+     r/o bind mounts: elevate mnt writers for vfs_unlink() callers
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+Subject: r/o bind mounts: elevate mnt writers for vfs_unlink() callers
 From: Dave Hansen <haveblue@us.ibm.com>
 
 Acked-by: Christoph Hellwig <hch@infradead.org>
@@ -34,63 +34,40 @@ Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/namei.c   |    4 ++++
+ ipc/mqueue.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime fs/inode.c
---- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime
-+++ a/fs/inode.c
-@@ -1185,22 +1185,23 @@ void touch_atime(struct vfsmount *mnt, s
- 	struct inode *inode = dentry->d_inode;
- 	struct timespec now;
- 
--	if (inode->i_flags & S_NOATIME)
-+	if (mnt && mnt_want_write(mnt))
- 		return;
-+	if (inode->i_flags & S_NOATIME)
-+		goto out;
- 	if (IS_NOATIME(inode))
--		return;
-+		goto out;
- 	if ((inode->i_sb->s_flags & MS_NODIRATIME) && S_ISDIR(inode->i_mode))
--		return;
-+		goto out;
- 
- 	/*
- 	 * We may have a NULL vfsmount when coming from NFSD
- 	 */
- 	if (mnt) {
- 		if (mnt->mnt_flags & MNT_NOATIME)
--			return;
-+			goto out;
- 		if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
--			return;
--
-+			goto out;
- 		if (mnt->mnt_flags & MNT_RELATIME) {
- 			/*
- 			 * With relative atime, only update atime if the
-@@ -1211,16 +1212,19 @@ void touch_atime(struct vfsmount *mnt, s
- 						&inode->i_atime) < 0 &&
- 			    timespec_compare(&inode->i_ctime,
- 						&inode->i_atime) < 0)
--				return;
-+				goto out;
- 		}
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
++++ a/fs/namei.c
+@@ -2254,7 +2254,11 @@ static long do_unlinkat(int dfd, const c
+ 		inode = dentry->d_inode;
+ 		if (inode)
+ 			atomic_inc(&inode->i_count);
++		error = mnt_want_write(nd.mnt);
++		if (error)
++			goto exit2;
+ 		error = vfs_unlink(nd.dentry->d_inode, dentry);
++		mnt_drop_write(nd.mnt);
+ 	exit2:
+ 		dput(dentry);
  	}
- 
- 	now = current_fs_time(inode->i_sb);
- 	if (timespec_equal(&inode->i_atime, &now))
--		return;
-+		goto out;
- 
- 	inode->i_atime = now;
- 	mark_inode_dirty_sync(inode);
-+out:
-+	if (mnt)
-+		mnt_drop_write(mnt);
- }
- EXPORT_SYMBOL(touch_atime);
+diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers ipc/mqueue.c
+--- a/ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
++++ a/ipc/mqueue.c
+@@ -750,8 +750,11 @@ asmlinkage long sys_mq_unlink(const char
+ 	inode = dentry->d_inode;
+ 	if (inode)
+ 		atomic_inc(&inode->i_count);
+-
++	err = mnt_want_write(mqueue_mnt);
++	if (err)
++		goto out_err;
+ 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
++	mnt_drop_write(mqueue_mnt);
+ out_err:
+ 	dput(dentry);
  
 _
 
