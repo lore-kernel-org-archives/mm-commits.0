@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch added to -mm tree
-Date: Sat, 22 Sep 2007 21:20:01 -0700
-Message-ID: <200709230420.l8N4K15h027967@imap1.linux-foundation.org>
+Subject: + kvm-fix-virtualization-menu-help-text.patch added to -mm tree
+Date: Sun, 23 Sep 2007 02:17:18 -0700
+Message-ID: <200709230917.l8N9HIfA004559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42415 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752748AbXIWEVV (ORCPT
+	by vger.kernel.org with ESMTP id S1753931AbXIWJR7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 23 Sep 2007 00:21:21 -0400
+	Sun, 23 Sep 2007 05:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bene@linutronix.de, dbrownell@users.sourceforge.net, greg@kroah.com, tglx@linutronix.de
+Cc: avi@qumranet.com, jengelh@computergmbh.de, rusty@rustcorp.com.au
 
 
 The patch titled
-     usb-gadget-ether: prevent oops caused by error interrupt race
+     KVM: Fix virtualization menu help text
 has been added to the -mm tree.  Its filename is
-     usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
+     kvm-fix-virtualization-menu-help-text.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb-gadget-ether: prevent oops caused by error interrupt race
-From: Benedikt Spranger <bene@linutronix.de>
+Subject: KVM: Fix virtualization menu help text
+From: Avi Kivity <avi@qumranet.com>
 
-Fix a longstanding race in the Ethernet gadget driver, which can cause an
-oops on device disconnect.  The fix is just to make the TX path check
-whether its freelist is empty.  That check is otherwise not necessary,
-since the queue is always stopped when that list empties (and restarted
-when request completion puts an entry back on that freelist).
+An August 18 patch from Jan Engelhardt (06bfb7e) added help text for the
+virtualization menu.  Unfortunately the text is misleading, as "guest
+drivers" are usually interpreted to mean "drivers running inside the
+guest", which is not the case for kvm.
 
-The race window starts when the network code decides to transmit a packet,
-and ends when hard_start_xmit() grabs the freelist lock.  When disconnect()
-is called inside that window, it shuts down the TX queue and breaks the
-otherwise-solid assumption that packets are never sent through a TX queue
-that's stopped.
-
-Signed-off-by: Benedikt Spranger <bene@linutronix.de>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/ether.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/kvm/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/ether.c~usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race drivers/usb/gadget/ether.c
---- a/drivers/usb/gadget/ether.c~usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race
-+++ a/drivers/usb/gadget/ether.c
-@@ -1957,8 +1957,20 @@ static int eth_start_xmit (struct sk_buf
- 	}
+diff -puN drivers/kvm/Kconfig~kvm-fix-virtualization-menu-help-text drivers/kvm/Kconfig
+--- a/drivers/kvm/Kconfig~kvm-fix-virtualization-menu-help-text
++++ a/drivers/kvm/Kconfig
+@@ -6,7 +6,8 @@ menuconfig VIRTUALIZATION
+ 	depends on X86
+ 	default y
+ 	---help---
+-	  Say Y here to get to see options for virtualization guest drivers.
++	  Say Y here to get to see options for using your Linux host to run other
++	  operating systems inside virtual machines (guests).
+ 	  This option alone does not add any kernel code.
  
- 	spin_lock_irqsave(&dev->req_lock, flags);
-+	/*
-+	 * this freelist can be empty if an interrupt triggered disconnect()
-+	 * and reconfigured the gadget (shutting down this queue) after the
-+	 * network stack decided to xmit but before we got the spinlock.
-+	 */
-+	if (list_empty(&dev->tx_reqs)) {
-+		spin_unlock_irqrestore(&dev->req_lock, flags);
-+		return 1;
-+	}
-+
- 	req = container_of (dev->tx_reqs.next, struct usb_request, list);
- 	list_del (&req->list);
-+
-+	/* temporarily stop TX queue when the freelist empties */
- 	if (list_empty (&dev->tx_reqs))
- 		netif_stop_queue (net);
- 	spin_unlock_irqrestore(&dev->req_lock, flags);
+ 	  If you say N, all options in this submenu will be skipped and disabled.
 _
 
-Patches currently in -mm which might be from bene@linutronix.de are
+Patches currently in -mm which might be from avi@qumranet.com are
 
-usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
+kvm-fix-virtualization-menu-help-text.patch
+git-kvm.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
