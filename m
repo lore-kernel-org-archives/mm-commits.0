@@ -1,172 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - patch-getrusage-return-ru_maxrss.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 00:57:23 -0700
-Message-ID: <200709240757.l8O7vQ2V015904@imap1.linux-foundation.org>
+Subject: + touch-command-causes-oops.patch added to -mm tree
+Date: Mon, 24 Sep 2007 07:47:55 -0700
+Message-ID: <200709241447.l8OEltw9002281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36997 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39949 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756504AbXIXH6d (ORCPT
+	by vger.kernel.org with ESMTP id S1752339AbXIXOsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 03:58:33 -0400
+	Mon, 24 Sep 2007 10:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fmayhar@google.com, oleg@tv-sign.ru, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hch@lst.de, Valdis.Kletnieks@vt.edu, balbir@in.ibm.com, haveblue@us.ibm.com
 
 
 The patch titled
-     getrusage: return ru_maxrss
-has been removed from the -mm tree.  Its filename was
-     patch-getrusage-return-ru_maxrss.patch
+     'touch' command causes Oops
+has been added to the -mm tree.  Its filename is
+     touch-command-causes-oops.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: getrusage: return ru_maxrss
-From: Frank Mayhar <fmayhar@google.com>
+Subject: 'touch' command causes Oops
+From: Valdis.Kletnieks@vt.edu
 
-Properly support the ru_maxrss field of the rusage structure returned by
-getrusage().  This patch includes documentation both of the getrusage()
-implementation in general and of the ru_maxrss implementation specifically.
- This implementation matches that of FreeBSD, which is the only other OS of
-which I'm aware that implements this field.
+"never let a libc developer write your kernel code" - hch
 
-Like a number of other folks, we recently had a need for a non-/proc way of
-getting the RSS of a process and happened on getrusage().  Unlike the rest,
-though, we fixed the system call to do what we want.  I wrote a wrong
-implementation and submitted it while I was sick; this time I took my time
-and I think I got it right.
+"nor, apparently, a kernel developer" - akpm
 
-A test program that has been run against a number of systems (of which
-only FreeBSD and Linux 2.6 with this patch applied passed) is also
-available at
-	http://www.exit.com/Archives/Linux/
-
-Signed-off-by: Frank Mayhar <fmayhar@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 +++
- kernel/exit.c         |   21 +++++++++++++++++++++
- kernel/fork.c         |    2 ++
- kernel/sys.c          |    5 +++++
- 4 files changed, 31 insertions(+)
+ fs/utimes.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~patch-getrusage-return-ru_maxrss include/linux/sched.h
---- a/include/linux/sched.h~patch-getrusage-return-ru_maxrss
-+++ a/include/linux/sched.h
-@@ -449,6 +449,7 @@ struct signal_struct {
- 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
- 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
- 	unsigned long inblock, oublock, cinblock, coublock;
-+	unsigned long cmaxrss;
+diff -puN fs/utimes.c~touch-command-causes-oops fs/utimes.c
+--- a/fs/utimes.c~touch-command-causes-oops
++++ a/fs/utimes.c
+@@ -59,6 +59,7 @@ long do_utimes(int dfd, char __user *fil
+ 	struct inode *inode;
+ 	struct iattr newattrs;
+ 	struct file *f = NULL;
++	struct vfsmount *mnt;
  
- 	/*
- 	 * Cumulative ns of scheduled CPU time for dead threads in the
-@@ -942,6 +943,8 @@ struct task_struct {
- 	struct timespec real_start_time;	/* boot based time */
- /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
- 	unsigned long min_flt, maj_flt;
-+/* maxrss gets the hiwater_rss in do_exit() */
-+	unsigned long maxrss;
+ 	error = -EINVAL;
+ 	if (times && (!nsec_valid(times[0].tv_nsec) ||
+@@ -79,17 +80,19 @@ long do_utimes(int dfd, char __user *fil
+ 		if (!f)
+ 			goto out;
+ 		dentry = f->f_path.dentry;
++		mnt = f->f_path.mnt;
+ 	} else {
+ 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+ 		if (error)
+ 			goto out;
  
-   	cputime_t it_prof_expires, it_virt_expires;
- 	unsigned long long it_sched_expires;
-diff -puN kernel/exit.c~patch-getrusage-return-ru_maxrss kernel/exit.c
---- a/kernel/exit.c~patch-getrusage-return-ru_maxrss
-+++ a/kernel/exit.c
-@@ -125,6 +125,8 @@ static void __exit_signal(struct task_st
- 		sig->inblock += task_io_get_inblock(tsk);
- 		sig->oublock += task_io_get_oublock(tsk);
- 		sig->sum_sched_runtime += tsk->se.sum_exec_runtime;
-+		if (tsk->maxrss > sig->cmaxrss)
-+			sig->cmaxrss = tsk->maxrss;
- 		sig = NULL; /* Marker for below. */
+ 		dentry = nd.dentry;
++		mnt = nd.mnt;
  	}
  
-@@ -947,6 +949,14 @@ fastcall NORET_TYPE void do_exit(long co
- 	if (tsk->mm) {
- 		update_hiwater_rss(tsk->mm);
- 		update_hiwater_vm(tsk->mm);
-+		BUG_ON(tsk->maxrss != 0);
-+		/*
-+		 * Store the hiwater_rss in a task field, since when we need
-+		 * it in __exit_signal() the mm structure is gone; we can't
-+		 * stuff it in the signal structure since then we would be
-+		 * racing with wait_task_zombie().
-+		 */
-+		tsk->maxrss = tsk->mm->hiwater_rss;
- 	}
- 	group_dead = atomic_dec_and_test(&tsk->signal->live);
- 	if (group_dead) {
-@@ -1255,6 +1265,17 @@ static int wait_task_zombie(struct task_
- 		psig->coublock +=
- 			task_io_get_oublock(p) +
- 			sig->oublock + sig->coublock;
-+		/*
-+		 * Save the maximum RSS of this task and all its terminated,
-+		 * waited-for children.  Don't accumulate the RSS since, one,
-+		 * other operating systems (FreeBSD, AIX) do it this way and,
-+		 * two, the cumulative RSS of a long-lived process with lots
-+		 * of sequential child process would be meaningless.
-+		 */
-+		if (sig->cmaxrss > psig->cmaxrss)
-+			psig->cmaxrss = sig->cmaxrss;
-+		if (p->maxrss > psig->cmaxrss)
-+			psig->cmaxrss = p->maxrss;
- 		spin_unlock_irq(&p->parent->sighand->siglock);
- 	}
+ 	inode = dentry->d_inode;
  
-diff -puN kernel/fork.c~patch-getrusage-return-ru_maxrss kernel/fork.c
---- a/kernel/fork.c~patch-getrusage-return-ru_maxrss
-+++ a/kernel/fork.c
-@@ -546,6 +546,7 @@ static int copy_mm(unsigned long clone_f
+-	error = mnt_want_write(nd.mnt);
++	error = mnt_want_write(mnt);
+ 	if (error)
+ 		goto dput_and_out;
  
- 	tsk->min_flt = tsk->maj_flt = 0;
- 	tsk->nvcsw = tsk->nivcsw = 0;
-+	tsk->maxrss = 0;
- 
- 	tsk->mm = NULL;
- 	tsk->active_mm = NULL;
-@@ -891,6 +892,7 @@ static inline int copy_signal(unsigned l
- 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
- 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
- 	sig->sum_sched_runtime = 0;
-+	sig->cmaxrss = 0;
- 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
- 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
- 	INIT_LIST_HEAD(&sig->cpu_timers[2]);
-diff -puN kernel/sys.c~patch-getrusage-return-ru_maxrss kernel/sys.c
---- a/kernel/sys.c~patch-getrusage-return-ru_maxrss
-+++ a/kernel/sys.c
-@@ -1567,6 +1567,7 @@ static void k_getrusage(struct task_stru
- 			r->ru_majflt = p->signal->cmaj_flt;
- 			r->ru_inblock = p->signal->cinblock;
- 			r->ru_oublock = p->signal->coublock;
-+			r->ru_maxrss = p->signal->cmaxrss;
- 
- 			if (who == RUSAGE_CHILDREN)
- 				break;
-@@ -1592,11 +1593,15 @@ static void k_getrusage(struct task_stru
- 				r->ru_oublock += task_io_get_oublock(t);
- 				t = next_thread(t);
- 			} while (t != p);
-+			update_hiwater_rss(p->mm);
-+			if (r->ru_maxrss < p->mm->hiwater_rss)
-+				r->ru_maxrss = p->mm->hiwater_rss;
- 			break;
- 
- 		default:
- 			BUG();
- 	}
-+	r->ru_maxrss <<= PAGE_SHIFT - 10; /* Convert from pages to kilobytes. */
- 
- 	unlock_task_sighand(p, &flags);
- 	rcu_read_unlock();
+@@ -135,7 +138,7 @@ long do_utimes(int dfd, char __user *fil
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ mnt_drop_write_and_out:
+-	mnt_drop_write(nd.mnt);
++	mnt_drop_write(mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from fmayhar@google.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-patch-getrusage-return-ru_maxrss.patch
+git-nfs.patch
+git-nfsd.patch
+partially-fix-up-the-lookup_one_noperm-mess.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
+git-xfs.patch
+sysv-convert-to-new-aops.patch
+alpha-convert-to-generic-sys_ptrace.patch
+kill-declare_mutex_locked.patch
+remove-unneded-lock_kernel-in-driver-block-loopc.patch
+ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
+fix-execute-checking-in-permission.patch
+exec-remove-unnecessary-check-for-mnt_noexec.patch
+fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
+cifs-ignore-mode-change-if-its-just-for-clearing-setuid-setgid-bits.patch
+r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
+r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
+r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+touch-command-causes-oops.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+xfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
