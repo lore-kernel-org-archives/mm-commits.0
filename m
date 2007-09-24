@@ -1,157 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fixup.patch removed from -mm tree
-Date: Sun, 23 Sep 2007 17:18:05 -0700
-Message-ID: <200709240018.l8O0I6fW001414@imap1.linux-foundation.org>
+Subject: + git-mtd-vs-powerpc.patch added to -mm tree
+Date: Sun, 23 Sep 2007 17:28:52 -0700
+Message-ID: <200709240028.l8O0Sqg1001740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33657 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753192AbXIXASh (ORCPT
+	by vger.kernel.org with ESMTP id S1752997AbXIXA3W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 23 Sep 2007 20:18:37 -0400
+	Sun, 23 Sep 2007 20:29:22 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8O0I6Xv025934
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8O0SrhK026579
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 23 Sep 2007 17:18:07 -0700
+	for <mm-commits@vger.kernel.org>; Sun, 23 Sep 2007 17:28:54 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-acpi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fixup.patch
+     git-mtd-vs-powerpc
+has been added to the -mm tree.  Its filename is
+     git-mtd-vs-powerpc.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: git-mtd-vs-powerpc
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/thinkpad-acpi.txt |   75 ------------------------------
- 1 file changed, 75 deletions(-)
+ drivers/mtd/maps/Makefile     |    1 +
+ drivers/mtd/maps/physmap_of.c |    1 -
+ mtd/nand/Kconfig              |    0 
+ 3 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/thinkpad-acpi.txt~git-acpi-fixup Documentation/thinkpad-acpi.txt
---- a/Documentation/thinkpad-acpi.txt~git-acpi-fixup
-+++ a/Documentation/thinkpad-acpi.txt
-@@ -173,17 +173,10 @@ below), the driver will report HKEY even
+diff -puN drivers/mtd/maps/Kconfig~git-mtd-vs-powerpc drivers/mtd/maps/Kconfig
+diff -puN drivers/mtd/maps/Makefile~git-mtd-vs-powerpc drivers/mtd/maps/Makefile
+--- a/drivers/mtd/maps/Makefile~git-mtd-vs-powerpc
++++ a/drivers/mtd/maps/Makefile
+@@ -68,3 +68,4 @@ obj-$(CONFIG_MTD_SHARP_SL)	+= sharpsl-fl
+ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
+ obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
+ obj-$(CONFIG_MTD_MTX1)		+= mtx-1_flash.o
++obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
+diff -puN drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc drivers/mtd/maps/physmap_of.c
+--- a/drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc
++++ a/drivers/mtd/maps/physmap_of.c
+@@ -232,7 +232,6 @@ static int __devinit of_flash_probe(stru
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info)
+ 		goto err_out;
+-	memset(info, 0, sizeof(*info));
  
- Some of these events refer to hot key presses, but not all.
+ 	dev_set_drvdata(&dev->dev, info);
  
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--The driver will generate events over the input layer for hot keys and
--radio switches, and over the ACPI netlink layer for other events.  The
--input layer support accepts the standard IOCTLs to remap the keycodes
--assigned to each hot key.
--=======
- The driver will generate events over the input layer for hot keys and
- radio switches, and over the netlink layer for other events.  The input
- layer support accepts the standard IOCTLs to remap the keycodes assigned
- to each hot key.
-->>>>>>> /Documentation/thinkpad-acpi.txt
- 
- The hot key bit mask allows some control over which hot keys generate
- events.  If a key is "masked" (bit set to 0 in the mask), the firmware
-@@ -265,22 +258,6 @@ sysfs notes:
- 		disabled" postition, and 1 if the switch is in the
- 		"radios enabled" position.
- 
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--	hotkey_report_mode:
--		Returns the state of the procfs ACPI event report mode
--		filter for hot keys.  If it is set to 1 (the default),
--		all hot key presses are reported both through the input
--		layer and also as ACPI events through procfs (but not
--		through netlink).  If it is set to 2, hot key presses
--		are reported only through the input layer.
--
--		This attribute is read-only in kernels 2.6.23 or later,
--		and read-write on earlier kernels.
--
--		May return -EPERM (write access locked out by module
--		parameter) or -EACCES (read-only).
--
--=======
- 	hotkey_report_mode:
- 		Returns the state of the procfs ACPI event report mode
- 		filter for hot keys.  If 1, all hot key presses are
-@@ -294,7 +271,6 @@ sysfs notes:
- 		May return -EPERM (write access locked out by module
- 		parameter) or -EACCES (read-only).
- 
-->>>>>>> /Documentation/thinkpad-acpi.txt
- input layer notes:
- 
- A Hot key is mapped to a single input layer EV_KEY event, possibly
-@@ -442,55 +418,6 @@ Non hot-key ACPI HKEY event map:
- 0x5002		Lid opened
- 0x7000		Radio Switch may have changed state
- 
--<<<<<<< HEAD/Documentation/thinkpad-acpi.txt
--The above events are not propagated by the driver, except for legacy
--compatibility purposes when hotkey_report_mode is set to 1.
--
--Compatibility notes:
--
--ibm-acpi and thinkpad-acpi 0.15 (mainline kernels before 2.6.23) never
--supported the input layer, and sent events over the procfs ACPI event
--interface.
--
--To avoid sending duplicate events over the input layer and the ACPI
--event interface, thinkpad-acpi 0.16 implements a module parameter
--(hotkey_report_mode), and also a sysfs device attribute with the same
--name.
--
--Make no mistake here: userspace is expected to switch to using the input
--layer interface of thinkpad-acpi, together with the ACPI netlink event
--interface in kernels 2.6.23 and later, or with the ACPI procfs event
--interface in kernels 2.6.22 and earlier.
--
--If no hotkey_report_mode module parameter is specified (or it is set to
--zero), the driver defaults to mode 1 (see below), and on kernels 2.6.22
--and earlier, also allows one to change the hotkey_report_mode through
--sysfs.  In kernels 2.6.23 and later, where the netlink ACPI event
--interface is available, hotkey_report_mode cannot be changed through
--sysfs (it is read-only).
--
--If the hotkey_report_mode module parameter is set to 1 or 2, it cannot
--be changed later through sysfs (any writes will return -EPERM to signal
--that hotkey_report_mode was locked.  On 2.6.23 and later, where
--hotkey_report_mode cannot be changed at all, writes will return -EACES).
--
--hotkey_report_mode set to 1 makes the driver export through the procfs
--ACPI event interface all hot key presses (which are *also* sent to the
--input layer).  This is a legacy compatibility behaviour, and it is also
--the default mode of operation for the driver.
--
--hotkey_report_mode set to 2 makes the driver filter out the hot key
--presses from the procfs ACPI event interface, so these events will only
--be sent through the input layer.  Userspace that has been updated to use
--the thinkpad-acpi input layer interface should set hotkey_report_mode to
--2.
--
--Hot key press events are never sent to the ACPI netlink event interface.
--Really up-to-date userspace under kernel 2.6.23 and later is to use the
--netlink interface and the input layer interface, and don't bother at all
--with hotkey_report_mode.
--
--=======
- The above events are not propagated by the driver, except for legacy
- compatibility purposes when hotkey_report_mode is set to 1.
- 
-@@ -534,8 +461,6 @@ Really up-to-date userspace under kernel
- netlink interface and the input layer interface, and don't bother at all
- with hotkey_report_mode.
- 
-->>>>>>> /Documentation/thinkpad-acpi.txt
--
- Bluetooth
- ---------
- 
+diff -puN drivers/mtd/nand/Kconfig~git-mtd-vs-powerpc drivers/mtd/nand/Kconfig
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -161,10 +71,8 @@ missing-null-termination-in-one-wire-uevent.patch
 fix-oops-in-platform-uevent.patch
 slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
-git-acpi-fixup.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
-git-alsa-kconfig-fix.patch
 alsa-procfs-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
@@ -198,6 +106,7 @@ git-mmc-fixup2.patch
 mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
+git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
 revert-8139too-clean-up-i-o-remapping.patch
