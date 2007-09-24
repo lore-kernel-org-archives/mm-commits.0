@@ -1,131 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch added to -mm tree
-Date: Mon, 24 Sep 2007 09:52:40 -0700
-Message-ID: <200709241652.l8OGqegb007683@imap1.linux-foundation.org>
+Subject: - fix-potential-oops-in-generic_setlease-v2.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 10:06:35 -0700
+Message-ID: <200709241706.l8OH6Z8e008329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59842 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755110AbXIXQwu (ORCPT
+	by vger.kernel.org with ESMTP id S1759939AbXIXRHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 12:52:50 -0400
+	Mon, 24 Sep 2007 13:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, hifumi.hisashi@oss.ntt.co.jp
+To: xemul@openvz.org, bfields@fieldses.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-use-pagevec-to-rotate-reclaimable-page-fix-2
-has been added to the -mm tree.  Its filename is
-     mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch
+     Fix potential OOPS in generic_setlease() (v2)
+has been removed from the -mm tree.  Its filename was
+     fix-potential-oops-in-generic_setlease-v2.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into fix-potential-oops-in-generic_setlease.patch
 
 ------------------------------------------------------
-Subject: mm-use-pagevec-to-rotate-reclaimable-page-fix-2
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Fix potential OOPS in generic_setlease() (v2)
+From: Pavel Emelyanov <xemul@openvz.org>
 
-rotate_reclaimable_page() is not necessarily called with IRQ disabled:
-it must do so when calling the helpfully commented pagevec_move_tail().
-
-Hmm, if pagevec_move_tail() is assuming IRQ disabled, why should it
-bother with irqsave/irqrestore variants of spin_lock?  Because we like
-to see them on lru_lock?  But vmscan.c already has one bare spin_lock().
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/locks.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-2 mm/swap.c
---- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-2
-+++ a/mm/swap.c
-@@ -101,7 +101,6 @@ static void pagevec_move_tail(struct pag
- 	int i;
- 	int pgmoved = 0;
- 	struct zone *zone = NULL;
--	unsigned long uninitialized_var(flags);
- 
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
-@@ -109,9 +108,9 @@ static void pagevec_move_tail(struct pag
- 
- 		if (pagezone != zone) {
- 			if (zone)
--				spin_unlock_irqrestore(&zone->lru_lock, flags);
-+				spin_unlock(&zone->lru_lock);
- 			zone = pagezone;
--			spin_lock_irqsave(&zone->lru_lock, flags);
-+			spin_lock(&zone->lru_lock);
- 		}
- 		if (PageLRU(page) && !PageActive(page)) {
- 			list_move_tail(&page->lru, &zone->inactive_list);
-@@ -119,7 +118,7 @@ static void pagevec_move_tail(struct pag
- 		}
- 	}
- 	if (zone)
--		spin_unlock_irqrestore(&zone->lru_lock, flags);
-+		spin_unlock(&zone->lru_lock);
- 	__count_vm_events(PGROTATED, pgmoved);
- 	release_pages(pvec->pages, pvec->nr, pvec->cold);
- 	pagevec_reinit(pvec);
-@@ -149,6 +148,7 @@ void move_tail_pages()
- int rotate_reclaimable_page(struct page *page)
+diff -puN fs/locks.c~fix-potential-oops-in-generic_setlease-v2 fs/locks.c
+--- a/fs/locks.c~fix-potential-oops-in-generic_setlease-v2
++++ a/fs/locks.c
+@@ -1336,7 +1336,8 @@ int fcntl_getlease(struct file *filp)
+  */
+ int generic_setlease(struct file *filp, long arg, struct file_lock **flp)
  {
- 	struct pagevec *pvec;
-+	unsigned long flags;
+-	struct file_lock *fl = NULL, **before, **my_before = NULL, *lease;
++	struct file_lock *fl, **before, **my_before = NULL, *lease;
++	struct file_lock *new_fl = NULL;
+ 	struct dentry *dentry = filp->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	int error, rdlease_count = 0, wrlease_count = 0;
+@@ -1364,8 +1365,8 @@ int generic_setlease(struct file *filp, 
+ 		goto out;
  
- 	if (PageLocked(page))
- 		return 1;
-@@ -161,9 +161,11 @@ int rotate_reclaimable_page(struct page 
+ 	error = -ENOMEM;
+-	fl = locks_alloc_lock();
+-	if (fl == NULL)
++	new_fl = locks_alloc_lock();
++	if (new_fl == NULL)
+ 		goto out;
  
- 	if (PageLRU(page) && !PageActive(page)) {
- 		page_cache_get(page);
-+		local_irq_save(flags);
- 		pvec = &__get_cpu_var(rotate_pvecs);
- 		if (!pagevec_add(pvec, page))
- 			pagevec_move_tail(pvec);
-+		local_irq_restore(flags);
- 	}
- 	if (!test_clear_page_writeback(page))
- 		BUG();
+ 	/*
+@@ -1410,16 +1411,15 @@ int generic_setlease(struct file *filp, 
+ 	if (!leases_enable)
+ 		goto out;
+ 
+-	locks_copy_lock(fl, lease);
+-
+-	locks_insert_lock(before, fl);
++	locks_copy_lock(new_fl, lease);
++	locks_insert_lock(before, new_fl);
+ 
+ 	*flp = fl;
+ 	return 0;
+ 
+ out:
+-	if (fl != NULL)
+-		locks_free_lock(fl);
++	if (new_fl != NULL)
++		locks_free_lock(new_fl);
+ 	return error;
+ }
+ EXPORT_SYMBOL(generic_setlease);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
-git-libata-all.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-mm-clarify-__add_to_swap_cache-locking-fix.patch
-radix-tree-use-indirect-bit.patch
-use-vm_read-write-exec-to-set-vm_page_prot.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-mm-shmemc-make-3-functions-static.patch
-lib-percpu_counter_sub.patch
-mm-per-device-dirty-threshold-fix.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-shmem-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
-prio_tree-debugging-patch.patch
+fix-potential-oops-in-generic_setlease.patch
+fix-potential-oops-in-generic_setlease-v2.patch
+git-net.patch
+git-nfsd.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+cleanup-macros-for-distinguishing-mandatory-locks.patch
+gfs2-cleanup-explicit-check-for-mandatory-locks.patch
+9pfs-cleanup-explicit-check-for-mandatory-locks.patch
+afs-cleanup-explicit-check-for-mandatory-locks.patch
+nfs-cleanup-explicit-check-for-mandatory-locks.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
