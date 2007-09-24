@@ -1,153 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch removed from -mm tree
-Date: Sun, 23 Sep 2007 18:09:22 -0700
-Message-ID: <200709240109.l8O19MNP002986@imap1.linux-foundation.org>
+Subject: - dtc-fix-typo.patch removed from -mm tree
+Date: Sun, 23 Sep 2007 18:09:19 -0700
+Message-ID: <200709240109.l8O19JF2002983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754162AbXIXBJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751931AbXIXBKH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 23 Sep 2007 21:09:58 -0400
+	Sun, 23 Sep 2007 21:10:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, satyam@infradead.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, James.Bottomley@steeleye.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use mutex instead of semaphore in the OnStream SCSI Tape driver
+     dtc: Fix typo
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
+     dtc-fix-typo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use mutex instead of semaphore in the OnStream SCSI Tape driver
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: dtc: Fix typo
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The OnStream SCSI Tape driver uses a semaphore as mutex.  Use the mutex API
-instead of the (binary) semaphore.
+(and pointed out by several people)
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Reviewed-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |   16 ++++++++--------
- drivers/scsi/osst.h |    3 ++-
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/scsi/dtc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/osst.c~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver
-+++ a/drivers/scsi/osst.c
-@@ -3298,7 +3298,7 @@ static ssize_t osst_write(struct file * 
- 	char		    * name = tape_name(STp);
- 
- 
--	if (down_interruptible(&STp->lock))
-+	if (mutex_lock_interruptible(&STp->lock))
- 		return (-ERESTARTSYS);
- 
- 	/*
-@@ -3600,7 +3600,7 @@ if (SRpnt) printk(KERN_ERR "%s:A: Not su
- out:
- 	if (SRpnt != NULL) osst_release_request(SRpnt);
- 
--	up(&STp->lock);
-+	mutex_unlock(&STp->lock);
- 
- 	return retval;
- }
-@@ -3619,7 +3619,7 @@ static ssize_t osst_read(struct file * f
- 	char		    * name  = tape_name(STp);
- 
- 
--	if (down_interruptible(&STp->lock))
-+	if (mutex_lock_interruptible(&STp->lock))
- 		return (-ERESTARTSYS);
- 
- 	/*
-@@ -3785,7 +3785,7 @@ static ssize_t osst_read(struct file * f
- out:
- 	if (SRpnt != NULL) osst_release_request(SRpnt);
- 
--	up(&STp->lock);
-+	mutex_unlock(&STp->lock);
- 
- 	return retval;
- }
-@@ -4852,7 +4852,7 @@ static int osst_ioctl(struct inode * ino
- 	char		    * name  = tape_name(STp);
- 	void	    __user  * p     = (void __user *)arg;
- 
--	if (down_interruptible(&STp->lock))
-+	if (mutex_lock_interruptible(&STp->lock))
- 		return -ERESTARTSYS;
- 
- #if DEBUG
-@@ -5163,14 +5163,14 @@ static int osst_ioctl(struct inode * ino
- 	}
- 	if (SRpnt) osst_release_request(SRpnt);
- 
--	up(&STp->lock);
-+	mutex_unlock(&STp->lock);
- 
- 	return scsi_ioctl(STp->device, cmd_in, p);
- 
- out:
- 	if (SRpnt) osst_release_request(SRpnt);
- 
--	up(&STp->lock);
-+	mutex_unlock(&STp->lock);
- 
- 	return retval;
- }
-@@ -5865,7 +5865,7 @@ static int osst_probe(struct device *dev
- 	tpnt->modes[2].defined = 1;
- 	tpnt->density_changed = tpnt->compression_changed = tpnt->blksize_changed = 0;
- 
--	init_MUTEX(&tpnt->lock);
-+	mutex_init(&tpnt->lock);
- 	osst_nr_dev++;
- 	write_unlock(&os_scsi_tapes_lock);
- 
-diff -puN drivers/scsi/osst.h~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver drivers/scsi/osst.h
---- a/drivers/scsi/osst.h~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver
-+++ a/drivers/scsi/osst.h
-@@ -4,6 +4,7 @@
- 
- #include <asm/byteorder.h>
- #include <linux/completion.h>
-+#include <linux/mutex.h>
- 
- /*	FIXME - rename and use the following two types or delete them!
-  *              and the types really should go to st.h anyway...
-@@ -532,7 +533,7 @@ struct osst_tape {
-   struct scsi_driver *driver;
-   unsigned capacity;
-   struct scsi_device *device;
--  struct semaphore lock;       /* for serialization */
-+  struct mutex lock;           /* for serialization */
-   struct completion wait;      /* for SCSI commands */
-   struct osst_buffer * buffer;
- 
+diff -puN drivers/scsi/dtc.c~dtc-fix-typo drivers/scsi/dtc.c
+--- a/drivers/scsi/dtc.c~dtc-fix-typo
++++ a/drivers/scsi/dtc.c
+@@ -242,7 +242,7 @@ static int __init dtc_detect(struct scsi
+ 					if (check_signature(base + signatures[sig].offset, signatures[sig].string, strlen(signatures[sig].string))) {
+ 						addr = bases[current_base].address;
+ #if (DTCDEBUG & DTCDEBUG_INIT)
+-						printk(KERB_DEBUG "scsi-dtc : detected board.\n");
++						printk(KERN_DEBUG "scsi-dtc : detected board.\n");
+ #endif
+ 						goto found;
+ 					}
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-alsa.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-git-dvb.patch
-git-mtd.patch
-git-net.patch
-git-sched.patch
+origin.patch
+git-libata-all.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+pata_acpi-use-ata_sff_port_start.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
 git-scsi-misc.patch
-use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
