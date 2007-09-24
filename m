@@ -1,143 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-calgary-get-rid-of-translate_phb.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:27:46 -0700
-Message-ID: <200709242027.l8OKRkqO015952@imap1.linux-foundation.org>
+Subject: - usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 13:28:32 -0700
+Message-ID: <200709242028.l8OKSWgf016041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40669 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756975AbXIXU1y (ORCPT
+	by vger.kernel.org with ESMTP id S1754245AbXIXU3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:27:54 -0400
+	Mon, 24 Sep 2007 16:29:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: muli@il.ibm.com
+To: bene@linutronix.de, dbrownell@users.sourceforge.net, greg@kroah.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Calgary - get rid of translate_phb
-has been added to the -mm tree.  Its filename is
-     x86-64-calgary-get-rid-of-translate_phb.patch
+     usb-gadget-ether: prevent oops caused by error interrupt race
+has been removed from the -mm tree.  Its filename was
+     usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86-64: Calgary - get rid of translate_phb
-From: Muli Ben-Yehuda <muli@il.ibm.com>
+Subject: usb-gadget-ether: prevent oops caused by error interrupt race
+From: Benedikt Spranger <bene@linutronix.de>
 
-Now that we check for translation enabled/disabled based on the presence of
-the IOMMU translation table, we can get rid of translate_phb.
+Fix a longstanding race in the Ethernet gadget driver, which can cause an
+oops on device disconnect.  The fix is just to make the TX path check
+whether its freelist is empty.  That check is otherwise not necessary,
+since the queue is always stopped when that list empties (and restarted
+when request completion puts an entry back on that freelist).
 
-Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+The race window starts when the network code decides to transmit a packet,
+and ends when hard_start_xmit() grabs the freelist lock.  When disconnect()
+is called inside that window, it shuts down the TX queue and breaks the
+otherwise-solid assumption that packets are never sent through a TX queue
+that's stopped.
+
+Signed-off-by: Benedikt Spranger <bene@linutronix.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/pci-calgary.c |   31 ++++++++++++++---------------
- 1 files changed, 15 insertions(+), 16 deletions(-)
+ drivers/usb/gadget/ether.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-get-rid-of-translate_phb arch/x86_64/kernel/pci-calgary.c
---- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-get-rid-of-translate_phb
-+++ a/arch/x86_64/kernel/pci-calgary.c
-@@ -228,12 +228,6 @@ static inline int translation_enabled(st
- 	return (tbl != NULL);
- }
+diff -puN drivers/usb/gadget/ether.c~usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race drivers/usb/gadget/ether.c
+--- a/drivers/usb/gadget/ether.c~usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race
++++ a/drivers/usb/gadget/ether.c
+@@ -1957,8 +1957,20 @@ static int eth_start_xmit (struct sk_buf
+ 	}
  
--static inline int translate_phb(struct pci_dev* dev)
--{
--	int disabled = bus_info[dev->bus->number].translation_disabled;
--	return !disabled;
--}
--
- static void iommu_range_reserve(struct iommu_table *tbl,
- 	unsigned long start_addr, unsigned int npages)
- {
-@@ -1200,7 +1194,7 @@ static int __init calgary_init(void)
- {
- 	int ret;
- 	struct pci_dev *dev = NULL;
--	void *tce_space;
-+	struct calgary_bus_info *info;
- 
- 	ret = calgary_locate_bbars();
- 	if (ret)
-@@ -1212,12 +1206,14 @@ static int __init calgary_init(void)
- 			break;
- 		if (!is_cal_pci_dev(dev->device))
- 			continue;
--		if (!translate_phb(dev)) {
+ 	spin_lock_irqsave(&dev->req_lock, flags);
++	/*
++	 * this freelist can be empty if an interrupt triggered disconnect()
++	 * and reconfigured the gadget (shutting down this queue) after the
++	 * network stack decided to xmit but before we got the spinlock.
++	 */
++	if (list_empty(&dev->tx_reqs)) {
++		spin_unlock_irqrestore(&dev->req_lock, flags);
++		return 1;
++	}
 +
-+		info = &bus_info[dev->bus->number];
-+		if (info->translation_disabled) {
- 			calgary_init_one_nontraslated(dev);
- 			continue;
- 		}
--		tce_space = bus_info[dev->bus->number].tce_space;
--		if (!tce_space && !translate_empty_slots)
+ 	req = container_of (dev->tx_reqs.next, struct usb_request, list);
+ 	list_del (&req->list);
 +
-+		if (!info->tce_space && !translate_empty_slots)
- 			continue;
- 
- 		ret = calgary_init_one(dev);
-@@ -1235,11 +1231,13 @@ error:
- 			break;
- 		if (!is_cal_pci_dev(dev->device))
- 			continue;
--		if (!translate_phb(dev)) {
-+
-+		info = &bus_info[dev->bus->number];
-+		if (info->translation_disabled) {
- 			pci_dev_put(dev);
- 			continue;
- 		}
--		if (!bus_info[dev->bus->number].tce_space && !translate_empty_slots)
-+		if (!info->tce_space && !translate_empty_slots)
- 			continue;
- 
- 		calgary_disable_translation(dev);
-@@ -1552,7 +1550,7 @@ static void __init calgary_fixup_one_tce
- static int __init calgary_fixup_tce_spaces(void)
- {
- 	struct pci_dev *dev = NULL;
--	void *tce_space;
-+	struct calgary_bus_info *info;
- 
- 	if (no_iommu || swiotlb || !calgary_detected)
- 		return -ENODEV;
-@@ -1565,11 +1563,12 @@ static int __init calgary_fixup_tce_spac
- 			break;
- 		if (!is_cal_pci_dev(dev->device))
- 			continue;
--		if (!translate_phb(dev))
-+
-+		info = &bus_info[dev->bus->number];
-+		if (info->translation_disabled)
- 			continue;
- 
--		tce_space = bus_info[dev->bus->number].tce_space;
--		if (!tce_space)
-+		if (!info->tce_space)
- 			continue;
- 
- 		calgary_fixup_one_tce_space(dev);
++	/* temporarily stop TX queue when the freelist empties */
+ 	if (list_empty (&dev->tx_reqs))
+ 		netif_stop_queue (net);
+ 	spin_unlock_irqrestore(&dev->req_lock, flags);
 _
 
-Patches currently in -mm which might be from muli@il.ibm.com are
+Patches currently in -mm which might be from bene@linutronix.de are
 
-git-block.patch
-x86-64-calgary-fix-calgary=disable=busnum-for-calioc2.patch
-x86-64-calgary-get-rid-of-translate_phb.patch
-unify-dma_bit_mask-definitions-v31.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
+usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
