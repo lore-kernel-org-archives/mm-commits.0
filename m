@@ -1,86 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + net-bluetooth-hidp-corec-make-hidp_setup_input.patch added to -mm tree
-Date: Mon, 24 Sep 2007 14:19:47 -0700
-Message-ID: <200709242119.l8OLJlSM018252@imap1.linux-foundation.org>
+Subject: - include-linux-mutexh-unclear-reference-to-convention.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 14:25:51 -0700
+Message-ID: <200709242125.l8OLPpAo018500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46202 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54513 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754008AbXIXVUH (ORCPT
+	by vger.kernel.org with ESMTP id S1752407AbXIXV0J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 17:20:07 -0400
+	Mon, 24 Sep 2007 17:26:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, 12o3l@tiscali.nl, marcel@holtmann.org
+To: mattilinnanvuori@yahoo.com, mingo@elte.hu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/bluetooth/hidp/core.c: Make hidp_setup_input() return int
-has been added to the -mm tree.  Its filename is
-     net-bluetooth-hidp-corec-make-hidp_setup_input.patch
+     include/linux/mutex.h: unclear reference to convention
+has been removed from the -mm tree.  Its filename was
+     include-linux-mutexh-unclear-reference-to-convention.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is redundant
 
 ------------------------------------------------------
-Subject: net/bluetooth/hidp/core.c: Make hidp_setup_input() return int
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: include/linux/mutex.h: unclear reference to convention
+From: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
 
-- makes hidp_setup_input() return int to indicate errors;
-- checks its return value to handle errors.
+Reference to two different conventions is unnecessarily unclear unless you
+know them already and requires seeking and reading another file for
+understanding.
 
-Thanks to roel and Marcel Holtmann for comments.
-
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: roel <12o3l@tiscali.nl>
+Signed-off-by: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/hidp/core.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ include/linux/mutex.h |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN net/bluetooth/hidp/core.c~net-bluetooth-hidp-corec-make-hidp_setup_input net/bluetooth/hidp/core.c
---- a/net/bluetooth/hidp/core.c~net-bluetooth-hidp-corec-make-hidp_setup_input
-+++ a/net/bluetooth/hidp/core.c
-@@ -625,7 +625,7 @@ static struct device *hidp_get_device(st
- 	return conn ? &conn->dev : NULL;
- }
+diff -puN include/linux/mutex.h~include-linux-mutexh-unclear-reference-to-convention include/linux/mutex.h
+--- a/include/linux/mutex.h~include-linux-mutexh-unclear-reference-to-convention
++++ a/include/linux/mutex.h
+@@ -133,9 +133,19 @@ extern int __must_check mutex_lock_inter
+ # define mutex_lock_interruptible_nested(lock, subclass) mutex_lock_interruptible(lock)
+ #endif
  
--static inline void hidp_setup_input(struct hidp_session *session, struct hidp_connadd_req *req)
-+static inline int hidp_setup_input(struct hidp_session *session, struct hidp_connadd_req *req)
- {
- 	struct input_dev *input = session->input;
- 	int i;
-@@ -667,7 +667,7 @@ static inline void hidp_setup_input(stru
- 
- 	input->event = hidp_input_event;
- 
--	input_register_device(input);
-+	return input_register_device(input);
- }
- 
- static int hidp_open(struct hid_device *hid)
-@@ -820,8 +820,11 @@ int hidp_add_connection(struct hidp_conn
- 	session->flags   = req->flags & (1 << HIDP_BLUETOOTH_VENDOR_ID);
- 	session->idle_to = req->idle_to;
- 
--	if (session->input)
--		hidp_setup_input(session, req);
-+	if (session->input) {
-+		err = hidp_setup_input(session, req);
-+		if (err < 0)
-+			goto failed;
-+	}
- 
- 	if (session->hid)
- 		hidp_setup_hid(session, req);
+-/*
+- * NOTE: mutex_trylock() follows the spin_trylock() convention,
+- *       not the down_trylock() convention!
++/***
++ * mutex_trylock - try acquire the mutex, without waiting
++ * @lock: the mutex to be acquired
++ *
++ * Try to acquire the mutex atomically. Returns 1 if the mutex
++ * has been acquired successfully, and 0 on contention.
++ *
++ * NOTE: this function follows the spin_trylock() convention, so
++ * it is negated to the down_trylock() return values! Be careful
++ * about this when converting semaphore users to mutexes.
++ *
++ * This function must not be used in interrupt context. The
++ * mutex must be released by the same task that acquired it.
+  */
+ extern int fastcall mutex_trylock(struct mutex *lock);
+ extern void fastcall mutex_unlock(struct mutex *lock);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from mattilinnanvuori@yahoo.com are
 
-net-bluetooth-hidp-corec-make-hidp_setup_input.patch
-fs-romfs-inodec-trivial-improvements.patch
+mutex-documentation-is-unclear-about-software-interrupts-tasklets-and-timers.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+include-linux-mutexh-unclear-reference-to-convention.patch
