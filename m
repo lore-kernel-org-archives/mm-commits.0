@@ -1,264 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch added to -mm tree
-Date: Sun, 23 Sep 2007 23:31:04 -0700
-Message-ID: <200709240631.l8O6V4gL013143@imap1.linux-foundation.org>
+Subject: - patch-getrusage-return-ru_maxrss.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 00:57:23 -0700
+Message-ID: <200709240757.l8O7vQ2V015904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36997 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752329AbXIXGb7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756504AbXIXH6d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 02:31:59 -0400
+	Mon, 24 Sep 2007 03:58:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
+To: fmayhar@google.com, oleg@tv-sign.ru, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
-has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
+     getrusage: return ru_maxrss
+has been removed from the -mm tree.  Its filename was
+     patch-getrusage-return-ru_maxrss.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: getrusage: return ru_maxrss
+From: Frank Mayhar <fmayhar@google.com>
 
-make lockdep shut up.  Needs fixing properly.
+Properly support the ru_maxrss field of the rusage structure returned by
+getrusage().  This patch includes documentation both of the getrusage()
+implementation in general and of the ru_maxrss implementation specifically.
+ This implementation matches that of FreeBSD, which is the only other OS of
+which I'm aware that implements this field.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Like a number of other folks, we recently had a need for a non-/proc way of
+getting the RSS of a process and happened on getrusage().  Unlike the rest,
+though, we fixed the system call to do what we want.  I wrote a wrong
+implementation and submitted it while I was sick; this time I took my time
+and I think I got it right.
+
+A test program that has been run against a number of systems (of which
+only FreeBSD and Linux 2.6 with this patch applied passed) is also
+available at
+	http://www.exit.com/Archives/Linux/
+
+Signed-off-by: Frank Mayhar <fmayhar@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |    3 +++
+ kernel/exit.c         |   21 +++++++++++++++++++++
+ kernel/fork.c         |    2 ++
+ kernel/sys.c          |    5 +++++
+ 4 files changed, 31 insertions(+)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
-+++ a/fs/namespace.c
-@@ -207,7 +207,7 @@ static void lock_and_coalesce_cpu_mnt_wr
+diff -puN include/linux/sched.h~patch-getrusage-return-ru_maxrss include/linux/sched.h
+--- a/include/linux/sched.h~patch-getrusage-return-ru_maxrss
++++ a/include/linux/sched.h
+@@ -449,6 +449,7 @@ struct signal_struct {
+ 	unsigned long nvcsw, nivcsw, cnvcsw, cnivcsw;
+ 	unsigned long min_flt, maj_flt, cmin_flt, cmaj_flt;
+ 	unsigned long inblock, oublock, cinblock, coublock;
++	unsigned long cmaxrss;
  
- 	for_each_possible_cpu(cpu) {
- 		cpu_writer = &per_cpu(mnt_writers, cpu);
--		spin_lock(&cpu_writer->lock);
-+		spin_lock_nested(&cpu_writer->lock, 42);
- 		__clear_mnt_count(cpu_writer);
- 		cpu_writer->mnt = NULL;
+ 	/*
+ 	 * Cumulative ns of scheduled CPU time for dead threads in the
+@@ -942,6 +943,8 @@ struct task_struct {
+ 	struct timespec real_start_time;	/* boot based time */
+ /* mm fault and swap info: this can arguably be seen as either mm-specific or thread-specific */
+ 	unsigned long min_flt, maj_flt;
++/* maxrss gets the hiwater_rss in do_exit() */
++	unsigned long maxrss;
+ 
+   	cputime_t it_prof_expires, it_virt_expires;
+ 	unsigned long long it_sched_expires;
+diff -puN kernel/exit.c~patch-getrusage-return-ru_maxrss kernel/exit.c
+--- a/kernel/exit.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/exit.c
+@@ -125,6 +125,8 @@ static void __exit_signal(struct task_st
+ 		sig->inblock += task_io_get_inblock(tsk);
+ 		sig->oublock += task_io_get_oublock(tsk);
+ 		sig->sum_sched_runtime += tsk->se.sum_exec_runtime;
++		if (tsk->maxrss > sig->cmaxrss)
++			sig->cmaxrss = tsk->maxrss;
+ 		sig = NULL; /* Marker for below. */
  	}
+ 
+@@ -947,6 +949,14 @@ fastcall NORET_TYPE void do_exit(long co
+ 	if (tsk->mm) {
+ 		update_hiwater_rss(tsk->mm);
+ 		update_hiwater_vm(tsk->mm);
++		BUG_ON(tsk->maxrss != 0);
++		/*
++		 * Store the hiwater_rss in a task field, since when we need
++		 * it in __exit_signal() the mm structure is gone; we can't
++		 * stuff it in the signal structure since then we would be
++		 * racing with wait_task_zombie().
++		 */
++		tsk->maxrss = tsk->mm->hiwater_rss;
+ 	}
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+@@ -1255,6 +1265,17 @@ static int wait_task_zombie(struct task_
+ 		psig->coublock +=
+ 			task_io_get_oublock(p) +
+ 			sig->oublock + sig->coublock;
++		/*
++		 * Save the maximum RSS of this task and all its terminated,
++		 * waited-for children.  Don't accumulate the RSS since, one,
++		 * other operating systems (FreeBSD, AIX) do it this way and,
++		 * two, the cumulative RSS of a long-lived process with lots
++		 * of sequential child process would be meaningless.
++		 */
++		if (sig->cmaxrss > psig->cmaxrss)
++			psig->cmaxrss = sig->cmaxrss;
++		if (p->maxrss > psig->cmaxrss)
++			psig->cmaxrss = p->maxrss;
+ 		spin_unlock_irq(&p->parent->sighand->siglock);
+ 	}
+ 
+diff -puN kernel/fork.c~patch-getrusage-return-ru_maxrss kernel/fork.c
+--- a/kernel/fork.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/fork.c
+@@ -546,6 +546,7 @@ static int copy_mm(unsigned long clone_f
+ 
+ 	tsk->min_flt = tsk->maj_flt = 0;
+ 	tsk->nvcsw = tsk->nivcsw = 0;
++	tsk->maxrss = 0;
+ 
+ 	tsk->mm = NULL;
+ 	tsk->active_mm = NULL;
+@@ -891,6 +892,7 @@ static inline int copy_signal(unsigned l
+ 	sig->min_flt = sig->maj_flt = sig->cmin_flt = sig->cmaj_flt = 0;
+ 	sig->inblock = sig->oublock = sig->cinblock = sig->coublock = 0;
+ 	sig->sum_sched_runtime = 0;
++	sig->cmaxrss = 0;
+ 	INIT_LIST_HEAD(&sig->cpu_timers[0]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[1]);
+ 	INIT_LIST_HEAD(&sig->cpu_timers[2]);
+diff -puN kernel/sys.c~patch-getrusage-return-ru_maxrss kernel/sys.c
+--- a/kernel/sys.c~patch-getrusage-return-ru_maxrss
++++ a/kernel/sys.c
+@@ -1567,6 +1567,7 @@ static void k_getrusage(struct task_stru
+ 			r->ru_majflt = p->signal->cmaj_flt;
+ 			r->ru_inblock = p->signal->cinblock;
+ 			r->ru_oublock = p->signal->coublock;
++			r->ru_maxrss = p->signal->cmaxrss;
+ 
+ 			if (who == RUSAGE_CHILDREN)
+ 				break;
+@@ -1592,11 +1593,15 @@ static void k_getrusage(struct task_stru
+ 				r->ru_oublock += task_io_get_oublock(t);
+ 				t = next_thread(t);
+ 			} while (t != p);
++			update_hiwater_rss(p->mm);
++			if (r->ru_maxrss < p->mm->hiwater_rss)
++				r->ru_maxrss = p->mm->hiwater_rss;
+ 			break;
+ 
+ 		default:
+ 			BUG();
+ 	}
++	r->ru_maxrss <<= PAGE_SHIFT - 10; /* Convert from pages to kilobytes. */
+ 
+ 	unlock_task_sighand(p, &flags);
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fmayhar@google.com are
 
-origin.patch
-missing-null-termination-in-one-wire-uevent.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-alsa-procfs-fix.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
-fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mips-fixup.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-revert-8139too-clean-up-i-o-remapping.patch
-git-net-sky2-fixups.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-build-fix.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-block-fix-headers_check.patch
-git-block-fix-qlogicpti-build.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-iwl3945-is-bust.patch
-p54pci-terminate-pci-table.patch
-git-wireless-b44-is-bust.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+patch-getrusage-return-ru_maxrss.patch
