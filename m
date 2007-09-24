@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps-pssproportional-set-size-accounting-in-smaps.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:32:10 -0700
-Message-ID: <200709242032.l8OKWAvJ016206@imap1.linux-foundation.org>
+Subject: + build-failure-on-ppc64-drivers-ata-pata_sccc.patch added to -mm tree
+Date: Mon, 24 Sep 2007 13:40:47 -0700
+Message-ID: <200709242040.l8OKemqD016714@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34879 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754681AbXIXUdE (ORCPT
+	by vger.kernel.org with ESMTP id S1752174AbXIXUlL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:33:04 -0400
+	Mon, 24 Sep 2007 16:41:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, P@draigBrady.com, balbir@linux.vnet.ibm.com, bernie@codewiz.org, hugh@veritas.com, jjberthels@gmail.com, mpm@selenic.com, vda.linux@googlemail.com
+Cc: satyam@infradead.org, alan@redhat.com, mel@skynet.ie
 
 
 The patch titled
-     maps: PSS(proportional set size) accounting in smaps
+     Build failure on ppc64 drivers/ata/pata_scc.c
 has been added to the -mm tree.  Its filename is
-     maps-pssproportional-set-size-accounting-in-smaps.patch
+     build-failure-on-ppc64-drivers-ata-pata_sccc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,132 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps: PSS(proportional set size) accounting in smaps
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: Build failure on ppc64 drivers/ata/pata_scc.c
+From: Satyam Sharma <satyam@infradead.org>
 
-The "proportional set size" (PSS) of a process is the count of pages it has
-in memory, where each page is divided by the number of processes sharing
-it.  So if a process has 1000 pages all to itself, and 1000 shared with one
-other process, its PSS will be 1500.
+Hi,
 
-               - lwn.net: "ELC: How much memory are applications really using?"
+On Thu, 20 Sep 2007, Alan Cox wrote:
+>
+> On Thu, 20 Sep 2007 14:13:15 +0100
+> mel@skynet.ie (Mel Gorman) wrote:
+>
+> > PPC64 building allmodconfig fails to compile drivers/ata/pata_scc.c . It
+> > doesn't show up on other arches because this driver is specific to the
+> > architecture.
+> >
+> > drivers/ata/pata_scc.c: In function `scc_bmdma_status'
+>
+> Its not been updated to match the libata core changes. Try something like
+> this. Whoever is maintaining it should also remove the prereset cable handling
+> code and use the proper cable detect method.
 
-The PSS proposed by Matt Mackall is a very nice metic for measuring an
-process's memory footprint.  So collect and export it via
-/proc/<pid>/smaps.
+It appears you forgot to fix scc_std_softreset() and one of its callsites
+in scc_bdma_stop(). A complete patch is attempted below -- please review.
 
-Matt Mackall's pagemap/kpagemap and John Berthels's exmap can also do the
-job.  They are comprehensive tools.  But for PSS, let's do it in the simple
-way.
+[PATCH -mm] pata_scc: Keep up with libata core API changes
 
-Cc: John Berthels <jjberthels@gmail.com>
-Cc: Bernardo Innocenti <bernie@codewiz.org>
-Cc: Padraig Brady <P@draigBrady.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Hugh Dickins <hugh@veritas.com>
+Little fixlets, that the build started erroring / warning about:
+
+drivers/ata/pata_scc.c: In function 'scc_bmdma_status':
+drivers/ata/pata_scc.c:734: error: structure has no member named 'active_tag'
+drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
+drivers/ata/pata_scc.c:866: warning: passing arg 1 of 'ata_std_prereset' from incompatible pointer type
+drivers/ata/pata_scc.c: In function 'scc_error_handler':
+drivers/ata/pata_scc.c:908: warning: passing arg 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c:908: warning: passing arg 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
+drivers/ata/pata_scc.c:908: warning: passing arg 5 of 'ata_bmdma_drive_eh' from incompatible pointer type
+make[2]: *** [drivers/ata/pata_scc.o] Error 1
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   29 ++++++++++++++++++++++++++++-
- 1 files changed, 28 insertions(+), 1 deletion(-)
+ drivers/ata/pata_scc.c |   21 ++++++++++++---------
+ 1 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps-pssproportional-set-size-accounting-in-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps-pssproportional-set-size-accounting-in-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -324,6 +324,27 @@ struct mem_size_stats
- 	unsigned long private_clean;
- 	unsigned long private_dirty;
- 	unsigned long referenced;
-+
-+	/*
-+	 * Proportional Set Size(PSS): my share of RSS.
-+	 *
-+	 * PSS of a process is the count of pages it has in memory, where each
-+	 * page is divided by the number of processes sharing it.  So if a
-+	 * process has 1000 pages all to itself, and 1000 shared with one other
-+	 * process, its PSS will be 1500.               - Matt Mackall, lwn.net
-+	 */
-+	u64 	      pss;
-+	/*
-+	 * To keep (accumulated) division errors low, we adopt 64bit pss and
-+	 * use some low bits for division errors. So (pss >> PSS_DIV_BITS)
-+	 * would be the real byte count.
-+	 *
-+	 * A shift of 12 before division means(assuming 4K page size):
-+	 * 	- 1M 3-user-pages add up to 8KB errors;
-+	 * 	- supports mapcount up to 2^24, or 16M;
-+	 * 	- supports PSS up to 2^52 bytes, or 4PB.
-+	 */
-+#define PSS_DIV_BITS	12
- };
+diff -puN drivers/ata/pata_scc.c~build-failure-on-ppc64-drivers-ata-pata_sccc drivers/ata/pata_scc.c
+--- a/drivers/ata/pata_scc.c~build-failure-on-ppc64-drivers-ata-pata_sccc
++++ a/drivers/ata/pata_scc.c
+@@ -594,16 +594,17 @@ static unsigned int scc_bus_softreset(st
+  *	Note: Original code is ata_std_softreset().
+  */
  
- struct smaps_arg
-@@ -341,6 +362,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-+	int mapcount;
+-static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
+-                              unsigned long deadline)
++static int scc_std_softreset(struct ata_link *link, unsigned int *classes,
++                             unsigned long deadline)
+ {
++	struct ata_port *ap = link->ap;
+ 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
+ 	unsigned int devmask = 0, err_mask;
+ 	u8 err;
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -357,16 +379,19 @@ static int smaps_pte_range(pmd_t *pmd, u
- 		/* Accumulate the size in pages that have been accessed. */
- 		if (pte_young(ptent) || PageReferenced(page))
- 			mss->referenced += PAGE_SIZE;
--		if (page_mapcount(page) >= 2) {
-+		mapcount = page_mapcount(page);
-+		if (mapcount >= 2) {
- 			if (pte_dirty(ptent))
- 				mss->shared_dirty += PAGE_SIZE;
- 			else
- 				mss->shared_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_DIV_BITS) / mapcount;
- 		} else {
- 			if (pte_dirty(ptent))
- 				mss->private_dirty += PAGE_SIZE;
- 			else
- 				mss->private_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_DIV_BITS);
- 		}
+ 	DPRINTK("ENTER\n");
+ 
+-	if (ata_link_offline(&ap->link)) {
++	if (ata_link_offline(link)) {
+ 		classes[0] = ATA_DEV_NONE;
+ 		goto out;
  	}
- 	pte_unmap_unlock(pte - 1, ptl);
-@@ -395,6 +420,7 @@ static int show_smap(struct seq_file *m,
- 	seq_printf(m,
- 		   "Size:           %8lu kB\n"
- 		   "Rss:            %8lu kB\n"
-+		   "Pss:            %8lu kB\n"
- 		   "Shared_Clean:   %8lu kB\n"
- 		   "Shared_Dirty:   %8lu kB\n"
- 		   "Private_Clean:  %8lu kB\n"
-@@ -402,6 +428,7 @@ static int show_smap(struct seq_file *m,
- 		   "Referenced:     %8lu kB\n",
- 		   (vma->vm_end - vma->vm_start) >> 10,
- 		   sarg.mss.resident >> 10,
-+		   (unsigned long)(sarg.mss.pss >> (10 + PSS_DIV_BITS)),
- 		   sarg.mss.shared_clean  >> 10,
- 		   sarg.mss.shared_dirty  >> 10,
- 		   sarg.mss.private_clean >> 10,
+@@ -694,7 +695,7 @@ static void scc_bmdma_stop (struct ata_q
+ 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
+ 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
+ 			/* TBD: SW reset */
+-			scc_std_softreset(ap, &classes, deadline);
++			scc_std_softreset(&ap->link, &classes, deadline);
+ 			continue;
+ 		}
+ 
+@@ -733,7 +734,7 @@ static u8 scc_bmdma_status (struct ata_p
+ 	void __iomem *mmio = ap->ioaddr.bmdma_addr;
+ 	u8 host_stat = in_be32(mmio + SCC_DMA_STATUS);
+ 	u32 int_status = in_be32(mmio + SCC_DMA_INTST);
+-	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->active_tag);
++	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->link.active_tag);
+ 	static int retry = 0;
+ 
+ 	/* return if IOS_SS is cleared */
+@@ -862,10 +863,10 @@ static void scc_bmdma_freeze (struct ata
+  *	@deadline: deadline jiffies for the operation
+  */
+ 
+-static int scc_pata_prereset(struct ata_port *ap, unsigned long deadline)
++static int scc_pata_prereset(struct ata_link *link, unsigned long deadline)
+ {
+-	ap->cbl = ATA_CBL_PATA80;
+-	return ata_std_prereset(ap, deadline);
++	link->ap->cbl = ATA_CBL_PATA80;
++	return ata_std_prereset(link, deadline);
+ }
+ 
+ /**
+@@ -876,8 +877,10 @@ static int scc_pata_prereset(struct ata_
+  *	Note: Original code is ata_std_postreset().
+  */
+ 
+-static void scc_std_postreset (struct ata_port *ap, unsigned int *classes)
++static void scc_std_postreset(struct ata_link *link, unsigned int *classes)
+ {
++	struct ata_port *ap = link->ap;
++
+ 	DPRINTK("ENTER\n");
+ 
+ 	/* is double-select really necessary? */
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-make-swappiness-safer-to-use.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-seqfile-merge-duplite-code-to-seq_open_private.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+build-failure-on-ppc64-drivers-ata-pata_sccc.patch
+git-net.patch
+git-net-fix-spidernet-build.patch
+spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
+pasemi_mac-build-fix-after-recent-netdev-stats.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
+git-scsi-misc.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+git-block.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
