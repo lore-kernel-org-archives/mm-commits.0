@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + touch-command-causes-oops.patch added to -mm tree
-Date: Mon, 24 Sep 2007 07:47:55 -0700
-Message-ID: <200709241447.l8OEltw9002281@imap1.linux-foundation.org>
+Subject: + use-extended-crashkernel-command-line-on-ia64-fix.patch added to -mm tree
+Date: Mon, 24 Sep 2007 09:34:30 -0700
+Message-ID: <200709241634.l8OGYUld006680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39949 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45000 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752339AbXIXOsz (ORCPT
+	by vger.kernel.org with ESMTP id S1760322AbXIXQfP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 10:48:55 -0400
+	Mon, 24 Sep 2007 12:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, Valdis.Kletnieks@vt.edu, balbir@in.ibm.com, haveblue@us.ibm.com
+Cc: kamalesh@linux.vnet.ibm.com, bwalle@suse.de, ebiederm@xmission.com, tony.luck@intel.com, vgoyal@in.ibm.com
 
 
 The patch titled
-     'touch' command causes Oops
+     use-extended-crashkernel-command-line-on-ia64 fix
 has been added to the -mm tree.  Its filename is
-     touch-command-causes-oops.patch
+     use-extended-crashkernel-command-line-on-ia64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,130 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 'touch' command causes Oops
-From: Valdis.Kletnieks@vt.edu
+Subject: use-extended-crashkernel-command-line-on-ia64 fix
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-"never let a libc developer write your kernel code" - hch
+arch/ia64/kernel/efi.c: In function 'efi_memmap_init':
+arch/ia64/kernel/efi.c:1088: error: 'total_memory' undeclared (first use in this function)
+arch/ia64/kernel/efi.c:1088: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/efi.c:1088: error: for each function it appears in.)
+make[1]: *** [arch/ia64/kernel/efi.o] Error 1
+make: *** [arch/ia64/kernel] Error 2
 
-"nor, apparently, a kernel developer" - akpm
+The use-extended-crashkernel-command-line-on-ia64.patch uses total_mem and
+return total_memory.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/efi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/utimes.c~touch-command-causes-oops fs/utimes.c
---- a/fs/utimes.c~touch-command-causes-oops
-+++ a/fs/utimes.c
-@@ -59,6 +59,7 @@ long do_utimes(int dfd, char __user *fil
- 	struct inode *inode;
- 	struct iattr newattrs;
- 	struct file *f = NULL;
-+	struct vfsmount *mnt;
+diff -puN arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64-fix arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64-fix
++++ a/arch/ia64/kernel/efi.c
+@@ -1085,7 +1085,7 @@ efi_memmap_init(unsigned long *s, unsign
+ 	*s = (u64)kern_memmap;
+ 	*e = (u64)++k;
  
- 	error = -EINVAL;
- 	if (times && (!nsec_valid(times[0].tv_nsec) ||
-@@ -79,17 +80,19 @@ long do_utimes(int dfd, char __user *fil
- 		if (!f)
- 			goto out;
- 		dentry = f->f_path.dentry;
-+		mnt = f->f_path.mnt;
- 	} else {
- 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
- 		if (error)
- 			goto out;
+-	return total_memory;
++	return total_mem;
+ }
  
- 		dentry = nd.dentry;
-+		mnt = nd.mnt;
- 	}
- 
- 	inode = dentry->d_inode;
- 
--	error = mnt_want_write(nd.mnt);
-+	error = mnt_want_write(mnt);
- 	if (error)
- 		goto dput_and_out;
- 
-@@ -135,7 +138,7 @@ long do_utimes(int dfd, char __user *fil
- 	error = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- mnt_drop_write_and_out:
--	mnt_drop_write(nd.mnt);
-+	mnt_drop_write(mnt);
- dput_and_out:
- 	if (f)
- 		fput(f);
-diff -puN /dev/null /dev/null
+ void
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-git-nfs.patch
-git-nfsd.patch
-partially-fix-up-the-lookup_one_noperm-mess.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-git-xfs.patch
-sysv-convert-to-new-aops.patch
-alpha-convert-to-generic-sys_ptrace.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
-fix-execute-checking-in-permission.patch
-exec-remove-unnecessary-check-for-mnt_noexec.patch
-fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
-reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
-unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
-cifs-ignore-mode-change-if-its-just-for-clearing-setuid-setgid-bits.patch
-r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
-r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
-r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-touch-command-causes-oops.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-ext2-new-export-ops.patch
-ext3-new-export-ops.patch
-ext4-new-export-ops.patch
-efs-new-export-ops.patch
-jfs-new-export-ops.patch
-ntfs-new-export-ops.patch
-xfs-new-export-ops.patch
-fat-new-export-ops.patch
-isofs-new-export-ops.patch
-shmem-new-export-ops.patch
-reiserfs-new-export-ops.patch
-gfs2-new-export-ops.patch
-ocfs2-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+fix-3-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+git-net-fix-macec.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
