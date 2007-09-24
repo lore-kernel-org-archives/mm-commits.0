@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch added to -mm tree
-Date: Mon, 24 Sep 2007 14:11:51 -0700
-Message-ID: <200709242111.l8OLBp4Z017918@imap1.linux-foundation.org>
+Subject: + ipsc-update-version-information.patch added to -mm tree
+Date: Mon, 24 Sep 2007 14:13:16 -0700
+Message-ID: <200709242113.l8OLDGXU018007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43702 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45621 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753339AbXIXVL4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756856AbXIXVNc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 17:11:56 -0400
+	Mon, 24 Sep 2007 17:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de
+Cc: bwalle@suse.de, James.Bottomley@steeleye.com, aacraid@adaptec.com
 
 
 The patch titled
-     Add extended crashkernel syntax to kernel-parameters.txt
+     ips.c: update version information
 has been added to the -mm tree.  Its filename is
-     add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
+     ipsc-update-version-information.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add extended crashkernel syntax to kernel-parameters.txt
+Subject: ips.c: update version information
 From: Bernhard Walle <bwalle@suse.de>
 
-This adds the documentation for the extended crashkernel syntax into
-Documentation/kernel-parameters.txt.
+Make the version number in ips.c and ips.h consistent.  It seems that this
+has been forgotten in a60768e2d43eb30a1adb8a119aeac35dc0d03ef6.
+
+It also removes code duplication, each number is now only once in the code to
+avoid similar errors in the future.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: <aacraid@adaptec.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- 1 files changed, 7 insertions(+)
+ drivers/scsi/ips.c |    4 ++--
+ drivers/scsi/ips.h |   11 ++++++-----
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt
-+++ a/Documentation/kernel-parameters.txt
-@@ -495,6 +495,13 @@ and is between 256 and 4096 characters. 
- 			[KNL] Reserve a chunk of physical memory to
- 			hold a kernel to switch to with kexec on panic.
+diff -puN drivers/scsi/ips.c~ipsc-update-version-information drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~ipsc-update-version-information
++++ a/drivers/scsi/ips.c
+@@ -204,8 +204,8 @@ module_param(ips, charp, 0);
+ /*
+  * DRIVER_VER
+  */
+-#define IPS_VERSION_HIGH        "7.12"
+-#define IPS_VERSION_LOW         ".05 "
++#define IPS_VERSION_HIGH        IPS_VER_MAJOR_STRING "." IPS_VER_MINOR_STRING
++#define IPS_VERSION_LOW         "." IPS_VER_BUILD_STRING " "
  
-+	crashkernel=range1:size1[,range2:size2,...][@offset]
-+			[KNL] Same as above, but depends on the memory
-+			in the running system. The syntax of range is
-+			start-[end] where start and end are both
-+			a memory unit (amount[KMG]). See also
-+			Documentation/kdump/kdump.txt for a example.
-+
- 	cs4232=		[HW,OSS]
- 			Format: <io>,<irq>,<dma>,<dma2>,<mpuio>,<mpuirq>
+ #if !defined(__i386__) && !defined(__ia64__) && !defined(__x86_64__)
+ #warning "This driver has only been tested on the x86/ia64/x86_64 platforms"
+diff -puN drivers/scsi/ips.h~ipsc-update-version-information drivers/scsi/ips.h
+--- a/drivers/scsi/ips.h~ipsc-update-version-information
++++ a/drivers/scsi/ips.h
+@@ -1172,12 +1172,13 @@ typedef struct {
+ *************************************************************************/
  
+ #define IPS_VER_MAJOR 7
+-#define IPS_VER_MAJOR_STRING "7"
++#define IPS_VER_MAJOR_STRING __stringify(IPS_VER_MAJOR)
+ #define IPS_VER_MINOR 12
+-#define IPS_VER_MINOR_STRING "12"
+-#define IPS_VER_BUILD 02
+-#define IPS_VER_BUILD_STRING "02"
+-#define IPS_VER_STRING "7.12.02"
++#define IPS_VER_MINOR_STRING __stringify(IPS_VER_MINOR)
++#define IPS_VER_BUILD 05
++#define IPS_VER_BUILD_STRING __stringify(IPS_VER_BUILD)
++#define IPS_VER_STRING IPS_VER_MAJOR_STRING "." \
++		IPS_VER_MINOR_STRING "." IPS_VER_BUILD_STRING
+ #define IPS_RELEASE_ID 0x00020000
+ #define IPS_BUILD_IDENT 761
+ #define IPS_LEGALCOPYRIGHT_STRING "(C) Copyright IBM Corp. 1994, 2002. All Rights Reserved."
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
 
+ipsc-update-version-information.patch
 add-vmcoreinfo.patch
 express-relocatability-of-kernel-on-x86_64-in-documentation.patch
 express-relocatability-of-kernel-on-x86_64-in.patch
