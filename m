@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps2-export-page-index-in-kpagemap.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:44:00 -0700
-Message-ID: <200709242044.l8OKi01e016834@imap1.linux-foundation.org>
+Subject: + mv643xx_eth-remove-redundant-multiple-initialization.patch added to -mm tree
+Date: Mon, 24 Sep 2007 13:47:05 -0700
+Message-ID: <200709242047.l8OKl5jw016945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59293 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978AbXIXUoj (ORCPT
+	by vger.kernel.org with ESMTP id S1753038AbXIXUrV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:44:39 -0400
+	Mon, 24 Sep 2007 16:47:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, balbir@linux.vnet.ibm.com, haveblue@us.ibm.com, jjberthels@gmail.com, mpm@selenic.com
+Cc: satyam@infradead.org, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     maps2: export page index in kpagemap
+     mv643xx_eth: Remove redundant multiple initialization
 has been added to the -mm tree.  Its filename is
-     maps2-export-page-index-in-kpagemap.patch
+     mv643xx_eth-remove-redundant-multiple-initialization.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,103 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps2: export page index in kpagemap
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: mv643xx_eth: Remove redundant multiple initialization
+From: Satyam Sharma <satyam@infradead.org>
 
-To analyze/optimize the memory footprint, the number one question people
-may ask about pagemap/kpagemap could be:
+Of ethtool_ops->get_ethtool_stats.
 
-	Which part of the files are being actively mapped?
-
-In the (rare) case of nonlinear mapping, that question could only be
-answered by explicitly exporting the page index in kpagemap.  Simply
-judging by the PFNs from pagemap could be wrong!
-
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: John Berthels <jjberthels@gmail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/net/mv643xx_eth.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~maps2-export-page-index-in-kpagemap fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~maps2-export-page-index-in-kpagemap
-+++ a/fs/proc/proc_misc.c
-@@ -672,8 +672,8 @@ static const struct file_operations proc
- #endif
+diff -puN drivers/net/mv643xx_eth.c~mv643xx_eth-remove-redundant-multiple-initialization drivers/net/mv643xx_eth.c
+--- a/drivers/net/mv643xx_eth.c~mv643xx_eth-remove-redundant-multiple-initialization
++++ a/drivers/net/mv643xx_eth.c
+@@ -2746,7 +2746,6 @@ static const struct ethtool_ops mv643xx_
+ 	.get_sset_count		= mv643xx_get_sset_count,
+ 	.get_ethtool_stats      = mv643xx_get_ethtool_stats,
+ 	.get_strings            = mv643xx_get_strings,
+-	.get_ethtool_stats      = mv643xx_get_ethtool_stats,
+ 	.nway_reset		= mv643xx_eth_nway_restart,
+ };
  
- #ifdef CONFIG_PROC_PAGE_MONITOR
--#define KPMSIZE (sizeof(unsigned long) * 2)
--#define KPMMASK (KPMSIZE - 1)
-+#define KPMITEMS 3
-+#define KPMSIZE (sizeof(unsigned long) * KPMITEMS)
- /* /proc/kpagemap - an array exposing page flags and counts
-  *
-  * Each entry is a pair of unsigned longs representing the
-@@ -699,7 +699,7 @@ static ssize_t kpagemap_read(struct file
- 
- 	pfn = src / KPMSIZE - 1;
- 	count = min_t(unsigned long, count, ((max_pfn + 1) * KPMSIZE) - src);
--	if (src & KPMMASK || count & KPMMASK)
-+	if (src % KPMITEMS || count % KPMITEMS)
- 		return -EIO;
- 
- 	page = (unsigned long *)__get_free_page(GFP_USER);
-@@ -713,25 +713,28 @@ static ssize_t kpagemap_read(struct file
- 		if (pfn == -1) {
- 			page[0] = 0;
- 			page[1] = 0;
-+			page[2] = 0;
- 			((char *)page)[0] = (ntohl(1) != 1);
- 			((char *)page)[1] = PAGE_SHIFT;
- 			((char *)page)[2] = sizeof(unsigned long);
- 			((char *)page)[3] = KPMSIZE;
--			i = 2;
-+			i = KPMITEMS;
- 			pfn++;
- 		}
- 
--		for (; i < 2 * chunk / KPMSIZE; i += 2, pfn++) {
-+		for (; i < KPMITEMS * chunk / KPMSIZE; i += KPMITEMS, pfn++) {
- 			ppage = pfn_to_page(pfn);
- 			if (!ppage) {
- 				page[i] = 0;
- 				page[i + 1] = 0;
-+				page[i + 2] = 0;
- 			} else {
- 				page[i] = ppage->flags;
- 				page[i + 1] = atomic_read(&ppage->_count);
-+				page[i + 2] = page_index(ppage);
- 			}
- 		}
--		chunk = (i / 2) * KPMSIZE;
-+		chunk = (i / KPMITEMS) * KPMSIZE;
- 
- 		if (copy_to_user(buf, page, chunk)) {
- 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-make-swappiness-safer-to-use.patch
-maps2-export-page-index-in-kpagemap.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-seqfile-merge-duplite-code-to-seq_open_private.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+build-failure-on-ppc64-drivers-ata-pata_sccc.patch
+git-net.patch
+git-net-fix-spidernet-build.patch
+mv643xx_eth-remove-redundant-multiple-initialization.patch
+spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
+pasemi_mac-build-fix-after-recent-netdev-stats.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
+git-scsi-misc.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+git-block.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
