@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + build-failure-on-ppc64-drivers-ata-pata_sccc.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:40:47 -0700
-Message-ID: <200709242040.l8OKemqD016714@imap1.linux-foundation.org>
+Subject: + maps2-export-page-index-in-kpagemap.patch added to -mm tree
+Date: Mon, 24 Sep 2007 13:44:00 -0700
+Message-ID: <200709242044.l8OKi01e016834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47575 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59293 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174AbXIXUlL (ORCPT
+	by vger.kernel.org with ESMTP id S1751978AbXIXUoj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:41:11 -0400
+	Mon, 24 Sep 2007 16:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, alan@redhat.com, mel@skynet.ie
+Cc: wfg@mail.ustc.edu.cn, balbir@linux.vnet.ibm.com, haveblue@us.ibm.com, jjberthels@gmail.com, mpm@selenic.com
 
 
 The patch titled
-     Build failure on ppc64 drivers/ata/pata_scc.c
+     maps2: export page index in kpagemap
 has been added to the -mm tree.  Its filename is
-     build-failure-on-ppc64-drivers-ata-pata_sccc.patch
+     maps2-export-page-index-in-kpagemap.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,153 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Build failure on ppc64 drivers/ata/pata_scc.c
-From: Satyam Sharma <satyam@infradead.org>
+Subject: maps2: export page index in kpagemap
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Hi,
+To analyze/optimize the memory footprint, the number one question people
+may ask about pagemap/kpagemap could be:
 
-On Thu, 20 Sep 2007, Alan Cox wrote:
->
-> On Thu, 20 Sep 2007 14:13:15 +0100
-> mel@skynet.ie (Mel Gorman) wrote:
->
-> > PPC64 building allmodconfig fails to compile drivers/ata/pata_scc.c . It
-> > doesn't show up on other arches because this driver is specific to the
-> > architecture.
-> >
-> > drivers/ata/pata_scc.c: In function `scc_bmdma_status'
->
-> Its not been updated to match the libata core changes. Try something like
-> this. Whoever is maintaining it should also remove the prereset cable handling
-> code and use the proper cable detect method.
+	Which part of the files are being actively mapped?
 
-It appears you forgot to fix scc_std_softreset() and one of its callsites
-in scc_bdma_stop(). A complete patch is attempted below -- please review.
+In the (rare) case of nonlinear mapping, that question could only be
+answered by explicitly exporting the page index in kpagemap.  Simply
+judging by the PFNs from pagemap could be wrong!
 
-[PATCH -mm] pata_scc: Keep up with libata core API changes
-
-Little fixlets, that the build started erroring / warning about:
-
-drivers/ata/pata_scc.c: In function 'scc_bmdma_status':
-drivers/ata/pata_scc.c:734: error: structure has no member named 'active_tag'
-drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
-drivers/ata/pata_scc.c:866: warning: passing arg 1 of 'ata_std_prereset' from incompatible pointer type
-drivers/ata/pata_scc.c: In function 'scc_error_handler':
-drivers/ata/pata_scc.c:908: warning: passing arg 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 5 of 'ata_bmdma_drive_eh' from incompatible pointer type
-make[2]: *** [drivers/ata/pata_scc.o] Error 1
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Mel Gorman <mel@skynet.ie>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: John Berthels <jjberthels@gmail.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_scc.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+ fs/proc/proc_misc.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN drivers/ata/pata_scc.c~build-failure-on-ppc64-drivers-ata-pata_sccc drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~build-failure-on-ppc64-drivers-ata-pata_sccc
-+++ a/drivers/ata/pata_scc.c
-@@ -594,16 +594,17 @@ static unsigned int scc_bus_softreset(st
-  *	Note: Original code is ata_std_softreset().
-  */
+diff -puN fs/proc/proc_misc.c~maps2-export-page-index-in-kpagemap fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps2-export-page-index-in-kpagemap
++++ a/fs/proc/proc_misc.c
+@@ -672,8 +672,8 @@ static const struct file_operations proc
+ #endif
  
--static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
--                              unsigned long deadline)
-+static int scc_std_softreset(struct ata_link *link, unsigned int *classes,
-+                             unsigned long deadline)
- {
-+	struct ata_port *ap = link->ap;
- 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
- 	unsigned int devmask = 0, err_mask;
- 	u8 err;
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+-#define KPMSIZE (sizeof(unsigned long) * 2)
+-#define KPMMASK (KPMSIZE - 1)
++#define KPMITEMS 3
++#define KPMSIZE (sizeof(unsigned long) * KPMITEMS)
+ /* /proc/kpagemap - an array exposing page flags and counts
+  *
+  * Each entry is a pair of unsigned longs representing the
+@@ -699,7 +699,7 @@ static ssize_t kpagemap_read(struct file
  
- 	DPRINTK("ENTER\n");
+ 	pfn = src / KPMSIZE - 1;
+ 	count = min_t(unsigned long, count, ((max_pfn + 1) * KPMSIZE) - src);
+-	if (src & KPMMASK || count & KPMMASK)
++	if (src % KPMITEMS || count % KPMITEMS)
+ 		return -EIO;
  
--	if (ata_link_offline(&ap->link)) {
-+	if (ata_link_offline(link)) {
- 		classes[0] = ATA_DEV_NONE;
- 		goto out;
- 	}
-@@ -694,7 +695,7 @@ static void scc_bmdma_stop (struct ata_q
- 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
- 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
- 			/* TBD: SW reset */
--			scc_std_softreset(ap, &classes, deadline);
-+			scc_std_softreset(&ap->link, &classes, deadline);
- 			continue;
+ 	page = (unsigned long *)__get_free_page(GFP_USER);
+@@ -713,25 +713,28 @@ static ssize_t kpagemap_read(struct file
+ 		if (pfn == -1) {
+ 			page[0] = 0;
+ 			page[1] = 0;
++			page[2] = 0;
+ 			((char *)page)[0] = (ntohl(1) != 1);
+ 			((char *)page)[1] = PAGE_SHIFT;
+ 			((char *)page)[2] = sizeof(unsigned long);
+ 			((char *)page)[3] = KPMSIZE;
+-			i = 2;
++			i = KPMITEMS;
+ 			pfn++;
  		}
  
-@@ -733,7 +734,7 @@ static u8 scc_bmdma_status (struct ata_p
- 	void __iomem *mmio = ap->ioaddr.bmdma_addr;
- 	u8 host_stat = in_be32(mmio + SCC_DMA_STATUS);
- 	u32 int_status = in_be32(mmio + SCC_DMA_INTST);
--	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->active_tag);
-+	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->link.active_tag);
- 	static int retry = 0;
+-		for (; i < 2 * chunk / KPMSIZE; i += 2, pfn++) {
++		for (; i < KPMITEMS * chunk / KPMSIZE; i += KPMITEMS, pfn++) {
+ 			ppage = pfn_to_page(pfn);
+ 			if (!ppage) {
+ 				page[i] = 0;
+ 				page[i + 1] = 0;
++				page[i + 2] = 0;
+ 			} else {
+ 				page[i] = ppage->flags;
+ 				page[i + 1] = atomic_read(&ppage->_count);
++				page[i + 2] = page_index(ppage);
+ 			}
+ 		}
+-		chunk = (i / 2) * KPMSIZE;
++		chunk = (i / KPMITEMS) * KPMSIZE;
  
- 	/* return if IOS_SS is cleared */
-@@ -862,10 +863,10 @@ static void scc_bmdma_freeze (struct ata
-  *	@deadline: deadline jiffies for the operation
-  */
- 
--static int scc_pata_prereset(struct ata_port *ap, unsigned long deadline)
-+static int scc_pata_prereset(struct ata_link *link, unsigned long deadline)
- {
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap, deadline);
-+	link->ap->cbl = ATA_CBL_PATA80;
-+	return ata_std_prereset(link, deadline);
- }
- 
- /**
-@@ -876,8 +877,10 @@ static int scc_pata_prereset(struct ata_
-  *	Note: Original code is ata_std_postreset().
-  */
- 
--static void scc_std_postreset (struct ata_port *ap, unsigned int *classes)
-+static void scc_std_postreset(struct ata_link *link, unsigned int *classes)
- {
-+	struct ata_port *ap = link->ap;
-+
- 	DPRINTK("ENTER\n");
- 
- 	/* is double-select really necessary? */
+ 		if (copy_to_user(buf, page, chunk)) {
+ 			ret = -EFAULT;
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
-build-failure-on-ppc64-drivers-ata-pata_sccc.patch
-git-net.patch
-git-net-fix-spidernet-build.patch
-spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
-pasemi_mac-build-fix-after-recent-netdev-stats.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-git-scsi-misc.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-git-block.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+make-swappiness-safer-to-use.patch
+maps2-export-page-index-in-kpagemap.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+convert-ill-defined-log2-to-ilog2.patch
+seqfile-merge-duplite-code-to-seq_open_private.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
