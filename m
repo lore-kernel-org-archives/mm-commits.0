@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfsd-fix-generic_setlease-mismerge.patch added to -mm tree
-Date: Mon, 24 Sep 2007 10:12:06 -0700
-Message-ID: <200709241712.l8OHC6c7008632@imap1.linux-foundation.org>
+Subject: + git-nfsd-fix-memory-shortage-can-result-in-inconsistent-flocks-state.patch added to -mm tree
+Date: Mon, 24 Sep 2007 11:42:42 -0700
+Message-ID: <200709241842.l8OIggjh012011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49205 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49079 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757499AbXIXRNR (ORCPT
+	by vger.kernel.org with ESMTP id S1756040AbXIXSnD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 13:13:17 -0400
+	Mon, 24 Sep 2007 14:43:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru
+Cc: bfields@fieldses.org, galak@gate.crashing.org, reuben-linuxkernel@reub.net
 
 
 The patch titled
-     fix generic_setlease() mismerge
+     git-nfsd: fix Memory shortage can result in inconsistent flocks state"
 has been added to the -mm tree.  Its filename is
-     git-nfsd-fix-generic_setlease-mismerge.patch
+     git-nfsd-fix-memory-shortage-can-result-in-inconsistent-flocks-state.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix generic_setlease() mismerge
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: git-nfsd: fix Memory shortage can result in inconsistent flocks state"
+From: "J. Bruce Fields" <bfields@fieldses.org>
 
-Please, try this:
+On Mon, Sep 24, 2007 at 09:59:29AM -0700, Andrew Morton wrote:
+> On Tue, 25 Sep 2007 00:52:30 +1000 Reuben Farrelly <reuben-linuxkernel@reub.net> wrote:
+>
+> >
+> >
+> > On 24/09/2007 7:17 PM, Andrew Morton wrote:
+> > > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23-rc7/2.6.23-rc7-mm1/
+> > >
+> > > - New git tree git-powerpc-galak.patch added to the -mm lineup: ppc32
+> > >   things, mainly (Kumar Gala <galak@gate.crashing.org>)
+> >
+> > I'm observing a problem with this kernel (as well as 2.6.23-rc6-mm1) which
+> > manifests itself only in my Postfix/application mail.logs:
+> >
+> > Sep 25 00:25:40 tornado postfix/smtp[12520]: fatal: select lock: Cannot allocate
+> > memory
+> > Sep 25 00:25:41 tornado postfix/master[8002]: warning: process
+> > /usr/lib64/postfix/smtp pid 12520 exit status 1
+> >
+> > This is happening frequently with processes started via 'master' (smtp, smtpd
+> > and cleanup), but it does not appear to have any noticeable operational impact
+> > apart from logging a lot of copies of this message.
+> >
+> > The corresponding code in Postfix which triggers this is (choice of 3 files in
+> > src/master are all possibilities which all have much the same code)
+
+Oog.  Looks like it's the "Memory shortage can result in inconsistent
+flocks state" patch--the error variable is being set in some cases when
+it shouldn't be.  Does the following fix it?
+
+That's in my git tree, not in mainline.  I'll fix up my copy.
+
+And I'll spend some time today figuring out what to do about regression
+testing for the posix lock, flock, and lease code.
+
+Thanks for the bug report!
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/locks.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN fs/locks.c~git-nfsd-fix-generic_setlease-mismerge fs/locks.c
---- a/fs/locks.c~git-nfsd-fix-generic_setlease-mismerge
+diff -puN fs/locks.c~git-nfsd-fix-memory-shortage-can-result-in-inconsistent-flocks-state fs/locks.c
+--- a/fs/locks.c~git-nfsd-fix-memory-shortage-can-result-in-inconsistent-flocks-state
 +++ a/fs/locks.c
-@@ -1374,11 +1374,6 @@ int generic_setlease(struct file *filp, 
- 	if (new_fl == NULL)
- 		goto out;
+@@ -740,6 +740,7 @@ static int flock_lock_file(struct file *
+ 		new_fl = locks_alloc_lock();
+ 		if (new_fl == NULL)
+ 			goto out;
++		error = 0;
+ 	}
  
--	error = -ENOMEM;
--	new_fl = locks_alloc_lock();
--	if (new_fl == NULL)
--		goto out;
--
- 	/*
- 	 * At this point, we know that if there is an exclusive
- 	 * lease on this file, then we hold it on this filp
+ 	for_each_lock(inode, before) {
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
-consolidate-ptrace_detach.patch
-git-kbuild.patch
-git-nfsd-fix-generic_setlease-mismerge.patch
-slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab-fix.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-userc-deinline.patch
-userc-ifdef-mq_bytes.patch
-userc-ifdef-mq_bytes-fix.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
+fix-potential-oops-in-generic_setlease.patch
+git-nfs.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-nfsd.patch
+git-nfsd-fix-memory-shortage-can-result-in-inconsistent-flocks-state.patch
+nfs-remove-congestion_end.patch
+fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
+dcache-trivial-comment-fix.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
 sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-single_open-seq_release-leak-diagnostics.patch
+cleanup-macros-for-distinguishing-mandatory-locks.patch
+nfs-cleanup-explicit-check-for-mandatory-locks.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+xfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
