@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipsc-update-version-information.patch added to -mm tree
-Date: Mon, 24 Sep 2007 14:13:16 -0700
-Message-ID: <200709242113.l8OLDGXU018007@imap1.linux-foundation.org>
+Subject: + intel-fb-force-even-line-count-in-interlaced-mode.patch added to -mm tree
+Date: Mon, 24 Sep 2007 14:17:06 -0700
+Message-ID: <200709242117.l8OLH6XB018134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42698 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756856AbXIXVNc (ORCPT
+	by vger.kernel.org with ESMTP id S1754742AbXIXVRW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 17:13:32 -0400
+	Mon, 24 Sep 2007 17:17:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, James.Bottomley@steeleye.com, aacraid@adaptec.com
+Cc: khc@pm.waw.pl, adaplas@pol.net, sylvain.meyer@worldonline.fr
 
 
 The patch titled
-     ips.c: update version information
+     Intel FB: force even line count in interlaced mode
 has been added to the -mm tree.  Its filename is
-     ipsc-update-version-information.patch
+     intel-fb-force-even-line-count-in-interlaced-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,77 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ips.c: update version information
-From: Bernhard Walle <bwalle@suse.de>
+Subject: Intel FB: force even line count in interlaced mode
+From: Krzysztof Halasa <khc@pm.waw.pl>
 
-Make the version number in ips.c and ips.h consistent.  It seems that this
-has been forgotten in a60768e2d43eb30a1adb8a119aeac35dc0d03ef6.
+Intel FB: the chip adds two halflines automatically in interlaced mode,
+force even line count for the right timings.
 
-It also removes code duplication, each number is now only once in the code to
-avoid similar errors in the future.
-
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: <aacraid@adaptec.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: <sylvain.meyer@worldonline.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    4 ++--
- drivers/scsi/ips.h |   11 ++++++-----
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ drivers/video/intelfb/intelfbhw.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+)
 
-diff -puN drivers/scsi/ips.c~ipsc-update-version-information drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ipsc-update-version-information
-+++ a/drivers/scsi/ips.c
-@@ -204,8 +204,8 @@ module_param(ips, charp, 0);
- /*
-  * DRIVER_VER
-  */
--#define IPS_VERSION_HIGH        "7.12"
--#define IPS_VERSION_LOW         ".05 "
-+#define IPS_VERSION_HIGH        IPS_VER_MAJOR_STRING "." IPS_VER_MINOR_STRING
-+#define IPS_VERSION_LOW         "." IPS_VER_BUILD_STRING " "
+diff -puN drivers/video/intelfb/intelfbhw.c~intel-fb-force-even-line-count-in-interlaced-mode drivers/video/intelfb/intelfbhw.c
+--- a/drivers/video/intelfb/intelfbhw.c~intel-fb-force-even-line-count-in-interlaced-mode
++++ a/drivers/video/intelfb/intelfbhw.c
+@@ -317,6 +317,14 @@ int intelfbhw_validate_mode(struct intel
+ 			var->yres, VACTIVE_MASK + 1);
+ 		return 1;
+ 	}
++	if (var->xres < 4) {
++		WRN_MSG("X resolution too small (%d vs 4).\n", var->xres);
++		return 1;
++	}
++	if (var->yres < 4) {
++		WRN_MSG("Y resolution too small (%d vs 4).\n", var->yres);
++		return 1;
++	}
  
- #if !defined(__i386__) && !defined(__ia64__) && !defined(__x86_64__)
- #warning "This driver has only been tested on the x86/ia64/x86_64 platforms"
-diff -puN drivers/scsi/ips.h~ipsc-update-version-information drivers/scsi/ips.h
---- a/drivers/scsi/ips.h~ipsc-update-version-information
-+++ a/drivers/scsi/ips.h
-@@ -1172,12 +1172,13 @@ typedef struct {
- *************************************************************************/
+ 	/* Check for doublescan modes. */
+ 	if (var->vmode & FB_VMODE_DOUBLE) {
+@@ -324,6 +332,11 @@ int intelfbhw_validate_mode(struct intel
+ 		return 1;
+ 	}
  
- #define IPS_VER_MAJOR 7
--#define IPS_VER_MAJOR_STRING "7"
-+#define IPS_VER_MAJOR_STRING __stringify(IPS_VER_MAJOR)
- #define IPS_VER_MINOR 12
--#define IPS_VER_MINOR_STRING "12"
--#define IPS_VER_BUILD 02
--#define IPS_VER_BUILD_STRING "02"
--#define IPS_VER_STRING "7.12.02"
-+#define IPS_VER_MINOR_STRING __stringify(IPS_VER_MINOR)
-+#define IPS_VER_BUILD 05
-+#define IPS_VER_BUILD_STRING __stringify(IPS_VER_BUILD)
-+#define IPS_VER_STRING IPS_VER_MAJOR_STRING "." \
-+		IPS_VER_MINOR_STRING "." IPS_VER_BUILD_STRING
- #define IPS_RELEASE_ID 0x00020000
- #define IPS_BUILD_IDENT 761
- #define IPS_LEGALCOPYRIGHT_STRING "(C) Copyright IBM Corp. 1994, 2002. All Rights Reserved."
++	if ((var->vmode & FB_VMODE_INTERLACED) && (var->yres & 1)) {
++		WRN_MSG("Odd number of lines in interlaced mode\n");
++		return 1;
++	}
++
+ 	/* Check if clock is OK. */
+ 	tmp = 1000000000 / var->pixclock;
+ 	if (tmp < MIN_CLOCK) {
+@@ -1127,6 +1140,8 @@ int intelfbhw_mode_to_hw(struct intelfb_
+ 		hblank_end);
+ 
+ 	vactive = var->yres;
++	if (var->vmode & FB_VMODE_INTERLACED)
++		vactive--; /* the chip adds 2 halflines automatically */
+ 	vsync_start = vactive + var->lower_margin;
+ 	vsync_end = vsync_start + var->vsync_len;
+ 	vtotal = vsync_end + var->upper_margin;
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from khc@pm.waw.pl are
 
-ipsc-update-version-information.patch
-add-vmcoreinfo.patch
-express-relocatability-of-kernel-on-x86_64-in-documentation.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-express-new-elf32-mechanisms-in-documentation.patch
-add-reset_devices-to-the-recommended-parameters.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-sh.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
+git-wireless.patch
+intel-fb-support-for-interlaced-video-modes.patch
+intel-fb-whitespace-bracket-and-other-clean-ups.patch
+intel-fb-obvious-changes-and-corrections.patch
+intel-fb-force-even-line-count-in-interlaced-mode.patch
+intel-fb-more-interlaced-mode-support.patch
