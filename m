@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-dasd_eckd-fix.patch added to -mm tree
-Date: Mon, 24 Sep 2007 09:40:15 -0700
-Message-ID: <200709241640.l8OGeFXQ006972@imap1.linux-foundation.org>
+Subject: + git-net-sctp-build-fix.patch added to -mm tree
+Date: Mon, 24 Sep 2007 09:43:02 -0700
+Message-ID: <200709241643.l8OGh2QM007162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34944 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762792AbXIXQkU (ORCPT
+	by vger.kernel.org with ESMTP id S1763159AbXIXQnI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 12:40:20 -0400
+	Mon, 24 Sep 2007 12:43:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com
+Cc: clg@fr.ibm.com, davem@davemloft.net
 
 
 The patch titled
-     git-block: dasd_eckd fix
+     git-net: sctp build fix
 has been added to the -mm tree.  Its filename is
-     git-block-dasd_eckd-fix.patch
+     git-net-sctp-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block: dasd_eckd fix
+Subject: git-net: sctp build fix
 From: Cedric Le Goater <clg@fr.ibm.com>
 
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c: In function `dasd_eckd_build_cp':
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1181: error: syntax error before "struct"
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `iter' undeclared (first use in this function)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: (Each undeclared identifier is reported only once
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: for each function it appears in.)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `bv' undeclared (first use in this function)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
-make[3]: *** [drivers/s390/block/dasd_eckd.o] Error 1
-make[2]: *** [drivers/s390/block] Error 2
+Cedric Le Goater wrote:
+> Andrew Morton wrote:
+>> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23-rc7/2.6.23-rc7-mm1/
+>
+> I also get this compile error on s390. 'linux/scatterlist.h' has disappeared
+> from the #include pile but where ?
+>
+> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c: In function `sctp_auth_calculate_hmac':
+> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: error: storage size of 'sg' isn't known
+> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: warning: unused variable `sg'
+
+The following patch works of course but it seems to simplistic for s390.
+
+Cheers,
+
+C.
 
 Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/block/dasd_eckd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sctp/auth.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix drivers/s390/block/dasd_eckd.c
---- a/drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix
-+++ a/drivers/s390/block/dasd_eckd.c
-@@ -1176,7 +1176,7 @@ dasd_eckd_build_cp(struct dasd_device * 
- 	struct LO_eckd_data *LO_data;
- 	struct dasd_ccw_req *cqr;
- 	struct ccw1 *ccw;
--	struct req_iterator iter
-+	struct req_iterator iter;
- 	struct bio_vec *bv;
- 	char *dst;
- 	unsigned int blksize, blk_per_trk, off;
+diff -puN net/sctp/auth.c~git-net-sctp-build-fix net/sctp/auth.c
+--- a/net/sctp/auth.c~git-net-sctp-build-fix
++++ a/net/sctp/auth.c
+@@ -36,6 +36,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/crypto.h>
++#include <linux/scatterlist.h>
+ #include <net/sctp/sctp.h>
+ #include <net/sctp/auth.h>
+ 
 _
 
 Patches currently in -mm which might be from clg@fr.ibm.com are
 
+git-net-sctp-build-fix.patch
 git-block-dasd_eckd-fix.patch
 oom-move-prototypes-to-appropriate-header-file-fix.patch
 handle-the-multi-threaded-inits-exit-properly.patch
