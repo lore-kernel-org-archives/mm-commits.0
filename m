@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch added to -mm tree
-Date: Sun, 23 Sep 2007 22:50:15 -0700
-Message-ID: <200709240556.l8O5u8f7011993@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch added to -mm tree
+Date: Sun, 23 Sep 2007 23:31:04 -0700
+Message-ID: <200709240631.l8O6V4gL013143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751123AbXIXF5S (ORCPT
+	by vger.kernel.org with ESMTP id S1752329AbXIXGb7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 01:57:18 -0400
+	Mon, 24 Sep 2007 02:31:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, xemul@openvz.org
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
+     r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
 has been added to the -mm tree.  Its filename is
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+     r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
+Subject: r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/locks.c: In function 'locks_show':
-fs/locks.c:2147: warning: cast from pointer to integer of different size
-fs/locks.c:2154: warning: cast to pointer from integer of different size
+make lockdep shut up.  Needs fixing properly.
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2 fs/locks.c
---- a/fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
-+++ a/fs/locks.c
-@@ -2140,18 +2140,16 @@ static void lock_get_status(struct seq_f
+diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack
++++ a/fs/namespace.c
+@@ -207,7 +207,7 @@ static void lock_and_coalesce_cpu_mnt_wr
  
- static int locks_show(struct seq_file *f, void *v)
- {
--	int idx;
- 	struct file_lock *fl, *bfl;
- 
- 	fl = list_entry(v, struct file_lock, fl_link);
--	idx = (int)f->private;
- 
--	lock_get_status(f, fl, idx, "");
-+	lock_get_status(f, fl, (long)f->private, "");
- 
- 	list_for_each_entry(bfl, &fl->fl_block, fl_block)
--		lock_get_status(f, bfl, idx, " ->");
-+		lock_get_status(f, bfl, (long)f->private, " ->");
- 
--	f->private = (void *)(idx + 1);
-+	f->private++;
- 	return 0;
- }
- 
+ 	for_each_possible_cpu(cpu) {
+ 		cpu_writer = &per_cpu(mnt_writers, cpu);
+-		spin_lock(&cpu_writer->lock);
++		spin_lock_nested(&cpu_writer->lock, 42);
+ 		__clear_mnt_count(cpu_writer);
+ 		cpu_writer->mnt = NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -242,6 +226,7 @@ intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 64-bit-i_version-afs-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers-hack-hack-hack.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
