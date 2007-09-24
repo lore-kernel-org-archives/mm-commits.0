@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-sctp-build-fix.patch added to -mm tree
-Date: Mon, 24 Sep 2007 09:43:02 -0700
-Message-ID: <200709241643.l8OGh2QM007162@imap1.linux-foundation.org>
+Subject: + mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch added to -mm tree
+Date: Mon, 24 Sep 2007 09:52:40 -0700
+Message-ID: <200709241652.l8OGqegb007683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763159AbXIXQnI (ORCPT
+	by vger.kernel.org with ESMTP id S1755110AbXIXQwu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 12:43:08 -0400
+	Mon, 24 Sep 2007 12:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clg@fr.ibm.com, davem@davemloft.net
+Cc: hugh@veritas.com, hifumi.hisashi@oss.ntt.co.jp
 
 
 The patch titled
-     git-net: sctp build fix
+     mm-use-pagevec-to-rotate-reclaimable-page-fix-2
 has been added to the -mm tree.  Its filename is
-     git-net-sctp-build-fix.patch
+     mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: sctp build fix
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: mm-use-pagevec-to-rotate-reclaimable-page-fix-2
+From: Hugh Dickins <hugh@veritas.com>
 
-Cedric Le Goater wrote:
-> Andrew Morton wrote:
->> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23-rc7/2.6.23-rc7-mm1/
->
-> I also get this compile error on s390. 'linux/scatterlist.h' has disappeared
-> from the #include pile but where ?
->
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c: In function `sctp_auth_calculate_hmac':
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: error: storage size of 'sg' isn't known
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: warning: unused variable `sg'
+rotate_reclaimable_page() is not necessarily called with IRQ disabled:
+it must do so when calling the helpfully commented pagevec_move_tail().
 
-The following patch works of course but it seems to simplistic for s390.
+Hmm, if pagevec_move_tail() is assuming IRQ disabled, why should it
+bother with irqsave/irqrestore variants of spin_lock?  Because we like
+to see them on lru_lock?  But vmscan.c already has one bare spin_lock().
 
-Cheers,
-
-C.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/auth.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/swap.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN net/sctp/auth.c~git-net-sctp-build-fix net/sctp/auth.c
---- a/net/sctp/auth.c~git-net-sctp-build-fix
-+++ a/net/sctp/auth.c
-@@ -36,6 +36,7 @@
+diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-2 mm/swap.c
+--- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-2
++++ a/mm/swap.c
+@@ -101,7 +101,6 @@ static void pagevec_move_tail(struct pag
+ 	int i;
+ 	int pgmoved = 0;
+ 	struct zone *zone = NULL;
+-	unsigned long uninitialized_var(flags);
  
- #include <linux/types.h>
- #include <linux/crypto.h>
-+#include <linux/scatterlist.h>
- #include <net/sctp/sctp.h>
- #include <net/sctp/auth.h>
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+@@ -109,9 +108,9 @@ static void pagevec_move_tail(struct pag
  
+ 		if (pagezone != zone) {
+ 			if (zone)
+-				spin_unlock_irqrestore(&zone->lru_lock, flags);
++				spin_unlock(&zone->lru_lock);
+ 			zone = pagezone;
+-			spin_lock_irqsave(&zone->lru_lock, flags);
++			spin_lock(&zone->lru_lock);
+ 		}
+ 		if (PageLRU(page) && !PageActive(page)) {
+ 			list_move_tail(&page->lru, &zone->inactive_list);
+@@ -119,7 +118,7 @@ static void pagevec_move_tail(struct pag
+ 		}
+ 	}
+ 	if (zone)
+-		spin_unlock_irqrestore(&zone->lru_lock, flags);
++		spin_unlock(&zone->lru_lock);
+ 	__count_vm_events(PGROTATED, pgmoved);
+ 	release_pages(pvec->pages, pvec->nr, pvec->cold);
+ 	pagevec_reinit(pvec);
+@@ -149,6 +148,7 @@ void move_tail_pages()
+ int rotate_reclaimable_page(struct page *page)
+ {
+ 	struct pagevec *pvec;
++	unsigned long flags;
+ 
+ 	if (PageLocked(page))
+ 		return 1;
+@@ -161,9 +161,11 @@ int rotate_reclaimable_page(struct page 
+ 
+ 	if (PageLRU(page) && !PageActive(page)) {
+ 		page_cache_get(page);
++		local_irq_save(flags);
+ 		pvec = &__get_cpu_var(rotate_pvecs);
+ 		if (!pagevec_add(pvec, page))
+ 			pagevec_move_tail(pvec);
++		local_irq_restore(flags);
+ 	}
+ 	if (!test_clear_page_writeback(page))
+ 		BUG();
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-git-net-sctp-build-fix.patch
-git-block-dasd_eckd-fix.patch
-oom-move-prototypes-to-appropriate-header-file-fix.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-ipc-namespace-remove-config-ipc-ns-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+git-libata-all.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+mm-clarify-__add_to_swap_cache-locking-fix.patch
+radix-tree-use-indirect-bit.patch
+use-vm_read-write-exec-to-set-vm_page_prot.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+reiserfs-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix.patch
+affs-convert-to-new-aops-fix.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+mm-shmemc-make-3-functions-static.patch
+lib-percpu_counter_sub.patch
+mm-per-device-dirty-threshold-fix.patch
+ext2-reservations.patch
+fix-for-ext2-reservation.patch
+ext2-balloc-use-io_error-label.patch
+memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+shmem-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
+prio_tree-debugging-patch.patch
