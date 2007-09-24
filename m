@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:20:46 -0700
-Message-ID: <200709242020.l8OKKk6n015713@imap1.linux-foundation.org>
+Subject: + x86-64-calgary-fix-calgary=disable=busnum-for-calioc2.patch added to -mm tree
+Date: Mon, 24 Sep 2007 13:27:44 -0700
+Message-ID: <200709242027.l8OKRiSR015949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37908 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753633AbXIXUVB (ORCPT
+	by vger.kernel.org with ESMTP id S1757928AbXIXU15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:21:01 -0400
+	Mon, 24 Sep 2007 16:27:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com
+Cc: muli@il.ibm.com, bernarde@br.ibm.com
 
 
 The patch titled
-     ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
+     x86-64: Calgary - fix calgary=disable=<busnum> for CalIOC2
 has been added to the -mm tree.  Its filename is
-     ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+     x86-64-calgary-fix-calgary=disable=busnum-for-calioc2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,117 +26,100 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: x86-64: Calgary - fix calgary=disable=<busnum> for CalIOC2
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-This is on top of the ext2-reservations.patch in -mm.
+The old check we used based on dev->bus->number is wrong for devices on
+CalIOC2.  Instead look whether we have an IOMMU table for that bus - if not,
+translation is disabled.
 
-The original r/o bind mount set didn't address the new
-ext2 ioctl: EXT2_IOC_SETRSVSZ, because it doesn't exist
-in mainline.  This fixes that up for -mm.
+Thanks to Murillo Fernandes Bernardes <bernarde@br.ibm.com> for spotting,
+suggesting a fix and testing.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Acked-by: Murillo Fernandes Bernardes <bernarde@br.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ioctl.c |   24 +++++++++++++++---------
- 1 files changed, 15 insertions(+), 9 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   16 +++++++++++-----
+ 1 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2 fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2
-+++ a/fs/ext2/ioctl.c
-@@ -111,14 +111,18 @@ setflags_out:
- 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
- 			return -ENOTTY;
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-calgary=disable=busnum-for-calioc2 arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-fix-calgary=disable=busnum-for-calioc2
++++ a/arch/x86_64/kernel/pci-calgary.c
+@@ -222,6 +222,12 @@ static inline unsigned int num_dma_pages
+ 	return npages;
+ }
  
--		if (IS_RDONLY(inode))
--			return -EROFS;
--
--		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER))
--			return -EACCES;
--
--		if (get_user(rsv_window_size, (int __user *)arg))
--			return -EFAULT;
-+		ret = mnt_want_write(filp->f_vfsmnt);
-+		if (ret)
-+			return ret;
++static inline int translation_enabled(struct iommu_table *tbl)
++{
++	/* only PHBs with translation enabled have an IOMMU table */
++	return (tbl != NULL);
++}
 +
-+		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER)) {
-+			ret = -EACCES;
-+			goto setrsvsz_out;
-+		}
-+		if (get_user(rsv_window_size, (int __user *)arg)) {
-+			ret = -EFAULT;
-+			goto setrsvsz_out;
-+		}
+ static inline int translate_phb(struct pci_dev* dev)
+ {
+ 	int disabled = bus_info[dev->bus->number].translation_disabled;
+@@ -388,7 +394,7 @@ static void calgary_unmap_sg(struct devi
+ 	struct scatterlist *s;
+ 	int i;
  
- 		if (rsv_window_size > EXT2_MAX_RESERVE_BLOCKS)
- 			rsv_window_size = EXT2_MAX_RESERVE_BLOCKS;
-@@ -140,7 +144,9 @@ setflags_out:
- 			rsv->rsv_goal_size = rsv_window_size;
- 		}
- 		mutex_unlock(&ei->truncate_mutex);
--		return 0;
-+	setrsvsz_out:
-+		mnt_drop_write(filp->f_vfsmnt);
-+		return ret;
- 	}
- 	default:
- 		return -ENOTTY;
+-	if (!translate_phb(to_pci_dev(dev)))
++	if (!translation_enabled(tbl))
+ 		return;
+ 
+ 	for_each_sg(sglist, s, nelems, i) {
+@@ -428,7 +434,7 @@ static int calgary_map_sg(struct device 
+ 	unsigned long entry;
+ 	int i;
+ 
+-	if (!translate_phb(to_pci_dev(dev)))
++	if (!translation_enabled(tbl))
+ 		return calgary_nontranslate_map_sg(dev, sg, nelems, direction);
+ 
+ 	for_each_sg(sg, s, nelems, i) {
+@@ -474,7 +480,7 @@ static dma_addr_t calgary_map_single(str
+ 	uaddr = (unsigned long)vaddr;
+ 	npages = num_dma_pages(uaddr, size);
+ 
+-	if (translate_phb(to_pci_dev(dev)))
++	if (translation_enabled(tbl))
+ 		dma_handle = iommu_alloc(tbl, vaddr, npages, direction);
+ 	else
+ 		dma_handle = virt_to_bus(vaddr);
+@@ -488,7 +494,7 @@ static void calgary_unmap_single(struct 
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 	unsigned int npages;
+ 
+-	if (!translate_phb(to_pci_dev(dev)))
++	if (!translation_enabled(tbl))
+ 		return;
+ 
+ 	npages = num_dma_pages(dma_handle, size);
+@@ -513,7 +519,7 @@ static void* calgary_alloc_coherent(stru
+ 		goto error;
+ 	memset(ret, 0, size);
+ 
+-	if (translate_phb(to_pci_dev(dev))) {
++	if (translation_enabled(tbl)) {
+ 		/* set up tces to cover the allocated range */
+ 		mapping = iommu_alloc(tbl, ret, npages, DMA_BIDIRECTIONAL);
+ 		if (mapping == bad_dma_address)
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
-revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
-make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
-r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
-r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
-r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-opend-files.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-page-owner-tracking-leak-detector.patch
+git-block.patch
+x86-64-calgary-fix-calgary=disable=busnum-for-calioc2.patch
+x86-64-calgary-get-rid-of-translate_phb.patch
+unify-dma_bit_mask-definitions-v31.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
