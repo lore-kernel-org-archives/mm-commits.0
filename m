@@ -1,62 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-fix-virtualization-menu-help-text.patch removed from -mm tree
-Date: Sun, 23 Sep 2007 18:09:12 -0700
-Message-ID: <200709240109.l8O19CGk002977@imap1.linux-foundation.org>
+Subject: - use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch removed from -mm tree
+Date: Sun, 23 Sep 2007 18:09:22 -0700
+Message-ID: <200709240109.l8O19MNP002986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38059 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754420AbXIXBJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754162AbXIXBJ6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 23 Sep 2007 21:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avi@qumranet.com, jengelh@computergmbh.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     KVM: Fix virtualization menu help text
+     Use mutex instead of semaphore in the OnStream SCSI Tape driver
 has been removed from the -mm tree.  Its filename was
-     kvm-fix-virtualization-menu-help-text.patch
+     use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: KVM: Fix virtualization menu help text
-From: Avi Kivity <avi@qumranet.com>
+Subject: Use mutex instead of semaphore in the OnStream SCSI Tape driver
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-An August 18 patch from Jan Engelhardt (06bfb7e) added help text for the
-virtualization menu.  Unfortunately the text is misleading, as "guest
-drivers" are usually interpreted to mean "drivers running inside the
-guest", which is not the case for kvm.
+The OnStream SCSI Tape driver uses a semaphore as mutex.  Use the mutex API
+instead of the (binary) semaphore.
 
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
-Signed-off-by: Avi Kivity <avi@qumranet.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Reviewed-by: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/osst.c |   16 ++++++++--------
+ drivers/scsi/osst.h |    3 ++-
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/kvm/Kconfig~kvm-fix-virtualization-menu-help-text drivers/kvm/Kconfig
---- a/drivers/kvm/Kconfig~kvm-fix-virtualization-menu-help-text
-+++ a/drivers/kvm/Kconfig
-@@ -6,7 +6,8 @@ menuconfig VIRTUALIZATION
- 	depends on X86
- 	default y
- 	---help---
--	  Say Y here to get to see options for virtualization guest drivers.
-+	  Say Y here to get to see options for using your Linux host to run other
-+	  operating systems inside virtual machines (guests).
- 	  This option alone does not add any kernel code.
+diff -puN drivers/scsi/osst.c~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver
++++ a/drivers/scsi/osst.c
+@@ -3298,7 +3298,7 @@ static ssize_t osst_write(struct file * 
+ 	char		    * name = tape_name(STp);
  
- 	  If you say N, all options in this submenu will be skipped and disabled.
+ 
+-	if (down_interruptible(&STp->lock))
++	if (mutex_lock_interruptible(&STp->lock))
+ 		return (-ERESTARTSYS);
+ 
+ 	/*
+@@ -3600,7 +3600,7 @@ if (SRpnt) printk(KERN_ERR "%s:A: Not su
+ out:
+ 	if (SRpnt != NULL) osst_release_request(SRpnt);
+ 
+-	up(&STp->lock);
++	mutex_unlock(&STp->lock);
+ 
+ 	return retval;
+ }
+@@ -3619,7 +3619,7 @@ static ssize_t osst_read(struct file * f
+ 	char		    * name  = tape_name(STp);
+ 
+ 
+-	if (down_interruptible(&STp->lock))
++	if (mutex_lock_interruptible(&STp->lock))
+ 		return (-ERESTARTSYS);
+ 
+ 	/*
+@@ -3785,7 +3785,7 @@ static ssize_t osst_read(struct file * f
+ out:
+ 	if (SRpnt != NULL) osst_release_request(SRpnt);
+ 
+-	up(&STp->lock);
++	mutex_unlock(&STp->lock);
+ 
+ 	return retval;
+ }
+@@ -4852,7 +4852,7 @@ static int osst_ioctl(struct inode * ino
+ 	char		    * name  = tape_name(STp);
+ 	void	    __user  * p     = (void __user *)arg;
+ 
+-	if (down_interruptible(&STp->lock))
++	if (mutex_lock_interruptible(&STp->lock))
+ 		return -ERESTARTSYS;
+ 
+ #if DEBUG
+@@ -5163,14 +5163,14 @@ static int osst_ioctl(struct inode * ino
+ 	}
+ 	if (SRpnt) osst_release_request(SRpnt);
+ 
+-	up(&STp->lock);
++	mutex_unlock(&STp->lock);
+ 
+ 	return scsi_ioctl(STp->device, cmd_in, p);
+ 
+ out:
+ 	if (SRpnt) osst_release_request(SRpnt);
+ 
+-	up(&STp->lock);
++	mutex_unlock(&STp->lock);
+ 
+ 	return retval;
+ }
+@@ -5865,7 +5865,7 @@ static int osst_probe(struct device *dev
+ 	tpnt->modes[2].defined = 1;
+ 	tpnt->density_changed = tpnt->compression_changed = tpnt->blksize_changed = 0;
+ 
+-	init_MUTEX(&tpnt->lock);
++	mutex_init(&tpnt->lock);
+ 	osst_nr_dev++;
+ 	write_unlock(&os_scsi_tapes_lock);
+ 
+diff -puN drivers/scsi/osst.h~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver drivers/scsi/osst.h
+--- a/drivers/scsi/osst.h~use-mutex-instead-of-semaphore-in-the-onstream-scsi-tape-driver
++++ a/drivers/scsi/osst.h
+@@ -4,6 +4,7 @@
+ 
+ #include <asm/byteorder.h>
+ #include <linux/completion.h>
++#include <linux/mutex.h>
+ 
+ /*	FIXME - rename and use the following two types or delete them!
+  *              and the types really should go to st.h anyway...
+@@ -532,7 +533,7 @@ struct osst_tape {
+   struct scsi_driver *driver;
+   unsigned capacity;
+   struct scsi_device *device;
+-  struct semaphore lock;       /* for serialization */
++  struct mutex lock;           /* for serialization */
+   struct completion wait;      /* for SCSI commands */
+   struct osst_buffer * buffer;
+ 
 _
 
-Patches currently in -mm which might be from avi@qumranet.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-origin.patch
-git-kvm.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-move-preempt_notifiers-into-an-always-included-kconfig.patch
+git-alsa.patch
+generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+git-dvb.patch
+git-mtd.patch
+git-net.patch
+git-sched.patch
+git-scsi-misc.patch
+use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+fs-locksc-use-list_for_each_entry-instead-of-list_for_each.patch
+kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
