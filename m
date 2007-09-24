@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mv643xx_eth-remove-redundant-multiple-initialization.patch added to -mm tree
-Date: Mon, 24 Sep 2007 13:47:05 -0700
-Message-ID: <200709242047.l8OKl5jw016945@imap1.linux-foundation.org>
+Subject: + iseries_veth-kill-unused-variable.patch added to -mm tree
+Date: Mon, 24 Sep 2007 13:47:47 -0700
+Message-ID: <200709242047.l8OKllYf016954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44752 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753038AbXIXUrV (ORCPT
+	by vger.kernel.org with ESMTP id S1751216AbXIXUr6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 16:47:21 -0400
+	Mon, 24 Sep 2007 16:47:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: satyam@infradead.org, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     mv643xx_eth: Remove redundant multiple initialization
+     iseries_veth: Kill unused variable
 has been added to the -mm tree.  Its filename is
-     mv643xx_eth-remove-redundant-multiple-initialization.patch
+     iseries_veth-kill-unused-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mv643xx_eth: Remove redundant multiple initialization
+Subject: iseries_veth: Kill unused variable
 From: Satyam Sharma <satyam@infradead.org>
 
-Of ethtool_ops->get_ethtool_stats.
+drivers/net/iseries_veth.c: In function 'veth_transmit_to_many':
+drivers/net/iseries_veth.c:1174: warning: unused variable 'port'
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -37,20 +38,20 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mv643xx_eth.c |    1 -
+ drivers/net/iseries_veth.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN drivers/net/mv643xx_eth.c~mv643xx_eth-remove-redundant-multiple-initialization drivers/net/mv643xx_eth.c
---- a/drivers/net/mv643xx_eth.c~mv643xx_eth-remove-redundant-multiple-initialization
-+++ a/drivers/net/mv643xx_eth.c
-@@ -2746,7 +2746,6 @@ static const struct ethtool_ops mv643xx_
- 	.get_sset_count		= mv643xx_get_sset_count,
- 	.get_ethtool_stats      = mv643xx_get_ethtool_stats,
- 	.get_strings            = mv643xx_get_strings,
--	.get_ethtool_stats      = mv643xx_get_ethtool_stats,
- 	.nway_reset		= mv643xx_eth_nway_restart,
- };
+diff -puN drivers/net/iseries_veth.c~iseries_veth-kill-unused-variable drivers/net/iseries_veth.c
+--- a/drivers/net/iseries_veth.c~iseries_veth-kill-unused-variable
++++ a/drivers/net/iseries_veth.c
+@@ -1171,7 +1171,6 @@ static void veth_transmit_to_many(struct
+ 					  HvLpIndexMap lpmask,
+ 					  struct net_device *dev)
+ {
+-	struct veth_port *port = (struct veth_port *) dev->priv;
+ 	int i, success, error;
  
+ 	success = error = 0;
 _
 
 Patches currently in -mm which might be from satyam@infradead.org are
@@ -67,6 +68,7 @@ build-failure-on-ppc64-drivers-ata-pata_sccc.patch
 git-net.patch
 git-net-fix-spidernet-build.patch
 mv643xx_eth-remove-redundant-multiple-initialization.patch
+iseries_veth-kill-unused-variable.patch
 spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
 pasemi_mac-build-fix-after-recent-netdev-stats.patch
 git-s390.patch
