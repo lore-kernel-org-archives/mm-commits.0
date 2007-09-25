@@ -1,57 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-backlight-dependency-fix.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 16:15:22 -0700
-Message-ID: <200709242315.l8ONFNB0022627@imap1.linux-foundation.org>
+Subject: - alsa-procfs-fix.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:04:58 -0700
+Message-ID: <200709250304.l8P34xpO030314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39509 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756258AbXIXXP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753357AbXIYDFC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 19:15:58 -0400
+	Mon, 24 Sep 2007 23:05:02 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8P34xTR027169
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2007 20:05:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-backlight dependency fix
+     a
 has been removed from the -mm tree.  Its filename was
-     git-backlight-dependency-fix.patch
+     alsa-procfs-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-backlight dependency fix
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/video/backlight/corgi_bl.c:21:30: error: asm/arch/sharpsl.h: No such file or directory
-drivers/video/backlight/corgi_bl.c:22:37: error: asm/hardware/sharpsl_pm.h: No such file or directory
-drivers/video/backlight/corgi_bl.c: In function 'corgibl_send_intensity':
-drivers/video/backlight/corgi_bl.c:51: error: 'sharpsl_battery_kick' undeclared (first use in this function)
-drivers/video/backlight/corgi_bl.c:51: error: (Each undeclared identifier is reported only once
-drivers/video/backlight/corgi_bl.c:51: error: for each function it appears in.)
-drivers/video/backlight/corgi_bl.c:51: warning: type defaults to 'int' in declaration of 'type name'
-drivers/video/backlight/corgi_bl.c:51: warning: assignment makes pointer from integer without a cast
-
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ sound/core/memalloc.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~git-backlight-dependency-fix drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~git-backlight-dependency-fix
-+++ a/drivers/video/backlight/Kconfig
-@@ -53,6 +53,7 @@ config BACKLIGHT_CLASS_DEVICE
- config BACKLIGHT_CORGI
- 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
- 	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on ARM
- 	default n
- 	help
- 	  Say y to enable the generic platform backlight driver previously
+diff -puN sound/core/memalloc.c~alsa-procfs-fix sound/core/memalloc.c
+--- a/sound/core/memalloc.c~alsa-procfs-fix
++++ a/sound/core/memalloc.c
+@@ -497,16 +497,16 @@ static int snd_mem_proc_read(char *page,
+ 	static char *types[] = { "UNKNOWN", "CONT", "DEV", "DEV-SG", "SBUS" };
+ 
+ 	mutex_lock(&list_mutex);
+-	len += snprintf(page + len, count - len,
++	len += scnprintf(page + len, count - len,
+ 			"pages  : %li bytes (%li pages per %likB)\n",
+ 			pages * PAGE_SIZE, pages, PAGE_SIZE / 1024);
+ 	devno = 0;
+ 	list_for_each_entry(mem, &mem_list_head, list) {
+ 		devno++;
+-		len += snprintf(page + len, count - len,
++		len += scnprintf(page + len, count - len,
+ 				"buffer %d : ID %08x : type %s\n",
+ 				devno, mem->id, types[mem->buffer.dev.type]);
+-		len += snprintf(page + len, count - len,
++		len += scnprintf(page + len, count - len,
+ 				"  addr = 0x%lx, size = %d bytes\n",
+ 				(unsigned long)mem->buffer.addr, (int)mem->buffer.bytes);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
