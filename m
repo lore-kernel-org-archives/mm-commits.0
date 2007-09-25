@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-extended-crashkernel-command-line-on-i386-update.patch added to -mm tree
-Date: Tue, 25 Sep 2007 12:47:16 -0700
-Message-ID: <200709251947.l8PJlG8N001479@imap1.linux-foundation.org>
+Subject: + extended-crashkernel-command-line-update.patch added to -mm tree
+Date: Tue, 25 Sep 2007 12:47:14 -0700
+Message-ID: <200709251947.l8PJlE2V001476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33038 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754613AbXIYTr5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754613AbXIYTsB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 15:47:57 -0400
+	Tue, 25 Sep 2007 15:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bwalle@suse.de
 
 
 The patch titled
-     Use extended crashkernel command line on i386 (update)
+     Extended crashkernel command line (update)
 has been added to the -mm tree.  Its filename is
-     use-extended-crashkernel-command-line-on-i386-update.patch
+     extended-crashkernel-command-line-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Use extended crashkernel command line on i386 (update)
+Subject: Extended crashkernel command line (update)
 From: Bernhard Walle <bwalle@suse.de>
 
-This patch removes the crashkernel parsing from
-arch/i386/kernel/machine_kexec.c and calls the generic function, introduced in
-the last patch, in setup_bootmem_allocator().
+This is the generic part of the patch. It adds a parse_crashkernel() function
+in kernel/kexec.c that is called by the architecture specific code that
+actually reserves the memory. That function takes the whole command line and
+looks itself for "crashkernel=" in it.
 
-This is necessary because the amount of System RAM must be known in this
-function now because of the new syntax.
+If there are multiple occurrences, then the last one is taken.  The advantage
+is that if you have a bootloader like lilo or elilo which allows you to append
+a command line parameter but not to remove one (like in GRUB), then you can add
+another crashkernel value for testing at the boot command line and this one
+overwrites the command line in the configuration then.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ include/linux/kexec.h |    1 +
+ kernel/kexec.c        |    7 ++++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386-update arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386-update
-+++ a/arch/i386/kernel/setup.c
-@@ -381,29 +381,28 @@ extern unsigned long __init setup_memory
- extern void zone_sizes_init(void);
- #endif /* !CONFIG_NEED_MULTIPLE_NODES */
- 
--#ifdef CONFIG_HIGHMEM
--static inline unsigned long long get_total_mem(void)
--{
--	return (unsigned long long)
--		(max_low_pfn + highend_pfn - highstart_pfn) << PAGE_SHIFT;
--}
--#else
- static inline unsigned long long get_total_mem(void)
- {
--	return (unsigned long long)max_low_pfn << PAGE_SHIFT;
--}
-+	unsigned long long total;
+diff -puN include/linux/kexec.h~extended-crashkernel-command-line-update include/linux/kexec.h
+--- a/include/linux/kexec.h~extended-crashkernel-command-line-update
++++ a/include/linux/kexec.h
+@@ -186,6 +186,7 @@ extern note_buf_t *crash_notes;
+ extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
+ extern size_t vmcoreinfo_size;
+ extern size_t vmcoreinfo_max_size;
 +
-+	total = max_low_pfn - min_low_pfn;
-+#ifdef CONFIG_HIGHMEM
-+	total += highend_pfn - highstart_pfn;
- #endif
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
  
-+	return total << PAGE_SHIFT;
-+}
-+
- #ifdef CONFIG_KEXEC
- static void __init reserve_crashkernel(void)
+diff -puN kernel/kexec.c~extended-crashkernel-command-line-update kernel/kexec.c
+--- a/kernel/kexec.c~extended-crashkernel-command-line-update
++++ a/kernel/kexec.c
+@@ -1162,9 +1162,9 @@ module_init(crash_notes_memory_init)
+  * The function returns 0 on success and -EINVAL on failure.
+  */
+ static int __init parse_crashkernel_mem(char 			*cmdline,
+-					unsigned long 		system_ram,
+-					unsigned long long 	*crash_size,
+-					unsigned long long 	*crash_base)
++					unsigned long long	system_ram,
++					unsigned long long	*crash_size,
++					unsigned long long	*crash_base)
  {
--	unsigned long long 	free_mem;
--	unsigned long long 	crash_size, crash_base;
--	int			ret;
-+	unsigned long long total_mem;
-+	unsigned long long crash_size, crash_base;
-+	int ret;
+ 	char *cur = cmdline;
  
--	free_mem = get_total_mem();
-+	total_mem = get_total_mem();
+@@ -1254,6 +1254,7 @@ int __init parse_crashkernel(char 		 *cm
+ 	char 	*p = cmdline, *ck_cmdline = NULL;
+ 	char	*first_colon, *first_space;
  
--	ret = parse_crashkernel(boot_command_line, free_mem,
-+	ret = parse_crashkernel(boot_command_line, total_mem,
- 			&crash_size, &crash_base);
- 	if (ret == 0 && crash_size > 0) {
- 		if (crash_base > 0) {
-@@ -411,7 +410,7 @@ static void __init reserve_crashkernel(v
- 					"for crashkernel (System RAM: %ldMB)\n",
- 					(unsigned long)(crash_size >> 20),
- 					(unsigned long)(crash_base >> 20),
--					(unsigned long)(free_mem >> 20));
-+					(unsigned long)(total_mem >> 20));
- 			crashk_res.start = crash_base;
- 			crashk_res.end   = crash_base + crash_size - 1;
- 			reserve_bootmem(crash_base, crash_size);
++	BUG_ON(!crash_size || !crash_base);
+ 	*crash_size = 0;
+ 	*crash_base = 0;
+ 
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
