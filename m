@@ -1,80 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - iwl3945-is-bust.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 20:15:30 -0700
-Message-ID: <200709250315.l8P3FU2U030629@imap1.linux-foundation.org>
+Subject: - git-wireless-b44-is-bust.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:15:35 -0700
+Message-ID: <200709250315.l8P3FZsH030632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54470 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750770AbXIYDQL (ORCPT
+	by vger.kernel.org with ESMTP id S1752856AbXIYDQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:16:11 -0400
+	Mon, 24 Sep 2007 23:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-broke-git-wireless-2
+     git-wireless-b44-is-bust
 has been removed from the -mm tree.  Its filename was
-     iwl3945-is-bust.patch
+     git-wireless-b44-is-bust.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-broke-git-wireless-2
+Subject: git-wireless-b44-is-bust
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from drivers/net/wireless/iwlwifi.h:168,
-                 from drivers/net/wireless/iwl-base.c:61:
-drivers/net/wireless/iwl-channel.h: In function 'is_channel_a_band':
-drivers/net/wireless/iwl-channel.h:140: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-channel.h:140: error: (Each undeclared identifier is reported only once
-drivers/net/wireless/iwl-channel.h:140: error: for each function it appears in.)
-drivers/net/wireless/iwl-channel.h: In function 'is_channel_bg_band':
-drivers/net/wireless/iwl-channel.h:147: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_rxon_channel':
-drivers/net/wireless/iwl-base.c:978: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_flags_for_phymode':
-drivers/net/wireless/iwl-base.c:2571: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_tx_skb':
-drivers/net/wireless/iwl-base.c:3017: warning: comparison is always true due to limited range of data type
-drivers/net/wireless/iwl-base.c: In function 'iwl_set_rate':
-drivers/net/wireless/iwl-base.c:3113: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_channel_info':
-drivers/net/wireless/iwl-base.c:5444: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c:5454: error: 'MODE_ATHEROS_TURBOG' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
-drivers/net/wireless/iwl-base.c:5640: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_passive_dwell_time':
-drivers/net/wireless/iwl-base.c:5650: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_channels_for_scan':
-drivers/net/wireless/iwl-base.c:5732: error: 'MODE_ATHEROS_TURBO' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'iwl_pci_probe':
-drivers/net/wireless/iwl-base.c:9137: error: 'IEEE80211_HW_WEP_INCLUDE_IV' undeclared (first use in this function)
-drivers/net/wireless/iwl-base.c: In function 'is_channel_a_band':
-drivers/net/wireless/iwl-channel.h:141: warning: control reaches end of non-void function
-drivers/net/wireless/iwl-base.c: In function 'iwl_get_active_dwell_time':
-drivers/net/wireless/iwl-base.c:5644: warning: control reaches end of non-void function
+drivers/net/b44.c: In function 'b44_get_invariants':
+drivers/net/b44.c:2073: error: 'eeprom' undeclared (first use in this function)
+drivers/net/b44.c:2073: error: (Each undeclared identifier is reported only once
+drivers/net/b44.c:2073: error: for each function it appears in.)
+drivers/net/b44.c:2077: error: 'struct b44' has no member named 'core_unit'
+drivers/net/b44.c:2077: error: implicit declaration of function 'ssb_core_unit'
+drivers/net/b44.c:2078: error: 'SB_PCI_DMA' undeclared (first use in this function)
+drivers/net/b44.c:2084: error: implicit declaration of function 'ssb_get_core_rev'
+drivers/net/b44.c:2087: warning: label 'out' defined but not used
+drivers/net/b44.c: In function 'b44_init_one':
+drivers/net/b44.c:2155: error: 'struct b44' has no member named 'pdev'
+drivers/net/b44.c:2162: error: 'struct b44' has no member named 'regs'
+drivers/net/b44.c:2163: error: 'struct b44' has no member named 'regs'
+drivers/net/b44.c:2186: error: 'sdev' undeclared (first use in this function)
+drivers/net/b44.c:2250: warning: label 'out' defined but not used
+drivers/net/b44.c:2130: error: label 'err_out_free_res' used but not defined
+drivers/net/b44.c:2115: error: label 'err_out_disable_pdev' used but not defined
+drivers/net/b44.c: At top level:
+drivers/net/b44.c:2332: warning: initialization from incompatible pointer type
 
+Cc: Michael Buesch <mb@bu3sch.de>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
+ drivers/net/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/Kconfig~iwl3945-is-bust drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~iwl3945-is-bust
-+++ a/drivers/net/wireless/Kconfig
-@@ -666,6 +666,7 @@ config P54_PCI
- config IWLWIFI
- 	bool "Intel Wireless WiFi Link Drivers"
- 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
+diff -puN drivers/net/Kconfig~git-wireless-b44-is-bust drivers/net/Kconfig
+--- a/drivers/net/Kconfig~git-wireless-b44-is-bust
++++ a/drivers/net/Kconfig
+@@ -1446,6 +1446,7 @@ config APRICOT
+ config B44
+ 	tristate "Broadcom 440x/47xx ethernet support"
+ 	depends on SSB_POSSIBLE
 +	depends on BROKEN
- 	select FW_LOADER
- 	default n
- 	---help---
+ 	select SSB
+ 	select MII
+ 	help
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -151,7 +140,6 @@ git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
-iwl3945-is-bust.patch
 p54pci-terminate-pci-table.patch
 git-wireless-b44-is-bust.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
