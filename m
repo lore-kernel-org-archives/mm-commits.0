@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcontrol-move-mm_cgroup-to-header-file.patch added to -mm tree
-Date: Tue, 25 Sep 2007 10:29:27 -0700
-Message-ID: <200709251729.l8PHTRJQ028750@imap1.linux-foundation.org>
+Subject: + acpi-suspend-fix-acpi_sleep-states.patch added to -mm tree
+Date: Tue, 25 Sep 2007 10:37:54 -0700
+Message-ID: <200709251737.l8PHbstn029058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43908 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751638AbXIYRaG (ORCPT
+	by vger.kernel.org with ESMTP id S1751507AbXIYRiP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 13:30:06 -0400
+	Tue, 25 Sep 2007 13:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, balbir@linux.vnet.ibm.com
+Cc: astarikovskiy@suse.de, akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl
 
 
 The patch titled
-     memcontrol: move mm_cgroup to header file
+     ACPI: suspend: fix ACPI_SLEEP states
 has been added to the -mm tree.  Its filename is
-     memcontrol-move-mm_cgroup-to-header-file.patch
+     acpi-suspend-fix-acpi_sleep-states.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,110 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memcontrol: move mm_cgroup to header file
-From: David Rientjes <rientjes@google.com>
+Subject: ACPI: suspend: fix ACPI_SLEEP states
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Inline functions must preceed their use, so mm_cgroup() should be defined
-in linux/memcontrol.h.
+Fix for commit f216cc3748a3a22c2b99390fddcdafa0583791a2, allow S5 power-off,
+even if ACPI_SLEEP/PM_SLEEP is not selected.
 
-include/linux/memcontrol.h:48: warning: 'mm_cgroup' declared inline after
-	being called
-include/linux/memcontrol.h:48: warning: previous declaration of
-	'mm_cgroup' was here
-
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++++++--
- mm/memcontrol.c            |    5 -----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/acpi/sleep/Makefile |    2 +-
+ drivers/acpi/sleep/main.c   |    4 ++++
+ include/acpi/acpi_drivers.h |    4 ----
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-mm_cgroup-to-header-file
-+++ a/include/linux/memcontrol.h
-@@ -45,7 +45,11 @@ extern unsigned long mem_cgroup_isolate_
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
- extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask);
--extern struct mem_cgroup *mm_cgroup(struct mm_struct *mm);
-+
-+static inline struct mem_cgroup *mm_cgroup(const struct mm_struct *mm)
-+{
-+	return rcu_dereference(mm->mem_cgroup);
-+}
+diff -puN drivers/acpi/sleep/Makefile~acpi-suspend-fix-acpi_sleep-states drivers/acpi/sleep/Makefile
+--- a/drivers/acpi/sleep/Makefile~acpi-suspend-fix-acpi_sleep-states
++++ a/drivers/acpi/sleep/Makefile
+@@ -1,5 +1,5 @@
+ obj-y					:= wakeup.o
+-obj-$(CONFIG_ACPI_SLEEP)		+= main.o
++obj-y					+= main.o
+ obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
  
- static inline void mem_cgroup_uncharge_page(struct page *page)
+ EXTRA_CFLAGS += $(ACPI_CFLAGS)
+diff -puN drivers/acpi/sleep/main.c~acpi-suspend-fix-acpi_sleep-states drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-suspend-fix-acpi_sleep-states
++++ a/drivers/acpi/sleep/main.c
+@@ -24,7 +24,9 @@
+ 
+ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
++#ifdef CONFIG_PM_SLEEP
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
++#endif
+ 
+ int acpi_sleep_prepare(u32 acpi_state)
  {
-@@ -98,7 +102,7 @@ static inline int mem_cgroup_cache_charg
- 	return 0;
+@@ -299,6 +301,7 @@ int acpi_suspend(u32 acpi_state)
+ 	return -EINVAL;
  }
  
--static inline struct mem_cgroup *mm_cgroup(struct mm_struct *mm)
-+static inline struct mem_cgroup *mm_cgroup(const struct mm_struct *mm)
- {
- 	return NULL;
++#ifdef CONFIG_PM_SLEEP
+ /**
+  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
+  *		in the system sleep state given by %acpi_target_sleep_state
+@@ -373,6 +376,7 @@ int acpi_pm_device_sleep_state(struct de
+ 		*d_min_p = d_min;
+ 	return d_max;
  }
-diff -puN mm/memcontrol.c~memcontrol-move-mm_cgroup-to-header-file mm/memcontrol.c
---- a/mm/memcontrol.c~memcontrol-move-mm_cgroup-to-header-file
-+++ a/mm/memcontrol.c
-@@ -110,11 +110,6 @@ struct mem_cgroup *mem_cgroup_from_task(
- 				struct mem_cgroup, css);
- }
++#endif
  
--inline struct mem_cgroup *mm_cgroup(struct mm_struct *mm)
--{
--	return rcu_dereference(mm->mem_cgroup);
--}
--
- void mm_init_cgroup(struct mm_struct *mm, struct task_struct *p)
+ static void acpi_power_off_prepare(void)
  {
- 	struct mem_cgroup *mem;
+diff -puN include/acpi/acpi_drivers.h~acpi-suspend-fix-acpi_sleep-states include/acpi/acpi_drivers.h
+--- a/include/acpi/acpi_drivers.h~acpi-suspend-fix-acpi_sleep-states
++++ a/include/acpi/acpi_drivers.h
+@@ -147,10 +147,6 @@ static inline void unregister_hotplug_do
+ /*--------------------------------------------------------------------------
+                                   Suspend/Resume
+   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_SLEEP
+ extern int acpi_sleep_init(void);
+-#else
+-static inline int acpi_sleep_init(void) { return 0; }
+-#endif
+ 
+ #endif /*__ACPI_DRIVERS_H__*/
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-maps2-uninline-some-functions-in-the-page-walker.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-kpagemap-interface.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-prototypes-to-appropriate-header-file-fix.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
+acpi-suspend-move-acpi_sleep_prepare-outside-of-config_suspend.patch
+acpi-suspend-fix-acpi_sleep-states.patch
+git-acpi.patch
+acpi-sbs-fix-sbs-add-alarm-patch.patch
