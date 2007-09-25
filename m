@@ -1,63 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-procfs-fix.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 20:04:58 -0700
-Message-ID: <200709250304.l8P34xpO030314@imap1.linux-foundation.org>
+Subject: + git-hwmon-fixup.patch added to -mm tree
+Date: Mon, 24 Sep 2007 20:06:56 -0700
+Message-ID: <200709250306.l8P36uMh030360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753357AbXIYDFC (ORCPT
+	by vger.kernel.org with ESMTP id S1753832AbXIYDG7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:05:02 -0400
+	Mon, 24 Sep 2007 23:06:59 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8P34xTR027169
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8P36u3p027230
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2007 20:05:00 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2007 20:06:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     a
-has been removed from the -mm tree.  Its filename was
-     alsa-procfs-fix.patch
+     git-hwmon-fixup
+has been added to the -mm tree.  Its filename is
+     git-hwmon-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: a
+Subject: git-hwmon-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/memalloc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    2 +-
+ drivers/misc/thinkpad_acpi.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/core/memalloc.c~alsa-procfs-fix sound/core/memalloc.c
---- a/sound/core/memalloc.c~alsa-procfs-fix
-+++ a/sound/core/memalloc.c
-@@ -497,16 +497,16 @@ static int snd_mem_proc_read(char *page,
- 	static char *types[] = { "UNKNOWN", "CONT", "DEV", "DEV-SG", "SBUS" };
+diff -puN drivers/misc/thinkpad_acpi.c~git-hwmon-fixup drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~git-hwmon-fixup
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -527,7 +527,7 @@ static char *next_cmd(char **cmds)
  
- 	mutex_lock(&list_mutex);
--	len += snprintf(page + len, count - len,
-+	len += scnprintf(page + len, count - len,
- 			"pages  : %li bytes (%li pages per %likB)\n",
- 			pages * PAGE_SIZE, pages, PAGE_SIZE / 1024);
- 	devno = 0;
- 	list_for_each_entry(mem, &mem_list_head, list) {
- 		devno++;
--		len += snprintf(page + len, count - len,
-+		len += scnprintf(page + len, count - len,
- 				"buffer %d : ID %08x : type %s\n",
- 				devno, mem->id, types[mem->buffer.dev.type]);
--		len += snprintf(page + len, count - len,
-+		len += scnprintf(page + len, count - len,
- 				"  addr = 0x%lx, size = %d bytes\n",
- 				(unsigned long)mem->buffer.addr, (int)mem->buffer.bytes);
- 	}
+ static struct platform_device *tpacpi_pdev;
+ static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
++static struct device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
+ static struct mutex tpacpi_inputdev_send_mutex;
+ 
+diff -puN drivers/misc/thinkpad_acpi.h~git-hwmon-fixup drivers/misc/thinkpad_acpi.h
+--- a/drivers/misc/thinkpad_acpi.h~git-hwmon-fixup
++++ a/drivers/misc/thinkpad_acpi.h
+@@ -173,7 +173,7 @@ static int parse_strtoul(const char *buf
+ /* Device model */
+ static struct platform_device *tpacpi_pdev;
+ static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
++static struct device *tpacpi_hwmon;
+ static struct platform_driver tpacpi_pdriver;
+ static struct input_dev *tpacpi_inputdev;
+ static int tpacpi_create_driver_attributes(struct device_driver *drv);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +75,6 @@ slow-down-printk-during-boot.patch
 slow-down-printk-during-boot-fix-2.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
-alsa-procfs-fix.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
@@ -80,6 +85,7 @@ fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 git-dvb.patch
 git-dvb-fixup-2.patch
 git-dvb-build-fix.patch
+git-hwmon-fixup.patch
 git-infiniband.patch
 infiniband-work-around-gcc-slub-problem.patch
 git-input.patch
