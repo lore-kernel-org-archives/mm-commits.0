@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cfs-devel-latest-code.patch added to -mm tree
-Date: Tue, 25 Sep 2007 01:48:23 -0700
-Message-ID: <200709250848.l8P8mNsM009284@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch added to -mm tree
+Date: Tue, 25 Sep 2007 08:36:54 -0700
+Message-ID: <200709251536.l8PFasfB024229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39242 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750786AbXIYIs6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755307AbXIYPhr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 04:48:58 -0400
+	Tue, 25 Sep 2007 11:37:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vatsa@linux.vnet.ibm.com, mingo@elte.hu
+Cc: stern@rowland.harvard.edu, greg@kroah.com
 
 
 The patch titled
-     git-sched: fix uniprocessor
+     USB: don't propagate FREEZE or PRETHAW suspends
 has been added to the -mm tree.  Its filename is
-     cfs-devel-latest-code.patch
+     fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-sched: fix uniprocessor
-From: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+Subject: USB: don't propagate FREEZE or PRETHAW suspends
+From: Alan Stern <stern@rowland.harvard.edu>
 
-On Tue, Sep 25, 2007 at 12:41:20AM -0700, Andrew Morton wrote:
-> This doornails the Vaio.  After grub handover the screen remains black
-> and the fan goes whir.
->
-> http://userweb.kernel.org/~akpm/config-sony.txt
+This patch (as992) fixes a recently-added bug.  During a FREEZE or PRETHAW
+suspend notification, non-root devices don't actually get suspended.  So we
+shouldn't tell their parent hubs that they did.
 
-This seems to be UP regression. Sorry abt that. I could recreate
-the problem very easily with CONFIG_SMP turned off.
+(This code path used to be skipped over, until the FREEZE/PRETHAW test got
+moved out of usb_suspend_both() into generic_suspend().)
 
-Can you check if this patch works? Works for me here.
-
---
-
-Fix UP breakage.
-
-Signed-off-by : Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/driver.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~cfs-devel-latest-code kernel/sched.c
---- a/kernel/sched.c~cfs-devel-latest-code
-+++ a/kernel/sched.c
-@@ -1029,8 +1029,8 @@ static inline void __set_task_cpu(struct
- {
- #ifdef CONFIG_SMP
- 	task_thread_info(p)->cpu = cpu;
--	set_task_cfs_rq(p);
- #endif
-+	set_task_cfs_rq(p);
- }
+diff -puN drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending drivers/usb/core/driver.c
+--- a/drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending
++++ a/drivers/usb/core/driver.c
+@@ -1097,7 +1097,12 @@ static int usb_suspend_both(struct usb_d
+ 			usb_hcd_flush_endpoint(udev, udev->ep_out[i]);
+ 			usb_hcd_flush_endpoint(udev, udev->ep_in[i]);
+ 		}
+-		if (parent)
++
++		/* If this is just a FREEZE or a PRETHAW, udev might
++		 * not really be suspended.  Only true suspends get
++		 * propagated up the device tree.
++		 */
++		if (parent && udev->state == USB_STATE_SUSPENDED)
+ 			usb_autosuspend_device(parent);
+ 	}
  
- #ifdef CONFIG_SMP
 _
 
-Patches currently in -mm which might be from vatsa@linux.vnet.ibm.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-git-sched.patch
-cfs-devel-latest-code.patch
+scsi-early-detection-of-medium-not-present-updated.patch
+fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch
