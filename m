@@ -1,157 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 20:58:02 -0700
-Message-ID: <200709250358.l8P3w35I031913@imap1.linux-foundation.org>
+Subject: - mips-add-gpio-support-to-the-bcm947xx-platform-update.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:58:05 -0700
+Message-ID: <200709250358.l8P3w50E031916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55822 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759406AbXIYD6j (ORCPT
+	by vger.kernel.org with ESMTP id S1759962AbXIYD7R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:58:39 -0400
+	Mon, 24 Sep 2007 23:59:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, rolandd@cisco.com, mm-commits@vger.kernel.org
+To: aurelien@aurel32.net, david-b@pacbell.net, geert@linux-m68k.org, mb@bu3sch.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ehca_irq: misc cpuinit section annotations and #ifdef cleanups
+     mips-add-gpio-support-to-the-bcm947xx-platform update
 has been removed from the -mm tree.  Its filename was
-     ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups.patch
+     mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ehca_irq: misc cpuinit section annotations and #ifdef cleanups
-From: Satyam Sharma <satyam@infradead.org>
+Subject: mips-add-gpio-support-to-the-bcm947xx-platform update
+From: Aurelien Jarno <aurelien@aurel32.net>
 
-* Replace {un}register_cpu_notifier with {un}register_hotcpu_notifier
-  thereby losing a couple of #ifdef HOTPLUG_CPU pairs.
-* Move comp_pool_callback_nb declaration to below that of callback
-  function so that initialization of .notifier_call and .priority can
-  occur at build time itself and not runtime.
-* Mark the notifier_block (and callback function, and another static
-  function used by it) as __cpuinit{data} for the sake of consistency
-  and remove enclosing #ifdef. (This may increase size for modular
-  build of this module, however, because these are no longer dropped
-  unconditionally now.)
+On Fri, Aug 17, 2007 at 09:00:31PM +0200, Michael Buesch wrote:
+> On Friday 17 August 2007 20:56:42 David Brownell wrote:
+> > On Friday 17 August 2007, akpm@linux-foundation.org wrote:
+> >
+> > > +static inline int gpio_to_irq(unsigned gpio)
+> > > +{
+> > > +	if (ssb_bcm947xx.chipco.dev)
+> >
+> > Looks like a runtime switch ... can this be done at
+> > compile time instead?
+>
+> No, it's a runtime condition.
+>
+> > This idiom shows up in all of
+> > these routines.  (ssb_bcm947xx isn't in kernel.org
+> > code so Mr. Grep is no help yet.)  If not, these
+> > might all be better as non-inlned functions.
+>
+> Yeah.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Roland Dreier <rolandd@cisco.com>
+First of all, sorry for the delay. Please find below a new version of
+the patch that takes into account your comments. The functions are not
+inlined anymore and they check the gpio pin number.
+
+Andrew, this patch replaces the patch called
+mips-add-gpio-support-to-the-bcm947xx-platform.patch.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ehca_irq.c |   29 +++++++++---------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ arch/mips/bcm947xx/Makefile           |    2 
+ arch/mips/bcm947xx/gpio.c             |   79 ++++++++++++++++++++++++
+ include/asm-mips/mach-bcm947xx/gpio.h |   58 ++++-------------
+ 3 files changed, 94 insertions(+), 45 deletions(-)
 
-diff -puN drivers/infiniband/hw/ehca/ehca_irq.c~ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups drivers/infiniband/hw/ehca/ehca_irq.c
---- a/drivers/infiniband/hw/ehca/ehca_irq.c~ehca_irq-misc-cpuinit-section-annotations-and-ifdef-cleanups
-+++ a/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -69,9 +69,6 @@
- static void queue_comp_task(struct ehca_cq *__cq);
+diff -puN arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update arch/mips/bcm947xx/Makefile
+--- a/arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update
++++ a/arch/mips/bcm947xx/Makefile
+@@ -3,4 +3,4 @@
+ # under Linux.
+ #
  
- static struct ehca_comp_pool *pool;
--#ifdef CONFIG_HOTPLUG_CPU
--static struct notifier_block comp_pool_callback_nb;
--#endif
- 
- static inline void comp_event_callback(struct ehca_cq *cq)
- {
-@@ -760,9 +757,7 @@ static void destroy_comp_task(struct ehc
- 		kthread_stop(task);
- }
- 
--#ifdef CONFIG_HOTPLUG_CPU
--static void take_over_work(struct ehca_comp_pool *pool,
--			   int cpu)
-+static void __cpuinit take_over_work(struct ehca_comp_pool *pool, int cpu)
- {
- 	struct ehca_cpu_comp_task *cct = per_cpu_ptr(pool->cpu_comp_tasks, cpu);
- 	LIST_HEAD(list);
-@@ -785,9 +780,9 @@ static void take_over_work(struct ehca_c
- 
- }
- 
--static int comp_pool_callback(struct notifier_block *nfb,
--			      unsigned long action,
--			      void *hcpu)
-+static int __cpuinit comp_pool_callback(struct notifier_block *nfb,
-+					unsigned long action,
-+					void *hcpu)
- {
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct ehca_cpu_comp_task *cct;
-@@ -833,7 +828,11 @@ static int comp_pool_callback(struct not
- 
- 	return NOTIFY_OK;
- }
--#endif
+-obj-y := irq.o prom.o serial.o setup.o time.o
++obj-y := gpio.o irq.o prom.o serial.o setup.o time.o
+diff -puN /dev/null arch/mips/bcm947xx/gpio.c
+--- /dev/null
++++ a/arch/mips/bcm947xx/gpio.c
+@@ -0,0 +1,79 @@
++/*
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 2007 Aurelien Jarno <aurelien@aurel32.net>
++ */
 +
-+static struct notifier_block comp_pool_callback_nb __cpuinitdata = {
-+	.notifier_call	= comp_pool_callback,
-+	.priority	= 0,
-+};
++#include <linux/ssb/ssb.h>
++#include <linux/ssb/ssb_driver_chipcommon.h>
++#include <linux/ssb/ssb_driver_extif.h>
++#include <asm/mach-bcm947xx/bcm947xx.h>
++#include <asm/mach-bcm947xx/gpio.h>
++
++int bcm947xx_gpio_to_irq(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
++	else if (ssb_bcm947xx.extif.dev)
++		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
++	else
++		return -EINVAL;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_to_irq);
++
++int bcm947xx_gpio_get_value(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
++	else if (ssb_bcm947xx.extif.dev)
++		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
++	else
++		return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_get_value);
++
++void bcm947xx_gpio_set_value(unsigned gpio, int value)
++{
++	if (ssb_bcm947xx.chipco.dev)
++		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
++				    1 << gpio,
++				    value ? 1 << gpio : 0);
++	else if (ssb_bcm947xx.extif.dev)
++		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
++				   1 << gpio,
++				   value ? 1 << gpio : 0);
++}
++EXPORT_SYMBOL(bcm947xx_gpio_set_value);
++
++int bcm947xx_gpio_direction_input(unsigned gpio)
++{
++	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
++		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
++				      1 << gpio, 0);
++	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
++		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
++				     1 << gpio, 0);
++	else
++		return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_direction_input);
++
++int bcm947xx_gpio_direction_output(unsigned gpio, int value)
++{
++	bcm947xx_gpio_set_value(gpio, value);
++
++	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
++		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
++				      1 << gpio, 1 << gpio);
++	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
++		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
++				     1 << gpio, 1 << gpio);
++	else
++		return -EINVAL;
++	return 0;
++}
++EXPORT_SYMBOL(bcm947xx_gpio_direction_output);
++
+diff -puN include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update include/asm-mips/mach-bcm947xx/gpio.h
+--- a/include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update
++++ a/include/asm-mips/mach-bcm947xx/gpio.h
+@@ -9,10 +9,14 @@
+ #ifndef __BCM947XX_GPIO_H
+ #define __BCM947XX_GPIO_H
  
- int ehca_create_comp_pool(void)
+-#include <linux/ssb/ssb.h>
+-#include <linux/ssb/ssb_driver_chipcommon.h>
+-#include <linux/ssb/ssb_driver_extif.h>
+-#include <asm/mach-bcm947xx/bcm947xx.h>
++#define BCM947XX_EXTIF_GPIO_LINES	5
++#define BCM947XX_CHIPCO_GPIO_LINES	16
++
++extern int bcm947xx_gpio_to_irq(unsigned gpio);
++extern int bcm947xx_gpio_get_value(unsigned gpio);
++extern void bcm947xx_gpio_set_value(unsigned gpio, int value);
++extern int bcm947xx_gpio_direction_input(unsigned gpio);
++extern int bcm947xx_gpio_direction_output(unsigned gpio, int value);
+ 
+ static inline int gpio_request(unsigned gpio, const char *label)
  {
-@@ -864,11 +863,7 @@ int ehca_create_comp_pool(void)
- 		}
- 	}
+@@ -25,64 +29,30 @@ static inline void gpio_free(unsigned gp
  
--#ifdef CONFIG_HOTPLUG_CPU
--	comp_pool_callback_nb.notifier_call = comp_pool_callback;
--	comp_pool_callback_nb.priority = 0;
--	register_cpu_notifier(&comp_pool_callback_nb);
--#endif
-+	register_hotcpu_notifier(&comp_pool_callback_nb);
+ static inline int gpio_to_irq(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
+-	else if (ssb_bcm947xx.extif.dev)
+-		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
+-	else
+-		return -EINVAL;
++	return bcm947xx_gpio_to_irq(gpio);
+ }
  
- 	printk(KERN_INFO "eHCA scaling code enabled\n");
+ static inline int gpio_get_value(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
+-	else if (ssb_bcm947xx.extif.dev)
+-		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
+-	else
+-		return 0;
++	return bcm947xx_gpio_get_value(gpio);
+ }
  
-@@ -882,9 +877,7 @@ void ehca_destroy_comp_pool(void)
- 	if (!ehca_scaling_code)
- 		return;
+ static inline void gpio_set_value(unsigned gpio, int value)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
+-				    1 << gpio,
+-				    value ? 1 << gpio : 0);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
+-				   1 << gpio,
+-				   value ? 1 << gpio : 0);
++	bcm947xx_gpio_set_value(gpio, value);
+ }
  
--#ifdef CONFIG_HOTPLUG_CPU
--	unregister_cpu_notifier(&comp_pool_callback_nb);
--#endif
-+	unregister_hotcpu_notifier(&comp_pool_callback_nb);
+ static inline int gpio_direction_input(unsigned gpio)
+ {
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
+-				      1 << gpio, 0);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
+-				     1 << gpio, 0);
+-	else
+-		return -EINVAL;
+-	return 0;
++	return bcm947xx_gpio_direction_input(gpio);
+ }
  
- 	for (i = 0; i < NR_CPUS; i++) {
- 		if (cpu_online(i))
+ static inline int gpio_direction_output(unsigned gpio, int value)
+ {
+-	gpio_set_value(gpio, value);
+-
+-	if (ssb_bcm947xx.chipco.dev)
+-		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
+-				      1 << gpio, 1 << gpio);
+-	else if (ssb_bcm947xx.extif.dev)
+-		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
+-				     1 << gpio, 1 << gpio);
+-	else
+-		return -EINVAL;
+-	return 0;
++	return bcm947xx_gpio_direction_output(gpio, value);
+ }
+ 
++
+ /* cansleep wrappers */
+ #include <asm-generic/gpio.h>
+ 
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from aurelien@aurel32.net are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-net.patch
-git-net-fix-spidernet-build.patch
-mv643xx_eth-remove-redundant-multiple-initialization.patch
-iseries_veth-kill-unused-variable.patch
-spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
-pasemi_mac-build-fix-after-recent-netdev-stats.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-git-scsi-misc.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-git-block.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+git-kvm.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+git-wireless.patch
+move-mm_struct-and-vm_area_struct-fix.patch
