@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-mm-vdso-text-offset.patch added to -mm tree
-Date: Tue, 25 Sep 2007 12:53:39 -0700
-Message-ID: <200709251953.l8PJrdBL001712@imap1.linux-foundation.org>
+Subject: + x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch added to -mm tree
+Date: Tue, 25 Sep 2007 13:01:46 -0700
+Message-ID: <200709252001.l8PK1k2v002065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33247 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754125AbXIYTxr (ORCPT
+	by vger.kernel.org with ESMTP id S1751923AbXIYUDF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 15:53:47 -0400
+	Tue, 25 Sep 2007 16:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@suse.de, pbadari@us.ibm.com
+Cc: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, rjw@sisk.pl
 
 
 The patch titled
-     x86_64: increase VDSO_TEXT_OFFSET for ancient binutils
+     x86-64: Disable local APIC timer use on AMD systems with C1E
 has been added to the -mm tree.  Its filename is
-     x86_64-mm-vdso-text-offset.patch
+     x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: increase VDSO_TEXT_OFFSET for ancient binutils
-From: Andi Kleen <ak@suse.de>
+Subject: x86-64: Disable local APIC timer use on AMD systems with C1E
+From: Thomas Gleixner <tglx@linutronix.de>
 
-For some reason old binutils genertate larger headers so increase the text
-offset of the vdso to avoid linker errors.
+commit 3556ddfa9284a86a59a9b78fe5894430f6ab4eef titled
 
-(akpm; stolen from Andi's patch queue due to Badari's report of link failure)
+ [PATCH] x86-64: Disable local APIC timer use on AMD systems with C1E
 
-Signed-off-by: Andi Kleen <ak@suse.de>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+solves a problem with AMD dual core laptops e.g. HP nx6325 (Turion 64
+X2) with C1E enabled:
+
+When both cores go into idle at the same time, then the system switches
+into C1E state, which is basically the same as C3. This stops the local
+apic timer.
+
+This was debugged right after the dyntick merge on i386 and despite the
+patch title it fixes only the 32 bit path.
+
+x86_64 is still missing this fix. It seems that mainline is not really
+affected by this issue, as the PIT is running and keeps jiffies
+incrementing, but that's just waiting for trouble.
+
+-mm suffers from this problem due to the x86_64 high resolution timer
+patches.
+
+This is a quick and dirty port of the i386 code to x86_64.
+
+I spent quite a time with Rafael to debug the -mm / hrt wreckage until
+someone pointed us to this. I really had forgotten that we debugged this
+half a year ago already.
+
+Sigh, is it just me or is there something yelling arch/x86 into my ear?
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/vdso/voffset.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/setup.c |   34 ++++++++++++++++++++++++++++++++++
+ include/asm-x86_64/apic.h  |    1 +
+ 2 files changed, 35 insertions(+)
 
-diff -puN arch/x86_64/vdso/voffset.h~x86_64-mm-vdso-text-offset arch/x86_64/vdso/voffset.h
---- a/arch/x86_64/vdso/voffset.h~x86_64-mm-vdso-text-offset
-+++ a/arch/x86_64/vdso/voffset.h
-@@ -1 +1 @@
--#define VDSO_TEXT_OFFSET 0x500
-+#define VDSO_TEXT_OFFSET 0x600
+diff -puN arch/x86_64/kernel/setup.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
++++ a/arch/x86_64/kernel/setup.c
+@@ -561,6 +561,37 @@ static void __cpuinit early_init_amd(str
+ #endif
+ }
+ 
++#define ENABLE_C1E_MASK		0x18000000
++#define CPUID_PROCESSOR_SIGNATURE	1
++#define CPUID_XFAM		0x0ff00000
++#define CPUID_XFAM_K8		0x00000000
++#define CPUID_XFAM_10H		0x00100000
++#define CPUID_XFAM_11H		0x00200000
++#define CPUID_XMOD		0x000f0000
++#define CPUID_XMOD_REV_F	0x00040000
++
++/* AMD systems with C1E don't have a working lAPIC timer. Check for that. */
++static __cpuinit int amd_apic_timer_broken(void)
++{
++	u32 lo, hi;
++	u32 eax = cpuid_eax(CPUID_PROCESSOR_SIGNATURE);
++	switch (eax & CPUID_XFAM) {
++	case CPUID_XFAM_K8:
++		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
++			break;
++	case CPUID_XFAM_10H:
++	case CPUID_XFAM_11H:
++		rdmsr(MSR_K8_ENABLE_C1E, lo, hi);
++		if (lo & ENABLE_C1E_MASK)
++			return 1;
++		break;
++	default:
++		/* err on the side of caution */
++		return 1;
++	}
++	return 0;
++}
++
+ static void __cpuinit init_amd(struct cpuinfo_x86 *c)
+ {
+ 	unsigned level, flags, dummy;
+@@ -633,6 +664,9 @@ static void __cpuinit init_amd(struct cp
+ 	if (c->x86 == 0x10 && !force_mwait)
+ 		clear_bit(X86_FEATURE_MWAIT, &c->x86_capability);
+ 
++	if (amd_apic_timer_broken())
++		disable_apic_timer = 1;
++
+ 	if (c->x86 >= 0xf && c->x86 <= 0x11 &&
+ 	    !rdmsr_safe(MSR_VM_CR, &flags, &dummy) &&
+ 	    (flags & 0x18))
+diff -puN include/asm-x86_64/apic.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e include/asm-x86_64/apic.h
+--- a/include/asm-x86_64/apic.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
++++ a/include/asm-x86_64/apic.h
+@@ -19,6 +19,7 @@
+ extern int apic_verbosity;
+ extern int apic_runs_main_timer;
+ extern int ioapic_force;
++extern int disable_apic_timer;
+ 
+ /*
+  * Define the default level of output to be very little
 _
 
-Patches currently in -mm which might be from ak@suse.de are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-x86_64-mm-vdso-text-offset.patch
-acpi-add-reboot-mechanism.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering.patch
-i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
-x86_64-mce-poll-at-idle_start-and-printk-fix.patch
-fix-x86_64-mm-unwinder.patch
+git-arm.patch
+git-mips.patch
+provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
+sh-cleanup-struct-irqaction-initializers.patch
+sh64-cleanup-struct-irqaction-initializers.patch
+usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
 geode-mfgpt-support-for-geode-class-machines.patch
 geode-mfgpt-clock-event-device-support.patch
-x86_64-add-acpi-reboot-option.patch
-i386-convert-mm_context_t-semaphore-to-a-mutex.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-make-io-apic-not-connected-pin-print-complete.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-i386-stop-bogus-nmi-softlockup-warnings-in-show_mem.patch
-voyager-include-asm-smph-to-fix-compile-error.patch
+x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
 clockevents-remove-unused-inline-function.patch
 clockevents-allow-build-without-runtime-use.patch
 x86_64-consolidate-tsc-calibration.patch
@@ -104,74 +176,36 @@ ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
 ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
 hpet-force-enable-on-ich34.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
 i386-cleanup-struct-irqaction-initializers.patch
 x86_64-cleanup-struct-irqaction-initializers.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 hpet-force-enable-on-vt8235-37-chipsets.patch
-voyager-dont-try-to-support-unprocessor-builds.patch
-x86_64-nx-bit-handling-in-change_page_attr.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support.patch
-x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
-x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_poll-return-eintr-when-signalled.patch
-i386-mark-pit_clockevent-static.patch
-report-the-per-irq-statistics-on-allarches.patch
-deprecate-aout-elf-interpreters.patch
-deprecate-aout-elf-interpreters-fix.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-x86_64-efi-boot-support-efi-frame-buffer-driver.patch
-x86_64-efi-boot-support-efi-boot-document.patch
-pie-executable-randomization-fix.patch
-pie-executable-randomization-fix-3.patch
-i386-and-x86_64-randomize-brk.patch
-i386-and-x86_64-randomize-brk-fix.patch
+frv-cleanup-struct-irqaction-initializers.patch
+m32r-cleanup-struct-irqaction-initializers.patch
+cris-cleanup-struct-irqaction-initializers.patch
+uml-eliminate-hz.patch
+uml-fix-timer-switching.patch
+uml-simplify-interval-setting.patch
+uml-separate-timer-initialization.patch
+uml-generic_time-support.patch
+uml-generic_clockevents-support.patch
+uml-clocksource-support.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support.patch
+uml-tickless-support-fix.patch
+uml-eliminate-interrupts-in-the-idle-loop.patch
+uml-eliminate-sigalrm.patch
+uml-use-sec_per_sec-constants.patch
+v850-cleanup-struct-irqaction-initializers.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
 fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+futex_compat-simplify-pointer-magic.patch
+futex_compat-update-to-match-native-version.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
