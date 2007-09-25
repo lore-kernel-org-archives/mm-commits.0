@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-cifs-build-fix.patch added to -mm tree
-Date: Mon, 24 Sep 2007 23:15:06 -0700
-Message-ID: <200709250615.l8P6F6kR004104@imap1.linux-foundation.org>
+Subject: + track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch added to -mm tree
+Date: Mon, 24 Sep 2007 23:18:25 -0700
+Message-ID: <200709250618.l8P6IPAY004167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754357AbXIYGPK (ORCPT
+	by vger.kernel.org with ESMTP id S1760630AbXIYGTV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 02:15:10 -0400
+	Tue, 25 Sep 2007 02:19:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     git-cifs build fix
+     track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
 has been added to the -mm tree.  Its filename is
-     git-cifs-build-fix.patch
+     track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,29 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cifs build fix
+Subject: track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Steven French <sfrench@us.ibm.com>
+kernel/time/tick-sched.c: In function 'tick_nohz_stop_sched_tick':
+kernel/time/tick-sched.c:192: warning: unused variable 'now'
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifssmb.c |    2 +-
+ kernel/time/tick-sched.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifssmb.c~git-cifs-build-fix fs/cifs/cifssmb.c
---- a/fs/cifs/cifssmb.c~git-cifs-build-fix
-+++ a/fs/cifs/cifssmb.c
-@@ -3138,8 +3138,8 @@ static int parse_sec_desc(struct cifs_nt
- 			acl_size = cpu_to_le32(ppntace[i]->size);
- #ifdef CONFIG_CIFS_DEBUG2
- 			cFYI(1, ("ACE revision:%d", ppace[i]->revision));
--		}
- #endif
-+		}
- 		kfree(ppace);
- 		kfree(ppntace);
- 	}
+diff -puN kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime-fix kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
++++ a/kernel/time/tick-sched.c
+@@ -189,7 +189,7 @@ void tick_nohz_stop_sched_tick(void)
+ {
+ 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies, flags;
+ 	struct tick_sched *ts;
+-	ktime_t last_update, expires, now;
++	ktime_t last_update, expires;
+ 	int cpu;
+ 
+ 	local_irq_save(flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,6 +66,7 @@ acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
+git-cifs-build-fix.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
@@ -188,6 +194,7 @@ pie-executable-randomization-fix-2.patch
 i386-and-x86_64-randomize-brk-fix.patch
 binfmt_flat-warning-fixes.patch
 console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
 send-quota-messages-via-netlink-fix-fix.patch
 i2o-fix-defined-but-not-used-build-warnings-fix.patch
 procfs-detect-duplicate-names-fix.patch
@@ -255,4 +262,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-git-cifs-build-fix.patch
