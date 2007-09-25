@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-extended-crashkernel-command-line-on-i386-fix-config_nohighmem-for-extended-crashkernel-command-line-fix.patch added to -mm tree
-Date: Tue, 25 Sep 2007 00:04:54 -0700
-Message-ID: <200709250704.l8P74svv005747@imap1.linux-foundation.org>
+Subject: + git-jg-warning-fixes.patch added to -mm tree
+Date: Tue, 25 Sep 2007 00:07:03 -0700
+Message-ID: <200709250707.l8P773c2005802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753205AbXIYHE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753089AbXIYHHM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 03:04:59 -0400
+	Tue, 25 Sep 2007 03:07:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bwalle@suse.de
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     fix-config_nohighmem-for-extended-crashkernel-command-line-fix
+     git-jg-warning-fixes
 has been added to the -mm tree.  Its filename is
-     use-extended-crashkernel-command-line-on-i386-fix-config_nohighmem-for-extended-crashkernel-command-line-fix.patch
+     git-jg-warning-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-config_nohighmem-for-extended-crashkernel-command-line-fix
+Subject: git-jg-warning-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Bernhard Walle <bwalle@suse.de>
+arch/i386/kernel/acpi/sleep.c:95: warning: initialization from incompatible pointer type
+drivers/acpi/processor_idle.c:183: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:968: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:980: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:988: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:996: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1004: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1012: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1020: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1028: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1036: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1044: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1052: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1060: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1072: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1089: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1097: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1108: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1119: warning: initialization from incompatible pointer type
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/setup.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/i386/kernel/acpi/boot.c  |    8 ++++----
+ arch/i386/kernel/acpi/sleep.c |    2 +-
+ drivers/acpi/processor_idle.c |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386-fix-config_nohighmem-for-extended-crashkernel-command-line-fix arch/i386/kernel/setup.c
---- a/arch/i386/kernel/setup.c~use-extended-crashkernel-command-line-on-i386-fix-config_nohighmem-for-extended-crashkernel-command-line-fix
-+++ a/arch/i386/kernel/setup.c
-@@ -381,20 +381,19 @@ extern unsigned long __init setup_memory
- extern void zone_sizes_init(void);
- #endif /* !CONFIG_NEED_MULTIPLE_NODES */
+diff -puN arch/i386/kernel/acpi/sleep.c~git-jg-warning-fixes arch/i386/kernel/acpi/sleep.c
+--- a/arch/i386/kernel/acpi/sleep.c~git-jg-warning-fixes
++++ a/arch/i386/kernel/acpi/sleep.c
+@@ -84,7 +84,7 @@ __setup("acpi_sleep=", acpi_sleep_setup)
  
--
- #ifdef CONFIG_HIGHMEM
- static inline unsigned long long get_total_mem(void)
+ /* Ouch, we want to delete this. We already have better version in userspace, in
+    s2ram from suspend.sf.net project */
+-static __init int reset_videomode_after_s3(struct dmi_system_id *d)
++static __init int reset_videomode_after_s3(const struct dmi_system_id *d)
  {
--	return (max_low_pfn + highend_pfn - highstart_pfn) << PAGE_SHIFT;
-+	return (unsigned long long)
-+		(max_low_pfn + highend_pfn - highstart_pfn) << PAGE_SHIFT;
- }
- #else
- static inline unsigned long long get_total_mem(void)
- {
--	return max_low_pfn << PAGE_SHIFT;
-+	return (unsigned long long)max_low_pfn << PAGE_SHIFT;
- }
- #endif
+ 	acpi_realmode_flags |= 2;
+ 	return 0;
+diff -puN arch/i386/kernel/acpi/boot.c~git-jg-warning-fixes arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c~git-jg-warning-fixes
++++ a/arch/i386/kernel/acpi/boot.c
+@@ -907,7 +907,7 @@ static void __init acpi_process_madt(voi
  
--
- #ifdef CONFIG_KEXEC
- static void __init reserve_crashkernel(void)
+ #ifdef __i386__
+ 
+-static int __init disable_acpi_irq(struct dmi_system_id *d)
++static int __init disable_acpi_irq(const struct dmi_system_id *d)
  {
+ 	if (!acpi_force) {
+ 		printk(KERN_NOTICE "%s detected: force use of acpi=noirq\n",
+@@ -917,7 +917,7 @@ static int __init disable_acpi_irq(struc
+ 	return 0;
+ }
+ 
+-static int __init disable_acpi_pci(struct dmi_system_id *d)
++static int __init disable_acpi_pci(const struct dmi_system_id *d)
+ {
+ 	if (!acpi_force) {
+ 		printk(KERN_NOTICE "%s detected: force use of pci=noacpi\n",
+@@ -927,7 +927,7 @@ static int __init disable_acpi_pci(struc
+ 	return 0;
+ }
+ 
+-static int __init dmi_disable_acpi(struct dmi_system_id *d)
++static int __init dmi_disable_acpi(const struct dmi_system_id *d)
+ {
+ 	if (!acpi_force) {
+ 		printk(KERN_NOTICE "%s detected: acpi off\n", d->ident);
+@@ -942,7 +942,7 @@ static int __init dmi_disable_acpi(struc
+ /*
+  * Limit ACPI to CPU enumeration for HT
+  */
+-static int __init force_acpi_ht(struct dmi_system_id *d)
++static int __init force_acpi_ht(const struct dmi_system_id *d)
+ {
+ 	if (!acpi_force) {
+ 		printk(KERN_NOTICE "%s detected: force use of acpi=ht\n",
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k7.c~git-jg-warning-fixes arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+diff -puN drivers/acpi/processor_idle.c~git-jg-warning-fixes drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-jg-warning-fixes
++++ a/drivers/acpi/processor_idle.c
+@@ -113,7 +113,7 @@ static int set_max_cstate(const struct d
+  * Dell provides a driver for other operating systems to hack around this bug, so we know
+  * it's safe.
+  */
+-static int dmi_force_c3(struct dmi_system_id *id)
++static int dmi_force_c3(const struct dmi_system_id *id)
+ {
+ 	forced_c3 = 1;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
