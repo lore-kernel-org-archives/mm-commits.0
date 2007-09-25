@@ -1,74 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-b44-is-bust.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 20:15:35 -0700
-Message-ID: <200709250315.l8P3FZsH030632@imap1.linux-foundation.org>
+Subject: - git-backlight-build-fix.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:58:10 -0700
+Message-ID: <200709250358.l8P3wAhX031922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54470 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752856AbXIYDQw (ORCPT
+	by vger.kernel.org with ESMTP id S1753074AbXIYD6X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:16:52 -0400
+	Mon, 24 Sep 2007 23:58:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless-b44-is-bust
+     git-backlight-build-fix
 has been removed from the -mm tree.  Its filename was
-     git-wireless-b44-is-bust.patch
+     git-backlight-build-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-wireless-b44-is-bust
+Subject: git-backlight-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/b44.c: In function 'b44_get_invariants':
-drivers/net/b44.c:2073: error: 'eeprom' undeclared (first use in this function)
-drivers/net/b44.c:2073: error: (Each undeclared identifier is reported only once
-drivers/net/b44.c:2073: error: for each function it appears in.)
-drivers/net/b44.c:2077: error: 'struct b44' has no member named 'core_unit'
-drivers/net/b44.c:2077: error: implicit declaration of function 'ssb_core_unit'
-drivers/net/b44.c:2078: error: 'SB_PCI_DMA' undeclared (first use in this function)
-drivers/net/b44.c:2084: error: implicit declaration of function 'ssb_get_core_rev'
-drivers/net/b44.c:2087: warning: label 'out' defined but not used
-drivers/net/b44.c: In function 'b44_init_one':
-drivers/net/b44.c:2155: error: 'struct b44' has no member named 'pdev'
-drivers/net/b44.c:2162: error: 'struct b44' has no member named 'regs'
-drivers/net/b44.c:2163: error: 'struct b44' has no member named 'regs'
-drivers/net/b44.c:2186: error: 'sdev' undeclared (first use in this function)
-drivers/net/b44.c:2250: warning: label 'out' defined but not used
-drivers/net/b44.c:2130: error: label 'err_out_free_res' used but not defined
-drivers/net/b44.c:2115: error: label 'err_out_disable_pdev' used but not defined
-drivers/net/b44.c: At top level:
-drivers/net/b44.c:2332: warning: initialization from incompatible pointer type
+drivers/video/backlight/ltv350qv.c: In function 'ltv350qv_suspend':
+drivers/video/backlight/ltv350qv.c:281: error: 'SUSPEND_POWER_DOWN' undeclared (first use in this function)
+drivers/video/backlight/ltv350qv.c:281: error: (Each undeclared identifier is reported only once
+drivers/video/backlight/ltv350qv.c:281: error: for each function it appears in.)
+drivers/video/backlight/ltv350qv.c: In function 'ltv350qv_resume':
+drivers/video/backlight/ltv350qv.c:291: error: 'RESUME_POWER_ON' undeclared (first use in this function)
+drivers/video/backlight/ltv350qv.c: At top level:
+drivers/video/backlight/ltv350qv.c:319: warning: initialization from incompatible pointer type
+drivers/video/backlight/ltv350qv.c:320: warning: initialization from incompatible pointer type
 
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+nfi...
+
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/backlight/ltv350qv.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/Kconfig~git-wireless-b44-is-bust drivers/net/Kconfig
---- a/drivers/net/Kconfig~git-wireless-b44-is-bust
-+++ a/drivers/net/Kconfig
-@@ -1446,6 +1446,7 @@ config APRICOT
- config B44
- 	tristate "Broadcom 440x/47xx ethernet support"
- 	depends on SSB_POSSIBLE
-+	depends on BROKEN
- 	select SSB
- 	select MII
- 	help
+diff -puN drivers/video/backlight/ltv350qv.c~git-backlight-build-fix drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~git-backlight-build-fix
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -273,25 +273,21 @@ static int __devexit ltv350qv_remove(str
+ }
+ 
+ #ifdef CONFIG_PM
+-static int ltv350qv_suspend(struct spi_device *spi,
+-			    pm_message_t state, u32 level)
++static int ltv350qv_suspend(struct spi_device *spi, pm_message_t state)
+ {
+ 	struct ltv350qv *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	if (level == SUSPEND_POWER_DOWN)
++	if (state.event == PM_SUSPEND)
+ 		return ltv350qv_power(lcd, FB_BLANK_POWERDOWN);
+ 
+ 	return 0;
+ }
+ 
+-static int ltv350qv_resume(struct spi_device *spi, u32 level)
++static int ltv350qv_resume(struct spi_device *spi)
+ {
+ 	struct ltv350qv *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	if (level == RESUME_POWER_ON)
+-		return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+-
+-	return 0;
++	return ltv350qv_power(lcd, FB_BLANK_UNBLANK);
+ }
+ #else
+ #define ltv350qv_suspend	NULL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 missing-null-termination-in-one-wire-uevent.patch
 fix-oops-in-platform-uevent.patch
 slow-down-printk-during-boot.patch
@@ -141,7 +153,6 @@ git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 p54pci-terminate-pci-table.patch
-git-wireless-b44-is-bust.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
