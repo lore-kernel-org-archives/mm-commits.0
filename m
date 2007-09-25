@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-remove-header_extent_size-fix.patch added to -mm tree
-Date: Tue, 25 Sep 2007 16:48:30 -0700
-Message-ID: <200709252348.l8PNmUx3010408@imap1.linux-foundation.org>
+Subject: + mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch added to -mm tree
+Date: Tue, 25 Sep 2007 16:49:46 -0700
+Message-ID: <200709252349.l8PNnkjX010481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758517AbXIYXsg (ORCPT
+	by vger.kernel.org with ESMTP id S1752736AbXIYXtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 19:48:36 -0400
+	Tue, 25 Sep 2007 19:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mhalcrow@us.ibm.com
+Cc: randy.dunlap@oracle.com, hifumi.hisashi@oss.ntt.co.jp
 
 
 The patch titled
-     ecryptfs: fix printk format warning
+     mm-use-pagevec-to-rotate-reclaimable-page: fix function declaration
 has been added to the -mm tree.  Its filename is
-     ecryptfs-remove-header_extent_size-fix.patch
+     mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: fix printk format warning
+Subject: mm-use-pagevec-to-rotate-reclaimable-page: fix function declaration
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix printk format warning:
-fs/ecryptfs/crypto.c:1443: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+Fix function declaration:
+mm/swap.c:130:22: warning: non-ANSI function declaration of function 'move_tail_pages'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 +-
+ mm/swap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size-fix fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size-fix
-+++ a/fs/ecryptfs/crypto.c
-@@ -1542,7 +1542,7 @@ static int parse_header_metadata(struct 
- 		 * crypt_stat->num_header_extents_at_front)
- 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
- 		rc = -EINVAL;
--		printk(KERN_WARNING "Invalid number of header extents: [%d]\n",
-+		printk(KERN_WARNING "Invalid number of header extents: [%zd]\n",
- 		       crypt_stat->num_header_extents_at_front);
- 	}
- 	return rc;
+diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration mm/swap.c
+--- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration
++++ a/mm/swap.c
+@@ -125,7 +125,7 @@ static void pagevec_move_tail(struct pag
+ 
+ static DEFINE_PER_CPU(struct pagevec, rotate_pvecs) = { 0, };
+ 
+-void move_tail_pages()
++void move_tail_pages(void)
+ {
+ 	unsigned long flags;
+ 	struct pagevec *pvec;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -69,6 +69,7 @@ git-watchdog.patch
 git-ipwireless_cs.patch
 kgdb-fix-help-text.patch
 kgdb-fix-docbook-and-kernel-doc-typos.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
 security-convert-lsm-into-a-static-interface-fix-2-fix.patch
 docs-ramdisk-initrd-initramfs-corrections.patch
 send-quota-messages-via-netlink-fix.patch
