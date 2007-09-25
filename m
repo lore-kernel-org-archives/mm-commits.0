@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix.patch added to -mm tree
-Date: Tue, 25 Sep 2007 15:16:50 -0700
-Message-ID: <200709252216.l8PMGppf007053@imap1.linux-foundation.org>
+Subject: + pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode.patch added to -mm tree
+Date: Tue, 25 Sep 2007 15:48:42 -0700
+Message-ID: <200709252248.l8PMmgox008175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60993 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751745AbXIYWSa (ORCPT
+	by vger.kernel.org with ESMTP id S1750826AbXIYWtN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 18:18:30 -0400
+	Tue, 25 Sep 2007 18:49:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pbadari@gmail.com, apw@shadowen.org, pbadari@us.ibm.com
+Cc: htejun@gmail.com, alan@redhat.com, cebbert@redhat.com, desaster.area@addcom.de, jeff@garzik.org
 
 
 The patch titled
-     ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function fix
+     pata_sis: add missing UDMA5 timing value in sis_66_set_dmamode()
 has been added to the -mm tree.  Its filename is
-     ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix.patch
+     pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function fix
-From: Badari Pulavarty <pbadari@gmail.com>
+Subject: pata_sis: add missing UDMA5 timing value in sis_66_set_dmamode()
+From: Tejun Heo <htejun@gmail.com>
 
-arch/powerpc/mm/init_64.c: In function `vmemmap_populated':
-arch/powerpc/mm/init_64.c:211: warning: passing arg 1 of `vmemmap_section_start' makes pointer from integer without a cast
+sis_66_set_dmamode() also handles early UDMA100 (SIS630 ET) but is
+missing udma timing value for UDMA100.  According to sis5513, this
+should be 0x8000.  This caused UDMA100 device to fail on pata_sis till
+it downgrades to UDMA66 while it works fine on sis5513 at UDMA100.
 
-vmemmap_section_start() gets called with an argument which is unsigned long.
+Reported by Adam Blech.
 
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Adam Blech <desaster.area@addcom.de>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix arch/powerpc/mm/init_64.c
---- a/arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix
-+++ a/arch/powerpc/mm/init_64.c
-@@ -190,10 +190,9 @@ void pgtable_cache_init(void)
-  * do this by hand as the proffered address may not be correctly aligned.
-  * Subtraction of non-aligned pointers produces undefined results.
-  */
--unsigned long __meminit vmemmap_section_start(struct page *page)
-+unsigned long __meminit vmemmap_section_start(unsigned long page)
- {
--	unsigned long offset = ((unsigned long)page) -
--						((unsigned long)(vmemmap));
-+	unsigned long offset = page - ((unsigned long)(vmemmap));
+diff -puN drivers/ata/pata_sis.c~pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode
++++ a/drivers/ata/pata_sis.c
+@@ -375,8 +375,9 @@ static void sis_66_set_dmamode (struct a
+ 	int drive_pci = sis_old_port_base(adev);
+ 	u16 timing;
  
- 	/* Return the pfn of the start of the section. */
- 	return (offset / sizeof(struct page)) & PAGE_SECTION_MASK;
++	/* MWDMA 0-2 and UDMA 0-5 */
+ 	const u16 mwdma_bits[] = { 0x008, 0x302, 0x301 };
+-	const u16 udma_bits[]  = { 0xF000, 0xD000, 0xB000, 0xA000, 0x9000};
++	const u16 udma_bits[]  = { 0xF000, 0xD000, 0xB000, 0xA000, 0x9000, 0x8000 };
+ 
+ 	pci_read_config_word(pdev, drive_pci, &timing);
+ 
 _
 
-Patches currently in -mm which might be from pbadari@gmail.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix.patch
-ext3-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops-fix.patch
-mem-controller-gfp-mask-fix.patch
+git-libata-all.patch
+pata_acpi-restore-driver.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-implement-ata_wait_after_reset.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-add-human-readable-error-value-decoding-v3.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+scsi-early-detection-of-medium-not-present-updated.patch
+git-block.patch
+pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode.patch
