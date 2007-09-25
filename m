@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + git-hwmon-fixup.patch added to -mm tree
-Date: Mon, 24 Sep 2007 20:06:56 -0700
-Message-ID: <200709250306.l8P36uMh030360@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:11:12 -0700
+Message-ID: <200709250311.l8P3BCZV030510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34459 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59596 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753832AbXIYDG7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752856AbXIYDLP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:06:59 -0400
+	Mon, 24 Sep 2007 23:11:15 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8P36u3p027230
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8P3BCeG027399
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2007 20:06:57 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2007 20:11:13 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-hwmon-fixup
-has been added to the -mm tree.  Its filename is
-     git-hwmon-fixup.patch
+     git-mips-fixup
+has been removed from the -mm tree.  Its filename was
+     git-mips-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of zillions of rejects against Ralf's tree
 
 ------------------------------------------------------
-Subject: git-hwmon-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    2 +-
- drivers/misc/thinkpad_acpi.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/lemote/lm2e/Makefile   |    1 -
+ arch/mips/sibyte/common/Makefile |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/misc/thinkpad_acpi.c~git-hwmon-fixup drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~git-hwmon-fixup
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -527,7 +527,7 @@ static char *next_cmd(char **cmds)
+diff -puN arch/mips/lemote/lm2e/Makefile~git-mips-fixup arch/mips/lemote/lm2e/Makefile
+--- a/arch/mips/lemote/lm2e/Makefile~git-mips-fixup
++++ a/arch/mips/lemote/lm2e/Makefile
+@@ -4,5 +4,4 @@
  
- static struct platform_device *tpacpi_pdev;
- static struct platform_device *tpacpi_sensors_pdev;
--static struct class_device *tpacpi_hwmon;
-+static struct device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
- static struct mutex tpacpi_inputdev_send_mutex;
+ obj-y += setup.o prom.o reset.o irq.o pci.o bonito-irq.o dbg_io.o mem.o
  
-diff -puN drivers/misc/thinkpad_acpi.h~git-hwmon-fixup drivers/misc/thinkpad_acpi.h
---- a/drivers/misc/thinkpad_acpi.h~git-hwmon-fixup
-+++ a/drivers/misc/thinkpad_acpi.h
-@@ -173,7 +173,7 @@ static int parse_strtoul(const char *buf
- /* Device model */
- static struct platform_device *tpacpi_pdev;
- static struct platform_device *tpacpi_sensors_pdev;
--static struct class_device *tpacpi_hwmon;
-+static struct device *tpacpi_hwmon;
- static struct platform_driver tpacpi_pdriver;
- static struct input_dev *tpacpi_inputdev;
- static int tpacpi_create_driver_attributes(struct device_driver *drv);
+-EXTRA_AFLAGS := $(KBUILD_CFLAGS)
+ EXTRA_CFLAGS += -Werror
+diff -puN arch/mips/sibyte/common/Makefile~git-mips-fixup arch/mips/sibyte/common/Makefile
+--- a/arch/mips/sibyte/common/Makefile~git-mips-fixup
++++ a/arch/mips/sibyte/common/Makefile
+@@ -2,5 +2,4 @@ obj-y :=
+ 
+ obj-$(CONFIG_SIBYTE_TBPROF)		+= sb_tbprof.o
+ 
+-EXTRA_AFLAGS := $(KBUILD_CFLAGS)
+ EXTRA_CFLAGS += -Werror
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +92,6 @@ git-libata-all.patch
 ide-arm-hack.patch
 git-mips.patch
 git-mips-fixup.patch
-mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
 git-mmc.patch
 git-mmc-fixup2.patch
 mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
