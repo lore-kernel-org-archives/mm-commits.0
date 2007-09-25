@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-clean-up-page-flag-handling.patch added to -mm tree
-Date: Tue, 25 Sep 2007 09:35:50 -0700
-Message-ID: <200709251635.l8PGZo5p026625@imap1.linux-foundation.org>
+Subject: + add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch added to -mm tree
+Date: Tue, 25 Sep 2007 09:39:07 -0700
+Message-ID: <200709251639.l8PGd7qF026707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42262 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751171AbXIYQf7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753694AbXIYQjU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 12:35:59 -0400
+	Tue, 25 Sep 2007 12:39:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+Cc: adobriyan@gmail.com, dushistov@mail.ru, mark@mtfhpc.demon.co.uk
 
 
 The patch titled
-     ecryptfs: clean up page flag handling
+     unscrew UFS
 has been added to the -mm tree.  Its filename is
-     ecryptfs-clean-up-page-flag-handling.patch
+     add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,298 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ecryptfs: clean up page flag handling
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: unscrew UFS
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The functions that eventually call down to ecryptfs_read_lower(),
-ecryptfs_decrypt_page(), and ecryptfs_copy_up_encrypted_with_header()
-should have the responsibility of managing the page Uptodate
-status. This patch gets rid of some of the ugliness that resulted from
-trying to push some of the page flag setting too far down the stack.
+Dereferencing unintialized "usb3" pointer in ufs_fill_super() is not
+going to work. gcc even warns about this.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+BUG: unable to handle kernel NULL pointer dereference at virtual address 0000014e
+printing eip: f9a3b1a2 *pde = 00000000
+Oops: 0000 [#1] PREEMPT
+last sysfs file: /block/loop7/removable
+Modules linked in: ufs loop usbhid ehci_hcd snd_intel8x0 snd_ac97_codec uhci_hcd rtc ac97_bus usbcore thermal button processor sr_mod evdev cdrom
+
+Pid: 1066, comm: mount Not tainted (2.6.23-rc8-mm1 #1)
+EIP: 0060:[<f9a3b1a2>] EFLAGS: 00010286 CPU: 0
+EIP is at ufs_fill_super+0x52f/0x12e5 [ufs]
+EAX: 00000002 EBX: c39c4960 ECX: c0176465 EDX: 00000000
+ESI: c38c5000 EDI: c387f800 EBP: 00000600 ESP: c3816d3c
+ DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Process mount (pid: 1066, ti=c3816000 task=c38f34d0 task.ti=c3816000)
+last branch before last exception/interrupt
+ from c0130fc0 (lockdep_on+0xb/0xc)
+ to c0118d82 (vprintk+0x29f/0x2fb)
+Stack: 00000010 00000000 00000600 00000000 c3816db4 0038c0d8 00000000 c3816dd4
+       ffffffff 00000002 00000200 00000600 00002130 00002000 c39c4960 c01b1355
+       c3816d94 c3816d94 c0187966 c3816db4 00000020 c0347b9b c280680c 00000400
+Call Trace:
+ [<c01b1355>] snprintf+0x1f/0x22
+ [<c0187966>] disk_name+0x79/0x83
+ [<c015c49b>] get_sb_bdev+0xdc/0x11a
+ [<c016ca6d>] alloc_vfsmnt+0x8d/0xb3
+ [<f9a39e3c>] ufs_get_sb+0x20/0x25 [ufs]
+ [<f9a3ac73>] ufs_fill_super+0x0/0x12e5 [ufs]
+ [<c015c09c>] vfs_kern_mount+0x40/0x79
+ [<c016d601>] do_mount+0x6c0/0x7e3
+ [<c02c82a3>] _spin_unlock+0x25/0x3b
+ [<c01318dc>] mark_held_locks+0x39/0x53
+ [<c013fd1d>] find_lock_page+0xf/0x84
+ [<c014456f>] get_page_from_freelist+0x21e/0x3f0
+ [<c0131ab0>] trace_hardirqs_on+0x118/0x13b
+ [<c0144599>] get_page_from_freelist+0x248/0x3f0
+ [<c01582f1>] kmem_cache_alloc+0x68/0x9b
+ [<c016be18>] copy_mount_options+0x26/0x109
+ [<c016d79b>] sys_mount+0x77/0xb3
+ [<c0103db2>] sysenter_past_esp+0x5f/0x99
+ =======================
+INFO: lockdep is turned off.
+Code: d2 f7 74 24 28 03 87 50 01 00 00 89 04 24 c7 44 24 04 00 00 00 00 89 f2 89 f8 e8 e6 2b 00 00 85 c0 0f 84 1e 0d 00 00 8b 44 24 24 <8b> 90 4c 01 00 00 8b 86 58 02 00 00 83 78 08 00 74 02 0f ca 89
+EIP: [<f9a3b1a2>] ufs_fill_super+0x52f/0x12e5 [ufs] SS:ESP 0068:c3816d3c
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |   12 ++++--------
- fs/ecryptfs/ecryptfs_kernel.h |    2 +-
- fs/ecryptfs/mmap.c            |   28 +++++++++++++++++++++-------
- fs/ecryptfs/read_write.c      |   30 +++++++++++++-----------------
- 4 files changed, 39 insertions(+), 33 deletions(-)
+ fs/ufs/super.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-clean-up-page-flag-handling
-+++ a/fs/ecryptfs/crypto.c
-@@ -469,14 +469,14 @@ int ecryptfs_encrypt_page(struct page *p
- 			printk(KERN_ERR "%s: Error attempting to copy "
- 			       "page at index [%ld]\n", __FUNCTION__,
- 			       page->index);
--		goto out_clear_uptodate;
-+		goto out;
- 	}
- 	enc_extent_virt = kmalloc(PAGE_CACHE_SIZE, GFP_USER);
- 	if (!enc_extent_virt) {
- 		rc = -ENOMEM;
- 		ecryptfs_printk(KERN_ERR, "Error allocating memory for "
- 				"encrypted extent\n");
--		goto out_clear_uptodate;
-+		goto out;
- 	}
- 	enc_extent_page = virt_to_page(enc_extent_virt);
- 	for (extent_offset = 0;
-@@ -631,21 +631,17 @@ int ecryptfs_decrypt_page(struct page *p
- 			ecryptfs_printk(KERN_ERR, "Error attempting "
- 					"to read lower page; rc = [%d]"
- 					"\n", rc);
--			goto out_clear_uptodate;
-+			goto out;
- 		}
- 		rc = ecryptfs_decrypt_extent(page, crypt_stat, enc_extent_page,
- 					     extent_offset);
- 		if (rc) {
- 			printk(KERN_ERR "%s: Error encrypting extent; "
- 			       "rc = [%d]\n", __FUNCTION__, rc);
--			goto out_clear_uptodate;
-+			goto out;
- 		}
- 		extent_offset++;
- 	}
--	SetPageUptodate(page);
--	goto out;
--out_clear_uptodate:
--	ClearPageUptodate(page);
- out:
- 	kfree(enc_extent_virt);
- 	return rc;
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-clean-up-page-flag-handling
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -648,6 +648,6 @@ int ecryptfs_read_lower_page_segment(str
- 				     struct inode *ecryptfs_inode);
- int ecryptfs_read(char *data, loff_t offset, size_t size,
- 		  struct file *ecryptfs_file);
--struct page *ecryptfs_get1page(struct file *file, loff_t index);
-+struct page *ecryptfs_get_locked_page(struct file *file, loff_t index);
+diff -puN fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2 fs/ufs/super.c
+--- a/fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2
++++ a/fs/ufs/super.c
+@@ -822,6 +822,10 @@ again:	
+ 	if (!ubh) 
+             goto failed;
  
- #endif /* #ifndef ECRYPTFS_KERNEL_H */
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-clean-up-page-flag-handling
-+++ a/fs/ecryptfs/mmap.c
-@@ -37,23 +37,27 @@
- struct kmem_cache *ecryptfs_lower_page_cache;
- 
- /**
-- * ecryptfs_get1page
-+ * ecryptfs_get_locked_page
-  *
-  * Get one page from cache or lower f/s, return error otherwise.
-  *
-- * Returns unlocked and up-to-date page (if ok), with increased
-+ * Returns locked and up-to-date page (if ok), with increased
-  * refcnt.
-  */
--struct page *ecryptfs_get1page(struct file *file, loff_t index)
-+struct page *ecryptfs_get_locked_page(struct file *file, loff_t index)
- {
- 	struct dentry *dentry;
- 	struct inode *inode;
- 	struct address_space *mapping;
-+	struct page *page;
- 
- 	dentry = file->f_path.dentry;
- 	inode = dentry->d_inode;
- 	mapping = inode->i_mapping;
--	return read_mapping_page(mapping, index, (void *)file);
-+	page = read_mapping_page(mapping, index, (void *)file);
-+	if (!IS_ERR(page))
-+		lock_page(page);
-+	return page;
- }
- 
- /**
-@@ -146,12 +150,10 @@ ecryptfs_copy_up_encrypted_with_header(s
- 			kunmap_atomic(page_virt, KM_USER0);
- 			flush_dcache_page(page);
- 			if (rc) {
--				ClearPageUptodate(page);
- 				printk(KERN_ERR "%s: Error reading xattr "
- 				       "region; rc = [%d]\n", __FUNCTION__, rc);
- 				goto out;
- 			}
--			SetPageUptodate(page);
- 		} else {
- 			/* This is an encrypted data extent */
- 			loff_t lower_offset =
-@@ -232,6 +234,10 @@ static int ecryptfs_readpage(struct file
- 		}
++	usb1 = ubh_get_usb_first(uspi);
++	usb2 = ubh_get_usb_second(uspi);
++	usb3 = ubh_get_usb_third(uspi);
++
+ 	/* Sort out mod used on SunOS 4.1.3 for fs_state */
+ 	uspi->s_postblformat = fs32_to_cpu(sb, usb3->fs_postblformat);
+ 	if (((flags & UFS_ST_MASK) == UFS_ST_SUNOS) &&
+@@ -830,11 +834,6 @@ again:	
+ 		flags |=  UFS_ST_SUN;
  	}
- out:
-+	if (rc)
-+		ClearPageUptodate(page);
-+	else
-+		SetPageUptodate(page);
- 	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16x]\n",
- 			page->index);
- 	unlock_page(page);
-@@ -265,10 +271,18 @@ static int ecryptfs_prepare_write(struct
- 	if (from == 0 && to == PAGE_CACHE_SIZE)
- 		goto out;	/* If we are writing a full page, it will be
- 				   up to date. */
--	if (!PageUptodate(page))
-+	if (!PageUptodate(page)) {
- 		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
- 						      PAGE_CACHE_SIZE,
- 						      page->mapping->host);
-+		if (rc) {
-+			printk(KERN_ERR "%s: Error attemping to read lower "
-+			       "page segment; rc = [%d]\n", __FUNCTION__, rc);
-+			ClearPageUptodate(page);
-+			goto out;
-+		} else
-+			SetPageUptodate(page);
-+	}
- 	if (page->index != 0) {
- 		loff_t end_of_prev_pg_pos =
- 			(((loff_t)page->index << PAGE_CACHE_SHIFT) - 1);
-diff -puN fs/ecryptfs/read_write.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/read_write.c
---- a/fs/ecryptfs/read_write.c~ecryptfs-clean-up-page-flag-handling
-+++ a/fs/ecryptfs/read_write.c
-@@ -142,8 +142,8 @@ int ecryptfs_write(struct file *ecryptfs
- 			if (num_bytes > total_remaining_zeros)
- 				num_bytes = total_remaining_zeros;
- 		}
--		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
--						  ecryptfs_page_idx);
-+		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_file,
-+							 ecryptfs_page_idx);
- 		if (IS_ERR(ecryptfs_page)) {
- 			rc = PTR_ERR(ecryptfs_page);
- 			printk(KERN_ERR "%s: Error getting page at "
-@@ -161,6 +161,7 @@ int ecryptfs_write(struct file *ecryptfs
- 				printk(KERN_ERR "%s: Error decrypting "
- 				       "page; rc = [%d]\n",
- 				       __FUNCTION__, rc);
-+				ClearPageUptodate(ecryptfs_page);
- 				page_cache_release(ecryptfs_page);
- 				goto out;
- 			}
-@@ -180,14 +181,15 @@ int ecryptfs_write(struct file *ecryptfs
- 		}
- 		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
- 		flush_dcache_page(ecryptfs_page);
-+		SetPageUptodate(ecryptfs_page);
-+		unlock_page(ecryptfs_page);
- 		rc = ecryptfs_encrypt_page(ecryptfs_page);
-+		page_cache_release(ecryptfs_page);
- 		if (rc) {
- 			printk(KERN_ERR "%s: Error encrypting "
- 			       "page; rc = [%d]\n", __FUNCTION__, rc);
--			page_cache_release(ecryptfs_page);
- 			goto out;
- 		}
--		page_cache_release(ecryptfs_page);
- 		pos += num_bytes;
- 	}
- 	if ((offset + size) > ecryptfs_file_size) {
-@@ -225,7 +227,6 @@ int ecryptfs_read_lower(char *data, loff
- 		ecryptfs_inode_to_private(ecryptfs_inode);
- 	ssize_t octets_read;
- 	mm_segment_t fs_save;
--	size_t i;
- 	int rc = 0;
  
- 	mutex_lock(&inode_info->lower_file_mutex);
-@@ -242,16 +243,6 @@ int ecryptfs_read_lower(char *data, loff
- 		rc = -EINVAL;
- 	}
- 	mutex_unlock(&inode_info->lower_file_mutex);
--	for (i = 0; i < size; i += PAGE_CACHE_SIZE) {
--		struct page *data_page;
+-	
+-	usb1 = ubh_get_usb_first(uspi);
+-	usb2 = ubh_get_usb_second(uspi);
+-	usb3 = ubh_get_usb_third(uspi);
 -
--		data_page = virt_to_page(data + i);
--		flush_dcache_page(data_page);
--		if (rc)
--			ClearPageUptodate(data_page);
--		else
--			SetPageUptodate(data_page);
--	}
- 	return rc;
- }
- 
-@@ -283,6 +274,7 @@ int ecryptfs_read_lower_page_segment(str
- 	virt = kmap(page_for_ecryptfs);
- 	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
- 	kunmap(page_for_ecryptfs);
-+	flush_dcache_page(page_for_ecryptfs);
- 	return rc;
- }
- 
-@@ -331,8 +323,8 @@ int ecryptfs_read(char *data, loff_t off
- 
- 		if (num_bytes > total_remaining_bytes)
- 			num_bytes = total_remaining_bytes;
--		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
--						  ecryptfs_page_idx);
-+		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_file,
-+							 ecryptfs_page_idx);
- 		if (IS_ERR(ecryptfs_page)) {
- 			rc = PTR_ERR(ecryptfs_page);
- 			printk(KERN_ERR "%s: Error getting page at "
-@@ -345,6 +337,7 @@ int ecryptfs_read(char *data, loff_t off
- 		if (rc) {
- 			printk(KERN_ERR "%s: Error decrypting "
- 			       "page; rc = [%d]\n", __FUNCTION__, rc);
-+			ClearPageUptodate(ecryptfs_page);
- 			page_cache_release(ecryptfs_page);
- 			goto out;
- 		}
-@@ -353,6 +346,9 @@ int ecryptfs_read(char *data, loff_t off
- 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
- 		       num_bytes);
- 		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
-+		flush_dcache_page(ecryptfs_page);
-+		SetPageUptodate(ecryptfs_page);
-+		unlock_page(ecryptfs_page);
- 		page_cache_release(ecryptfs_page);
- 		pos += num_bytes;
- 		data_offset += num_bytes;
+ 	/*
+ 	 * Check ufs magic number
+ 	 */
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-git-unionfs.patch
-fs-remove-some-aop_truncated_page.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
-ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
-ecryptfs-fix-tag-1-parsing-code.patch
-ecryptfs-fix-tag-3-parsing-code.patch
-ecryptfs-fix-tag-11-parsing-code.patch
-ecryptfs-fix-tag-11-writing-code.patch
-ecryptfs-update-comment-and-debug-statement.patch
-ecryptfs-printk-warning-fixes.patch
-ecryptfs-remove-unnecessary-bug_on.patch
-ecryptfs-collapse-flag-set-into-one-statement.patch
-ecryptfs-grammatical-fix-destruct-to-destroy.patch
-ecryptfs-comments-for-some-structs.patch
-ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
-ecryptfs-remove-unnecessary-variable-initializations.patch
-ecryptfs-make-needlessly-global-symbols-static.patch
-ecryptfs-use-generic_file_splice_read.patch
-ecryptfs-remove-header_extent_size.patch
-ecryptfs-remove-assignments-in-if-statements.patch
-ecryptfs-read_writec-routines.patch
-ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
-ecryptfs-set-up-and-destroy-persistent-lower-file.patch
-ecryptfs-update-metadata-read-write-functions.patch
-ecryptfs-update-metadata-read-write-functions-cleanup.patch
-ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
-ecryptfs-fix-data-types.patch
-ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
-ecryptfs-remove-unused-functions-and-kmem_cache.patch
-ecryptfs-replace-magic-numbers.patch
-ecryptfs-clean-up-page-flag-handling.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+git-kbuild.patch
+ifdef-struct-task_structsecurity.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+shrink-struct-task_structoomkilladj.patch
+remove-struct-task_structio_wait.patch
+drop-some-headers-from-mmh.patch
+revert-faster-ext2_clear_inode.patch
