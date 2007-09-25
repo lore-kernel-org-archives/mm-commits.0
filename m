@@ -1,56 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - mips-add-gpio-support-to-the-bcm947xx-platform-update.patch removed from -mm tree
-Date: Mon, 24 Sep 2007 20:58:05 -0700
-Message-ID: <200709250358.l8P3w50E031916@imap1.linux-foundation.org>
+Subject: - mips-gpio-led-driver-for-the-wgt634u-machine.patch removed from -mm tree
+Date: Mon, 24 Sep 2007 20:58:08 -0700
+Message-ID: <200709250358.l8P3w84D031919@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49245 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759962AbXIYD7R (ORCPT
+	by vger.kernel.org with ESMTP id S1760001AbXIYD7V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Sep 2007 23:59:17 -0400
+	Mon, 24 Sep 2007 23:59:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aurelien@aurel32.net, david-b@pacbell.net, geert@linux-m68k.org, mb@bu3sch.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips-add-gpio-support-to-the-bcm947xx-platform update
+     mips: GPIO LED driver for the WGT634U machine
 has been removed from the -mm tree.  Its filename was
-     mips-add-gpio-support-to-the-bcm947xx-platform-update.patch
+     mips-gpio-led-driver-for-the-wgt634u-machine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips-add-gpio-support-to-the-bcm947xx-platform update
+Subject: mips: GPIO LED driver for the WGT634U machine
 From: Aurelien Jarno <aurelien@aurel32.net>
 
-On Fri, Aug 17, 2007 at 09:00:31PM +0200, Michael Buesch wrote:
-> On Friday 17 August 2007 20:56:42 David Brownell wrote:
-> > On Friday 17 August 2007, akpm@linux-foundation.org wrote:
-> >
-> > > +static inline int gpio_to_irq(unsigned gpio)
-> > > +{
-> > > +	if (ssb_bcm947xx.chipco.dev)
-> >
-> > Looks like a runtime switch ... can this be done at
-> > compile time instead?
->
-> No, it's a runtime condition.
->
-> > This idiom shows up in all of
-> > these routines.  (ssb_bcm947xx isn't in kernel.org
-> > code so Mr. Grep is no help yet.)  If not, these
-> > might all be better as non-inlned functions.
->
-> Yeah.
-
-First of all, sorry for the delay. Please find below a new version of
-the patch that takes into account your comments. The functions are not
-inlined anymore and they check the gpio pin number.
-
-Andrew, this patch replaces the patch called
-mips-add-gpio-support-to-the-bcm947xx-platform.patch.
+Add GPIO support to the BCM947xx platform.  It uses the new gpio-led driver
+and a platform driver for the pin definitions.
 
 Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
@@ -60,24 +36,23 @@ Cc: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/bcm947xx/Makefile           |    2 
- arch/mips/bcm947xx/gpio.c             |   79 ++++++++++++++++++++++++
- include/asm-mips/mach-bcm947xx/gpio.h |   58 ++++-------------
- 3 files changed, 94 insertions(+), 45 deletions(-)
+ arch/mips/bcm947xx/Makefile  |    2 -
+ arch/mips/bcm947xx/wgt634u.c |   64 +++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 1 deletion(-)
 
-diff -puN arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update arch/mips/bcm947xx/Makefile
---- a/arch/mips/bcm947xx/Makefile~mips-add-gpio-support-to-the-bcm947xx-platform-update
+diff -puN arch/mips/bcm947xx/Makefile~mips-gpio-led-driver-for-the-wgt634u-machine arch/mips/bcm947xx/Makefile
+--- a/arch/mips/bcm947xx/Makefile~mips-gpio-led-driver-for-the-wgt634u-machine
 +++ a/arch/mips/bcm947xx/Makefile
 @@ -3,4 +3,4 @@
  # under Linux.
  #
  
--obj-y := irq.o prom.o serial.o setup.o time.o
-+obj-y := gpio.o irq.o prom.o serial.o setup.o time.o
-diff -puN /dev/null arch/mips/bcm947xx/gpio.c
---- /dev/null
-+++ a/arch/mips/bcm947xx/gpio.c
-@@ -0,0 +1,79 @@
+-obj-y := gpio.o irq.o prom.o serial.o setup.o time.o
++obj-y := gpio.o irq.o prom.o serial.o setup.o time.o wgt634u.o
+diff -puN arch/mips/bcm947xx/wgt634u.c~mips-gpio-led-driver-for-the-wgt634u-machine arch/mips/bcm947xx/wgt634u.c
+--- a/arch/mips/bcm947xx/wgt634u.c~mips-gpio-led-driver-for-the-wgt634u-machine
++++ a/arch/mips/bcm947xx/wgt634u.c
+@@ -0,0 +1,64 @@
 +/*
 + * This file is subject to the terms and conditions of the GNU General Public
 + * License.  See the file "COPYING" in the main directory of this archive
@@ -86,170 +61,62 @@ diff -puN /dev/null arch/mips/bcm947xx/gpio.c
 + * Copyright (C) 2007 Aurelien Jarno <aurelien@aurel32.net>
 + */
 +
++#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/leds.h>
 +#include <linux/ssb/ssb.h>
-+#include <linux/ssb/ssb_driver_chipcommon.h>
-+#include <linux/ssb/ssb_driver_extif.h>
 +#include <asm/mach-bcm947xx/bcm947xx.h>
-+#include <asm/mach-bcm947xx/gpio.h>
 +
-+int bcm947xx_gpio_to_irq(unsigned gpio)
++/* GPIO definitions for the WGT634U */
++#define WGT634U_GPIO_LED	3
++#define WGT634U_GPIO_RESET	2
++#define WGT634U_GPIO_TP1	7
++#define WGT634U_GPIO_TP2	6
++#define WGT634U_GPIO_TP3	5
++#define WGT634U_GPIO_TP4	4
++#define WGT634U_GPIO_TP5	1
++
++static struct gpio_led wgt634u_leds[] = {
++	{
++		.name = "power",
++		.gpio = WGT634U_GPIO_LED,
++		.active_low = 1,
++		.default_trigger = "heartbeat",
++	},
++};
++
++static struct gpio_led_platform_data wgt634u_led_data = {
++	.num_leds =     ARRAY_SIZE(wgt634u_leds),
++	.leds =         wgt634u_leds,
++};
++
++static struct platform_device wgt634u_gpio_leds = {
++	.name =         "leds-gpio",
++	.id =           -1,
++	.dev = {
++		.platform_data = &wgt634u_led_data,
++	}
++};
++
++static int __init wgt634u_init(void)
 +{
-+	if (ssb_bcm947xx.chipco.dev)
-+		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
-+	else if (ssb_bcm947xx.extif.dev)
-+		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
++	/* There is no easy way to detect that we are running on a WGT634U
++	 * machine. Use the MAC address as an heuristic. Netgear Inc. has
++	 * been allocated ranges 00:09:5b:xx:xx:xx and 00:0f:b5:xx:xx:xx.
++	 */
++
++	u8 *et0mac = ssb_bcm947xx.sprom.r1.et0mac;
++
++	if (et0mac[0] == 0x00 &&
++	    ((et0mac[1] == 0x09 && et0mac[2] == 0x5b) ||
++	     (et0mac[1] == 0x0f && et0mac[2] == 0xb5)))
++		return platform_device_register(&wgt634u_gpio_leds);
 +	else
-+		return -EINVAL;
++		return -ENODEV;
 +}
-+EXPORT_SYMBOL(bcm947xx_gpio_to_irq);
 +
-+int bcm947xx_gpio_get_value(unsigned gpio)
-+{
-+	if (ssb_bcm947xx.chipco.dev)
-+		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
-+	else if (ssb_bcm947xx.extif.dev)
-+		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
-+	else
-+		return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_get_value);
++module_init(wgt634u_init);
 +
-+void bcm947xx_gpio_set_value(unsigned gpio, int value)
-+{
-+	if (ssb_bcm947xx.chipco.dev)
-+		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
-+				    1 << gpio,
-+				    value ? 1 << gpio : 0);
-+	else if (ssb_bcm947xx.extif.dev)
-+		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
-+				   1 << gpio,
-+				   value ? 1 << gpio : 0);
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_set_value);
-+
-+int bcm947xx_gpio_direction_input(unsigned gpio)
-+{
-+	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
-+		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
-+				      1 << gpio, 0);
-+	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
-+		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
-+				     1 << gpio, 0);
-+	else
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_direction_input);
-+
-+int bcm947xx_gpio_direction_output(unsigned gpio, int value)
-+{
-+	bcm947xx_gpio_set_value(gpio, value);
-+
-+	if (ssb_bcm947xx.chipco.dev && (gpio < BCM947XX_CHIPCO_GPIO_LINES))
-+		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
-+				      1 << gpio, 1 << gpio);
-+	else if (ssb_bcm947xx.extif.dev && (gpio < BCM947XX_EXTIF_GPIO_LINES))
-+		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
-+				     1 << gpio, 1 << gpio);
-+	else
-+		return -EINVAL;
-+	return 0;
-+}
-+EXPORT_SYMBOL(bcm947xx_gpio_direction_output);
-+
-diff -puN include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update include/asm-mips/mach-bcm947xx/gpio.h
---- a/include/asm-mips/mach-bcm947xx/gpio.h~mips-add-gpio-support-to-the-bcm947xx-platform-update
-+++ a/include/asm-mips/mach-bcm947xx/gpio.h
-@@ -9,10 +9,14 @@
- #ifndef __BCM947XX_GPIO_H
- #define __BCM947XX_GPIO_H
- 
--#include <linux/ssb/ssb.h>
--#include <linux/ssb/ssb_driver_chipcommon.h>
--#include <linux/ssb/ssb_driver_extif.h>
--#include <asm/mach-bcm947xx/bcm947xx.h>
-+#define BCM947XX_EXTIF_GPIO_LINES	5
-+#define BCM947XX_CHIPCO_GPIO_LINES	16
-+
-+extern int bcm947xx_gpio_to_irq(unsigned gpio);
-+extern int bcm947xx_gpio_get_value(unsigned gpio);
-+extern void bcm947xx_gpio_set_value(unsigned gpio, int value);
-+extern int bcm947xx_gpio_direction_input(unsigned gpio);
-+extern int bcm947xx_gpio_direction_output(unsigned gpio, int value);
- 
- static inline int gpio_request(unsigned gpio, const char *label)
- {
-@@ -25,64 +29,30 @@ static inline void gpio_free(unsigned gp
- 
- static inline int gpio_to_irq(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		return ssb_mips_irq(ssb_bcm947xx.chipco.dev) + 2;
--	else if (ssb_bcm947xx.extif.dev)
--		return ssb_mips_irq(ssb_bcm947xx.extif.dev) + 2;
--	else
--		return -EINVAL;
-+	return bcm947xx_gpio_to_irq(gpio);
- }
- 
- static inline int gpio_get_value(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		return ssb_chipco_gpio_in(&ssb_bcm947xx.chipco, 1 << gpio);
--	else if (ssb_bcm947xx.extif.dev)
--		return ssb_extif_gpio_in(&ssb_bcm947xx.extif, 1 << gpio);
--	else
--		return 0;
-+	return bcm947xx_gpio_get_value(gpio);
- }
- 
- static inline void gpio_set_value(unsigned gpio, int value)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_out(&ssb_bcm947xx.chipco,
--				    1 << gpio,
--				    value ? 1 << gpio : 0);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_out(&ssb_bcm947xx.extif,
--				   1 << gpio,
--				   value ? 1 << gpio : 0);
-+	bcm947xx_gpio_set_value(gpio, value);
- }
- 
- static inline int gpio_direction_input(unsigned gpio)
- {
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
--				      1 << gpio, 0);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
--				     1 << gpio, 0);
--	else
--		return -EINVAL;
--	return 0;
-+	return bcm947xx_gpio_direction_input(gpio);
- }
- 
- static inline int gpio_direction_output(unsigned gpio, int value)
- {
--	gpio_set_value(gpio, value);
--
--	if (ssb_bcm947xx.chipco.dev)
--		ssb_chipco_gpio_outen(&ssb_bcm947xx.chipco,
--				      1 << gpio, 1 << gpio);
--	else if (ssb_bcm947xx.extif.dev)
--		ssb_extif_gpio_outen(&ssb_bcm947xx.extif,
--				     1 << gpio, 1 << gpio);
--	else
--		return -EINVAL;
--	return 0;
-+	return bcm947xx_gpio_direction_output(gpio, value);
- }
- 
-+
- /* cansleep wrappers */
- #include <asm-generic/gpio.h>
- 
 _
 
 Patches currently in -mm which might be from aurelien@aurel32.net are
