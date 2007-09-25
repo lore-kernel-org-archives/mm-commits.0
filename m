@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_scc-keep-up-with-libata-core-api-changes.patch added to -mm tree
-Date: Tue, 25 Sep 2007 08:46:21 -0700
-Message-ID: <200709251546.l8PFkLpF024653@imap1.linux-foundation.org>
+Subject: + ecryptfs-clean-up-page-flag-handling.patch added to -mm tree
+Date: Tue, 25 Sep 2007 09:35:50 -0700
+Message-ID: <200709251635.l8PGZo5p026625@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45728 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42262 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756154AbXIYPqu (ORCPT
+	by vger.kernel.org with ESMTP id S1751171AbXIYQf7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 11:46:50 -0400
+	Tue, 25 Sep 2007 12:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: satyam@infradead.org, alan@redhat.com, jeff@garzik.org, mel@skynet.ie
+Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     pata_scc: Keep up with libata core API changes
+     ecryptfs: clean up page flag handling
 has been added to the -mm tree.  Its filename is
-     pata_scc-keep-up-with-libata-core-api-changes.patch
+     ecryptfs-clean-up-page-flag-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,134 +26,298 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_scc: Keep up with libata core API changes
-From: Satyam Sharma <satyam@infradead.org>
+Subject: ecryptfs: clean up page flag handling
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Little fixlets, that the build started erroring / warning about:
+The functions that eventually call down to ecryptfs_read_lower(),
+ecryptfs_decrypt_page(), and ecryptfs_copy_up_encrypted_with_header()
+should have the responsibility of managing the page Uptodate
+status. This patch gets rid of some of the ugliness that resulted from
+trying to push some of the page flag setting too far down the stack.
 
-drivers/ata/pata_scc.c: In function 'scc_bmdma_status':
-drivers/ata/pata_scc.c:734: error: structure has no member named 'active_tag'
-drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
-drivers/ata/pata_scc.c:866: warning: passing arg 1 of 'ata_std_prereset' from incompatible pointer type
-drivers/ata/pata_scc.c: In function 'scc_error_handler':
-drivers/ata/pata_scc.c:908: warning: passing arg 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 5 of 'ata_bmdma_drive_eh' from incompatible pointer type
-make[2]: *** [drivers/ata/pata_scc.o] Error 1
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Mel Gorman <mel@skynet.ie>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_scc.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ fs/ecryptfs/crypto.c          |   12 ++++--------
+ fs/ecryptfs/ecryptfs_kernel.h |    2 +-
+ fs/ecryptfs/mmap.c            |   28 +++++++++++++++++++++-------
+ fs/ecryptfs/read_write.c      |   30 +++++++++++++-----------------
+ 4 files changed, 39 insertions(+), 33 deletions(-)
 
-diff -puN drivers/ata/pata_scc.c~pata_scc-keep-up-with-libata-core-api-changes drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~pata_scc-keep-up-with-libata-core-api-changes
-+++ a/drivers/ata/pata_scc.c
-@@ -594,16 +594,17 @@ static unsigned int scc_bus_softreset(st
-  *	Note: Original code is ata_std_softreset().
-  */
- 
--static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
--                              unsigned long deadline)
-+static int scc_std_softreset(struct ata_link *link, unsigned int *classes,
-+                             unsigned long deadline)
- {
-+	struct ata_port *ap = link->ap;
- 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
- 	unsigned int devmask = 0, err_mask;
- 	u8 err;
- 
- 	DPRINTK("ENTER\n");
- 
--	if (ata_link_offline(&ap->link)) {
-+	if (ata_link_offline(link)) {
- 		classes[0] = ATA_DEV_NONE;
- 		goto out;
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-clean-up-page-flag-handling
++++ a/fs/ecryptfs/crypto.c
+@@ -469,14 +469,14 @@ int ecryptfs_encrypt_page(struct page *p
+ 			printk(KERN_ERR "%s: Error attempting to copy "
+ 			       "page at index [%ld]\n", __FUNCTION__,
+ 			       page->index);
+-		goto out_clear_uptodate;
++		goto out;
  	}
-@@ -694,7 +695,7 @@ static void scc_bmdma_stop (struct ata_q
- 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
- 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
- 			/* TBD: SW reset */
--			scc_std_softreset(ap, &classes, deadline);
-+			scc_std_softreset(&ap->link, &classes, deadline);
- 			continue;
+ 	enc_extent_virt = kmalloc(PAGE_CACHE_SIZE, GFP_USER);
+ 	if (!enc_extent_virt) {
+ 		rc = -ENOMEM;
+ 		ecryptfs_printk(KERN_ERR, "Error allocating memory for "
+ 				"encrypted extent\n");
+-		goto out_clear_uptodate;
++		goto out;
+ 	}
+ 	enc_extent_page = virt_to_page(enc_extent_virt);
+ 	for (extent_offset = 0;
+@@ -631,21 +631,17 @@ int ecryptfs_decrypt_page(struct page *p
+ 			ecryptfs_printk(KERN_ERR, "Error attempting "
+ 					"to read lower page; rc = [%d]"
+ 					"\n", rc);
+-			goto out_clear_uptodate;
++			goto out;
  		}
+ 		rc = ecryptfs_decrypt_extent(page, crypt_stat, enc_extent_page,
+ 					     extent_offset);
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error encrypting extent; "
+ 			       "rc = [%d]\n", __FUNCTION__, rc);
+-			goto out_clear_uptodate;
++			goto out;
+ 		}
+ 		extent_offset++;
+ 	}
+-	SetPageUptodate(page);
+-	goto out;
+-out_clear_uptodate:
+-	ClearPageUptodate(page);
+ out:
+ 	kfree(enc_extent_virt);
+ 	return rc;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-clean-up-page-flag-handling
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -648,6 +648,6 @@ int ecryptfs_read_lower_page_segment(str
+ 				     struct inode *ecryptfs_inode);
+ int ecryptfs_read(char *data, loff_t offset, size_t size,
+ 		  struct file *ecryptfs_file);
+-struct page *ecryptfs_get1page(struct file *file, loff_t index);
++struct page *ecryptfs_get_locked_page(struct file *file, loff_t index);
  
-@@ -733,7 +734,7 @@ static u8 scc_bmdma_status (struct ata_p
- 	void __iomem *mmio = ap->ioaddr.bmdma_addr;
- 	u8 host_stat = in_be32(mmio + SCC_DMA_STATUS);
- 	u32 int_status = in_be32(mmio + SCC_DMA_INTST);
--	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->active_tag);
-+	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->link.active_tag);
- 	static int retry = 0;
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-clean-up-page-flag-handling
++++ a/fs/ecryptfs/mmap.c
+@@ -37,23 +37,27 @@
+ struct kmem_cache *ecryptfs_lower_page_cache;
  
- 	/* return if IOS_SS is cleared */
-@@ -862,10 +863,10 @@ static void scc_bmdma_freeze (struct ata
-  *	@deadline: deadline jiffies for the operation
+ /**
+- * ecryptfs_get1page
++ * ecryptfs_get_locked_page
+  *
+  * Get one page from cache or lower f/s, return error otherwise.
+  *
+- * Returns unlocked and up-to-date page (if ok), with increased
++ * Returns locked and up-to-date page (if ok), with increased
+  * refcnt.
   */
- 
--static int scc_pata_prereset(struct ata_port *ap, unsigned long deadline)
-+static int scc_pata_prereset(struct ata_link *link, unsigned long deadline)
+-struct page *ecryptfs_get1page(struct file *file, loff_t index)
++struct page *ecryptfs_get_locked_page(struct file *file, loff_t index)
  {
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap, deadline);
-+	link->ap->cbl = ATA_CBL_PATA80;
-+	return ata_std_prereset(link, deadline);
+ 	struct dentry *dentry;
+ 	struct inode *inode;
+ 	struct address_space *mapping;
++	struct page *page;
+ 
+ 	dentry = file->f_path.dentry;
+ 	inode = dentry->d_inode;
+ 	mapping = inode->i_mapping;
+-	return read_mapping_page(mapping, index, (void *)file);
++	page = read_mapping_page(mapping, index, (void *)file);
++	if (!IS_ERR(page))
++		lock_page(page);
++	return page;
  }
  
  /**
-@@ -876,8 +877,10 @@ static int scc_pata_prereset(struct ata_
-  *	Note: Original code is ata_std_postreset().
-  */
+@@ -146,12 +150,10 @@ ecryptfs_copy_up_encrypted_with_header(s
+ 			kunmap_atomic(page_virt, KM_USER0);
+ 			flush_dcache_page(page);
+ 			if (rc) {
+-				ClearPageUptodate(page);
+ 				printk(KERN_ERR "%s: Error reading xattr "
+ 				       "region; rc = [%d]\n", __FUNCTION__, rc);
+ 				goto out;
+ 			}
+-			SetPageUptodate(page);
+ 		} else {
+ 			/* This is an encrypted data extent */
+ 			loff_t lower_offset =
+@@ -232,6 +234,10 @@ static int ecryptfs_readpage(struct file
+ 		}
+ 	}
+ out:
++	if (rc)
++		ClearPageUptodate(page);
++	else
++		SetPageUptodate(page);
+ 	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16x]\n",
+ 			page->index);
+ 	unlock_page(page);
+@@ -265,10 +271,18 @@ static int ecryptfs_prepare_write(struct
+ 	if (from == 0 && to == PAGE_CACHE_SIZE)
+ 		goto out;	/* If we are writing a full page, it will be
+ 				   up to date. */
+-	if (!PageUptodate(page))
++	if (!PageUptodate(page)) {
+ 		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
+ 						      PAGE_CACHE_SIZE,
+ 						      page->mapping->host);
++		if (rc) {
++			printk(KERN_ERR "%s: Error attemping to read lower "
++			       "page segment; rc = [%d]\n", __FUNCTION__, rc);
++			ClearPageUptodate(page);
++			goto out;
++		} else
++			SetPageUptodate(page);
++	}
+ 	if (page->index != 0) {
+ 		loff_t end_of_prev_pg_pos =
+ 			(((loff_t)page->index << PAGE_CACHE_SHIFT) - 1);
+diff -puN fs/ecryptfs/read_write.c~ecryptfs-clean-up-page-flag-handling fs/ecryptfs/read_write.c
+--- a/fs/ecryptfs/read_write.c~ecryptfs-clean-up-page-flag-handling
++++ a/fs/ecryptfs/read_write.c
+@@ -142,8 +142,8 @@ int ecryptfs_write(struct file *ecryptfs
+ 			if (num_bytes > total_remaining_zeros)
+ 				num_bytes = total_remaining_zeros;
+ 		}
+-		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
+-						  ecryptfs_page_idx);
++		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_file,
++							 ecryptfs_page_idx);
+ 		if (IS_ERR(ecryptfs_page)) {
+ 			rc = PTR_ERR(ecryptfs_page);
+ 			printk(KERN_ERR "%s: Error getting page at "
+@@ -161,6 +161,7 @@ int ecryptfs_write(struct file *ecryptfs
+ 				printk(KERN_ERR "%s: Error decrypting "
+ 				       "page; rc = [%d]\n",
+ 				       __FUNCTION__, rc);
++				ClearPageUptodate(ecryptfs_page);
+ 				page_cache_release(ecryptfs_page);
+ 				goto out;
+ 			}
+@@ -180,14 +181,15 @@ int ecryptfs_write(struct file *ecryptfs
+ 		}
+ 		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
+ 		flush_dcache_page(ecryptfs_page);
++		SetPageUptodate(ecryptfs_page);
++		unlock_page(ecryptfs_page);
+ 		rc = ecryptfs_encrypt_page(ecryptfs_page);
++		page_cache_release(ecryptfs_page);
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error encrypting "
+ 			       "page; rc = [%d]\n", __FUNCTION__, rc);
+-			page_cache_release(ecryptfs_page);
+ 			goto out;
+ 		}
+-		page_cache_release(ecryptfs_page);
+ 		pos += num_bytes;
+ 	}
+ 	if ((offset + size) > ecryptfs_file_size) {
+@@ -225,7 +227,6 @@ int ecryptfs_read_lower(char *data, loff
+ 		ecryptfs_inode_to_private(ecryptfs_inode);
+ 	ssize_t octets_read;
+ 	mm_segment_t fs_save;
+-	size_t i;
+ 	int rc = 0;
  
--static void scc_std_postreset (struct ata_port *ap, unsigned int *classes)
-+static void scc_std_postreset(struct ata_link *link, unsigned int *classes)
- {
-+	struct ata_port *ap = link->ap;
-+
- 	DPRINTK("ENTER\n");
+ 	mutex_lock(&inode_info->lower_file_mutex);
+@@ -242,16 +243,6 @@ int ecryptfs_read_lower(char *data, loff
+ 		rc = -EINVAL;
+ 	}
+ 	mutex_unlock(&inode_info->lower_file_mutex);
+-	for (i = 0; i < size; i += PAGE_CACHE_SIZE) {
+-		struct page *data_page;
+-
+-		data_page = virt_to_page(data + i);
+-		flush_dcache_page(data_page);
+-		if (rc)
+-			ClearPageUptodate(data_page);
+-		else
+-			SetPageUptodate(data_page);
+-	}
+ 	return rc;
+ }
  
- 	/* is double-select really necessary? */
+@@ -283,6 +274,7 @@ int ecryptfs_read_lower_page_segment(str
+ 	virt = kmap(page_for_ecryptfs);
+ 	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
+ 	kunmap(page_for_ecryptfs);
++	flush_dcache_page(page_for_ecryptfs);
+ 	return rc;
+ }
+ 
+@@ -331,8 +323,8 @@ int ecryptfs_read(char *data, loff_t off
+ 
+ 		if (num_bytes > total_remaining_bytes)
+ 			num_bytes = total_remaining_bytes;
+-		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
+-						  ecryptfs_page_idx);
++		ecryptfs_page = ecryptfs_get_locked_page(ecryptfs_file,
++							 ecryptfs_page_idx);
+ 		if (IS_ERR(ecryptfs_page)) {
+ 			rc = PTR_ERR(ecryptfs_page);
+ 			printk(KERN_ERR "%s: Error getting page at "
+@@ -345,6 +337,7 @@ int ecryptfs_read(char *data, loff_t off
+ 		if (rc) {
+ 			printk(KERN_ERR "%s: Error decrypting "
+ 			       "page; rc = [%d]\n", __FUNCTION__, rc);
++			ClearPageUptodate(ecryptfs_page);
+ 			page_cache_release(ecryptfs_page);
+ 			goto out;
+ 		}
+@@ -353,6 +346,9 @@ int ecryptfs_read(char *data, loff_t off
+ 		       ((char *)ecryptfs_page_virt + start_offset_in_page),
+ 		       num_bytes);
+ 		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		flush_dcache_page(ecryptfs_page);
++		SetPageUptodate(ecryptfs_page);
++		unlock_page(ecryptfs_page);
+ 		page_cache_release(ecryptfs_page);
+ 		pos += num_bytes;
+ 		data_offset += num_bytes;
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-git-infiniband.patch
-pata_scc-keep-up-with-libata-core-api-changes.patch
-git-net.patch
-git-net-fix-spidernet-build.patch
-mv643xx_eth-remove-redundant-multiple-initialization.patch
-iseries_veth-kill-unused-variable.patch
-spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
-pasemi_mac-build-fix-after-recent-netdev-stats.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-git-scsi-misc.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-git-block.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
+ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
+ecryptfs-fix-tag-1-parsing-code.patch
+ecryptfs-fix-tag-3-parsing-code.patch
+ecryptfs-fix-tag-11-parsing-code.patch
+ecryptfs-fix-tag-11-writing-code.patch
+ecryptfs-update-comment-and-debug-statement.patch
+ecryptfs-printk-warning-fixes.patch
+ecryptfs-remove-unnecessary-bug_on.patch
+ecryptfs-collapse-flag-set-into-one-statement.patch
+ecryptfs-grammatical-fix-destruct-to-destroy.patch
+ecryptfs-comments-for-some-structs.patch
+ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
+ecryptfs-remove-unnecessary-variable-initializations.patch
+ecryptfs-make-needlessly-global-symbols-static.patch
+ecryptfs-use-generic_file_splice_read.patch
+ecryptfs-remove-header_extent_size.patch
+ecryptfs-remove-assignments-in-if-statements.patch
+ecryptfs-read_writec-routines.patch
+ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
+ecryptfs-set-up-and-destroy-persistent-lower-file.patch
+ecryptfs-update-metadata-read-write-functions.patch
+ecryptfs-update-metadata-read-write-functions-cleanup.patch
+ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
+ecryptfs-fix-data-types.patch
+ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
+ecryptfs-remove-unused-functions-and-kmem_cache.patch
+ecryptfs-replace-magic-numbers.patch
+ecryptfs-clean-up-page-flag-handling.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
