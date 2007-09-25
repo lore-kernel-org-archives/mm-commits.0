@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + extended-crashkernel-command-line-update.patch added to -mm tree
-Date: Tue, 25 Sep 2007 12:47:14 -0700
-Message-ID: <200709251947.l8PJlE2V001476@imap1.linux-foundation.org>
+Subject: + use-extended-crashkernel-command-line-on-ia64-update.patch added to -mm tree
+Date: Tue, 25 Sep 2007 12:47:20 -0700
+Message-ID: <200709251947.l8PJlKbR001485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33038 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754613AbXIYTsB (ORCPT
+	by vger.kernel.org with ESMTP id S1754652AbXIYTr6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 15:48:01 -0400
+	Tue, 25 Sep 2007 15:47:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bwalle@suse.de
 
 
 The patch titled
-     Extended crashkernel command line (update)
+     Use extended crashkernel command line on ia64 (update)
 has been added to the -mm tree.  Its filename is
-     extended-crashkernel-command-line-update.patch
+     use-extended-crashkernel-command-line-on-ia64-update.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,63 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Extended crashkernel command line (update)
+Subject: Use extended crashkernel command line on ia64 (update)
 From: Bernhard Walle <bwalle@suse.de>
 
-This is the generic part of the patch. It adds a parse_crashkernel() function
-in kernel/kexec.c that is called by the architecture specific code that
-actually reserves the memory. That function takes the whole command line and
-looks itself for "crashkernel=" in it.
+This patch adapts IA64 to use the generic parse_crashkernel() function
+instead of its own parsing for the crashkernel command line.
 
-If there are multiple occurrences, then the last one is taken.  The advantage
-is that if you have a bootloader like lilo or elilo which allows you to append
-a command line parameter but not to remove one (like in GRUB), then you can add
-another crashkernel value for testing at the boot command line and this one
-overwrites the command line in the configuration then.
+Because the total amount of System RAM must be known when calling this
+function, efi_memmap_init() is modified to return its accumulated total_memory
+variable.
+
+Also, the crashkernel handling is moved in an own function in
+arch/ia64/kernel/setup.c to make the code more readable.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    1 +
- kernel/kexec.c        |    7 ++++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/efi.c   |    2 +-
+ arch/ia64/kernel/setup.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kexec.h~extended-crashkernel-command-line-update include/linux/kexec.h
---- a/include/linux/kexec.h~extended-crashkernel-command-line-update
-+++ a/include/linux/kexec.h
-@@ -186,6 +186,7 @@ extern note_buf_t *crash_notes;
- extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
- extern size_t vmcoreinfo_size;
- extern size_t vmcoreinfo_max_size;
-+
- int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
- 		unsigned long long *crash_size, unsigned long long *crash_base);
+diff -puN arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64-update arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64-update
++++ a/arch/ia64/kernel/efi.c
+@@ -1085,7 +1085,7 @@ efi_memmap_init(unsigned long *s, unsign
+ 	*s = (u64)kern_memmap;
+ 	*e = (u64)++k;
  
-diff -puN kernel/kexec.c~extended-crashkernel-command-line-update kernel/kexec.c
---- a/kernel/kexec.c~extended-crashkernel-command-line-update
-+++ a/kernel/kexec.c
-@@ -1162,9 +1162,9 @@ module_init(crash_notes_memory_init)
-  * The function returns 0 on success and -EINVAL on failure.
-  */
- static int __init parse_crashkernel_mem(char 			*cmdline,
--					unsigned long 		system_ram,
--					unsigned long long 	*crash_size,
--					unsigned long long 	*crash_base)
-+					unsigned long long	system_ram,
-+					unsigned long long	*crash_size,
-+					unsigned long long	*crash_base)
+-	return total_mem;
++	return total_memory;
+ }
+ 
+ void
+diff -puN arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64-update arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64-update
++++ a/arch/ia64/kernel/setup.c
+@@ -261,7 +261,7 @@ void __init
+ reserve_memory (void)
  {
- 	char *cur = cmdline;
+ 	int n = 0;
+-	unsigned long total_memory = 0;
++	unsigned long total_memory;
  
-@@ -1254,6 +1254,7 @@ int __init parse_crashkernel(char 		 *cm
- 	char 	*p = cmdline, *ck_cmdline = NULL;
- 	char	*first_colon, *first_space;
- 
-+	BUG_ON(!crash_size || !crash_base);
- 	*crash_size = 0;
- 	*crash_base = 0;
- 
+ 	/*
+ 	 * none of the entries in this table overlap
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
