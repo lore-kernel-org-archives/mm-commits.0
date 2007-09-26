@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-gfx-fix-menu-ordering.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:47:36 -0700
-Message-ID: <200709262047.l8QKlaTR003137@imap1.linux-foundation.org>
+Subject: + lockdep-give-each-filesystem-its-own-inode-lock-class.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:54:15 -0700
+Message-ID: <200709262054.l8QKsFN6003375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47350 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37090 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761641AbXIZUsw (ORCPT
+	by vger.kernel.org with ESMTP id S1750916AbXIZUzX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:48:52 -0400
+	Wed, 26 Sep 2007 16:55:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, adaplas@pol.net
+Cc: a.p.zijlstra@chello.nl, jack@suse.cz
 
 
 The patch titled
-     video gfx: fix menu ordering
+     lockdep: give each filesystem its own inode lock class
 has been added to the -mm tree.  Its filename is
-     video-gfx-fix-menu-ordering.patch
+     lockdep-give-each-filesystem-its-own-inode-lock-class.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: video gfx: fix menu ordering
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: lockdep: give each filesystem its own inode lock class
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Move video graphics driver configs to fix menus:
+Give each filesystem its own inode lock class. The various filesystems have
+different locking order wrt the inode locks; esp. the pseudo filesystems
+differ from the rest.
 
-Fix FB_PMAGB_B to depend on FB so that the FB menus remain
-  listed in order and indented correctly.
-Fix FB_IBM_GXT4500 to depend on FB so that the FB menus remain
-  listed in order and indented correctly.
-The OMAP FB drivers still muck up the FB menu a bit, so I put
-  OMAP drivers at the end of the FB menu.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/Kconfig~video-gfx-fix-menu-ordering drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-gfx-fix-menu-ordering
-+++ a/drivers/video/Kconfig
-@@ -1635,7 +1635,7 @@ config FB_PMAG_BA
+diff -puN fs/inode.c~lockdep-give-each-filesystem-its-own-inode-lock-class fs/inode.c
+--- a/fs/inode.c~lockdep-give-each-filesystem-its-own-inode-lock-class
++++ a/fs/inode.c
+@@ -142,6 +142,15 @@ static struct inode *alloc_inode(struct 
+ 			return NULL;
+ 		}
  
- config FB_PMAGB_B
- 	tristate "PMAGB-B TURBOchannel framebuffer support"
--	depends on TC
-+	depends on FB && TC
-  	select FB_CFB_FILLRECT
-  	select FB_CFB_COPYAREA
-  	select FB_CFB_IMAGEBLIT
-@@ -1803,7 +1803,7 @@ config FB_PNX4008_DUM_RGB
- 
- config FB_IBM_GXT4500
- 	tristate "Framebuffer support for IBM GXT4500P adaptor"
--	depends on PPC
-+	depends on FB && PPC
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-@@ -1843,10 +1843,6 @@ config FB_XILINX
- 	  framebuffer. ML300 carries a 640*480 LCD display on the board,
- 	  ML403 uses a standard DB15 VGA connector.
- 
--if ARCH_OMAP
--	source "drivers/video/omap/Kconfig"
--endif
--
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
- 	depends on FB
-@@ -1870,6 +1866,10 @@ config FB_VIRTUAL
- 
- 	  If unsure, say N.
- 
-+if ARCH_OMAP
-+	source "drivers/video/omap/Kconfig"
-+endif
++		spin_lock_init(&inode->i_lock);
++		lockdep_set_class(&inode->i_lock, &sb->s_type->i_lock_key);
 +
- if VT
- 	source "drivers/video/console/Kconfig"
- endif
++		mutex_init(&inode->i_mutex);
++		lockdep_set_class(&inode->i_mutex, &sb->s_type->i_mutex_key);
++
++		init_rwsem(&inode->i_alloc_sem);
++		lockdep_set_class(&inode->i_alloc_sem, &sb->s_type->i_alloc_sem_key);
++
+ 		mapping->a_ops = &empty_aops;
+  		mapping->host = inode;
+ 		mapping->flags = 0;
+@@ -190,8 +199,6 @@ void inode_init_once(struct inode *inode
+ 	INIT_HLIST_NODE(&inode->i_hash);
+ 	INIT_LIST_HEAD(&inode->i_dentry);
+ 	INIT_LIST_HEAD(&inode->i_devices);
+-	mutex_init(&inode->i_mutex);
+-	init_rwsem(&inode->i_alloc_sem);
+ 	INIT_RADIX_TREE(&inode->i_data.page_tree, GFP_ATOMIC);
+ 	rwlock_init(&inode->i_data.tree_lock);
+ 	spin_lock_init(&inode->i_data.i_mmap_lock);
+@@ -199,7 +206,6 @@ void inode_init_once(struct inode *inode
+ 	spin_lock_init(&inode->i_data.private_lock);
+ 	INIT_RAW_PRIO_TREE_ROOT(&inode->i_data.i_mmap);
+ 	INIT_LIST_HEAD(&inode->i_data.i_mmap_nonlinear);
+-	spin_lock_init(&inode->i_lock);
+ 	i_size_ordered_init(inode);
+ #ifdef CONFIG_INOTIFY
+ 	INIT_LIST_HEAD(&inode->inotify_watches);
+diff -puN include/linux/fs.h~lockdep-give-each-filesystem-its-own-inode-lock-class include/linux/fs.h
+--- a/include/linux/fs.h~lockdep-give-each-filesystem-its-own-inode-lock-class
++++ a/include/linux/fs.h
+@@ -1356,8 +1356,13 @@ struct file_system_type {
+ 	struct module *owner;
+ 	struct file_system_type * next;
+ 	struct list_head fs_supers;
++
+ 	struct lock_class_key s_lock_key;
+ 	struct lock_class_key s_umount_key;
++
++	struct lock_class_key i_lock_key;
++	struct lock_class_key i_mutex_key;
++	struct lock_class_key i_alloc_sem_key;
+ };
+ 
+ extern int get_sb_bdev(struct file_system_type *fs_type,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
-git-mtd.patch
-git-net.patch
-git-nfsd.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-kgdb-fix-help-text.patch
-kgdb-fix-docbook-and-kernel-doc-typos.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-profile-likely-unlikely-macros.patch
+git-powerpc-galak.patch
+git-sched.patch
+git-sched-build-fix.patch
+radix-tree-use-indirect-bit.patch
+nfs-remove-congestion_end.patch
+lib-percpu_counter_add.patch
+lib-percpu_counter_sub.patch
+lib-percpu_counter-variable-batch.patch
+lib-make-percpu_counter_add-take-s64.patch
+lib-percpu_counter_set.patch
+lib-percpu_counter_sum_positive.patch
+lib-percpu_count_sum.patch
+lib-percpu_counter_init-error-handling.patch
+lib-percpu_counter_init_irq.patch
+mm-bdi-init-hooks.patch
+mm-scalable-bdi-statistics-counters.patch
+mm-count-reclaimable-pages-per-bdi.patch
+mm-count-writeback-pages-per-bdi.patch
+mm-expose-bdi-statistics-in-sysfs.patch
+lib-floating-proportions.patch
+mm-per-device-dirty-threshold.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-per-device-dirty-threshold-fix.patch
+mm-dirty-balancing-for-tasks.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+debug-sysfs-files-for-the-current-ratio-size-total.patch
+lockdep-give-each-filesystem-its-own-inode-lock-class.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
+task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
