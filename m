@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hpa-handling-regression.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:45:51 -0700
-Message-ID: <200709262245.l8QMjpTj007798@imap1.linux-foundation.org>
+Subject: + pata_ns87415-initial-cut-at-87415-87560-ide-support.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:45:49 -0700
+Message-ID: <200709262245.l8QMjngc007795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760008AbXIZWqF (ORCPT
+	by vger.kernel.org with ESMTP id S1756158AbXIZWqC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:46:05 -0400
+	Wed, 26 Sep 2007 18:46:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     ata: fix HPA handling regression
+     pata_ns87415: Initial cut at 87415/87560 IDE support
 has been added to the -mm tree.  Its filename is
-     fix-hpa-handling-regression.patch
+     pata_ns87415-initial-cut-at-87415-87560-ide-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,526 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata: fix HPA handling regression
+Subject: pata_ns87415: Initial cut at 87415/87560 IDE support
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Restore the support for handling drives that report one sector too many (ie
-SCSI not ATA style).  This worked before the HPA update but was removed in
-that process
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/ata/libata-core.c~fix-hpa-handling-regression drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~fix-hpa-handling-regression
-+++ a/drivers/ata/libata-core.c
-@@ -921,7 +921,8 @@ static int ata_read_native_max_address(s
- 		*max_sectors = ata_tf_to_lba48(&tf);
- 	else
- 		*max_sectors = ata_tf_to_lba(&tf);
--
-+        if (dev->horkage & ATA_HORKAGE_HPA_SIZE)
-+		(*max_sectors)--;
- 	return 0;
- }
+diff -puN drivers/ata/Kconfig~pata_ns87415-initial-cut-at-87415-87560-ide-support drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~pata_ns87415-initial-cut-at-87415-87560-ide-support
++++ a/drivers/ata/Kconfig
+@@ -450,6 +450,15 @@ config PATA_NS87410
  
-@@ -3956,6 +3957,10 @@ static const struct ata_blacklist_entry 
- 	{ "WDC WD2500JD-00HBB0", "WD-WMAL71490727", ATA_HORKAGE_BROKEN_HPA },
- 	{ "MAXTOR 6L080L4",	"A93.0500",	ATA_HORKAGE_BROKEN_HPA },
+ 	  If unsure, say N.
  
-+	/* Devices which report 1 sector over size HPA */
-+	{ "ST340823A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
-+	{ "ST320413A",		NULL,		ATA_HORKAGE_HPA_SIZE, },
++config PATA_NS87415
++	tristate "Nat Semi NS87410 PATA support (Experimental)"
++	depends on PCI && EXPERIMENTAL
++	help
++	  This option enables support for the National Semiconductor
++	  NS87415 PCI-IDE controller.
 +
- 	/* End Marker */
- 	{ }
- };
-diff -puN include/linux/libata.h~fix-hpa-handling-regression include/linux/libata.h
---- a/include/linux/libata.h~fix-hpa-handling-regression
-+++ a/include/linux/libata.h
-@@ -315,7 +315,8 @@ enum {
- 	ATA_HORKAGE_NONCQ	= (1 << 2),	/* Don't use NCQ */
- 	ATA_HORKAGE_MAX_SEC_128	= (1 << 3),	/* Limit max sects to 128 */
- 	ATA_HORKAGE_BROKEN_HPA	= (1 << 4),	/* Broken HPA */
--	ATA_HORKAGE_DRQ		= (1 << 5),	/* Device forgets to clear DRQ on error */
-+	ATA_HORKAGE_HPA_SIZE	= (1 << 5), 	/* Reports native size off by one */
-+	ATA_HORKAGE_DRQ		= (1 << 6),	/* Device forgets to clear DRQ on error */
++	  If unsure, say N.
++
+ config PATA_OPTI
+ 	tristate "OPTI621/6215 PATA support (Very Experimental)"
+ 	depends on PCI && EXPERIMENTAL
+diff -puN drivers/ata/Makefile~pata_ns87415-initial-cut-at-87415-87560-ide-support drivers/ata/Makefile
+--- a/drivers/ata/Makefile~pata_ns87415-initial-cut-at-87415-87560-ide-support
++++ a/drivers/ata/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_PATA_IT8213)	+= pata_it8213
+ obj-$(CONFIG_PATA_JMICRON)	+= pata_jmicron.o
+ obj-$(CONFIG_PATA_NETCELL)	+= pata_netcell.o
+ obj-$(CONFIG_PATA_NS87410)	+= pata_ns87410.o
++obj-$(CONFIG_PATA_NS87415)	+= pata_ns87415.o
+ obj-$(CONFIG_PATA_OPTI)		+= pata_opti.o
+ obj-$(CONFIG_PATA_OPTIDMA)	+= pata_optidma.o
+ obj-$(CONFIG_PATA_MPC52xx)	+= pata_mpc52xx.o
+diff -puN drivers/ata/libata-sff.c~pata_ns87415-initial-cut-at-87415-87560-ide-support drivers/ata/libata-sff.c
+--- a/drivers/ata/libata-sff.c~pata_ns87415-initial-cut-at-87415-87560-ide-support
++++ a/drivers/ata/libata-sff.c
+@@ -156,7 +156,7 @@ void ata_tf_read(struct ata_port *ap, st
+ {
+ 	struct ata_ioports *ioaddr = &ap->ioaddr;
  
- 	/* DMA mask for user DMA control: User visible values do not
- 	   renumber */
+-	tf->command = ata_check_status(ap);
++	tf->command = ap->ops->check_status(ap);
+ 	tf->feature = ioread8(ioaddr->error_addr);
+ 	tf->nsect = ioread8(ioaddr->nsect_addr);
+ 	tf->lbal = ioread8(ioaddr->lbal_addr);
+diff -puN /dev/null drivers/ata/pata_ns87415.c
+--- /dev/null
++++ a/drivers/ata/pata_ns87415.c
+@@ -0,0 +1,466 @@
++/*
++ *    pata_ns87415.c - NS87415 (non PARISC) PATA
++ *
++ *	(C) 2005 Red Hat <alan@redhat.com>
++ *
++ *    This is a fairly generic MWDMA controller. It has some limitations
++ *    as it requires timing reloads on PIO/DMA transitions but it is otherwise
++ *    fairly well designed.
++ *
++ *    This driver assumes the firmware has left the chip in a valid ST506
++ *    compliant state, either legacy IRQ 14/15 or native INTA shared. You
++ *    may need to add platform code if your system fails to do this.
++ *
++ *    The same cell appears in the 87560 controller used by some PARISC
++ *    systems. This has its own special mountain of errata.
++ *
++ *    TODO:
++ *	Test PARISC SuperIO
++ *	Get someone to test on SPARC
++ *	Implement lazy pio/dma switching for better performance
++ *	8bit shared timing.
++ *	See if we need to kill the FIFO for ATAPI
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/init.h>
++#include <linux/blkdev.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <scsi/scsi_host.h>
++#include <linux/libata.h>
++#include <linux/ata.h>
++
++#define DRV_NAME	"pata_ns87415"
++#define DRV_VERSION	"0.0.1"
++
++/**
++ *	ns87415_set_mode - Initialize host controller mode timings
++ *	@ap: Port whose timings we are configuring
++ *	@adev: Device whose timings we are configuring
++ *	@mode: Mode to set
++ *
++ *	Program the mode registers for this controller, channel and
++ *	device. Because the chip is quite an old design we have to do this
++ *	for PIO/DMA switches.
++ *
++ *	LOCKING:
++ *	None (inherited from caller).
++ */
++
++static void ns87415_set_mode(struct ata_port *ap, struct ata_device *adev, u8 mode)
++{
++	struct pci_dev *dev	= to_pci_dev(ap->host->dev);
++	int unit		= 2 * ap->port_no + adev->devno;
++	int timing		= 0x44 + 2 * unit;
++	unsigned long T		= 1000000000 / 33333;	/* PCI clocks */
++	struct ata_timing t;
++	u16 clocking;
++	u8 iordy;
++	u8 status;
++
++	/* Timing register format is 17 - low nybble read timing with
++	   the high nybble being 16 - x for recovery time in PCI clocks */
++
++	ata_timing_compute(adev, adev->pio_mode, &t, T, 0);
++
++	clocking = 17 - FIT(t.active, 2, 17);
++	clocking |= (16 - FIT(t.recover, 1, 16)) << 4;
++ 	/* Use the same timing for read and write bytes */
++	clocking |= (clocking << 8);
++	pci_write_config_word(dev, timing, clocking);
++
++	/* Set the IORDY enable versus DMA enable on or off properly */
++	pci_read_config_byte(dev, 0x42, &iordy);
++	iordy &= ~(1 << (4 + unit));
++	if (mode >= XFER_MW_DMA_0 || !ata_pio_need_iordy(adev))
++		iordy |= (1 << (4 + unit));
++
++	/* Paranoia: We shouldn't ever get here with busy write buffers
++	   but if so wait */
++
++	pci_read_config_byte(dev, 0x43, &status);
++	while (status & 0x03) {
++		udelay(1);
++		pci_read_config_byte(dev, 0x43, &status);
++	}
++	/* Flip the IORDY/DMA bits now we are sure the write buffers are
++	   clear */
++	pci_write_config_byte(dev, 0x42, iordy);
++
++	/* TODO: Set byte 54 command timing to the best 8bit
++	   mode shared by all four devices */
++}
++
++/**
++ *	ns87415_set_piomode - Initialize host controller PATA PIO timings
++ *	@ap: Port whose timings we are configuring
++ *	@adev: Device to program
++ *
++ *	Set PIO mode for device, in host controller PCI config space.
++ *
++ *	LOCKING:
++ *	None (inherited from caller).
++ */
++
++static void ns87415_set_piomode(struct ata_port *ap, struct ata_device *adev)
++{
++	ns87415_set_mode(ap, adev, adev->pio_mode);
++}
++
++/**
++ *	ns87415_bmdma_setup		-	Set up DMA
++ *	@qc: Command block
++ *
++ *	Set up for bus masterng DMA. We have to do this ourselves
++ *	rather than use the helper due to a chip erratum
++ */
++
++static void ns87415_bmdma_setup(struct ata_queued_cmd *qc)
++{
++	struct ata_port *ap = qc->ap;
++	unsigned int rw = (qc->tf.flags & ATA_TFLAG_WRITE);
++	u8 dmactl;
++
++	/* load PRD table addr. */
++	mb();	/* make sure PRD table writes are visible to controller */
++	iowrite32(ap->prd_dma, ap->ioaddr.bmdma_addr + ATA_DMA_TABLE_OFS);
++
++	/* specify data direction, triple-check start bit is clear */
++	dmactl = ioread8(ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
++	dmactl &= ~(ATA_DMA_WR | ATA_DMA_START);
++	/* Due to an erratum we need to write these bits to the wrong
++	   place - which does save us an I/O bizarrely */
++	dmactl |= ATA_DMA_INTR | ATA_DMA_ERR;
++	if (!rw)
++		dmactl |= ATA_DMA_WR;
++	iowrite8(dmactl, ap->ioaddr.bmdma_addr + ATA_DMA_CMD);
++	/* issue r/w command */
++	ap->ops->exec_command(ap, &qc->tf);
++}
++
++/**
++ *	ns87415_bmdma_start		-	Begin DMA transfer
++ *	@qc: Command block
++ *
++ *	Switch the timings for the chip and set up for a DMA transfer
++ *	before the DMA burst begins.
++ *
++ *	FIXME: We should do lazy switching on bmdma_start versus
++ *	ata_pio_data_xfer for better performance.
++ */
++
++static void ns87415_bmdma_start(struct ata_queued_cmd *qc)
++{
++	ns87415_set_mode(qc->ap, qc->dev, qc->dev->dma_mode);
++	ata_bmdma_start(qc);
++}
++
++/**
++ *	ns87415_bmdma_stop		-	End DMA transfer
++ *	@qc: Command block
++ *
++ *	End DMA mode and switch the controller back into PIO mode
++ */
++
++static void ns87415_bmdma_stop(struct ata_queued_cmd *qc)
++{
++	ata_bmdma_stop(qc);
++	ns87415_set_mode(qc->ap, qc->dev, qc->dev->pio_mode);
++}
++
++/**
++ *	ns87415_bmdma_irq_clear		-	Clear interrupt
++ *	@ap: Channel to clear
++ *
++ *	Erratum: Due to a chip bug regisers 02 and 0A bit 1 and 2 (the
++ *	error bits) are reset by writing to register 00 or 08.
++ */
++
++static void ns87415_bmdma_irq_clear(struct ata_port *ap)
++{
++	void __iomem *mmio = ap->ioaddr.bmdma_addr;
++
++	if (!mmio)
++		return;
++	iowrite8((ioread8(mmio + ATA_DMA_CMD) | ATA_DMA_INTR | ATA_DMA_ERR),
++			mmio + ATA_DMA_CMD);
++}
++
++/**
++ *	ns87415_check_atapi_dma		-	ATAPI DMA filter
++ *	@qc: Command block
++ *
++ *	Disable ATAPI DMA (for now). We may be able to do DMA if we
++ *	kill the prefetching. This isn't clear.
++ */
++
++static int ns87415_check_atapi_dma(struct ata_queued_cmd *qc)
++{
++	return -EOPNOTSUPP;
++}
++
++#if defined(CONFIG_SUPERIO)
++
++/* SUPERIO 87560 is a PoS chip that NatSem denies exists.
++ * Unfortunately, it's built-in on all Astro-based PA-RISC workstations
++ * which use the integrated NS87514 cell for CD-ROM support.
++ * i.e we have to support for CD-ROM installs.
++ * See drivers/parisc/superio.c for more gory details.
++ *
++ * Workarounds taken from drivers/ide/pci/ns87415.c
++ */
++
++#include <asm/superio.h>
++
++/**
++ *	ns87560_read_buggy	-	workaround buggy Super I/O chip
++ *	@port: Port to read
++ *
++ *	Work around chipset problems in the 87560 SuperIO chip
++ */
++
++static u8 ns87560_read_buggy(unsigned long port)
++{
++	int retries = SUPERIO_IDE_MAX_RETRIES;
++	do {
++		tmp = ioread8(port);
++		if (tmp != 0)
++			return tmp;
++		udelay(50);
++	} while(retries-- > 0);
++	return tmp;
++}
++
++/**
++ *	ns87560_tf_read - input device's ATA taskfile shadow registers
++ *	@ap: Port from which input is read
++ *	@tf: ATA taskfile register set for storing input
++ *
++ *	Reads ATA taskfile registers for currently-selected device
++ *	into @tf. Work around the 87560 bugs.
++ *
++ *	LOCKING:
++ *	Inherited from caller.
++ */
++void ns87560_tf_read(struct ata_port *ap, struct ata_taskfile *tf)
++{
++	struct ata_ioports *ioaddr = &ap->ioaddr;
++
++	tf->command = ap->ops->check_status(ap);
++	tf->feature = ioread8(ioaddr->error_addr);
++	tf->nsect = ioread8(ioaddr->nsect_addr);
++	tf->lbal = ioread8(ioaddr->lbal_addr);
++	tf->lbam = ioread8(ioaddr->lbam_addr);
++	tf->lbah = ioread8(ioaddr->lbah_addr);
++	tf->device = ns87560_read_buggy(ioaddr->device_addr);
++
++	if (tf->flags & ATA_TFLAG_LBA48) {
++		iowrite8(tf->ctl | ATA_HOB, ioaddr->ctl_addr);
++		tf->hob_feature = ioread8(ioaddr->error_addr);
++		tf->hob_nsect = ioread8(ioaddr->nsect_addr);
++		tf->hob_lbal = ioread8(ioaddr->lbal_addr);
++		tf->hob_lbam = ioread8(ioaddr->lbam_addr);
++		tf->hob_lbah = ioread8(ioaddr->lbah_addr);
++		iowrite8(tf->ctl, ioaddr->ctl_addr);
++		ap->last_ctl = tf->ctl;
++	}
++}
++
++/**
++ *	ns87560_check_status
++ *	@ap: channel to check
++ *
++ *	Return the status of the channel working around the
++ *	87560 flaws.
++ */
++
++static u8 ns87560_check_status(struct ata_port *ap)
++{
++	return ns87560_read_buggy(ap->ioaddr.status_addr);
++}
++
++/**
++ *	ns87560_bmdma_status
++ *	@ap: channel to check
++ *
++ *	Return the DMA status of the channel working around the
++ *	87560 flaws.
++ */
++
++static u8 ns87560_bmdma_status(struct ata_port *ap)
++{
++	return ns87560_read_buggy(ap->ioaddr.bmdma_addr + ATA_DMA_STATUS);
++}
++
++static const struct ata_port_operations ns87560_pata_ops = {
++	.set_piomode		= ns87415_set_piomode,
++	.mode_filter		= ata_pci_default_filter,
++
++	.tf_load		= ata_tf_load,
++	.tf_read		= ns87560_tf_read,
++	.check_status		= ns87560_check_status,
++	.check_atapi_dma	= ns87415_check_atapi_dma,
++	.exec_command		= ata_exec_command,
++	.dev_select		= ata_std_dev_select,
++
++	.freeze			= ata_bmdma_freeze,
++	.thaw			= ata_bmdma_thaw,
++	.error_handler		= ata_bmdma_error_handler,
++	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_40wire,
++
++	.bmdma_setup		= ns87415_bmdma_setup,
++	.bmdma_start		= ns87415_bmdma_start,
++	.bmdma_stop		= ns87415_bmdma_stop,
++	.bmdma_status		= ns87560_bmdma_status,
++	.qc_prep		= ata_qc_prep,
++	.qc_issue		= ata_qc_issue_prot,
++	.data_xfer		= ata_data_xfer,
++
++	.irq_handler		= ata_interrupt,
++	.irq_clear		= ns87415_bmdma_irq_clear,
++	.irq_on			= ata_irq_on,
++
++	.port_start		= ata_sff_port_start,
++};
++
++#endif		/* 87560 SuperIO Support */
++
++
++static const struct ata_port_operations ns87415_pata_ops = {
++	.set_piomode		= ns87415_set_piomode,
++	.mode_filter		= ata_pci_default_filter,
++
++	.tf_load		= ata_tf_load,
++	.tf_read		= ata_tf_read,
++	.check_status		= ata_check_status,
++	.check_atapi_dma	= ns87415_check_atapi_dma,
++	.exec_command		= ata_exec_command,
++	.dev_select		= ata_std_dev_select,
++
++	.freeze			= ata_bmdma_freeze,
++	.thaw			= ata_bmdma_thaw,
++	.error_handler		= ata_bmdma_error_handler,
++	.post_internal_cmd 	= ata_bmdma_post_internal_cmd,
++	.cable_detect		= ata_cable_40wire,
++
++	.bmdma_setup		= ns87415_bmdma_setup,
++	.bmdma_start		= ns87415_bmdma_start,
++	.bmdma_stop		= ns87415_bmdma_stop,
++	.bmdma_status		= ata_bmdma_status,
++	.qc_prep		= ata_qc_prep,
++	.qc_issue		= ata_qc_issue_prot,
++	.data_xfer		= ata_data_xfer,
++
++	.irq_handler		= ata_interrupt,
++	.irq_clear		= ns87415_bmdma_irq_clear,
++	.irq_on			= ata_irq_on,
++
++	.port_start		= ata_sff_port_start,
++};
++
++static struct scsi_host_template ns87415_sht = {
++	.module			= THIS_MODULE,
++	.name			= DRV_NAME,
++	.ioctl			= ata_scsi_ioctl,
++	.queuecommand		= ata_scsi_queuecmd,
++	.can_queue		= ATA_DEF_QUEUE,
++	.this_id		= ATA_SHT_THIS_ID,
++	.sg_tablesize		= LIBATA_MAX_PRD,
++	.cmd_per_lun		= ATA_SHT_CMD_PER_LUN,
++	.emulated		= ATA_SHT_EMULATED,
++	.use_clustering		= ATA_SHT_USE_CLUSTERING,
++	.proc_name		= DRV_NAME,
++	.dma_boundary		= ATA_DMA_BOUNDARY,
++	.slave_configure	= ata_scsi_slave_config,
++	.slave_destroy		= ata_scsi_slave_destroy,
++	.bios_param		= ata_std_bios_param,
++};
++
++
++/**
++ *	ns87415_init_one - Register 87415 ATA PCI device with kernel services
++ *	@pdev: PCI device to register
++ *	@ent: Entry in ns87415_pci_tbl matching with @pdev
++ *
++ *	Called from kernel PCI layer.  We probe for combined mode (sigh),
++ *	and then hand over control to libata, for it to do the rest.
++ *
++ *	LOCKING:
++ *	Inherited from PCI layer (may sleep).
++ *
++ *	RETURNS:
++ *	Zero on success, or -ERRNO value.
++ */
++
++static int ns87415_init_one (struct pci_dev *pdev, const struct pci_device_id *ent)
++{
++	static int printed_version;
++	static const struct ata_port_info info = {
++		.sht		= &ns87415_sht,
++		.flags		= ATA_FLAG_SLAVE_POSS,
++		.pio_mask	= 0x1f,	/* pio0-4 */
++		.mwdma_mask	= 0x07, /* mwdma0-2 */
++		.port_ops	= &ns87415_pata_ops,
++	};
++	const struct ata_port_info *ppi[] = { &info, NULL };
++#if defined(CONFIG_SUPERIO)
++	static const struct ata_port_info info87560 = {
++		.sht		= &ns87415_sht,
++		.flags		= ATA_FLAG_SLAVE_POSS,
++		.pio_mask	= 0x1f,	/* pio0-4 */
++		.mwdma_mask	= 0x07, /* mwdma0-2 */
++		.port_ops	= &ns87560_pata_ops,
++	};
++
++	if (PCI_SLOT(pdev->devfn) == 0x0E)
++		ppi[0] = &info87560;
++#endif
++	if (!printed_version++)
++		dev_printk(KERN_DEBUG, &pdev->dev,
++			   "version " DRV_VERSION "\n");
++	/* Select 512 byte sectors */
++	pci_write_config_byte(pdev, 0x55, 0xEE);
++	/* Select PIO0 8bit clocking */
++	pci_write_config_byte(pdev, 0x54, 0xB7);
++	return ata_pci_init_one(pdev, ppi);
++}
++
++static const struct pci_device_id ns87415_pci_tbl[] = {
++	{ PCI_VDEVICE(NS, PCI_DEVICE_ID_NS_87415), },
++
++	{ }	/* terminate list */
++};
++
++static struct pci_driver ns87415_pci_driver = {
++	.name			= DRV_NAME,
++	.id_table		= ns87415_pci_tbl,
++	.probe			= ns87415_init_one,
++	.remove			= ata_pci_remove_one,
++#ifdef CONFIG_PM
++	.suspend		= ata_pci_device_suspend,
++	.resume			= ata_pci_device_resume,
++#endif
++};
++
++static int __init ns87415_init(void)
++{
++	return pci_register_driver(&ns87415_pci_driver);
++}
++
++static void __exit ns87415_exit(void)
++{
++	pci_unregister_driver(&ns87415_pci_driver);
++}
++
++module_init(ns87415_init);
++module_exit(ns87415_exit);
++
++MODULE_AUTHOR("Alan Cox");
++MODULE_DESCRIPTION("ATA low-level driver for NS87415 controllers");
++MODULE_LICENSE("GPL");
++MODULE_DEVICE_TABLE(pci, ns87415_pci_tbl);
++MODULE_VERSION(DRV_VERSION);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
