@@ -1,130 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 15:12:25 -0700
-Message-ID: <200709262212.l8QMCQpO006585@imap1.linux-foundation.org>
+Subject: + jbd-fix-commit-code-to-properly-abort-journal.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:21:52 -0700
+Message-ID: <200709262221.l8QMLqkX006922__11808.1029541374$1190845389$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751025AbXIZWNb (ORCPT
+	by vger.kernel.org with ESMTP id S1758978AbXIZWWf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:13:31 -0400
+	Wed, 26 Sep 2007 18:22:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, a.zummo@towertech.it, david-b@pacbell.net, mlord@pobox.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
-has been removed from the -mm tree.  Its filename was
-     rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+     jbd: fix commit code to properly abort journal
+has been added to the -mm tree.  Its filename is
+     jbd-fix-commit-code-to-properly-abort-journal.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
-From: Mark Lord <lkml@rtr.ca>
+Subject: jbd: fix commit code to properly abort journal
+From: Jan Kara <jack@suse.cz>
 
-Fix /sys/class/rtc/rtc?/wakealarm so that readback values now agree with
-the written values.
+We should really call journal_abort() and not __journal_abort_hard() in
+case of errors.  The latter call does not record the error in the journal
+superblock and thus filesystem won't be marked as with errors later (and
+user could happily mount it without any warning).
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-sysfs.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm drivers/rtc/rtc-sysfs.c
---- a/drivers/rtc/rtc-sysfs.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm
-+++ a/drivers/rtc/rtc-sysfs.c
-@@ -88,6 +88,9 @@ rtc_sysfs_show_wakealarm(struct device *
- 	ssize_t retval;
- 	unsigned long alarm;
- 	struct rtc_wkalrm alm;
-+	struct rtc_time before, now;
-+	struct rtc_device *rtc = to_rtc_device(dev);
-+	int first_time = 1;
+diff -puN fs/jbd/commit.c~jbd-fix-commit-code-to-properly-abort-journal fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-fix-commit-code-to-properly-abort-journal
++++ a/fs/jbd/commit.c
+@@ -466,7 +466,7 @@ void journal_commit_transaction(journal_
+ 	spin_unlock(&journal->j_list_lock);
  
- 	/* Don't show disabled alarms; but the RTC could leave the
- 	 * alarm enabled after it's already triggered.  Alarms are
-@@ -97,13 +100,68 @@ rtc_sysfs_show_wakealarm(struct device *
- 	 * REVISIT maybe we should require RTC implementations to
- 	 * disable the RTC alarm after it triggers, for uniformity.
- 	 */
--	retval = rtc_read_alarm(to_rtc_device(dev), &alm);
--	if (retval == 0 && alm.enabled) {
--		rtc_tm_to_time(&alm.time, &alarm);
--		retval = sprintf(buf, "%lu\n", alarm);
--	}
+ 	if (err)
+-		__journal_abort_hard(journal);
++		journal_abort(journal, err);
  
--	return retval;
-+	/* The lower level RTC driver may not be capable of filling
-+	 * in all fields of the rtc_time struct (eg. rtc-cmos),
-+	 * and so might instead return -1 in some fields.
-+	 * We deal with that here by grabbing a current timestamp
-+	 * and using values from that for any missing (-1) values.
-+	 *
-+	 * But this could be racey, in that some fields might wrap
-+	 * to a new day/month/year/etc.. between reading the time
-+	 * and then reading the alarm (which internally may also
-+	 * read the time).
-+	 *
-+	 * So we read the time *again* afterward, and if the two
-+	 * timestamps differ then we know we need to repeat the
-+	 * procedure to avoid any field wrap issues.
-+	 *
-+	 * This could all instead be done in the lower level driver,
-+	 * but if more than one RTC implementation needs it,
-+	 * then it might be best to leave it here.
-+	 */
-+
-+	/* get the "before" timestamp */
-+	retval = rtc_read_time(rtc, &before);
-+	if (retval < 0)
-+		return retval;
-+	do {
-+		if (!first_time)
-+			memcpy(&before, &now, sizeof(struct rtc_time));
-+		first_time = 0;
-+
-+		/* get the RTC alarm values, which may be incomplete */
-+		retval = rtc_read_alarm(to_rtc_device(dev), &alm);
-+		if (retval)
-+			return retval;
-+		if (!alm.enabled)
-+			return 0;
-+
-+		/* get the "after" timestamp, to detect wrapped fields */
-+		retval = rtc_read_time(rtc, &now);
-+		if (retval < 0)
-+			return retval;
-+
-+	} while (   before.tm_hour  != now.tm_hour
-+	         || before.tm_mday  != now.tm_mday
-+		 || before.tm_mon   != now.tm_mon
-+		 || before.tm_year  != now.tm_year
-+		 || before.tm_isdst != now.tm_isdst);
-+
-+	/* fill in missing alarm fields using the timestamp */
-+	if (alm.time.tm_hour == -1)
-+		alm.time.tm_hour = now.tm_hour;
-+	if (alm.time.tm_mday == -1)
-+		alm.time.tm_mday = now.tm_mday;
-+	if (alm.time.tm_mon == -1)
-+		alm.time.tm_mon = now.tm_mon;
-+	if (alm.time.tm_year == -1)
-+		alm.time.tm_year = now.tm_year;
-+	if (alm.time.tm_isdst == -1)
-+		alm.time.tm_yday = now.tm_isdst;
-+
-+	rtc_tm_to_time(&alm.time, &alarm);
-+	return sprintf(buf, "%lu\n", alarm);
- }
+ 	journal_write_revoke_records(journal, commit_transaction);
  
- static ssize_t
+@@ -524,7 +524,7 @@ void journal_commit_transaction(journal_
+ 
+ 			descriptor = journal_get_descriptor_buffer(journal);
+ 			if (!descriptor) {
+-				__journal_abort_hard(journal);
++				journal_abort(journal, -EIO);
+ 				continue;
+ 			}
+ 
+@@ -557,7 +557,7 @@ void journal_commit_transaction(journal_
+ 		   and repeat this loop: we'll fall into the
+ 		   refile-on-abort condition above. */
+ 		if (err) {
+-			__journal_abort_hard(journal);
++			journal_abort(journal, err);
+ 			continue;
+ 		}
+ 
+@@ -748,7 +748,7 @@ wait_for_iobuf:
+ 		err = -EIO;
+ 
+ 	if (err)
+-		__journal_abort_hard(journal);
++		journal_abort(journal, err);
+ 
+ 	/* End of a transaction!  Finally, we can do checkpoint
+            processing: any buffers committed as a result of this
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from jack@suse.cz are
 
-rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+send-quota-messages-via-netlink.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+udf-code-style-fixup-v3.patch
+lockdep-give-each-filesystem-its-own-inode-lock-class.patch
+jbd-config_jbd_debug-cannot-create-proc-entry.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+jbd-fix-commit-code-to-properly-abort-journal.patch
