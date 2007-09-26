@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + digi_acceleport-fix-termios-and-also-readability-a-bit.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:53:21 -0700
-Message-ID: <200709262253.l8QMrL4p008101@imap1.linux-foundation.org>
+Subject: + ch341-fix-termios-handling.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:53:19 -0700
+Message-ID: <200709262253.l8QMrJRF008098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46866 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756907AbXIZWyA (ORCPT
+	by vger.kernel.org with ESMTP id S1758802AbXIZWx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:54:00 -0400
+	Wed, 26 Sep 2007 18:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     digi_acceleport: fix termios and also readability a bit
+     ch341: fix termios handling
 has been added to the -mm tree.  Its filename is
-     digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+     ch341-fix-termios-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: digi_acceleport: fix termios and also readability a bit
+Subject: ch341: fix termios handling
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-- Expand some x&y to x & y so I could read it when checking
-- Clear CMSPAR bit in the termios (as the driver does not support it)
-- Encode the speed using the new tty_encode_baud_rate facility
+The ch341 currently doesn't support most of the hardware setting.  So to keep
+the termios data right we propogate the old termios hardware values back then
+encode the speed.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -39,58 +39,31 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit drivers/usb/serial/digi_acceleport.c
---- a/drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit
-+++ a/drivers/usb/serial/digi_acceleport.c
-@@ -973,6 +973,8 @@ static void digi_set_termios(struct usb_
- 		}
- 	}
- 	/* set parity */
-+	tty->termios->c_cflag &= ~CMSPAR;
-+
- 	if ((cflag&(PARENB|PARODD)) != (old_cflag&(PARENB|PARODD))) {
- 		if (cflag&PARENB) {
- 			if (cflag&PARODD)
-@@ -1054,15 +1056,15 @@ static void digi_set_termios(struct usb_
- 	}
+diff -puN drivers/usb/serial/ch341.c~ch341-fix-termios-handling drivers/usb/serial/ch341.c
+--- a/drivers/usb/serial/ch341.c~ch341-fix-termios-handling
++++ a/drivers/usb/serial/ch341.c
+@@ -272,9 +272,6 @@ static void ch341_set_termios(struct usb
  
- 	/* set output flow control */
--	if ((iflag&IXON) != (old_iflag&IXON)
--	    || (cflag&CRTSCTS) != (old_cflag&CRTSCTS)) {
-+	if ((iflag & IXON) != (old_iflag & IXON)
-+	    || (cflag & CRTSCTS) != (old_cflag & CRTSCTS)) {
- 		arg = 0;
--		if (iflag&IXON)
-+		if (iflag & IXON)
- 			arg |= DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
- 		else
- 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
+ 	dbg("ch341_set_termios()");
  
--		if (cflag&CRTSCTS) {
-+		if (cflag & CRTSCTS) {
- 			arg |= DIGI_OUTPUT_FLOW_CONTROL_CTS;
- 		} else {
- 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_CTS;
-@@ -1076,8 +1078,8 @@ static void digi_set_termios(struct usb_
- 	}
- 
- 	/* set receive enable/disable */
--	if ((cflag&CREAD) != (old_cflag&CREAD)) {
--		if (cflag&CREAD)
-+	if ((cflag & CREAD) != (old_cflag & CREAD)) {
-+		if (cflag & CREAD)
- 			arg = DIGI_ENABLE;
- 		else
- 			arg = DIGI_DISABLE;
-@@ -1089,7 +1091,7 @@ static void digi_set_termios(struct usb_
- 	}
- 	if ((ret = digi_write_oob_command(port, buf, i, 1)) != 0)
- 		dbg("digi_set_termios: write oob failed, ret=%d", ret);
+-	if (!tty || !tty->termios)
+-		return;
 -
-+	tty_encode_baud_rate(tty, baud, baud);
+ 	baud_rate = tty_get_baud_rate(tty);
+ 
+ 	switch (baud_rate) {
+@@ -299,6 +296,11 @@ static void ch341_set_termios(struct usb
+ 	 * (cflag & PARENB) : parity {NONE, EVEN, ODD}
+ 	 * (cflag & CSTOPB) : stop bits [1, 2]
+ 	 */
++
++	 /* Copy back the old hardware settings */
++	 tty_termios_copy_hw(tty->termios, old_termios);
++	 /* And re-encode with the new baud */
++	 tty_encode_baud_rate(tty, baud_rate, baud_rate);
  }
  
- 
+ static struct usb_driver ch341_driver = {
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
