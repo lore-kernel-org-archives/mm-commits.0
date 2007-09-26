@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + libata_scsi-fix-transfer-lengths.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:45:53 -0700
-Message-ID: <200709262245.l8QMjrGM007801@imap1.linux-foundation.org>
+Subject: + pata_atiixp-audit-notes-on-locking.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:45:55 -0700
+Message-ID: <200709262245.l8QMjtDD007804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758818AbXIZWqD (ORCPT
+	by vger.kernel.org with ESMTP id S1760398AbXIZWqG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:46:03 -0400
+	Wed, 26 Sep 2007 18:46:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     libata_scsi: Fix transfer lengths
+     pata_atiixp: Audit notes on locking
 has been added to the -mm tree.  Its filename is
-     libata_scsi-fix-transfer-lengths.patch
+     pata_atiixp-audit-notes-on-locking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata_scsi: Fix transfer lengths
+Subject: pata_atiixp: Audit notes on locking
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-This should get into the base tree very soon anyway but it fixes a ton of
-devices so it would be nice to have in -mm so I can get people to test -mm not
-"-mm + a bit" when reporting ATAPI problems.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/ata/libata-scsi.c~libata_scsi-fix-transfer-lengths drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata_scsi-fix-transfer-lengths
-+++ a/drivers/ata/libata-scsi.c
-@@ -2345,8 +2345,8 @@ static void atapi_request_sense(struct a
- 		qc->tf.feature |= ATAPI_PKT_DMA;
- 	} else {
- 		qc->tf.protocol = ATA_PROT_ATAPI;
--		qc->tf.lbam = (8 * 1024) & 0xff;
--		qc->tf.lbah = (8 * 1024) >> 8;
-+		qc->tf.lbam = SCSI_SENSE_BUFFERSIZE;
-+		qc->tf.lbah = 0;
- 	}
- 	qc->nbytes = SCSI_SENSE_BUFFERSIZE;
+diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking drivers/ata/pata_atiixp.c
+--- a/drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking
++++ a/drivers/ata/pata_atiixp.c
+@@ -173,6 +173,9 @@ static void atiixp_set_dmamode(struct at
+  *
+  *	When DMA begins we need to ensure that the UDMA control
+  *	register for the channel is correctly set.
++ *
++ *	Note: The host lock held by the libata layer protects
++ *	us from two channels both trying to set DMA bits at once
+  */
  
-@@ -2455,6 +2455,7 @@ static unsigned int atapi_xlat(struct at
- 	struct ata_device *dev = qc->dev;
- 	int using_pio = (dev->flags & ATA_DFLAG_PIO);
- 	int nodata = (scmd->sc_data_direction == DMA_NONE);
-+	unsigned int nbytes;
+ static void atiixp_bmdma_start(struct ata_queued_cmd *qc)
+@@ -199,6 +202,9 @@ static void atiixp_bmdma_start(struct at
+  *
+  *	DMA has completed. Clear the UDMA flag as the next operations will
+  *	be PIO ones not UDMA data transfer.
++ *
++ *	Note: The host lock held by the libata layer protects
++ *	us from two channels both trying to set DMA bits at once
+  */
  
- 	memset(qc->cdb, 0, dev->cdb_len);
- 	memcpy(qc->cdb, scmd->cmnd, scmd->cmd_len);
-@@ -2474,14 +2475,20 @@ static unsigned int atapi_xlat(struct at
- 	if (!using_pio && ata_check_atapi_dma(qc))
- 		using_pio = 1;
- 
-+	/* Some controller variants snoop this value for Packet transfers
-+	   to do state machine and FIFO management. Thus we want to set it
-+	   properly, and for DMA where it is effectively meaningless */
-+	nbytes = min(qc->nbytes, (unsigned int)63 * 1024);
-+
-+	qc->tf.lbam = (nbytes & 0xFF);
-+	qc->tf.lbah = (nbytes >> 8);
-+
- 	if (using_pio || nodata) {
- 		/* no data, or PIO data xfer */
- 		if (nodata)
- 			qc->tf.protocol = ATA_PROT_ATAPI_NODATA;
- 		else
- 			qc->tf.protocol = ATA_PROT_ATAPI;
--		qc->tf.lbam = (8 * 1024) & 0xff;
--		qc->tf.lbah = (8 * 1024) >> 8;
- 	} else {
- 		/* DMA data xfer */
- 		qc->tf.protocol = ATA_PROT_ATAPI_DMA;
-@@ -2492,6 +2499,9 @@ static unsigned int atapi_xlat(struct at
- 			qc->tf.feature |= ATAPI_DMADIR;
- 	}
- 
-+
-+	/* FIXME: We need to translate 0x05 READ_BLOCK_LIMITS to a MODE_SENSE
-+	   as ATAPI tape drives don't get this right otherwise */
- 	return 0;
- }
- 
+ static void atiixp_bmdma_stop(struct ata_queued_cmd *qc)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
