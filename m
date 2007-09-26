@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + oom-prevent-including-schedh-in-header-file.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:10:59 -0700
-Message-ID: <200709262010.l8QKAxd0001730@imap1.linux-foundation.org>
+Subject: + oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:11:03 -0700
+Message-ID: <200709262011.l8QKB30j001810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698AbXIZULt (ORCPT
+	by vger.kernel.org with ESMTP id S1750872AbXIZULw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:11:49 -0400
+	Wed, 26 Sep 2007 16:11:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, adobriyan@gmail.com, andrea@suse.de, clameter@sgi.com
+Cc: rientjes@google.com, andrea@suse.de, clameter@sgi.com
 
 
 The patch titled
-     oom: prevent including sched.h in header file
+     oom: convert zone_scan_lock from mutex to spinlock
 has been added to the -mm tree.  Its filename is
-     oom-prevent-including-schedh-in-header-file.patch
+     oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oom: prevent including sched.h in header file
+Subject: oom: convert zone_scan_lock from mutex to spinlock
 From: David Rientjes <rientjes@google.com>
 
-It's not necessary to include all of linux/sched.h in linux/oom.h.  Instead,
-simply include prototypes for the relevant structs and include linux/types.h
-for gfp_t.
+There's no reason to sleep in try_set_zone_oom() or clear_zonelist_oom() if
+the lock can't be acquired; it will be available soon enough once the zonelist
+scanning is done.  All other threads waiting for the OOM killer are also
+contingent on the exiting task being able to acquire the lock in
+clear_zonelist_oom() so it doesn't make sense to put it to sleep.
 
 Cc: Andrea Arcangeli <andrea@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/oom.h~oom-prevent-including-schedh-in-header-file include/linux/oom.h
---- a/include/linux/oom.h~oom-prevent-including-schedh-in-header-file
-+++ a/include/linux/oom.h
-@@ -1,8 +1,6 @@
- #ifndef __INCLUDE_LINUX_OOM_H
- #define __INCLUDE_LINUX_OOM_H
+diff -puN mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock
++++ a/mm/oom_kill.c
+@@ -28,7 +28,7 @@
  
--#include <linux/sched.h>
--
- /* /proc/<pid>/oom_adj set to -17 protects from the oom-killer */
- #define OOM_DISABLE (-17)
- /* inclusive */
-@@ -11,6 +9,11 @@
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
+-static DEFINE_MUTEX(zone_scan_mutex);
++static DEFINE_SPINLOCK(zone_scan_mutex);
+ /* #define DEBUG */
  
- #ifdef __KERNEL__
+ /**
+@@ -396,7 +396,7 @@ int try_set_zone_oom(struct zonelist *zo
  
-+#include <linux/types.h>
-+
-+struct zonelist;
-+struct notifier_block;
-+
- /*
-  * Types of limitations to the nodes from which allocations may occur
-  */
+ 	z = zonelist->zones;
+ 
+-	mutex_lock(&zone_scan_mutex);
++	spin_lock(&zone_scan_mutex);
+ 	do {
+ 		if (zone_is_oom_locked(*z)) {
+ 			ret = 0;
+@@ -413,7 +413,7 @@ int try_set_zone_oom(struct zonelist *zo
+ 		zone_set_flag(*z, ZONE_OOM_LOCKED);
+ 	} while (*(++z) != NULL);
+ out:
+-	mutex_unlock(&zone_scan_mutex);
++	spin_unlock(&zone_scan_mutex);
+ 	return ret;
+ }
+ 
+@@ -428,11 +428,11 @@ void clear_zonelist_oom(struct zonelist 
+ 
+ 	z = zonelist->zones;
+ 
+-	mutex_lock(&zone_scan_mutex);
++	spin_lock(&zone_scan_mutex);
+ 	do {
+ 		zone_clear_flag(*z, ZONE_OOM_LOCKED);
+ 	} while (*(++z) != NULL);
+-	mutex_unlock(&zone_scan_mutex);
++	spin_unlock(&zone_scan_mutex);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
