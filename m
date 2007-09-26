@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ch341-fix-termios-handling.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:53:19 -0700
-Message-ID: <200709262253.l8QMrJRF008098@imap1.linux-foundation.org>
+Subject: + empeg-clean-up-and-handle-speeds.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:53:23 -0700
+Message-ID: <200709262253.l8QMrN78008106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49857 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758802AbXIZWx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1758143AbXIZWyA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:53:57 -0400
+	Wed, 26 Sep 2007 18:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     ch341: fix termios handling
+     empeg: clean up and handle speeds
 has been added to the -mm tree.  Its filename is
-     ch341-fix-termios-handling.patch
+     empeg-clean-up-and-handle-speeds.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ch341: fix termios handling
+Subject: empeg: clean up and handle speeds
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The ch341 currently doesn't support most of the hardware setting.  So to keep
-the termios data right we propogate the old termios hardware values back then
-encode the speed.
+The empeg is pretty fixed. Tidy up the long foo->bar->baz stuff and
+encode the fixed speed properly.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -39,31 +38,74 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/ch341.c~ch341-fix-termios-handling drivers/usb/serial/ch341.c
---- a/drivers/usb/serial/ch341.c~ch341-fix-termios-handling
-+++ a/drivers/usb/serial/ch341.c
-@@ -272,9 +272,6 @@ static void ch341_set_termios(struct usb
+diff -puN drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds drivers/usb/serial/empeg.c
+--- a/drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds
++++ a/drivers/usb/serial/empeg.c
+@@ -449,14 +449,9 @@ static int empeg_ioctl (struct usb_seria
  
- 	dbg("ch341_set_termios()");
- 
--	if (!tty || !tty->termios)
--		return;
+ static void empeg_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
+ {
 -
- 	baud_rate = tty_get_baud_rate(tty);
++	struct ktermios *termios = port->tty->termios;
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
  
- 	switch (baud_rate) {
-@@ -299,6 +296,11 @@ static void ch341_set_termios(struct usb
- 	 * (cflag & PARENB) : parity {NONE, EVEN, ODD}
- 	 * (cflag & CSTOPB) : stop bits [1, 2]
+-	if ((!port->tty) || (!port->tty->termios)) {
+-		dbg("%s - no tty structures", __FUNCTION__);
+-		return;
+-	}
+-
+ 	/*
+          * The empeg-car player wants these particular tty settings.
+          * You could, for example, change the baud rate, however the
+@@ -466,7 +461,7 @@ static void empeg_set_termios (struct us
+          *
+          * The default requirements for this device are:
+          */
+-	port->tty->termios->c_iflag
++	termios->c_iflag
+ 		&= ~(IGNBRK	/* disable ignore break */
+ 		| BRKINT	/* disable break causes interrupt */
+ 		| PARMRK	/* disable mark parity errors */
+@@ -476,24 +471,23 @@ static void empeg_set_termios (struct us
+ 		| ICRNL		/* disable translate CR to NL */
+ 		| IXON);	/* disable enable XON/XOFF flow control */
+ 
+-	port->tty->termios->c_oflag
++	termios->c_oflag
+ 		&= ~OPOST;	/* disable postprocess output characters */
+ 
+-	port->tty->termios->c_lflag
++	termios->c_lflag
+ 		&= ~(ECHO	/* disable echo input characters */
+ 		| ECHONL	/* disable echo new line */
+ 		| ICANON	/* disable erase, kill, werase, and rprnt special characters */
+ 		| ISIG		/* disable interrupt, quit, and suspend special characters */
+ 		| IEXTEN);	/* disable non-POSIX special characters */
+ 
+-	port->tty->termios->c_cflag
++	termios->c_cflag
+ 		&= ~(CSIZE	/* no size */
+ 		| PARENB	/* disable parity bit */
+ 		| CBAUD);	/* clear current baud rate */
+ 
+-	port->tty->termios->c_cflag
+-		|= (CS8		/* character size 8 bits */
+-		| B115200);	/* baud rate 115200 */
++	termios->c_cflag
++		|= CS8;		/* character size 8 bits */
+ 
+ 	/*
+ 	 * Force low_latency on; otherwise the pushes are scheduled;
+@@ -501,8 +495,7 @@ static void empeg_set_termios (struct us
+ 	 * on the floor.  We don't want to drop bytes on the floor. :)
  	 */
-+
-+	 /* Copy back the old hardware settings */
-+	 tty_termios_copy_hw(tty->termios, old_termios);
-+	 /* And re-encode with the new baud */
-+	 tty_encode_baud_rate(tty, baud_rate, baud_rate);
+ 	port->tty->low_latency = 1;
+-
+-	return;
++	tty_encode_baud_rate(port->tty, 115200, 115200);
  }
  
- static struct usb_driver ch341_driver = {
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
