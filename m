@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:11:03 -0700
-Message-ID: <200709262011.l8QKB30j001810@imap1.linux-foundation.org>
+Subject: + mm-test-and-set-zone-reclaim-lock-before-starting.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:15:52 -0700
+Message-ID: <200709262015.l8QKFqTm001911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44973 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60277 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750872AbXIZULw (ORCPT
+	by vger.kernel.org with ESMTP id S1751183AbXIZUQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:11:52 -0400
+	Wed, 26 Sep 2007 16:16:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, andrea@suse.de, clameter@sgi.com
 
 
 The patch titled
-     oom: convert zone_scan_lock from mutex to spinlock
+     mm: test and set zone reclaim lock before starting reclaim
 has been added to the -mm tree.  Its filename is
-     oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+     mm-test-and-set-zone-reclaim-lock-before-starting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,14 +26,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oom: convert zone_scan_lock from mutex to spinlock
+Subject: mm: test and set zone reclaim lock before starting reclaim
 From: David Rientjes <rientjes@google.com>
 
-There's no reason to sleep in try_set_zone_oom() or clear_zonelist_oom() if
-the lock can't be acquired; it will be available soon enough once the zonelist
-scanning is done.  All other threads waiting for the OOM killer are also
-contingent on the exiting task being able to acquire the lock in
-clear_zonelist_oom() so it doesn't make sense to put it to sleep.
+Introduces new zone flag interface for testing and setting flags:
+
+	int zone_test_and_set_flag(struct zone *zone, zone_flags_t flag)
+
+Instead of setting and clearing ZONE_RECLAIM_LOCKED each time shrink_zone() is
+called, this flag is test and set before starting zone reclaim.  Zone reclaim
+starts in __alloc_pages() when a zone's watermark fails and the system is in
+zone_reclaim_mode.  If it's already in reclaim, there's no need to start again
+so it is simply considered full for that allocation attempt.
+
+There is a change of behavior with regard to concurrent zone shrinking.  It is
+now possible for try_to_free_pages() or kswapd to already be shrinking a
+particular zone when __alloc_pages() starts zone reclaim.  In this case, it is
+possible for two concurrent threads to invoke shrink_zone() for a single zone.
+
+This change forbids a zone to be in zone reclaim twice, which was always the
+behavior, but allows for concurrent try_to_free_pages() or kswapd shrinking
+when starting zone reclaim.
 
 Cc: Andrea Arcangeli <andrea@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -42,50 +55,82 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock
-+++ a/mm/oom_kill.c
-@@ -28,7 +28,7 @@
+diff -puN include/linux/mmzone.h~mm-test-and-set-zone-reclaim-lock-before-starting include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-test-and-set-zone-reclaim-lock-before-starting
++++ a/include/linux/mmzone.h
+@@ -353,6 +353,10 @@ static inline void zone_set_flag(struct 
+ {
+ 	set_bit(flag, &zone->flags);
+ }
++static inline int zone_test_and_set_flag(struct zone *zone, zone_flags_t flag)
++{
++	return test_and_set_bit(flag, &zone->flags);
++}
+ static inline void zone_clear_flag(struct zone *zone, zone_flags_t flag)
+ {
+ 	clear_bit(flag, &zone->flags);
+diff -puN mm/vmscan.c~mm-test-and-set-zone-reclaim-lock-before-starting mm/vmscan.c
+--- a/mm/vmscan.c~mm-test-and-set-zone-reclaim-lock-before-starting
++++ a/mm/vmscan.c
+@@ -1112,8 +1112,6 @@ static unsigned long shrink_zone(int pri
+ 	unsigned long nr_to_scan;
+ 	unsigned long nr_reclaimed = 0;
  
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
--static DEFINE_MUTEX(zone_scan_mutex);
-+static DEFINE_SPINLOCK(zone_scan_mutex);
- /* #define DEBUG */
+-	zone_set_flag(zone, ZONE_RECLAIM_LOCKED);
+-
+ 	/*
+ 	 * Add one to `nr_to_scan' just to make sure that the kernel will
+ 	 * slowly sift through the active list.
+@@ -1152,8 +1150,6 @@ static unsigned long shrink_zone(int pri
+ 	}
  
- /**
-@@ -396,7 +396,7 @@ int try_set_zone_oom(struct zonelist *zo
- 
- 	z = zonelist->zones;
- 
--	mutex_lock(&zone_scan_mutex);
-+	spin_lock(&zone_scan_mutex);
- 	do {
- 		if (zone_is_oom_locked(*z)) {
- 			ret = 0;
-@@ -413,7 +413,7 @@ int try_set_zone_oom(struct zonelist *zo
- 		zone_set_flag(*z, ZONE_OOM_LOCKED);
- 	} while (*(++z) != NULL);
- out:
--	mutex_unlock(&zone_scan_mutex);
-+	spin_unlock(&zone_scan_mutex);
- 	return ret;
+ 	throttle_vm_writeout(sc->gfp_mask);
+-
+-	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
+ 	return nr_reclaimed;
  }
  
-@@ -428,11 +428,11 @@ void clear_zonelist_oom(struct zonelist 
+@@ -1932,6 +1928,7 @@ static int __zone_reclaim(struct zone *z
+ int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
+ {
+ 	int node_id;
++	int ret;
  
- 	z = zonelist->zones;
+ 	/*
+ 	 * Zone reclaim reclaims unmapped file backed pages and
+@@ -1949,13 +1946,13 @@ int zone_reclaim(struct zone *zone, gfp_
+ 			<= zone->min_slab_pages)
+ 		return 0;
  
--	mutex_lock(&zone_scan_mutex);
-+	spin_lock(&zone_scan_mutex);
- 	do {
- 		zone_clear_flag(*z, ZONE_OOM_LOCKED);
- 	} while (*(++z) != NULL);
--	mutex_unlock(&zone_scan_mutex);
-+	spin_unlock(&zone_scan_mutex);
++	if (zone_is_all_unreclaimable(zone))
++		return 0;
++
+ 	/*
+-	 * Avoid concurrent zone reclaims, do not reclaim in a zone that does
+-	 * not have reclaimable pages and if we should not delay the allocation
+-	 * then do not scan.
++	 * Do not scan if the allocation should not be delayed.
+ 	 */
+-	if (!(gfp_mask & __GFP_WAIT) || zone_is_all_unreclaimable(zone) ||
+-		zone_is_reclaim_locked(zone) || (current->flags & PF_MEMALLOC))
++	if (!(gfp_mask & __GFP_WAIT) || (current->flags & PF_MEMALLOC))
+ 			return 0;
+ 
+ 	/*
+@@ -1967,6 +1964,12 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	node_id = zone_to_nid(zone);
+ 	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
+ 		return 0;
+-	return __zone_reclaim(zone, gfp_mask, order);
++
++	if (zone_test_and_set_flag(zone, ZONE_RECLAIM_LOCKED))
++		return 0;
++	ret = __zone_reclaim(zone, gfp_mask, order);
++	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
++
++	return ret;
  }
- 
- /**
+ #endif
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -118,6 +163,7 @@ oom-do-not-take-callback_mutex-fix.patch
 oom-prevent-including-schedh-in-header-file.patch
 oom-add-header-file-to-kbuild-as-unifdef.patch
 oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
 add-a-missing-00-index-file-for-documentation-vm-fix.patch
 memory-controller-add-documentation.patch
 memory-controller-resource-counters-v7.patch
@@ -136,4 +182,3 @@ memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.pat
 memory-controller-make-page_referenced-container-aware-v7.patch
 memory-controller-make-charging-gfp-mask-aware.patch
 memcontrol-move-mm_cgroup-to-header-file.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
