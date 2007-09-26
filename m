@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:46:45 -0700
-Message-ID: <200709262046.l8QKkjUS003103@imap1.linux-foundation.org>
+Subject: + video-gfx-fix-menu-ordering.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:47:36 -0700
+Message-ID: <200709262047.l8QKlaTR003137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39600 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756400AbXIZUrA (ORCPT
+	by vger.kernel.org with ESMTP id S1761641AbXIZUsw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:47:00 -0400
+	Wed, 26 Sep 2007 16:48:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, sfr@canb.auug.org.au
+Cc: randy.dunlap@oracle.com, adaplas@pol.net
 
 
 The patch titled
-     HVC console is also used by iSeries, so add that to HVC_DRIVER help.
+     video gfx: fix menu ordering
 has been added to the -mm tree.  Its filename is
-     hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help.patch
+     video-gfx-fix-menu-ordering.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: HVC console is also used by iSeries, so add that to HVC_DRIVER help.
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: video gfx: fix menu ordering
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Move video graphics driver configs to fix menus:
+
+Fix FB_PMAGB_B to depend on FB so that the FB menus remain
+  listed in order and indented correctly.
+Fix FB_IBM_GXT4500 to depend on FB so that the FB menus remain
+  listed in order and indented correctly.
+The OMAP FB drivers still muck up the FB menu a bit, so I put
+  OMAP drivers at the end of the FB menu.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/char/Kconfig~hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help drivers/char/Kconfig
---- a/drivers/char/Kconfig~hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help
-+++ a/drivers/char/Kconfig
-@@ -600,7 +600,7 @@ config HVC_DRIVER
- 	bool
- 	help
- 	  Generic "hypervisor virtual console" infrastructure for various
--	  hypervisors (pSeries, Xen, lguest).
-+	  hypervisors (pSeries, iSeries, Xen, lguest).
- 	  It will automatically be selected if one of the back-end console drivers
- 	  is selected.
+diff -puN drivers/video/Kconfig~video-gfx-fix-menu-ordering drivers/video/Kconfig
+--- a/drivers/video/Kconfig~video-gfx-fix-menu-ordering
++++ a/drivers/video/Kconfig
+@@ -1635,7 +1635,7 @@ config FB_PMAG_BA
  
+ config FB_PMAGB_B
+ 	tristate "PMAGB-B TURBOchannel framebuffer support"
+-	depends on TC
++	depends on FB && TC
+  	select FB_CFB_FILLRECT
+  	select FB_CFB_COPYAREA
+  	select FB_CFB_IMAGEBLIT
+@@ -1803,7 +1803,7 @@ config FB_PNX4008_DUM_RGB
+ 
+ config FB_IBM_GXT4500
+ 	tristate "Framebuffer support for IBM GXT4500P adaptor"
+-	depends on PPC
++	depends on FB && PPC
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
+@@ -1843,10 +1843,6 @@ config FB_XILINX
+ 	  framebuffer. ML300 carries a 640*480 LCD display on the board,
+ 	  ML403 uses a standard DB15 VGA connector.
+ 
+-if ARCH_OMAP
+-	source "drivers/video/omap/Kconfig"
+-endif
+-
+ config FB_VIRTUAL
+ 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
+ 	depends on FB
+@@ -1870,6 +1866,10 @@ config FB_VIRTUAL
+ 
+ 	  If unsure, say N.
+ 
++if ARCH_OMAP
++	source "drivers/video/omap/Kconfig"
++endif
++
+ if VT
+ 	source "drivers/video/console/Kconfig"
+ endif
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-fix-modules-oopsing-in-lguest-guests.patch
-lguest-example-launcher-truncates-block-device-file-to-0.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
 git-kbuild.patch
-git-kvm.patch
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-remove-unsafe-from-module-struct.patch
-move-kasprintfo-to-obj-y.patch
-delay-creation-of-khcvd-thread.patch
-hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+git-mtd.patch
+git-net.patch
+git-nfsd.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+kgdb-fix-help-text.patch
+kgdb-fix-docbook-and-kernel-doc-typos.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+profile-likely-unlikely-macros.patch
