@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-unused-member-from-nsproxy.patch added to -mm tree
-Date: Wed, 26 Sep 2007 09:58:02 -0700
-Message-ID: <200709261658.l8QGw2Pg026028@imap1.linux-foundation.org>
+Subject: + use-kmem_cache-macro-to-create-the-nsproxy-cache.patch added to -mm tree
+Date: Wed, 26 Sep 2007 09:58:57 -0700
+Message-ID: <200709261658.l8QGwvem026051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57680 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38443 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760211AbXIZQ6Y (ORCPT
+	by vger.kernel.org with ESMTP id S1761710AbXIZRJV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 12:58:24 -0400
+	Wed, 26 Sep 2007 13:09:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com
+Cc: xemul@openvz.org, clg@fr.ibm.com, serue@us.ibm.com
 
 
 The patch titled
-     Remove unused member from nsproxy
+     Use KMEM_CACHE macro to create the nsproxy cache
 has been added to the -mm tree.  Its filename is
-     remove-unused-member-from-nsproxy.patch
+     use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove unused member from nsproxy
+Subject: Use KMEM_CACHE macro to create the nsproxy cache
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The nslock spinlock is not used in the kernel at all.  Remove it.
+The blessed way for standard caches is to use it.  Besides, this may give
+this cache a better alignment.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    1 -
- include/linux/nsproxy.h   |    1 -
- 2 files changed, 2 deletions(-)
+ kernel/nsproxy.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/init_task.h~remove-unused-member-from-nsproxy include/linux/init_task.h
---- a/include/linux/init_task.h~remove-unused-member-from-nsproxy
-+++ a/include/linux/init_task.h
-@@ -73,7 +73,6 @@ extern struct nsproxy init_nsproxy;
- #define INIT_NSPROXY(nsproxy) {						\
- 	.pid_ns		= &init_pid_ns,					\
- 	.count		= ATOMIC_INIT(1),				\
--	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
- 	.uts_ns		= &init_uts_ns,					\
- 	.mnt_ns		= NULL,						\
- 	INIT_NET_NS(net_ns)                                             \
-diff -puN include/linux/nsproxy.h~remove-unused-member-from-nsproxy include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~remove-unused-member-from-nsproxy
-+++ a/include/linux/nsproxy.h
-@@ -23,7 +23,6 @@ struct pid_namespace;
-  */
- struct nsproxy {
- 	atomic_t count;
--	spinlock_t nslock;
- 	struct uts_namespace *uts_ns;
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
+diff -puN kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache kernel/nsproxy.c
+--- a/kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache
++++ a/kernel/nsproxy.c
+@@ -222,8 +222,7 @@ void exit_task_namespaces(struct task_st
+ 
+ static int __init nsproxy_cache_init(void)
+ {
+-	nsproxy_cachep = kmem_cache_create("nsproxy", sizeof(struct nsproxy),
+-					   0, SLAB_PANIC, NULL);
++	nsproxy_cachep = KMEM_CACHE(nsproxy, SLAB_PANIC);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -72,6 +61,7 @@ Patches currently in -mm which might be from xemul@openvz.org are
 git-net.patch
 git-nfsd.patch
 remove-unused-member-from-nsproxy.patch
+use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 pid-namespaces-round-up-the-api.patch
 pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
 pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
