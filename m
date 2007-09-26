@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + visor-termios-bits.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:58:40 -0700
-Message-ID: <200709262258.l8QMweB7008316@imap1.linux-foundation.org>
+Subject: + kobil_sct-termios-encoding-fixups.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:53:31 -0700
+Message-ID: <200709262253.l8QMrVxh008125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43498 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57431 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758143AbXIZW6u (ORCPT
+	by vger.kernel.org with ESMTP id S1750914AbXIZXA6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:58:50 -0400
+	Wed, 26 Sep 2007 19:00:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     visor: termios bits
+     kobil_sct: termios encoding fixups
 has been added to the -mm tree.  Its filename is
-     visor-termios-bits.patch
+     kobil_sct-termios-encoding-fixups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: visor: termios bits
+Subject: kobil_sct: termios encoding fixups
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Visor has a huge complex routine which displays termios bits for debug but
-doesn't do anything.  Get the correct behaviour by removing it all
+- Clear unsupported CMSPAR
+- Encode resulting speeds
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -38,108 +38,29 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/visor.c~visor-termios-bits drivers/usb/serial/visor.c
---- a/drivers/usb/serial/visor.c~visor-termios-bits
-+++ a/drivers/usb/serial/visor.c
-@@ -46,7 +46,6 @@ static int  visor_probe		(struct usb_ser
- static int  visor_calc_num_ports(struct usb_serial *serial);
- static void visor_shutdown	(struct usb_serial *serial);
- static int  visor_ioctl		(struct usb_serial_port *port, struct file * file, unsigned int cmd, unsigned long arg);
--static void visor_set_termios	(struct usb_serial_port *port, struct ktermios *old_termios);
- static void visor_write_bulk_callback	(struct urb *urb);
- static void visor_read_bulk_callback	(struct urb *urb);
- static void visor_read_int_callback	(struct urb *urb);
-@@ -203,7 +202,6 @@ static struct usb_serial_driver handspri
- 	.calc_num_ports =	visor_calc_num_ports,
- 	.shutdown =		visor_shutdown,
- 	.ioctl =		visor_ioctl,
--	.set_termios =		visor_set_termios,
- 	.write =		visor_write,
- 	.write_room =		visor_write_room,
- 	.chars_in_buffer =	visor_chars_in_buffer,
-@@ -234,7 +232,6 @@ static struct usb_serial_driver clie_5_d
- 	.calc_num_ports =	visor_calc_num_ports,
- 	.shutdown =		visor_shutdown,
- 	.ioctl =		visor_ioctl,
--	.set_termios =		visor_set_termios,
- 	.write =		visor_write,
- 	.write_room =		visor_write_room,
- 	.chars_in_buffer =	visor_chars_in_buffer,
-@@ -262,7 +259,6 @@ static struct usb_serial_driver clie_3_5
- 	.unthrottle =		visor_unthrottle,
- 	.attach =		clie_3_5_startup,
- 	.ioctl =		visor_ioctl,
--	.set_termios =		visor_set_termios,
- 	.write =		visor_write,
- 	.write_room =		visor_write_room,
- 	.chars_in_buffer =	visor_chars_in_buffer,
-@@ -936,66 +932,6 @@ static int visor_ioctl (struct usb_seria
- 	return -ENOIOCTLCMD;
- }
+diff -puN drivers/usb/serial/kobil_sct.c~kobil_sct-termios-encoding-fixups drivers/usb/serial/kobil_sct.c
+--- a/drivers/usb/serial/kobil_sct.c~kobil_sct-termios-encoding-fixups
++++ a/drivers/usb/serial/kobil_sct.c
+@@ -616,8 +616,9 @@ static void kobil_set_termios(struct usb
+ 		case 1200:
+ 			urb_val = SUSBCR_SBR_1200;
+ 			break;
+-		case 9600:
+ 		default:
++			speed = 9600;
++		case 9600:
+ 			urb_val = SUSBCR_SBR_9600;
+ 			break;
+ 	}
+@@ -641,6 +642,8 @@ static void kobil_set_termios(struct usb
+ 		urb_val |= SUSBCR_SPASB_NoParity;
+ 		strcat(settings, "No Parity");
+ 	}
++	port->tty->termios->c_cflag &= ~CMSPAR;
++	tty_encode_baud_rate(port->tty, speed, speed);
  
--
--/* This function is all nice and good, but we don't change anything based on it :) */
--static void visor_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
--{
--	unsigned int cflag;
--
--	dbg("%s - port %d", __FUNCTION__, port->number);
--
--	if ((!port->tty) || (!port->tty->termios)) {
--		dbg("%s - no tty structures", __FUNCTION__);
--		return;
--	}
--
--	cflag = port->tty->termios->c_cflag;
--
--	/* get the byte size */
--	switch (cflag & CSIZE) {
--		case CS5:	dbg("%s - data bits = 5", __FUNCTION__);   break;
--		case CS6:	dbg("%s - data bits = 6", __FUNCTION__);   break;
--		case CS7:	dbg("%s - data bits = 7", __FUNCTION__);   break;
--		default:
--		case CS8:	dbg("%s - data bits = 8", __FUNCTION__);   break;
--	}
--	
--	/* determine the parity */
--	if (cflag & PARENB)
--		if (cflag & PARODD)
--			dbg("%s - parity = odd", __FUNCTION__);
--		else
--			dbg("%s - parity = even", __FUNCTION__);
--	else
--		dbg("%s - parity = none", __FUNCTION__);
--
--	/* figure out the stop bits requested */
--	if (cflag & CSTOPB)
--		dbg("%s - stop bits = 2", __FUNCTION__);
--	else
--		dbg("%s - stop bits = 1", __FUNCTION__);
--
--	
--	/* figure out the flow control settings */
--	if (cflag & CRTSCTS)
--		dbg("%s - RTS/CTS is enabled", __FUNCTION__);
--	else
--		dbg("%s - RTS/CTS is disabled", __FUNCTION__);
--	
--	/* determine software flow control */
--	if (I_IXOFF(port->tty))
--		dbg("%s - XON/XOFF is enabled, XON = %2x, XOFF = %2x",
--		    __FUNCTION__, START_CHAR(port->tty), STOP_CHAR(port->tty));
--	else
--		dbg("%s - XON/XOFF is disabled", __FUNCTION__);
--
--	/* get the baud rate wanted */
--	dbg("%s - baud rate = %d", __FUNCTION__, tty_get_baud_rate(port->tty));
--
--	return;
--}
--
--
- static int __init visor_init (void)
- {
- 	int i, retval;
+ 	result = usb_control_msg( port->serial->dev,
+ 				  usb_rcvctrlpipe(port->serial->dev, 0 ),
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -197,6 +118,3 @@ ir_usb-termios-handling.patch
 keyspan-termios-tidy.patch
 kobil_sct-termios-encoding-fixups.patch
 option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-visor-termios-bits.patch
