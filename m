@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch added to -mm tree
-Date: Tue, 25 Sep 2007 16:49:46 -0700
-Message-ID: <200709252349.l8PNnkjX010481@imap1.linux-foundation.org>
+Subject: + memory-unplug-v7-page-offline-fix.patch added to -mm tree
+Date: Tue, 25 Sep 2007 18:55:00 -0700
+Message-ID: <200709260155.l8Q1t0HU014795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33593 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57151 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752736AbXIYXtw (ORCPT
+	by vger.kernel.org with ESMTP id S1752499AbXIZBzE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Sep 2007 19:49:52 -0400
+	Tue, 25 Sep 2007 21:55:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, hifumi.hisashi@oss.ntt.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     mm-use-pagevec-to-rotate-reclaimable-page: fix function declaration
+     memory-unplug-v7-page-offline fix
 has been added to the -mm tree.  Its filename is
-     mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+     memory-unplug-v7-page-offline-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm-use-pagevec-to-rotate-reclaimable-page: fix function declaration
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: memory-unplug-v7-page-offline fix
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Fix function declaration:
-mm/swap.c:130:22: warning: non-ANSI function declaration of function 'move_tail_pages'
+MEMORY_HOTREMOVE config option is selectable even it arch doesn't support it.
+This fix it.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/Kconfig |    3 +++
+ mm/Kconfig        |    2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration mm/swap.c
---- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration
-+++ a/mm/swap.c
-@@ -125,7 +125,7 @@ static void pagevec_move_tail(struct pag
+diff -puN arch/ia64/Kconfig~memory-unplug-v7-page-offline-fix arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~memory-unplug-v7-page-offline-fix
++++ a/arch/ia64/Kconfig
+@@ -305,6 +305,9 @@ config HOTPLUG_CPU
+ config ARCH_ENABLE_MEMORY_HOTPLUG
+ 	def_bool y
  
- static DEFINE_PER_CPU(struct pagevec, rotate_pvecs) = { 0, };
++config ARCH_ENABLE_MEMORY_HOTREMOVE
++	def_bool y
++
+ config SCHED_SMT
+ 	bool "SMT scheduler support"
+ 	depends on SMP
+diff -puN mm/Kconfig~memory-unplug-v7-page-offline-fix mm/Kconfig
+--- a/mm/Kconfig~memory-unplug-v7-page-offline-fix
++++ a/mm/Kconfig
+@@ -141,7 +141,7 @@ config MEMORY_HOTPLUG_SPARSE
  
--void move_tail_pages()
-+void move_tail_pages(void)
- {
- 	unsigned long flags;
- 	struct pagevec *pvec;
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+-	depends on MEMORY_HOTPLUG
++	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
+ 	depends on MIGRATION
+ 
+ # Heavily threaded applications may benefit from splitting the mm-wide
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
-git-mtd.patch
 git-net.patch
-git-nfsd.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-kgdb-fix-help-text.patch
-kgdb-fix-docbook-and-kernel-doc-typos.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-ecryptfs-remove-header_extent_size-fix.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-profile-likely-unlikely-macros.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+generic-virtual-memmap-support-for-sparsemem-fix.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support.patch
+x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
+x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
+ia64-sparsemem_vmemmap-16k-page-size-support.patch
+ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initialisation.patch
+sparc64-sparsemem_vmemmap-support.patch
+sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+update-n_high_memory-node-state-for-memory-hotadd.patch
+memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
+memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+memoryless-nodes-no-need-for-kswapd.patch
+memoryless-nodes-slab-support.patch
+memoryless-nodes-slub-support.patch
+memoryless-nodes-uncached-allocator-updates.patch
+memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
+memoryless-nodes-update-memory-policy-and-page-migration.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
+memoryless-nodes-fix-gfp_thisnode-behavior.patch
+memoryless-nodes-use-n_high_memory-for-cpusets.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+memory-unplug-v7-memory-hotplug-cleanup.patch
+memory-unplug-v7-page-isolation.patch
+memory-unplug-v7-page-offline.patch
+memory-unplug-v7-page-offline-fix.patch
+memory-unplug-v7-ia64-interface.patch
+fix-memory-hot-remove-not-configured-case.patch
+fix-memory-hot-remove-not-configured-case-fix.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
