@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-ptrace-check_full_regs.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:43:08 -0700
-Message-ID: <200709262043.l8QKh8oS002939@imap1.linux-foundation.org>
+Subject: + powerpc-full_regs-on-exec.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:43:10 -0700
+Message-ID: <200709262043.l8QKhAwD002944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41665 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753187AbXIZUnr (ORCPT
+	by vger.kernel.org with ESMTP id S1755660AbXIZUnt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:43:47 -0400
+	Wed, 26 Sep 2007 16:43:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     powerpc: ptrace CHECK_FULL_REGS
+     powerpc: FULL_REGS on exec
 has been added to the -mm tree.  Its filename is
-     powerpc-ptrace-check_full_regs.patch
+     powerpc-full_regs-on-exec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,124 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: ptrace CHECK_FULL_REGS
+Subject: powerpc: FULL_REGS on exec
 From: Roland McGrath <roland@redhat.com>
 
-This restores the CHECK_FULL_REGS sanity check to every place that can access
-the nonvolatile GPRs for ptrace.  This is already done for native-bitwidth
-PTRACE_PEEKUSR, but was omitted for many other cases (32-bit ptrace,
-PTRACE_GETREGS, etc.); I think there may have been more uniform checks before
-that were lost in the recent cleanup of GETREGS et al.
+When PTRACE_O_TRACEEXEC is used, a ptrace call to fetch the registers at the
+PTRACE_EVENT_EXEC stop (PTRACE_PEEKUSR) will oops in CHECK_FULL_REGS.  With
+recent versions, "gdb --args /bin/sh -c 'exec /bin/true'" and "run" at the
+(gdb) prompt is sufficient to produce this.  I also have written an isolated
+test case, see https://bugzilla.redhat.com/show_bug.cgi?id=301791#c15.
+
+This change fixes the problem by clearing the low bit of pt_regs.trap in
+start_thread so that FULL_REGS is true again.  This is correct since all of
+the GPRs that "full" refers to are cleared in start_thread.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
-Fair-enough-to: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/powerpc/kernel/ptrace.c~powerpc-ptrace-check_full_regs arch/powerpc/kernel/ptrace.c
---- a/arch/powerpc/kernel/ptrace.c~powerpc-ptrace-check_full_regs
-+++ a/arch/powerpc/kernel/ptrace.c
-@@ -331,6 +331,7 @@ static long arch_ptrace_old(struct task_
- 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
- 		unsigned long __user *tmp = (unsigned long __user *)addr;
+diff -puN arch/powerpc/kernel/process.c~powerpc-full_regs-on-exec arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~powerpc-full_regs-on-exec
++++ a/arch/powerpc/kernel/process.c
+@@ -605,6 +605,13 @@ void start_thread(struct pt_regs *regs, 
+ 	regs->ccr = 0;
+ 	regs->gpr[1] = sp;
  
-+		CHECK_FULL_REGS(child->thread.regs);
- 		for (i = 0; i < 32; i++) {
- 			ret = put_user(*reg, tmp);
- 			if (ret)
-@@ -346,6 +347,7 @@ static long arch_ptrace_old(struct task_
- 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
- 		unsigned long __user *tmp = (unsigned long __user *)addr;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		for (i = 0; i < 32; i++) {
- 			ret = get_user(*reg, tmp);
- 			if (ret)
-@@ -513,6 +515,7 @@ long arch_ptrace(struct task_struct *chi
- 			ret = -EIO;
- 			break;
- 		}
-+		CHECK_FULL_REGS(child->thread.regs);
- 		ret = 0;
- 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
- 			ret |= __put_user(ptrace_get_reg(child, ui),
-@@ -533,6 +536,7 @@ long arch_ptrace(struct task_struct *chi
- 			ret = -EIO;
- 			break;
- 		}
-+		CHECK_FULL_REGS(child->thread.regs);
- 		ret = 0;
- 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
- 			ret = __get_user(tmp, (unsigned long __user *) data);
-diff -puN arch/powerpc/kernel/ptrace32.c~powerpc-ptrace-check_full_regs arch/powerpc/kernel/ptrace32.c
---- a/arch/powerpc/kernel/ptrace32.c~powerpc-ptrace-check_full_regs
-+++ a/arch/powerpc/kernel/ptrace32.c
-@@ -53,6 +53,7 @@ static long compat_ptrace_old(struct tas
- 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
- 		unsigned int __user *tmp = (unsigned int __user *)addr;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		for (i = 0; i < 32; i++) {
- 			ret = put_user(*reg, tmp);
- 			if (ret)
-@@ -68,6 +69,7 @@ static long compat_ptrace_old(struct tas
- 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
- 		unsigned int __user *tmp = (unsigned int __user *)addr;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		for (i = 0; i < 32; i++) {
- 			ret = get_user(*reg, tmp);
- 			if (ret)
-@@ -164,6 +166,7 @@ long compat_sys_ptrace(int request, int 
- 		if ((addr & 3) || (index > PT_FPSCR32))
- 			break;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		if (index < PT_FPR0) {
- 			tmp = ptrace_get_reg(child, index);
- 		} else {
-@@ -210,6 +213,7 @@ long compat_sys_ptrace(int request, int 
- 		if ((addr & 3) || numReg > PT_FPSCR)
- 			break;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		if (numReg >= PT_FPR0) {
- 			flush_fp_to_thread(child);
- 			tmp = ((unsigned long int *)child->thread.fpr)[numReg - PT_FPR0];
-@@ -270,6 +274,7 @@ long compat_sys_ptrace(int request, int 
- 		if ((addr & 3) || (index > PT_FPSCR32))
- 			break;
- 
-+		CHECK_FULL_REGS(child->thread.regs);
- 		if (index < PT_FPR0) {
- 			ret = ptrace_put_reg(child, index, data);
- 		} else {
-@@ -307,6 +312,7 @@ long compat_sys_ptrace(int request, int 
- 		 */
- 		if ((addr & 3) || (numReg > PT_FPSCR))
- 			break;
-+		CHECK_FULL_REGS(child->thread.regs);
- 		if (numReg < PT_FPR0) {
- 			unsigned long freg = ptrace_get_reg(child, numReg);
- 			if (index % 2)
-@@ -342,6 +348,7 @@ long compat_sys_ptrace(int request, int 
- 			ret = -EIO;
- 			break;
- 		}
-+		CHECK_FULL_REGS(child->thread.regs);
- 		ret = 0;
- 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
- 			ret |= __put_user(ptrace_get_reg(child, ui),
-@@ -359,6 +366,7 @@ long compat_sys_ptrace(int request, int 
- 			ret = -EIO;
- 			break;
- 		}
-+		CHECK_FULL_REGS(child->thread.regs);
- 		ret = 0;
- 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
- 			ret = __get_user(tmp, (unsigned int __user *) data);
++	/*
++	 * We have just cleared all the nonvolatile GPRs, so make
++	 * FULL_REGS(regs) return true.  This is necessary to allow
++	 * ptrace to examine the thread immediately after exec.
++	 */
++	regs->trap &= ~1UL;
++
+ #ifdef CONFIG_PPC32
+ 	regs->mq = 0;
+ 	regs->nip = start;
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
