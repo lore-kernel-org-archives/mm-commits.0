@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:26:19 -0700
-Message-ID: <200709262026.l8QKQJUv002346@imap1.linux-foundation.org>
+Subject: + clean-up-redundant-phy-write-line-for-uli526x-ethernet.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:27:12 -0700
+Message-ID: <200709262027.l8QKRCK1002366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754784AbXIZU1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbXIZU2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:27:16 -0400
+	Wed, 26 Sep 2007 16:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: major@openvz.org, randy.dunlap@oracle.com
+Cc: tie-fei.zang@freescale.com, grundler@parisc-linux.org, jeff@garzik.org
 
 
 The patch titled
-     change inotifyfs magic as the same magic is used for futexfs
+     Clean up redundant PHY write line for ULi526x Ethernet driver
 has been added to the -mm tree.  Its filename is
-     change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+     clean-up-redundant-phy-write-line-for-uli526x-ethernet.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: change inotifyfs magic as the same magic is used for futexfs
-From: Andrey Mirkin <major@openvz.org>
+Subject: Clean up redundant PHY write line for ULi526x Ethernet driver
+From: Roy Zang <tie-fei.zang@freescale.com>
 
-Right now futexfs and inotifyfs have one magic 0xBAD1DEA, that looks a
-little bit confusing.  Use 0xBAD1DEA as magic for futexfs and 0x2BAD1DEA as
-magic for inotifyfs.
+Clean up redundant PHY write line for ULi526x Ethernet Driver.
 
-Signed-off-by: Andrey Mirkin <major@openvz.org>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Roy Zang <tie-fei.zang@freescale.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 fs/inotify_user.c
---- a/fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/fs/inotify_user.c
-@@ -31,6 +31,7 @@
- #include <linux/list.h>
- #include <linux/inotify.h>
- #include <linux/syscalls.h>
-+#include <linux/magic.h>
- 
- #include <asm/ioctls.h>
- 
-@@ -684,7 +685,8 @@ static int
- inotify_get_sb(struct file_system_type *fs_type, int flags,
- 	       const char *dev_name, void *data, struct vfsmount *mnt)
- {
--	return get_sb_pseudo(fs_type, "inotify", NULL, 0xBAD1DEA, mnt);
-+	return get_sb_pseudo(fs_type, "inotify", NULL,
-+			INOTIFYFS_SUPER_MAGIC, mnt);
+diff -puN drivers/net/tulip/uli526x.c~clean-up-redundant-phy-write-line-for-uli526x-ethernet drivers/net/tulip/uli526x.c
+--- a/drivers/net/tulip/uli526x.c~clean-up-redundant-phy-write-line-for-uli526x-ethernet
++++ a/drivers/net/tulip/uli526x.c
+@@ -1599,7 +1599,6 @@ static void uli526x_process_mode(struct 
+ 			case ULI526X_100MFD: phy_reg = 0x2100; break;
+ 			}
+ 			phy_write(db->ioaddr, db->phy_addr, 0, phy_reg, db->chip_id);
+-       			phy_write(db->ioaddr, db->phy_addr, 0, phy_reg, db->chip_id);
+ 		}
+ 	}
  }
- 
- static struct file_system_type inotify_fs_type = {
-diff -puN include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 include/linux/magic.h
---- a/include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/include/linux/magic.h
-@@ -40,4 +40,7 @@
- #define SMB_SUPER_MAGIC		0x517B
- #define USBDEVICE_SUPER_MAGIC	0x9fa2
- 
-+#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
-+#define INOTIFYFS_SUPER_MAGIC	0x2BAD1DEA
-+
- #endif /* __LINUX_MAGIC_H__ */
-diff -puN kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 kernel/futex.c
---- a/kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/kernel/futex.c
-@@ -52,6 +52,7 @@
- #include <linux/syscalls.h>
- #include <linux/signal.h>
- #include <linux/module.h>
-+#include <linux/magic.h>
- #include <asm/futex.h>
- 
- #include "rtmutex_common.h"
-@@ -2074,7 +2075,7 @@ static int futexfs_get_sb(struct file_sy
- 			  int flags, const char *dev_name, void *data,
- 			  struct vfsmount *mnt)
- {
--	return get_sb_pseudo(fs_type, "futex", NULL, 0xBAD1DEA, mnt);
-+	return get_sb_pseudo(fs_type, "futex", NULL, FUTEXFS_SUPER_MAGIC, mnt);
- }
- 
- static struct file_system_type futex_fs_type = {
 _
 
-Patches currently in -mm which might be from major@openvz.org are
+Patches currently in -mm which might be from tie-fei.zang@freescale.com are
 
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+git-powerpc-galak.patch
+clean-up-redundant-phy-write-line-for-uli526x-ethernet.patch
