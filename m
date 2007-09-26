@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uninline-find_task_by_xxx-set-of-functions.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:35:10 -0700
-Message-ID: <200709262035.l8QKZARn002608@imap1.linux-foundation.org>
+Subject: + uninline-find_pid-etc-set-of-functions.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:35:45 -0700
+Message-ID: <200709262035.l8QKZjWA002616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43359 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750924AbXIZUgL (ORCPT
+	by vger.kernel.org with ESMTP id S1751190AbXIZUgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:36:11 -0400
+	Wed, 26 Sep 2007 16:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru,
 
 
 The patch titled
-     Uninline find_task_by_xxx set of functions
+     Uninline find_pid etc set of functions
 has been added to the -mm tree.  Its filename is
-     uninline-find_task_by_xxx-set-of-functions.patch
+     uninline-find_pid-etc-set-of-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,21 +26,19 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Uninline find_task_by_xxx set of functions
+Subject: Uninline find_pid etc set of functions
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The find_task_by_something is a set of macros are used to find task by pid
-depending on what kind of pid is proposed - global or virtual one.  All of
-them are wrappers above the most generic one - find_task_by_pid_type_ns() -
-and just substitute some args for it.
+The find_pid/_vpid/_pid_ns functions are used to find the struct pid by its
+id, depending on whic id - global or virtual - is used.
 
-It turned out, that dereferencing the current->nsproxy->pid_ns construction
-and pushing one more argument on the stack inline cause kernel text size to
-grow.
+The find_vpid() is a macro that pushes the current->nsproxy->pid_ns on the
+stack to call another function - find_pid_ns().  It turned out, that this
+dereference together with the push itself cause the kernel text size to
+grow too much.
 
-This patch moves all this stuff out-of-line into kernel/pid.c.  Together
-with the next patch it saves a bit less than 400 bytes from the .text
-section.
+Move all these out-of-line.  Together with the previous patch this saves a
+bit less that 400 bytes from .text section.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
@@ -51,247 +49,55 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/ioprio.c~uninline-find_task_by_xxx-set-of-functions fs/ioprio.c
---- a/fs/ioprio.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/fs/ioprio.c
-@@ -94,8 +94,7 @@ asmlinkage long sys_ioprio_set(int which
- 			if (!who)
- 				p = current;
- 			else
--				p = find_task_by_pid_ns(who,
--						current->nsproxy->pid_ns);
-+				p = find_task_by_vpid(who);
- 			if (p)
- 				ret = set_task_ioprio(p, ioprio);
- 			break;
-@@ -182,8 +181,7 @@ asmlinkage long sys_ioprio_get(int which
- 			if (!who)
- 				p = current;
- 			else
--				p = find_task_by_pid_ns(who,
--						current->nsproxy->pid_ns);
-+				p = find_task_by_vpid(who);
- 			if (p)
- 				ret = get_task_ioprio(p);
- 			break;
-diff -puN include/linux/sched.h~uninline-find_task_by_xxx-set-of-functions include/linux/sched.h
---- a/include/linux/sched.h~uninline-find_task_by_xxx-set-of-functions
-+++ a/include/linux/sched.h
-@@ -1487,9 +1487,8 @@ extern struct pid_namespace init_pid_ns;
-  *      type and namespace specified
-  * find_task_by_pid_ns():
-  *      finds a task by its pid in the specified namespace
-- * find_task_by_pid_type():
-- *      finds a task by its global id with the specified type, e.g.
-- *      by global session id
-+ * find_task_by_vpid():
-+ *      finds a task by its virtual pid
-  * find_task_by_pid():
-  *      finds a task by its global pid
-  *
-@@ -1499,12 +1498,10 @@ extern struct pid_namespace init_pid_ns;
- extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
- 		struct pid_namespace *ns);
- 
--#define find_task_by_pid_ns(nr, ns)	\
--		find_task_by_pid_type_ns(PIDTYPE_PID, nr, ns)
--#define find_task_by_pid_type(type, nr)	\
--		find_task_by_pid_type_ns(type, nr, &init_pid_ns)
--#define find_task_by_pid(nr)		\
--		find_task_by_pid_type(PIDTYPE_PID, nr)
-+extern struct task_struct *find_task_by_pid(pid_t nr);
-+extern struct task_struct *find_task_by_vpid(pid_t nr);
-+extern struct task_struct *find_task_by_pid_ns(pid_t nr,
-+		struct pid_namespace *ns);
- 
- extern void __set_special_pids(pid_t session, pid_t pgrp);
- 
-diff -puN kernel/capability.c~uninline-find_task_by_xxx-set-of-functions kernel/capability.c
---- a/kernel/capability.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/capability.c
-@@ -63,8 +63,7 @@ asmlinkage long sys_capget(cap_user_head
- 	read_lock(&tasklist_lock);
- 
- 	if (pid && pid != task_pid_vnr(current)) {
--		target = find_task_by_pid_ns(pid,
--				current->nsproxy->pid_ns);
-+		target = find_task_by_vpid(pid);
- 		if (!target) {
- 			ret = -ESRCH;
- 			goto out;
-@@ -198,8 +197,7 @@ asmlinkage long sys_capset(cap_user_head
- 	read_lock(&tasklist_lock);
- 
- 	if (pid > 0 && pid != task_pid_vnr(current)) {
--		target = find_task_by_pid_ns(pid,
--				current->nsproxy->pid_ns);
-+		target = find_task_by_vpid(pid);
- 		if (!target) {
- 			ret = -ESRCH;
- 			goto out;
-diff -puN kernel/futex.c~uninline-find_task_by_xxx-set-of-functions kernel/futex.c
---- a/kernel/futex.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/futex.c
-@@ -446,9 +446,7 @@ static struct task_struct * futex_find_g
- 	struct task_struct *p;
- 
- 	rcu_read_lock();
--	p = find_task_by_pid_ns(pid,
--			current->nsproxy->pid_ns);
--
-+	p = find_task_by_vpid(pid);
- 	if (!p || ((current->euid != p->euid) && (current->euid != p->uid)))
- 		p = ERR_PTR(-ESRCH);
- 	else
-@@ -1858,8 +1856,7 @@ sys_get_robust_list(int pid, struct robu
- 
- 		ret = -ESRCH;
- 		rcu_read_lock();
--		p = find_task_by_pid_ns(pid,
--				current->nsproxy->pid_ns);
-+		p = find_task_by_vpid(pid);
- 		if (!p)
- 			goto err_unlock;
- 		ret = -EPERM;
-diff -puN kernel/futex_compat.c~uninline-find_task_by_xxx-set-of-functions kernel/futex_compat.c
---- a/kernel/futex_compat.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/futex_compat.c
-@@ -118,8 +118,7 @@ compat_sys_get_robust_list(int pid, comp
- 
- 		ret = -ESRCH;
- 		read_lock(&tasklist_lock);
--		p = find_task_by_pid_ns(pid,
--				current->nsproxy->pid_ns);
-+		p = find_task_by_vpid(pid);
- 		if (!p)
- 			goto err_unlock;
- 		ret = -EPERM;
-diff -puN kernel/pid.c~uninline-find_task_by_xxx-set-of-functions kernel/pid.c
---- a/kernel/pid.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/pid.c
-@@ -369,6 +369,25 @@ struct task_struct *find_task_by_pid_typ
- 
- EXPORT_SYMBOL(find_task_by_pid_type_ns);
- 
-+struct task_struct *find_task_by_pid(pid_t nr)
-+{
-+	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, &init_pid_ns);
-+}
-+EXPORT_SYMBOL(find_task_by_pid);
-+
-+struct task_struct *find_task_by_vpid(pid_t vnr)
-+{
-+	return find_task_by_pid_type_ns(PIDTYPE_PID, vnr,
-+			current->nsproxy->pid_ns);
-+}
-+EXPORT_SYMBOL(find_task_by_vpid);
-+
-+struct task_struct *find_task_by_pid_ns(pid_t nr, struct pid_namespace *ns)
-+{
-+	return find_task_by_pid_type_ns(PIDTYPE_PID, nr, ns);
-+}
-+EXPORT_SYMBOL(find_task_by_pid_ns);
-+
- struct pid *get_task_pid(struct task_struct *task, enum pid_type type)
- {
- 	struct pid *pid;
-diff -puN kernel/ptrace.c~uninline-find_task_by_xxx-set-of-functions kernel/ptrace.c
---- a/kernel/ptrace.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/ptrace.c
-@@ -444,8 +444,7 @@ struct task_struct *ptrace_get_task_stru
- 		return ERR_PTR(-EPERM);
- 
- 	read_lock(&tasklist_lock);
--	child = find_task_by_pid_ns(pid,
--			current->nsproxy->pid_ns);
-+	child = find_task_by_vpid(pid);
- 	if (child)
- 		get_task_struct(child);
- 
-diff -puN kernel/sched.c~uninline-find_task_by_xxx-set-of-functions kernel/sched.c
---- a/kernel/sched.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/sched.c
-@@ -4160,8 +4160,7 @@ struct task_struct *idle_task(int cpu)
+diff -puN include/linux/pid.h~uninline-find_pid-etc-set-of-functions include/linux/pid.h
+--- a/include/linux/pid.h~uninline-find_pid-etc-set-of-functions
++++ a/include/linux/pid.h
+@@ -110,9 +110,8 @@ extern struct pid_namespace init_pid_ns;
+  * see also find_task_by_pid() set in include/linux/sched.h
   */
- static inline struct task_struct *find_process_by_pid(pid_t pid)
- {
--	return pid ?
--		find_task_by_pid_ns(pid, current->nsproxy->pid_ns) : current;
-+	return pid ? find_task_by_vpid(pid) : current;
+ extern struct pid *FASTCALL(find_pid_ns(int nr, struct pid_namespace *ns));
+-
+-#define find_vpid(pid)	find_pid_ns(pid, current->nsproxy->pid_ns)
+-#define find_pid(pid)	find_pid_ns(pid, &init_pid_ns)
++extern struct pid *find_vpid(int nr);
++extern struct pid *find_pid(int nr);
+ 
+ /*
+  * Lookup a PID in the hash table, and return with it's count elevated.
+diff -puN kernel/capability.c~uninline-find_pid-etc-set-of-functions kernel/capability.c
+--- a/kernel/capability.c~uninline-find_pid-etc-set-of-functions
++++ a/kernel/capability.c
+@@ -96,7 +96,7 @@ static inline int cap_set_pg(int pgrp_nr
+ 	int found = 0;
+ 	struct pid *pgrp;
+ 
+-	pgrp = find_pid_ns(pgrp_nr, current->nsproxy->pid_ns);
++	pgrp = find_vpid(pgrp_nr);
+ 	do_each_pid_task(pgrp, PIDTYPE_PGID, g) {
+ 		target = g;
+ 		while_each_thread(g, target) {
+diff -puN kernel/pid.c~uninline-find_pid-etc-set-of-functions kernel/pid.c
+--- a/kernel/pid.c~uninline-find_pid-etc-set-of-functions
++++ a/kernel/pid.c
+@@ -302,6 +302,18 @@ struct pid * fastcall find_pid_ns(int nr
  }
+ EXPORT_SYMBOL_GPL(find_pid_ns);
  
- /* Actually do priority change: must hold rq lock. */
-diff -puN kernel/signal.c~uninline-find_task_by_xxx-set-of-functions kernel/signal.c
---- a/kernel/signal.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/signal.c
-@@ -2237,7 +2237,7 @@ static int do_tkill(int tgid, int pid, i
- 	info.si_uid = current->uid;
- 
- 	read_lock(&tasklist_lock);
--	p = find_task_by_pid_ns(pid, current->nsproxy->pid_ns);
-+	p = find_task_by_vpid(pid);
- 	if (p && (tgid <= 0 || task_tgid_vnr(p) == tgid)) {
- 		error = check_kill_permission(sig, &info, p);
- 		/*
-diff -puN kernel/sys.c~uninline-find_task_by_xxx-set-of-functions kernel/sys.c
---- a/kernel/sys.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/kernel/sys.c
-@@ -151,8 +151,7 @@ asmlinkage long sys_setpriority(int whic
- 	switch (which) {
- 		case PRIO_PROCESS:
- 			if (who)
--				p = find_task_by_pid_ns(who,
--						current->nsproxy->pid_ns);
-+				p = find_task_by_vpid(who);
- 			else
- 				p = current;
- 			if (p)
-@@ -209,8 +208,7 @@ asmlinkage long sys_getpriority(int whic
- 	switch (which) {
- 		case PRIO_PROCESS:
- 			if (who)
--				p = find_task_by_pid_ns(who,
--						current->nsproxy->pid_ns);
-+				p = find_task_by_vpid(who);
- 			else
- 				p = current;
- 			if (p) {
-@@ -1065,7 +1063,8 @@ asmlinkage long sys_setsid(void)
- 	 * session id and so the check will always fail and make it so
- 	 * init cannot successfully call setsid.
- 	 */
--	if (session > 1 && find_task_by_pid_type(PIDTYPE_PGID, session))
-+	if (session > 1 && find_task_by_pid_type_ns(PIDTYPE_PGID,
-+				session, &init_pid_ns))
- 		goto out;
- 
- 	group_leader->signal->leader = 1;
-diff -puN mm/mempolicy.c~uninline-find_task_by_xxx-set-of-functions mm/mempolicy.c
---- a/mm/mempolicy.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/mm/mempolicy.c
-@@ -941,8 +941,7 @@ asmlinkage long sys_migrate_pages(pid_t 
- 
- 	/* Find the mm_struct */
- 	read_lock(&tasklist_lock);
--	task = pid ?
--		find_task_by_pid_ns(pid, current->nsproxy->pid_ns) : current;
-+	task = pid ? find_task_by_vpid(pid) : current;
- 	if (!task) {
- 		read_unlock(&tasklist_lock);
- 		return -ESRCH;
-diff -puN mm/migrate.c~uninline-find_task_by_xxx-set-of-functions mm/migrate.c
---- a/mm/migrate.c~uninline-find_task_by_xxx-set-of-functions
-+++ a/mm/migrate.c
-@@ -925,8 +925,7 @@ asmlinkage long sys_move_pages(pid_t pid
- 
- 	/* Find the mm_struct */
- 	read_lock(&tasklist_lock);
--	task = pid ?
--		find_task_by_pid_ns(pid, current->nsproxy->pid_ns) : current;
-+	task = pid ? find_task_by_vpid(pid) : current;
- 	if (!task) {
- 		read_unlock(&tasklist_lock);
- 		return -ESRCH;
++struct pid *find_vpid(int nr)
++{
++	return find_pid_ns(nr, current->nsproxy->pid_ns);
++}
++EXPORT_SYMBOL_GPL(find_vpid);
++
++struct pid *find_pid(int nr)
++{
++	return find_pid_ns(nr, &init_pid_ns);
++}
++EXPORT_SYMBOL_GPL(find_pid);
++
+ /*
+  * attach_pid() must be called with the tasklist_lock write-held.
+  */
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -344,6 +150,7 @@ uninline-find_task_by_xxx-set-of-functions.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
 isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
 memory-controller-add-documentation.patch
 memory-controller-resource-counters-v7.patch
 memory-controller-resource-counters-v7-fix.patch
