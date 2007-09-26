@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + increase-at_vector_size-to-terminate-saved_auxv-properly.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:25:14 -0700
-Message-ID: <200709262025.l8QKPEpv002244@imap1.linux-foundation.org>
+Subject: + change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:26:19 -0700
+Message-ID: <200709262026.l8QKQJUv002346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753033AbXIZU0c (ORCPT
+	by vger.kernel.org with ESMTP id S1754784AbXIZU1Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:26:32 -0400
+	Wed, 26 Sep 2007 16:27:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, jakub@redhat.com, lethal@linux-sh.org, olh@suse.de, paulus@samba.org, roland@redhat.com, rth@twiddle.net, tony.luck@intel.com
+Cc: major@openvz.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     increase AT_VECTOR_SIZE to terminate saved_auxv properly
+     change inotifyfs magic as the same magic is used for futexfs
 has been added to the -mm tree.  Its filename is
-     increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+     change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: increase AT_VECTOR_SIZE to terminate saved_auxv properly
-From: Olaf Hering <olaf@aepfle.de>
+Subject: change inotifyfs magic as the same magic is used for futexfs
+From: Andrey Mirkin <major@openvz.org>
 
-include/asm-powerpc/elf.h has 6 entries in ARCH_DLINFO.  fs/binfmt_elf.c
-has 14 unconditional NEW_AUX_ENT entries and 2 conditional NEW_AUX_ENT
-entries.  So in the worst case, saved_auxv does not get an AT_NULL entry at
-the end.
+Right now futexfs and inotifyfs have one magic 0xBAD1DEA, that looks a
+little bit confusing.  Use 0xBAD1DEA as magic for futexfs and 0x2BAD1DEA as
+magic for inotifyfs.
 
-The saved_auxv array must be terminated with an AT_NULL entry.  Make the
-size of mm_struct->saved_auxv arch dependend, based on the number of
-ARCH_DLINFO entries.
-
-Signed-off-by: Olaf Hering <olh@suse.de>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Andrey Mirkin <major@openvz.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-alpha/system.h
---- a/include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-alpha/system.h
-@@ -48,6 +48,7 @@
- 
- #ifndef __ASSEMBLY__
- #include <linux/kernel.h>
-+#define AT_VECTOR_SIZE_ARCH 4
- 
- /*
-  * This is the logout header that should be common to all platforms
-diff -puN include/asm-i386/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-i386/system.h
---- a/include/asm-i386/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-i386/system.h
-@@ -7,6 +7,7 @@
- #include <asm/cmpxchg.h>
- 
- #ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_ARCH 2
- 
- struct task_struct;	/* one of the stranger aspects of C forward declarations.. */
- extern struct task_struct * FASTCALL(__switch_to(struct task_struct *prev, struct task_struct *next));
-diff -puN include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-ia64/system.h
---- a/include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-ia64/system.h
-@@ -32,6 +32,8 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- 
-+#define AT_VECTOR_SIZE_ARCH 2
-+
- struct pci_vector_struct {
- 	__u16 segment;	/* PCI Segment number */
- 	__u16 bus;	/* PCI Bus number */
-diff -puN include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-powerpc/system.h
---- a/include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-powerpc/system.h
-@@ -40,6 +40,7 @@
- #define set_mb(var, value)	do { var = value; mb(); } while (0)
- 
- #ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_ARCH 6
- #ifdef CONFIG_SMP
- #define smp_mb()	mb()
- #define smp_rmb()	rmb()
-diff -puN include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-sh/system.h
---- a/include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-sh/system.h
-@@ -15,6 +15,7 @@
- struct task_struct *__switch_to(struct task_struct *prev,
- 				struct task_struct *next);
- 
-+#define AT_VECTOR_SIZE_ARCH 1
- /*
-  *	switch_to() should switch tasks to task nr n, first
-  */
-diff -puN include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/auxvec.h
---- a/include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/auxvec.h
-@@ -26,6 +26,8 @@
- 
- #define AT_SECURE 23   /* secure mode boolean */
- 
--#define AT_VECTOR_SIZE  44 /* Size of auxiliary table.  */
-+#ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_BASE  (14 + 2) /* generic entries in auxiliary table. */
-+#endif
- 
- #endif /* _LINUX_AUXVEC_H */
-diff -puN include/linux/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/elf.h
---- a/include/linux/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/elf.h
-@@ -2,7 +2,6 @@
- #define _LINUX_ELF_H
- 
- #include <linux/types.h>
--#include <linux/auxvec.h>
- #include <linux/elf-em.h>
- #include <asm/elf.h>
- 
-diff -puN include/linux/mm_types.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/mm_types.h
---- a/include/linux/mm_types.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/mm_types.h
-@@ -1,7 +1,7 @@
- #ifndef _LINUX_MM_TYPES_H
- #define _LINUX_MM_TYPES_H
- 
--#include <linux/auxvec.h>	/* For AT_VECTOR_SIZE */
-+#include <linux/auxvec.h>
- #include <linux/types.h>
- #include <linux/threads.h>
+diff -puN fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 fs/inotify_user.c
+--- a/fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/fs/inotify_user.c
+@@ -31,6 +31,7 @@
  #include <linux/list.h>
-@@ -13,6 +13,11 @@
- #include <asm/page.h>
- #include <asm/mmu.h>
+ #include <linux/inotify.h>
+ #include <linux/syscalls.h>
++#include <linux/magic.h>
  
-+#ifndef AT_VECTOR_SIZE_ARCH
-+#define AT_VECTOR_SIZE_ARCH 0
-+#endif
-+#define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
+ #include <asm/ioctls.h>
+ 
+@@ -684,7 +685,8 @@ static int
+ inotify_get_sb(struct file_system_type *fs_type, int flags,
+ 	       const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	return get_sb_pseudo(fs_type, "inotify", NULL, 0xBAD1DEA, mnt);
++	return get_sb_pseudo(fs_type, "inotify", NULL,
++			INOTIFYFS_SUPER_MAGIC, mnt);
+ }
+ 
+ static struct file_system_type inotify_fs_type = {
+diff -puN include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 include/linux/magic.h
+--- a/include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/include/linux/magic.h
+@@ -40,4 +40,7 @@
+ #define SMB_SUPER_MAGIC		0x517B
+ #define USBDEVICE_SUPER_MAGIC	0x9fa2
+ 
++#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
++#define INOTIFYFS_SUPER_MAGIC	0x2BAD1DEA
 +
- struct address_space;
+ #endif /* __LINUX_MAGIC_H__ */
+diff -puN kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 kernel/futex.c
+--- a/kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/kernel/futex.c
+@@ -52,6 +52,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/signal.h>
+ #include <linux/module.h>
++#include <linux/magic.h>
+ #include <asm/futex.h>
  
- #if NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS
+ #include "rtmutex_common.h"
+@@ -2074,7 +2075,7 @@ static int futexfs_get_sb(struct file_sy
+ 			  int flags, const char *dev_name, void *data,
+ 			  struct vfsmount *mnt)
+ {
+-	return get_sb_pseudo(fs_type, "futex", NULL, 0xBAD1DEA, mnt);
++	return get_sb_pseudo(fs_type, "futex", NULL, FUTEXFS_SUPER_MAGIC, mnt);
+ }
+ 
+ static struct file_system_type futex_fs_type = {
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from major@openvz.org are
 
-git-powerpc.patch
-git-net.patch
-unexport-asm-shmparamh.patch
-remove-consolemaph-from-header-exports.patch
-include-linux-typesh-in-if_fddih.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-keep-track-of-network-interface-renaming.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
