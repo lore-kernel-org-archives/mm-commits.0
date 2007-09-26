@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:53:17 -0700
-Message-ID: <200709262253.l8QMrHdn008095@imap1.linux-foundation.org>
+Subject: + option-termios-handling.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:53:33 -0700
+Message-ID: <200709262253.l8QMrXJs008128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38212 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759690AbXIZWxq (ORCPT
+	by vger.kernel.org with ESMTP id S1758978AbXIZWyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:53:46 -0400
+	Wed, 26 Sep 2007 18:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     usb serial: kill another case we pass NULL and shouldn't
+     option: termios handling
 has been added to the -mm tree.  Its filename is
-     usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+     option-termios-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,8 +26,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usb serial: kill another case we pass NULL and shouldn't
+Subject: option: termios handling
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+For the devices that have no hardware settings set up the termios return
+properly.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -35,32 +38,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt drivers/usb/serial/console.c
---- a/drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt
-+++ a/drivers/usb/serial/console.c
-@@ -164,6 +164,7 @@ static int usb_console_setup(struct cons
- 	}
+diff -puN drivers/usb/serial/option.c~option-termios-handling drivers/usb/serial/option.c
+--- a/drivers/usb/serial/option.c~option-termios-handling
++++ a/drivers/usb/serial/option.c
+@@ -311,7 +311,8 @@ static void option_set_termios(struct us
+ 			struct ktermios *old_termios)
+ {
+ 	dbg("%s", __FUNCTION__);
+-
++	/* Doesn't support option setting */
++	tty_termios_copy_hw(port->tty->termios, old_termios);
+ 	option_send_setup(port);
+ }
  
- 	if (serial->type->set_termios) {
-+		struct ktermios dummy;
- 		/* build up a fake tty structure so that the open call has something
- 		 * to look at to get the cflag value */
- 		tty = kzalloc(sizeof(*tty), GFP_KERNEL);
-@@ -177,12 +178,13 @@ static int usb_console_setup(struct cons
- 			kfree (tty);
- 			return -ENOMEM;
- 		}
-+		memset(&dummy, 0, sizeof(struct ktermios));
- 		termios->c_cflag = cflag;
- 		tty->termios = termios;
- 		port->tty = tty;
- 
- 		/* set up the initial termios settings */
--		serial->type->set_termios(port, NULL);
-+		serial->type->set_termios(port, &dummy);
- 		port->tty = NULL;
- 		kfree (termios);
- 		kfree (tty);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
