@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:01:36 -0700
-Message-ID: <200709262201.l8QM1aXu006193@imap1.linux-foundation.org>
+Subject: + rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:04:14 -0700
+Message-ID: <200709262204.l8QM4ElL006258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46486 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754284AbXIZWBr (ORCPT
+	by vger.kernel.org with ESMTP id S1750826AbXIZWEi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:01:47 -0400
+	Wed, 26 Sep 2007 18:04:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, olecom@flower.upol.cz
+Cc: lkml@rtr.ca, a.zummo@towertech.it, david-b@pacbell.net, mlord@pobox.com
 
 
 The patch titled
-     Improve error handling in parse_crashkernel_mem()
+     rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
 has been added to the -mm tree.  Its filename is
-     extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
+     rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,148 +26,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Improve error handling in parse_crashkernel_mem()
-From: Bernhard Walle <bwalle@suse.de>
+Subject: rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
+From: Mark Lord <lkml@rtr.ca>
 
-Improve error handling in parse_crashkernel_mem() by comparing the return
-pointer of memparse() with the input pointer and also replaces all
-printk(KERN_WARNING msg) with pr_warning(msg).
+Fix /sys/class/rtc/rtc?/wakealarm so that readback values now agree with
+the written values.
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Reviewed-by: Oleg Verych <olecom@flower.upol.cz>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/kexec.c~extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem kernel/kexec.c
---- a/kernel/kexec.c~extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem
-+++ a/kernel/kexec.c
-@@ -1166,44 +1166,59 @@ static int __init parse_crashkernel_mem(
- 					unsigned long long	*crash_size,
- 					unsigned long long	*crash_base)
- {
--	char *cur = cmdline;
-+	char *cur = cmdline, *tmp;
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -88,6 +88,9 @@ rtc_sysfs_show_wakealarm(struct device *
+ 	ssize_t retval;
+ 	unsigned long alarm;
+ 	struct rtc_wkalrm alm;
++	struct rtc_time before, now;
++	struct rtc_device *rtc = to_rtc_device(dev);
++	int first_time = 1;
  
- 	/* for each entry of the comma-separated list */
- 	do {
--		unsigned long long start = 0, end = ULLONG_MAX;
--		unsigned long long size = -1;
-+		unsigned long long start, end = ULLONG_MAX, size;
+ 	/* Don't show disabled alarms; but the RTC could leave the
+ 	 * alarm enabled after it's already triggered.  Alarms are
+@@ -97,13 +100,68 @@ rtc_sysfs_show_wakealarm(struct device *
+ 	 * REVISIT maybe we should require RTC implementations to
+ 	 * disable the RTC alarm after it triggers, for uniformity.
+ 	 */
+-	retval = rtc_read_alarm(to_rtc_device(dev), &alm);
+-	if (retval == 0 && alm.enabled) {
+-		rtc_tm_to_time(&alm.time, &alarm);
+-		retval = sprintf(buf, "%lu\n", alarm);
+-	}
  
- 		/* get the start of the range */
--		start = memparse(cur, &cur);
-+		start = memparse(cur, &tmp);
-+		if (cur == tmp) {
-+			pr_warning("crashkernel: Memory value expected\n");
-+			return -EINVAL;
-+		}
-+		cur = tmp;
- 		if (*cur != '-') {
--			printk(KERN_WARNING "crashkernel: '-' expected\n");
-+			pr_warning("crashkernel: '-' expected\n");
- 			return -EINVAL;
- 		}
- 		cur++;
+-	return retval;
++	/* The lower level RTC driver may not be capable of filling
++	 * in all fields of the rtc_time struct (eg. rtc-cmos),
++	 * and so might instead return -1 in some fields.
++	 * We deal with that here by grabbing a current timestamp
++	 * and using values from that for any missing (-1) values.
++	 *
++	 * But this could be racey, in that some fields might wrap
++	 * to a new day/month/year/etc.. between reading the time
++	 * and then reading the alarm (which internally may also
++	 * read the time).
++	 *
++	 * So we read the time *again* afterward, and if the two
++	 * timestamps differ then we know we need to repeat the
++	 * procedure to avoid any field wrap issues.
++	 *
++	 * This could all instead be done in the lower level driver,
++	 * but if more than one RTC implementation needs it,
++	 * then it might be best to leave it here.
++	 */
++
++	/* get the "before" timestamp */
++	retval = rtc_read_time(rtc, &before);
++	if (retval < 0)
++		return retval;
++	do {
++		if (!first_time)
++			memcpy(&before, &now, sizeof(struct rtc_time));
++		first_time = 0;
++
++		/* get the RTC alarm values, which may be incomplete */
++		retval = rtc_read_alarm(to_rtc_device(dev), &alm);
++		if (retval)
++			return retval;
++		if (!alm.enabled)
++			return 0;
++
++		/* get the "after" timestamp, to detect wrapped fields */
++		retval = rtc_read_time(rtc, &now);
++		if (retval < 0)
++			return retval;
++
++	} while (   before.tm_hour  != now.tm_hour
++	         || before.tm_mday  != now.tm_mday
++		 || before.tm_mon   != now.tm_mon
++		 || before.tm_year  != now.tm_year
++		 || before.tm_isdst != now.tm_isdst);
++
++	/* fill in missing alarm fields using the timestamp */
++	if (alm.time.tm_hour == -1)
++		alm.time.tm_hour = now.tm_hour;
++	if (alm.time.tm_mday == -1)
++		alm.time.tm_mday = now.tm_mday;
++	if (alm.time.tm_mon == -1)
++		alm.time.tm_mon = now.tm_mon;
++	if (alm.time.tm_year == -1)
++		alm.time.tm_year = now.tm_year;
++	if (alm.time.tm_isdst == -1)
++		alm.time.tm_yday = now.tm_isdst;
++
++	rtc_tm_to_time(&alm.time, &alarm);
++	return sprintf(buf, "%lu\n", alarm);
+ }
  
- 		/* if no ':' is here, than we read the end */
- 		if (*cur != ':') {
--			end = memparse(cur, &cur);
-+			end = memparse(cur, &tmp);
-+			if (cur == tmp) {
-+				pr_warning("crashkernel: Memory "
-+						"value expected\n");
-+				return -EINVAL;
-+			}
-+			cur = tmp;
- 			if (end <= start) {
--				printk(KERN_WARNING "crashkernel: end <= start\n");
-+				pr_warning("crashkernel: end <= start\n");
- 				return -EINVAL;
- 			}
- 		}
- 
- 		if (*cur != ':') {
--			printk(KERN_WARNING "crashkernel: ':' expected\n");
-+			pr_warning("crashkernel: ':' expected\n");
- 			return -EINVAL;
- 		}
- 		cur++;
- 
--		size = memparse(cur, &cur);
--		if (size < 0) {
--			printk(KERN_WARNING "crashkernel: invalid size\n");
-+		size = memparse(cur, &tmp);
-+		if (cur == tmp) {
-+			pr_warning("Memory value expected\n");
-+			return -EINVAL;
-+		}
-+		cur = tmp;
-+		if (size >= system_ram) {
-+			pr_warning("crashkernel: invalid size\n");
- 			return -EINVAL;
- 		}
- 
- 		/* match ? */
--		if (system_ram >= start  && system_ram <= end) {
-+		if (system_ram >= start && system_ram <= end) {
- 			*crash_size = size;
- 			break;
- 		}
-@@ -1212,8 +1227,15 @@ static int __init parse_crashkernel_mem(
- 	if (*crash_size > 0) {
- 		while (*cur != ' ' && *cur != '@')
- 			cur++;
--		if (*cur == '@')
--			*crash_base = memparse(cur+1, &cur);
-+		if (*cur == '@') {
-+			cur++;
-+			*crash_base = memparse(cur, &tmp);
-+			if (cur == tmp) {
-+				pr_warning("Memory value expected "
-+						"after '@'\n");
-+				return -EINVAL;
-+			}
-+		}
- 	}
- 
- 	return 0;
-@@ -1233,8 +1255,10 @@ static int __init parse_crashkernel_simp
- 	char *cur = cmdline;
- 
- 	*crash_size = memparse(cmdline, &cur);
--	if (cmdline == cur)
-+	if (cmdline == cur) {
-+		pr_warning("crashkernel: memory value expected\n");
- 		return -EINVAL;
-+	}
- 
- 	if (*cur == '@')
- 		*crash_base = memparse(cur+1, &cur);
+ static ssize_t
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
-ipsc-update-version-information.patch
-add-vmcoreinfo.patch
-express-relocatability-of-kernel-on-x86_64-in-documentation.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-express-new-elf32-mechanisms-in-documentation.patch
-add-reset_devices-to-the-recommended-parameters.patch
-extended-crashkernel-command-line.patch
-extended-crashkernel-command-line-update.patch
-extended-crashkernel-command-line-comment-fix.patch
-extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-i386-update.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-x86_64-update.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-use-extended-crashkernel-command-line-on-ia64-update.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-ppc64-update.patch
-use-extended-crashkernel-command-line-on-sh.patch
-use-extended-crashkernel-command-line-on-sh-update.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
+rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
