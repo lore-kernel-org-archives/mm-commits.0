@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + funsoft-fix-termios.patch added to -mm tree
-Date: Wed, 26 Sep 2007 15:53:25 -0700
-Message-ID: <200709262253.l8QMrPX5008109@imap1.linux-foundation.org>
+Subject: + usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch added to -mm tree
+Date: Wed, 26 Sep 2007 15:53:17 -0700
+Message-ID: <200709262253.l8QMrHdn008095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46529 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38212 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759690AbXIZWyE (ORCPT
+	by vger.kernel.org with ESMTP id S1759690AbXIZWxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 18:54:04 -0400
+	Wed, 26 Sep 2007 18:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com
 
 
 The patch titled
-     funsoft: fix termios
+     usb serial: kill another case we pass NULL and shouldn't
 has been added to the -mm tree.  Its filename is
-     funsoft-fix-termios.patch
+     usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,8 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: funsoft: fix termios
+Subject: usb serial: kill another case we pass NULL and shouldn't
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-Funsoft has a bogus ioctl handler doing bogus termios handling in a bogus
-manner. Fortunately we can simply delete all the bogus bits and get the
-right default behaviour !
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -39,44 +35,32 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/funsoft.c~funsoft-fix-termios drivers/usb/serial/funsoft.c
---- a/drivers/usb/serial/funsoft.c~funsoft-fix-termios
-+++ a/drivers/usb/serial/funsoft.c
-@@ -24,26 +24,6 @@ static struct usb_device_id id_table [] 
- };
- MODULE_DEVICE_TABLE(usb, id_table);
+diff -puN drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt drivers/usb/serial/console.c
+--- a/drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt
++++ a/drivers/usb/serial/console.c
+@@ -164,6 +164,7 @@ static int usb_console_setup(struct cons
+ 	}
  
--static int funsoft_ioctl(struct usb_serial_port *port, struct file *file,
--			 unsigned int cmd, unsigned long arg)
--{
--	struct ktermios t;
--
--	dbg("%s - port %d, cmd 0x%04x", __FUNCTION__, port->number, cmd);
--
--	if (cmd == TCSETSF) {
--		if (user_termios_to_kernel_termios(&t, (struct termios __user *)arg))
--			return -EFAULT;
--
--		dbg("%s - iflag:%x oflag:%x cflag:%x lflag:%x", __FUNCTION__,
--		    t.c_iflag, t.c_oflag, t.c_cflag, t.c_lflag);
--
--		if (!(t.c_lflag & ICANON))
--			return -EINVAL;
--	}
--	return -ENOIOCTLCMD;
--}
--
- static struct usb_driver funsoft_driver = {
- 	.name =		"funsoft",
- 	.probe =	usb_serial_probe,
-@@ -63,7 +43,6 @@ static struct usb_serial_driver funsoft_
- 	.num_bulk_in =		NUM_DONT_CARE,
- 	.num_bulk_out =		NUM_DONT_CARE,
- 	.num_ports =		1,
--	.ioctl =		funsoft_ioctl,
- };
+ 	if (serial->type->set_termios) {
++		struct ktermios dummy;
+ 		/* build up a fake tty structure so that the open call has something
+ 		 * to look at to get the cflag value */
+ 		tty = kzalloc(sizeof(*tty), GFP_KERNEL);
+@@ -177,12 +178,13 @@ static int usb_console_setup(struct cons
+ 			kfree (tty);
+ 			return -ENOMEM;
+ 		}
++		memset(&dummy, 0, sizeof(struct ktermios));
+ 		termios->c_cflag = cflag;
+ 		tty->termios = termios;
+ 		port->tty = tty;
  
- static int __init funsoft_init(void)
+ 		/* set up the initial termios settings */
+-		serial->type->set_termios(port, NULL);
++		serial->type->set_termios(port, &dummy);
+ 		port->tty = NULL;
+ 		kfree (termios);
+ 		kfree (tty);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
