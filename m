@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + oom-add-header-file-to-kbuild-as-unifdef.patch added to -mm tree
-Date: Wed, 26 Sep 2007 13:11:01 -0700
-Message-ID: <200709262011.l8QKB19g001735@imap1.linux-foundation.org>
+Subject: + oom-prevent-including-schedh-in-header-file.patch added to -mm tree
+Date: Wed, 26 Sep 2007 13:10:59 -0700
+Message-ID: <200709262010.l8QKAxd0001730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750698AbXIZUL2 (ORCPT
+	by vger.kernel.org with ESMTP id S1750698AbXIZULt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 16:11:28 -0400
+	Wed, 26 Sep 2007 16:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rientjes@google.com, adobriyan@gmail.com, andrea@suse.de, clameter@sgi.com
 
 
 The patch titled
-     oom: add header file to Kbuild as unifdef
+     oom: prevent including sched.h in header file
 has been added to the -mm tree.  Its filename is
-     oom-add-header-file-to-kbuild-as-unifdef.patch
+     oom-prevent-including-schedh-in-header-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oom: add header file to Kbuild as unifdef
+Subject: oom: prevent including sched.h in header file
 From: David Rientjes <rientjes@google.com>
 
-Preprocess include/linux/oom.h before exporting it to userspace.
+It's not necessary to include all of linux/sched.h in linux/oom.h.  Instead,
+simply include prototypes for the relevant structs and include linux/types.h
+for gfp_t.
 
 Cc: Andrea Arcangeli <andrea@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -39,17 +41,30 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/Kbuild~oom-add-header-file-to-kbuild-as-unifdef include/linux/Kbuild
---- a/include/linux/Kbuild~oom-add-header-file-to-kbuild-as-unifdef
-+++ a/include/linux/Kbuild
-@@ -283,6 +283,7 @@ unifdef-y += nfs_idmap.h
- unifdef-y += n_r3964.h
- unifdef-y += nubus.h
- unifdef-y += nvram.h
-+unifdef-y += oom.h
- unifdef-y += parport.h
- unifdef-y += patchkey.h
- unifdef-y += pci.h
+diff -puN include/linux/oom.h~oom-prevent-including-schedh-in-header-file include/linux/oom.h
+--- a/include/linux/oom.h~oom-prevent-including-schedh-in-header-file
++++ a/include/linux/oom.h
+@@ -1,8 +1,6 @@
+ #ifndef __INCLUDE_LINUX_OOM_H
+ #define __INCLUDE_LINUX_OOM_H
+ 
+-#include <linux/sched.h>
+-
+ /* /proc/<pid>/oom_adj set to -17 protects from the oom-killer */
+ #define OOM_DISABLE (-17)
+ /* inclusive */
+@@ -11,6 +9,11 @@
+ 
+ #ifdef __KERNEL__
+ 
++#include <linux/types.h>
++
++struct zonelist;
++struct notifier_block;
++
+ /*
+  * Types of limitations to the nodes from which allocations may occur
+  */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
