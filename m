@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Wed, 26 Sep 2007 09:41:36 -0700
-Message-ID: <200709261641.l8QGfaTf025475@imap1.linux-foundation.org>
+Subject: + asm-i386-ioh-fix-constness.patch added to -mm tree
+Date: Wed, 26 Sep 2007 09:53:43 -0700
+Message-ID: <200709261653.l8QGrhPm025858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45230 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54150 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752612AbXIZQlz (ORCPT
+	by vger.kernel.org with ESMTP id S1753157AbXIZQxv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 12:41:55 -0400
+	Wed, 26 Sep 2007 12:53:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org, uwe.bugla@gmx.de
+Cc: akpm@linux-foundation.org, ak@suse.de, uwe.bugla@gmx.de
 
 
 The patch titled
-     acpi: suppress uninitialized var warning
+     asm-i386/io.h: fix constness
 has been added to the -mm tree.  Its filename is
-     acpi-suppress-uninitialized-var-warning.patch
+     asm-i386-ioh-fix-constness.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi: suppress uninitialized var warning
+Subject: asm-i386/io.h: fix constness
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/tables/tbutils.c: In function `acpi_tb_parse_root_table':
-drivers/acpi/tables/tbutils.c:403: warning: `rsdt_address' may be used uninitialized in this function
+- Fix this:
+
+include/asm/io.h: In function `memcpy_fromio':
+include/asm/io.h:208: warning: passing argument 2 of `__memcpy' discards qualifiers from pointer target type
+
+- Clean up code a bit
 
 Reported-by: Uwe Bugla <uwe.bugla@gmx.de>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/tables/tbutils.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-i386/io.h |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/tables/tbutils.c~acpi-suppress-uninitialized-var-warning drivers/acpi/tables/tbutils.c
---- a/drivers/acpi/tables/tbutils.c~acpi-suppress-uninitialized-var-warning
-+++ a/drivers/acpi/tables/tbutils.c
-@@ -400,7 +400,7 @@ acpi_tb_parse_root_table(acpi_physical_a
- 	u32 table_count;
- 	struct acpi_table_header *table;
- 	acpi_physical_address address;
--	acpi_physical_address rsdt_address;
-+	acpi_physical_address uninitialized_var(rsdt_address);
- 	u32 length;
- 	u8 *table_entry;
- 	acpi_status status;
+diff -puN include/asm-i386/io.h~asm-i386-ioh-fix-constness include/asm-i386/io.h
+--- a/include/asm-i386/io.h~asm-i386-ioh-fix-constness
++++ a/include/asm-i386/io.h
+@@ -199,17 +199,22 @@ static inline void writel(unsigned int b
+ 
+ #define mmiowb()
+ 
+-static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
++static inline void
++memset_io(volatile void __iomem *addr, unsigned char val, int count)
+ {
+-	memset((void __force *) addr, val, count);
++	memset((void __force *)addr, val, count);
+ }
+-static inline void memcpy_fromio(void *dst, const volatile void __iomem *src, int count)
++
++static inline void
++memcpy_fromio(void *dst, const volatile void __iomem *src, int count)
+ {
+-	__memcpy(dst, (void __force *) src, count);
++	__memcpy(dst, (const void __force *)src, count);
+ }
+-static inline void memcpy_toio(volatile void __iomem *dst, const void *src, int count)
++
++static inline void
++memcpy_toio(volatile void __iomem *dst, const void *src, int count)
+ {
+-	__memcpy((void __force *) dst, src, count);
++	__memcpy((void __force *)dst, src, count);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -139,6 +163,7 @@ intel_cacheinfo-misc-section-annotation-fixes.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+asm-i386-ioh-fix-constness.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
