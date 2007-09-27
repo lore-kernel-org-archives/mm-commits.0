@@ -1,245 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - jbd2-ext4-naming-cleanup.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:44:31 -0700
-Message-ID: <200709270144.l8R1iVBd014043@imap1.linux-foundation.org>
+Subject: - fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:44:09 -0700
+Message-ID: <200709270144.l8R1i9ki014022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54454 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752585AbXI0Bu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbXI0BvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:50:58 -0400
+	Wed, 26 Sep 2007 21:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     JBD2/ext4 naming cleanup
+     USB: don't propagate FREEZE or PRETHAW suspends
 has been removed from the -mm tree.  Its filename was
-     jbd2-ext4-naming-cleanup.patch
+     fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: JBD2/ext4 naming cleanup
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: USB: don't propagate FREEZE or PRETHAW suspends
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Change macro naming from JBD_XXX to JBD2_XXX in JBD2/Ext4
+This patch (as992) fixes a recently-added bug.  During a FREEZE or PRETHAW
+suspend notification, non-root devices don't actually get suspended.  So we
+shouldn't tell their parent hubs that they did.
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+(This code path used to be skipped over, until the FREEZE/PRETHAW test got
+moved out of usb_suspend_both() into generic_suspend().)
+
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/usb/core/driver.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext4/extents.c~jbd2-ext4-naming-cleanup fs/ext4/extents.c
---- a/fs/ext4/extents.c~jbd2-ext4-naming-cleanup
-+++ a/fs/ext4/extents.c
-@@ -33,7 +33,7 @@
- #include <linux/fs.h>
- #include <linux/time.h>
- #include <linux/ext4_jbd2.h>
--#include <linux/jbd.h>
-+#include <linux/jbd2.h>
- #include <linux/highuid.h>
- #include <linux/pagemap.h>
- #include <linux/quotaops.h>
-diff -puN fs/ext4/super.c~jbd2-ext4-naming-cleanup fs/ext4/super.c
---- a/fs/ext4/super.c~jbd2-ext4-naming-cleanup
-+++ a/fs/ext4/super.c
-@@ -1061,7 +1061,7 @@ static int parse_options (char *options,
- 			if (option < 0)
- 				return 0;
- 			if (option == 0)
--				option = JBD_DEFAULT_MAX_COMMIT_AGE;
-+				option = JBD2_DEFAULT_MAX_COMMIT_AGE;
- 			sbi->s_commit_interval = HZ * option;
- 			break;
- 		case Opt_data_journal:
-diff -puN fs/jbd2/commit.c~jbd2-ext4-naming-cleanup fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~jbd2-ext4-naming-cleanup
-+++ a/fs/jbd2/commit.c
-@@ -356,7 +356,7 @@ static inline void write_tag_block(int t
- 				   unsigned long long block)
- {
- 	tag->t_blocknr = cpu_to_be32(block & (u32)~0);
--	if (tag_bytes > JBD_TAG_SIZE32)
-+	if (tag_bytes > JBD2_TAG_SIZE32)
- 		tag->t_blocknr_high = cpu_to_be32((block >> 31) >> 1);
- }
- 
-diff -puN fs/jbd2/journal.c~jbd2-ext4-naming-cleanup fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-ext4-naming-cleanup
-+++ a/fs/jbd2/journal.c
-@@ -971,7 +971,7 @@ static journal_t * journal_init_common (
- 	spin_lock_init(&journal->j_list_lock);
- 	spin_lock_init(&journal->j_state_lock);
- 
--	journal->j_commit_interval = (HZ * JBD_DEFAULT_MAX_COMMIT_AGE);
-+	journal->j_commit_interval = (HZ * JBD2_DEFAULT_MAX_COMMIT_AGE);
- 
- 	/* The journal is marked for error until we succeed with recovery! */
- 	journal->j_flags = JBD2_ABORT;
-@@ -1947,9 +1947,9 @@ int jbd2_journal_blocks_per_page(struct 
- size_t journal_tag_bytes(journal_t *journal)
- {
- 	if (JBD2_HAS_INCOMPAT_FEATURE(journal, JBD2_FEATURE_INCOMPAT_64BIT))
--		return JBD_TAG_SIZE64;
-+		return JBD2_TAG_SIZE64;
- 	else
--		return JBD_TAG_SIZE32;
-+		return JBD2_TAG_SIZE32;
- }
- 
- /*
-@@ -2016,7 +2016,7 @@ static void journal_free_journal_head(st
- {
- #ifdef CONFIG_JBD2_DEBUG
- 	atomic_dec(&nr_journal_heads);
--	memset(jh, JBD_POISON_FREE, sizeof(*jh));
-+	memset(jh, JBD2_POISON_FREE, sizeof(*jh));
- #endif
- 	kmem_cache_free(jbd2_journal_head_cache, jh);
- }
-diff -puN fs/jbd2/recovery.c~jbd2-ext4-naming-cleanup fs/jbd2/recovery.c
---- a/fs/jbd2/recovery.c~jbd2-ext4-naming-cleanup
-+++ a/fs/jbd2/recovery.c
-@@ -312,7 +312,7 @@ int jbd2_journal_skip_recovery(journal_t
- static inline unsigned long long read_tag_block(int tag_bytes, journal_block_tag_t *tag)
- {
- 	unsigned long long block = be32_to_cpu(tag->t_blocknr);
--	if (tag_bytes > JBD_TAG_SIZE32)
-+	if (tag_bytes > JBD2_TAG_SIZE32)
- 		block |= (u64)be32_to_cpu(tag->t_blocknr_high) << 32;
- 	return block;
- }
-diff -puN fs/jbd2/revoke.c~jbd2-ext4-naming-cleanup fs/jbd2/revoke.c
---- a/fs/jbd2/revoke.c~jbd2-ext4-naming-cleanup
-+++ a/fs/jbd2/revoke.c
-@@ -352,7 +352,7 @@ int jbd2_journal_revoke(handle_t *handle
- 		if (bh)
- 			BUFFER_TRACE(bh, "found on hash");
- 	}
--#ifdef JBD_EXPENSIVE_CHECKING
-+#ifdef JBD2_EXPENSIVE_CHECKING
- 	else {
- 		struct buffer_head *bh2;
- 
-@@ -453,7 +453,7 @@ int jbd2_journal_cancel_revoke(handle_t 
+diff -puN drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending drivers/usb/core/driver.c
+--- a/drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending
++++ a/drivers/usb/core/driver.c
+@@ -1097,7 +1097,12 @@ static int usb_suspend_both(struct usb_d
+ 			usb_hcd_flush_endpoint(udev, udev->ep_out[i]);
+ 			usb_hcd_flush_endpoint(udev, udev->ep_in[i]);
  		}
+-		if (parent)
++
++		/* If this is just a FREEZE or a PRETHAW, udev might
++		 * not really be suspended.  Only true suspends get
++		 * propagated up the device tree.
++		 */
++		if (parent && udev->state == USB_STATE_SUSPENDED)
+ 			usb_autosuspend_device(parent);
  	}
  
--#ifdef JBD_EXPENSIVE_CHECKING
-+#ifdef JBD2_EXPENSIVE_CHECKING
- 	/* There better not be one left behind by now! */
- 	record = find_revoke_record(journal, bh->b_blocknr);
- 	J_ASSERT_JH(jh, record == NULL);
-diff -puN include/linux/ext4_jbd2.h~jbd2-ext4-naming-cleanup include/linux/ext4_jbd2.h
---- a/include/linux/ext4_jbd2.h~jbd2-ext4-naming-cleanup
-+++ a/include/linux/ext4_jbd2.h
-@@ -12,8 +12,8 @@
-  * Ext4-specific journaling extensions.
-  */
- 
--#ifndef _LINUX_EXT4_JBD_H
--#define _LINUX_EXT4_JBD_H
-+#ifndef _LINUX_EXT4_JBD2_H
-+#define _LINUX_EXT4_JBD2_H
- 
- #include <linux/fs.h>
- #include <linux/jbd2.h>
-@@ -228,4 +228,4 @@ static inline int ext4_should_writeback_
- 	return 0;
- }
- 
--#endif	/* _LINUX_EXT4_JBD_H */
-+#endif	/* _LINUX_EXT4_JBD2_H */
-diff -puN include/linux/jbd2.h~jbd2-ext4-naming-cleanup include/linux/jbd2.h
---- a/include/linux/jbd2.h~jbd2-ext4-naming-cleanup
-+++ a/include/linux/jbd2.h
-@@ -13,8 +13,8 @@
-  * filesystem journaling support.
-  */
- 
--#ifndef _LINUX_JBD_H
--#define _LINUX_JBD_H
-+#ifndef _LINUX_JBD2_H
-+#define _LINUX_JBD2_H
- 
- /* Allow this file to be included directly into e2fsprogs */
- #ifndef __KERNEL__
-@@ -37,26 +37,26 @@
- #define journal_oom_retry 1
- 
- /*
-- * Define JBD_PARANIOD_IOFAIL to cause a kernel BUG() if ext3 finds
-+ * Define JBD2_PARANIOD_IOFAIL to cause a kernel BUG() if ext4 finds
-  * certain classes of error which can occur due to failed IOs.  Under
-- * normal use we want ext3 to continue after such errors, because
-+ * normal use we want ext4 to continue after such errors, because
-  * hardware _can_ fail, but for debugging purposes when running tests on
-  * known-good hardware we may want to trap these errors.
-  */
--#undef JBD_PARANOID_IOFAIL
-+#undef JBD2_PARANOID_IOFAIL
- 
- /*
-  * The default maximum commit age, in seconds.
-  */
--#define JBD_DEFAULT_MAX_COMMIT_AGE 5
-+#define JBD2_DEFAULT_MAX_COMMIT_AGE 5
- 
- #ifdef CONFIG_JBD2_DEBUG
- /*
-- * Define JBD_EXPENSIVE_CHECKING to enable more expensive internal
-+ * Define JBD2_EXPENSIVE_CHECKING to enable more expensive internal
-  * consistency checks.  By default we don't do this unless
-  * CONFIG_JBD2_DEBUG is on.
-  */
--#define JBD_EXPENSIVE_CHECKING
-+#define JBD2_EXPENSIVE_CHECKING
- extern u8 jbd2_journal_enable_debug;
- 
- #define jbd_debug(n, f, a...)						\
-@@ -186,8 +186,8 @@ typedef struct journal_block_tag_s
- 	__be32		t_blocknr_high; /* most-significant high 32bits. */
- } journal_block_tag_t;
- 
--#define JBD_TAG_SIZE32 (offsetof(journal_block_tag_t, t_blocknr_high))
--#define JBD_TAG_SIZE64 (sizeof(journal_block_tag_t))
-+#define JBD2_TAG_SIZE32 (offsetof(journal_block_tag_t, t_blocknr_high))
-+#define JBD2_TAG_SIZE64 (sizeof(journal_block_tag_t))
- 
- /*
-  * The revoke descriptor: used on disk to describe a series of blocks to
-@@ -299,7 +299,7 @@ void buffer_assertion_failure(struct buf
- #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
- #endif
- 
--#if defined(JBD_PARANOID_IOFAIL)
-+#if defined(JBD2_PARANOID_IOFAIL)
- #define J_EXPECT(expr, why...)		J_ASSERT(expr)
- #define J_EXPECT_BH(bh, expr, why...)	J_ASSERT_BH(bh, expr)
- #define J_EXPECT_JH(jh, expr, why...)	J_ASSERT_JH(jh, expr)
-@@ -1214,4 +1214,4 @@ extern int jbd_blocks_per_page(struct in
- 
- #endif	/* __KERNEL__ */
- 
--#endif	/* _LINUX_JBD_H */
-+#endif	/* _LINUX_JBD2_H */
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu are
 
-convert-ill-defined-log2-to-ilog2.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-jbd-slab-cleanups.patch
-jbd-slab-cleanups-2.patch
-jbd-slab-cleanups-3.patch
-jbd-ext3-cleanups-convert-to-kzalloc.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-ext4-uninitialized-block-groups.patch
-jbd2-ext4-cleanups-convert-to-kzalloc.patch
+scsi-early-detection-of-medium-not-present-updated.patch
