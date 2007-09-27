@@ -1,97 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - ppp_mppe-dont-put-interimkey-on-the-stack.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:44:17 -0700
-Message-ID: <200709270144.l8R1iH5k014031@imap1.linux-foundation.org>
+Subject: - pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:44:14 -0700
+Message-ID: <200709270144.l8R1iEJK014028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57386 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752656AbXI0Bvp (ORCPT
+	by vger.kernel.org with ESMTP id S1752670AbXI0Bvb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:51:45 -0400
+	Wed, 26 Sep 2007 21:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mschmidt@redhat.com, Matt_Domsch@dell.com, davem@davemloft.net, fcusack@fcusack.com, mm-commits@vger.kernel.org
+To: htejun@gmail.com, alan@redhat.com, cebbert@redhat.com, desaster.area@addcom.de, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ppp_mppe: don't put InterimKey on the stack
+     pata_sis: add missing UDMA5 timing value in sis_66_set_dmamode()
 has been removed from the -mm tree.  Its filename was
-     ppp_mppe-dont-put-interimkey-on-the-stack.patch
+     pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ppp_mppe: don't put InterimKey on the stack
-From: Michal Schmidt <mschmidt@redhat.com>
+Subject: pata_sis: add missing UDMA5 timing value in sis_66_set_dmamode()
+From: Tejun Heo <htejun@gmail.com>
 
-The interrupt stack can be in the __START_KERNEL_map region in which
-virt_to_page will not work.  This caused ppp_mppe to crash on CentOS 5 on
-x86_64 (http://bugs.centos.org/view.php?id=2076).
+sis_66_set_dmamode() also handles early UDMA100 (SIS630 ET) but is
+missing udma timing value for UDMA100.  According to sis5513, this
+should be 0x8000.  This caused UDMA100 device to fail on pata_sis till
+it downgrades to UDMA66 while it works fine on sis5513 at UDMA100.
 
-The fix is to avoid copying the interim key.  We can simply use it in its
-original place, which is kmalloc'd.
+Reported by Adam Blech.
 
-Signed-off-by: Michal Schmidt <mschmidt@redhat.com>
-Acked-by: Matt Domsch <Matt_Domsch@dell.com>
-Cc: Frank Cusack <fcusack@fcusack.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Adam Blech <desaster.area@addcom.de>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ppp_mppe.c |   14 ++++++--------
- 1 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/ppp_mppe.c~ppp_mppe-dont-put-interimkey-on-the-stack drivers/net/ppp_mppe.c
---- a/drivers/net/ppp_mppe.c~ppp_mppe-dont-put-interimkey-on-the-stack
-+++ a/drivers/net/ppp_mppe.c
-@@ -136,7 +136,7 @@ struct ppp_mppe_state {
-  * Key Derivation, from RFC 3078, RFC 3079.
-  * Equivalent to Get_Key() for MS-CHAP as described in RFC 3079.
-  */
--static void get_new_key_from_sha(struct ppp_mppe_state * state, unsigned char *InterimKey)
-+static void get_new_key_from_sha(struct ppp_mppe_state *state)
- {
- 	struct hash_desc desc;
- 	struct scatterlist sg[4];
-@@ -153,8 +153,6 @@ static void get_new_key_from_sha(struct 
- 	desc.flags = 0;
+diff -puN drivers/ata/pata_sis.c~pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode drivers/ata/pata_sis.c
+--- a/drivers/ata/pata_sis.c~pata_sis-add-missing-udma5-timing-value-in-sis_66_set_dmamode
++++ a/drivers/ata/pata_sis.c
+@@ -375,8 +375,9 @@ static void sis_66_set_dmamode (struct a
+ 	int drive_pci = sis_old_port_base(adev);
+ 	u16 timing;
  
- 	crypto_hash_digest(&desc, sg, nbytes, state->sha1_digest);
--
--	memcpy(InterimKey, state->sha1_digest, state->keylen);
- }
++	/* MWDMA 0-2 and UDMA 0-5 */
+ 	const u16 mwdma_bits[] = { 0x008, 0x302, 0x301 };
+-	const u16 udma_bits[]  = { 0xF000, 0xD000, 0xB000, 0xA000, 0x9000};
++	const u16 udma_bits[]  = { 0xF000, 0xD000, 0xB000, 0xA000, 0x9000, 0x8000 };
  
- /*
-@@ -163,21 +161,21 @@ static void get_new_key_from_sha(struct 
-  */
- static void mppe_rekey(struct ppp_mppe_state * state, int initial_key)
- {
--	unsigned char InterimKey[MPPE_MAX_KEY_LEN];
- 	struct scatterlist sg_in[1], sg_out[1];
- 	struct blkcipher_desc desc = { .tfm = state->arc4 };
+ 	pci_read_config_word(pdev, drive_pci, &timing);
  
--	get_new_key_from_sha(state, InterimKey);
-+	get_new_key_from_sha(state);
- 	if (!initial_key) {
--		crypto_blkcipher_setkey(state->arc4, InterimKey, state->keylen);
--		setup_sg(sg_in, InterimKey, state->keylen);
-+		crypto_blkcipher_setkey(state->arc4, state->sha1_digest,
-+					state->keylen);
-+		setup_sg(sg_in, state->sha1_digest, state->keylen);
- 		setup_sg(sg_out, state->session_key, state->keylen);
- 		if (crypto_blkcipher_encrypt(&desc, sg_out, sg_in,
- 					     state->keylen) != 0) {
-     		    printk(KERN_WARNING "mppe_rekey: cipher_encrypt failed\n");
- 		}
- 	} else {
--		memcpy(state->session_key, InterimKey, state->keylen);
-+		memcpy(state->session_key, state->sha1_digest, state->keylen);
- 	}
- 	if (state->keylen == 8) {
- 		/* See RFC 3078 */
 _
 
-Patches currently in -mm which might be from mschmidt@redhat.com are
+Patches currently in -mm which might be from htejun@gmail.com are
 
 origin.patch
+git-libata-all.patch
+pata_acpi-restore-driver.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+libata-implement-ata_wait_after_reset.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-add-human-readable-error-value-decoding-v3.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+scsi-early-detection-of-medium-not-present-updated.patch
+git-block.patch
