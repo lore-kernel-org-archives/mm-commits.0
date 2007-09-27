@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch added to -mm tree
-Date: Thu, 27 Sep 2007 11:58:10 -0700
-Message-ID: <200709271858.l8RIwAIQ020178@imap1.linux-foundation.org>
+Subject: + acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch added to -mm tree
+Date: Thu, 27 Sep 2007 13:31:38 -0700
+Message-ID: <200709272031.l8RKVdI4026789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756616AbXI0S6R (ORCPT
+	by vger.kernel.org with ESMTP id S1751659AbXI0Ucb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 14:58:17 -0400
+	Thu, 27 Sep 2007 16:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidel@xmailserver.org, yanzheng@21cn.com
+Cc: torvalds@linux-foundation.org, borntraeger@de.ibm.com, david-b@pacbell.net, lenb@kernel.org, lkml@rtr.ca
 
 
 The patch titled
-     anon-inodes use open coded atomic_inc for the shared inode
+     acpi: fix BDC handling in drivers/acpi/sleep/proc.c
 has been added to the -mm tree.  Its filename is
-     anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch
+     acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,163 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: anon-inodes use open coded atomic_inc for the shared inode
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: acpi: fix BDC handling in drivers/acpi/sleep/proc.c
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-Since we know the shared inode count is always >0, we can avoid igrab()
-and use an open coded atomic_inc().
+That code is doing all the arithmetic in non-BCD mode, but the "adjust"
+case doesn't do a BCD_TO_BIN() on that arithmetic.
 
-This also fixes a bug noticed by Yan Zheng <yanzheng@21cn.com>: were checking
-for an IS_ERR() return from igrab(), but it actually returns NULL on error.
+In other words, the logic you removed was certainly total crap, but there's
+more crap remaining inside the "if (adjust)" logic.  I just suspect you
+never tested that part (ie using a string that starts with '+').
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Yan Zheng <yanzheng@21cn.com>
+In fact, for the non-broken case, the old broken code *should* have been a
+no-op, since it did BIN_TO_BCD() followed by BCD_TO_BIN().  It then totally
+stupidly seemed to expect that the "adjust" case would do a BCD addition! 
+So I don't even see why your patch should have mattered or worked!
+
+So how about this cleanup instead? Does this work for you?
+
+NOTE! I wanted to switch "acpi_system_alarm_seq_show()" over to this too,
+but that code has a strange rule:
+
+        if (acpi_gbl_FADT.day_alarm)
+                /* ACPI spec: only low 6 its should be cared */
+                day = CMOS_READ(acpi_gbl_FADT.day_alarm) & 0x3F;
+        else
+                day = CMOS_READ(RTC_DAY_OF_MONTH);
+
+and note the "& 0x3f" which is done in BCD mode. Strange. But we always
+write zero (which may or may not be correct). So I'd have to add a mask to
+the interface, and I decided it wasn't worth it until somebody talks about
+how that thing actually works..
+
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mark Lord <lkml@rtr.ca>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: <borntraeger@de.ibm.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode fs/anon_inodes.c
---- a/fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode
-+++ a/fs/anon_inodes.c
-@@ -76,7 +76,6 @@ int anon_inode_getfd(int *pfd, struct in
- {
- 	struct qstr this;
- 	struct dentry *dentry;
--	struct inode *inode;
- 	struct file *file;
- 	int error, fd;
+diff -puN drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc
++++ a/drivers/acpi/sleep/proc.c
+@@ -194,6 +194,23 @@ static int get_date_field(char **p, u32 
+ 	return result;
+ }
  
-@@ -86,15 +85,9 @@ int anon_inode_getfd(int *pfd, struct in
- 	if (!file)
- 		return -ENFILE;
++/* Read a possibly BCD register, always return binary */
++static u32 cmos_bcd_read(int offset, int rtc_control)
++{
++	u32 val = CMOS_READ(offset);
++	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
++		BCD_TO_BIN(val);
++	return val;
++}
++
++/* Write binary value into possibly BCD register */
++static void cmos_bcd_write(u32 val, int offset, int rtc_control)
++{
++	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
++		BIN_TO_BCD(val);
++	CMOS_WRITE(val, offset);
++}
++
+ static ssize_t
+ acpi_system_write_alarm(struct file *file,
+ 			const char __user * buffer, size_t count, loff_t * ppos)
+@@ -258,35 +275,18 @@ acpi_system_write_alarm(struct file *fil
+ 	spin_lock_irq(&rtc_lock);
  
--	inode = igrab(anon_inode_inode);
--	if (IS_ERR(inode)) {
--		error = PTR_ERR(inode);
--		goto err_put_filp;
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(yr);
+-		BIN_TO_BCD(mo);
+-		BIN_TO_BCD(day);
+-		BIN_TO_BCD(hr);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(sec);
+-	}
+ 
+ 	if (adjust) {
+-		yr += CMOS_READ(RTC_YEAR);
+-		mo += CMOS_READ(RTC_MONTH);
+-		day += CMOS_READ(RTC_DAY_OF_MONTH);
+-		hr += CMOS_READ(RTC_HOURS);
+-		min += CMOS_READ(RTC_MINUTES);
+-		sec += CMOS_READ(RTC_SECONDS);
++		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
++		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
++		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
++		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
++		min += cmos_bcd_read(RTC_MINUTES, rtc_control);
++		sec += cmos_bcd_read(RTC_SECONDS, rtc_control);
+ 	}
+ 
+ 	spin_unlock_irq(&rtc_lock);
+ 
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(yr);
+-		BCD_TO_BIN(mo);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(hr);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(sec);
 -	}
 -
- 	error = get_unused_fd();
- 	if (error < 0)
--		goto err_iput;
-+		goto err_put_filp;
- 	fd = error;
+ 	if (sec > 59) {
+ 		min++;
+ 		sec -= 60;
+@@ -307,14 +307,6 @@ acpi_system_write_alarm(struct file *fil
+ 		yr++;
+ 		mo -= 12;
+ 	}
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(yr);
+-		BIN_TO_BCD(mo);
+-		BIN_TO_BCD(day);
+-		BIN_TO_BCD(hr);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(sec);
+-	}
+ 
+ 	spin_lock_irq(&rtc_lock);
+ 	/*
+@@ -326,9 +318,9 @@ acpi_system_write_alarm(struct file *fil
+ 	CMOS_READ(RTC_INTR_FLAGS);
+ 
+ 	/* write the fields the rtc knows about */
+-	CMOS_WRITE(hr, RTC_HOURS_ALARM);
+-	CMOS_WRITE(min, RTC_MINUTES_ALARM);
+-	CMOS_WRITE(sec, RTC_SECONDS_ALARM);
++	cmos_bcd_write(hr, RTC_HOURS_ALARM, rtc_control);
++	cmos_bcd_write(min, RTC_MINUTES_ALARM, rtc_control);
++	cmos_bcd_write(sec, RTC_SECONDS_ALARM, rtc_control);
  
  	/*
-@@ -108,14 +101,22 @@ int anon_inode_getfd(int *pfd, struct in
- 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
- 	if (!dentry)
- 		goto err_put_unused_fd;
-+
-+	/*
-+	 * We know the anon_inode inode count is always greater than zero,
-+	 * so we can avoid doing an igrab() and we can use an open-coded
-+	 * atomic_inc().
-+	 */
-+	atomic_inc(&anon_inode_inode->i_count);
-+
- 	dentry->d_op = &anon_inodefs_dentry_operations;
- 	/* Do not publish this dentry inside the global dentry hash table */
- 	dentry->d_flags &= ~DCACHE_UNHASHED;
--	d_instantiate(dentry, inode);
-+	d_instantiate(dentry, anon_inode_inode);
- 
- 	file->f_path.mnt = mntget(anon_inode_mnt);
- 	file->f_path.dentry = dentry;
--	file->f_mapping = inode->i_mapping;
-+	file->f_mapping = anon_inode_inode->i_mapping;
- 
- 	file->f_pos = 0;
- 	file->f_flags = O_RDWR;
-@@ -127,14 +128,12 @@ int anon_inode_getfd(int *pfd, struct in
- 	fd_install(fd, file);
- 
- 	*pfd = fd;
--	*pinode = inode;
-+	*pinode = anon_inode_inode;
- 	*pfile = file;
- 	return 0;
- 
- err_put_unused_fd:
- 	put_unused_fd(fd);
--err_iput:
--	iput(inode);
- err_put_filp:
- 	put_filp(file);
- 	return error;
+ 	 * If the system supports an enhanced alarm it will have non-zero
+@@ -336,11 +328,11 @@ acpi_system_write_alarm(struct file *fil
+ 	 * to the RTC area of memory.
+ 	 */
+ 	if (acpi_gbl_FADT.day_alarm)
+-		CMOS_WRITE(day, acpi_gbl_FADT.day_alarm);
++		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+-		CMOS_WRITE(mo, acpi_gbl_FADT.month_alarm);
++		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.century)
+-		CMOS_WRITE(yr / 100, acpi_gbl_FADT.century);
++		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
+ 	/* enable the rtc alarm interrupt */
+ 	rtc_control |= RTC_AIE;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-git-kvm.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-do_poll-return-eintr-when-signalled.patch
-anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch
+origin.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+report-the-per-irq-statistics-on-allarches.patch
+workaround-for-a-pci-restoring-bug.patch
