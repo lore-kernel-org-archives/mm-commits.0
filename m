@@ -1,250 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:12 -0700
-Message-ID: <200709270143.l8R1hC6Z013935@imap1.linux-foundation.org>
+Subject: - make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:16 -0700
+Message-ID: <200709270143.l8R1hGBN013941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56173 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbXI0BnT (ORCPT
+	by vger.kernel.org with ESMTP id S1752493AbXI0BnZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:19 -0400
+	Wed, 26 Sep 2007 21:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
+     make kobject dynamic allocation check use kallsyms_lookup()
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
+     make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: make kobject dynamic allocation check use kallsyms_lookup()
+From: Dave Hansen <haveblue@us.ibm.com>
 
+One of the top ten sysfs problems is that users use statically allocated
+kobjects.  This patch reminds them that this is a naughty thing.
+
+One _really_ nice thing this patch does, is us the kallsyms mechanism to
+print out exactly which symbol is being complained about:
+
+	The kobject at, or inside 'statickobj.2'@(0xc040d020) is not dynamically allocated.
+
+This patch replaces the previous implementation's use of a _sdata symbol in
+favor of using kallsyms_lookup().  If a kobject's address is a resolvable
+symbol, then it isn't dynamically allocated.
+
+The one exception to this is init symbols.  The patch also checks to see
+whether __init memory has been freed and if it has will allow kobjects in
+those sections.
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/locking/dlm/sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init.h |    1 
+ init/main.c          |    9 ++++++
+ lib/kobject.c        |   56 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 66 insertions(+)
 
-diff -puN fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset fs/gfs2/locking/dlm/sysfs.c
---- a/fs/gfs2/locking/dlm/sysfs.c~fix-gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
-+++ a/fs/gfs2/locking/dlm/sysfs.c
-@@ -223,7 +223,7 @@ int gdlm_sysfs_init(void)
- {
- 	int error;
+diff -puN include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup include/linux/init.h
+--- a/include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
++++ a/include/linux/init.h
+@@ -83,6 +83,7 @@ extern initcall_t __security_initcall_st
+ extern char __initdata boot_command_line[];
+ extern char *saved_command_line;
+ extern unsigned int reset_devices;
++extern int initmem_now_dynamic;
  
--	kobject_set_name(&gdlm_kset, "lock_dlm");
-+	kobject_set_name(&gdlm_kset.kobj, "lock_dlm");
- 	kobj_set_kset_s(&gdlm_kset, kernel_subsys);
- 	error = kset_register(&gdlm_kset);
- 	if (error)
+ /* used by init/main.c */
+ void setup_arch(char **);
+diff -puN init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup init/main.c
+--- a/init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
++++ a/init/main.c
+@@ -768,12 +768,21 @@ static void run_init_process(char *init_
+ 	kernel_execve(init_filename, argv_init, envp_init);
+ }
+ 
++/*
++ * __init/__init_data sections are turned into normal
++ * dynamically allocated memory later in boot.  When
++ * this is 0, the memory is for the __init purposes,
++ * when it it some other value, the memory is dynamic.
++ */
++int initmem_now_dynamic;
++
+ /* This is a non __init function. Force it to be noinline otherwise gcc
+  * makes it inline to init() and it becomes part of init.text section
+  */
+ static int noinline init_post(void)
+ {
+ 	free_initmem();
++	initmem_now_dynamic = 1;
+ 	unlock_kernel();
+ 	mark_rodata_ro();
+ 	system_state = SYSTEM_RUNNING;
+diff -puN lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup lib/kobject.c
+--- a/lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
++++ a/lib/kobject.c
+@@ -15,6 +15,8 @@
+ #include <linux/module.h>
+ #include <linux/stat.h>
+ #include <linux/slab.h>
++#include <linux/kallsyms.h>
++#include <asm-generic/sections.h>
+ 
+ /**
+  *	populate_dir - populate directory with attributes.
+@@ -121,6 +123,59 @@ char *kobject_get_path(struct kobject *k
+ }
+ EXPORT_SYMBOL_GPL(kobject_get_path);
+ 
++#ifdef CONFIG_X86_32
++static int ptr_in_range(void *ptr, void *start, void *end)
++{
++	/*
++	 * This should hopefully get rid of causing warnings
++	 * if the architecture did not set one of the section
++	 * variables up.
++	 */
++	if (start >= end)
++		return 0;
++
++	if ((ptr >= start) && (ptr < end))
++		return 1;
++	return 0;
++}
++
++void verify_dynamic_kobject_allocation(struct kobject *kobj)
++{
++	char *namebuf;
++	const char *ret;
++
++	namebuf = kzalloc(KSYM_NAME_LEN, GFP_KERNEL);
++	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL,
++			namebuf);
++	/*
++	 * This is the X86_32-only part of this function.
++	 * This is here because it is valid to have a kobject
++	 * in an __init section, but only after those
++	 * sections have been freed back to the dynamic pool.
++	 */
++	if (!initmem_now_dynamic &&
++	    ptr_in_range(kobj, __init_begin, __init_end))
++		goto out;
++	if (!ret || !strlen(ret))
++		goto out;
++	pr_debug("---- begin silly warning ----\n");
++	pr_debug("This is a janitorial warning, not a kernel bug.\n");
++#ifdef CONFIG_DEBUG_KOBJECT
++	pr_debug("The kobject at, or inside '%s'@(0x%p) is not dynamically allocated.\n",
++			namebuf, kobj);
++#endif
++	pr_debug("kobjects must be dynamically allocated, not static\n");
++	/* dump_stack(); */
++	pr_debug("---- end silly warning ----\n");
++out:
++	kfree(namebuf);
++}
++#else
++static void verify_dynamic_kobject_allocation(struct kobject *kobj)
++{
++}
++#endif
++
+ /**
+  *	kobject_init - initialize object.
+  *	@kobj:	object in question.
+@@ -130,6 +185,7 @@ void kobject_init(struct kobject * kobj)
+ 	if (!kobj)
+ 		return;
+ 	WARN_ON(atomic_read(&kobj->kref.refcount));
++	verify_dynamic_kobject_allocation(kobj);
+ 	kref_init(&kobj->kref);
+ 	INIT_LIST_HEAD(&kobj->entry);
+ 	init_waitqueue_head(&kobj->poll);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-git-backlight.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-i386-and-x86_64-randomize-brk-fix.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-64-bit-i_version-afs-fixes.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
+r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
+r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
+r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
 pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
 page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
