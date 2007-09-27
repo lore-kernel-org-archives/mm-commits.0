@@ -1,53 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:04 -0700
-Message-ID: <200709270143.l8R1h4o7013926@imap1.linux-foundation.org>
+Subject: - fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:09 -0700
+Message-ID: <200709270143.l8R1h9K1013932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33554 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752082AbXI0BnH (ORCPT
+	by vger.kernel.org with ESMTP id S1751561AbXI0BnM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:07 -0400
+	Wed, 26 Sep 2007 21:43:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-driver-kobject-remove-the-static-array-for-the-name
+     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+     fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-kobject-remove-the-static-array-for-the-name
+Subject: fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/setup-irq.c: In function 'pdev_fixup_irq':
-drivers/pci/setup-irq.c:50: error: 'struct kobject' has no member named 'name'
+drivers/net/ibmveth.c: In function `ibmveth_probe':
+drivers/net/ibmveth.c:1047: error: structure has no member named `name'
+drivers/net/ibmveth.c:1049: warning: ignoring return value of `kobject_register', declared with attribute warn_unused_result
+
+Not a fix!  Leaks k_name!  Needs a kobject release handler!
 
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/setup-irq.c |    2 +-
+ drivers/net/ibmveth.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name drivers/pci/setup-irq.c
---- a/drivers/pci/setup-irq.c~fix-gregkh-driver-kobject-remove-the-static-array-for-the-name
-+++ a/drivers/pci/setup-irq.c
-@@ -48,7 +48,7 @@ pdev_fixup_irq(struct pci_dev *dev,
- 	dev->irq = irq;
- 
- 	pr_debug("PCI: fixup irq: (%s) got %d\n",
--		dev->dev.kobj.name, dev->irq);
-+		dev->dev.kobj.k_name, dev->irq);
- 
- 	/* Always tell the device, so the driver knows what is
- 	   the real IRQ to use; the device does not use it. */
+diff -puN drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~fix-2--gregkh-driver-drivers-clean-up-direct-setting-of-the-name-of-a-kset
++++ a/drivers/net/ibmveth.c
+@@ -1044,7 +1044,7 @@ static int __devinit ibmveth_probe(struc
+ 					 pool_count[i], pool_size[i],
+ 					 pool_active[i]);
+ 		kobj->parent = &dev->dev.kobj;
+-		sprintf(kobj->name, "pool%d", i);
++		kobj->k_name = kasprintf(GFP_KERNEL, "pool%d", i);
+ 		kobj->ktype = &ktype_veth_pool;
+ 		kobject_register(kobj);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
