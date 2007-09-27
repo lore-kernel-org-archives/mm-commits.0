@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + peterz-vs-ext4-mballoc-core.patch added to -mm tree
-Date: Wed, 26 Sep 2007 22:44:15 -0700
-Message-ID: <200709270550.l8R5oBYD022071@imap1.linux-foundation.org>
+Subject: + git-net-sctp-hack.patch added to -mm tree
+Date: Wed, 26 Sep 2007 22:45:30 -0700
+Message-ID: <200709270551.l8R5pQmG022122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41356 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753941AbXI0FuY (ORCPT
+	by vger.kernel.org with ESMTP id S1752627AbXI0Fv3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 01:50:24 -0400
+	Thu, 27 Sep 2007 01:51:29 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l8R5pQUq017026
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2007 22:51:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     peterz-vs-ext4-mballoc-core
+     git-net-sctp-hack
 has been added to the -mm tree.  Its filename is
-     peterz-vs-ext4-mballoc-core.patch
+     git-net-sctp-hack.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +30,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: peterz-vs-ext4-mballoc-core
+Subject: git-net-sctp-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-argh at gratuitous unrelated code churn :(
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/sctp/sm_statetable.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core
-+++ a/fs/ext4/mballoc.c
-@@ -3009,7 +3009,7 @@ int ext4_mb_mark_diskspace_used(struct e
- 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count)
- 				- ac->ac_b_ex.fe_len);
- 	spin_unlock(sb_bgl_lock(sbi, ac->ac_b_ex.fe_group));
--	percpu_counter_mod(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
-+	percpu_counter_add(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
- 
- 	err = ext4_journal_dirty_metadata(handle, bitmap_bh);
- 	if (err)
-@@ -4435,7 +4435,7 @@ do_more:
- 	gdp->bg_free_blocks_count =
- 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count) + count);
- 	spin_unlock(sb_bgl_lock(sbi, block_group));
--	percpu_counter_mod(&sbi->s_freeblocks_counter, count);
-+	percpu_counter_add(&sbi->s_freeblocks_counter, count);
- 
- 	ext4_mb_release_desc(&e4b);
- 
+diff -puN net/sctp/sm_statetable.c~git-net-sctp-hack net/sctp/sm_statetable.c
+--- a/net/sctp/sm_statetable.c~git-net-sctp-hack
++++ a/net/sctp/sm_statetable.c
+@@ -527,8 +527,6 @@ static const sctp_sm_table_entry_t prsct
+ 	/* SCTP_STATE_EMPTY */ \
+ 	TYPE_SCTP_FUNC(sctp_sf_ootb), \
+ 	/* SCTP_STATE_CLOSED */ \
+-	TYPE_SCTP_FUNC(sctp_sf_tabort_8_4_8), \
+-	/* SCTP_STATE_COOKIE_WAIT */ \
+ 	TYPE_SCTP_FUNC(sctp_sf_discard_chunk), \
+ 	/* SCTP_STATE_COOKIE_ECHOED */ \
+ 	TYPE_SCTP_FUNC(sctp_sf_eat_auth), \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -265,3 +257,4 @@ check_dirty_inode_list.patch
 w1-build-fix.patch
 peterz-vs-ext4-mballoc-core.patch
 git-kvm-warning-fix.patch
+git-net-sctp-hack.patch
