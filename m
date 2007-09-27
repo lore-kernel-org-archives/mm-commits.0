@@ -1,82 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - kobject-temporarily-save-k_name-on-cleanup-for-debug-message.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:18 -0700
-Message-ID: <200709270143.l8R1hIjW013945@imap1.linux-foundation.org>
+Subject: - fix-3-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:07 -0700
+Message-ID: <200709270143.l8R1h7uO013929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752515AbXI0BnZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752340AbXI0BnW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:25 -0400
+	Wed, 26 Sep 2007 21:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: huckc@de.ibm.com, cornelia.huck@de.ibm.com, mm-commits@vger.kernel.org
+To: kamalesh@linux.vnet.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kobject: temporarily save k_name on cleanup for debug message.
+     fix gregkh-driver-kobject-remove-the-static-array-for-the-name 3
 has been removed from the -mm tree.  Its filename was
-     kobject-temporarily-save-k_name-on-cleanup-for-debug-message.patch
+     fix-3-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kobject: temporarily save k_name on cleanup for debug message.
-From: Cornelia Huck <huckc@de.ibm.com>
+Subject: fix gregkh-driver-kobject-remove-the-static-array-for-the-name 3
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-On Wed, 19 Sep 2007 20:02:05 +0200,
-Cornelia Huck <cornelia.huck@de.ibm.com> wrote:
+Using the kobject_set_name function to set the kobject k_name.
 
-> > kobject drivers: cleaning up
-> > kobject '<NULL>' does not have a release() function, if this is not a directory kobject, it is broken and must be fixed.
->
-> <Unrelated side note: We should probably save the kobject's name for
-> printing this debug message, it looks a bit odd :)>
-
-kobject: Temporarily save k_name on cleanup for debug message.
-
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/pci/hotplug/rpadlpar_sysfs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/kobject.c~kobject-temporarily-save-k_name-on-cleanup-for-debug-message lib/kobject.c
---- a/lib/kobject.c~kobject-temporarily-save-k_name-on-cleanup-for-debug-message
-+++ a/lib/kobject.c
-@@ -493,23 +493,23 @@ struct kobject * kobject_get(struct kobj
-  *	@kobj:	object.
-  */
+diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~fix-3-gregkh-driver-kobject-remove-the-static-array-for-the-name drivers/pci/hotplug/rpadlpar_sysfs.c
+--- a/drivers/pci/hotplug/rpadlpar_sysfs.c~fix-3-gregkh-driver-kobject-remove-the-static-array-for-the-name
++++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
+@@ -129,17 +129,17 @@ struct kobj_type ktype_dlpar_io = {
+ };
  
--void kobject_cleanup(struct kobject * kobj)
-+void kobject_cleanup(struct kobject *kobj)
+ struct kset dlpar_io_kset = {
+-	.kobj = {.name = DLPAR_KOBJ_NAME,
+-		 .ktype = &ktype_dlpar_io,
+-		 .parent = &pci_hotplug_slots_subsys.kobj},
++	.kobj = {.ktype = &ktype_dlpar_io,
++		.parent = &pci_hotplug_slots_subsys.kobj},
+ 	.ktype = &ktype_dlpar_io,
+ };
+ 
+ int dlpar_sysfs_init(void)
  {
--	struct kobj_type * t = get_ktype(kobj);
--	struct kset * s = kobj->kset;
--	struct kobject * parent = kobj->parent;
-+	struct kobj_type *t = get_ktype(kobj);
-+	struct kset *s = kobj->kset;
-+	struct kobject *parent = kobj->parent;
-+	const char *k_name = kobj->k_name;
++	kobject_set_name(&dlpar_io_kset.kobj, DLPAR_KOBJ_NAME);
+ 	if (kset_register(&dlpar_io_kset)) {
+ 		printk(KERN_ERR "rpadlpar_io: cannot register kset for %s\n",
+-				dlpar_io_kset.kobj.name);
++				dlpar_io_kset.kobj.k_name);
+ 		return -EINVAL;
+ 	}
  
- 	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
- 	if (t && t->release) {
- 		t->release(kobj);
--		kfree(kobj->k_name);
- 		kobj->k_name = NULL;
- 	} else
- 		pr_debug("kobject '%s' does not have a release() function, "
- 			"if this is not a directory kobject, it is broken "
- 			"and must be fixed.\n",
--			kobject_name(kobj));
--
-+			k_name);
-+	kfree(k_name);
- 	if (s)
- 		kset_put(s);
- 	kobject_put(parent);
 _
 
-Patches currently in -mm which might be from huckc@de.ibm.com are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+
+git-net.patch
+git-nfsd.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
