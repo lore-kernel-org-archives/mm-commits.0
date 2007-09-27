@@ -1,50 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - git-cifs-build-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 17:39:58 -0700
-Message-ID: <200709270039.l8R0dwZR011802@imap1.linux-foundation.org>
+Subject: - revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 17:44:03 -0700
+Message-ID: <200709270044.l8R0i31N011982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40992 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751501AbXI0AkM (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbXI0AoO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 20:40:12 -0400
+	Wed, 26 Sep 2007 20:44:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cifs build fix
+     revert gregkh-driver-warn-when-statically-allocated-kobjects-are-used
 has been removed from the -mm tree.  Its filename was
-     git-cifs-build-fix.patch
+     revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-cifs build fix
+Subject: revert gregkh-driver-warn-when-statically-allocated-kobjects-are-used
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Steven French <sfrench@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifssmb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/vmlinux.lds.S |    2 -
+ lib/kobject.c                  |   43 -------------------------------
+ 2 files changed, 45 deletions(-)
 
-diff -puN fs/cifs/cifssmb.c~git-cifs-build-fix fs/cifs/cifssmb.c
---- a/fs/cifs/cifssmb.c~git-cifs-build-fix
-+++ a/fs/cifs/cifssmb.c
-@@ -3138,8 +3138,8 @@ static int parse_sec_desc(struct cifs_nt
- 			acl_size = cpu_to_le32(ppntace[i]->size);
- #ifdef CONFIG_CIFS_DEBUG2
- 			cFYI(1, ("ACE revision:%d", ppace[i]->revision));
--		}
- #endif
-+		}
- 		kfree(ppace);
- 		kfree(ppntace);
- 	}
+diff -puN arch/i386/kernel/vmlinux.lds.S~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used arch/i386/kernel/vmlinux.lds.S
+--- a/arch/i386/kernel/vmlinux.lds.S~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used
++++ a/arch/i386/kernel/vmlinux.lds.S
+@@ -71,8 +71,6 @@ SECTIONS
+   	__tracedata_end = .;
+   }
+ 
+-  _sdata = .;			/* End of text section */
+-
+   RODATA
+ 
+   /* writeable */
+diff -puN lib/kobject.c~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used lib/kobject.c
+--- a/lib/kobject.c~revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used
++++ a/lib/kobject.c
+@@ -15,8 +15,6 @@
+ #include <linux/module.h>
+ #include <linux/stat.h>
+ #include <linux/slab.h>
+-#include <linux/kallsyms.h>
+-#include <asm-generic/sections.h>
+ 
+ /**
+  *	populate_dir - populate directory with attributes.
+@@ -123,46 +121,6 @@ char *kobject_get_path(struct kobject *k
+ }
+ EXPORT_SYMBOL_GPL(kobject_get_path);
+ 
+-#ifdef CONFIG_X86_32
+-static int ptr_in_range(void *ptr, void *start, void *end)
+-{
+-	/*
+-	 * This should hopefully get rid of causing warnings
+-	 * if the architecture did not set one of the section
+-	 * variables up.
+-	 */
+-	if (start >= end)
+-		return 0;
+-
+-	if ((ptr >= start) && (ptr < end))
+-		return 1;
+-	return 0;
+-}
+-
+-static void verify_dynamic_kobject_allocation(struct kobject *kobj)
+-{
+-	if (ptr_in_range(kobj, &_sdata[0], &_edata[0]))
+-		goto warn;
+-	if (ptr_in_range(kobj, &__bss_start[0], &__bss_stop[0]))
+-		goto warn;
+-	return;
+-warn:
+-	pr_debug("---- begin silly warning ----\n");
+-	pr_debug("This is a janitorial warning, not a kernel bug.\n");
+-#ifdef CONFIG_DEBUG_KOBJECT
+-	print_symbol("The kobject at, or inside %s is not dynamically allocated.\n",
+-			(unsigned long)kobj);
+-#endif
+-	pr_debug("kobjects must be dynamically allocated, not static\n");
+-	/* dump_stack(); */
+-	pr_debug("---- end silly warning ----\n");
+-}
+-#else
+-static void verify_dynamic_kobject_allocation(struct kobject *kobj)
+-{
+-}
+-#endif
+-
+ /**
+  *	kobject_init - initialize object.
+  *	@kobj:	object in question.
+@@ -172,7 +130,6 @@ void kobject_init(struct kobject * kobj)
+ 	if (!kobj)
+ 		return;
+ 	WARN_ON(atomic_read(&kobj->kref.refcount));
+-	verify_dynamic_kobject_allocation(kobj);
+ 	kref_init(&kobj->kref);
+ 	INIT_LIST_HEAD(&kobj->entry);
+ 	init_waitqueue_head(&kobj->poll);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +126,6 @@ acpi-suppress-uninitialized-var-warning.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-git-cifs-build-fix.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 revert-gregkh-driver-warn-when-statically-allocated-kobjects-are-used.patch
 fix-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
