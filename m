@@ -1,152 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:14 -0700
-Message-ID: <200709270143.l8R1hEYR013938@imap1.linux-foundation.org>
+Subject: - kobject-temporarily-save-k_name-on-cleanup-for-debug-message.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:18 -0700
+Message-ID: <200709270143.l8R1hIjW013945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56968 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752491AbXI0BnY (ORCPT
+	by vger.kernel.org with ESMTP id S1752515AbXI0BnZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:24 -0400
+	Wed, 26 Sep 2007 21:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: greg@kroah.com, mm-commits@vger.kernel.org
+To: huckc@de.ibm.com, cornelia.huck@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-the-sixth: gregkh-driver-kobject-remove-the-static-array-for-the-name
+     kobject: temporarily save k_name on cleanup for debug message.
 has been removed from the -mm tree.  Its filename was
-     fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
+     kobject-temporarily-save-k_name-on-cleanup-for-debug-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix-the-sixth: gregkh-driver-kobject-remove-the-static-array-for-the-name
-From: Greg KH <greg@kroah.com>
+Subject: kobject: temporarily save k_name on cleanup for debug message.
+From: Cornelia Huck <huckc@de.ibm.com>
 
-On Wed, Sep 26, 2007 at 01:02:37AM +0200, Miklos Szeredi wrote:
-> > On Wed, Sep 26, 2007 at 12:27:14AM +0200, Miklos Szeredi wrote:
-> > > I get "BUG: failure at mm/slab.c:591/page_get_cache()!" in latest -mm
-> > > when removing the fuse module.
-> > >
-> > > This patch titled "kobject: remove the static array for the name"
-> > > looks like it's responsible.  Reverting it cures the problem.
-> > >
-> > > The root of the problem seems to be, that decl_subsys() initializes
-> > > k_name with a string constant.  Then subsystem_unregister() will put
-> > > the kobject, which will free the k_name.
-> > >
-> > > So, what's the right way to deal with this?
-> >
-> > How is the static kobject created by decl_subsys() getting it's release
-> > function called when it is never really "released" as it is a static
-> > kobject?
+On Wed, 19 Sep 2007 20:02:05 +0200,
+Cornelia Huck <cornelia.huck@de.ibm.com> wrote:
+
+> > kobject drivers: cleaning up
+> > kobject '<NULL>' does not have a release() function, if this is not a directory kobject, it is broken and must be fixed.
 >
-> Don't know.
->
-> This is the stack trace I get:
->
-> BUG: failure at mm/slab.c:591/page_get_cache()!
-> Kernel panic - not syncing: BUG!
+> <Unrelated side note: We should probably save the kobject's name for
+> printing this debug message, it looks a bit odd :)>
 
-Ok, here's a patch that fixes this for me.  It should go on top of the
--mm tree.  Let me know of this works or not.
+kobject: Temporarily save k_name on cleanup for debug message.
 
-In the end, we need to dynamically allocate these subsystems to properly
-fix this.  In looking through the tree, there really isn't that many of
-them, so I'll try to knock that out later this week.
-
-thanks,
-
-greg k-h
-
----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/kobject.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN lib/kobject.c~fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name lib/kobject.c
---- a/lib/kobject.c~fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name
+diff -puN lib/kobject.c~kobject-temporarily-save-k_name-on-cleanup-for-debug-message lib/kobject.c
+--- a/lib/kobject.c~kobject-temporarily-save-k_name-on-cleanup-for-debug-message
 +++ a/lib/kobject.c
-@@ -444,11 +444,11 @@ void kobject_cleanup(struct kobject * ko
- 	struct kobject * parent = kobj->parent;
+@@ -493,23 +493,23 @@ struct kobject * kobject_get(struct kobj
+  *	@kobj:	object.
+  */
+ 
+-void kobject_cleanup(struct kobject * kobj)
++void kobject_cleanup(struct kobject *kobj)
+ {
+-	struct kobj_type * t = get_ktype(kobj);
+-	struct kset * s = kobj->kset;
+-	struct kobject * parent = kobj->parent;
++	struct kobj_type *t = get_ktype(kobj);
++	struct kset *s = kobj->kset;
++	struct kobject *parent = kobj->parent;
++	const char *k_name = kobj->k_name;
  
  	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
--	kfree(kobj->k_name);
--	kobj->k_name = NULL;
--	if (t && t->release)
-+	if (t && t->release) {
+ 	if (t && t->release) {
  		t->release(kobj);
--	else
-+		kfree(kobj->k_name);
-+		kobj->k_name = NULL;
-+	} else
+-		kfree(kobj->k_name);
+ 		kobj->k_name = NULL;
+ 	} else
  		pr_debug("kobject '%s' does not have a release() function, "
  			"if this is not a directory kobject, it is broken "
  			"and must be fixed.\n",
+-			kobject_name(kobj));
+-
++			k_name);
++	kfree(k_name);
+ 	if (s)
+ 		kset_put(s);
+ 	kobject_put(parent);
 _
 
-Patches currently in -mm which might be from greg@kroah.com are
-
-fix-oops-in-platform-uevent.patch
-git-kbuild.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-wake-up-from-a-serial-port.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-scsi-send-media-state-change-modification-events.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
-drivers-usb-misc-sisusbvga-sisusbc-kill-two-unused-variables.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-hpet-force-enable-on-ich34.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-funsoft-fix-termios.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-visor-termios-bits.patch
-make-sure-nobodys-leaking-resources.patch
-workaround-for-a-pci-restoring-bug.patch
+Patches currently in -mm which might be from huckc@de.ibm.com are
