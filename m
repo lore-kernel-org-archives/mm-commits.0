@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncr53c8xx-remove-deprecated-irq-flags-sa_.patch added to -mm tree
-Date: Thu, 27 Sep 2007 13:37:10 -0700
-Message-ID: <200709272037.l8RKbALN026972@imap1.linux-foundation.org>
+Subject: + writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch added to -mm tree
+Date: Thu, 27 Sep 2007 13:47:32 -0700
+Message-ID: <200709272047.l8RKlWrX027368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753221AbXI0UiE (ORCPT
+	by vger.kernel.org with ESMTP id S1755771AbXI0Urv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 16:38:04 -0400
+	Thu, 27 Sep 2007 16:47:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, James.Bottomley@steeleye.com, willy@debian.org
+Cc: wfg@mail.ustc.edu.cn, galak@kernel.crashing.org, greg@kroah.com, hirofumi@mail.parknet.co.jp, nickpiggin@yahoo.com.au, riel@redhat.com, zaitcev@redhat.com
 
 
 The patch titled
-     NCR53C8XX: Remove deprecated IRQ flags (SA_*)
+     writeback: remove unnecessary wait in throttle_vm_writeout()
 has been added to the -mm tree.  Its filename is
-     ncr53c8xx-remove-deprecated-irq-flags-sa_.patch
+     writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NCR53C8XX: Remove deprecated IRQ flags (SA_*)
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: writeback: remove unnecessary wait in throttle_vm_writeout()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Stop using deprecated IRQ flags in ncr53c8xx documentaion.  The new IRQF_*
-macros are used instead.
+We don't want to introduce pointless delays in throttle_vm_writeout() when
+the writeback limits are not yet exceeded, do we?
 
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Greg KH <greg@kroah.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ChangeLog.ncr53c8xx
---- a/Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_
-+++ a/Documentation/scsi/ChangeLog.ncr53c8xx
-@@ -195,9 +195,9 @@ Sun Feb  14:00 1999 Gerard Roudier (grou
- 	  Pointed out by Leonard Zubkoff.
- 	- Allow to tune request_irq() flags from the boot command line using 
- 	  ncr53c8xx=irqm:??, as follows:
--	  a) If bit 0x10 is set in irqm, SA_SHIRQ flag is not used.
--	  b) If bit 0x20 is set in irqm, SA_INTERRUPT flag is not used.
--	  By default the driver uses both SA_SHIRQ and SA_INTERRUPT.
-+	  a) If bit 0x10 is set in irqm, IRQF_SHARED flag is not used.
-+	  b) If bit 0x20 is set in irqm, IRQF_DISABLED flag is not used.
-+	  By default the driver uses both IRQF_SHARED and IRQF_DISABLED.
- 	  Option 'ncr53c8xx=irqm:0x20' may be used when an IRQ is shared by 
- 	  a 53C8XX adapter and a network board.
- 	- Tiny mispelling fixed (ABORT instead of ABRT). Was fortunately 
-diff -puN Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ncr53c8xx.txt
---- a/Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_
-+++ a/Documentation/scsi/ncr53c8xx.txt
-@@ -785,8 +785,8 @@ port address 0x1400.
-         irqm:0     always open drain
-         irqm:1     same as initial settings (assumed BIOS settings)
-         irqm:2     always totem pole
--        irqm:0x10  driver will not use SA_SHIRQ flag when requesting irq
--        irqm:0x20  driver will not use SA_INTERRUPT flag when requesting irq
-+        irqm:0x10  driver will not use IRQF_SHARED flag when requesting irq
-+        irqm:0x20  driver will not use IRQF_DISABLED flag when requesting irq
+diff -puN mm/page-writeback.c~writeback-remove-unnecessary-wait-in-throttle_vm_writeout mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-remove-unnecessary-wait-in-throttle_vm_writeout
++++ a/mm/page-writeback.c
+@@ -502,16 +502,6 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 	long background_thresh;
+ 	long dirty_thresh;
  
-     (Bits 0x10 and 0x20 can be combined with hardware irq mode option)
+-	if ((gfp_mask & (__GFP_FS|__GFP_IO)) != (__GFP_FS|__GFP_IO)) {
+-		/*
+-		 * The caller might hold locks which can prevent IO completion
+-		 * or progress in the filesystem.  So we cannot just sit here
+-		 * waiting for IO to complete.
+-		 */
+-		congestion_wait(WRITE, HZ/10);
+-		return;
+-	}
+-
+         for ( ; ; ) {
+ 		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
  
-@@ -1236,15 +1236,15 @@ when the SCSI DATA IN phase is reentered
- When an IRQ is shared by devices that are handled by different drivers, it 
- may happen that one driver complains about the request of the IRQ having 
- failed. Inder Linux-2.0, this may be due to one driver having requested the 
--IRQ using the SA_INTERRUPT flag but some other having requested the same IRQ 
-+IRQ using the IRQF_DISABLED flag but some other having requested the same IRQ
- without this flag. Under both Linux-2.0 and linux-2.2, this may be caused by 
--one driver not having requested the IRQ with the SA_SHIRQ flag.
-+one driver not having requested the IRQ with the IRQF_SHARED flag.
+@@ -525,6 +515,14 @@ void throttle_vm_writeout(gfp_t gfp_mask
+ 			global_page_state(NR_WRITEBACK) <= dirty_thresh)
+                         	break;
+                 congestion_wait(WRITE, HZ/10);
++
++		/*
++		 * The caller might hold locks which can prevent IO completion
++		 * or progress in the filesystem.  So we cannot just sit here
++		 * waiting for IO to complete.
++		 */
++		if ((gfp_mask & (__GFP_FS|__GFP_IO)) != (__GFP_FS|__GFP_IO))
++			break;
+         }
+ }
  
- By default, the ncr53c8xx and sym53c8xx drivers request IRQs with both the 
--SA_INTERRUPT and the SA_SHIRQ flag under Linux-2.0 and with only the SA_SHIRQ 
-+IRQF_DISABLED and the IRQF_SHARED flag under Linux-2.0 and with only the IRQF_SHARED
- flag under Linux-2.2.
- 
--Under Linux-2.0, you can disable use of SA_INTERRUPT flag from the boot 
-+Under Linux-2.0, you can disable use of IRQF_DISABLED flag from the boot
- command line by using the following option:
- 
-      ncr53c8xx=irqm:0x20   (for the generic ncr53c8xx driver)
-@@ -1252,7 +1252,7 @@ command line by using the following opti
- 
- If this does not fix the problem, then you may want to check how all other 
- drivers are requesting the IRQ and report the problem. Note that if at least 
--a single driver does not request the IRQ with the SA_SHIRQ flag (share IRQ), 
-+a single driver does not request the IRQ with the IRQF_SHARED flag (share IRQ),
- then the request of the IRQ obviously will not succeed for all the drivers.
- 
- 15. SCSI problem troubleshooting
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-git-kvm.patch
-mips-remove-deprecated-irq-flags-sa_.patch
-ncr53c8xx-remove-deprecated-irq-flags-sa_.patch
-completely-remove-deprecated-irq-flags-sa_.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+make-swappiness-safer-to-use.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+convert-ill-defined-log2-to-ilog2.patch
+seqfile-merge-duplite-code-to-seq_open_private.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
