@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + completely-remove-deprecated-irq-flags-sa_.patch added to -mm tree
-Date: Thu, 27 Sep 2007 13:37:12 -0700
-Message-ID: <200709272037.l8RKbC1q026975@imap1.linux-foundation.org>
+Subject: + ncr53c8xx-remove-deprecated-irq-flags-sa_.patch added to -mm tree
+Date: Thu, 27 Sep 2007 13:37:10 -0700
+Message-ID: <200709272037.l8RKbALN026972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659AbXI0UiI (ORCPT
+	by vger.kernel.org with ESMTP id S1753221AbXI0UiE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 16:38:08 -0400
+	Thu, 27 Sep 2007 16:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, James.Bottomley@steeleye.com, ralf@linux-mips.org, willy@debian.org
+Cc: darwish.07@gmail.com, James.Bottomley@steeleye.com, willy@debian.org
 
 
 The patch titled
-     Completely remove deprecated IRQ flags (SA_*)
+     NCR53C8XX: Remove deprecated IRQ flags (SA_*)
 has been added to the -mm tree.  Its filename is
-     completely-remove-deprecated-irq-flags-sa_.patch
+     ncr53c8xx-remove-deprecated-irq-flags-sa_.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Completely remove deprecated IRQ flags (SA_*)
+Subject: NCR53C8XX: Remove deprecated IRQ flags (SA_*)
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Only very little files use the deprecated SA_* IRQ flags in latest pull.  This
-patch series removes such macros from the tree and transfrom old code to the
-new IRQF_* flags.
-
-I've grepped the whole tree to make sure that no more files than the patched
-ones use such deprecated macros.  I hope this series won't introduce build
-errors.
+Stop using deprecated IRQ flags in ncr53c8xx documentaion.  The new IRQF_*
+macros are used instead.
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_ include/linux/interrupt.h
---- a/include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_
-+++ a/include/linux/interrupt.h
-@@ -55,28 +55,6 @@
- #define IRQF_NOBALANCING	0x00000800
- #define IRQF_IRQPOLL		0x00001000
+diff -puN Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ChangeLog.ncr53c8xx
+--- a/Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_
++++ a/Documentation/scsi/ChangeLog.ncr53c8xx
+@@ -195,9 +195,9 @@ Sun Feb  14:00 1999 Gerard Roudier (grou
+ 	  Pointed out by Leonard Zubkoff.
+ 	- Allow to tune request_irq() flags from the boot command line using 
+ 	  ncr53c8xx=irqm:??, as follows:
+-	  a) If bit 0x10 is set in irqm, SA_SHIRQ flag is not used.
+-	  b) If bit 0x20 is set in irqm, SA_INTERRUPT flag is not used.
+-	  By default the driver uses both SA_SHIRQ and SA_INTERRUPT.
++	  a) If bit 0x10 is set in irqm, IRQF_SHARED flag is not used.
++	  b) If bit 0x20 is set in irqm, IRQF_DISABLED flag is not used.
++	  By default the driver uses both IRQF_SHARED and IRQF_DISABLED.
+ 	  Option 'ncr53c8xx=irqm:0x20' may be used when an IRQ is shared by 
+ 	  a 53C8XX adapter and a network board.
+ 	- Tiny mispelling fixed (ABORT instead of ABRT). Was fortunately 
+diff -puN Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ncr53c8xx.txt
+--- a/Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_
++++ a/Documentation/scsi/ncr53c8xx.txt
+@@ -785,8 +785,8 @@ port address 0x1400.
+         irqm:0     always open drain
+         irqm:1     same as initial settings (assumed BIOS settings)
+         irqm:2     always totem pole
+-        irqm:0x10  driver will not use SA_SHIRQ flag when requesting irq
+-        irqm:0x20  driver will not use SA_INTERRUPT flag when requesting irq
++        irqm:0x10  driver will not use IRQF_SHARED flag when requesting irq
++        irqm:0x20  driver will not use IRQF_DISABLED flag when requesting irq
  
--/*
-- * Migration helpers. Scheduled for removal in 9/2007
-- * Do not use for new code !
-- */
--static inline
--unsigned long __deprecated deprecated_irq_flag(unsigned long flag)
--{
--	return flag;
--}
--
--#define SA_INTERRUPT		deprecated_irq_flag(IRQF_DISABLED)
--#define SA_SAMPLE_RANDOM	deprecated_irq_flag(IRQF_SAMPLE_RANDOM)
--#define SA_SHIRQ		deprecated_irq_flag(IRQF_SHARED)
--#define SA_PROBEIRQ		deprecated_irq_flag(IRQF_PROBE_SHARED)
--#define SA_PERCPU		deprecated_irq_flag(IRQF_PERCPU)
--
--#define SA_TRIGGER_LOW		deprecated_irq_flag(IRQF_TRIGGER_LOW)
--#define SA_TRIGGER_HIGH		deprecated_irq_flag(IRQF_TRIGGER_HIGH)
--#define SA_TRIGGER_FALLING	deprecated_irq_flag(IRQF_TRIGGER_FALLING)
--#define SA_TRIGGER_RISING	deprecated_irq_flag(IRQF_TRIGGER_RISING)
--#define SA_TRIGGER_MASK		deprecated_irq_flag(IRQF_TRIGGER_MASK)
--
- typedef irqreturn_t (*irq_handler_t)(int, void *);
+     (Bits 0x10 and 0x20 can be combined with hardware irq mode option)
  
- struct irqaction {
+@@ -1236,15 +1236,15 @@ when the SCSI DATA IN phase is reentered
+ When an IRQ is shared by devices that are handled by different drivers, it 
+ may happen that one driver complains about the request of the IRQ having 
+ failed. Inder Linux-2.0, this may be due to one driver having requested the 
+-IRQ using the SA_INTERRUPT flag but some other having requested the same IRQ 
++IRQ using the IRQF_DISABLED flag but some other having requested the same IRQ
+ without this flag. Under both Linux-2.0 and linux-2.2, this may be caused by 
+-one driver not having requested the IRQ with the SA_SHIRQ flag.
++one driver not having requested the IRQ with the IRQF_SHARED flag.
+ 
+ By default, the ncr53c8xx and sym53c8xx drivers request IRQs with both the 
+-SA_INTERRUPT and the SA_SHIRQ flag under Linux-2.0 and with only the SA_SHIRQ 
++IRQF_DISABLED and the IRQF_SHARED flag under Linux-2.0 and with only the IRQF_SHARED
+ flag under Linux-2.2.
+ 
+-Under Linux-2.0, you can disable use of SA_INTERRUPT flag from the boot 
++Under Linux-2.0, you can disable use of IRQF_DISABLED flag from the boot
+ command line by using the following option:
+ 
+      ncr53c8xx=irqm:0x20   (for the generic ncr53c8xx driver)
+@@ -1252,7 +1252,7 @@ command line by using the following opti
+ 
+ If this does not fix the problem, then you may want to check how all other 
+ drivers are requesting the IRQ and report the problem. Note that if at least 
+-a single driver does not request the IRQ with the SA_SHIRQ flag (share IRQ), 
++a single driver does not request the IRQ with the IRQF_SHARED flag (share IRQ),
+ then the request of the IRQ obviously will not succeed for all the drivers.
+ 
+ 15. SCSI problem troubleshooting
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
