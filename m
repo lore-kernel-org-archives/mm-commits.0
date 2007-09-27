@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch added to -mm tree
-Date: Thu, 27 Sep 2007 13:31:38 -0700
-Message-ID: <200709272031.l8RKVdI4026789@imap1.linux-foundation.org>
+Subject: + mips-remove-deprecated-irq-flags-sa_.patch added to -mm tree
+Date: Thu, 27 Sep 2007 13:37:07 -0700
+Message-ID: <200709272037.l8RKb7gV026969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48042 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39104 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751659AbXI0Ucb (ORCPT
+	by vger.kernel.org with ESMTP id S1753040AbXI0Uhd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 16:32:31 -0400
+	Thu, 27 Sep 2007 16:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: torvalds@linux-foundation.org, borntraeger@de.ibm.com, david-b@pacbell.net, lenb@kernel.org, lkml@rtr.ca
+Cc: darwish.07@gmail.com, ralf@linux-mips.org
 
 
 The patch titled
-     acpi: fix BDC handling in drivers/acpi/sleep/proc.c
+     MIPS: Remove deprecated IRQ flags (SA_*)
 has been added to the -mm tree.  Its filename is
-     acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+     mips-remove-deprecated-irq-flags-sa_.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,163 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi: fix BDC handling in drivers/acpi/sleep/proc.c
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: MIPS: Remove deprecated IRQ flags (SA_*)
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-That code is doing all the arithmetic in non-BCD mode, but the "adjust"
-case doesn't do a BCD_TO_BIN() on that arithmetic.
+A patch to stop using deprecated IRQ flags.  The new IRQF_* macros are used
+instead.
 
-In other words, the logic you removed was certainly total crap, but there's
-more crap remaining inside the "if (adjust)" logic.  I just suspect you
-never tested that part (ie using a string that starts with '+').
-
-In fact, for the non-broken case, the old broken code *should* have been a
-no-op, since it did BIN_TO_BCD() followed by BCD_TO_BIN().  It then totally
-stupidly seemed to expect that the "adjust" case would do a BCD addition! 
-So I don't even see why your patch should have mattered or worked!
-
-So how about this cleanup instead? Does this work for you?
-
-NOTE! I wanted to switch "acpi_system_alarm_seq_show()" over to this too,
-but that code has a strange rule:
-
-        if (acpi_gbl_FADT.day_alarm)
-                /* ACPI spec: only low 6 its should be cared */
-                day = CMOS_READ(acpi_gbl_FADT.day_alarm) & 0x3F;
-        else
-                day = CMOS_READ(RTC_DAY_OF_MONTH);
-
-and note the "& 0x3f" which is done in BCD mode. Strange. But we always
-write zero (which may or may not be correct). So I'd have to add a mask to
-the interface, and I decided it wasn't worth it until somebody talks about
-how that thing actually works..
-
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mark Lord <lkml@rtr.ca>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: <borntraeger@de.ibm.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc
-+++ a/drivers/acpi/sleep/proc.c
-@@ -194,6 +194,23 @@ static int get_date_field(char **p, u32 
- 	return result;
+diff -puN arch/mips/pci/ops-pmcmsp.c~mips-remove-deprecated-irq-flags-sa_ arch/mips/pci/ops-pmcmsp.c
+--- a/arch/mips/pci/ops-pmcmsp.c~mips-remove-deprecated-irq-flags-sa_
++++ a/arch/mips/pci/ops-pmcmsp.c
+@@ -404,7 +404,7 @@ int msp_pcibios_config_access(unsigned c
+ 	if (pciirqflag == 0) {
+ 		request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
+ 				bpci_interrupt,
+-				SA_SHIRQ | SA_INTERRUPT,
++				IRQF_SHARED | IRQF_DISABLED,
+ 				"PMC MSP PCI Host",
+ 				preg);
+ 		pciirqflag = ~0;
+diff -puN arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~mips-remove-deprecated-irq-flags-sa_ arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
+--- a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~mips-remove-deprecated-irq-flags-sa_
++++ a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
+@@ -163,7 +163,7 @@ static int msp_hwbutton_register(struct 
+ 		CIC_EXT_SET_ACTIVE_HI(cic_ext, hirq->eirq);
+ 	*CIC_EXT_CFG_REG = cic_ext;
+ 
+-	return request_irq(hirq->irq, hwbutton_handler, SA_INTERRUPT,
++	return request_irq(hirq->irq, hwbutton_handler, IRQF_DISABLED,
+ 				hirq->name, (void *)hirq);
  }
  
-+/* Read a possibly BCD register, always return binary */
-+static u32 cmos_bcd_read(int offset, int rtc_control)
-+{
-+	u32 val = CMOS_READ(offset);
-+	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
-+		BCD_TO_BIN(val);
-+	return val;
-+}
-+
-+/* Write binary value into possibly BCD register */
-+static void cmos_bcd_write(u32 val, int offset, int rtc_control)
-+{
-+	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
-+		BIN_TO_BCD(val);
-+	CMOS_WRITE(val, offset);
-+}
-+
- static ssize_t
- acpi_system_write_alarm(struct file *file,
- 			const char __user * buffer, size_t count, loff_t * ppos)
-@@ -258,35 +275,18 @@ acpi_system_write_alarm(struct file *fil
- 	spin_lock_irq(&rtc_lock);
- 
- 	rtc_control = CMOS_READ(RTC_CONTROL);
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(yr);
--		BIN_TO_BCD(mo);
--		BIN_TO_BCD(day);
--		BIN_TO_BCD(hr);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(sec);
--	}
- 
- 	if (adjust) {
--		yr += CMOS_READ(RTC_YEAR);
--		mo += CMOS_READ(RTC_MONTH);
--		day += CMOS_READ(RTC_DAY_OF_MONTH);
--		hr += CMOS_READ(RTC_HOURS);
--		min += CMOS_READ(RTC_MINUTES);
--		sec += CMOS_READ(RTC_SECONDS);
-+		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
-+		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
-+		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
-+		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
-+		min += cmos_bcd_read(RTC_MINUTES, rtc_control);
-+		sec += cmos_bcd_read(RTC_SECONDS, rtc_control);
- 	}
- 
- 	spin_unlock_irq(&rtc_lock);
- 
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(yr);
--		BCD_TO_BIN(mo);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(hr);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(sec);
--	}
--
- 	if (sec > 59) {
- 		min++;
- 		sec -= 60;
-@@ -307,14 +307,6 @@ acpi_system_write_alarm(struct file *fil
- 		yr++;
- 		mo -= 12;
- 	}
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(yr);
--		BIN_TO_BCD(mo);
--		BIN_TO_BCD(day);
--		BIN_TO_BCD(hr);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(sec);
--	}
- 
- 	spin_lock_irq(&rtc_lock);
- 	/*
-@@ -326,9 +318,9 @@ acpi_system_write_alarm(struct file *fil
- 	CMOS_READ(RTC_INTR_FLAGS);
- 
- 	/* write the fields the rtc knows about */
--	CMOS_WRITE(hr, RTC_HOURS_ALARM);
--	CMOS_WRITE(min, RTC_MINUTES_ALARM);
--	CMOS_WRITE(sec, RTC_SECONDS_ALARM);
-+	cmos_bcd_write(hr, RTC_HOURS_ALARM, rtc_control);
-+	cmos_bcd_write(min, RTC_MINUTES_ALARM, rtc_control);
-+	cmos_bcd_write(sec, RTC_SECONDS_ALARM, rtc_control);
- 
- 	/*
- 	 * If the system supports an enhanced alarm it will have non-zero
-@@ -336,11 +328,11 @@ acpi_system_write_alarm(struct file *fil
- 	 * to the RTC area of memory.
- 	 */
- 	if (acpi_gbl_FADT.day_alarm)
--		CMOS_WRITE(day, acpi_gbl_FADT.day_alarm);
-+		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
- 	if (acpi_gbl_FADT.month_alarm)
--		CMOS_WRITE(mo, acpi_gbl_FADT.month_alarm);
-+		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
- 	if (acpi_gbl_FADT.century)
--		CMOS_WRITE(yr / 100, acpi_gbl_FADT.century);
-+		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
- 	/* enable the rtc alarm interrupt */
- 	rtc_control |= RTC_AIE;
- 	CMOS_WRITE(rtc_control, RTC_CONTROL);
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-origin.patch
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
-report-the-per-irq-statistics-on-allarches.patch
-workaround-for-a-pci-restoring-bug.patch
+git-kvm.patch
+mips-remove-deprecated-irq-flags-sa_.patch
+ncr53c8xx-remove-deprecated-irq-flags-sa_.patch
+completely-remove-deprecated-irq-flags-sa_.patch
