@@ -1,66 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 22:54:04 -0700
-Message-ID: <200709270600.l8R6011l022388@imap1.linux-foundation.org>
+Subject: + x86_64-cleanup-apic-c-fix.patch added to -mm tree
+Date: Wed, 26 Sep 2007 23:12:45 -0700
+Message-ID: <200709270618.l8R6IfFt023023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40889 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751365AbXI0GAw (ORCPT
+	by vger.kernel.org with ESMTP id S1752521AbXI0GTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 02:00:52 -0400
+	Thu, 27 Sep 2007 02:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, davem@davemloft.net, jeff@garzik.org, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, tglx@linutronix.de
 
 
 The patch titled
-     net: use numa_node in net_device->dev instead of parent
-has been removed from the -mm tree.  Its filename was
-     net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
+     x86_64-cleanup-apic-c-fix
+has been added to the -mm tree.  Its filename is
+     x86_64-cleanup-apic-c-fix.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: net: use numa_node in net_device->dev instead of parent
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: x86_64-cleanup-apic-c-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+arch/x86_64/kernel/apic.c:45: error: static declaration of 'disable_apic_timer' follows non-static declaration
+include/asm/apic.h:22: error: previous declaration of 'disable_apic_timer' was here
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/skbuff.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/apic.c |    2 +-
+ asm-x86_64/apic.h         |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/core/skbuff.c~net-use-numa_node-in-net_devcice-dev-instead-of-parent net/core/skbuff.c
---- a/net/core/skbuff.c~net-use-numa_node-in-net_devcice-dev-instead-of-parent
-+++ a/net/core/skbuff.c
-@@ -217,7 +217,7 @@ nodata:
- struct sk_buff *__netdev_alloc_skb(struct net_device *dev,
- 		unsigned int length, gfp_t gfp_mask)
- {
--	int node = dev->dev.parent ? dev_to_node(dev->dev.parent) : -1;
-+	int node = dev_to_node(&dev->dev);
- 	struct sk_buff *skb;
+diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix
++++ a/arch/x86_64/kernel/apic.c
+@@ -42,7 +42,7 @@
  
- 	skb = __alloc_skb(length + NET_SKB_PAD, gfp_mask, 0, node);
+ int apic_verbosity;
+ static int apic_calibrate_pmtmr __initdata;
+-static int disable_apic_timer __initdata;
++int disable_apic_timer __initdata;
+ 
+ /* Local APIC timer works in C2? */
+ int local_apic_timer_c2_ok;
+diff -puN include/asm-x86_64/apic.h~x86_64-cleanup-apic-c-fix include/asm-x86_64/apic.h
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-net-use-numa_node-in-net_devcice-dev-instead-of-parent.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-make-io-apic-not-connected-pin-print-complete.patch
-x86-use-num_online_nodes-to-get-physical-cpus-numbers-for.patch
-x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+origin.patch
+fix-oops-in-platform-uevent.patch
+slow-down-printk-during-boot.patch
+slow-down-printk-during-boot-fix-2.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+git-dvb.patch
+git-dvb-fixup-2.patch
+git-dvb-build-fix.patch
+git-hwmon-fixup.patch
+drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-kvm-warning-fix.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-wireless-kconfig.patch
+net-atm-lecc-printk-warning-fix.patch
+git-net-sctp-hack.patch
+git-backlight.patch
+git-backlight-dependency-fix.patch
+revert-git-battery.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+asm-i386-ioh-fix-constness.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+git-xfs.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-fix.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
