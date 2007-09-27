@@ -1,92 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - fix-proc-acpi-alarm-to-work-with-bcd-alarm-encodings-award.patch removed from -mm tree
-Date: Thu, 27 Sep 2007 10:37:44 -0700
-Message-ID: <200709271737.l8RHbjCN017178@imap1.linux-foundation.org>
+Subject: - anon_inodesc-fix-error-check-in-anon_inode_getfd.patch removed from -mm tree
+Date: Thu, 27 Sep 2007 11:37:26 -0700
+Message-ID: <200709271837.l8RIbQEW019407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755168AbXI0Ri5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756294AbXI0SiC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 13:38:57 -0400
+	Thu, 27 Sep 2007 14:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, david-b@pacbell.net, lenb@kernel.org, mlord@pobox.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: yanzheng@21cn.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix /proc/acpi/alarm to work with BCD alarm encodings (AWARD BIOS)
+     anon_inodes.c: fix error check in anon_inode_getfd
 has been removed from the -mm tree.  Its filename was
-     fix-proc-acpi-alarm-to-work-with-bcd-alarm-encodings-award.patch
+     anon_inodesc-fix-error-check-in-anon_inode_getfd.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Fix /proc/acpi/alarm to work with BCD alarm encodings (AWARD BIOS)
-From: Mark Lord <lkml@rtr.ca>
+Subject: anon_inodes.c: fix error check in anon_inode_getfd
+From: "Yan Zheng" <yanzheng@21cn.com>
 
-My Foxconn motherboard has ICH8 + AWARD BIOS.  The BIOS seems to prefer to
-maintain the RTC alarm in BCD format rather than binary.
+Hello,
 
-The existing code in linux/drivers/acpi/sleep/proc.c has a nasty bug that
-prevents BCD mode from working: the code converts binary to BCD three times
-in a row, each time taking the previous result.  This thoroughly mangles
-the alarm timestamp, and never worked.
+igrab return NULL on error.
 
-The patch below fixes it, by removing the first two (bogus) conversions,
-and leaving only the final conversion in place.  Tested & working on my
-system here.
-
-Note for future enhancement: fix the code to either handle 12-hour mode (as
-opposed to the more sensible 24-hour mode) timekeeping, or at least have it
-complain loudly when 12-hour mode is detected.
-
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Yan Zheng <yanzheng@21cn.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/proc.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ fs/anon_inodes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/sleep/proc.c~fix-proc-acpi-alarm-to-work-with-bcd-alarm-encodings-award drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~fix-proc-acpi-alarm-to-work-with-bcd-alarm-encodings-award
-+++ a/drivers/acpi/sleep/proc.c
-@@ -258,14 +258,6 @@ acpi_system_write_alarm(struct file *fil
- 	spin_lock_irq(&rtc_lock);
+diff -puN fs/anon_inodes.c~anon_inodesc-fix-error-check-in-anon_inode_getfd fs/anon_inodes.c
+--- a/fs/anon_inodes.c~anon_inodesc-fix-error-check-in-anon_inode_getfd
++++ a/fs/anon_inodes.c
+@@ -87,8 +87,8 @@ int anon_inode_getfd(int *pfd, struct in
+ 		return -ENFILE;
  
- 	rtc_control = CMOS_READ(RTC_CONTROL);
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(yr);
--		BIN_TO_BCD(mo);
--		BIN_TO_BCD(day);
--		BIN_TO_BCD(hr);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(sec);
--	}
+ 	inode = igrab(anon_inode_inode);
+-	if (IS_ERR(inode)) {
+-		error = PTR_ERR(inode);
++	if (!inode) {
++		error = -ENOENT;
+ 		goto err_put_filp;
+ 	}
  
- 	if (adjust) {
- 		yr += CMOS_READ(RTC_YEAR);
-@@ -278,15 +270,6 @@ acpi_system_write_alarm(struct file *fil
- 
- 	spin_unlock_irq(&rtc_lock);
- 
--	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(yr);
--		BCD_TO_BIN(mo);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(hr);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(sec);
--	}
--
- 	if (sec > 59) {
- 		min++;
- 		sec -= 60;
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from yanzheng@21cn.com are
 
-fix-proc-acpi-alarm-to-work-with-bcd-alarm-encodings-award.patch
+anon_inodesc-fix-error-check-in-anon_inode_getfd.patch
