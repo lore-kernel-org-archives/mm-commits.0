@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ax88796-add-93cx6-eeprom-support.patch added to -mm tree
-Date: Thu, 27 Sep 2007 14:58:40 -0700
-Message-ID: <200709272158.l8RLweEL029928@imap1.linux-foundation.org>
+Subject: + compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch added to -mm tree
+Date: Thu, 27 Sep 2007 15:06:36 -0700
+Message-ID: <200709272206.l8RM6aaR030260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47420 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754863AbXI0WAC (ORCPT
+	by vger.kernel.org with ESMTP id S1753927AbXI0WHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 18:00:02 -0400
+	Thu, 27 Sep 2007 18:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, ben-linux@fluff.org, damm@igel.co.jp, lethal@linux-sh.org
+Cc: ralf@linux-mips.org, tglx@linutronix.de
 
 
 The patch titled
-     ax88796: add 93cx6 eeprom support
+     Compile handle_percpu_irq even for uniprocessor kernels
 has been added to the -mm tree.  Its filename is
-     ax88796-add-93cx6-eeprom-support.patch
+     compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,145 +26,78 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ax88796: add 93cx6 eeprom support
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Compile handle_percpu_irq even for uniprocessor kernels
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Hook up the 93cx6 eeprom code to the ax88796 driver and modify the ax88796
-driver to read out the mac address from the eeprom.  We need this for the
-ax88796 on certain SuperH boards.  The pin configuration used to connect
-the eeprom to the ax88796 on these boards is the same as pointed out by the
-ax88796 datasheet, so we can probably reuse this code for multiple
-platforms in the future.
+Compiling handle_percpu_irq only on uniprocessor generates an artificial
+special case so a typical use like:
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+  set_irq_chip_and_handler(irq, &some_irq_type, handle_percpu_irq);
+
+needs to be conditionally compiled only on SMP systems as well and an
+alternative UP construct is usually needed - for no good reason.
+
+This fixes uniprocessor configurations for some MIPS SMP systems.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/net/Kconfig~ax88796-add-93cx6-eeprom-support drivers/net/Kconfig
---- a/drivers/net/Kconfig~ax88796-add-93cx6-eeprom-support
-+++ a/drivers/net/Kconfig
-@@ -240,6 +240,13 @@ config AX88796
- 	  AX88796 driver, using platform bus to provide
- 	  chip detection and resources
+diff -puN kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels kernel/irq/chip.c
+--- a/kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels
++++ a/kernel/irq/chip.c
+@@ -503,7 +503,6 @@ out_unlock:
+ 	spin_unlock(&desc->lock);
+ }
  
-+config AX88796_93CX6
-+	bool "ASIX AX88796 external 93CX6 eeprom support"
-+	depends on AX88796
-+	select EEPROM_93CX6
-+	help
-+	  Select this if your platform comes with an external 93CX6 eeprom.
-+
- config MACE
- 	tristate "MACE (Power Mac ethernet) support"
- 	depends on PPC_PMAC && PPC32
-diff -puN drivers/net/ax88796.c~ax88796-add-93cx6-eeprom-support drivers/net/ax88796.c
---- a/drivers/net/ax88796.c~ax88796-add-93cx6-eeprom-support
-+++ a/drivers/net/ax88796.c
-@@ -24,6 +24,7 @@
- #include <linux/etherdevice.h>
- #include <linux/ethtool.h>
- #include <linux/mii.h>
-+#include <linux/eeprom_93cx6.h>
+-#ifdef CONFIG_SMP
+ /**
+  *	handle_percpu_IRQ - Per CPU local irq handler
+  *	@irq:	the interrupt number
+@@ -529,8 +528,6 @@ handle_percpu_irq(unsigned int irq, stru
+ 		desc->chip->eoi(irq);
+ }
  
- #include <net/ax88796.h>
- 
-@@ -582,6 +583,37 @@ static const struct ethtool_ops ax_ethto
- 	.get_link		= ax_get_link,
- };
- 
-+#ifdef CONFIG_AX88796_93CX6
-+static void ax_eeprom_register_read(struct eeprom_93cx6 *eeprom)
-+{
-+	struct ei_device *ei_local = eeprom->data;
-+	u8 reg = ei_inb(ei_local->mem + AX_MEMR);
-+
-+	eeprom->reg_data_in = reg & AX_MEMR_EEI;
-+	eeprom->reg_data_out = reg & AX_MEMR_EEO; /* Input pin */
-+	eeprom->reg_data_clock = reg & AX_MEMR_EECLK;
-+	eeprom->reg_chip_select = reg & AX_MEMR_EECS;
-+}
-+
-+static void ax_eeprom_register_write(struct eeprom_93cx6 *eeprom)
-+{
-+	struct ei_device *ei_local = eeprom->data;
-+	u8 reg = ei_inb(ei_local->mem + AX_MEMR);
-+
-+	reg &= ~(AX_MEMR_EEI | AX_MEMR_EECLK | AX_MEMR_EECS);
-+
-+	if (eeprom->reg_data_in)
-+		reg |= AX_MEMR_EEI;
-+	if (eeprom->reg_data_clock)
-+		reg |= AX_MEMR_EECLK;
-+	if (eeprom->reg_chip_select)
-+		reg |= AX_MEMR_EECS;
-+
-+	ei_outb(reg, ei_local->mem + AX_MEMR);
-+	udelay(10);
-+}
-+#endif
-+
- /* setup code */
- 
- static void ax_initial_setup(struct net_device *dev, struct ei_device *ei_local)
-@@ -640,6 +672,23 @@ static int ax_init_dev(struct net_device
- 		memcpy(dev->dev_addr,  SA_prom, 6);
- 	}
- 
-+#ifdef CONFIG_AX88796_93CX6
-+	if (first_init && ax->plat->flags & AXFLG_HAS_93CX6) {
-+		unsigned char mac_addr[6];
-+		struct eeprom_93cx6 eeprom;
-+
-+		eeprom.data = ei_local;
-+		eeprom.register_read = ax_eeprom_register_read;
-+		eeprom.register_write = ax_eeprom_register_write;
-+		eeprom.width = PCI_EEPROM_WIDTH_93C56;
-+
-+		eeprom_93cx6_multiread(&eeprom, 0,
-+				       (__le16 __force *)mac_addr,
-+				       sizeof(mac_addr) >> 1);
-+
-+		memcpy(dev->dev_addr,  mac_addr, 6);
-+	}
-+#endif
- 	if (ax->plat->wordlength == 2) {
- 		/* We must set the 8390 for word mode. */
- 		ei_outb(ax->plat->dcr_val, ei_local->mem + EN0_DCFG);
-diff -puN include/linux/eeprom_93cx6.h~ax88796-add-93cx6-eeprom-support include/linux/eeprom_93cx6.h
---- a/include/linux/eeprom_93cx6.h~ax88796-add-93cx6-eeprom-support
-+++ a/include/linux/eeprom_93cx6.h
-@@ -21,13 +21,14 @@
- /*
- 	Module: eeprom_93cx6
- 	Abstract: EEPROM reader datastructures for 93cx6 chipsets.
--	Supported chipsets: 93c46 & 93c66.
-+	Supported chipsets: 93c46, 93c56 and 93c66.
-  */
- 
- /*
-  * EEPROM operation defines.
-  */
- #define PCI_EEPROM_WIDTH_93C46	6
-+#define PCI_EEPROM_WIDTH_93C56	8
- #define PCI_EEPROM_WIDTH_93C66	8
- #define PCI_EEPROM_WIDTH_OPCODE	3
- #define PCI_EEPROM_WRITE_OPCODE	0x05
-diff -puN include/net/ax88796.h~ax88796-add-93cx6-eeprom-support include/net/ax88796.h
---- a/include/net/ax88796.h~ax88796-add-93cx6-eeprom-support
-+++ a/include/net/ax88796.h
-@@ -14,6 +14,7 @@
- 
- #define AXFLG_HAS_EEPROM		(1<<0)
- #define AXFLG_MAC_FROMDEV		(1<<1)	/* device already has MAC */
-+#define AXFLG_HAS_93CX6			(1<<2)	/* use eeprom_93cx6 driver */
- 
- struct ax_plat_data {
- 	unsigned int	 flags;
+-#endif /* CONFIG_SMP */
+-
+ void
+ __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
+ 		  const char *name)
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-ax88796-add-93cx6-eeprom-support.patch
+git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
+git-net.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+spelling-fix-weired-weird.patch
+remove-dma_cache_wbackinvwback_inv-functions.patch
+lk201-remove-obsolete-driver.patch
+fix-wrong-filename-reference-in-drivers-testingtxt.patch
+mips-remove-deprecated-irq-flags-sa_.patch
+completely-remove-deprecated-irq-flags-sa_.patch
+compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
