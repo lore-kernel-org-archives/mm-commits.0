@@ -1,58 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - anon_inodesc-fix-error-check-in-anon_inode_getfd.patch removed from -mm tree
-Date: Thu, 27 Sep 2007 11:37:26 -0700
-Message-ID: <200709271837.l8RIbQEW019407@imap1.linux-foundation.org>
+Subject: + anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch added to -mm tree
+Date: Thu, 27 Sep 2007 11:58:10 -0700
+Message-ID: <200709271858.l8RIwAIQ020178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39092 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756294AbXI0SiC (ORCPT
+	by vger.kernel.org with ESMTP id S1756616AbXI0S6R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 14:38:02 -0400
+	Thu, 27 Sep 2007 14:58:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanzheng@21cn.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: davidel@xmailserver.org, yanzheng@21cn.com
 
 
 The patch titled
-     anon_inodes.c: fix error check in anon_inode_getfd
-has been removed from the -mm tree.  Its filename was
-     anon_inodesc-fix-error-check-in-anon_inode_getfd.patch
+     anon-inodes use open coded atomic_inc for the shared inode
+has been added to the -mm tree.  Its filename is
+     anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: anon_inodes.c: fix error check in anon_inode_getfd
-From: "Yan Zheng" <yanzheng@21cn.com>
+Subject: anon-inodes use open coded atomic_inc for the shared inode
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Hello,
+Since we know the shared inode count is always >0, we can avoid igrab()
+and use an open coded atomic_inc().
 
-igrab return NULL on error.
+This also fixes a bug noticed by Yan Zheng <yanzheng@21cn.com>: were checking
+for an IS_ERR() return from igrab(), but it actually returns NULL on error.
 
-Signed-off-by: Yan Zheng <yanzheng@21cn.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Yan Zheng <yanzheng@21cn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/anon_inodes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/anon_inodes.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN fs/anon_inodes.c~anon_inodesc-fix-error-check-in-anon_inode_getfd fs/anon_inodes.c
---- a/fs/anon_inodes.c~anon_inodesc-fix-error-check-in-anon_inode_getfd
+diff -puN fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode fs/anon_inodes.c
+--- a/fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode
 +++ a/fs/anon_inodes.c
-@@ -87,8 +87,8 @@ int anon_inode_getfd(int *pfd, struct in
+@@ -76,7 +76,6 @@ int anon_inode_getfd(int *pfd, struct in
+ {
+ 	struct qstr this;
+ 	struct dentry *dentry;
+-	struct inode *inode;
+ 	struct file *file;
+ 	int error, fd;
+ 
+@@ -86,15 +85,9 @@ int anon_inode_getfd(int *pfd, struct in
+ 	if (!file)
  		return -ENFILE;
  
- 	inode = igrab(anon_inode_inode);
+-	inode = igrab(anon_inode_inode);
 -	if (IS_ERR(inode)) {
 -		error = PTR_ERR(inode);
-+	if (!inode) {
-+		error = -ENOENT;
- 		goto err_put_filp;
- 	}
+-		goto err_put_filp;
+-	}
+-
+ 	error = get_unused_fd();
+ 	if (error < 0)
+-		goto err_iput;
++		goto err_put_filp;
+ 	fd = error;
  
+ 	/*
+@@ -108,14 +101,22 @@ int anon_inode_getfd(int *pfd, struct in
+ 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
+ 	if (!dentry)
+ 		goto err_put_unused_fd;
++
++	/*
++	 * We know the anon_inode inode count is always greater than zero,
++	 * so we can avoid doing an igrab() and we can use an open-coded
++	 * atomic_inc().
++	 */
++	atomic_inc(&anon_inode_inode->i_count);
++
+ 	dentry->d_op = &anon_inodefs_dentry_operations;
+ 	/* Do not publish this dentry inside the global dentry hash table */
+ 	dentry->d_flags &= ~DCACHE_UNHASHED;
+-	d_instantiate(dentry, inode);
++	d_instantiate(dentry, anon_inode_inode);
+ 
+ 	file->f_path.mnt = mntget(anon_inode_mnt);
+ 	file->f_path.dentry = dentry;
+-	file->f_mapping = inode->i_mapping;
++	file->f_mapping = anon_inode_inode->i_mapping;
+ 
+ 	file->f_pos = 0;
+ 	file->f_flags = O_RDWR;
+@@ -127,14 +128,12 @@ int anon_inode_getfd(int *pfd, struct in
+ 	fd_install(fd, file);
+ 
+ 	*pfd = fd;
+-	*pinode = inode;
++	*pinode = anon_inode_inode;
+ 	*pfile = file;
+ 	return 0;
+ 
+ err_put_unused_fd:
+ 	put_unused_fd(fd);
+-err_iput:
+-	iput(inode);
+ err_put_filp:
+ 	put_filp(file);
+ 	return error;
 _
 
-Patches currently in -mm which might be from yanzheng@21cn.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-anon_inodesc-fix-error-check-in-anon_inode_getfd.patch
+git-kvm.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+do_poll-return-eintr-when-signalled.patch
+anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch
