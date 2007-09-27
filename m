@@ -1,225 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:16 -0700
-Message-ID: <200709270143.l8R1hGBN013941@imap1.linux-foundation.org>
+Subject: - fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:14 -0700
+Message-ID: <200709270143.l8R1hEYR013938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56968 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752493AbXI0BnZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbXI0BnY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:25 -0400
+	Wed, 26 Sep 2007 21:43:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make kobject dynamic allocation check use kallsyms_lookup()
+     fix-the-sixth: gregkh-driver-kobject-remove-the-static-array-for-the-name
 has been removed from the -mm tree.  Its filename was
-     make-kobject-dynamic-allocation-check-use-kallsyms_lookup.patch
+     fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make kobject dynamic allocation check use kallsyms_lookup()
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: fix-the-sixth: gregkh-driver-kobject-remove-the-static-array-for-the-name
+From: Greg KH <greg@kroah.com>
 
-One of the top ten sysfs problems is that users use statically allocated
-kobjects.  This patch reminds them that this is a naughty thing.
+On Wed, Sep 26, 2007 at 01:02:37AM +0200, Miklos Szeredi wrote:
+> > On Wed, Sep 26, 2007 at 12:27:14AM +0200, Miklos Szeredi wrote:
+> > > I get "BUG: failure at mm/slab.c:591/page_get_cache()!" in latest -mm
+> > > when removing the fuse module.
+> > >
+> > > This patch titled "kobject: remove the static array for the name"
+> > > looks like it's responsible.  Reverting it cures the problem.
+> > >
+> > > The root of the problem seems to be, that decl_subsys() initializes
+> > > k_name with a string constant.  Then subsystem_unregister() will put
+> > > the kobject, which will free the k_name.
+> > >
+> > > So, what's the right way to deal with this?
+> >
+> > How is the static kobject created by decl_subsys() getting it's release
+> > function called when it is never really "released" as it is a static
+> > kobject?
+>
+> Don't know.
+>
+> This is the stack trace I get:
+>
+> BUG: failure at mm/slab.c:591/page_get_cache()!
+> Kernel panic - not syncing: BUG!
 
-One _really_ nice thing this patch does, is us the kallsyms mechanism to
-print out exactly which symbol is being complained about:
+Ok, here's a patch that fixes this for me.  It should go on top of the
+-mm tree.  Let me know of this works or not.
 
-	The kobject at, or inside 'statickobj.2'@(0xc040d020) is not dynamically allocated.
+In the end, we need to dynamically allocate these subsystems to properly
+fix this.  In looking through the tree, there really isn't that many of
+them, so I'll try to knock that out later this week.
 
-This patch replaces the previous implementation's use of a _sdata symbol in
-favor of using kallsyms_lookup().  If a kobject's address is a resolvable
-symbol, then it isn't dynamically allocated.
+thanks,
 
-The one exception to this is init symbols.  The patch also checks to see
-whether __init memory has been freed and if it has will allow kobjects in
-those sections.
+greg k-h
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+---
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    1 
- init/main.c          |    9 ++++++
- lib/kobject.c        |   56 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 66 insertions(+)
+ lib/kobject.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup include/linux/init.h
---- a/include/linux/init.h~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
-+++ a/include/linux/init.h
-@@ -83,6 +83,7 @@ extern initcall_t __security_initcall_st
- extern char __initdata boot_command_line[];
- extern char *saved_command_line;
- extern unsigned int reset_devices;
-+extern int initmem_now_dynamic;
- 
- /* used by init/main.c */
- void setup_arch(char **);
-diff -puN init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup init/main.c
---- a/init/main.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
-+++ a/init/main.c
-@@ -768,12 +768,21 @@ static void run_init_process(char *init_
- 	kernel_execve(init_filename, argv_init, envp_init);
- }
- 
-+/*
-+ * __init/__init_data sections are turned into normal
-+ * dynamically allocated memory later in boot.  When
-+ * this is 0, the memory is for the __init purposes,
-+ * when it it some other value, the memory is dynamic.
-+ */
-+int initmem_now_dynamic;
-+
- /* This is a non __init function. Force it to be noinline otherwise gcc
-  * makes it inline to init() and it becomes part of init.text section
-  */
- static int noinline init_post(void)
- {
- 	free_initmem();
-+	initmem_now_dynamic = 1;
- 	unlock_kernel();
- 	mark_rodata_ro();
- 	system_state = SYSTEM_RUNNING;
-diff -puN lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup lib/kobject.c
---- a/lib/kobject.c~make-kobject-dynamic-allocation-check-use-kallsyms_lookup
+diff -puN lib/kobject.c~fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name lib/kobject.c
+--- a/lib/kobject.c~fix-6-gregkh-driver-kobject-remove-the-static-array-for-the-name
 +++ a/lib/kobject.c
-@@ -15,6 +15,8 @@
- #include <linux/module.h>
- #include <linux/stat.h>
- #include <linux/slab.h>
-+#include <linux/kallsyms.h>
-+#include <asm-generic/sections.h>
+@@ -444,11 +444,11 @@ void kobject_cleanup(struct kobject * ko
+ 	struct kobject * parent = kobj->parent;
  
- /**
-  *	populate_dir - populate directory with attributes.
-@@ -121,6 +123,59 @@ char *kobject_get_path(struct kobject *k
- }
- EXPORT_SYMBOL_GPL(kobject_get_path);
- 
-+#ifdef CONFIG_X86_32
-+static int ptr_in_range(void *ptr, void *start, void *end)
-+{
-+	/*
-+	 * This should hopefully get rid of causing warnings
-+	 * if the architecture did not set one of the section
-+	 * variables up.
-+	 */
-+	if (start >= end)
-+		return 0;
-+
-+	if ((ptr >= start) && (ptr < end))
-+		return 1;
-+	return 0;
-+}
-+
-+void verify_dynamic_kobject_allocation(struct kobject *kobj)
-+{
-+	char *namebuf;
-+	const char *ret;
-+
-+	namebuf = kzalloc(KSYM_NAME_LEN, GFP_KERNEL);
-+	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL,
-+			namebuf);
-+	/*
-+	 * This is the X86_32-only part of this function.
-+	 * This is here because it is valid to have a kobject
-+	 * in an __init section, but only after those
-+	 * sections have been freed back to the dynamic pool.
-+	 */
-+	if (!initmem_now_dynamic &&
-+	    ptr_in_range(kobj, __init_begin, __init_end))
-+		goto out;
-+	if (!ret || !strlen(ret))
-+		goto out;
-+	pr_debug("---- begin silly warning ----\n");
-+	pr_debug("This is a janitorial warning, not a kernel bug.\n");
-+#ifdef CONFIG_DEBUG_KOBJECT
-+	pr_debug("The kobject at, or inside '%s'@(0x%p) is not dynamically allocated.\n",
-+			namebuf, kobj);
-+#endif
-+	pr_debug("kobjects must be dynamically allocated, not static\n");
-+	/* dump_stack(); */
-+	pr_debug("---- end silly warning ----\n");
-+out:
-+	kfree(namebuf);
-+}
-+#else
-+static void verify_dynamic_kobject_allocation(struct kobject *kobj)
-+{
-+}
-+#endif
-+
- /**
-  *	kobject_init - initialize object.
-  *	@kobj:	object in question.
-@@ -130,6 +185,7 @@ void kobject_init(struct kobject * kobj)
- 	if (!kobj)
- 		return;
- 	WARN_ON(atomic_read(&kobj->kref.refcount));
-+	verify_dynamic_kobject_allocation(kobj);
- 	kref_init(&kobj->kref);
- 	INIT_LIST_HEAD(&kobj->entry);
- 	init_waitqueue_head(&kobj->poll);
+ 	pr_debug("kobject %s: cleaning up\n",kobject_name(kobj));
+-	kfree(kobj->k_name);
+-	kobj->k_name = NULL;
+-	if (t && t->release)
++	if (t && t->release) {
+ 		t->release(kobj);
+-	else
++		kfree(kobj->k_name);
++		kobj->k_name = NULL;
++	} else
+ 		pr_debug("kobject '%s' does not have a release() function, "
+ 			"if this is not a directory kobject, it is broken "
+ 			"and must be fixed.\n",
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from greg@kroah.com are
 
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
-r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
-r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
-r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-opend-files.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-page-owner-tracking-leak-detector.patch
+fix-oops-in-platform-uevent.patch
+git-kbuild.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+wake-up-from-a-serial-port.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+scsi-send-media-state-change-modification-events.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+usb-gadget-ether-prevent-oops-caused-by-error-interrupt-race.patch
+drivers-usb-misc-sisusbvga-sisusbc-kill-two-unused-variables.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+hpet-force-enable-on-ich34.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-optimize-sg-map-unmap-calls.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+funsoft-fix-termios.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+visor-termios-bits.patch
+make-sure-nobodys-leaking-resources.patch
+workaround-for-a-pci-restoring-bug.patch
