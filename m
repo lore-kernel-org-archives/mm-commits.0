@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mips-remove-deprecated-irq-flags-sa_.patch added to -mm tree
-Date: Thu, 27 Sep 2007 13:37:07 -0700
-Message-ID: <200709272037.l8RKb7gV026969@imap1.linux-foundation.org>
+Subject: + completely-remove-deprecated-irq-flags-sa_.patch added to -mm tree
+Date: Thu, 27 Sep 2007 13:37:12 -0700
+Message-ID: <200709272037.l8RKbC1q026975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39104 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753040AbXI0Uhd (ORCPT
+	by vger.kernel.org with ESMTP id S1751659AbXI0UiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 16:37:33 -0400
+	Thu, 27 Sep 2007 16:38:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darwish.07@gmail.com, ralf@linux-mips.org
+Cc: darwish.07@gmail.com, James.Bottomley@steeleye.com, ralf@linux-mips.org, willy@debian.org
 
 
 The patch titled
-     MIPS: Remove deprecated IRQ flags (SA_*)
+     Completely remove deprecated IRQ flags (SA_*)
 has been added to the -mm tree.  Its filename is
-     mips-remove-deprecated-irq-flags-sa_.patch
+     completely-remove-deprecated-irq-flags-sa_.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MIPS: Remove deprecated IRQ flags (SA_*)
+Subject: Completely remove deprecated IRQ flags (SA_*)
 From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-A patch to stop using deprecated IRQ flags.  The new IRQF_* macros are used
-instead.
+Only very little files use the deprecated SA_* IRQ flags in latest pull.  This
+patch series removes such macros from the tree and transfrom old code to the
+new IRQF_* flags.
+
+I've grepped the whole tree to make sure that no more files than the patched
+ones use such deprecated macros.  I hope this series won't introduce build
+errors.
 
 Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/mips/pci/ops-pmcmsp.c~mips-remove-deprecated-irq-flags-sa_ arch/mips/pci/ops-pmcmsp.c
---- a/arch/mips/pci/ops-pmcmsp.c~mips-remove-deprecated-irq-flags-sa_
-+++ a/arch/mips/pci/ops-pmcmsp.c
-@@ -404,7 +404,7 @@ int msp_pcibios_config_access(unsigned c
- 	if (pciirqflag == 0) {
- 		request_irq(MSP_INT_PCI,/* Hardcoded internal MSP7120 wiring */
- 				bpci_interrupt,
--				SA_SHIRQ | SA_INTERRUPT,
-+				IRQF_SHARED | IRQF_DISABLED,
- 				"PMC MSP PCI Host",
- 				preg);
- 		pciirqflag = ~0;
-diff -puN arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~mips-remove-deprecated-irq-flags-sa_ arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
---- a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~mips-remove-deprecated-irq-flags-sa_
-+++ a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
-@@ -163,7 +163,7 @@ static int msp_hwbutton_register(struct 
- 		CIC_EXT_SET_ACTIVE_HI(cic_ext, hirq->eirq);
- 	*CIC_EXT_CFG_REG = cic_ext;
+diff -puN include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_ include/linux/interrupt.h
+--- a/include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_
++++ a/include/linux/interrupt.h
+@@ -55,28 +55,6 @@
+ #define IRQF_NOBALANCING	0x00000800
+ #define IRQF_IRQPOLL		0x00001000
  
--	return request_irq(hirq->irq, hwbutton_handler, SA_INTERRUPT,
-+	return request_irq(hirq->irq, hwbutton_handler, IRQF_DISABLED,
- 				hirq->name, (void *)hirq);
- }
+-/*
+- * Migration helpers. Scheduled for removal in 9/2007
+- * Do not use for new code !
+- */
+-static inline
+-unsigned long __deprecated deprecated_irq_flag(unsigned long flag)
+-{
+-	return flag;
+-}
+-
+-#define SA_INTERRUPT		deprecated_irq_flag(IRQF_DISABLED)
+-#define SA_SAMPLE_RANDOM	deprecated_irq_flag(IRQF_SAMPLE_RANDOM)
+-#define SA_SHIRQ		deprecated_irq_flag(IRQF_SHARED)
+-#define SA_PROBEIRQ		deprecated_irq_flag(IRQF_PROBE_SHARED)
+-#define SA_PERCPU		deprecated_irq_flag(IRQF_PERCPU)
+-
+-#define SA_TRIGGER_LOW		deprecated_irq_flag(IRQF_TRIGGER_LOW)
+-#define SA_TRIGGER_HIGH		deprecated_irq_flag(IRQF_TRIGGER_HIGH)
+-#define SA_TRIGGER_FALLING	deprecated_irq_flag(IRQF_TRIGGER_FALLING)
+-#define SA_TRIGGER_RISING	deprecated_irq_flag(IRQF_TRIGGER_RISING)
+-#define SA_TRIGGER_MASK		deprecated_irq_flag(IRQF_TRIGGER_MASK)
+-
+ typedef irqreturn_t (*irq_handler_t)(int, void *);
  
+ struct irqaction {
 _
 
 Patches currently in -mm which might be from darwish.07@gmail.com are
