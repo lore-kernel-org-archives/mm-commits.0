@@ -1,71 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fix-headers_check.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:59 -0700
-Message-ID: <200709270143.l8R1hxOr014004@imap1.linux-foundation.org>
+Subject: - i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:43 -0700
+Message-ID: <200709270143.l8R1hhpD013986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752532AbXI0BvJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752587AbXI0BvH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:51:09 -0400
+	Wed, 26 Sep 2007 21:51:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Juha.Laiho@iki.fi, ak@suse.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: fix headers_check
+     i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
 has been removed from the -mm tree.  Its filename was
-     git-block-fix-headers_check.patch
+     i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block: fix headers_check
+Subject: i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- include/linux/net.h: remove need for splice.h inclusion
+fix x86_64 build.
 
-- include/linux/skbuff.h: remove dependency on net.h (probably pointless,
-  given that it includes net.h anwyay).
-
-(akpm: still broken, still needed!)
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Juha Laiho <Juha.Laiho@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/net.h    |    2 +-
- include/linux/skbuff.h |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/i386/pci/common.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/net.h~git-block-fix-headers_check include/linux/net.h
---- a/include/linux/net.h~git-block-fix-headers_check
-+++ a/include/linux/net.h
-@@ -19,10 +19,10 @@
- #define _LINUX_NET_H
- 
- #include <linux/wait.h>
--#include <linux/splice.h>
- #include <asm/socket.h>
- 
- struct poll_table_struct;
-+struct pipe_inode_info;
- struct inode;
- struct net;
- 
-diff -puN include/linux/skbuff.h~git-block-fix-headers_check include/linux/skbuff.h
---- a/include/linux/skbuff.h~git-block-fix-headers_check
-+++ a/include/linux/skbuff.h
-@@ -29,6 +29,8 @@
- #include <linux/dmaengine.h>
- #include <linux/hrtimer.h>
- 
-+struct pipe_inode_info;
-+
- #define HAVE_ALLOC_SKB		/* For the drivers to know */
- #define HAVE_ALIGNABLE_SKB	/* Ditto 8)		   */
+diff -puN arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering-fix
++++ a/arch/i386/pci/common.c
+@@ -289,6 +289,7 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL685c G1"),
+ 		},
+ 	},
++#ifdef __i386__
+ 	{
+ 		.callback = assign_all_busses,
+ 		.ident = "Compaq EVO N800c",
+@@ -297,6 +298,7 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "EVO N800c"),
+ 		},
+ 	},
++#endif
+ 	{}
+ };
  
 _
 
