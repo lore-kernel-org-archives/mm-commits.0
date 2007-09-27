@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-kvm-warning-fix.patch added to -mm tree
-Date: Wed, 26 Sep 2007 22:44:21 -0700
-Message-ID: <200709270550.l8R5oHaJ022074@imap1.linux-foundation.org>
+Subject: + peterz-vs-ext4-mballoc-core.patch added to -mm tree
+Date: Wed, 26 Sep 2007 22:44:15 -0700
+Message-ID: <200709270550.l8R5oBYD022071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753951AbXI0FuY (ORCPT
+	by vger.kernel.org with ESMTP id S1753941AbXI0FuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 27 Sep 2007 01:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     git-kvm-warning-fix
+     peterz-vs-ext4-mballoc-core
 has been added to the -mm tree.  Its filename is
-     git-kvm-warning-fix.patch
+     peterz-vs-ext4-mballoc-core.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kvm-warning-fix
+Subject: peterz-vs-ext4-mballoc-core
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/kvm/x86_emulate.c: In function 'x86_decode_insn':
-drivers/kvm/x86_emulate.c:525: warning: unused variable 'i'
+argh at gratuitous unrelated code churn :(
 
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/x86_emulate.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext4/mballoc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/kvm/x86_emulate.c~git-kvm-warning-fix drivers/kvm/x86_emulate.c
---- a/drivers/kvm/x86_emulate.c~git-kvm-warning-fix
-+++ a/drivers/kvm/x86_emulate.c
-@@ -522,7 +522,6 @@ x86_decode_insn(struct x86_emulate_ctxt 
- {
- 	struct decode_cache *c = &ctxt->decode;
- 	u8 sib, rex_prefix = 0;
--	unsigned int i;
- 	int rc = 0;
- 	int mode = ctxt->mode;
- 	int index_reg = 0, base_reg = 0, scale, rip_relative = 0;
+diff -puN fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core
++++ a/fs/ext4/mballoc.c
+@@ -3009,7 +3009,7 @@ int ext4_mb_mark_diskspace_used(struct e
+ 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count)
+ 				- ac->ac_b_ex.fe_len);
+ 	spin_unlock(sb_bgl_lock(sbi, ac->ac_b_ex.fe_group));
+-	percpu_counter_mod(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
++	percpu_counter_add(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
+ 
+ 	err = ext4_journal_dirty_metadata(handle, bitmap_bh);
+ 	if (err)
+@@ -4435,7 +4435,7 @@ do_more:
+ 	gdp->bg_free_blocks_count =
+ 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count) + count);
+ 	spin_unlock(sb_bgl_lock(sbi, block_group));
+-	percpu_counter_mod(&sbi->s_freeblocks_counter, count);
++	percpu_counter_add(&sbi->s_freeblocks_counter, count);
+ 
+ 	ext4_mb_release_desc(&e4b);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
