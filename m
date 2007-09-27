@@ -1,73 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-fix-sun-state.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:42:36 -0700
-Message-ID: <200709270142.l8R1gamO013887@imap1.linux-foundation.org>
+Subject: - fix-mspec-handle-shrinking-virtual-memory-areas.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:42:39 -0700
+Message-ID: <200709270142.l8R1gdeY013890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301AbXI0Bml (ORCPT
+	by vger.kernel.org with ESMTP id S1751733AbXI0Bmn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:42:41 -0400
+	Wed, 26 Sep 2007 21:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, mm-commits@vger.kernel.org
+To: cpw@sgi.com, jes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: fix sun state
+     fix "mspec: handle shrinking virtual memory areas"
 has been removed from the -mm tree.  Its filename was
-     ufs-fix-sun-state.patch
+     fix-mspec-handle-shrinking-virtual-memory-areas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs: fix sun state
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: fix "mspec: handle shrinking virtual memory areas"
+From: Cliff Wickman <cpw@sgi.com>
 
-Different types of ufs hold state in different places, to hide complexity
-of this, there is ufs_get_fs_state, it returns state according to
-"UFS_SB(sb)->s_flags", but during mount ufs_get_fs_state is called, before
-setting s_flags, this cause message for ufs types like sun ufs: "fs need
-fsck", and remount in readonly state.
+The vma_data structure may be shared by vma's from multiple tasks, with no
+way of knowing which areas are shared or not shared, so release/clear pages
+only when the refcount (of vma's) goes to zero.
 
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Signed-off-by: Cliff Wickman <cpw@sgi.com>
+Cc: Jes Sorensen <jes@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/char/mspec.c |   26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN fs/ufs/super.c~ufs-fix-sun-state fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-fix-sun-state
-+++ a/fs/ufs/super.c
-@@ -894,7 +894,7 @@ magic_found:
- 		goto again;
+diff -puN drivers/char/mspec.c~fix-mspec-handle-shrinking-virtual-memory-areas drivers/char/mspec.c
+--- a/drivers/char/mspec.c~fix-mspec-handle-shrinking-virtual-memory-areas
++++ a/drivers/char/mspec.c
+@@ -155,23 +155,22 @@ mspec_open(struct vm_area_struct *vma)
+  * mspec_close
+  *
+  * Called when unmapping a device mapping. Frees all mspec pages
+- * belonging to the vma.
++ * belonging to all the vma's sharing this vma_data structure.
+  */
+ static void
+ mspec_close(struct vm_area_struct *vma)
+ {
+ 	struct vma_data *vdata;
+-	int index, last_index, result;
++	int index, last_index;
+ 	unsigned long my_page;
+ 
+ 	vdata = vma->vm_private_data;
+ 
+-	BUG_ON(vma->vm_start < vdata->vm_start || vma->vm_end > vdata->vm_end);
++	if (!atomic_dec_and_test(&vdata->refcnt))
++		return;
+ 
+-	spin_lock(&vdata->lock);
+-	index = (vma->vm_start - vdata->vm_start) >> PAGE_SHIFT;
+-	last_index = (vma->vm_end - vdata->vm_start) >> PAGE_SHIFT;
+-	for (; index < last_index; index++) {
++	last_index = (vdata->vm_end - vdata->vm_start) >> PAGE_SHIFT;
++	for (index = 0; index < last_index; index++) {
+ 		if (vdata->maddr[index] == 0)
+ 			continue;
+ 		/*
+@@ -180,20 +179,12 @@ mspec_close(struct vm_area_struct *vma)
+ 		 */
+ 		my_page = vdata->maddr[index];
+ 		vdata->maddr[index] = 0;
+-		spin_unlock(&vdata->lock);
+-		result = mspec_zero_block(my_page, PAGE_SIZE);
+-		if (!result)
++		if (!mspec_zero_block(my_page, PAGE_SIZE))
+ 			uncached_free_page(my_page);
+ 		else
+ 			printk(KERN_WARNING "mspec_close(): "
+-			       "failed to zero page %i\n",
+-			       result);
+-		spin_lock(&vdata->lock);
++			       "failed to zero page %ld\n", my_page);
  	}
+-	spin_unlock(&vdata->lock);
+-
+-	if (!atomic_dec_and_test(&vdata->refcnt))
+-		return;
+ 
+ 	if (vdata->flags & VMD_VMALLOCED)
+ 		vfree(vdata);
+@@ -201,7 +192,6 @@ mspec_close(struct vm_area_struct *vma)
+ 		kfree(vdata);
+ }
  
 -
-+	sbi->s_flags = flags;/*after that line some functions use s_flags*/
- 	ufs_print_super_stuff(sb, usb1, usb2, usb3);
- 
- 	/*
-@@ -1025,8 +1025,6 @@ magic_found:
- 	    UFS_MOUNT_UFSTYPE_44BSD)
- 		uspi->s_maxsymlinklen =
- 		    fs32_to_cpu(sb, usb3->fs_un2.fs_44.fs_maxsymlinklen);
--	
--	sbi->s_flags = flags;
- 
- 	inode = iget(sb, UFS_ROOTINO);
- 	if (!inode || is_bad_inode(inode))
+ /*
+  * mspec_nopfn
+  *
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from cpw@sgi.com are
 
 origin.patch
-ufs-convert-to-new-aops.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
-ufs-implement-show_options.patch
-ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
