@@ -1,167 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-ext4_find_next_bit.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:44:36 -0700
-Message-ID: <200709270144.l8R1iaa4014053@imap1.linux-foundation.org>
+Subject: - i386-compaq-evo-n800c-needs-pci-bus-renumbering.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:41 -0700
+Message-ID: <200709270143.l8R1hfE8013983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53802 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54999 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752667AbXI0BvV (ORCPT
+	by vger.kernel.org with ESMTP id S1752668AbXI0BvQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:51:21 -0400
+	Wed, 26 Sep 2007 21:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: Juha.Laiho@iki.fi, ak@suse.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce ext4_find_next_bit
+     i386: Compaq EVO N800c needs PCI bus renumbering
 has been removed from the -mm tree.  Its filename was
-     introduce-ext4_find_next_bit.patch
+     i386-compaq-evo-n800c-needs-pci-bus-renumbering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Introduce ext4_find_next_bit
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: i386: Compaq EVO N800c needs PCI bus renumbering
+From: Juha Laiho <Juha.Laiho@iki.fi>
 
-Also add generic_find_next_le_bit
+Force PCI bus renumbering for Compaq EVO N800c laptop, in order to get
+the cardbus slot recognised.
 
-This gets used by the ext4 multi block allocator patches.
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Juha Laiho <Juha.Laiho@iki.fi>
+Cc: Greg KH <greg@kroah.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/ext2-non-atomic.h |    2 
- include/asm-generic/bitops/le.h              |    4 +
- include/asm-powerpc/bitops.h                 |    4 +
- include/linux/ext4_fs.h                      |    1 
- lib/find_next_bit.c                          |   44 +++++++++++++++++
- 5 files changed, 55 insertions(+)
+ arch/i386/pci/common.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit include/asm-generic/bitops/ext2-non-atomic.h
---- a/include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit
-+++ a/include/asm-generic/bitops/ext2-non-atomic.h
-@@ -14,5 +14,7 @@
- 	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
- #define ext2_find_next_zero_bit(addr, size, off) \
- 	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
-+#define ext2_find_next_bit(addr, size, off) \
-+	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
+diff -puN arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering arch/i386/pci/common.c
+--- a/arch/i386/pci/common.c~i386-compaq-evo-n800c-needs-pci-bus-renumbering
++++ a/arch/i386/pci/common.c
+@@ -289,6 +289,14 @@ static struct dmi_system_id __devinitdat
+ 			DMI_MATCH(DMI_PRODUCT_NAME, "ProLiant BL685c G1"),
+ 		},
+ 	},
++	{
++		.callback = assign_all_busses,
++		.ident = "Compaq EVO N800c",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Compaq"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "EVO N800c"),
++		},
++	},
+ 	{}
+ };
  
- #endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
-diff -puN include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit include/asm-generic/bitops/le.h
---- a/include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit
-+++ a/include/asm-generic/bitops/le.h
-@@ -20,6 +20,8 @@
- #define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
- 
- #define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
-+#define generic_find_next_le_bit(addr, size, offset) \
-+			find_next_bit(addr, size, offset)
- 
- #elif defined(__BIG_ENDIAN)
- 
-@@ -42,6 +44,8 @@
- 
- extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
- 		unsigned long size, unsigned long offset);
-+extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
-+		unsigned long size, unsigned long offset);
- 
- #else
- #error "Please fix <asm/byteorder.h>"
-diff -puN include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit include/asm-powerpc/bitops.h
---- a/include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit
-+++ a/include/asm-powerpc/bitops.h
-@@ -310,6 +310,8 @@ static __inline__ int test_le_bit(unsign
- unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
- 				    unsigned long size, unsigned long offset);
- 
-+unsigned long generic_find_next_le_bit(const unsigned long *addr,
-+				    unsigned long size, unsigned long offset);
- /* Bitmap functions for the ext2 filesystem */
- 
- #define ext2_set_bit(nr,addr) \
-@@ -329,6 +331,8 @@ unsigned long generic_find_next_zero_le_
- #define ext2_find_next_zero_bit(addr, size, off) \
- 	generic_find_next_zero_le_bit((unsigned long*)addr, size, off)
- 
-+#define ext2_find_next_bit(addr, size, off) \
-+	generic_find_next_le_bit((unsigned long *)addr, size, off)
- /* Bitmap functions for the minix filesystem.  */
- 
- #define minix_test_and_set_bit(nr,addr) \
-diff -puN include/linux/ext4_fs.h~introduce-ext4_find_next_bit include/linux/ext4_fs.h
---- a/include/linux/ext4_fs.h~introduce-ext4_find_next_bit
-+++ a/include/linux/ext4_fs.h
-@@ -492,6 +492,7 @@ do {									       \
- #define ext4_test_bit			ext2_test_bit
- #define ext4_find_first_zero_bit	ext2_find_first_zero_bit
- #define ext4_find_next_zero_bit		ext2_find_next_zero_bit
-+#define ext4_find_next_bit		ext2_find_next_bit
- 
- /*
-  * Maximal mount counts between two filesystem checks
-diff -puN lib/find_next_bit.c~introduce-ext4_find_next_bit lib/find_next_bit.c
---- a/lib/find_next_bit.c~introduce-ext4_find_next_bit
-+++ a/lib/find_next_bit.c
-@@ -178,4 +178,48 @@ found_middle_swap:
- 
- EXPORT_SYMBOL(generic_find_next_zero_le_bit);
- 
-+unsigned long generic_find_next_le_bit(const unsigned long *addr, unsigned
-+		long size, unsigned long offset)
-+{
-+	const unsigned long *p = addr + BITOP_WORD(offset);
-+	unsigned long result = offset & ~(BITS_PER_LONG - 1);
-+	unsigned long tmp;
-+
-+	if (offset >= size)
-+		return size;
-+	size -= result;
-+	offset &= (BITS_PER_LONG - 1UL);
-+	if (offset) {
-+		tmp = ext2_swabp(p++);
-+		tmp &= (~0UL << offset);
-+		if (size < BITS_PER_LONG)
-+			goto found_first;
-+		if (tmp)
-+			goto found_middle;
-+		size -= BITS_PER_LONG;
-+		result += BITS_PER_LONG;
-+	}
-+
-+	while (size & ~(BITS_PER_LONG - 1)) {
-+		tmp = *(p++);
-+		if (tmp)
-+			goto found_middle_swap;
-+		result += BITS_PER_LONG;
-+		size -= BITS_PER_LONG;
-+	}
-+	if (!size)
-+		return result;
-+	tmp = ext2_swabp(p);
-+found_first:
-+	tmp &= (~0UL >> (BITS_PER_LONG - size));
-+	if (tmp == 0UL)		/* Are any bits set? */
-+		return result + size; /* Nope. */
-+found_middle:
-+	return result + __ffs(tmp);
-+
-+found_middle_swap:
-+	return result + __ffs(ext2_swab(tmp));
-+}
-+EXPORT_SYMBOL(generic_find_next_le_bit);
-+
- #endif /* __BIG_ENDIAN */
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
-
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-ext4-uninitialized-block-groups.patch
-ext4-fix-sparse-warnings.patch
+Patches currently in -mm which might be from Juha.Laiho@iki.fi are
