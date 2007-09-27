@@ -1,98 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-dasd_eckd-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:54 -0700
-Message-ID: <200709270143.l8R1hsJq014001@imap1.linux-foundation.org>
+Subject: - fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:44:33 -0700
+Message-ID: <200709270144.l8R1iXYT014046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58687 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555AbXI0Bu6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752571AbXI0Bu7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:50:58 -0400
+	Wed, 26 Sep 2007 21:50:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: dasd_eckd fix
+     fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     git-block-dasd_eckd-fix.patch
+     fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-block: dasd_eckd fix
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: fs/jbd2/journal.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c: In function `dasd_eckd_build_cp':
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1181: error: syntax error before "struct"
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `iter' undeclared (first use in this function)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: (Each undeclared identifier is reported only once
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: for each function it appears in.)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `bv' undeclared (first use in this function)
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
-/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
-make[3]: *** [drivers/s390/block/dasd_eckd.o] Error 1
-make[2]: *** [drivers/s390/block] Error 2
+ fs/jbd2/journal.c | 66771 -> 66719 (-52 bytes)
+ fs/jbd2/journal.o | 199193 -> 199049 (-144 bytes)
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/block/dasd_eckd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd2/journal.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix drivers/s390/block/dasd_eckd.c
---- a/drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix
-+++ a/drivers/s390/block/dasd_eckd.c
-@@ -1176,7 +1176,7 @@ dasd_eckd_build_cp(struct dasd_device * 
- 	struct LO_eckd_data *LO_data;
- 	struct dasd_ccw_req *cqr;
- 	struct ccw1 *ccw;
--	struct req_iterator iter
-+	struct req_iterator iter;
- 	struct bio_vec *bv;
- 	char *dst;
- 	unsigned int blksize, blk_per_trk, off;
+diff -puN fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fs-jbd2-journalc-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/jbd2/journal.c
+@@ -928,17 +928,16 @@ static void journal_init_stats(journal_t
+ {
+ 	int size;
+ 
+-	if (proc_jbd2_stats == NULL)
++	if (!proc_jbd2_stats)
+ 		return;
+ 
+ 	journal->j_history_max = 100;
+ 	size = sizeof(struct transaction_stats_s) * journal->j_history_max;
+-	journal->j_history = kmalloc(size, GFP_KERNEL);
+-	if (journal->j_history == NULL) {
++	journal->j_history = kzalloc(size, GFP_KERNEL);
++	if (!journal->j_history) {
+ 		journal->j_history_max = 0;
+ 		return;
+ 	}
+-	memset(journal->j_history, 0, size);
+ 	spin_lock_init(&journal->j_history_lock);
+ }
+ 
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-git-net-sctp-build-fix.patch
-oom-move-prototypes-to-appropriate-header-file-fix.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-ipc-namespace-remove-config-ipc-ns-fix.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+git-alsa.patch
+git-arm.patch
+fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+git-powerpc.patch
+git-dvb.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+git-scsi-misc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
