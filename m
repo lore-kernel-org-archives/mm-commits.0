@@ -1,98 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-full_regs-on-exec.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:01 -0700
-Message-ID: <200709270143.l8R1h1X9013917@imap1.linux-foundation.org>
+Subject: - acpi-suspend-fix-acpi_sleep-states.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:42:53 -0700
+Message-ID: <200709270142.l8R1grW5013908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41820 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752276AbXI0BnT (ORCPT
+	by vger.kernel.org with ESMTP id S1752474AbXI0BnW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:43:19 -0400
+	Wed, 26 Sep 2007 21:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: astarikovskiy@suse.de, akpm@linux-foundation.org, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: FULL_REGS on exec
+     ACPI: suspend: fix ACPI_SLEEP states
 has been removed from the -mm tree.  Its filename was
-     powerpc-full_regs-on-exec.patch
+     acpi-suspend-fix-acpi_sleep-states.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: FULL_REGS on exec
-From: Roland McGrath <roland@redhat.com>
+Subject: ACPI: suspend: fix ACPI_SLEEP states
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-When PTRACE_O_TRACEEXEC is used, a ptrace call to fetch the registers at the
-PTRACE_EVENT_EXEC stop (PTRACE_PEEKUSR) will oops in CHECK_FULL_REGS.  With
-recent versions, "gdb --args /bin/sh -c 'exec /bin/true'" and "run" at the
-(gdb) prompt is sufficient to produce this.  I also have written an isolated
-test case, see https://bugzilla.redhat.com/show_bug.cgi?id=301791#c15.
+Fix for commit f216cc3748a3a22c2b99390fddcdafa0583791a2, allow S5 power-off,
+even if ACPI_SLEEP/PM_SLEEP is not selected.
 
-This change fixes the problem by clearing the low bit of pt_regs.trap in
-start_thread so that FULL_REGS is true again.  This is correct since all of
-the GPRs that "full" refers to are cleared in start_thread.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/acpi/sleep/Makefile |    2 +-
+ drivers/acpi/sleep/main.c   |    4 ++++
+ include/acpi/acpi_drivers.h |    4 ----
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/process.c~powerpc-full_regs-on-exec arch/powerpc/kernel/process.c
---- a/arch/powerpc/kernel/process.c~powerpc-full_regs-on-exec
-+++ a/arch/powerpc/kernel/process.c
-@@ -605,6 +605,13 @@ void start_thread(struct pt_regs *regs, 
- 	regs->ccr = 0;
- 	regs->gpr[1] = sp;
+diff -puN drivers/acpi/sleep/Makefile~acpi-suspend-fix-acpi_sleep-states drivers/acpi/sleep/Makefile
+--- a/drivers/acpi/sleep/Makefile~acpi-suspend-fix-acpi_sleep-states
++++ a/drivers/acpi/sleep/Makefile
+@@ -1,5 +1,5 @@
+ obj-y					:= wakeup.o
+-obj-$(CONFIG_ACPI_SLEEP)		+= main.o
++obj-y					+= main.o
+ obj-$(CONFIG_ACPI_SLEEP)		+= proc.o
  
-+	/*
-+	 * We have just cleared all the nonvolatile GPRs, so make
-+	 * FULL_REGS(regs) return true.  This is necessary to allow
-+	 * ptrace to examine the thread immediately after exec.
-+	 */
-+	regs->trap &= ~1UL;
-+
- #ifdef CONFIG_PPC32
- 	regs->mq = 0;
- 	regs->nip = start;
+ EXTRA_CFLAGS += $(ACPI_CFLAGS)
+diff -puN drivers/acpi/sleep/main.c~acpi-suspend-fix-acpi_sleep-states drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-suspend-fix-acpi_sleep-states
++++ a/drivers/acpi/sleep/main.c
+@@ -24,7 +24,9 @@
+ 
+ u8 sleep_states[ACPI_S_STATE_COUNT];
+ 
++#ifdef CONFIG_PM_SLEEP
+ static u32 acpi_target_sleep_state = ACPI_STATE_S0;
++#endif
+ 
+ int acpi_sleep_prepare(u32 acpi_state)
+ {
+@@ -299,6 +301,7 @@ int acpi_suspend(u32 acpi_state)
+ 	return -EINVAL;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
+ /**
+  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
+  *		in the system sleep state given by %acpi_target_sleep_state
+@@ -373,6 +376,7 @@ int acpi_pm_device_sleep_state(struct de
+ 		*d_min_p = d_min;
+ 	return d_max;
+ }
++#endif
+ 
+ static void acpi_power_off_prepare(void)
+ {
+diff -puN include/acpi/acpi_drivers.h~acpi-suspend-fix-acpi_sleep-states include/acpi/acpi_drivers.h
+--- a/include/acpi/acpi_drivers.h~acpi-suspend-fix-acpi_sleep-states
++++ a/include/acpi/acpi_drivers.h
+@@ -147,10 +147,6 @@ static inline void unregister_hotplug_do
+ /*--------------------------------------------------------------------------
+                                   Suspend/Resume
+   -------------------------------------------------------------------------- */
+-#ifdef CONFIG_ACPI_SLEEP
+ extern int acpi_sleep_init(void);
+-#else
+-static inline int acpi_sleep_init(void) { return 0; }
+-#endif
+ 
+ #endif /*__ACPI_DRIVERS_H__*/
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
 origin.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-powerpc-vdso-install-unstripped-copies-on-disk-update.patch
-powerpc-ptrace-check_full_regs.patch
-x86_64-vdso-linker-script-cleanup.patch
-x86_64-vdso-put-vars-in-rodata.patch
-clone-flag-clone_parent_tidptr-leaves-invalid-results-in-memory.patch
-add-sys-module-name-notes.patch
-do_sigaction-remove-now-unneeded-recalc_sigpending.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-wait_task_zombie-remove-unneeded-child-signal-check.patch
-wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
-exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
-zap_other_threads-dont-optimize-thread_group_empty-case.patch
-wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
-__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
-wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
-add-mmf_dump_elf_headers.patch
-pie-executable-randomization.patch
-pie-executable-randomization-fix.patch
-pie-executable-randomization-fix-2.patch
-pie-executable-randomization-fix-3.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
-exec-simplify-sighand-switching.patch
-exec-simplify-the-new-sighand-allocation.patch
-exec-consolidate-2-fast-paths.patch
-exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
-do_sigaction-dont-worry-about-signal_pending.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-fix-tsk-exit_state-usage-resend.patch
+git-acpi.patch
+acpi-sbs-fix-sbs-add-alarm-patch.patch
