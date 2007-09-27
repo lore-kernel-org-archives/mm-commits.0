@@ -1,64 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:44:09 -0700
-Message-ID: <200709270144.l8R1i9ki014022@imap1.linux-foundation.org>
+Subject: - git-block-dasd_eckd-fix.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:43:54 -0700
+Message-ID: <200709270143.l8R1hsJq014001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54454 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58687 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752613AbXI0BvD (ORCPT
+	by vger.kernel.org with ESMTP id S1752555AbXI0Bu6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:51:03 -0400
+	Wed, 26 Sep 2007 21:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stern@rowland.harvard.edu, greg@kroah.com, mm-commits@vger.kernel.org
+To: clg@fr.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: don't propagate FREEZE or PRETHAW suspends
+     git-block: dasd_eckd fix
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending.patch
+     git-block-dasd_eckd-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: USB: don't propagate FREEZE or PRETHAW suspends
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: git-block: dasd_eckd fix
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-This patch (as992) fixes a recently-added bug.  During a FREEZE or PRETHAW
-suspend notification, non-root devices don't actually get suspended.  So we
-shouldn't tell their parent hubs that they did.
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c: In function `dasd_eckd_build_cp':
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1181: error: syntax error before "struct"
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `iter' undeclared (first use in this function)
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: (Each undeclared identifier is reported only once
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: for each function it appears in.)
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: error: `bv' undeclared (first use in this function)
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: left-hand operand of comma expression has no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: left-hand operand of comma expression has no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1209: warning: statement with no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
+/home/clg/linux/2.6.23-rc7-mm1/drivers/s390/block/dasd_eckd.c:1257: warning: statement with no effect
+make[3]: *** [drivers/s390/block/dasd_eckd.o] Error 1
+make[2]: *** [drivers/s390/block] Error 2
 
-(This code path used to be skipped over, until the FREEZE/PRETHAW test got
-moved out of usb_suspend_both() into generic_suspend().)
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/driver.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/s390/block/dasd_eckd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending drivers/usb/core/driver.c
---- a/drivers/usb/core/driver.c~fix-gregkh-usb-usb-flush-outstanding-urbs-when-suspending
-+++ a/drivers/usb/core/driver.c
-@@ -1097,7 +1097,12 @@ static int usb_suspend_both(struct usb_d
- 			usb_hcd_flush_endpoint(udev, udev->ep_out[i]);
- 			usb_hcd_flush_endpoint(udev, udev->ep_in[i]);
- 		}
--		if (parent)
-+
-+		/* If this is just a FREEZE or a PRETHAW, udev might
-+		 * not really be suspended.  Only true suspends get
-+		 * propagated up the device tree.
-+		 */
-+		if (parent && udev->state == USB_STATE_SUSPENDED)
- 			usb_autosuspend_device(parent);
- 	}
- 
+diff -puN drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix drivers/s390/block/dasd_eckd.c
+--- a/drivers/s390/block/dasd_eckd.c~git-block-dasd_eckd-fix
++++ a/drivers/s390/block/dasd_eckd.c
+@@ -1176,7 +1176,7 @@ dasd_eckd_build_cp(struct dasd_device * 
+ 	struct LO_eckd_data *LO_data;
+ 	struct dasd_ccw_req *cqr;
+ 	struct ccw1 *ccw;
+-	struct req_iterator iter
++	struct req_iterator iter;
+ 	struct bio_vec *bv;
+ 	char *dst;
+ 	unsigned int blksize, blk_per_trk, off;
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
-scsi-early-detection-of-medium-not-present-updated.patch
+git-net-sctp-build-fix.patch
+oom-move-prototypes-to-appropriate-header-file-fix.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+ipc-namespace-remove-config-ipc-ns-fix.patch
+remove-unused-member-from-nsproxy.patch
+use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
