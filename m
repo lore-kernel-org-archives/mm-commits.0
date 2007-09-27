@@ -1,155 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - pata_scc-keep-up-with-libata-core-api-changes.patch removed from -mm tree
-Date: Wed, 26 Sep 2007 18:43:22 -0700
-Message-ID: <200709270143.l8R1hMX5013951@imap1.linux-foundation.org>
+Subject: - introduce-ext4_find_next_bit.patch removed from -mm tree
+Date: Wed, 26 Sep 2007 18:44:36 -0700
+Message-ID: <200709270144.l8R1iaa4014053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39154 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53802 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752712AbXI0Bve (ORCPT
+	by vger.kernel.org with ESMTP id S1752667AbXI0BvV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Sep 2007 21:51:34 -0400
+	Wed, 26 Sep 2007 21:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, alan@redhat.com, jeff@garzik.org, mel@skynet.ie, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_scc: Keep up with libata core API changes
+     Introduce ext4_find_next_bit
 has been removed from the -mm tree.  Its filename was
-     pata_scc-keep-up-with-libata-core-api-changes.patch
+     introduce-ext4_find_next_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_scc: Keep up with libata core API changes
-From: Satyam Sharma <satyam@infradead.org>
+Subject: Introduce ext4_find_next_bit
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-Little fixlets, that the build started erroring / warning about:
+Also add generic_find_next_le_bit
 
-drivers/ata/pata_scc.c: In function 'scc_bmdma_status':
-drivers/ata/pata_scc.c:734: error: structure has no member named 'active_tag'
-drivers/ata/pata_scc.c: In function 'scc_pata_prereset':
-drivers/ata/pata_scc.c:866: warning: passing arg 1 of 'ata_std_prereset' from incompatible pointer type
-drivers/ata/pata_scc.c: In function 'scc_error_handler':
-drivers/ata/pata_scc.c:908: warning: passing arg 2 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 3 of 'ata_bmdma_drive_eh' from incompatible pointer type
-drivers/ata/pata_scc.c:908: warning: passing arg 5 of 'ata_bmdma_drive_eh' from incompatible pointer type
-make[2]: *** [drivers/ata/pata_scc.o] Error 1
+This gets used by the ext4 multi block allocator patches.
 
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Mel Gorman <mel@skynet.ie>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_scc.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ include/asm-generic/bitops/ext2-non-atomic.h |    2 
+ include/asm-generic/bitops/le.h              |    4 +
+ include/asm-powerpc/bitops.h                 |    4 +
+ include/linux/ext4_fs.h                      |    1 
+ lib/find_next_bit.c                          |   44 +++++++++++++++++
+ 5 files changed, 55 insertions(+)
 
-diff -puN drivers/ata/pata_scc.c~pata_scc-keep-up-with-libata-core-api-changes drivers/ata/pata_scc.c
---- a/drivers/ata/pata_scc.c~pata_scc-keep-up-with-libata-core-api-changes
-+++ a/drivers/ata/pata_scc.c
-@@ -594,16 +594,17 @@ static unsigned int scc_bus_softreset(st
-  *	Note: Original code is ata_std_softreset().
-  */
+diff -puN include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit include/asm-generic/bitops/ext2-non-atomic.h
+--- a/include/asm-generic/bitops/ext2-non-atomic.h~introduce-ext4_find_next_bit
++++ a/include/asm-generic/bitops/ext2-non-atomic.h
+@@ -14,5 +14,7 @@
+ 	generic_find_first_zero_le_bit((unsigned long *)(addr), (size))
+ #define ext2_find_next_zero_bit(addr, size, off) \
+ 	generic_find_next_zero_le_bit((unsigned long *)(addr), (size), (off))
++#define ext2_find_next_bit(addr, size, off) \
++	generic_find_next_le_bit((unsigned long *)(addr), (size), (off))
  
--static int scc_std_softreset (struct ata_port *ap, unsigned int *classes,
--                              unsigned long deadline)
-+static int scc_std_softreset(struct ata_link *link, unsigned int *classes,
-+                             unsigned long deadline)
- {
-+	struct ata_port *ap = link->ap;
- 	unsigned int slave_possible = ap->flags & ATA_FLAG_SLAVE_POSS;
- 	unsigned int devmask = 0, err_mask;
- 	u8 err;
+ #endif /* _ASM_GENERIC_BITOPS_EXT2_NON_ATOMIC_H_ */
+diff -puN include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit include/asm-generic/bitops/le.h
+--- a/include/asm-generic/bitops/le.h~introduce-ext4_find_next_bit
++++ a/include/asm-generic/bitops/le.h
+@@ -20,6 +20,8 @@
+ #define generic___test_and_clear_le_bit(nr, addr) __test_and_clear_bit(nr, addr)
  
- 	DPRINTK("ENTER\n");
+ #define generic_find_next_zero_le_bit(addr, size, offset) find_next_zero_bit(addr, size, offset)
++#define generic_find_next_le_bit(addr, size, offset) \
++			find_next_bit(addr, size, offset)
  
--	if (ata_link_offline(&ap->link)) {
-+	if (ata_link_offline(link)) {
- 		classes[0] = ATA_DEV_NONE;
- 		goto out;
- 	}
-@@ -694,7 +695,7 @@ static void scc_bmdma_stop (struct ata_q
- 			printk(KERN_WARNING "%s: Internal Bus Error\n", DRV_NAME);
- 			out_be32(bmid_base + SCC_DMA_INTST, INTSTS_BMSINT);
- 			/* TBD: SW reset */
--			scc_std_softreset(ap, &classes, deadline);
-+			scc_std_softreset(&ap->link, &classes, deadline);
- 			continue;
- 		}
+ #elif defined(__BIG_ENDIAN)
  
-@@ -733,7 +734,7 @@ static u8 scc_bmdma_status (struct ata_p
- 	void __iomem *mmio = ap->ioaddr.bmdma_addr;
- 	u8 host_stat = in_be32(mmio + SCC_DMA_STATUS);
- 	u32 int_status = in_be32(mmio + SCC_DMA_INTST);
--	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->active_tag);
-+	struct ata_queued_cmd *qc = ata_qc_from_tag(ap, ap->link.active_tag);
- 	static int retry = 0;
+@@ -42,6 +44,8 @@
  
- 	/* return if IOS_SS is cleared */
-@@ -862,10 +863,10 @@ static void scc_bmdma_freeze (struct ata
-  *	@deadline: deadline jiffies for the operation
-  */
+ extern unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+ 		unsigned long size, unsigned long offset);
++extern unsigned long generic_find_next_le_bit(const unsigned long *addr,
++		unsigned long size, unsigned long offset);
  
--static int scc_pata_prereset(struct ata_port *ap, unsigned long deadline)
-+static int scc_pata_prereset(struct ata_link *link, unsigned long deadline)
- {
--	ap->cbl = ATA_CBL_PATA80;
--	return ata_std_prereset(ap, deadline);
-+	link->ap->cbl = ATA_CBL_PATA80;
-+	return ata_std_prereset(link, deadline);
- }
+ #else
+ #error "Please fix <asm/byteorder.h>"
+diff -puN include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~introduce-ext4_find_next_bit
++++ a/include/asm-powerpc/bitops.h
+@@ -310,6 +310,8 @@ static __inline__ int test_le_bit(unsign
+ unsigned long generic_find_next_zero_le_bit(const unsigned long *addr,
+ 				    unsigned long size, unsigned long offset);
  
- /**
-@@ -876,8 +877,10 @@ static int scc_pata_prereset(struct ata_
-  *	Note: Original code is ata_std_postreset().
-  */
++unsigned long generic_find_next_le_bit(const unsigned long *addr,
++				    unsigned long size, unsigned long offset);
+ /* Bitmap functions for the ext2 filesystem */
  
--static void scc_std_postreset (struct ata_port *ap, unsigned int *classes)
-+static void scc_std_postreset(struct ata_link *link, unsigned int *classes)
- {
-+	struct ata_port *ap = link->ap;
+ #define ext2_set_bit(nr,addr) \
+@@ -329,6 +331,8 @@ unsigned long generic_find_next_zero_le_
+ #define ext2_find_next_zero_bit(addr, size, off) \
+ 	generic_find_next_zero_le_bit((unsigned long*)addr, size, off)
+ 
++#define ext2_find_next_bit(addr, size, off) \
++	generic_find_next_le_bit((unsigned long *)addr, size, off)
+ /* Bitmap functions for the minix filesystem.  */
+ 
+ #define minix_test_and_set_bit(nr,addr) \
+diff -puN include/linux/ext4_fs.h~introduce-ext4_find_next_bit include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~introduce-ext4_find_next_bit
++++ a/include/linux/ext4_fs.h
+@@ -492,6 +492,7 @@ do {									       \
+ #define ext4_test_bit			ext2_test_bit
+ #define ext4_find_first_zero_bit	ext2_find_first_zero_bit
+ #define ext4_find_next_zero_bit		ext2_find_next_zero_bit
++#define ext4_find_next_bit		ext2_find_next_bit
+ 
+ /*
+  * Maximal mount counts between two filesystem checks
+diff -puN lib/find_next_bit.c~introduce-ext4_find_next_bit lib/find_next_bit.c
+--- a/lib/find_next_bit.c~introduce-ext4_find_next_bit
++++ a/lib/find_next_bit.c
+@@ -178,4 +178,48 @@ found_middle_swap:
+ 
+ EXPORT_SYMBOL(generic_find_next_zero_le_bit);
+ 
++unsigned long generic_find_next_le_bit(const unsigned long *addr, unsigned
++		long size, unsigned long offset)
++{
++	const unsigned long *p = addr + BITOP_WORD(offset);
++	unsigned long result = offset & ~(BITS_PER_LONG - 1);
++	unsigned long tmp;
 +
- 	DPRINTK("ENTER\n");
- 
- 	/* is double-select really necessary? */
++	if (offset >= size)
++		return size;
++	size -= result;
++	offset &= (BITS_PER_LONG - 1UL);
++	if (offset) {
++		tmp = ext2_swabp(p++);
++		tmp &= (~0UL << offset);
++		if (size < BITS_PER_LONG)
++			goto found_first;
++		if (tmp)
++			goto found_middle;
++		size -= BITS_PER_LONG;
++		result += BITS_PER_LONG;
++	}
++
++	while (size & ~(BITS_PER_LONG - 1)) {
++		tmp = *(p++);
++		if (tmp)
++			goto found_middle_swap;
++		result += BITS_PER_LONG;
++		size -= BITS_PER_LONG;
++	}
++	if (!size)
++		return result;
++	tmp = ext2_swabp(p);
++found_first:
++	tmp &= (~0UL >> (BITS_PER_LONG - size));
++	if (tmp == 0UL)		/* Are any bits set? */
++		return result + size; /* Nope. */
++found_middle:
++	return result + __ffs(tmp);
++
++found_middle_swap:
++	return result + __ffs(ext2_swab(tmp));
++}
++EXPORT_SYMBOL(generic_find_next_le_bit);
++
+ #endif /* __BIG_ENDIAN */
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-origin.patch
-cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
-cpufreq-implement-config_cpu_freq-stub-for.patch
-cpufreq_stats-misc-cpuinit-section-annotations.patch
-git-hwmon.patch
-ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
-ia64-perfmon-remove-exit_pfm_fs.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-libata-all.patch
-git-net.patch
-git-net-fix-spidernet-build.patch
-iseries_veth-kill-unused-variable.patch
-spider_net_ethtool-keep-up-with-recent-netdev-stats-changes.patch
-pasemi_mac-build-fix-after-recent-netdev-stats.patch
-git-s390.patch
-sched-use-show_regs-to-improve-__schedule_bug-output.patch
-git-scsi-misc.patch
-mpt-fusion-shut-up-uninitialized-variable.patch
-git-block.patch
-git-watchdog.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
-softlockup-improve-debug-output-fix.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
-i386-cpuid-misc-cpuinit-annotations.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+ext4-uninitialized-block-groups.patch
+ext4-fix-sparse-warnings.patch
