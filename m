@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-cleanup-apic-c-fix-2.patch added to -mm tree
-Date: Thu, 27 Sep 2007 16:47:13 -0700
-Message-ID: <200709272347.l8RNlDvv001441@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-error-handling.patch added to -mm tree
+Date: Thu, 27 Sep 2007 16:52:12 -0700
+Message-ID: <200709272352.l8RNqCUn001601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50120 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756148AbXI0Xr7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756234AbXI0XwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 19:47:59 -0400
+	Thu, 27 Sep 2007 19:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, tglx@linutronix.de
+Cc: mhalcrow@us.ibm.com
 
 
 The patch titled
-     Fix CPU hotplug breakage on HP nx6325
+     ecryptfs: fix error handling
 has been added to the -mm tree.  Its filename is
-     x86_64-cleanup-apic-c-fix-2.patch
+     ecryptfs-fix-error-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,140 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix CPU hotplug breakage on HP nx6325
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ecryptfs: fix error handling
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix CPU hotplug breakage on HP nx6325 and similar boxes caused by a reference
-to disable_apic_timer (labeled as __initdata) from the CPU initialization code.
+The error paths and the module exit code need work. sysfs
+unregistration is not the right place to tear down the crypto
+subsystem, and the code to undo subsystem initializations on various
+error paths is unnecessarily duplicated. This patch addresses those
+issues.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix-2 arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix-2
-+++ a/arch/x86_64/kernel/apic.c
-@@ -42,7 +42,7 @@
+diff -puN fs/ecryptfs/main.c~ecryptfs-fix-error-handling fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-fix-error-handling
++++ a/fs/ecryptfs/main.c
+@@ -798,13 +798,6 @@ out:
  
- int apic_verbosity;
- static int apic_calibrate_pmtmr __initdata;
--int disable_apic_timer __initdata;
-+int disable_apic_timer __cpuinitdata;
+ static void do_sysfs_unregistration(void)
+ {
+-	int rc;
+-
+-	rc = ecryptfs_destroy_crypto();
+-	if (rc) {
+-		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
+-		       "rc = [%d]\n", rc);
+-	}
+ 	sysfs_remove_file(&ecryptfs_subsys.kobj,
+ 			  &sysfs_attr_version.attr);
+ 	sysfs_remove_file(&ecryptfs_subsys.kobj,
+@@ -835,43 +828,49 @@ static int __init ecryptfs_init(void)
+ 	rc = register_filesystem(&ecryptfs_fs_type);
+ 	if (rc) {
+ 		printk(KERN_ERR "Failed to register filesystem\n");
+-		ecryptfs_free_kmem_caches();
+-		goto out;
++		goto out_free_kmem_caches;
+ 	}
+ 	kobj_set_kset_s(&ecryptfs_subsys, fs_subsys);
+ 	rc = do_sysfs_registration();
+ 	if (rc) {
+ 		printk(KERN_ERR "sysfs registration failed\n");
+-		unregister_filesystem(&ecryptfs_fs_type);
+-		ecryptfs_free_kmem_caches();
+-		goto out;
++		goto out_unregister_filesystem;
+ 	}
+ 	rc = ecryptfs_init_messaging(ecryptfs_transport);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
+ 				"initialize the eCryptfs netlink socket\n");
+-		do_sysfs_unregistration();
+-		unregister_filesystem(&ecryptfs_fs_type);
+-		ecryptfs_free_kmem_caches();
+-		goto out;
++		goto out_do_sysfs_unregistration;
+ 	}
+ 	rc = ecryptfs_init_crypto();
+ 	if (rc) {
+ 		printk(KERN_ERR "Failure whilst attempting to init crypto; "
+ 		       "rc = [%d]\n", rc);
+-		do_sysfs_unregistration();
+-		unregister_filesystem(&ecryptfs_fs_type);
+-		ecryptfs_free_kmem_caches();
+-		goto out;
++		goto out_release_messaging;
+ 	}
++	goto out;
++out_release_messaging:
++	ecryptfs_release_messaging(ecryptfs_transport);
++out_do_sysfs_unregistration:
++	do_sysfs_unregistration();
++out_unregister_filesystem:
++	unregister_filesystem(&ecryptfs_fs_type);
++out_free_kmem_caches:
++	ecryptfs_free_kmem_caches();
+ out:
+ 	return rc;
+ }
  
- /* Local APIC timer works in C2? */
- int local_apic_timer_c2_ok;
+ static void __exit ecryptfs_exit(void)
+ {
+-	do_sysfs_unregistration();
++	int rc;
++
++	rc = ecryptfs_destroy_crypto();
++	if (rc)
++		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
++		       "rc = [%d]\n", rc);
+ 	ecryptfs_release_messaging(ecryptfs_transport);
++	do_sysfs_unregistration();
+ 	unregister_filesystem(&ecryptfs_fs_type);
+ 	ecryptfs_free_kmem_caches();
+ }
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-origin.patch
-hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
-acpi-clean-up-acpi_enter_sleep_state_prep.patch
-git-net.patch
-revert-x86_64-mm-cpa-einval.patch
-x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
-x86_64-cleanup-apic-c-fix-2.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-unionfs.patch
+fs-remove-some-aop_truncated_page.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
+ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
+ecryptfs-fix-tag-1-parsing-code.patch
+ecryptfs-fix-tag-3-parsing-code.patch
+ecryptfs-fix-tag-11-parsing-code.patch
+ecryptfs-fix-tag-11-writing-code.patch
+ecryptfs-update-comment-and-debug-statement.patch
+ecryptfs-printk-warning-fixes.patch
+ecryptfs-remove-unnecessary-bug_on.patch
+ecryptfs-collapse-flag-set-into-one-statement.patch
+ecryptfs-grammatical-fix-destruct-to-destroy.patch
+ecryptfs-comments-for-some-structs.patch
+ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
+ecryptfs-remove-unnecessary-variable-initializations.patch
+ecryptfs-make-needlessly-global-symbols-static.patch
+ecryptfs-use-generic_file_splice_read.patch
+ecryptfs-remove-header_extent_size.patch
+ecryptfs-remove-header_extent_size-fix.patch
+ecryptfs-remove-assignments-in-if-statements.patch
+ecryptfs-fix-error-handling.patch
+ecryptfs-read_writec-routines.patch
+ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
+ecryptfs-set-up-and-destroy-persistent-lower-file.patch
+ecryptfs-update-metadata-read-write-functions.patch
+ecryptfs-update-metadata-read-write-functions-cleanup.patch
+ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
+ecryptfs-fix-data-types.patch
+ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
+ecryptfs-remove-unused-functions-and-kmem_cache.patch
+ecryptfs-replace-magic-numbers.patch
+ecryptfs-clean-up-page-flag-handling.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
