@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hook-up-group-scheduler-with-control-groups-fix.patch added to -mm tree
-Date: Thu, 27 Sep 2007 16:43:22 -0700
-Message-ID: <200709272343.l8RNhMfk001251@imap1.linux-foundation.org>
+Subject: + hook-up-group-scheduler-with-control-groups.patch added to -mm tree
+Date: Thu, 27 Sep 2007 16:43:20 -0700
+Message-ID: <200709272343.l8RNhK2u001248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760805AbXI0XoV (ORCPT
+	by vger.kernel.org with ESMTP id S1760930AbXI0Xo0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 19:44:21 -0400
+	Thu, 27 Sep 2007 19:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, menage@google.com, mingo@elte.hu, randy.dunlap@oracle.com, vatsa@linux.vnet.ibm.com
+Cc: vatsa@linux.vnet.ibm.com, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, menage@google.com, mingo@elte.hu, randy.dunlap@oracle.com
 
 
 The patch titled
-     hook-up-group-scheduler-with-control-groups-fix
+     Hook up group scheduler with control groups
 has been added to the -mm tree.  Its filename is
-     hook-up-group-scheduler-with-control-groups-fix.patch
+     hook-up-group-scheduler-with-control-groups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,236 +26,229 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hook-up-group-scheduler-with-control-groups-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Hook up group scheduler with control groups
+From: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Menage <menage@google.com>
+Enable "cgroup" (formerly containers) based fair group scheduling.  This
+will let administrator create arbitrary groups of tasks (using "cgroup"
+pseudo filesystem) and control their cpu bandwidth usage.
+
+Signed-off-by: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/sched.c~hook-up-group-scheduler-with-control-groups-fix kernel/sched.c
---- a/kernel/sched.c~hook-up-group-scheduler-with-control-groups-fix
+diff -puN include/linux/cgroup_subsys.h~hook-up-group-scheduler-with-control-groups include/linux/cgroup_subsys.h
+--- a/include/linux/cgroup_subsys.h~hook-up-group-scheduler-with-control-groups
++++ a/include/linux/cgroup_subsys.h
+@@ -36,3 +36,9 @@ SUBSYS(mem_cgroup)
+ #endif
+ 
+ /* */
++
++#ifdef CONFIG_FAIR_CGROUP_SCHED
++SUBSYS(cpu_cgroup)
++#endif
++
++/* */
+diff -puN init/Kconfig~hook-up-group-scheduler-with-control-groups init/Kconfig
+--- a/init/Kconfig~hook-up-group-scheduler-with-control-groups
++++ a/init/Kconfig
+@@ -319,6 +319,13 @@ config CPUSETS
+ 
+ 	  Say N if unsure.
+ 
++config RESOURCE_COUNTERS
++	bool "Resource counters"
++	help
++	  This option enables controller independent resource accounting
++	  infrastructure that works with cgroups.
++	depends on CGROUPS
++
+ config FAIR_GROUP_SCHED
+ 	bool "Fair group CPU scheduler"
+ 	default y
+@@ -338,14 +345,17 @@ config FAIR_USER_SCHED
+ 	  This option will choose userid as the basis for grouping
+ 	  tasks, thus providing equal CPU bandwidth to each user.
+ 
+-endchoice
++config FAIR_CGROUP_SCHED
++	bool "Control groups"
++ 	depends on CGROUPS
++ 	help
++	  This option allows you to create arbitrary task groups
++	  using the "cgroup" pseudo filesystem and control
++	  the cpu bandwidth allocated to each such task group.
++	  Refer to Documentation/cgroups.txt for more information
++	  on "cgroup" pseudo filesystem.
+ 
+-config RESOURCE_COUNTERS
+-	bool "Resource counters"
+-	help
+-	  This option enables controller independent resource accounting
+-          infrastructure that works with cgroups
+-	depends on CGROUPS
++endchoice
+ 
+ config SYSFS_DEPRECATED
+ 	bool "Create deprecated sysfs files"
+diff -puN kernel/sched.c~hook-up-group-scheduler-with-control-groups kernel/sched.c
+--- a/kernel/sched.c~hook-up-group-scheduler-with-control-groups
 +++ a/kernel/sched.c
-@@ -225,7 +225,7 @@ static inline struct task_grp *task_grp(
+@@ -177,10 +177,16 @@ struct rt_prio_array {
+ 
+ #ifdef CONFIG_FAIR_GROUP_SCHED
+ 
++#include <linux/cgroup.h>
++
+ struct cfs_rq;
+ 
+ /* task group related information */
+ struct task_grp {
++#ifdef CONFIG_FAIR_CGROUP_SCHED
++	struct cgroup_subsys_state css;
++#endif
++
+ 	/* schedulable entities of this group on each cpu */
+ 	struct sched_entity **se;
+ 	/* runqueue "owned" by this group on each cpu */
+@@ -219,6 +225,9 @@ static inline struct task_grp *task_grp(
  
  #ifdef CONFIG_FAIR_USER_SCHED
  	tg = p->user->tg;
--#elif CONFIG_FAIR_CGROUP_SCHED
-+#elif defined(CONFIG_FAIR_CGROUP_SCHED)
- 	tg = container_of(task_subsys_state(p, cpu_cgroup_subsys_id),
- 				struct task_grp, css);
++#elif CONFIG_FAIR_CGROUP_SCHED
++	tg = container_of(task_subsys_state(p, cpu_cgroup_subsys_id),
++				struct task_grp, css);
  #else
+ 	tg  = &init_task_grp;
+ #endif
+@@ -6958,3 +6967,116 @@ int sched_group_set_shares(struct task_g
+ }
+ 
+ #endif 	/* CONFIG_FAIR_GROUP_SCHED */
++
++#ifdef CONFIG_FAIR_CGROUP_SCHED
++
++/* return corresponding task_grp object of a cgroup */
++static inline struct task_grp *cgroup_tg(struct cgroup *cont)
++{
++	return container_of(cgroup_subsys_state(cont, cpu_cgroup_subsys_id),
++					 struct task_grp, css);
++}
++
++static struct cgroup_subsys_state *
++cpu_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	struct task_grp *tg;
++
++	if (!cont->parent) {
++		/* This is early initialization for the top cgroup */
++		init_task_grp.css.cgroup = cont;
++		return &init_task_grp.css;
++	}
++
++	/* we support only 1-level deep hierarchical scheduler atm */
++	if (cont->parent->parent)
++		return ERR_PTR(-EINVAL);
++
++	tg = sched_create_group();
++	if (IS_ERR(tg))
++		return ERR_PTR(-ENOMEM);
++
++	/* Bind the cgroup to task_grp object we just created */
++	tg->css.cgroup = cont;
++
++	return &tg->css;
++}
++
++static void cpu_cgroup_destroy(struct cgroup_subsys *ss,
++					struct cgroup *cont)
++{
++	struct task_grp *tg = cgroup_tg(cont);
++
++	sched_destroy_group(tg);
++}
++
++static int cpu_cgroup_can_attach(struct cgroup_subsys *ss,
++			     struct cgroup *cont, struct task_struct *tsk)
++{
++	/* We don't support RT-tasks being in separate groups */
++	if (tsk->sched_class != &fair_sched_class)
++		return -EINVAL;
++
++	return 0;
++}
++
++static void
++cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cont,
++			struct cgroup *old_cont, struct task_struct *tsk)
++{
++	sched_move_task(tsk);
++}
++
++static ssize_t cpu_shares_write(struct cgroup *cont, struct cftype *cftype,
++				struct file *file, const char __user *userbuf,
++				size_t nbytes, loff_t *ppos)
++{
++	unsigned long shareval;
++	struct task_grp *tg = cgroup_tg(cont);
++	char buffer[2*sizeof(unsigned long) + 1];
++	int rc;
++
++	if (nbytes > 2*sizeof(unsigned long))	/* safety check */
++		return -E2BIG;
++
++	if (copy_from_user(buffer, userbuf, nbytes))
++		return -EFAULT;
++
++	buffer[nbytes] = 0;	/* nul-terminate */
++	shareval = simple_strtoul(buffer, NULL, 10);
++
++	rc = sched_group_set_shares(tg, shareval);
++
++	return (rc < 0 ? rc : nbytes);
++}
++
++static u64 cpu_shares_read_uint(struct cgroup *cont, struct cftype *cft)
++{
++	struct task_grp *tg = cgroup_tg(cont);
++
++	return (u64) tg->shares;
++}
++
++static struct cftype cpu_shares = {
++	.name = "shares",
++	.read_uint = cpu_shares_read_uint,
++	.write = cpu_shares_write,
++};
++
++static int cpu_cgroup_populate(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	return cgroup_add_file(cont, ss, &cpu_shares);
++}
++
++struct cgroup_subsys cpu_cgroup_subsys = {
++	.name 	    	= "cpu",
++	.create	    	= cpu_cgroup_create,
++	.destroy    	= cpu_cgroup_destroy,
++	.can_attach 	= cpu_cgroup_can_attach,
++	.attach     	= cpu_cgroup_attach,
++	.populate   	= cpu_cgroup_populate,
++	.subsys_id  	= cpu_cgroup_subsys_id,
++	.early_init	= 1,
++};
++
++#endif	/* CONFIG_FAIR_CGROUP_SCHED */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vatsa@linux.vnet.ibm.com are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-kvm-warning-fix.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-git-net-sctp-hack.patch
-git-backlight.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+git-sched.patch
+hook-up-group-scheduler-with-control-groups.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
