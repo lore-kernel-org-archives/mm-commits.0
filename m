@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch added to -mm tree
-Date: Thu, 27 Sep 2007 17:35:28 -0700
-Message-ID: <200709280035.l8S0ZSaV003099@imap1.linux-foundation.org>
+Subject: + fix-amd-mips-alchemy-au1550-i2c-interface.patch added to -mm tree
+Date: Thu, 27 Sep 2007 23:04:23 -0700
+Message-ID: <200709280604.l8S64N2R013801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42103 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51329 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751992AbXI1Ag1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755218AbXI1GFl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 20:36:27 -0400
+	Fri, 28 Sep 2007 02:05:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lkml@rtr.ca, a.zummo@towertech.it, david-b@pacbell.net, mlord@pobox.com
+Cc: cd@chrisdavid.com, domen.puncer@ultra.si, jordan.crouse@amd.com, khali@linux-fr.org, ralf@linux-mips.org
 
 
 The patch titled
-     rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
+     Fix AMD MIPS Alchemy au1550 I2C interface
 has been added to the -mm tree.  Its filename is
-     rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+     fix-amd-mips-alchemy-au1550-i2c-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
-From: Mark Lord <lkml@rtr.ca>
+Subject: Fix AMD MIPS Alchemy au1550 I2C interface
+From: "Chris David" <cd@chrisdavid.com>
 
-Fix readback of RTC alarms on platforms which return -1 in
-non-hardware-supported RTC alarm fields.
+Fix a problem on the AMD MIPS Alchemy au1550 I2C interface.  The PSC
+(programmable serial controller) seem to 'hang' when I sent only an
+'address' byte on the I2C bus.  The patch essentially uses the PSC_SMBSTAT
+register's TE (transmit FIFO empty) bit to check when the transmit FIFO is
+empty, instead of using the PSC_SMBEVNT register's TU (transmit underflow)
+bit.  Using the TE bit fixed the hang problem.
 
-To fill in the missing (-1) values, we grab an RTC timestamp along with the
-RTC alarm value, and use the timestamp fields to populate the missing alarm
-fields.
-
-To counter field-wrap races (since the timestamp and alarm are not read
-together atomically), we read the RTC timestamp both before and after
-reading the RTC alarm value, and then check for wrapped fields --> if any
-have wrapped, we know we have a possible inconsistency, so we loop and
-reread the timestamp and alarm again.
-
-Wrapped fields in the RTC timestamps are an issue because rtc-cmos.c, for
-example, also gets/uses an RTC timestamp internally while fetching the RTC
-alarm.  If our timestamp here wasn't the same (minutes and higher) as what
-was used internally there, then we might end up populating the -1 fields
-with inconsistent values.
-
-This fixes readbacks from /sys/class/rtc/rtc?/wakealarm, as well as other
-code paths which call rtc_read_alarm().
-
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Domen Puncer <domen.puncer@ultra.si>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/i2c/busses/i2c-au1550.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm
-+++ a/drivers/rtc/interface.c
-@@ -99,7 +99,7 @@ int rtc_set_mmss(struct rtc_device *rtc,
- }
- EXPORT_SYMBOL_GPL(rtc_set_mmss);
+diff -puN drivers/i2c/busses/i2c-au1550.c~fix-amd-mips-alchemy-au1550-i2c-interface drivers/i2c/busses/i2c-au1550.c
+--- a/drivers/i2c/busses/i2c-au1550.c~fix-amd-mips-alchemy-au1550-i2c-interface
++++ a/drivers/i2c/busses/i2c-au1550.c
+@@ -48,17 +48,14 @@ wait_xfer_done(struct i2c_au1550_data *a
  
--int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
-+static int rtc_read_alarm_internal(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
- {
- 	int err;
+ 	sp = (volatile psc_smb_t *)(adap->psc_base);
  
-@@ -119,6 +119,87 @@ int rtc_read_alarm(struct rtc_device *rt
- 	mutex_unlock(&rtc->ops_lock);
- 	return err;
- }
+-	/* Wait for Tx FIFO Underflow.
++	/* Wait for Tx Buffer Empty
+ 	*/
+ 	for (i = 0; i < adap->xfer_timeout; i++) {
+-		stat = sp->psc_smbevnt;
++		stat = sp->psc_smbstat;
+ 		au_sync();
+-		if ((stat & PSC_SMBEVNT_TU) != 0) {
+-			/* Clear it.  */
+-			sp->psc_smbevnt = PSC_SMBEVNT_TU;
+-			au_sync();
++		if ((stat & PSC_SMBSTAT_TE) != 0)
+ 			return 0;
+-		}
 +
-+int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
-+{
-+	int err;
-+	struct rtc_time before, now;
-+	int first_time = 1;
-+
-+	/* The lower level RTC driver may not be capable of filling
-+	 * in all fields of the rtc_time struct (eg. rtc-cmos),
-+	 * and so might instead return -1 in some fields.
-+	 * We deal with that here by grabbing a current RTC timestamp
-+	 * and using values from that for any missing (-1) values.
-+	 *
-+	 * But this can be racey, because some fields of the RTC timestamp
-+	 * may have wrapped in the interval since we read the RTC alarm,
-+	 * which would lead to us inserting inconsistent values in place
-+	 * of the -1 fields.
-+	 *
-+	 * Reading the alarm and timestamp in the reverse sequence
-+	 * would have the same race condition, and not solve the issue.
-+	 *
-+	 * So, we must first read the RTC timestamp,
-+	 * then read the RTC alarm value,
-+	 * and then read a second RTC timestamp.
-+	 *
-+	 * If any fields of the second timestamp have changed
-+	 * when compared with the first timestamp, then we know
-+	 * our timestamp may be inconsistent with that used by
-+	 * the low-level rtc_read_alarm_internal() function.
-+	 *
-+	 * So, when the two timestamps disagree, we just loop and do
-+	 * the process again to get a fully consistent set of values.
-+	 *
-+	 * This could all instead be done in the lower level driver,
-+	 * but since more than one lower level RTC implementation needs it,
-+	 * then it's probably best best to do it here instead of there..
-+	 */
-+
-+	/* Get the "before" timestamp */
-+	err = rtc_read_time(rtc, &before);
-+	if (err < 0)
-+		return err;
-+	do {
-+		if (!first_time)
-+			memcpy(&before, &now, sizeof(struct rtc_time));
-+		first_time = 0;
-+
-+		/* get the RTC alarm values, which may be incomplete */
-+		err = rtc_read_alarm_internal(rtc, alarm);
-+		if (err)
-+			return err;
-+		if (!alarm->enabled)
-+			return 0;
-+
-+		/* get the "after" timestamp, to detect wrapped fields */
-+		err = rtc_read_time(rtc, &now);
-+		if (err < 0)
-+			return err;
-+
-+		/* note that tm_sec is a "don't care" value here: */
-+	} while (   before.tm_min   != now.tm_min
-+		 || before.tm_hour  != now.tm_hour
-+		 || before.tm_mon   != now.tm_mon
-+		 || before.tm_year  != now.tm_year
-+		 || before.tm_isdst != now.tm_isdst);
-+
-+	/* Fill in any missing alarm fields using the timestamp */
-+	if (alarm->time.tm_sec == -1)
-+		alarm->time.tm_sec = now.tm_sec;
-+	if (alarm->time.tm_min == -1)
-+		alarm->time.tm_min = now.tm_min;
-+	if (alarm->time.tm_hour == -1)
-+		alarm->time.tm_hour = now.tm_hour;
-+	if (alarm->time.tm_mday == -1)
-+		alarm->time.tm_mday = now.tm_mday;
-+	if (alarm->time.tm_mon == -1)
-+		alarm->time.tm_mon = now.tm_mon;
-+	if (alarm->time.tm_year == -1)
-+		alarm->time.tm_year = now.tm_year;
-+	return 0;
-+}
- EXPORT_SYMBOL_GPL(rtc_read_alarm);
+ 		udelay(1);
+ 	}
  
- int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from cd@chrisdavid.com are
 
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
-rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+fix-amd-mips-alchemy-au1550-i2c-interface.patch
