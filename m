@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-smp-poweroff-hangs.patch added to -mm tree
-Date: Fri, 28 Sep 2007 13:12:07 -0700
-Message-ID: <200709282012.l8SKC7l8015565@imap1.linux-foundation.org>
+Subject: + ext4-remove-ifdef-config_ext4_index.patch added to -mm tree
+Date: Fri, 28 Sep 2007 14:49:55 -0700
+Message-ID: <200709282149.l8SLntMn019121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33784 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45862 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751713AbXI1UNO (ORCPT
+	by vger.kernel.org with ESMTP id S1755155AbXI1VuL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 16:13:14 -0400
+	Fri, 28 Sep 2007 17:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lkml@rtr.ca, mlord@pobox.com, rjw@sisk.pl, tglx@linutronix.de
+Cc: sandeen@redhat.com
 
 
 The patch titled
-     Fix SMP poweroff hangs
+     ext4: remove #ifdef CONFIG_EXT4_INDEX
 has been added to the -mm tree.  Its filename is
-     fix-smp-poweroff-hangs.patch
+     ext4-remove-ifdef-config_ext4_index.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,240 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix SMP poweroff hangs
-From: Mark Lord <lkml@rtr.ca>
+Subject: ext4: remove #ifdef CONFIG_EXT4_INDEX
+From: Eric Sandeen <sandeen@redhat.com>
 
-We need to disable all CPUs other than the boot CPU (usually 0) before
-attempting to power-off modern SMP machines.  This fixes the
-hang-on-poweroff issue on my MythTV SMP box, and also on Thomas Gleixner's
-new toybox.
+CONFIG_EXT4_INDEX is not an exposed config option in the kernel, and it is
+unconditionally defined in ext4_fs.h.  tune2fs is already able to turn off
+dir indexing, so at this point it's just cluttering up the code.  Remove
+it.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/sys.c~fix-smp-poweroff-hangs kernel/sys.c
---- a/kernel/sys.c~fix-smp-poweroff-hangs
-+++ a/kernel/sys.c
-@@ -32,6 +32,7 @@
- #include <linux/getcpu.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/seccomp.h>
-+#include <linux/cpu.h>
+diff -puN fs/ext4/dir.c~ext4-remove-ifdef-config_ext4_index fs/ext4/dir.c
+--- a/fs/ext4/dir.c~ext4-remove-ifdef-config_ext4_index
++++ a/fs/ext4/dir.c
+@@ -47,9 +47,7 @@ const struct file_operations ext4_dir_op
+ 	.compat_ioctl	= ext4_compat_ioctl,
+ #endif
+ 	.fsync		= ext4_sync_file,	/* BKL held */
+-#ifdef CONFIG_EXT4_INDEX
+ 	.release	= ext4_release_dir,
+-#endif
+ };
  
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -878,6 +879,7 @@ void kernel_power_off(void)
- 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
- 	if (pm_power_off_prepare)
- 		pm_power_off_prepare();
-+	disable_nonboot_cpus();
- 	sysdev_shutdown();
- 	printk(KERN_EMERG "Power down.\n");
- 	machine_power_off();
-diff -puN kernel/sys.c.orig~fix-smp-poweroff-hangs kernel/sys.c.orig
+ 
+@@ -107,7 +105,6 @@ static int ext4_readdir(struct file * fi
+ 
+ 	sb = inode->i_sb;
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (EXT4_HAS_COMPAT_FEATURE(inode->i_sb,
+ 				    EXT4_FEATURE_COMPAT_DIR_INDEX) &&
+ 	    ((EXT4_I(inode)->i_flags & EXT4_INDEX_FL) ||
+@@ -123,7 +120,6 @@ static int ext4_readdir(struct file * fi
+ 		 */
+ 		EXT4_I(filp->f_path.dentry->d_inode)->i_flags &= ~EXT4_INDEX_FL;
+ 	}
+-#endif
+ 	stored = 0;
+ 	offset = filp->f_pos & (sb->s_blocksize - 1);
+ 
+@@ -232,7 +228,6 @@ out:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * These functions convert from the major/minor hash to an f_pos
+  * value.
+@@ -518,5 +513,3 @@ static int ext4_release_dir (struct inod
+ 
+ 	return 0;
+ }
+-
+-#endif
+diff -puN fs/ext4/namei.c~ext4-remove-ifdef-config_ext4_index fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext4-remove-ifdef-config_ext4_index
++++ a/fs/ext4/namei.c
+@@ -144,7 +144,6 @@ struct dx_map_entry
+ 	u16 size;
+ };
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ static inline unsigned dx_get_block (struct dx_entry *entry);
+ static void dx_set_block (struct dx_entry *entry, unsigned value);
+ static inline unsigned dx_get_hash (struct dx_entry *entry);
+@@ -766,8 +765,6 @@ static void dx_insert_block(struct dx_fr
+ 	dx_set_block(new, block);
+ 	dx_set_count(entries, count + 1);
+ }
+-#endif
+-
+ 
+ static void ext4_update_dx_flag(struct inode *inode)
+ {
+@@ -869,7 +866,6 @@ static struct buffer_head * ext4_find_en
+ 	name = dentry->d_name.name;
+ 	if (namelen > EXT4_NAME_LEN)
+ 		return NULL;
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (is_dx(dir)) {
+ 		bh = ext4_dx_find_entry(dentry, res_dir, &err);
+ 		/*
+@@ -881,7 +877,6 @@ static struct buffer_head * ext4_find_en
+ 			return bh;
+ 		dxtrace(printk("ext4_find_entry: dx failed, falling back\n"));
+ 	}
+-#endif
+ 	nblocks = dir->i_size >> EXT4_BLOCK_SIZE_BITS(sb);
+ 	start = EXT4_I(dir)->i_dir_start_lookup;
+ 	if (start >= nblocks)
+@@ -957,7 +952,6 @@ cleanup_and_exit:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ static struct buffer_head * ext4_dx_find_entry(struct dentry *dentry,
+ 		       struct ext4_dir_entry_2 **res_dir, int *err)
+ {
+@@ -1025,7 +1019,6 @@ errout:
+ 	dx_release (frames);
+ 	return NULL;
+ }
+-#endif
+ 
+ static struct dentry *ext4_lookup(struct inode * dir, struct dentry *dentry, struct nameidata *nd)
+ {
+@@ -1121,7 +1114,6 @@ static inline void ext4_set_de_type(stru
+ 		de->file_type = ext4_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * Move count entries from end of map between two memory locations.
+  * Returns pointer to last entry moved.
+@@ -1266,8 +1258,6 @@ errout:
+ 	*error = err;
+ 	return NULL;
+ }
+-#endif
+-
+ 
+ /*
+  * Add a new entry into a directory (leaf) block.  If de is non-NULL,
+@@ -1363,7 +1353,6 @@ static int add_dirent_to_buf(handle_t *h
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * This converts a one block unindexed directory to a 3 block indexed
+  * directory, and adds the dentry to the indexed directory.
+@@ -1442,7 +1431,6 @@ static int make_indexed_dir(handle_t *ha
+ 
+ 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
+ }
+-#endif
+ 
+ /*
+  *	ext4_add_entry()
+@@ -1463,9 +1451,7 @@ static int ext4_add_entry (handle_t *han
+ 	struct ext4_dir_entry_2 *de;
+ 	struct super_block * sb;
+ 	int	retval;
+-#ifdef CONFIG_EXT4_INDEX
+ 	int	dx_fallback=0;
+-#endif
+ 	unsigned blocksize;
+ 	u32 block, blocks;
+ 
+@@ -1473,7 +1459,6 @@ static int ext4_add_entry (handle_t *han
+ 	blocksize = sb->s_blocksize;
+ 	if (!dentry->d_name.len)
+ 		return -EINVAL;
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (is_dx(dir)) {
+ 		retval = ext4_dx_add_entry(handle, dentry, inode);
+ 		if (!retval || (retval != ERR_BAD_DX_DIR))
+@@ -1482,7 +1467,6 @@ static int ext4_add_entry (handle_t *han
+ 		dx_fallback++;
+ 		ext4_mark_inode_dirty(handle, dir);
+ 	}
+-#endif
+ 	blocks = dir->i_size >> sb->s_blocksize_bits;
+ 	for (block = 0, offset = 0; block < blocks; block++) {
+ 		bh = ext4_bread(handle, dir, block, 0, &retval);
+@@ -1492,11 +1476,9 @@ static int ext4_add_entry (handle_t *han
+ 		if (retval != -ENOSPC)
+ 			return retval;
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ 		if (blocks == 1 && !dx_fallback &&
+ 		    EXT4_HAS_COMPAT_FEATURE(sb, EXT4_FEATURE_COMPAT_DIR_INDEX))
+ 			return make_indexed_dir(handle, dentry, inode, bh);
+-#endif
+ 		brelse(bh);
+ 	}
+ 	bh = ext4_append(handle, dir, &block, &retval);
+@@ -1508,7 +1490,6 @@ static int ext4_add_entry (handle_t *han
+ 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * Returns 0 for success, or a negative error value
+  */
+@@ -1643,7 +1624,6 @@ cleanup:
+ 	dx_release(frames);
+ 	return err;
+ }
+-#endif
+ 
+ /*
+  * ext4_delete_entry deletes a directory entry by merging it with the
+diff -puN include/linux/ext4_fs.h~ext4-remove-ifdef-config_ext4_index include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~ext4-remove-ifdef-config_ext4_index
++++ a/include/linux/ext4_fs.h
+@@ -38,10 +38,6 @@
+ /*max window size: 1024(direct blocks) + 3([t,d]indirect blocks) */
+ #define EXT4_MAX_RESERVE_BLOCKS		1027
+ #define EXT4_RESERVE_WINDOW_NOT_ALLOCATED 0
+-/*
+- * Always enable hashed directories
+- */
+-#define CONFIG_EXT4_INDEX
+ 
+ /*
+  * Debug code
+@@ -811,17 +807,11 @@ struct ext4_dir_entry_2 {
+  * (c) Daniel Phillips, 2001
+  */
+ 
+-#ifdef CONFIG_EXT4_INDEX
+-  #define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
+-					      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
++#define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
++				      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
+ 		      (EXT4_I(dir)->i_flags & EXT4_INDEX_FL))
+ #define EXT4_DIR_LINK_MAX(dir) (!is_dx(dir) && (dir)->i_nlink >= EXT4_LINK_MAX)
+ #define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2 || (dir)->i_nlink == 1)
+-#else
+-  #define is_dx(dir) 0
+-#define EXT4_DIR_LINK_MAX(dir) ((dir)->i_nlink >= EXT4_LINK_MAX)
+-#define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2)
+-#endif
+ 
+ /* Legal values for the dx_root hash_version field: */
+ 
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-fix-smp-poweroff-hangs.patch
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
-rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
+limit-minixfs-printks-on-corrupted-dir-i_size.patch
+ext3-remove-ifdef-config_ext3_index.patch
+ext4-remove-ifdef-config_ext4_index.patch
