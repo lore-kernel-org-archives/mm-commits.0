@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e100-fix-bogus-pci-quirk.patch added to -mm tree
-Date: Fri, 28 Sep 2007 16:17:45 -0700
-Message-ID: <200709282317.l8SNHjA7022254@imap1.linux-foundation.org>
+Subject: + mm-document-tree_lock-zonelock-lockorder.patch added to -mm tree
+Date: Fri, 28 Sep 2007 16:20:44 -0700
+Message-ID: <200709282320.l8SNKiTM022321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40128 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754274AbXI1XST (ORCPT
+	by vger.kernel.org with ESMTP id S1753435AbXI1XUt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 19:18:19 -0400
+	Fri, 28 Sep 2007 19:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, linas@austin.ibm.com
+Cc: npiggin@suse.de
 
 
 The patch titled
-     e100: Fix bogus PCI quirk
+     mm: document tree_lock->zone.lock lockorder
 has been added to the -mm tree.  Its filename is
-     e100-fix-bogus-pci-quirk.patch
+     mm-document-tree_lock-zonelock-lockorder.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,108 +26,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: e100: Fix bogus PCI quirk
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: mm: document tree_lock->zone.lock lockorder
+From: Nick Piggin <npiggin@suse.de>
 
-Linas reported that some machines were crashing at boot in
-quirk_e100_interrupt.  It appears that this quirk is doing an ioremap
-directly on a PCI BAR value, which isn't legal and will cause all sorts of
-bad things to happen on architectures where PCI BARs don't directly match
-processor bus addresses.
+zone->lock is quite an "inner" lock and mostly constrained to page alloc as
+well, so like slab locks, it probably isn't something that is critically
+important to document here.  However unlike slab locks, zone lock could be
+used more widely in future, and page_alloc.c might possibly have more
+business to do tricky things with pagecache than does slab.  So...  I don't
+think it hurts to document it.
 
-This fixes it by using the proper PCI resources instead which is possible
-since the quirk has been moved by a previous commit to happen late enough
-for that.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Linas Vepstas <linas@austin.ibm.com>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pci/quirks.c~e100-fix-bogus-pci-quirk drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~e100-fix-bogus-pci-quirk
-+++ a/drivers/pci/quirks.c
-@@ -1444,7 +1444,6 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
- static void __devinit quirk_e100_interrupt(struct pci_dev *dev)
- {
- 	u16 command;
--	u32 bar;
- 	u8 __iomem *csr;
- 	u8 cmd_hi;
+diff -puN mm/filemap.c~mm-document-tree_lock-zonelock-lockorder mm/filemap.c
+--- a/mm/filemap.c~mm-document-tree_lock-zonelock-lockorder
++++ a/mm/filemap.c
+@@ -63,6 +63,7 @@ generic_file_direct_IO(int rw, struct ki
+  *    ->private_lock		(__free_pte->__set_page_dirty_buffers)
+  *      ->swap_lock		(exclusive_swap_page, others)
+  *        ->mapping->tree_lock
++ *          ->zone.lock
+  *
+  *  ->i_mutex
+  *    ->i_mmap_lock		(truncate->unmap_mapping_range)
+diff -puN mm/rmap.c~mm-document-tree_lock-zonelock-lockorder mm/rmap.c
+--- a/mm/rmap.c~mm-document-tree_lock-zonelock-lockorder
++++ a/mm/rmap.c
+@@ -36,6 +36,7 @@
+  *                 mapping->tree_lock (widely used, in set_page_dirty,
+  *                           in arch-dependent flush_dcache_mmap_lock,
+  *                           within inode_lock in __sync_single_inode)
++ *                   zone->lock (within radix tree node alloc)
+  */
  
-@@ -1476,12 +1475,12 @@ static void __devinit quirk_e100_interru
- 	 * re-enable them when it's ready.
- 	 */
- 	pci_read_config_word(dev, PCI_COMMAND, &command);
--	pci_read_config_dword(dev, PCI_BASE_ADDRESS_0, &bar);
- 
--	if (!(command & PCI_COMMAND_MEMORY) || !bar)
-+	if (!(command & PCI_COMMAND_MEMORY) || !pci_resource_start(dev, 0))
- 		return;
- 
--	csr = ioremap(bar, 8);
-+	/* Convert from PCI bus to resource space.  */
-+	csr = ioremap(pci_resource_start(dev, 0), 8);
- 	if (!csr) {
- 		printk(KERN_WARNING "PCI: Can't map %s e100 registers\n",
- 			pci_name(dev));
+ #include <linux/mm.h>
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-e100-fix-bogus-pci-quirk.patch
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-powerpc.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-powerpc-vdso-install-unstripped-copies-on-disk-update.patch
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-powerpc-ptrace-check_full_regs.patch
-adbhid-produce-all-capslock-key-events.patch
-git-kbuild.patch
-git-libata-all.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
-report-the-per-irq-statistics-on-allarches.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-delay-creation-of-khcvd-thread.patch
-radeonfb-xpress-200m-rc410-support-patch.patch
-add-scaled-time-to-taskstats-based-process-accounting.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
-powerpc-add-scaled-time-accounting.patch
-define-global-bit-macro.patch
+remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
+calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+fs-fix-nobh-error-handling.patch
+fix-the-max-path-calculation-in-radix-treec-update.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+introduce-write_begin-write_end-aops-fix2.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+implement-simple-fs-aops-fix.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext2-convert-to-new-aops-fix.patch
+ext2-convert-to-new-aops-fix2.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext3-convert-to-new-aops-fix-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops-fix-fix.patch
+xfs-convert-to-new-aops.patch
+gfs2-convert-to-new-aops-fix.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
+reiserfs-convert-to-new-aops-fix2.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+ufs-convert-to-new-aops-fix2.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops-fix2.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops-fix2.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+affs-convert-to-new-aops-fix-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-remove-some-aop_truncated_page.patch
+make-swappiness-safer-to-use.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
 bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
 powerpc-lock-bitops.patch
 powerpc-lock-bitops-fix.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-add-documentation-for-extended-crashkernel-syntax.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
