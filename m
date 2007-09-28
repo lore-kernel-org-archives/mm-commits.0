@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + removes-array_size-duplicates.patch added to -mm tree
-Date: Fri, 28 Sep 2007 14:57:35 -0700
-Message-ID: <200709282157.l8SLva8g019416@imap1.linux-foundation.org>
+Subject: + remove-array_size-duplicates.patch added to -mm tree
+Date: Fri, 28 Sep 2007 15:01:57 -0700
+Message-ID: <200709282201.l8SM1wGt019591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751567AbXI1V67 (ORCPT
+	by vger.kernel.org with ESMTP id S1752971AbXI1WDQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 17:58:59 -0400
+	Fri, 28 Sep 2007 18:03:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: 12o3l@tiscali.nl, adaplas@pol.net, ak@suse.de, davem@davemloft.net, geert@li
 The patch titled
      remove array_size duplicates
 has been added to the -mm tree.  Its filename is
-     removes-array_size-duplicates.patch
+     remove-array_size-duplicates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -51,8 +51,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/spi/spidev_test.c~removes-array_size-duplicates Documentation/spi/spidev_test.c
---- a/Documentation/spi/spidev_test.c~removes-array_size-duplicates
+diff -puN Documentation/spi/spidev_test.c~remove-array_size-duplicates Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~remove-array_size-duplicates
 +++ a/Documentation/spi/spidev_test.c
 @@ -21,8 +21,6 @@
  #include <linux/types.h>
@@ -63,8 +63,8 @@ diff -puN Documentation/spi/spidev_test.c~removes-array_size-duplicates Document
  static void pabort(const char *s)
  {
  	perror(s);
-diff -puN arch/i386/boot/compressed/relocs.c~removes-array_size-duplicates arch/i386/boot/compressed/relocs.c
---- a/arch/i386/boot/compressed/relocs.c~removes-array_size-duplicates
+diff -puN arch/i386/boot/compressed/relocs.c~remove-array_size-duplicates arch/i386/boot/compressed/relocs.c
+--- a/arch/i386/boot/compressed/relocs.c~remove-array_size-duplicates
 +++ a/arch/i386/boot/compressed/relocs.c
 @@ -11,7 +11,6 @@
  #include <endian.h>
@@ -74,8 +74,8 @@ diff -puN arch/i386/boot/compressed/relocs.c~removes-array_size-duplicates arch/
  static Elf32_Ehdr ehdr;
  static Elf32_Shdr shdr[MAX_SHDRS];
  static Elf32_Sym  *symtab[MAX_SHDRS];
-diff -puN arch/m68k/amiga/amisound.c~removes-array_size-duplicates arch/m68k/amiga/amisound.c
---- a/arch/m68k/amiga/amisound.c~removes-array_size-duplicates
+diff -puN arch/m68k/amiga/amisound.c~remove-array_size-duplicates arch/m68k/amiga/amisound.c
+--- a/arch/m68k/amiga/amisound.c~remove-array_size-duplicates
 +++ a/arch/m68k/amiga/amisound.c
 @@ -21,7 +21,6 @@ static const signed char sine_data[] = {
  	0,  39,  75,  103,  121,  127,  121,  103,  75,  39,
@@ -94,8 +94,8 @@ diff -puN arch/m68k/amiga/amisound.c~removes-array_size-duplicates arch/m68k/ami
  
  	/* without amifb, turn video off and enable high quality sound */
  #ifndef CONFIG_FB_AMIGA
-diff -puN arch/powerpc/boot/types.h~removes-array_size-duplicates arch/powerpc/boot/types.h
---- a/arch/powerpc/boot/types.h~removes-array_size-duplicates
+diff -puN arch/powerpc/boot/types.h~remove-array_size-duplicates arch/powerpc/boot/types.h
+--- a/arch/powerpc/boot/types.h~remove-array_size-duplicates
 +++ a/arch/powerpc/boot/types.h
 @@ -1,8 +1,6 @@
  #ifndef _TYPES_H_
@@ -106,8 +106,8 @@ diff -puN arch/powerpc/boot/types.h~removes-array_size-duplicates arch/powerpc/b
  typedef unsigned char		u8;
  typedef unsigned short		u16;
  typedef unsigned int		u32;
-diff -puN arch/sparc64/kernel/pci.c~removes-array_size-duplicates arch/sparc64/kernel/pci.c
---- a/arch/sparc64/kernel/pci.c~removes-array_size-duplicates
+diff -puN arch/sparc64/kernel/pci.c~remove-array_size-duplicates arch/sparc64/kernel/pci.c
+--- a/arch/sparc64/kernel/pci.c~remove-array_size-duplicates
 +++ a/arch/sparc64/kernel/pci.c
 @@ -209,14 +209,12 @@ static struct {
  	{ "SUNW,sun4v-pci", sun4v_pci_init },
@@ -134,8 +134,8 @@ diff -puN arch/sparc64/kernel/pci.c~removes-array_size-duplicates arch/sparc64/k
  		if (!strncmp(model_name,
  			     pci_controller_table[i].model_name,
  			     namelen)) {
-diff -puN drivers/acpi/utilities/uteval.c~removes-array_size-duplicates drivers/acpi/utilities/uteval.c
---- a/drivers/acpi/utilities/uteval.c~removes-array_size-duplicates
+diff -puN drivers/acpi/utilities/uteval.c~remove-array_size-duplicates drivers/acpi/utilities/uteval.c
+--- a/drivers/acpi/utilities/uteval.c~remove-array_size-duplicates
 +++ a/drivers/acpi/utilities/uteval.c
 @@ -122,7 +122,7 @@ acpi_status acpi_ut_osi_implementation(s
  
@@ -155,8 +155,8 @@ diff -puN drivers/acpi/utilities/uteval.c~removes-array_size-duplicates drivers/
  		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i])) {
  			*acpi_interfaces_supported[i] = '\0';
  			return AE_OK;
-diff -puN drivers/net/irda/actisys-sir.c~removes-array_size-duplicates drivers/net/irda/actisys-sir.c
---- a/drivers/net/irda/actisys-sir.c~removes-array_size-duplicates
+diff -puN drivers/net/irda/actisys-sir.c~remove-array_size-duplicates drivers/net/irda/actisys-sir.c
+--- a/drivers/net/irda/actisys-sir.c~remove-array_size-duplicates
 +++ a/drivers/net/irda/actisys-sir.c
 @@ -67,8 +67,6 @@ static int actisys_reset(struct sir_dev 
  /* Note : the 220L doesn't support 38400, but we will fix that below */
@@ -185,8 +185,8 @@ diff -puN drivers/net/irda/actisys-sir.c~removes-array_size-duplicates drivers/n
  		actisys_reset(dev);
  		ret = -EINVAL;  /* This should not happen */
  	}
-diff -puN drivers/net/sk98lin/skgemib.c~removes-array_size-duplicates drivers/net/sk98lin/skgemib.c
---- a/drivers/net/sk98lin/skgemib.c~removes-array_size-duplicates
+diff -puN drivers/net/sk98lin/skgemib.c~remove-array_size-duplicates drivers/net/sk98lin/skgemib.c
+--- a/drivers/net/sk98lin/skgemib.c~remove-array_size-duplicates
 +++ a/drivers/net/sk98lin/skgemib.c
 @@ -80,11 +80,6 @@ PNMI_STATIC int DiagActions(SK_AC *pAC, 
  	unsigned int TableIndex, SK_U32 NetIndex);
@@ -200,8 +200,8 @@ diff -puN drivers/net/sk98lin/skgemib.c~removes-array_size-duplicates drivers/ne
  /* global variables **********************************************************/
  
  /*
-diff -puN drivers/net/skfp/smt.c~removes-array_size-duplicates drivers/net/skfp/smt.c
---- a/drivers/net/skfp/smt.c~removes-array_size-duplicates
+diff -puN drivers/net/skfp/smt.c~remove-array_size-duplicates drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~remove-array_size-duplicates
 +++ a/drivers/net/skfp/smt.c
 @@ -1654,8 +1654,6 @@ static const struct smt_pdef {
  	{ SMT_P4053,	0,	SWAP_SMT_P4053			} ,
@@ -221,8 +221,8 @@ diff -puN drivers/net/skfp/smt.c~removes-array_size-duplicates drivers/net/skfp/
  			if (pd->ptype == type)
  				break ;
  		}
-diff -puN drivers/net/skfp/srf.c~removes-array_size-duplicates drivers/net/skfp/srf.c
---- a/drivers/net/skfp/srf.c~removes-array_size-duplicates
+diff -puN drivers/net/skfp/srf.c~remove-array_size-duplicates drivers/net/skfp/srf.c
+--- a/drivers/net/skfp/srf.c~remove-array_size-duplicates
 +++ a/drivers/net/skfp/srf.c
 @@ -43,8 +43,6 @@ static void clear_reported(struct s_smc 
  static void smt_send_srf(struct s_smc *smc);
@@ -296,8 +296,8 @@ diff -puN drivers/net/skfp/srf.c~removes-array_size-duplicates drivers/net/skfp/
  		if (evc->evc_rep_required) {
  			smt_add_para(smc,&pcon,evc->evc_para,
  				(int)evc->evc_index,0) ;
-diff -puN drivers/net/wireless/ipw2100.c~removes-array_size-duplicates drivers/net/wireless/ipw2100.c
---- a/drivers/net/wireless/ipw2100.c~removes-array_size-duplicates
+diff -puN drivers/net/wireless/ipw2100.c~remove-array_size-duplicates drivers/net/wireless/ipw2100.c
+--- a/drivers/net/wireless/ipw2100.c~remove-array_size-duplicates
 +++ a/drivers/net/wireless/ipw2100.c
 @@ -6582,9 +6582,6 @@ static const long ipw2100_frequencies[] 
  	2472, 2484
@@ -343,8 +343,8 @@ diff -puN drivers/net/wireless/ipw2100.c~removes-array_size-duplicates drivers/n
  		// TODO: Include only legal frequencies for some countries
  //              if (local->channel_mask & (1 << i)) {
  		range->freq[val].i = i + 1;
-diff -puN drivers/serial/68328serial.c~removes-array_size-duplicates drivers/serial/68328serial.c
---- a/drivers/serial/68328serial.c~removes-array_size-duplicates
+diff -puN drivers/serial/68328serial.c~remove-array_size-duplicates drivers/serial/68328serial.c
+--- a/drivers/serial/68328serial.c~remove-array_size-duplicates
 +++ a/drivers/serial/68328serial.c
 @@ -157,8 +157,6 @@ static int baud_table[] = {
  	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
@@ -368,8 +368,8 @@ diff -puN drivers/serial/68328serial.c~removes-array_size-duplicates drivers/ser
  		m68328_console_baud = n;
  		m68328_console_cbaud = 0;
  		if (i > 15) {
-diff -puN drivers/video/sgivwfb.c~removes-array_size-duplicates drivers/video/sgivwfb.c
---- a/drivers/video/sgivwfb.c~removes-array_size-duplicates
+diff -puN drivers/video/sgivwfb.c~remove-array_size-duplicates drivers/video/sgivwfb.c
+--- a/drivers/video/sgivwfb.c~remove-array_size-duplicates
 +++ a/drivers/video/sgivwfb.c
 @@ -261,13 +261,13 @@ static int sgivwfb_check_var(struct fb_v
  	var->grayscale = 0;	/* No grayscale for now */
@@ -387,8 +387,8 @@ diff -puN drivers/video/sgivwfb.c~removes-array_size-duplicates drivers/video/sg
  		return -EINVAL;	/* Resolution to high */
  
  	/* XXX FIXME - should try to pick best refresh rate */
-diff -puN include/acpi/acmacros.h~removes-array_size-duplicates include/acpi/acmacros.h
---- a/include/acpi/acmacros.h~removes-array_size-duplicates
+diff -puN include/acpi/acmacros.h~remove-array_size-duplicates include/acpi/acmacros.h
+--- a/include/acpi/acmacros.h~remove-array_size-duplicates
 +++ a/include/acpi/acmacros.h
 @@ -59,8 +59,6 @@
  
@@ -399,8 +399,8 @@ diff -puN include/acpi/acmacros.h~removes-array_size-duplicates include/acpi/acm
  #ifdef ACPI_NO_INTEGER64_SUPPORT
  /*
   * acpi_integer is 32-bits, no 64-bit support on this platform
-diff -puN include/linux/netfilter/xt_sctp.h~removes-array_size-duplicates include/linux/netfilter/xt_sctp.h
---- a/include/linux/netfilter/xt_sctp.h~removes-array_size-duplicates
+diff -puN include/linux/netfilter/xt_sctp.h~remove-array_size-duplicates include/linux/netfilter/xt_sctp.h
+--- a/include/linux/netfilter/xt_sctp.h~remove-array_size-duplicates
 +++ a/include/linux/netfilter/xt_sctp.h
 @@ -7,8 +7,6 @@
  
@@ -454,8 +454,8 @@ diff -puN include/linux/netfilter/xt_sctp.h~removes-array_size-duplicates includ
  		if (chunkmap[i] != ~0) {		\
  			flag = 0;			\
  				break;			\
-diff -puN include/net/ip_vs.h~removes-array_size-duplicates include/net/ip_vs.h
---- a/include/net/ip_vs.h~removes-array_size-duplicates
+diff -puN include/net/ip_vs.h~remove-array_size-duplicates include/net/ip_vs.h
+--- a/include/net/ip_vs.h~remove-array_size-duplicates
 +++ a/include/net/ip_vs.h
 @@ -704,7 +704,6 @@ struct ip_vs_app
   */
@@ -465,8 +465,8 @@ diff -puN include/net/ip_vs.h~removes-array_size-duplicates include/net/ip_vs.h
  
  #define IP_VS_APP_TYPE_UNSPEC	0
  #define IP_VS_APP_TYPE_FTP	1
-diff -puN include/video/sgivw.h~removes-array_size-duplicates include/video/sgivw.h
---- a/include/video/sgivw.h~removes-array_size-duplicates
+diff -puN include/video/sgivw.h~remove-array_size-duplicates include/video/sgivw.h
+--- a/include/video/sgivw.h~remove-array_size-duplicates
 +++ a/include/video/sgivw.h
 @@ -676,7 +676,6 @@ struct dbe_timing_info dbeVTimings[] = {
    }
@@ -476,8 +476,8 @@ diff -puN include/video/sgivw.h~removes-array_size-duplicates include/video/sgiv
  #endif // INCLUDE_TIMING_TABLE_DATA
  
  #endif // ! __SGIVWFB_H__
-diff -puN net/ipv4/ipvs/ip_vs_proto_tcp.c~removes-array_size-duplicates net/ipv4/ipvs/ip_vs_proto_tcp.c
---- a/net/ipv4/ipvs/ip_vs_proto_tcp.c~removes-array_size-duplicates
+diff -puN net/ipv4/ipvs/ip_vs_proto_tcp.c~remove-array_size-duplicates net/ipv4/ipvs/ip_vs_proto_tcp.c
+--- a/net/ipv4/ipvs/ip_vs_proto_tcp.c~remove-array_size-duplicates
 +++ a/net/ipv4/ipvs/ip_vs_proto_tcp.c
 @@ -584,7 +584,7 @@ void ip_vs_tcp_conn_listen(struct ip_vs_
  
@@ -488,8 +488,8 @@ diff -puN net/ipv4/ipvs/ip_vs_proto_tcp.c~removes-array_size-duplicates net/ipv4
  	pp->timeout_table = tcp_timeouts;
  }
  
-diff -puN scripts/mod/file2alias.c~removes-array_size-duplicates scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~removes-array_size-duplicates
+diff -puN scripts/mod/file2alias.c~remove-array_size-duplicates scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~remove-array_size-duplicates
 +++ a/scripts/mod/file2alias.c
 @@ -414,8 +414,6 @@ static int do_vio_entry(const char *file
  	return 1;
@@ -505,4 +505,5 @@ _
 Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 spin_lock_unlocked-cleanups.patch
-removes-array_size-duplicates.patch
+remove-array_size-duplicates.patch
+remove-array_size-duplicates-checkpatch-fixes.patch
