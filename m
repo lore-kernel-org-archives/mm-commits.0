@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + break-elf_platform-and-stack-pointer-randomization-dependency.patch added to -mm tree
-Date: Fri, 28 Sep 2007 10:49:31 -0700
-Message-ID: <200709281749.l8SHnVQY010047@imap1.linux-foundation.org>
+Subject: + hugetlb-fix-clear_user_highpage-arguments.patch added to -mm tree
+Date: Fri, 28 Sep 2007 11:45:30 -0700
+Message-ID: <200709281845.l8SIjU6B012247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50833 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46763 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753280AbXI1RuJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751074AbXI1SqI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 13:50:09 -0400
+	Fri, 28 Sep 2007 14:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fbuihuu@gmail.com, arjan@infradead.org, mingo@elte.hu, ralf@linux-mips.org
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     Break ELF_PLATFORM and stack pointer randomization dependency
+     hugetlb: fix clear_user_highpage arguments
 has been added to the -mm tree.  Its filename is
-     break-elf_platform-and-stack-pointer-randomization-dependency.patch
+     hugetlb-fix-clear_user_highpage-arguments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Break ELF_PLATFORM and stack pointer randomization dependency
-From: Franck Bui-Huu <fbuihuu@gmail.com>
+Subject: hugetlb: fix clear_user_highpage arguments
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Currently arch_align_stack() is used by fs/binfmt_elf.c to randomize
-stack pointer inside a page. But this happens only if ELF_PLATFORM
-symbol is defined.
+The virtual address space argument of clear_user_highpage is supposed to be
+the virtual address where the page being cleared will eventually be mapped.
+ This allows architectures with virtually indexed caches a few clever
+tricks.  That sort of trick falls over in painful ways if the virtual
+address argument is wrong.
 
-ELF_PLATFORM is normally set if the architecture wants ld.so to load
-implementation specific libraries for optimization. And currently a
-lot of architectures just yield this symbol to NULL.
-
-This is the case for MIPS architecture where ELF_PLATFORM is NULL but
-arch_align_stack() has been redefined to do stack inside page
-randomization. So in this case no randomization is actually done.
-
-This patch breaks this dependency which seems to be useless and allows
-platforms such MIPS to do the randomization.
-
-Signed-off-by: Franck Bui-Huu <fbuihuu@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency
-+++ a/fs/binfmt_elf.c
-@@ -151,6 +151,14 @@ create_elf_tables(struct linux_binprm *b
- 	struct vm_area_struct *vma;
+diff -puN mm/hugetlb.c~hugetlb-fix-clear_user_highpage-arguments mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-clear_user_highpage-arguments
++++ a/mm/hugetlb.c
+@@ -42,7 +42,7 @@ static void clear_huge_page(struct page 
+ 	might_sleep();
+ 	for (i = 0; i < (HPAGE_SIZE/PAGE_SIZE); i++) {
+ 		cond_resched();
+-		clear_user_highpage(page + i, addr);
++		clear_user_highpage(page + i, addr + i * PAGE_SIZE);
+ 	}
+ }
  
- 	/*
-+	 * In some cases (e.g. Hyper-Threading), we want to avoid L1
-+	 * evictions by the processes running on the same package. One
-+	 * thing we can do is to shuffle the initial stack for them.
-+	 */
-+
-+	p = arch_align_stack(p);
-+
-+	/*
- 	 * If this architecture has a platform capability string, copy it
- 	 * to userspace.  In some cases (Sparc), this info is impossible
- 	 * for userspace to get any other way, in others (i386) it is
-@@ -160,14 +168,6 @@ create_elf_tables(struct linux_binprm *b
- 	if (k_platform) {
- 		size_t len = strlen(k_platform) + 1;
- 
--		/*
--		 * In some cases (e.g. Hyper-Threading), we want to avoid L1
--		 * evictions by the processes running on the same package. One
--		 * thing we can do is to shuffle the initial stack for them.
--		 */
--
--		p = arch_align_stack(p);
--
- 		u_platform = (elf_addr_t __user *)STACK_ALLOC(p, len);
- 		if (__copy_to_user(u_platform, k_platform, len))
- 			return -EFAULT;
 _
 
-Patches currently in -mm which might be from fbuihuu@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
+hugetlb-fix-clear_user_highpage-arguments.patch
+clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch
+fix-amd-mips-alchemy-au1550-i2c-interface.patch
 git-mips.patch
+mips-add-gpio-support-to-the-bcm947xx-platform.patch
+mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch
+git-mtd.patch
+git-net.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+spelling-fix-weired-weird.patch
+remove-dma_cache_wbackinvwback_inv-functions.patch
+lk201-remove-obsolete-driver.patch
+fix-wrong-filename-reference-in-drivers-testingtxt.patch
+mips-remove-deprecated-irq-flags-sa_.patch
+completely-remove-deprecated-irq-flags-sa_.patch
+compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
 break-elf_platform-and-stack-pointer-randomization-dependency.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
