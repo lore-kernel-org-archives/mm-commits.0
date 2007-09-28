@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-use-dev_info-in-system-driver.patch added to -mm tree
-Date: Fri, 28 Sep 2007 16:31:33 -0700
-Message-ID: <200709282331.l8SNVXCb022741@imap1.linux-foundation.org>
+Subject: + pnp-simplify-pnpbios-insert_device.patch added to -mm tree
+Date: Fri, 28 Sep 2007 16:31:35 -0700
+Message-ID: <200709282331.l8SNVZFT022744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45408 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754675AbXI1XcZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754832AbXI1Xc1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 19:32:25 -0400
+	Fri, 28 Sep 2007 19:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org
 
 
 The patch titled
-     PNP: use dev_info() in system driver
+     PNP: simplify PNPBIOS insert_device
 has been added to the -mm tree.  Its filename is
-     pnp-use-dev_info-in-system-driver.patch
+     pnp-simplify-pnpbios-insert_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,20 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: use dev_info() in system driver
+Subject: PNP: simplify PNPBIOS insert_device
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Use dev_info() for a little consistency.  Changes this:
-
-    pnp: 00:01: ioport range 0xf50-0xf58 has been reserved
-    pnp: 00:01: ioport range 0x408-0x40f has been reserved
-    pnp: 00:01: ioport range 0x900-0x903 has been reserved
-
-to this:
-
-    system 00:01: ioport range 0xf50-0xf58 has been reserved
-    system 00:01: ioport range 0x408-0x40f has been reserved
-    system 00:01: ioport range 0x900-0x903 has been reserved
+Hoist the struct pnp_dev alloc up into the function where it's used.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Adam Belay <ambx1@neo.rr.com>
@@ -48,78 +38,70 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pnp/system.c~pnp-use-dev_info-in-system-driver drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-use-dev_info-in-system-driver
-+++ a/drivers/pnp/system.c
-@@ -22,36 +22,39 @@ static const struct pnp_device_id pnp_de
- 	{"", 0}
+diff -puN drivers/pnp/pnpbios/core.c~pnp-simplify-pnpbios-insert_device drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnp-simplify-pnpbios-insert_device
++++ a/drivers/pnp/pnpbios/core.c
+@@ -315,25 +315,31 @@ struct pnp_protocol pnpbios_protocol = {
+ 	.disable = pnpbios_disable_resources,
  };
  
--static void reserve_range(const char *pnpid, resource_size_t start,
-+static void reserve_range(struct pnp_dev *dev, resource_size_t start,
- 			  resource_size_t end, int port)
+-static int insert_device(struct pnp_dev *dev, struct pnp_bios_node *node)
++static int insert_device(struct pnp_bios_node *node)
  {
--	struct resource *res;
- 	char *regionid;
-+	const char *pnpid = dev->dev.bus_id;
-+	struct resource *res;
+ 	struct list_head *pos;
+-	struct pnp_dev *pnp_dev;
++	struct pnp_dev *dev;
+ 	struct pnp_id *dev_id;
+ 	char id[8];
  
- 	regionid = kmalloc(16, GFP_KERNEL);
--	if (regionid == NULL)
-+	if (!regionid)
- 		return;
-+
- 	snprintf(regionid, 16, "pnp %s", pnpid);
- 	if (port)
- 		res = request_region(start, end - start + 1, regionid);
- 	else
- 		res = request_mem_region(start, end - start + 1, regionid);
--	if (res == NULL)
--		kfree(regionid);
--	else
-+	if (res)
- 		res->flags &= ~IORESOURCE_BUSY;
-+	else
-+		kfree(regionid);
-+
- 	/*
- 	 * Failures at this point are usually harmless. pci quirks for
- 	 * example do reserve stuff they know about too, so we may well
- 	 * have double reservations.
- 	 */
--	printk(KERN_INFO "pnp: %s: %s range 0x%llx-0x%llx %s reserved\n",
--	       pnpid, port ? "ioport" : "iomem",
--	       (unsigned long long)start, (unsigned long long)end,
--	       NULL != res ? "has been" : "could not be");
-+	dev_info(&dev->dev, "%s range 0x%llx-0x%llx %s reserved\n",
-+		port ? "ioport" : "iomem",
-+		(unsigned long long) start, (unsigned long long) end,
-+		res ? "has been" : "could not be");
- }
- 
--static void reserve_resources_of_dev(const struct pnp_dev *dev)
-+static void reserve_resources_of_dev(struct pnp_dev *dev)
- {
- 	int i;
- 
-@@ -73,7 +76,7 @@ static void reserve_resources_of_dev(con
- 		if (pnp_port_end(dev, i) < pnp_port_start(dev, i))
- 			continue;	/* invalid */
- 
--		reserve_range(dev->dev.bus_id, pnp_port_start(dev, i),
-+		reserve_range(dev, pnp_port_start(dev, i),
- 			      pnp_port_end(dev, i), 1);
+ 	/* check if the device is already added */
+-	dev->number = node->handle;
+ 	list_for_each(pos, &pnpbios_protocol.devices) {
+-		pnp_dev = list_entry(pos, struct pnp_dev, protocol_list);
+-		if (dev->number == pnp_dev->number)
++		dev = list_entry(pos, struct pnp_dev, protocol_list);
++		if (dev->number == node->handle)
+ 			return -1;
  	}
  
-@@ -81,7 +84,7 @@ static void reserve_resources_of_dev(con
- 		if (!pnp_mem_valid(dev, i))
- 			continue;
+-	/* set the initial values for the PnP device */
++	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
++	if (!dev)
++		return -1;
++
+ 	dev_id = kzalloc(sizeof(struct pnp_id), GFP_KERNEL);
+-	if (!dev_id)
++	if (!dev_id) {
++		kfree(dev);
+ 		return -1;
++	}
++
++	dev->number = node->handle;
+ 	pnpid32_to_pnpid(node->eisa_id, id);
+ 	memcpy(dev_id->id, id, 7);
+ 	pnp_add_id(dev_id, dev);
+@@ -367,7 +373,6 @@ static void __init build_devlist(void)
+ 	unsigned int nodes_got = 0;
+ 	unsigned int devs = 0;
+ 	struct pnp_bios_node *node;
+-	struct pnp_dev *dev;
  
--		reserve_range(dev->dev.bus_id, pnp_mem_start(dev, i),
-+		reserve_range(dev, pnp_mem_start(dev, i),
- 			      pnp_mem_end(dev, i), 0);
- 	}
- }
+ 	node = kzalloc(node_info.max_node_size, GFP_KERNEL);
+ 	if (!node)
+@@ -388,12 +393,7 @@ static void __init build_devlist(void)
+ 				break;
+ 		}
+ 		nodes_got++;
+-		dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+-		if (!dev)
+-			break;
+-		if (insert_device(dev, node) < 0)
+-			kfree(dev);
+-		else
++		if (insert_device(node) == 0)
+ 			devs++;
+ 		if (nodenum <= thisnodenum) {
+ 			printk(KERN_ERR
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
