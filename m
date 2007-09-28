@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-remove-ifdef-config_ext3_index.patch added to -mm tree
-Date: Thu, 27 Sep 2007 16:56:43 -0700
-Message-ID: <200709272356.l8RNumge001764@imap1.linux-foundation.org>
+Subject: + rtc-rtc-class-driver-for-the-ds1374.patch added to -mm tree
+Date: Thu, 27 Sep 2007 17:01:50 -0700
+Message-ID: <200709280001.l8S01oIe001951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44270 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57782 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758926AbXI0X5C (ORCPT
+	by vger.kernel.org with ESMTP id S1756413AbXI1ACI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 19:57:02 -0400
+	Thu, 27 Sep 2007 20:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, linux-ext4@vger.kernel.org
+Cc: scottwood@freescale.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     ext3: remove #ifdef CONFIG_EXT3_INDEX
+     rtc: RTC class driver for the ds1374
 has been added to the -mm tree.  Its filename is
-     ext3-remove-ifdef-config_ext3_index.patch
+     rtc-rtc-class-driver-for-the-ds1374.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,239 +26,508 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: remove #ifdef CONFIG_EXT3_INDEX
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: rtc: RTC class driver for the ds1374
+From: Scott Wood <scottwood@freescale.com>
 
-CONFIG_EXT3_INDEX is not an exposed config option in the kernel, and it is
-unconditionally defined in ext3_fs.h.  tune2fs is already able to turn off
-dir indexing, so at this point it's just cluttering up the code.  Remove
-it.
+This patch adds an RTC class driver for the Maxim/Dallas 1374 RTC chip,
+based on drivers/i2c/chips/ds1374.c.  It supports alarm functionality.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Scott Wood <scottwood@freescale.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/ext3/dir.c~ext3-remove-ifdef-config_ext3_index fs/ext3/dir.c
---- a/fs/ext3/dir.c~ext3-remove-ifdef-config_ext3_index
-+++ a/fs/ext3/dir.c
-@@ -47,9 +47,7 @@ const struct file_operations ext3_dir_op
- 	.compat_ioctl	= ext3_compat_ioctl,
- #endif
- 	.fsync		= ext3_sync_file,	/* BKL held */
--#ifdef CONFIG_EXT3_INDEX
- 	.release	= ext3_release_dir,
--#endif
- };
+diff -puN drivers/rtc/Kconfig~rtc-rtc-class-driver-for-the-ds1374 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-rtc-class-driver-for-the-ds1374
++++ a/drivers/rtc/Kconfig
+@@ -139,6 +139,17 @@ config RTC_DRV_DS1307
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
  
- 
-@@ -107,7 +105,6 @@ static int ext3_readdir(struct file * fi
- 
- 	sb = inode->i_sb;
- 
--#ifdef CONFIG_EXT3_INDEX
- 	if (EXT3_HAS_COMPAT_FEATURE(inode->i_sb,
- 				    EXT3_FEATURE_COMPAT_DIR_INDEX) &&
- 	    ((EXT3_I(inode)->i_flags & EXT3_INDEX_FL) ||
-@@ -123,7 +120,6 @@ static int ext3_readdir(struct file * fi
- 		 */
- 		EXT3_I(filp->f_path.dentry->d_inode)->i_flags &= ~EXT3_INDEX_FL;
- 	}
--#endif
- 	stored = 0;
- 	offset = filp->f_pos & (sb->s_blocksize - 1);
- 
-@@ -232,7 +228,6 @@ out:
- 	return ret;
- }
- 
--#ifdef CONFIG_EXT3_INDEX
- /*
-  * These functions convert from the major/minor hash to an f_pos
-  * value.
-@@ -518,5 +513,3 @@ static int ext3_release_dir (struct inod
- 
- 	return 0;
- }
--
--#endif
-diff -puN fs/ext3/namei.c~ext3-remove-ifdef-config_ext3_index fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-remove-ifdef-config_ext3_index
-+++ a/fs/ext3/namei.c
-@@ -144,7 +144,6 @@ struct dx_map_entry
- 	u16 size;
- };
- 
--#ifdef CONFIG_EXT3_INDEX
- static inline unsigned dx_get_block (struct dx_entry *entry);
- static void dx_set_block (struct dx_entry *entry, unsigned value);
- static inline unsigned dx_get_hash (struct dx_entry *entry);
-@@ -768,8 +767,6 @@ static void dx_insert_block(struct dx_fr
- 	dx_set_block(new, block);
- 	dx_set_count(entries, count + 1);
- }
--#endif
--
- 
- static void ext3_update_dx_flag(struct inode *inode)
- {
-@@ -871,7 +868,6 @@ static struct buffer_head * ext3_find_en
- 	name = dentry->d_name.name;
- 	if (namelen > EXT3_NAME_LEN)
- 		return NULL;
--#ifdef CONFIG_EXT3_INDEX
- 	if (is_dx(dir)) {
- 		bh = ext3_dx_find_entry(dentry, res_dir, &err);
- 		/*
-@@ -883,7 +879,6 @@ static struct buffer_head * ext3_find_en
- 			return bh;
- 		dxtrace(printk("ext3_find_entry: dx failed, falling back\n"));
- 	}
--#endif
- 	nblocks = dir->i_size >> EXT3_BLOCK_SIZE_BITS(sb);
- 	start = EXT3_I(dir)->i_dir_start_lookup;
- 	if (start >= nblocks)
-@@ -959,7 +954,6 @@ cleanup_and_exit:
- 	return ret;
- }
- 
--#ifdef CONFIG_EXT3_INDEX
- static struct buffer_head * ext3_dx_find_entry(struct dentry *dentry,
- 		       struct ext3_dir_entry_2 **res_dir, int *err)
- {
-@@ -1027,7 +1021,6 @@ errout:
- 	dx_release (frames);
- 	return NULL;
- }
--#endif
- 
- static struct dentry *ext3_lookup(struct inode * dir, struct dentry *dentry, struct nameidata *nd)
- {
-@@ -1123,7 +1116,6 @@ static inline void ext3_set_de_type(stru
- 		de->file_type = ext3_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
- }
- 
--#ifdef CONFIG_EXT3_INDEX
- /*
-  * Move count entries from end of map between two memory locations.
-  * Returns pointer to last entry moved.
-@@ -1268,7 +1260,6 @@ errout:
- 	*error = err;
- 	return NULL;
- }
--#endif
- 
- 
- /*
-@@ -1366,7 +1357,6 @@ static int add_dirent_to_buf(handle_t *h
- 	return 0;
- }
- 
--#ifdef CONFIG_EXT3_INDEX
- /*
-  * This converts a one block unindexed directory to a 3 block indexed
-  * directory, and adds the dentry to the indexed directory.
-@@ -1445,7 +1435,6 @@ static int make_indexed_dir(handle_t *ha
- 
- 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
- }
--#endif
- 
- /*
-  *	ext3_add_entry()
-@@ -1466,9 +1455,7 @@ static int ext3_add_entry (handle_t *han
- 	struct ext3_dir_entry_2 *de;
- 	struct super_block * sb;
- 	int	retval;
--#ifdef CONFIG_EXT3_INDEX
- 	int	dx_fallback=0;
--#endif
- 	unsigned blocksize;
- 	u32 block, blocks;
- 
-@@ -1476,7 +1463,6 @@ static int ext3_add_entry (handle_t *han
- 	blocksize = sb->s_blocksize;
- 	if (!dentry->d_name.len)
- 		return -EINVAL;
--#ifdef CONFIG_EXT3_INDEX
- 	if (is_dx(dir)) {
- 		retval = ext3_dx_add_entry(handle, dentry, inode);
- 		if (!retval || (retval != ERR_BAD_DX_DIR))
-@@ -1485,7 +1471,6 @@ static int ext3_add_entry (handle_t *han
- 		dx_fallback++;
- 		ext3_mark_inode_dirty(handle, dir);
- 	}
--#endif
- 	blocks = dir->i_size >> sb->s_blocksize_bits;
- 	for (block = 0, offset = 0; block < blocks; block++) {
- 		bh = ext3_bread(handle, dir, block, 0, &retval);
-@@ -1495,11 +1480,9 @@ static int ext3_add_entry (handle_t *han
- 		if (retval != -ENOSPC)
- 			return retval;
- 
--#ifdef CONFIG_EXT3_INDEX
- 		if (blocks == 1 && !dx_fallback &&
- 		    EXT3_HAS_COMPAT_FEATURE(sb, EXT3_FEATURE_COMPAT_DIR_INDEX))
- 			return make_indexed_dir(handle, dentry, inode, bh);
--#endif
- 		brelse(bh);
- 	}
- 	bh = ext3_append(handle, dir, &block, &retval);
-@@ -1511,7 +1494,6 @@ static int ext3_add_entry (handle_t *han
- 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
- }
- 
--#ifdef CONFIG_EXT3_INDEX
- /*
-  * Returns 0 for success, or a negative error value
-  */
-@@ -1646,7 +1628,6 @@ cleanup:
- 	dx_release(frames);
- 	return err;
- }
--#endif
- 
- /*
-  * ext3_delete_entry deletes a directory entry by merging it with the
-diff -puN include/linux/ext3_fs.h~ext3-remove-ifdef-config_ext3_index include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-remove-ifdef-config_ext3_index
-+++ a/include/linux/ext3_fs.h
-@@ -35,10 +35,6 @@
- /*max window size: 1024(direct blocks) + 3([t,d]indirect blocks) */
- #define EXT3_MAX_RESERVE_BLOCKS         1027
- #define EXT3_RESERVE_WINDOW_NOT_ALLOCATED 0
--/*
-- * Always enable hashed directories
-- */
--#define CONFIG_EXT3_INDEX
- 
- /*
-  * Debug code
-@@ -665,17 +661,11 @@ struct ext3_dir_entry_2 {
-  * (c) Daniel Phillips, 2001
-  */
- 
--#ifdef CONFIG_EXT3_INDEX
--  #define is_dx(dir) (EXT3_HAS_COMPAT_FEATURE(dir->i_sb, \
--					      EXT3_FEATURE_COMPAT_DIR_INDEX) && \
-+#define is_dx(dir) (EXT3_HAS_COMPAT_FEATURE(dir->i_sb, \
-+				      EXT3_FEATURE_COMPAT_DIR_INDEX) && \
- 		      (EXT3_I(dir)->i_flags & EXT3_INDEX_FL))
- #define EXT3_DIR_LINK_MAX(dir) (!is_dx(dir) && (dir)->i_nlink >= EXT3_LINK_MAX)
- #define EXT3_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2 || (dir)->i_nlink == 1)
--#else
--  #define is_dx(dir) 0
--#define EXT3_DIR_LINK_MAX(dir) ((dir)->i_nlink >= EXT3_LINK_MAX)
--#define EXT3_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2)
--#endif
- 
- /* Legal values for the dx_root hash_version field: */
- 
++config RTC_DRV_DS1374
++	tristate "Maxim/Dallas Semiconductor DS1374 Real Time Clock"
++	depends on RTC_CLASS && I2C
++	help
++	  If you say yes here you get support for Dallas Semiconductor
++	  DS1374 real-time clock chips.  If an interrupt is associated
++	  with the device, the alarm functionality is supported.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called rtc-ds1374.
++
+ config RTC_DRV_DS1672
+ 	tristate "Dallas/Maxim DS1672"
+ 	help
+diff -puN drivers/rtc/Makefile~rtc-rtc-class-driver-for-the-ds1374 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-rtc-class-driver-for-the-ds1374
++++ a/drivers/rtc/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
+ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+ obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+ obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
++obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
+diff -puN /dev/null drivers/rtc/rtc-ds1374.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -0,0 +1,449 @@
++/*
++ * RTC client/driver for the Maxim/Dallas DS1374 Real-Time Clock over I2C
++ *
++ * Based on code by Randy Vinson <rvinson@mvista.com>,
++ * which was based on the m41t00.c by Mark Greer <mgreer@mvista.com>.
++ *
++ * Copyright (C) 2006-2007 Freescale Semiconductor
++ *
++ * 2005 (c) MontaVista Software, Inc. This file is licensed under
++ * the terms of the GNU General Public License version 2. This program
++ * is licensed "as is" without any warranty of any kind, whether express
++ * or implied.
++ */
++/*
++ * It would be more efficient to use i2c msgs/i2c_transfer directly but, as
++ * recommened in .../Documentation/i2c/writing-clients section
++ * "Sending and receiving", using SMBus level communication is preferred.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++#include <linux/workqueue.h>
++
++#define DS1374_REG_TOD0		0x00 /* Time of Day */
++#define DS1374_REG_TOD1		0x01
++#define DS1374_REG_TOD2		0x02
++#define DS1374_REG_TOD3		0x03
++#define DS1374_REG_WDALM0	0x04 /* Watchdog/Alarm */
++#define DS1374_REG_WDALM1	0x05
++#define DS1374_REG_WDALM2	0x06
++#define DS1374_REG_CR		0x07 /* Control */
++#define DS1374_REG_CR_AIE	0x01 /* Alarm Int. Enable */
++#define DS1374_REG_CR_WDALM	0x20 /* 1=Watchdog, 0=Alarm */
++#define DS1374_REG_CR_WACE	0x40 /* WD/Alarm counter enable */
++#define DS1374_REG_SR		0x08 /* Status */
++#define DS1374_REG_SR_OSF	0x80 /* Oscillator Stop Flag */
++#define DS1374_REG_SR_AF	0x01 /* Alarm Flag */
++#define DS1374_REG_TCR		0x09 /* Trickle Charge */
++
++struct ds1374 {
++	struct i2c_client *client;
++	struct rtc_device *rtc;
++	struct work_struct work;
++
++	/* The mutex protects alarm operations, and prevents a race
++	 * between the enable_irq() in the workqueue and the free_irq()
++	 * in the remove function.
++	 */
++	struct mutex mutex;
++	int exiting;
++};
++
++static struct i2c_driver ds1374_driver;
++
++static int ds1374_read_rtc(struct i2c_client *client, u32 *time,
++                           int reg, int nbytes)
++{
++	u8 buf[4];
++	int ret;
++	int i;
++
++	if (nbytes > 4) {
++		WARN_ON(1);
++		return -EINVAL;
++	}
++
++	ret = i2c_smbus_read_i2c_block_data(client, reg, nbytes, buf);
++
++	if (ret < 0)
++		return ret;
++	if (ret < nbytes)
++		return -EIO;
++
++	for (i = nbytes - 1, *time = 0; i >= 0; i--)
++		*time = (*time << 8) | buf[i];
++
++	return 0;
++}
++
++static int ds1374_write_rtc(struct i2c_client *client, u32 time,
++                            int reg, int nbytes)
++{
++	u8 buf[4];
++	int i;
++
++	if (nbytes > 4) {
++		WARN_ON(1);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < nbytes; i++) {
++		buf[i] = time & 0xff;
++		time >>= 8;
++	}
++
++	return i2c_smbus_write_i2c_block_data(client, reg, nbytes, buf);
++}
++
++static int ds1374_check_rtc_status(struct i2c_client *client)
++{
++	int ret = 0;
++	int control, stat;
++
++	stat = i2c_smbus_read_byte_data(client, DS1374_REG_SR);
++	if (stat < 0)
++		return stat;
++
++	if (stat & DS1374_REG_SR_OSF)
++		dev_warn(&client->dev,
++		         "oscillator discontinuity flagged, "
++		         "time unreliable\n");
++
++	stat &= ~(DS1374_REG_SR_OSF | DS1374_REG_SR_AF);
++
++	ret = i2c_smbus_write_byte_data(client, DS1374_REG_SR, stat);
++	if (ret < 0)
++		return ret;
++
++	/* If the alarm is pending, clear it before requesting
++	 * the interrupt, so an interrupt event isn't reported
++	 * before everything is initialized.
++	 */
++
++	control = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++	if (control < 0)
++		return control;
++
++	control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
++	return i2c_smbus_write_byte_data(client, DS1374_REG_CR, control);
++}
++
++static int ds1374_read_time(struct device *dev, struct rtc_time *time)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	u32 itime;
++	int ret;
++
++	ret = ds1374_read_rtc(client, &itime, DS1374_REG_TOD0, 4);
++	if (!ret)
++		rtc_time_to_tm(itime, time);
++
++	return ret;
++}
++
++static int ds1374_set_time(struct device *dev, struct rtc_time *time)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	unsigned long itime;
++
++	rtc_tm_to_time(time, &itime);
++	return ds1374_write_rtc(client, itime, DS1374_REG_TOD0, 4);
++}
++
++/* The ds1374 has a decrementer for an alarm, rather than a comparator.
++ * If the time of day is changed, then the alarm will need to be
++ * reset.
++ */
++static int ds1374_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1374 *ds1374 = i2c_get_clientdata(client);
++	u32 now, cur_alarm;
++	int cr, sr;
++	int ret = 0;
++
++	if (client->irq < 0)
++		return -EINVAL;
++
++	mutex_lock(&ds1374->mutex);
++
++	cr = ret = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++	if (ret < 0)
++		goto out;
++
++	sr = ret = i2c_smbus_read_byte_data(client, DS1374_REG_SR);
++	if (ret < 0)
++		goto out;
++
++	ret = ds1374_read_rtc(client, &now, DS1374_REG_TOD0, 4);
++	if (ret)
++		goto out;
++
++	ret = ds1374_read_rtc(client, &cur_alarm, DS1374_REG_WDALM0, 3);
++	if (ret)
++		goto out;
++
++	rtc_time_to_tm(now + cur_alarm, &alarm->time);
++	alarm->enabled = !!(cr & DS1374_REG_CR_WACE);
++	alarm->pending = !!(sr & DS1374_REG_SR_AF);
++
++out:
++	mutex_unlock(&ds1374->mutex);
++	return ret;
++}
++
++static int ds1374_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1374 *ds1374 = i2c_get_clientdata(client);
++	struct rtc_time now;
++	unsigned long new_alarm, itime;
++	int cr;
++	int ret = 0;
++
++	if (client->irq < 0)
++		return -EINVAL;
++
++	ret = ds1374_read_time(dev, &now);
++	if (ret < 0)
++		return ret;
++
++	rtc_tm_to_time(&alarm->time, &new_alarm);
++	rtc_tm_to_time(&now, &itime);
++
++	new_alarm -= itime;
++
++	/* This can happen due to races, in addition to dates that are
++	 * truly in the past.  To avoid requiring the caller to check for
++	 * races, dates in the past are assumed to be in the recent past
++	 * (i.e. not something that we'd rather the caller know about via
++	 * an error), and the alarm is set to go off as soon as possible.
++	 */
++	if (new_alarm <= 0)
++		new_alarm = 1;
++
++	mutex_lock(&ds1374->mutex);
++
++	ret = cr = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++	if (ret < 0)
++		goto out;
++
++	/* Disable any existing alarm before setting the new one
++	 * (or lack thereof). */
++	cr &= ~DS1374_REG_CR_WACE;
++
++	ret = i2c_smbus_write_byte_data(client, DS1374_REG_CR, cr);
++	if (ret < 0)
++		goto out;
++
++	ret = ds1374_write_rtc(client, new_alarm, DS1374_REG_WDALM0, 3);
++	if (ret)
++		goto out;
++
++	if (alarm->enabled) {
++		cr |= DS1374_REG_CR_WACE | DS1374_REG_CR_AIE;
++		cr &= ~DS1374_REG_CR_WDALM;
++
++		ret = i2c_smbus_write_byte_data(client, DS1374_REG_CR, cr);
++	}
++
++out:
++	mutex_unlock(&ds1374->mutex);
++	return ret;
++}
++
++static irqreturn_t ds1374_irq(int irq, void *dev_id)
++{
++	struct i2c_client *client = dev_id;
++	struct ds1374 *ds1374 = i2c_get_clientdata(client);
++
++	disable_irq_nosync(irq);
++	schedule_work(&ds1374->work);
++	return IRQ_HANDLED;
++}
++
++static void ds1374_work(struct work_struct *work)
++{
++	struct ds1374 *ds1374 = container_of(work, struct ds1374, work);
++	struct i2c_client *client = ds1374->client;
++	int stat, control;
++
++	mutex_lock(&ds1374->mutex);
++
++	stat = i2c_smbus_read_byte_data(client, DS1374_REG_SR);
++	if (stat < 0)
++		return;
++
++	if (stat & DS1374_REG_SR_AF) {
++		stat &= ~DS1374_REG_SR_AF;
++		i2c_smbus_write_byte_data(client, DS1374_REG_SR, stat);
++
++		control = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++		if (control < 0)
++			goto out;
++
++		control &= ~(DS1374_REG_CR_WACE | DS1374_REG_CR_AIE);
++		i2c_smbus_write_byte_data(client, DS1374_REG_CR, control);
++
++		/* rtc_update_irq() assumes that it is called
++		 * from IRQ-disabled context.
++		 */
++		local_irq_disable();
++		rtc_update_irq(ds1374->rtc, 1, RTC_AF | RTC_IRQF);
++		local_irq_enable();
++	}
++
++out:
++	if (!ds1374->exiting)
++		enable_irq(client->irq);
++
++	mutex_unlock(&ds1374->mutex);
++}
++
++static int ds1374_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds1374 *ds1374 = i2c_get_clientdata(client);
++	int ret = -ENOIOCTLCMD;
++
++	mutex_lock(&ds1374->mutex);
++
++	switch (cmd) {
++	case RTC_AIE_OFF:
++		ret = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++		if (ret < 0)
++			goto out;
++
++		ret &= ~DS1374_REG_CR_WACE;
++
++		ret = i2c_smbus_write_byte_data(client, DS1374_REG_CR, ret);
++		if (ret < 0)
++			goto out;
++
++		break;
++
++	case RTC_AIE_ON:
++		ret = i2c_smbus_read_byte_data(client, DS1374_REG_CR);
++		if (ret < 0)
++			goto out;
++
++		ret |= DS1374_REG_CR_WACE | DS1374_REG_CR_AIE;
++		ret &= ~DS1374_REG_CR_WDALM;
++
++		ret = i2c_smbus_write_byte_data(client, DS1374_REG_CR, ret);
++		if (ret < 0)
++			goto out;
++
++		break;
++	}
++
++out:
++	mutex_unlock(&ds1374->mutex);
++	return ret;
++}
++
++static const struct rtc_class_ops ds1374_rtc_ops = {
++	.read_time = ds1374_read_time,
++	.set_time = ds1374_set_time,
++	.read_alarm = ds1374_read_alarm,
++	.set_alarm = ds1374_set_alarm,
++	.ioctl = ds1374_ioctl,
++};
++
++static int ds1374_probe(struct i2c_client *client)
++{
++	struct ds1374 *ds1374;
++	int ret;
++
++	ds1374 = kzalloc(sizeof(struct ds1374), GFP_KERNEL);
++	if (!ds1374)
++		return -ENOMEM;
++
++	ds1374->client = client;
++	i2c_set_clientdata(client, ds1374);
++
++	INIT_WORK(&ds1374->work, ds1374_work);
++	mutex_init(&ds1374->mutex);
++
++	ret = ds1374_check_rtc_status(client);
++	if (ret)
++		goto out_free;
++
++	if (client->irq >= 0) {
++		ret = request_irq(client->irq, ds1374_irq, 0,
++		                  "ds1374", client);
++		if (ret) {
++			dev_err(&client->dev, "unable to request IRQ\n");
++			goto out_free;
++		}
++	}
++
++	ds1374->rtc = rtc_device_register(client->name, &client->dev,
++	                                  &ds1374_rtc_ops, THIS_MODULE);
++	if (IS_ERR(ds1374->rtc)) {
++		ret = PTR_ERR(ds1374->rtc);
++		dev_err(&client->dev, "unable to register the class device\n");
++		goto out_irq;
++	}
++
++	return 0;
++
++out_irq:
++	if (client->irq >= 0)
++		free_irq(client->irq, client);
++
++out_free:
++	i2c_set_clientdata(client, NULL);
++	kfree(ds1374);
++	return ret;
++}
++
++static int __devexit ds1374_remove(struct i2c_client *client)
++{
++	struct ds1374 *ds1374 = i2c_get_clientdata(client);
++
++	if (client->irq >= 0) {
++		mutex_lock(&ds1374->mutex);
++		ds1374->exiting = 1;
++		mutex_unlock(&ds1374->mutex);
++
++		free_irq(client->irq, client);
++		flush_scheduled_work();
++	}
++
++	rtc_device_unregister(ds1374->rtc);
++	i2c_set_clientdata(client, NULL);
++	kfree(ds1374);
++	return 0;
++}
++
++static struct i2c_driver ds1374_driver = {
++	.driver = {
++		.name = "rtc-ds1374",
++		.owner = THIS_MODULE,
++	},
++	.probe = ds1374_probe,
++	.remove = __devexit_p(ds1374_remove),
++};
++
++static int __init ds1374_init(void)
++{
++	return i2c_add_driver(&ds1374_driver);
++}
++
++static void __exit ds1374_exit(void)
++{
++	i2c_del_driver(&ds1374_driver);
++}
++
++module_init(ds1374_init);
++module_exit(ds1374_exit);
++
++MODULE_AUTHOR("Scott Wood <scottwood@freescale.com>");
++MODULE_DESCRIPTION("Maxim/Dallas DS1374 RTC Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from scottwood@freescale.com are
 
-remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
-limit-minixfs-printks-on-corrupted-dir-i_size.patch
-ext3-remove-ifdef-config_ext3_index.patch
+git-powerpc.patch
+git-powerpc-galak.patch
+rtc-rtc-class-driver-for-the-ds1374.patch
