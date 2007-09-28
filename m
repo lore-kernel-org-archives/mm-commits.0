@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 28 Sep 2007 15:41:22 -0700
-Message-ID: <200709282241.l8SMfMNc020922@imap1.linux-foundation.org>
+Subject: + combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch added to -mm tree
+Date: Fri, 28 Sep 2007 15:41:18 -0700
+Message-ID: <200709282241.l8SMfI82020916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42280 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755019AbXI1Wl5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754937AbXI1Wl4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 18:41:57 -0400
+	Fri, 28 Sep 2007 18:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fche@redhat.com, hch@infradead.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
+Cc: mathieu.desnoyers@polymtl.ca, randy.dunlap@oracle.com
 
 
 The patch titled
-     linux-kernel-markers-checkpatch-fixes
+     Combine instrumentation menus in kernel/Kconfig.instrumentation
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-checkpatch-fixes.patch
+     combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,273 +26,866 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Combine instrumentation menus in kernel/Kconfig.instrumentation
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Cc: "Frank Ch. Eigler" <fche@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Quoting Randy:
+
+"It seems sad that this patch sources Kconfig.marker, a 7-line file,
+20-something times.  Yes, you (we) don't want to put those 7 lines into
+20-something different files, so sourcing is the right thing.
+
+However, what you did for avr32 seems more on the right track to me: make
+_one_ Instrumentation support menu that includes PROFILING, OPROFILE, KPROBES,
+and MARKERS and then use (source) that in all of the arches."
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/marker.h~linux-kernel-markers-checkpatch-fixes include/linux/marker.h
---- a/include/linux/marker.h~linux-kernel-markers-checkpatch-fixes
-+++ a/include/linux/marker.h
-@@ -61,7 +61,7 @@ struct __mark_marker {
- 		__attribute__((section("__markers"))) =			\
- 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
- 		0, __mark_empty_function, NULL };			\
--		asm volatile ( "" : : "i" (&__mark_##name));		\
-+		asm volatile( "" : : "i" (&__mark_##name));		\
- 		__mark_check_format(format, ## args);			\
- 		if (unlikely(__mark_##name.state)) {			\
- 			preempt_disable();				\
-diff -puN kernel/marker.c~linux-kernel-markers-checkpatch-fixes kernel/marker.c
---- a/kernel/marker.c~linux-kernel-markers-checkpatch-fixes
-+++ a/kernel/marker.c
-@@ -435,7 +435,7 @@ EXPORT_SYMBOL_GPL(marker_probe_unregiste
-  */
- int marker_arm(const char *name)
- {
--	struct marker_entry * entry;
-+	struct marker_entry *entry;
- 	int ret = 0, need_update = 0;
+diff -puN arch/alpha/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/alpha/Kconfig
+@@ -654,7 +654,7 @@ source "drivers/Kconfig"
  
- 	mutex_lock(&markers_mutex);
-@@ -468,7 +468,7 @@ EXPORT_SYMBOL_GPL(marker_arm);
-  */
- int marker_disarm(const char *name)
- {
--	struct marker_entry * entry;
-+	struct marker_entry *entry;
- 	int ret = 0, need_update = 0;
+ source "fs/Kconfig"
  
- 	mutex_lock(&markers_mutex);
-diff -puN kernel/module.c~linux-kernel-markers-checkpatch-fixes kernel/module.c
---- a/kernel/module.c~linux-kernel-markers-checkpatch-fixes
-+++ a/kernel/module.c
-@@ -1985,7 +1985,8 @@ static struct module *load_module(void _
- 	}
- #endif
- 	markersindex = find_sec(hdr, sechdrs, secstrings, "__markers");
-- 	markersstringsindex = find_sec(hdr, sechdrs, secstrings, "__markers_strings");
-+ 	markersstringsindex = find_sec(hdr, sechdrs, secstrings,
-+					"__markers_strings");
+-source "arch/alpha/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
  
- 	/* Now do relocations. */
- 	for (i = 1; i < hdr->e_shnum; i++) {
+ source "arch/alpha/Kconfig.debug"
+ 
+diff -puN arch/alpha/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/alpha/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/arm/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/arm/Kconfig
+--- a/arch/arm/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/arm/Kconfig
+@@ -1061,7 +1061,7 @@ endmenu
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/arm/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/arm/Kconfig.debug"
+ 
+diff -puN arch/arm/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/arm/oprofile/Kconfig
++++ /dev/null
+@@ -1,42 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-if OPROFILE
+-
+-config OPROFILE_ARMV6
+-	bool
+-	depends on CPU_V6 && !SMP
+-	default y
+-	select OPROFILE_ARM11_CORE
+-
+-config OPROFILE_MPCORE
+-	bool
+-	depends on CPU_V6 && SMP
+-	default y
+-	select OPROFILE_ARM11_CORE
+-
+-config OPROFILE_ARM11_CORE
+-	bool
+-
+-endif
+-
+-endmenu
+-
+diff -puN arch/blackfin/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/blackfin/Kconfig
+@@ -914,7 +914,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/blackfin/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ menu "Kernel hacking"
+ 
+diff -puN arch/blackfin/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/blackfin/oprofile/Kconfig
++++ /dev/null
+@@ -1,29 +0,0 @@
+-menu "Profiling support"
+-depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-config HARDWARE_PM
+-	tristate "Hardware Performance Monitor Profiling"
+-	depends on PROFILING
+-	help
+-	  take use of hardware performance monitor to profiling the kernel
+-	  and application.
+-
+-	  If unsure, say N.
+-
+-endmenu
+diff -puN arch/cris/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/cris/Kconfig
+--- a/arch/cris/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/cris/Kconfig
+@@ -196,6 +196,8 @@ source "sound/Kconfig"
+ 
+ source "drivers/usb/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/cris/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/frv/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/frv/Kconfig
+--- a/arch/frv/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/frv/Kconfig
+@@ -375,6 +375,8 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/frv/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/h8300/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/h8300/Kconfig
+@@ -223,6 +223,8 @@ endmenu
+ 
+ source "fs/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/h8300/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/i386/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/i386/Kconfig
+--- a/arch/i386/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/i386/Kconfig
+@@ -1251,30 +1251,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-menuconfig INSTRUMENTATION
+-	bool "Instrumentation Support"
+-	default y
+-	---help---
+-	  Say Y here to get to see options related to performance measurement,
+-	  debugging, and testing. This option alone does not add any kernel code.
+-
+-	  If you say N, all options in this submenu will be skipped and disabled.
+-
+-if INSTRUMENTATION
+-
+-source "arch/i386/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes"
+-	depends on KALLSYMS && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.  register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-
+-endif # INSTRUMENTATION
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/i386/Kconfig.debug"
+ 
+diff -puN arch/i386/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/i386/oprofile/Kconfig
++++ /dev/null
+@@ -1,17 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+diff -puN arch/ia64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/ia64/Kconfig
+@@ -582,20 +582,7 @@ config IRQ_PER_CPU
+ 
+ source "arch/ia64/hp/sim/Kconfig"
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/ia64/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes"
+-	depends on KALLSYMS && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.  register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/ia64/Kconfig.debug"
+ 
+diff -puN arch/ia64/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/ia64/oprofile/Kconfig
++++ /dev/null
+@@ -1,20 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  Due to firmware bugs, you may need to use the "nohalt" boot
+-	  option if you're using OProfile with the hardware performance
+-	  counters.
+-
+-	  If unsure, say N.
+-
+diff -puN arch/m32r/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/m32r/Kconfig
+@@ -426,7 +426,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/m32r/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/m32r/Kconfig.debug"
+ 
+diff -puN arch/m32r/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/m32r/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/m68k/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/m68k/Kconfig
+@@ -683,6 +683,8 @@ endmenu
+ 
+ source "fs/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/m68k/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/m68knommu/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/m68knommu/Kconfig
+@@ -696,6 +696,8 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/m68knommu/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/mips/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/mips/Kconfig
+--- a/arch/mips/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/mips/Kconfig
+@@ -1961,7 +1961,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/mips/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/mips/Kconfig.debug"
+ 
+diff -puN arch/mips/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/mips/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING && !MIPS_MT_SMTC && EXPERIMENTAL
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/parisc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/parisc/Kconfig
+@@ -267,7 +267,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/parisc/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/parisc/Kconfig.debug"
+ 
+diff -puN arch/parisc/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/parisc/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/powerpc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/powerpc/Kconfig
+@@ -638,20 +638,7 @@ source "arch/powerpc/sysdev/qe_lib/Kconf
+ 
+ source "lib/Kconfig"
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/powerpc/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes"
+-	depends on !BOOKE && !4xx && KALLSYMS && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.  register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/powerpc/Kconfig.debug"
+ 
+diff -puN arch/powerpc/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/powerpc/oprofile/Kconfig
++++ /dev/null
+@@ -1,24 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-config OPROFILE_CELL
+-	bool "OProfile for Cell Broadband Engine"
+-	depends on (SPU_FS = y && OPROFILE = m) || (SPU_FS = y && OPROFILE = y) || (SPU_FS = m && OPROFILE = m)
+-	default y
+-	help
+-	  Profiling of Cell BE SPUs requires special support enabled
+-	  by this option.
+diff -puN arch/ppc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/ppc/Kconfig
+@@ -1307,7 +1307,7 @@ endmenu
+ 
+ source "lib/Kconfig"
+ 
+-source "arch/powerpc/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/ppc/Kconfig.debug"
+ 
+diff -puN arch/s390/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/s390/Kconfig
+--- a/arch/s390/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/s390/Kconfig
+@@ -529,21 +529,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/s390/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.	register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/s390/Kconfig.debug"
+ 
+diff -puN arch/s390/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/s390/oprofile/Kconfig
++++ /dev/null
+@@ -1,22 +0,0 @@
+-
+-menu "Profiling support"
+-
+-config PROFILING
+-	bool "Profiling support"
+-	help
+-	  Say Y here to enable profiling support mechanisms used by
+-	  profilers such as readprofile or OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/sh/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/sh/Kconfig
+--- a/arch/sh/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/sh/Kconfig
+@@ -749,7 +749,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/sh/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/sh/Kconfig.debug"
+ 
+diff -puN arch/sh/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/sh/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/sh64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/sh64/Kconfig
+@@ -285,7 +285,7 @@ source "drivers/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-source "arch/sh64/oprofile/Kconfig"
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/sh64/Kconfig.debug"
+ 
+diff -puN arch/sh64/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/sh64/oprofile/Kconfig
++++ /dev/null
+@@ -1,23 +0,0 @@
+-
+-menu "Profiling support"
+-	depends on EXPERIMENTAL
+-
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+-endmenu
+-
+diff -puN arch/sparc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/sparc/Kconfig
+@@ -320,11 +320,7 @@ endmenu
+ 
+ source "fs/Kconfig"
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/sparc/oprofile/Kconfig"
+-
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/sparc/Kconfig.debug"
+ 
+diff -puN arch/sparc/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/sparc/oprofile/Kconfig
++++ /dev/null
+@@ -1,17 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+diff -puN arch/sparc64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/sparc64/Kconfig
+@@ -460,20 +460,7 @@ source "drivers/fc4/Kconfig"
+ 
+ source "fs/Kconfig"
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/sparc64/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes (EXPERIMENTAL)"
+-	depends on KALLSYMS && EXPERIMENTAL && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.  register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/sparc64/Kconfig.debug"
+ 
+diff -puN arch/sparc64/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/sparc64/oprofile/Kconfig
++++ /dev/null
+@@ -1,17 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+diff -puN arch/um/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/um/Kconfig
+--- a/arch/um/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/um/Kconfig
+@@ -289,4 +289,6 @@ config INPUT
+ 	bool
+ 	default n
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/um/Kconfig.debug"
+diff -puN arch/v850/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/v850/Kconfig
+--- a/arch/v850/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/v850/Kconfig
+@@ -331,6 +331,8 @@ source "sound/Kconfig"
+ 
+ source "drivers/usb/Kconfig"
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/v850/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN arch/x86_64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/x86_64/Kconfig
+@@ -829,20 +829,7 @@ source "drivers/firmware/Kconfig"
+ 
+ source fs/Kconfig
+ 
+-menu "Instrumentation Support"
+-
+-source "arch/x86_64/oprofile/Kconfig"
+-
+-config KPROBES
+-	bool "Kprobes"
+-	depends on KALLSYMS && MODULES
+-	help
+-	  Kprobes allows you to trap at almost any kernel address and
+-	  execute a callback function.  register_kprobe() establishes
+-	  a probepoint and specifies the callback.  Kprobes is useful
+-	  for kernel debugging, non-intrusive instrumentation and testing.
+-	  If in doubt, say "N".
+-endmenu
++source "kernel/Kconfig.instrumentation"
+ 
+ source "arch/x86_64/Kconfig.debug"
+ 
+diff -puN arch/x86_64/oprofile/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation /dev/null
+--- a/arch/x86_64/oprofile/Kconfig
++++ /dev/null
+@@ -1,17 +0,0 @@
+-config PROFILING
+-	bool "Profiling support (EXPERIMENTAL)"
+-	help
+-	  Say Y here to enable the extended profiling support mechanisms used
+-	  by profilers such as OProfile.
+-	  
+-
+-config OPROFILE
+-	tristate "OProfile system profiling (EXPERIMENTAL)"
+-	depends on PROFILING
+-	help
+-	  OProfile is a profiling system capable of profiling the
+-	  whole system, include the kernel, kernel modules, libraries,
+-	  and applications.
+-
+-	  If unsure, say N.
+-
+diff -puN arch/xtensa/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~combine-instrumentation-menus-in-kernel-kconfiginstrumentation
++++ a/arch/xtensa/Kconfig
+@@ -251,6 +251,8 @@ config EMBEDDED_RAMDISK_IMAGE
+ 	  provide one yourself.
+ endmenu
+ 
++source "kernel/Kconfig.instrumentation"
++
+ source "arch/xtensa/Kconfig.debug"
+ 
+ source "security/Kconfig"
+diff -puN /dev/null kernel/Kconfig.instrumentation
+--- /dev/null
++++ a/kernel/Kconfig.instrumentation
+@@ -0,0 +1,43 @@
++menuconfig INSTRUMENTATION
++	bool "Instrumentation Support"
++	default y
++	---help---
++	  Say Y here to get to see options related to performance measurement,
++	  system-wide debugging, and testing. This option alone does not add any
++	  kernel code.
++
++	  If you say N, all options in this submenu will be skipped and
++	  disabled. If you're trying to debug the kernel itself, go see the
++	  Kernel Hacking menu.
++
++if INSTRUMENTATION
++
++config PROFILING
++	bool "Profiling support (EXPERIMENTAL)"
++	help
++	  Say Y here to enable the extended profiling support mechanisms used
++	  by profilers such as OProfile.
++
++config OPROFILE
++	tristate "OProfile system profiling (EXPERIMENTAL)"
++	depends on PROFILING
++	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
++	help
++	  OProfile is a profiling system capable of profiling the
++	  whole system, include the kernel, kernel modules, libraries,
++	  and applications.
++
++	  If unsure, say N.
++
++config KPROBES
++	bool "Kprobes"
++	depends on KALLSYMS && MODULES
++	depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
++	help
++	  Kprobes allows you to trap at almost any kernel address and
++	  execute a callback function.  register_kprobe() establishes
++	  a probepoint and specifies the callback.  Kprobes is useful
++	  for kernel debugging, non-intrusive instrumentation and testing.
++	  If in doubt, say "N".
++
++endif # INSTRUMENTATION
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-kvm-warning-fix.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
-git-net-sctp-hack.patch
-git-backlight.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-remove-array_size-duplicates-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
+local_t-documentation-update-2.patch
+local_t-update-documentation.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+linux-kernel-markers.patch
 linux-kernel-markers-checkpatch-fixes.patch
+add-samples-subdir.patch
+linux-kernel-markers-samples.patch
 linux-kernel-markers-samples-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+linux-kernel-markers-documentation.patch
