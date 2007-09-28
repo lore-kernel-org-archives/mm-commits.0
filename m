@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 28 Sep 2007 15:52:20 -0700
-Message-ID: <200709282252.l8SMqKJB021289@imap1.linux-foundation.org>
+Subject: + e100-fix-bogus-pci-quirk.patch added to -mm tree
+Date: Fri, 28 Sep 2007 16:17:45 -0700
+Message-ID: <200709282317.l8SNHjA7022254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44185 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40128 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753053AbXI1Wwd (ORCPT
+	by vger.kernel.org with ESMTP id S1754274AbXI1XST (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 18:52:33 -0400
+	Fri, 28 Sep 2007 19:18:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bernd.schmidt@analog.com, bryan.wu@analog.com, davidm@snapgear.com, gerg@snapgear.com, miles.bader@necel.com
+Cc: benh@kernel.crashing.org, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, linas@austin.ibm.com
 
 
 The patch titled
-     binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes
+     e100: Fix bogus PCI quirk
 has been added to the -mm tree.  Its filename is
-     binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+     e100-fix-bogus-pci-quirk.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,242 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: e100: Fix bogus PCI quirk
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Cc: Bernd Schmidt <bernd.schmidt@analog.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: David McCullough <davidm@snapgear.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Miles Bader <miles.bader@necel.com>
+Linas reported that some machines were crashing at boot in
+quirk_e100_interrupt.  It appears that this quirk is doing an ioremap
+directly on a PCI BAR value, which isn't legal and will cause all sorts of
+bad things to happen on architectures where PCI BARs don't directly match
+processor bus addresses.
+
+This fixes it by using the proper PCI resources instead which is possible
+since the quirk has been moved by a previous commit to happen late enough
+for that.
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Linas Vepstas <linas@austin.ibm.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/binfmt_flat.c~binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes
-+++ a/fs/binfmt_flat.c
-@@ -762,7 +762,8 @@ static int load_flat_file(struct linux_b
- 			}
+diff -puN drivers/pci/quirks.c~e100-fix-bogus-pci-quirk drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~e100-fix-bogus-pci-quirk
++++ a/drivers/pci/quirks.c
+@@ -1444,7 +1444,6 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
+ static void __devinit quirk_e100_interrupt(struct pci_dev *dev)
+ {
+ 	u16 command;
+-	u32 bar;
+ 	u8 __iomem *csr;
+ 	u8 cmd_hi;
  
- 			/* Get the pointer's value.  */
--			addr = flat_get_addr_from_rp(rp, relval, flags, &persistent);
-+			addr = flat_get_addr_from_rp(rp, relval, flags,
-+							&persistent);
- 			if (addr != 0) {
- 				/*
- 				 * Do the relocation.  PIC relocs in the data section are
+@@ -1476,12 +1475,12 @@ static void __devinit quirk_e100_interru
+ 	 * re-enable them when it's ready.
+ 	 */
+ 	pci_read_config_word(dev, PCI_COMMAND, &command);
+-	pci_read_config_dword(dev, PCI_BASE_ADDRESS_0, &bar);
+ 
+-	if (!(command & PCI_COMMAND_MEMORY) || !bar)
++	if (!(command & PCI_COMMAND_MEMORY) || !pci_resource_start(dev, 0))
+ 		return;
+ 
+-	csr = ioremap(bar, 8);
++	/* Convert from PCI bus to resource space.  */
++	csr = ioremap(pci_resource_start(dev, 0), 8);
+ 	if (!csr) {
+ 		printk(KERN_WARNING "PCI: Can't map %s e100 registers\n",
+ 			pci_name(dev));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
+e100-fix-bogus-pci-quirk.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+git-powerpc.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-dvb-fixup-2.patch
-git-dvb-build-fix.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
+powerpc-ptrace-check_full_regs.patch
 adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-kvm-warning-fix.patch
 git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
-git-net-sctp-hack.patch
-git-backlight.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+remove-frv-usage-of-flush_tlb_pgtables.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-remove-array_size-duplicates-checkpatch-fixes.patch
-binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+report-the-per-irq-statistics-on-allarches.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+delay-creation-of-khcvd-thread.patch
+radeonfb-xpress-200m-rc410-support-patch.patch
+add-scaled-time-to-taskstats-based-process-accounting.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
+powerpc-add-scaled-time-accounting.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+powerpc-lock-bitops.patch
 powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+add-documentation-for-extended-crashkernel-syntax.patch
