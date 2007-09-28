@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-samples-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 28 Sep 2007 15:41:28 -0700
-Message-ID: <200709282241.l8SMfS6k020931@imap1.linux-foundation.org>
+Subject: + linux-kernel-markers-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 28 Sep 2007 15:41:22 -0700
+Message-ID: <200709282241.l8SMfMNc020922@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42280 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753182AbXI1Wlp (ORCPT
+	by vger.kernel.org with ESMTP id S1755019AbXI1Wl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 18:41:45 -0400
+	Fri, 28 Sep 2007 18:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca
+Cc: akpm@linux-foundation.org, fche@redhat.com, hch@infradead.org, mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
 
 
 The patch titled
-     linux-kernel-markers-samples-checkpatch-fixes
+     linux-kernel-markers-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-samples-checkpatch-fixes.patch
+     linux-kernel-markers-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux-kernel-markers-samples-checkpatch-fixes
+Subject: linux-kernel-markers-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN samples/markers/marker-example.c~linux-kernel-markers-samples-checkpatch-fixes samples/markers/marker-example.c
---- a/samples/markers/marker-example.c~linux-kernel-markers-samples-checkpatch-fixes
-+++ a/samples/markers/marker-example.c
-@@ -13,16 +13,15 @@
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
- 
--struct proc_dir_entry *pentry_example = NULL;
-+struct proc_dir_entry *pentry_example;
- 
- static int my_open(struct inode *inode, struct file *file)
+diff -puN include/linux/marker.h~linux-kernel-markers-checkpatch-fixes include/linux/marker.h
+--- a/include/linux/marker.h~linux-kernel-markers-checkpatch-fixes
++++ a/include/linux/marker.h
+@@ -61,7 +61,7 @@ struct __mark_marker {
+ 		__attribute__((section("__markers"))) =			\
+ 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
+ 		0, __mark_empty_function, NULL };			\
+-		asm volatile ( "" : : "i" (&__mark_##name));		\
++		asm volatile( "" : : "i" (&__mark_##name));		\
+ 		__mark_check_format(format, ## args);			\
+ 		if (unlikely(__mark_##name.state)) {			\
+ 			preempt_disable();				\
+diff -puN kernel/marker.c~linux-kernel-markers-checkpatch-fixes kernel/marker.c
+--- a/kernel/marker.c~linux-kernel-markers-checkpatch-fixes
++++ a/kernel/marker.c
+@@ -435,7 +435,7 @@ EXPORT_SYMBOL_GPL(marker_probe_unregiste
+  */
+ int marker_arm(const char *name)
  {
- 	int i;
+-	struct marker_entry * entry;
++	struct marker_entry *entry;
+ 	int ret = 0, need_update = 0;
  
- 	trace_mark(subsystem_event, "%d %s", 123, "example string");
--	for (i=0; i<10; i++) {
-+	for (i = 0; i < 10; i++)
- 		trace_mark(subsystem_eventb, MARK_NOARGS);
--	}
- 	return -EPERM;
- }
- 
-diff -puN samples/markers/probe-example.c~linux-kernel-markers-samples-checkpatch-fixes samples/markers/probe-example.c
---- a/samples/markers/probe-example.c~linux-kernel-markers-samples-checkpatch-fixes
-+++ a/samples/markers/probe-example.c
-@@ -34,7 +34,7 @@ void probe_subsystem_event(const struct 
- 	mystr = va_arg(ap, typeof(mystr));
- 
- 	/* Call printk */
--	printk("Value %u, string %s\n", value, mystr);
-+	printk(KERN_DEBUG "Value %u, string %s\n", value, mystr);
- 
- 	/* or count, check rights, serialize data in a buffer */
- 
-@@ -84,10 +84,10 @@ static void __exit probe_fini(void)
+ 	mutex_lock(&markers_mutex);
+@@ -468,7 +468,7 @@ EXPORT_SYMBOL_GPL(marker_arm);
+  */
+ int marker_disarm(const char *name)
  {
- 	int i;
+-	struct marker_entry * entry;
++	struct marker_entry *entry;
+ 	int ret = 0, need_update = 0;
  
--	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
-+	for (i = 0; i < ARRAY_SIZE(probe_array); i++)
- 		marker_probe_unregister(probe_array[i].name);
--	}
--	printk("Number of event b : %u\n", atomic_read(&eventb_count));
-+	printk(KERN_INFO "Number of event b : %u\n",
-+			atomic_read(&eventb_count));
- }
+ 	mutex_lock(&markers_mutex);
+diff -puN kernel/module.c~linux-kernel-markers-checkpatch-fixes kernel/module.c
+--- a/kernel/module.c~linux-kernel-markers-checkpatch-fixes
++++ a/kernel/module.c
+@@ -1985,7 +1985,8 @@ static struct module *load_module(void _
+ 	}
+ #endif
+ 	markersindex = find_sec(hdr, sechdrs, secstrings, "__markers");
+- 	markersstringsindex = find_sec(hdr, sechdrs, secstrings, "__markers_strings");
++ 	markersstringsindex = find_sec(hdr, sechdrs, secstrings,
++					"__markers_strings");
  
- module_init(probe_init);
+ 	/* Now do relocations. */
+ 	for (i = 1; i < hdr->e_shnum; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
