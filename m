@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-document-tree_lock-zonelock-lockorder.patch added to -mm tree
-Date: Fri, 28 Sep 2007 16:20:44 -0700
-Message-ID: <200709282320.l8SNKiTM022321@imap1.linux-foundation.org>
+Subject: + reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch added to -mm tree
+Date: Fri, 28 Sep 2007 16:26:20 -0700
+Message-ID: <200709282326.l8SNQKdv022574@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50241 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37162 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753435AbXI1XUt (ORCPT
+	by vger.kernel.org with ESMTP id S1752255AbXI1Xb4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 19:20:49 -0400
+	Fri, 28 Sep 2007 19:31:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: haveblue@us.ibm.com, edward@namesys.com, vs@namesys.com
 
 
 The patch titled
-     mm: document tree_lock->zone.lock lockorder
+     reiser4: fix NULL dereference in __mnt_is_readonly in ftruncate()
 has been added to the -mm tree.  Its filename is
-     mm-document-tree_lock-zonelock-lockorder.patch
+     reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,136 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: document tree_lock->zone.lock lockorder
-From: Nick Piggin <npiggin@suse.de>
+Subject: reiser4: fix NULL dereference in __mnt_is_readonly in ftruncate()
+From: Dave Hansen <haveblue@us.ibm.com>
 
-zone->lock is quite an "inner" lock and mostly constrained to page alloc as
-well, so like slab locks, it probably isn't something that is critically
-important to document here.  However unlike slab locks, zone lock could be
-used more widely in future, and page_alloc.c might possibly have more
-business to do tricky things with pagecache than does slab.  So...  I don't
-think it hurts to document it.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/filemap.c~mm-document-tree_lock-zonelock-lockorder mm/filemap.c
---- a/mm/filemap.c~mm-document-tree_lock-zonelock-lockorder
-+++ a/mm/filemap.c
-@@ -63,6 +63,7 @@ generic_file_direct_IO(int rw, struct ki
-  *    ->private_lock		(__free_pte->__set_page_dirty_buffers)
-  *      ->swap_lock		(exclusive_swap_page, others)
-  *        ->mapping->tree_lock
-+ *          ->zone.lock
-  *
-  *  ->i_mutex
-  *    ->i_mmap_lock		(truncate->unmap_mapping_range)
-diff -puN mm/rmap.c~mm-document-tree_lock-zonelock-lockorder mm/rmap.c
---- a/mm/rmap.c~mm-document-tree_lock-zonelock-lockorder
-+++ a/mm/rmap.c
-@@ -36,6 +36,7 @@
-  *                 mapping->tree_lock (widely used, in set_page_dirty,
-  *                           in arch-dependent flush_dcache_mmap_lock,
-  *                           within inode_lock in __sync_single_inode)
-+ *                   zone->lock (within radix tree node alloc)
-  */
- 
- #include <linux/mm.h>
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate
++++ a/fs/reiser4/plugin/file/file.c
+@@ -587,6 +587,7 @@ static int truncate_file_body(struct ino
+ 		file.private_data = NULL;
+ 		file.f_pos = new_size;
+ 		file.private_data = NULL;
++		file.f_vfsmnt = NULL;
+ 		uf_info = unix_file_inode_data(inode);
+ 		result = find_file_state(inode, uf_info);
+ 		if (result)
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-remove-zero_page.patch
-mm-use-lockless-radix-tree-probe.patch
-mm-improve-find_lock_page.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-radix-tree-use-indirect-bit.patch
-calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
-fs-fix-nobh-error-handling.patch
-fix-the-max-path-calculation-in-radix-treec-update.patch
-mm-revert-kernel_ds-buffered-write-optimisation.patch
-revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
-revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
-mm-clean-up-buffered-write-code.patch
-mm-debug-write-deadlocks.patch
-mm-trim-more-holes.patch
-mm-buffered-write-cleanup.patch
-mm-write-iovec-cleanup.patch
-mm-fix-pagecache-write-deadlocks.patch
-mm-buffered-write-iterator.patch
-fs-fix-data-loss-on-error.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-introduce-write_begin-write_end-aops-fix2.patch
-mm-restore-kernel_ds-optimisations.patch
-implement-simple-fs-aops.patch
-implement-simple-fs-aops-fix.patch
-block_dev-convert-to-new-aops.patch
-ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix.patch
-ext2-convert-to-new-aops-fix2.patch
-ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
-ext3-convert-to-new-aops-fix-fix.patch
-ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops-fix-fix.patch
-xfs-convert-to-new-aops.patch
-gfs2-convert-to-new-aops-fix.patch
-fs-new-cont-helpers.patch
-fat-convert-to-new-aops.patch
-hfs-convert-to-new-aops.patch
-hfsplus-convert-to-new-aops.patch
-hpfs-convert-to-new-aops.patch
-bfs-convert-to-new-aops.patch
-qnx4-convert-to-new-aops.patch
-reiserfs-use-generic-write.patch
-reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
-reiserfs-convert-to-new-aops-fix2.patch
-reiserfs-use-generic_cont_expand_simple.patch
-with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
-nfs-convert-to-new-aops.patch
-smb-convert-to-new-aops.patch
-fuse-convert-to-new-aops.patch
-hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix-fix.patch
-jffs2-convert-to-new-aops.patch
-ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
-ufs-convert-to-new-aops-fix2.patch
-udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix.patch
-sysv-convert-to-new-aops-fix2.patch
-minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
-minix-convert-to-new-aops-fix2.patch
-jfs-convert-to-new-aops.patch
-fs-adfs-convert-to-new-aops.patch
-fs-affs-convert-to-new-aops.patch
-affs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix-fix.patch
-ocfs2-convert-to-new-aops.patch
-fs-remove-some-aop_truncated_page.patch
-make-swappiness-safer-to-use.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
+r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
+r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
+r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+make-reiserfs-stop-using-struct-file-for-internal.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
+page-owner-tracking-leak-detector.patch
