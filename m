@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-dev-oldmem-to-devicestxt-documentation.patch added to -mm tree
-Date: Thu, 27 Sep 2007 23:35:41 -0700
-Message-ID: <200709280635.l8S6ZfqK014835@imap1.linux-foundation.org>
+Subject: + x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg.patch added to -mm tree
+Date: Thu, 27 Sep 2007 23:36:33 -0700
+Message-ID: <200709280636.l8S6aXVl014884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756774AbXI1GgH (ORCPT
+	by vger.kernel.org with ESMTP id S1756847AbXI1Ggg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 02:36:07 -0400
+	Fri, 28 Sep 2007 02:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, device@lanana.org, hpa@zytor.com
+Cc: tomof@acm.org
 
 
 The patch titled
-     Add /dev/oldmem to devices.txt documentation
+     x86-64: pci-gart iommu sg chaining zeroes wrong sg
 has been added to the -mm tree.  Its filename is
-     add-dev-oldmem-to-devicestxt-documentation.patch
+     x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add /dev/oldmem to devices.txt documentation
-From: Dave Jones <davej@redhat.com>
+Subject: x86-64: pci-gart iommu sg chaining zeroes wrong sg
+From: FUJITA Tomonori <tomof@acm.org>
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: <device@lanana.org>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devices.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86_64/kernel/pci-gart.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/devices.txt~add-dev-oldmem-to-devicestxt-documentation Documentation/devices.txt
---- a/Documentation/devices.txt~add-dev-oldmem-to-devicestxt-documentation
-+++ a/Documentation/devices.txt
-@@ -94,6 +94,8 @@ Your cooperation is appreciated.
- 		  9 = /dev/urandom	Faster, less secure random number gen.
- 		 10 = /dev/aio		Asynchronous I/O notification interface
- 		 11 = /dev/kmsg		Writes to this come out as printk's
-+		 12 = /dev/oldmem	Used by crashdump kernels to access
-+					the memory of the kernel that crashed.
+diff -puN arch/x86_64/kernel/pci-gart.c~x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg arch/x86_64/kernel/pci-gart.c
+--- a/arch/x86_64/kernel/pci-gart.c~x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg
++++ a/arch/x86_64/kernel/pci-gart.c
+@@ -428,8 +428,10 @@ static int gart_map_sg(struct device *de
+ 		goto error;
+ 	out++;
+ 	flush_gart();
+-	if (out < nents)
+-		ps->dma_length = 0;
++	if (out < nents) {
++		sgmap = sg_next(sgmap);
++		sgmap->dma_length = 0;
++	}
+ 	return out;
  
-   1 block	RAM disk
- 		  0 = /dev/ram0		First RAM disk
+ error:
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from tomof@acm.org are
 
-add-dev-oldmem-to-devicestxt-documentation.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-slow-down-printk-during-boot-fix-3.patch
-slow-down-printk-during-boot-fix-4.patch
-git-cpufreq.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-libata-correct-kernel-parameter-in-documentation.patch
+git-scsi-misc.patch
+git-block.patch
+x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg.patch
