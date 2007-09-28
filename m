@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-pagevec-to-rotate-reclaimable-page-fix-bug-at-include-linux-mmh220.patch added to -mm tree
-Date: Thu, 27 Sep 2007 17:10:57 -0700
-Message-ID: <200709280010.l8S0AvrB002224@imap1.linux-foundation.org>
+Subject: + mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch added to -mm tree
+Date: Thu, 27 Sep 2007 17:10:59 -0700
+Message-ID: <200709280011.l8S0AxHd002230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41632 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755786AbXI1ALd (ORCPT
+	by vger.kernel.org with ESMTP id S1759529AbXI1ALi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Sep 2007 20:11:33 -0400
+	Thu, 27 Sep 2007 20:11:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hugh@veritas.com, hifumi.hisashi@oss.ntt.co.jp
 
 
 The patch titled
-     fix BUG at include/linux/mm.h:220!
+     kill redundancy in rotate_reclaimable_page
 has been added to the -mm tree.  Its filename is
-     mm-use-pagevec-to-rotate-reclaimable-page-fix-bug-at-include-linux-mmh220.patch
+     mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,26 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix BUG at include/linux/mm.h:220!
+Subject: kill redundancy in rotate_reclaimable_page
 From: Hugh Dickins <hugh@veritas.com>
 
-a.k.a. mm-use-pagevec-to-rotate-reclaimable-page-fix-3.patch
+a.k.a. mm-use-pagevec-to-rotate-reclaimable-page-cleanup.patch
 
-put_page_testzero's VM_BUG_ON(atomic_read(&page->_count) == 0) fired
-a couple of times while heavily swapping (on -rc7-mm1 and -rc8-mm1).
-
-release_pages() has been using spin_lock_irq/spin_unlock_irq: but now
-that it's being called by pagevec_move_tail() with interrupts disabled,
-it must use spin_lock_irqsave/spin_unlock_irqrestore instead.
-
-Aside from it being generally wrong to enable IRQs behind the caller's
-back, here a pagevec might overflow, or (as I think must have happened
-to cause those BUGs) release_pages() may be preempted to another cpu
-while still acting on the pagevec of the cpu it started out with,
-and that owning cpu also come in to drain it.  Hmm, no, one of the
-BUGs was with preemption disabled: so I don't fully understand it.
-
-Tested for 39 hours with rc8-mm1 on three 4cpu machines: no more BUGs.
+PageActive and PageLRU twice in a row: of course there used to be a
+lock taken in between those tests; but now that pagevec_move_tail() is
+making those tests under lock, there's no point to repeating them here.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
@@ -53,57 +41,31 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-bug-at-include-linux-mmh220 mm/swap.c
---- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-fix-bug-at-include-linux-mmh220
+diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page mm/swap.c
+--- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page
 +++ a/mm/swap.c
-@@ -296,6 +296,7 @@ void release_pages(struct page **pages, 
- 	int i;
- 	struct pagevec pages_to_free;
- 	struct zone *zone = NULL;
-+	unsigned long uninitialized_var(flags);
+@@ -158,14 +158,13 @@ int rotate_reclaimable_page(struct page 
+ 	if (!PageLRU(page))
+ 		return 1;
  
- 	pagevec_init(&pages_to_free, cold);
- 	for (i = 0; i < nr; i++) {
-@@ -303,7 +304,7 @@ void release_pages(struct page **pages, 
+-	if (PageLRU(page) && !PageActive(page)) {
+-		page_cache_get(page);
+-		local_irq_save(flags);
+-		pvec = &__get_cpu_var(rotate_pvecs);
+-		if (!pagevec_add(pvec, page))
+-			pagevec_move_tail(pvec);
+-		local_irq_restore(flags);
+-	}
++	page_cache_get(page);
++	local_irq_save(flags);
++	pvec = &__get_cpu_var(lru_rotate_pvecs);
++	if (!pagevec_add(pvec, page))
++		pagevec_move_tail(pvec);
++	local_irq_restore(flags);
++
+ 	if (!test_clear_page_writeback(page))
+ 		BUG();
  
- 		if (unlikely(PageCompound(page))) {
- 			if (zone) {
--				spin_unlock_irq(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 				zone = NULL;
- 			}
- 			put_compound_page(page);
-@@ -317,9 +318,10 @@ void release_pages(struct page **pages, 
- 			struct zone *pagezone = page_zone(page);
- 			if (pagezone != zone) {
- 				if (zone)
--					spin_unlock_irq(&zone->lru_lock);
-+					spin_unlock_irqrestore(&zone->lru_lock,
-+									flags);
- 				zone = pagezone;
--				spin_lock_irq(&zone->lru_lock);
-+				spin_lock_irqsave(&zone->lru_lock, flags);
- 			}
- 			VM_BUG_ON(!PageLRU(page));
- 			__ClearPageLRU(page);
-@@ -328,7 +330,7 @@ void release_pages(struct page **pages, 
- 
- 		if (!pagevec_add(&pages_to_free, page)) {
- 			if (zone) {
--				spin_unlock_irq(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 				zone = NULL;
- 			}
- 			__pagevec_free(&pages_to_free);
-@@ -336,7 +338,7 @@ void release_pages(struct page **pages, 
-   		}
- 	}
- 	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
- 	pagevec_free(&pages_to_free);
- }
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
