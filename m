@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-remove-ifdef-config_ext4_index.patch added to -mm tree
-Date: Fri, 28 Sep 2007 14:49:55 -0700
-Message-ID: <200709282149.l8SLntMn019121@imap1.linux-foundation.org>
+Subject: + spin_lock_unlocked-cleanups.patch added to -mm tree
+Date: Fri, 28 Sep 2007 14:51:31 -0700
+Message-ID: <200709282151.l8SLpVhS019241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755155AbXI1VuL (ORCPT
+	by vger.kernel.org with ESMTP id S1754601AbXI1VwI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 17:50:11 -0400
+	Fri, 28 Sep 2007 17:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com
+Cc: 12o3l@tiscali.nl, tglx@linutronix.de
 
 
 The patch titled
-     ext4: remove #ifdef CONFIG_EXT4_INDEX
+     spin_lock_unlocked cleanups
 has been added to the -mm tree.  Its filename is
-     ext4-remove-ifdef-config_ext4_index.patch
+     spin_lock_unlocked-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,240 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4: remove #ifdef CONFIG_EXT4_INDEX
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: spin_lock_unlocked cleanups
+From: roel <12o3l@tiscali.nl>
 
-CONFIG_EXT4_INDEX is not an exposed config option in the kernel, and it is
-unconditionally defined in ext4_fs.h.  tune2fs is already able to turn off
-dir indexing, so at this point it's just cluttering up the code.  Remove
-it.
+Replace some SPIN_LOCK_UNLOCKED with DEFINE_SPINLOCK
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/ext4/dir.c~ext4-remove-ifdef-config_ext4_index fs/ext4/dir.c
---- a/fs/ext4/dir.c~ext4-remove-ifdef-config_ext4_index
-+++ a/fs/ext4/dir.c
-@@ -47,9 +47,7 @@ const struct file_operations ext4_dir_op
- 	.compat_ioctl	= ext4_compat_ioctl,
- #endif
- 	.fsync		= ext4_sync_file,	/* BKL held */
--#ifdef CONFIG_EXT4_INDEX
- 	.release	= ext4_release_dir,
--#endif
- };
+diff -puN arch/mips/pci/ops-pmcmsp.c~spin_lock_unlocked-cleanups arch/mips/pci/ops-pmcmsp.c
+--- a/arch/mips/pci/ops-pmcmsp.c~spin_lock_unlocked-cleanups
++++ a/arch/mips/pci/ops-pmcmsp.c
+@@ -206,7 +206,7 @@ static void pci_proc_init(void)
+ }
+ #endif /* CONFIG_PROC_FS && PCI_COUNTERS */
+ 
+-spinlock_t bpci_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(bpci_lock);
+ 
+ /*****************************************************************************
+  *
+diff -puN arch/powerpc/mm/slice.c~spin_lock_unlocked-cleanups arch/powerpc/mm/slice.c
+--- a/arch/powerpc/mm/slice.c~spin_lock_unlocked-cleanups
++++ a/arch/powerpc/mm/slice.c
+@@ -34,7 +34,7 @@
+ #include <asm/mmu.h>
+ #include <asm/spu.h>
+ 
+-static spinlock_t slice_convert_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(slice_convert_lock);
  
  
-@@ -107,7 +105,6 @@ static int ext4_readdir(struct file * fi
- 
- 	sb = inode->i_sb;
- 
--#ifdef CONFIG_EXT4_INDEX
- 	if (EXT4_HAS_COMPAT_FEATURE(inode->i_sb,
- 				    EXT4_FEATURE_COMPAT_DIR_INDEX) &&
- 	    ((EXT4_I(inode)->i_flags & EXT4_INDEX_FL) ||
-@@ -123,7 +120,6 @@ static int ext4_readdir(struct file * fi
- 		 */
- 		EXT4_I(filp->f_path.dentry->d_inode)->i_flags &= ~EXT4_INDEX_FL;
- 	}
--#endif
- 	stored = 0;
- 	offset = filp->f_pos & (sb->s_blocksize - 1);
- 
-@@ -232,7 +228,6 @@ out:
- 	return ret;
+ #ifdef DEBUG
+diff -puN drivers/ieee1394/ieee1394_core.c~spin_lock_unlocked-cleanups drivers/ieee1394/ieee1394_core.c
+--- a/drivers/ieee1394/ieee1394_core.c~spin_lock_unlocked-cleanups
++++ a/drivers/ieee1394/ieee1394_core.c
+@@ -488,7 +488,7 @@ void hpsb_selfid_complete(struct hpsb_ho
+ 	highlevel_host_reset(host);
  }
  
--#ifdef CONFIG_EXT4_INDEX
- /*
-  * These functions convert from the major/minor hash to an f_pos
-  * value.
-@@ -518,5 +513,3 @@ static int ext4_release_dir (struct inod
+-static spinlock_t pending_packets_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(pending_packets_lock);
  
- 	return 0;
- }
--
--#endif
-diff -puN fs/ext4/namei.c~ext4-remove-ifdef-config_ext4_index fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext4-remove-ifdef-config_ext4_index
-+++ a/fs/ext4/namei.c
-@@ -144,7 +144,6 @@ struct dx_map_entry
- 	u16 size;
- };
+ /**
+  * hpsb_packet_sent - notify core of sending a packet
+diff -puN fs/sysfs/dir.c~spin_lock_unlocked-cleanups fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~spin_lock_unlocked-cleanups
++++ a/fs/sysfs/dir.c
+@@ -16,9 +16,9 @@
  
--#ifdef CONFIG_EXT4_INDEX
- static inline unsigned dx_get_block (struct dx_entry *entry);
- static void dx_set_block (struct dx_entry *entry, unsigned value);
- static inline unsigned dx_get_hash (struct dx_entry *entry);
-@@ -766,8 +765,6 @@ static void dx_insert_block(struct dx_fr
- 	dx_set_block(new, block);
- 	dx_set_count(entries, count + 1);
- }
--#endif
--
+ DEFINE_MUTEX(sysfs_mutex);
+ DEFINE_MUTEX(sysfs_rename_mutex);
+-spinlock_t sysfs_assoc_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(sysfs_assoc_lock);
  
- static void ext4_update_dx_flag(struct inode *inode)
- {
-@@ -869,7 +866,6 @@ static struct buffer_head * ext4_find_en
- 	name = dentry->d_name.name;
- 	if (namelen > EXT4_NAME_LEN)
- 		return NULL;
--#ifdef CONFIG_EXT4_INDEX
- 	if (is_dx(dir)) {
- 		bh = ext4_dx_find_entry(dentry, res_dir, &err);
- 		/*
-@@ -881,7 +877,6 @@ static struct buffer_head * ext4_find_en
- 			return bh;
- 		dxtrace(printk("ext4_find_entry: dx failed, falling back\n"));
- 	}
--#endif
- 	nblocks = dir->i_size >> EXT4_BLOCK_SIZE_BITS(sb);
- 	start = EXT4_I(dir)->i_dir_start_lookup;
- 	if (start >= nblocks)
-@@ -957,7 +952,6 @@ cleanup_and_exit:
- 	return ret;
- }
+-static spinlock_t sysfs_ino_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(sysfs_ino_lock);
+ static DEFINE_IDA(sysfs_ino_ida);
  
--#ifdef CONFIG_EXT4_INDEX
- static struct buffer_head * ext4_dx_find_entry(struct dentry *dentry,
- 		       struct ext4_dir_entry_2 **res_dir, int *err)
- {
-@@ -1025,7 +1019,6 @@ errout:
- 	dx_release (frames);
- 	return NULL;
- }
--#endif
- 
- static struct dentry *ext4_lookup(struct inode * dir, struct dentry *dentry, struct nameidata *nd)
- {
-@@ -1121,7 +1114,6 @@ static inline void ext4_set_de_type(stru
- 		de->file_type = ext4_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
- }
- 
--#ifdef CONFIG_EXT4_INDEX
- /*
-  * Move count entries from end of map between two memory locations.
-  * Returns pointer to last entry moved.
-@@ -1266,8 +1258,6 @@ errout:
- 	*error = err;
- 	return NULL;
- }
--#endif
--
- 
- /*
-  * Add a new entry into a directory (leaf) block.  If de is non-NULL,
-@@ -1363,7 +1353,6 @@ static int add_dirent_to_buf(handle_t *h
- 	return 0;
- }
- 
--#ifdef CONFIG_EXT4_INDEX
- /*
-  * This converts a one block unindexed directory to a 3 block indexed
-  * directory, and adds the dentry to the indexed directory.
-@@ -1442,7 +1431,6 @@ static int make_indexed_dir(handle_t *ha
- 
- 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
- }
--#endif
- 
- /*
-  *	ext4_add_entry()
-@@ -1463,9 +1451,7 @@ static int ext4_add_entry (handle_t *han
- 	struct ext4_dir_entry_2 *de;
- 	struct super_block * sb;
- 	int	retval;
--#ifdef CONFIG_EXT4_INDEX
- 	int	dx_fallback=0;
--#endif
- 	unsigned blocksize;
- 	u32 block, blocks;
- 
-@@ -1473,7 +1459,6 @@ static int ext4_add_entry (handle_t *han
- 	blocksize = sb->s_blocksize;
- 	if (!dentry->d_name.len)
- 		return -EINVAL;
--#ifdef CONFIG_EXT4_INDEX
- 	if (is_dx(dir)) {
- 		retval = ext4_dx_add_entry(handle, dentry, inode);
- 		if (!retval || (retval != ERR_BAD_DX_DIR))
-@@ -1482,7 +1467,6 @@ static int ext4_add_entry (handle_t *han
- 		dx_fallback++;
- 		ext4_mark_inode_dirty(handle, dir);
- 	}
--#endif
- 	blocks = dir->i_size >> sb->s_blocksize_bits;
- 	for (block = 0, offset = 0; block < blocks; block++) {
- 		bh = ext4_bread(handle, dir, block, 0, &retval);
-@@ -1492,11 +1476,9 @@ static int ext4_add_entry (handle_t *han
- 		if (retval != -ENOSPC)
- 			return retval;
- 
--#ifdef CONFIG_EXT4_INDEX
- 		if (blocks == 1 && !dx_fallback &&
- 		    EXT4_HAS_COMPAT_FEATURE(sb, EXT4_FEATURE_COMPAT_DIR_INDEX))
- 			return make_indexed_dir(handle, dentry, inode, bh);
--#endif
- 		brelse(bh);
- 	}
- 	bh = ext4_append(handle, dir, &block, &retval);
-@@ -1508,7 +1490,6 @@ static int ext4_add_entry (handle_t *han
- 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
- }
- 
--#ifdef CONFIG_EXT4_INDEX
- /*
-  * Returns 0 for success, or a negative error value
-  */
-@@ -1643,7 +1624,6 @@ cleanup:
- 	dx_release(frames);
- 	return err;
- }
--#endif
- 
- /*
-  * ext4_delete_entry deletes a directory entry by merging it with the
-diff -puN include/linux/ext4_fs.h~ext4-remove-ifdef-config_ext4_index include/linux/ext4_fs.h
---- a/include/linux/ext4_fs.h~ext4-remove-ifdef-config_ext4_index
-+++ a/include/linux/ext4_fs.h
-@@ -38,10 +38,6 @@
- /*max window size: 1024(direct blocks) + 3([t,d]indirect blocks) */
- #define EXT4_MAX_RESERVE_BLOCKS		1027
- #define EXT4_RESERVE_WINDOW_NOT_ALLOCATED 0
--/*
-- * Always enable hashed directories
-- */
--#define CONFIG_EXT4_INDEX
- 
- /*
-  * Debug code
-@@ -811,17 +807,11 @@ struct ext4_dir_entry_2 {
-  * (c) Daniel Phillips, 2001
-  */
- 
--#ifdef CONFIG_EXT4_INDEX
--  #define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
--					      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
-+#define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
-+				      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
- 		      (EXT4_I(dir)->i_flags & EXT4_INDEX_FL))
- #define EXT4_DIR_LINK_MAX(dir) (!is_dx(dir) && (dir)->i_nlink >= EXT4_LINK_MAX)
- #define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2 || (dir)->i_nlink == 1)
--#else
--  #define is_dx(dir) 0
--#define EXT4_DIR_LINK_MAX(dir) ((dir)->i_nlink >= EXT4_LINK_MAX)
--#define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2)
--#endif
- 
- /* Legal values for the dx_root hash_version field: */
- 
+ /**
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
-limit-minixfs-printks-on-corrupted-dir-i_size.patch
-ext3-remove-ifdef-config_ext3_index.patch
-ext4-remove-ifdef-config_ext4_index.patch
+spin_lock_unlocked-cleanups.patch
