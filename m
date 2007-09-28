@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch added to -mm tree
-Date: Thu, 27 Sep 2007 23:09:06 -0700
-Message-ID: <200709280609.l8S696o2013954@imap1.linux-foundation.org>
+Subject: + bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch added to -mm tree
+Date: Thu, 27 Sep 2007 23:19:08 -0700
+Message-ID: <200709280619.l8S6J8dU014265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54970 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755403AbXI1GJr (ORCPT
+	by vger.kernel.org with ESMTP id S1754453AbXI1GTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Sep 2007 02:09:47 -0400
+	Fri, 28 Sep 2007 02:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbahi@novell.com, GHaskins@novell.com, ak@suse.de, jbeulich@novell.com, tglx@linutronix.de
+Cc: brett.warden@gmail.com, alan@redhat.com, mchehab@infradead.org, ray-lk@madrabbit.org, rdunlap@xenotime.net
 
 
 The patch titled
-     x86_64: nmi_watchdog fix to be more like i386
+     bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register fix
 has been added to the -mm tree.  Its filename is
-     x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
+     bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: nmi_watchdog fix to be more like i386
-From: "David Bahi" <dbahi@novell.com>
+Subject: bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register fix
+From: "Brett Warden" <brett.warden@gmail.com>
 
-Thanks to tglx and ghaskins for all the help in tracking down a very
-early nmi_watchdog crash on certain x86_64 machines.
+coding-style repairs
 
-This modifies nmi_watchdog_tick behavior for x86_64 arch to consider both
-timer and hpet IRQs just as the i386 arch does.
-
-Signed-off-by: David Bahi <dbahi@novell.com>
-Cc: "Gregory Haskins" <GHaskins@novell.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Brett T. Warden <brett.warden@gmail.com>
+Cc: "Ray Lee" <ray-lk@madrabbit.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/nmi.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/video/bw-qcam.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/nmi.c~x86_64-nmi_watchdog-fix-to-be-more-like-i386 arch/x86_64/kernel/nmi.c
---- a/arch/x86_64/kernel/nmi.c~x86_64-nmi_watchdog-fix-to-be-more-like-i386
-+++ a/arch/x86_64/kernel/nmi.c
-@@ -329,7 +329,6 @@ int __kprobes nmi_watchdog_tick(struct p
- 		touched = 1;
- 	}
+diff -puN drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix drivers/media/video/bw-qcam.c
+--- a/drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix
++++ a/drivers/media/video/bw-qcam.c
+@@ -104,7 +104,7 @@ static inline void write_lpdata(struct q
  
--	sum = read_pda(apic_timer_irqs);
- 	if (__get_cpu_var(nmi_touch)) {
- 		__get_cpu_var(nmi_touch) = 0;
- 		touched = 1;
-@@ -345,6 +344,12 @@ int __kprobes nmi_watchdog_tick(struct p
- 		cpu_clear(cpu, backtrace_mask);
- 	}
+ static inline void write_lpcontrol(struct qcam_device *q, int d)
+ {
+-	if(0x20 & d) {
++	if (d & 0x20) {
+ 		/* Set bidirectional mode to reverse (data in) */
+ 		parport_data_reverse(q->pport);
+ 	} else {
+@@ -355,11 +355,11 @@ static int qc_detect(struct qcam_device 
+ 	/* Be (even more) liberal in what you accept...  */
  
-+	/*
-+	 * Take the local apic timer and PIT/HPET into account. We don't
-+	 * know which one is active, when we have highres/dyntick on
-+	 */
-+	sum = read_pda(apic_timer_irqs) + kstat_cpu(cpu).irqs[0];
-+
- #ifdef CONFIG_X86_MCE
- 	/* Could check oops_in_progress here too, but it's safer
- 	   not too */
+ /*	if (count > 30 && count < 200) */
+-	if (count > 20 && count < 400)
+-	{
++	if (count > 20 && count < 400) {
+ 		return 1;	/* found */
+ 	} else {
+-		printk(KERN_ERR "No Quickcam found on port %s\n", q->pport->name);
++		printk(KERN_ERR "No Quickcam found on port %s\n",
++			q->pport->name);
+ 		return 0;	/* not found */
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from dbahi@novell.com are
+Patches currently in -mm which might be from brett.warden@gmail.com are
 
-x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
+bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register.patch
+bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch
