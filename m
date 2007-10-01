@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-build-fix.patch added to -mm tree
-Date: Mon, 01 Oct 2007 02:49:40 -0700
-Message-ID: <200710010955.l919tgxo010069@imap1.linux-foundation.org>
+Subject: + git-net-fix-ax25-build.patch added to -mm tree
+Date: Mon, 01 Oct 2007 03:17:35 -0700
+Message-ID: <200710011023.l91ANba9011054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47701 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45329 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751291AbXJAJzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:55:52 -0400
+	by vger.kernel.org with ESMTP id S1751200AbXJAKXl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 06:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org
 
 
 The patch titled
-     git-dvb-build-fix
+     git-net-fix-ax25-build
 has been added to the -mm tree.  Its filename is
-     git-dvb-build-fix.patch
+     git-net-fix-ax25-build.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-build-fix
+Subject: git-net-fix-ax25-build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/vp27smpx.c:194: error: 'I2C_DRIVERID_VP27SMPX' undeclared here (not in a function)
+drivers/net/hamradio/scc.c: In function 'scc_net_setup':
+drivers/net/hamradio/scc.c:1554: error: 'ax25_hard_header_ops' undeclared (first use in this function)
+drivers/net/hamradio/scc.c:1554: error: (Each undeclared identifier is reported only once
+drivers/net/hamradio/scc.c:1554: error: for each function it appears in.)
 
-please tell me when this was fixed so I can drop this patch.
+what the heck's going on over there?
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ivtv/ivtv-i2c.c |    1 -
- drivers/media/video/vp27smpx.c      |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/net/hamradio/scc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix drivers/media/video/ivtv/ivtv-i2c.c
---- a/drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix
-+++ a/drivers/media/video/ivtv/ivtv-i2c.c
-@@ -109,7 +109,6 @@ static const u8 hw_driverids[] = {
- 	I2C_DRIVERID_UPD64083,
- 	I2C_DRIVERID_SAA717X,
- 	I2C_DRIVERID_WM8739,
--	I2C_DRIVERID_VP27SMPX,
- 	0 		/* IVTV_HW_GPIO dummy driver ID */
- };
+diff -puN drivers/net/hamradio/scc.c~git-net-fix-ax25-build drivers/net/hamradio/scc.c
+--- a/drivers/net/hamradio/scc.c~git-net-fix-ax25-build
++++ a/drivers/net/hamradio/scc.c
+@@ -1551,7 +1551,7 @@ static void scc_net_setup(struct net_dev
+ 	dev->stop	     = scc_net_close;
  
-diff -puN drivers/media/video/vp27smpx.c~git-dvb-build-fix drivers/media/video/vp27smpx.c
---- a/drivers/media/video/vp27smpx.c~git-dvb-build-fix
-+++ a/drivers/media/video/vp27smpx.c
-@@ -191,7 +191,6 @@ static struct i2c_driver i2c_driver = {
- 	.driver = {
- 		.name = "vp27smpx",
- 	},
--	.id             = I2C_DRIVERID_VP27SMPX,
- 	.attach_adapter = vp27smpx_probe,
- 	.detach_client  = vp27smpx_detach,
- 	.command        = vp27smpx_command,
+ 	dev->hard_start_xmit = scc_net_tx;
+-	dev->header_ops      = &ax25_hard_header_ops;
++//	dev->header_ops      = &ax25_hard_header_ops;
+ 
+ 	dev->set_mac_address = scc_net_set_mac_address;
+ 	dev->get_stats       = scc_net_get_stats;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,6 +97,7 @@ git-mtd.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
+git-net-fix-ax25-build.patch
 ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
 git-net-sctp-hack.patch
 forcedeth-power-down-phy-when-interface-is-down.patch
