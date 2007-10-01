@@ -1,142 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - remove-array_size-duplicates-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 02:21:39 -0700
-Message-ID: <200710010927.l919RfO9009041@imap1.linux-foundation.org>
+Subject: + git-net-vs-git-wireless.patch added to -mm tree
+Date: Mon, 01 Oct 2007 02:38:49 -0700
+Message-ID: <200710010944.l919ip3g009703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750912AbXJAJ24 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:28:56 -0400
+	by vger.kernel.org with ESMTP id S1751120AbXJAJpg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, 12o3l@tiscali.nl, adaplas@pol.net, ak@suse.de, davem@davemloft.net, geert@linux-m68k.org, hpa@zytor.com, jeff@garzik.org, kaber@trash.net, lenb@kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     remove-array_size-duplicates-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     remove-array_size-duplicates-checkpatch-fixes.patch
+     git-net-vs-git-wireless
+has been added to the -mm tree.  Its filename is
+     git-net-vs-git-wireless.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: remove-array_size-duplicates-checkpatch-fixes
+Subject: git-net-vs-git-wireless
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+fix this:
+
+drivers/net/wireless/ath5k_base.c:1433: error: syntax error before 'set_key_cmd'
+
+
+and just make this:
+
+drivers/net/wireless/ath5k_base.c:1534: error: unknown field 'open' specified in initializer
+drivers/net/wireless/ath5k_base.c:1535: warning: initialization from incompatible pointer type
+drivers/net/wireless/ath5k_base.c:1540: error: unknown field 'set_multicast_list' specified in initializer
+drivers/net/wireless/ath5k_base.c:1540: warning: initialization from incompatible pointer type
+
+go away :(
+
 Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Roel Kluin <12o3l@tiscali.nl>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/net/wireless/ath5k_base.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68k/amiga/amisound.c~remove-array_size-duplicates-checkpatch-fixes arch/m68k/amiga/amisound.c
---- a/arch/m68k/amiga/amisound.c~remove-array_size-duplicates-checkpatch-fixes
-+++ a/arch/m68k/amiga/amisound.c
-@@ -54,7 +54,8 @@ void __init amiga_init_sound(void)
- 	memcpy (snd_data, sine_data, sizeof(sine_data));
- 
- 	/* setup divisor */
--	clock_constant = (amiga_colorclock + ARRAY_SIZE(sine_data) /2) / ARRAY_SIZE(sine_data);
-+	clock_constant = (amiga_colorclock + ARRAY_SIZE(sine_data) / 2) /
-+				ARRAY_SIZE(sine_data);
- 
- 	/* without amifb, turn video off and enable high quality sound */
- #ifndef CONFIG_FB_AMIGA
-diff -puN drivers/net/skfp/smt.c~remove-array_size-duplicates-checkpatch-fixes drivers/net/skfp/smt.c
---- a/drivers/net/skfp/smt.c~remove-array_size-duplicates-checkpatch-fixes
-+++ a/drivers/net/skfp/smt.c
-@@ -1879,7 +1879,7 @@ void smt_swap_para(struct smt_header *sm
- 		if (plen < 0)
- 			break ;
- 		plen += PARA_LEN ;
--		for (i = ARRAY_SIZE(smt_pdef), pd = smt_pdef; i ; i--,pd++) {
-+		for (i = ARRAY_SIZE(smt_pdef), pd = smt_pdef; i ; i--, pd++) {
- 			if (pd->ptype == type)
- 				break ;
- 		}
-diff -puN drivers/net/skfp/srf.c~remove-array_size-duplicates-checkpatch-fixes drivers/net/skfp/srf.c
---- a/drivers/net/skfp/srf.c~remove-array_size-duplicates-checkpatch-fixes
-+++ a/drivers/net/skfp/srf.c
-@@ -96,9 +96,8 @@ void smt_init_evc(struct s_smc *smc)
- 		init++ ;
+diff -puN drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless drivers/net/wireless/ath5k_base.c
+--- a/drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless
++++ a/drivers/net/wireless/ath5k_base.c
+@@ -1430,7 +1430,7 @@ static void ath_set_multicast_list(struc
  	}
+ }
  
--	if ((unsigned) (evc - smc->evcs) > ARRAY_SIZE(smc->evcs)) {
-+	if ((unsigned)(evc - smc->evcs) > ARRAY_SIZE(smc->evcs))
- 		SMT_PANIC(smc,SMT_E0127, SMT_E0127_MSG) ;
--	}
+-static int ath_set_key(struct ieee80211_hw *hw, set_key_cmd cmd,
++static int ath_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
+ 		const u8 *local_addr, const u8 *addr,
+ 		struct ieee80211_key_conf *key)
+ {
+@@ -1531,13 +1531,13 @@ end:
  
- 	/*
- 	 * conditions
-@@ -137,7 +136,7 @@ void smt_init_evc(struct s_smc *smc)
- 		offset++ ;
- 	}
- #ifdef	DEBUG
--	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
-+	for (i = 0, evc = smc->evcs; i < ARRAY_SIZE(smc->evcs); i++, evc++) {
- 		if (SMT_IS_CONDITION(evc->evc_code)) {
- 			if (!evc->evc_cond_state) {
- 				SMT_PANIC(smc,SMT_E0128, SMT_E0128_MSG) ;
-@@ -161,7 +160,7 @@ static struct s_srf_evc *smt_get_evc(str
- 	int			i ;
- 	struct s_srf_evc	*evc ;
- 
--	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
-+	for (i = 0, evc = smc->evcs; i < ARRAY_SIZE(smc->evcs); i++, evc++) {
- 		if (evc->evc_code == code && evc->evc_index == index)
- 			return(evc) ;
- 	}
-@@ -335,7 +334,7 @@ static void clear_all_rep(struct s_smc *
- 	struct s_srf_evc	*evc ;
- 	int			i ;
- 
--	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
-+	for (i = 0, evc = smc->evcs; i < ARRAY_SIZE(smc->evcs); i++, evc++) {
- 		evc->evc_rep_required = FALSE ;
- 		if (SMT_IS_CONDITION(evc->evc_code))
- 			*evc->evc_cond_state = FALSE ;
-@@ -349,7 +348,7 @@ static void clear_reported(struct s_smc 
- 	int			i ;
- 
- 	smc->srf.any_report = FALSE ;
--	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
-+	for (i = 0, evc = smc->evcs; i < ARRAY_SIZE(smc->evcs); i++, evc++) {
- 		if (SMT_IS_CONDITION(evc->evc_code)) {
- 			if (*evc->evc_cond_state == FALSE)
- 				evc->evc_rep_required = FALSE ;
-@@ -403,7 +402,7 @@ static void smt_send_srf(struct s_smc *s
- 	smt_add_para(smc,&pcon,(u_short) SMT_P1033,0,0) ;
- 	smt_add_para(smc,&pcon,(u_short) SMT_P1034,0,0) ;
- 
--	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
-+	for (i = 0, evc = smc->evcs; i < ARRAY_SIZE(smc->evcs); i++, evc++) {
- 		if (evc->evc_rep_required) {
- 			smt_add_para(smc,&pcon,evc->evc_para,
- 				(int)evc->evc_index,0) ;
-diff -puN drivers/net/wireless/ipw2100.c~remove-array_size-duplicates-checkpatch-fixes drivers/net/wireless/ipw2100.c
---- a/drivers/net/wireless/ipw2100.c~remove-array_size-duplicates-checkpatch-fixes
-+++ a/drivers/net/wireless/ipw2100.c
-@@ -6795,9 +6795,8 @@ static int ipw2100_wx_get_range(struct n
- 
- 	range->num_bitrates = ARRAY_SIZE(ipw2100_rates);
- 
--	for (i = 0; i < ARRAY_SIZE(ipw2100_rates) && i < IW_MAX_BITRATES; i++) {
-+	for (i = 0; i < ARRAY_SIZE(ipw2100_rates) && i < IW_MAX_BITRATES; i++)
- 		range->bitrate[i] = ipw2100_rates_11b[i];
--	}
- 
- 	range->min_rts = MIN_RTS_THRESHOLD;
- 	range->max_rts = MAX_RTS_THRESHOLD;
+ static struct ieee80211_ops ath_hw_ops = {
+ 	.tx = ath_tx,
+-	.open = ath_open,
++//	.open = ath_open,
+ 	.stop = ath_stop,
+ 	.add_interface = ath_add_interface,
+ 	.remove_interface = ath_remove_interface,
+ 	.config = ath_config,
+ 	.config_interface = ath_config_interface,
+-	.set_multicast_list = ath_set_multicast_list,
++//	.set_multicast_list = ath_set_multicast_list,
+ 	.set_key = ath_set_key,
+ 	.get_stats = ath_get_stats,
+ 	.conf_tx = NULL,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -203,6 +144,7 @@ git-unionfs-fix-2.patch
 fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
 git-wireless.patch
 git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-cpa-einval.patch
@@ -282,7 +224,6 @@ tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 userc-ifdef-mq_bytes-fix.patch
 jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-remove-array_size-duplicates-checkpatch-fixes.patch
 binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
