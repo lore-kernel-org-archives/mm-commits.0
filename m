@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
-Date: Mon, 01 Oct 2007 01:45:46 -0700
-Message-ID: <200710010851.l918pmDV007873@imap1.linux-foundation.org>
+Subject: + memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch added to -mm tree
+Date: Mon, 01 Oct 2007 02:02:19 -0700
+Message-ID: <200710010908.l9198LG8008445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45618 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43856 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750956AbXJAIvy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 04:51:54 -0400
+	by vger.kernel.org with ESMTP id S1751062AbXJAJIe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, davej@codemonkey.org.uk
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, clameter@sgi.com, rientjes@google.com
 
 
 The patch titled
-     fix-x86_64-mm-sched-clock-share
+     memcontrol-move-oom-task-exclusion-to-tasklist-fix
 has been added to the -mm tree.  Its filename is
-     fix-x86_64-mm-sched-clock-share.patch
+     memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix-x86_64-mm-sched-clock-share
+Subject: memcontrol-move-oom-task-exclusion-to-tasklist-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/built-in.o: In function `resync_freq':
-sched-clock.c:(.text+0x97f3): undefined reference to `cpufreq_get'
+In file included from include/linux/rmap.h:11,
+                 from mm/filemap_xip.c:15:
+include/linux/memcontrol.h: In function 'task_in_mem_cgroup':
+include/linux/memcontrol.h:63: error: implicit declaration of function 'task_lock'
+include/linux/memcontrol.h:64: error: dereferencing pointer to incomplete type
+include/linux/memcontrol.h:64: error: dereferencing pointer to incomplete type
+include/linux/memcontrol.h:65: error: implicit declaration of function 'task_unlock'
+In file included from mm/filemap_xip.c:16:
+include/linux/sched.h: At top level:
+include/linux/sched.h:1709: warning: conflicting types for 'task_lock'
+include/linux/sched.h:1709: error: static declaration of 'task_lock' follows non-static declaration
+include/linux/memcontrol.h:63: error: previous implicit declaration of 'task_lock' was here
+include/linux/sched.h:1714: warning: conflicting types for 'task_unlock'
+include/linux/sched.h:1714: error: static declaration of 'task_unlock' follows non-static declaration
+include/linux/memcontrol.h:65: error: previous implicit declaration of 'task_unlock' was here
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpufreq.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   11 +----------
+ mm/memcontrol.c            |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~fix-x86_64-mm-sched-clock-share
-+++ a/include/linux/cpufreq.h
-@@ -275,13 +275,19 @@ struct freq_attr {
- int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu);
- int cpufreq_update_policy(unsigned int cpu);
+diff -puN include/linux/memcontrol.h~memcontrol-move-oom-task-exclusion-to-tasklist-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcontrol-move-oom-task-exclusion-to-tasklist-fix
++++ a/include/linux/memcontrol.h
+@@ -45,6 +45,7 @@ extern unsigned long mem_cgroup_isolate_
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
+ extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 					gfp_t gfp_mask);
++int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
  
-+#ifdef CONFIG_CPU_FREQ
- /* query the current CPU frequency (in kHz). If zero, cpufreq couldn't detect it */
- unsigned int cpufreq_get(unsigned int cpu);
- 
--/* query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it */
--#ifdef CONFIG_CPU_FREQ
-+/*
-+ * query the last known CPU freq (in kHz). If zero, cpufreq couldn't detect it
-+ */
- unsigned int cpufreq_quick_get(unsigned int cpu);
- #else
-+static inline unsigned int cpufreq_get(unsigned int cpu)
-+{
-+	return 0;
-+}
- static inline unsigned int cpufreq_quick_get(unsigned int cpu)
+ static inline struct mem_cgroup *mm_cgroup(const struct mm_struct *mm)
  {
- 	return 0;
+@@ -56,16 +57,6 @@ static inline void mem_cgroup_uncharge_p
+ 	mem_cgroup_uncharge(page_get_page_cgroup(page));
+ }
+ 
+-static inline int task_in_mem_cgroup(struct task_struct *task,
+-				     const struct mem_cgroup *mem)
+-{
+-	int ret;
+-	task_lock(task);
+-	ret = task->mm && mm_cgroup(task->mm) == mem;
+-	task_unlock(task);
+-	return ret;
+-}
+-
+ #else /* CONFIG_CGROUP_MEM_CONT */
+ static inline void mm_init_cgroup(struct mm_struct *mm,
+ 					struct task_struct *p)
+diff -puN mm/memcontrol.c~memcontrol-move-oom-task-exclusion-to-tasklist-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcontrol-move-oom-task-exclusion-to-tasklist-fix
++++ a/mm/memcontrol.c
+@@ -170,6 +170,16 @@ static void __mem_cgroup_move_lists(stru
+ 		list_move(&pc->lru, &pc->mem_cgroup->inactive_list);
+ }
+ 
++int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
++{
++	int ret;
++
++	task_lock(task);
++	ret = task->mm && mm_cgroup(task->mm) == mem;
++	task_unlock(task);
++	return ret;
++}
++
+ /*
+  * This routine assumes that the appropriate zone's lru lock is already held
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,6 +171,7 @@ git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 x86_64-cleanup-apic-c-fix.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
@@ -253,6 +292,7 @@ memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
@@ -274,4 +314,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 check_dirty_inode_list.patch
 w1-build-fix.patch
-fix-x86_64-mm-sched-clock-share.patch
