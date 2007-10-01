@@ -1,279 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-build-fix.patch removed from -mm tree
-Date: Sun, 30 Sep 2007 23:51:09 -0700
-Message-ID: <200710010651.l916p9Df003718@imap1.linux-foundation.org>
+Subject: - mkmakefile-include-arch-on-o=-builds.patch removed from -mm tree
+Date: Sun, 30 Sep 2007 23:52:46 -0700
+Message-ID: <200710010652.l916qkBL003801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55948 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751408AbXJAGvV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 02:51:21 -0400
+	by vger.kernel.org with ESMTP id S1751341AbXJAGxH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 02:53:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: 7eggert@gmx.de, sam@ravnborg.org, tony@bakeyournoodle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb build fix
+     mkmakefile: include ARCH on O= builds
 has been removed from the -mm tree.  Its filename was
-     git-dvb-build-fix.patch
+     mkmakefile-include-arch-on-o=-builds.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because of rejects against Sam's tree
 
 ------------------------------------------------------
-Subject: git-dvb build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mkmakefile: include ARCH on O= builds
+From: Bodo Eggert <7eggert@gmx.de>
 
-drivers/media/video/cx88/cx88-alsa.c:88: error: static declaration of 'snd_ctl_boolean_mono_info' follows non-static declaration
-include/sound/control.h:168: error: previous declaration of 'snd_ctl_boolean_mono_info' was here
+If you build using O=builddir ARCH=bar, you'll currently need to supply
+ARCH= on builds from the builddir, too.  With this patch, the generated
+Makefile will do that instead.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+make ARCH= will still override the Makefile default, allowing existing
+scripts to work correctly.
+
+Signed-off-by: Bodo Eggert <7eggert@gmx.de>
+Cc: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-alsa.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Makefile           |    2 +-
+ scripts/mkmakefile |    6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix drivers/media/video/cx88/cx88-alsa.c
---- a/drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix
-+++ a/drivers/media/video/cx88/cx88-alsa.c
-@@ -83,7 +83,7 @@ typedef struct cx88_audio_dev snd_cx88_c
+diff -puN Makefile~mkmakefile-include-arch-on-o=-builds Makefile
+--- a/Makefile~mkmakefile-include-arch-on-o=-builds
++++ a/Makefile
+@@ -360,7 +360,7 @@ PHONY += outputmakefile
+ outputmakefile:
+ ifneq ($(KBUILD_SRC),)
+ 	$(Q)$(CONFIG_SHELL) $(srctree)/scripts/mkmakefile \
+-	    $(srctree) $(objtree) $(VERSION) $(PATCHLEVEL)
++	    $(srctree) $(objtree) $(VERSION) $(PATCHLEVEL) $(ARCH)
+ endif
+ 
+ # To make sure we do not include .config for any of the *config targets
+diff -puN scripts/mkmakefile~mkmakefile-include-arch-on-o=-builds scripts/mkmakefile
+--- a/scripts/mkmakefile~mkmakefile-include-arch-on-o=-builds
++++ a/scripts/mkmakefile
+@@ -8,6 +8,7 @@
+ # $2 - Output directory
+ # $3 - version
+ # $4 - patchlevel
++# $5 - arch
  
  
+ test ! -r $2/Makefile -o -O $2/Makefile || exit 0
+@@ -21,16 +22,17 @@ PATCHLEVEL = $4
  
--static int snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
-+static int cx88_snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
- 			      struct snd_ctl_elem_info *uinfo)
- {
- 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
-@@ -658,7 +658,7 @@ static int snd_cx88_switch_put(struct sn
- static struct snd_kcontrol_new snd_cx88_dac_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 	.name = "Playback Switch",
--	.info = snd_ctl_boolean_mono_info,
-+	.info = cx88_snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
- 	.private_value = (1<<8),
-@@ -667,7 +667,7 @@ static struct snd_kcontrol_new snd_cx88_
- static struct snd_kcontrol_new snd_cx88_source_switch = {
- 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
- 	.name = "Capture Switch",
--	.info = snd_ctl_boolean_mono_info,
-+	.info = cx88_snd_ctl_boolean_mono_info,
- 	.get = snd_cx88_switch_get,
- 	.put = snd_cx88_switch_put,
- 	.private_value = (1<<6),
+ KERNELSRC    := $1
+ KERNELOUTPUT := $2
++ARCH         := $5
+ 
+ MAKEFLAGS += --no-print-directory
+ 
+ .PHONY: all \$(MAKECMDGOALS)
+ 
+ all:
+-	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT)
++	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) ARCH=\$(ARCH)
+ 
+ Makefile:;
+ 
+ \$(filter-out all Makefile,\$(MAKECMDGOALS)) %/:
+-	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) \$@
++	\$(MAKE) -C \$(KERNELSRC) O=\$(KERNELOUTPUT) ARCH=\$(ARCH) \$@
+ EOF
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from 7eggert@gmx.de are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-dvb-build-fix.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-kvm-warning-fix.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-fix-wireless-kconfig.patch
-net-atm-lecc-printk-warning-fix.patch
-ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
-git-net-sctp-hack.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-git-backlight-dependency-fix.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-remove-array_size-duplicates-checkpatch-fixes.patch
-binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
+mkmakefile-include-arch-on-o=-builds.patch
+limit-minixfs-printks-on-corrupted-dir-i_size.patch
