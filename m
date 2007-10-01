@@ -1,110 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - pata_atiixp-audit-notes-on-locking.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:14:06 -0700
-Message-ID: <200710010714.l917E6io004506@imap1.linux-foundation.org>
+Subject: - bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:13:52 -0700
+Message-ID: <200710010713.l917DqGd004479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44603 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51641 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752252AbXJAHOU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:20 -0400
+	by vger.kernel.org with ESMTP id S1751910AbXJAHOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: brett.warden@gmail.com, alan@redhat.com, mchehab@infradead.org, ray-lk@madrabbit.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_atiixp: Audit notes on locking
+     bw-qcam: use data_reverse instead of manually poking the control register
 has been removed from the -mm tree.  Its filename was
-     pata_atiixp-audit-notes-on-locking.patch
+     bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pata_atiixp: Audit notes on locking
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: bw-qcam: use data_reverse instead of manually poking the control register
+From: "Brett Warden" <brett.warden@gmail.com>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Fixes use of parport_write_control() to match the newer interface that
+requires explicit parport_data_reverse() and parport_data_forward() calls. 
+This eliminates the following error message and restores the original
+intended behavior:
+
+parport0 (bw-qcam): use data_reverse for this!
+
+Also increases threshold in qc_detect() from 300 to 400, as my camera often
+results in a count of approx 330.  Added a kernel error message to indicate
+detection failure.
+
+Thanks Ray and Randy for your comments, and for pointing out that I
+needed to reset the port to forward mode!
+
+Signed-off-by: Brett T. Warden <brett.warden@gmail.com>
+Cc: "Ray Lee" <ray-lk@madrabbit.org>
+Acked-by: Alan Cox <alan@redhat.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/media/video/bw-qcam.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking
-+++ a/drivers/ata/pata_atiixp.c
-@@ -173,6 +173,9 @@ static void atiixp_set_dmamode(struct at
-  *
-  *	When DMA begins we need to ensure that the UDMA control
-  *	register for the channel is correctly set.
-+ *
-+ *	Note: The host lock held by the libata layer protects
-+ *	us from two channels both trying to set DMA bits at once
-  */
+diff -puN drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register drivers/media/video/bw-qcam.c
+--- a/drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register
++++ a/drivers/media/video/bw-qcam.c
+@@ -104,6 +104,17 @@ static inline void write_lpdata(struct q
  
- static void atiixp_bmdma_start(struct ata_queued_cmd *qc)
-@@ -199,6 +202,9 @@ static void atiixp_bmdma_start(struct at
-  *
-  *	DMA has completed. Clear the UDMA flag as the next operations will
-  *	be PIO ones not UDMA data transfer.
-+ *
-+ *	Note: The host lock held by the libata layer protects
-+ *	us from two channels both trying to set DMA bits at once
-  */
+ static inline void write_lpcontrol(struct qcam_device *q, int d)
+ {
++	if(0x20 & d) {
++		/* Set bidirectional mode to reverse (data in) */
++		parport_data_reverse(q->pport);
++	} else {
++		/* Set bidirectional mode to forward (data out) */
++		parport_data_forward(q->pport);
++	}
++
++	/* Now issue the regular port command, but strip out the
++	 * direction flag */
++	d &= ~0x20;
+ 	parport_write_control(q->pport, d);
+ }
  
- static void atiixp_bmdma_stop(struct ata_queued_cmd *qc)
+@@ -344,10 +355,13 @@ static int qc_detect(struct qcam_device 
+ 	/* Be (even more) liberal in what you accept...  */
+ 
+ /*	if (count > 30 && count < 200) */
+-	if (count > 20 && count < 300)
++	if (count > 20 && count < 400)
++	{
+ 		return 1;	/* found */
+-	else
++	} else {
++		printk(KERN_ERR "No Quickcam found on port %s\n", q->pport->name);
+ 		return 0;	/* not found */
++	}
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from brett.warden@gmail.com are
 
-git-libata-all.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-pata_acpi-use-ata_sff_port_start.patch
-libata-correct-handling-of-srst-reset-sequences.patch
-libata-add-a-drivers-ide-style-dma-disable.patch
-ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
-drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
-libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
-libata_scsi-fix-transfer-lengths.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
-pcmcia-use-dma_mask_none-for-the-default-for-all.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-8250_pci-autodetect-mainpine-cards-fix.patch
-wake-up-from-a-serial-port.patch
-fix-ide-legacy-mode-resources.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-scsi-misc.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-funsoft-fix-termios.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-visor-termios-bits.patch
+git-dvb.patch
+bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch
