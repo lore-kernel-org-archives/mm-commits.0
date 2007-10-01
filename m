@@ -1,28 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - remove-array_size-duplicates-fix.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 02:20:37 -0700
-Message-ID: <200710010926.l919Qd8R009006@imap1.linux-foundation.org>
+Subject: - remove-array_size-duplicates.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 02:20:46 -0700
+Message-ID: <200710010926.l919Qmie009009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53253 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751062AbXJAJ0o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:26:44 -0400
+	by vger.kernel.org with ESMTP id S1750961AbXJAJ2V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, 12o3l@tiscali.nl, davem@davemloft.net, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, adaplas@pol.net, ak@suse.de, akpm@linux-foundation.org, davem@davemloft.net, geert@linux-m68k.org, hpa@zytor.com, jeff@garzik.org, kaber@trash.net, lenb@kernel.org
 
 
 The patch titled
-     remove-array_size-duplicates-fix
+     remove array_size duplicates
 has been removed from the -mm tree.  Its filename was
-     remove-array_size-duplicates-fix.patch
+     remove-array_size-duplicates.patch
 
-This patch was dropped because it was folded into remove-array_size-duplicates.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: remove-array_size-duplicates-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove array_size duplicates
+From: Roel Kluin <12o3l@tiscali.nl>
+
+Remove some ARRAY_SIZE macro duplicates.  There is also one in
+arch/um/include/user.h, which isn't fixed here because comments in that
+file explicitly state a preference for the 'less fancy' version.  If that's
+the case as well for any of the other replacements please comment.
+
+Several #defines in net drivers were found to be unused and are simply deleted.
+
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Patrick McHardy <kaber@trash.net>
+DESC
+remove-array_size-duplicates-fix
+EDESC
 
 net/ipv4/ipvs/ip_vs_proto_udp.c: In function 'udp_init':
 net/ipv4/ipvs/ip_vs_proto_udp.c:403: error: implicit declaration of function 'IP_VS_INIT_HASH_TABLE'
@@ -32,11 +54,479 @@ Cc: Roel Kluin <12o3l@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ipvs/ip_vs_proto_udp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/spi/spidev_test.c    |    2 --
+ arch/i386/boot/compressed/relocs.c |    1 -
+ arch/m68k/amiga/amisound.c         |    3 +--
+ arch/powerpc/boot/types.h          |    2 --
+ arch/sparc64/kernel/pci.c          |    6 ++----
+ drivers/acpi/utilities/uteval.c    |    4 ++--
+ drivers/net/irda/actisys-sir.c     |    6 ++----
+ drivers/net/sk98lin/skgemib.c      |    5 -----
+ drivers/net/skfp/smt.c             |    4 +---
+ drivers/net/skfp/srf.c             |   16 +++++++---------
+ drivers/net/wireless/ipw2100.c     |   13 ++++---------
+ drivers/serial/68328serial.c       |    6 ++----
+ drivers/video/sgivwfb.c            |    4 ++--
+ include/acpi/acmacros.h            |    2 --
+ include/linux/netfilter/xt_sctp.h  |   12 +++++-------
+ include/net/ip_vs.h                |    1 -
+ include/video/sgivw.h              |    1 -
+ net/ipv4/ipvs/ip_vs_proto_tcp.c    |    2 +-
+ net/ipv4/ipvs/ip_vs_proto_udp.c    |    2 +-
+ scripts/mod/file2alias.c           |    2 --
+ 20 files changed, 30 insertions(+), 64 deletions(-)
 
-diff -puN net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates-fix net/ipv4/ipvs/ip_vs_proto_udp.c
---- a/net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates-fix
+diff -puN Documentation/spi/spidev_test.c~remove-array_size-duplicates Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~remove-array_size-duplicates
++++ a/Documentation/spi/spidev_test.c
+@@ -21,8 +21,6 @@
+ #include <linux/types.h>
+ #include <linux/spi/spidev.h>
+ 
+-#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+-
+ static void pabort(const char *s)
+ {
+ 	perror(s);
+diff -puN arch/i386/boot/compressed/relocs.c~remove-array_size-duplicates arch/i386/boot/compressed/relocs.c
+--- a/arch/i386/boot/compressed/relocs.c~remove-array_size-duplicates
++++ a/arch/i386/boot/compressed/relocs.c
+@@ -11,7 +11,6 @@
+ #include <endian.h>
+ 
+ #define MAX_SHDRS 100
+-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+ static Elf32_Ehdr ehdr;
+ static Elf32_Shdr shdr[MAX_SHDRS];
+ static Elf32_Sym  *symtab[MAX_SHDRS];
+diff -puN arch/m68k/amiga/amisound.c~remove-array_size-duplicates arch/m68k/amiga/amisound.c
+--- a/arch/m68k/amiga/amisound.c~remove-array_size-duplicates
++++ a/arch/m68k/amiga/amisound.c
+@@ -21,7 +21,6 @@ static const signed char sine_data[] = {
+ 	0,  39,  75,  103,  121,  127,  121,  103,  75,  39,
+ 	0, -39, -75, -103, -121, -127, -121, -103, -75, -39
+ };
+-#define DATA_SIZE	(sizeof(sine_data)/sizeof(sine_data[0]))
+ 
+ #define custom amiga_custom
+ 
+@@ -55,7 +54,7 @@ void __init amiga_init_sound(void)
+ 	memcpy (snd_data, sine_data, sizeof(sine_data));
+ 
+ 	/* setup divisor */
+-	clock_constant = (amiga_colorclock+DATA_SIZE/2)/DATA_SIZE;
++	clock_constant = (amiga_colorclock + ARRAY_SIZE(sine_data) /2) / ARRAY_SIZE(sine_data);
+ 
+ 	/* without amifb, turn video off and enable high quality sound */
+ #ifndef CONFIG_FB_AMIGA
+diff -puN arch/powerpc/boot/types.h~remove-array_size-duplicates arch/powerpc/boot/types.h
+--- a/arch/powerpc/boot/types.h~remove-array_size-duplicates
++++ a/arch/powerpc/boot/types.h
+@@ -1,8 +1,6 @@
+ #ifndef _TYPES_H_
+ #define _TYPES_H_
+ 
+-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+-
+ typedef unsigned char		u8;
+ typedef unsigned short		u16;
+ typedef unsigned int		u32;
+diff -puN arch/sparc64/kernel/pci.c~remove-array_size-duplicates arch/sparc64/kernel/pci.c
+--- a/arch/sparc64/kernel/pci.c~remove-array_size-duplicates
++++ a/arch/sparc64/kernel/pci.c
+@@ -209,14 +209,12 @@ static struct {
+ 	{ "SUNW,sun4v-pci", sun4v_pci_init },
+ 	{ "pciex108e,80f0", fire_pci_init },
+ };
+-#define PCI_NUM_CONTROLLER_TYPES (sizeof(pci_controller_table) / \
+-				  sizeof(pci_controller_table[0]))
+ 
+ static int __init pci_controller_init(const char *model_name, int namelen, struct device_node *dp)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < PCI_NUM_CONTROLLER_TYPES; i++) {
++	for (i = 0; i < ARRAY_SIZE(pci_controller_table); i++) {
+ 		if (!strncmp(model_name,
+ 			     pci_controller_table[i].model_name,
+ 			     namelen)) {
+@@ -232,7 +230,7 @@ static int __init pci_is_controller(cons
+ {
+ 	int i;
+ 
+-	for (i = 0; i < PCI_NUM_CONTROLLER_TYPES; i++) {
++	for (i = 0; i < ARRAY_SIZE(pci_controller_table); i++) {
+ 		if (!strncmp(model_name,
+ 			     pci_controller_table[i].model_name,
+ 			     namelen)) {
+diff -puN drivers/acpi/utilities/uteval.c~remove-array_size-duplicates drivers/acpi/utilities/uteval.c
+--- a/drivers/acpi/utilities/uteval.c~remove-array_size-duplicates
++++ a/drivers/acpi/utilities/uteval.c
+@@ -122,7 +122,7 @@ acpi_status acpi_ut_osi_implementation(s
+ 
+ 	/* Compare input string to static table of supported interfaces */
+ 
+-	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+ 		if (!ACPI_STRCMP
+ 		    (string_desc->string.pointer,
+ 		     acpi_interfaces_supported[i])) {
+@@ -168,7 +168,7 @@ acpi_status acpi_osi_invalidate(char *in
+ {
+ 	int i;
+ 
+-	for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_interfaces_supported); i++) {
++	for (i = 0; i < ARRAY_SIZE(acpi_interfaces_supported); i++) {
+ 		if (!ACPI_STRCMP(interface, acpi_interfaces_supported[i])) {
+ 			*acpi_interfaces_supported[i] = '\0';
+ 			return AE_OK;
+diff -puN drivers/net/irda/actisys-sir.c~remove-array_size-duplicates drivers/net/irda/actisys-sir.c
+--- a/drivers/net/irda/actisys-sir.c~remove-array_size-duplicates
++++ a/drivers/net/irda/actisys-sir.c
+@@ -67,8 +67,6 @@ static int actisys_reset(struct sir_dev 
+ /* Note : the 220L doesn't support 38400, but we will fix that below */
+ static unsigned baud_rates[] = { 9600, 19200, 57600, 115200, 38400 };
+ 
+-#define MAX_SPEEDS ARRAY_SIZE(baud_rates)
+-
+ static struct dongle_driver act220l = {
+ 	.owner		= THIS_MODULE,
+ 	.driver_name	= "Actisys ACT-220L",
+@@ -176,7 +174,7 @@ static int actisys_change_speed(struct s
+ 	 * Now, we can set the speed requested. Send RTS pulses until we
+          * reach the target speed 
+ 	 */
+-	for (i = 0; i < MAX_SPEEDS; i++) {
++	for (i = 0; i < ARRAY_SIZE(baud_rates); i++) {
+ 		if (speed == baud_rates[i]) {
+ 			dev->speed = speed;
+ 			break;
+@@ -191,7 +189,7 @@ static int actisys_change_speed(struct s
+ 	}
+ 
+ 	/* Check if life is sweet... */
+-	if (i >= MAX_SPEEDS) {
++	if (i >= ARRAY_SIZE(baud_rates)) {
+ 		actisys_reset(dev);
+ 		ret = -EINVAL;  /* This should not happen */
+ 	}
+diff -puN drivers/net/sk98lin/skgemib.c~remove-array_size-duplicates drivers/net/sk98lin/skgemib.c
+--- a/drivers/net/sk98lin/skgemib.c~remove-array_size-duplicates
++++ a/drivers/net/sk98lin/skgemib.c
+@@ -80,11 +80,6 @@ PNMI_STATIC int DiagActions(SK_AC *pAC, 
+ 	unsigned int TableIndex, SK_U32 NetIndex);
+ #endif /* SK_DIAG_SUPPORT */
+ 
+-
+-/* defines *******************************************************************/
+-#define ID_TABLE_SIZE (sizeof(IdTable)/sizeof(IdTable[0]))
+-
+-
+ /* global variables **********************************************************/
+ 
+ /*
+diff -puN drivers/net/skfp/smt.c~remove-array_size-duplicates drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~remove-array_size-duplicates
++++ a/drivers/net/skfp/smt.c
+@@ -1654,8 +1654,6 @@ static const struct smt_pdef {
+ 	{ SMT_P4053,	0,	SWAP_SMT_P4053			} ,
+ } ;
+ 
+-#define N_SMT_PLEN	ARRAY_SIZE(smt_pdef)
+-
+ int smt_check_para(struct s_smc *smc, struct smt_header	*sm,
+ 		   const u_short list[])
+ {
+@@ -1881,7 +1879,7 @@ void smt_swap_para(struct smt_header *sm
+ 		if (plen < 0)
+ 			break ;
+ 		plen += PARA_LEN ;
+-		for (i = N_SMT_PLEN, pd = smt_pdef; i ; i--,pd++) {
++		for (i = ARRAY_SIZE(smt_pdef), pd = smt_pdef; i ; i--,pd++) {
+ 			if (pd->ptype == type)
+ 				break ;
+ 		}
+diff -puN drivers/net/skfp/srf.c~remove-array_size-duplicates drivers/net/skfp/srf.c
+--- a/drivers/net/skfp/srf.c~remove-array_size-duplicates
++++ a/drivers/net/skfp/srf.c
+@@ -43,8 +43,6 @@ static void clear_reported(struct s_smc 
+ static void smt_send_srf(struct s_smc *smc);
+ static struct s_srf_evc *smt_get_evc(struct s_smc *smc, int code, int index);
+ 
+-#define MAX_EVCS	ARRAY_SIZE(smc->evcs)
+-
+ struct evc_init {
+ 	u_char code ;
+ 	u_char index ;
+@@ -84,7 +82,7 @@ void smt_init_evc(struct s_smc *smc)
+ 	evc = smc->evcs ;
+ 	init = evc_inits ;
+ 
+-	for (i = 0 ; (unsigned) i < MAX_INIT_EVC ; i++) {
++	for (i = 0 ; (unsigned) i < ARRAY_SIZE(evc_inits) ; i++) {
+ 		for (index = 0 ; index < init->n ; index++) {
+ 			evc->evc_code = init->code ;
+ 			evc->evc_para = init->para ;
+@@ -98,7 +96,7 @@ void smt_init_evc(struct s_smc *smc)
+ 		init++ ;
+ 	}
+ 
+-	if ((unsigned) (evc - smc->evcs) > MAX_EVCS) {
++	if ((unsigned) (evc - smc->evcs) > ARRAY_SIZE(smc->evcs)) {
+ 		SMT_PANIC(smc,SMT_E0127, SMT_E0127_MSG) ;
+ 	}
+ 
+@@ -139,7 +137,7 @@ void smt_init_evc(struct s_smc *smc)
+ 		offset++ ;
+ 	}
+ #ifdef	DEBUG
+-	for (i = 0, evc = smc->evcs ; (unsigned) i < MAX_EVCS ; i++, evc++) {
++	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
+ 		if (SMT_IS_CONDITION(evc->evc_code)) {
+ 			if (!evc->evc_cond_state) {
+ 				SMT_PANIC(smc,SMT_E0128, SMT_E0128_MSG) ;
+@@ -163,7 +161,7 @@ static struct s_srf_evc *smt_get_evc(str
+ 	int			i ;
+ 	struct s_srf_evc	*evc ;
+ 
+-	for (i = 0, evc = smc->evcs ; (unsigned) i < MAX_EVCS ; i++, evc++) {
++	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
+ 		if (evc->evc_code == code && evc->evc_index == index)
+ 			return(evc) ;
+ 	}
+@@ -337,7 +335,7 @@ static void clear_all_rep(struct s_smc *
+ 	struct s_srf_evc	*evc ;
+ 	int			i ;
+ 
+-	for (i = 0, evc = smc->evcs ; (unsigned) i < MAX_EVCS ; i++, evc++) {
++	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
+ 		evc->evc_rep_required = FALSE ;
+ 		if (SMT_IS_CONDITION(evc->evc_code))
+ 			*evc->evc_cond_state = FALSE ;
+@@ -351,7 +349,7 @@ static void clear_reported(struct s_smc 
+ 	int			i ;
+ 
+ 	smc->srf.any_report = FALSE ;
+-	for (i = 0, evc = smc->evcs ; (unsigned) i < MAX_EVCS ; i++, evc++) {
++	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
+ 		if (SMT_IS_CONDITION(evc->evc_code)) {
+ 			if (*evc->evc_cond_state == FALSE)
+ 				evc->evc_rep_required = FALSE ;
+@@ -405,7 +403,7 @@ static void smt_send_srf(struct s_smc *s
+ 	smt_add_para(smc,&pcon,(u_short) SMT_P1033,0,0) ;
+ 	smt_add_para(smc,&pcon,(u_short) SMT_P1034,0,0) ;
+ 
+-	for (i = 0, evc = smc->evcs ; (unsigned) i < MAX_EVCS ; i++, evc++) {
++	for (i = 0, evc = smc->evcs ; (unsigned) i < ARRAY_SIZE(smc->evcs) ; i++, evc++) {
+ 		if (evc->evc_rep_required) {
+ 			smt_add_para(smc,&pcon,evc->evc_para,
+ 				(int)evc->evc_index,0) ;
+diff -puN drivers/net/wireless/ipw2100.c~remove-array_size-duplicates drivers/net/wireless/ipw2100.c
+--- a/drivers/net/wireless/ipw2100.c~remove-array_size-duplicates
++++ a/drivers/net/wireless/ipw2100.c
+@@ -6582,9 +6582,6 @@ static const long ipw2100_frequencies[] 
+ 	2472, 2484
+ };
+ 
+-#define FREQ_COUNT (sizeof(ipw2100_frequencies) / \
+-                    sizeof(ipw2100_frequencies[0]))
+-
+ static const long ipw2100_rates_11b[] = {
+ 	1000000,
+ 	2000000,
+@@ -6592,8 +6589,6 @@ static const long ipw2100_rates_11b[] = 
+ 	11000000
+ };
+ 
+-#define RATE_COUNT ARRAY_SIZE(ipw2100_rates_11b)
+-
+ static int ipw2100_wx_get_name(struct net_device *dev,
+ 			       struct iw_request_info *info,
+ 			       union iwreq_data *wrqu, char *extra)
+@@ -6798,9 +6793,9 @@ static int ipw2100_wx_get_range(struct n
+ 	range->avg_qual.noise = 0;
+ 	range->avg_qual.updated = 7;	/* Updated all three */
+ 
+-	range->num_bitrates = RATE_COUNT;
++	range->num_bitrates = ARRAY_SIZE(ipw2100_rates);
+ 
+-	for (i = 0; i < RATE_COUNT && i < IW_MAX_BITRATES; i++) {
++	for (i = 0; i < ARRAY_SIZE(ipw2100_rates) && i < IW_MAX_BITRATES; i++) {
+ 		range->bitrate[i] = ipw2100_rates_11b[i];
+ 	}
+ 
+@@ -6853,10 +6848,10 @@ static int ipw2100_wx_get_range(struct n
+ //      range->min_r_time;      /* Minimal retry lifetime */
+ //      range->max_r_time;      /* Maximal retry lifetime */
+ 
+-	range->num_channels = FREQ_COUNT;
++	range->num_channels = ARRAY_SIZE(ipw2100_frequencies);
+ 
+ 	val = 0;
+-	for (i = 0; i < FREQ_COUNT; i++) {
++	for (i = 0; i < ARRAY_SIZE(ipw2100_frequencies); i++) {
+ 		// TODO: Include only legal frequencies for some countries
+ //              if (local->channel_mask & (1 << i)) {
+ 		range->freq[val].i = i + 1;
+diff -puN drivers/serial/68328serial.c~remove-array_size-duplicates drivers/serial/68328serial.c
+--- a/drivers/serial/68328serial.c~remove-array_size-duplicates
++++ a/drivers/serial/68328serial.c
+@@ -157,8 +157,6 @@ static int baud_table[] = {
+ 	0, 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800,
+ 	9600, 19200, 38400, 57600, 115200, 0 };
+ 
+-#define BAUD_TABLE_SIZE (sizeof(baud_table)/sizeof(baud_table[0]))
+-
+ /* Sets or clears DTR/RTS on the requested line */
+ static inline void m68k_rtsdtr(struct m68k_serial *ss, int set)
+ {
+@@ -1460,10 +1458,10 @@ int m68328_console_setup(struct console 
+ 	if (arg)
+ 		n = simple_strtoul(arg,NULL,0);
+ 
+-	for (i = 0; i < BAUD_TABLE_SIZE; i++)
++	for (i = 0; i < ARRAY_SIZE(baud_table); i++)
+ 		if (baud_table[i] == n)
+ 			break;
+-	if (i < BAUD_TABLE_SIZE) {
++	if (i < ARRAY_SIZE(baud_table)) {
+ 		m68328_console_baud = n;
+ 		m68328_console_cbaud = 0;
+ 		if (i > 15) {
+diff -puN drivers/video/sgivwfb.c~remove-array_size-duplicates drivers/video/sgivwfb.c
+--- a/drivers/video/sgivwfb.c~remove-array_size-duplicates
++++ a/drivers/video/sgivwfb.c
+@@ -261,13 +261,13 @@ static int sgivwfb_check_var(struct fb_v
+ 	var->grayscale = 0;	/* No grayscale for now */
+ 
+ 	/* determine valid resolution and timing */
+-	for (min_mode = 0; min_mode < DBE_VT_SIZE; min_mode++) {
++	for (min_mode = 0; min_mode < ARRAY_SIZE(dbeVTimings); min_mode++) {
+ 		if (dbeVTimings[min_mode].width >= var->xres &&
+ 		    dbeVTimings[min_mode].height >= var->yres)
+ 			break;
+ 	}
+ 
+-	if (min_mode == DBE_VT_SIZE)
++	if (min_mode == ARRAY_SIZE(dbeVTimings))
+ 		return -EINVAL;	/* Resolution to high */
+ 
+ 	/* XXX FIXME - should try to pick best refresh rate */
+diff -puN include/acpi/acmacros.h~remove-array_size-duplicates include/acpi/acmacros.h
+--- a/include/acpi/acmacros.h~remove-array_size-duplicates
++++ a/include/acpi/acmacros.h
+@@ -59,8 +59,6 @@
+ 
+ /* Size calculation */
+ 
+-#define ACPI_ARRAY_LENGTH(x)            (sizeof(x) / sizeof((x)[0]))
+-
+ #ifdef ACPI_NO_INTEGER64_SUPPORT
+ /*
+  * acpi_integer is 32-bits, no 64-bit support on this platform
+diff -puN include/linux/netfilter/xt_sctp.h~remove-array_size-duplicates include/linux/netfilter/xt_sctp.h
+--- a/include/linux/netfilter/xt_sctp.h~remove-array_size-duplicates
++++ a/include/linux/netfilter/xt_sctp.h
+@@ -7,8 +7,6 @@
+ 
+ #define XT_SCTP_VALID_FLAGS		0x07
+ 
+-#define ELEMCOUNT(x) (sizeof(x)/sizeof(x[0]))
+-
+ 
+ struct xt_sctp_flag_info {
+ 	u_int8_t chunktype;
+@@ -59,21 +57,21 @@ struct xt_sctp_info {
+ #define SCTP_CHUNKMAP_RESET(chunkmap) 				\
+ 	do {							\
+ 		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++)	\
++		for (i = 0; i < ARRAY_SIZE(chunkmap); i++)	\
+ 			chunkmap[i] = 0;			\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_SET_ALL(chunkmap) 			\
+ 	do {							\
+ 		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
++		for (i = 0; i < ARRAY_SIZE(chunkmap); i++) 	\
+ 			chunkmap[i] = ~0;			\
+ 	} while (0)
+ 
+ #define SCTP_CHUNKMAP_COPY(destmap, srcmap) 			\
+ 	do {							\
+ 		int i; 						\
+-		for (i = 0; i < ELEMCOUNT(chunkmap); i++) 	\
++		for (i = 0; i < ARRAY_SIZE(chunkmap); i++) 	\
+ 			destmap[i] = srcmap[i];			\
+ 	} while (0)
+ 
+@@ -81,7 +79,7 @@ struct xt_sctp_info {
+ ({							\
+ 	int i; 						\
+ 	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
++	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
+ 		if (chunkmap[i]) {			\
+ 			flag = 0;			\
+ 			break;				\
+@@ -94,7 +92,7 @@ struct xt_sctp_info {
+ ({							\
+ 	int i; 						\
+ 	int flag = 1;					\
+-	for (i = 0; i < ELEMCOUNT(chunkmap); i++) {	\
++	for (i = 0; i < ARRAY_SIZE(chunkmap); i++) {	\
+ 		if (chunkmap[i] != ~0) {		\
+ 			flag = 0;			\
+ 				break;			\
+diff -puN include/net/ip_vs.h~remove-array_size-duplicates include/net/ip_vs.h
+--- a/include/net/ip_vs.h~remove-array_size-duplicates
++++ a/include/net/ip_vs.h
+@@ -704,7 +704,6 @@ struct ip_vs_app
+  */
+ extern const char *ip_vs_proto_name(unsigned proto);
+ extern void ip_vs_init_hash_table(struct list_head *table, int rows);
+-#define IP_VS_INIT_HASH_TABLE(t) ip_vs_init_hash_table(t, sizeof(t)/sizeof(t[0]))
+ 
+ #define IP_VS_APP_TYPE_UNSPEC	0
+ #define IP_VS_APP_TYPE_FTP	1
+diff -puN include/video/sgivw.h~remove-array_size-duplicates include/video/sgivw.h
+--- a/include/video/sgivw.h~remove-array_size-duplicates
++++ a/include/video/sgivw.h
+@@ -676,7 +676,6 @@ struct dbe_timing_info dbeVTimings[] = {
+   }
+ };
+ 
+-#define DBE_VT_SIZE  (sizeof(dbeVTimings)/sizeof(dbeVTimings[0]))
+ #endif // INCLUDE_TIMING_TABLE_DATA
+ 
+ #endif // ! __SGIVWFB_H__
+diff -puN net/ipv4/ipvs/ip_vs_proto_tcp.c~remove-array_size-duplicates net/ipv4/ipvs/ip_vs_proto_tcp.c
+--- a/net/ipv4/ipvs/ip_vs_proto_tcp.c~remove-array_size-duplicates
++++ a/net/ipv4/ipvs/ip_vs_proto_tcp.c
+@@ -584,7 +584,7 @@ void ip_vs_tcp_conn_listen(struct ip_vs_
+ 
+ static void ip_vs_tcp_init(struct ip_vs_protocol *pp)
+ {
+-	IP_VS_INIT_HASH_TABLE(tcp_apps);
++	ip_vs_init_hash_table(tcp_apps, ARRAY_SIZE(tcp_apps));
+ 	pp->timeout_table = tcp_timeouts;
+ }
+ 
+diff -puN scripts/mod/file2alias.c~remove-array_size-duplicates scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~remove-array_size-duplicates
++++ a/scripts/mod/file2alias.c
+@@ -414,8 +414,6 @@ static int do_vio_entry(const char *file
+ 	return 1;
+ }
+ 
+-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+-
+ static void do_input(char *alias,
+ 		     kernel_ulong_t *arr, unsigned int min, unsigned int max)
+ {
+diff -puN net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates net/ipv4/ipvs/ip_vs_proto_udp.c
+--- a/net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates
 +++ a/net/ipv4/ipvs/ip_vs_proto_udp.c
 @@ -400,7 +400,7 @@ udp_state_transition(struct ip_vs_conn *
  
@@ -49,215 +539,8 @@ diff -puN net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates-fix net/i
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-origin.patch
-fix-oops-in-platform-uevent.patch
-slow-down-printk-during-boot.patch
-slow-down-printk-during-boot-fix-2.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-dvb.patch
-git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
-git-net-sctp-hack.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-revert-git-battery.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
-pci-remove-irritating-try-pci=assign-busses-warning.patch
-fix-ide-legacy-mode-resources-fix.patch
-git-s390.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-unionfs-fix-2.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c-fix.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
-x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
-git-xfs.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-cache-pipe-buf-page-address-for-non-highmem-arch.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+spin_lock_unlocked-cleanups.patch
 remove-array_size-duplicates.patch
-remove-array_size-duplicates-fix.patch
 remove-array_size-duplicates-checkpatch-fixes.patch
-binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-md-software-raid-autodetect-dev-list-not-array-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-check_dirty_inode_list.patch
-w1-build-fix.patch
