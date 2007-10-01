@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-array_size-duplicates-fix.patch added to -mm tree
-Date: Mon, 01 Oct 2007 02:06:16 -0700
-Message-ID: <200710010912.l919CIT9008540@imap1.linux-foundation.org>
+Subject: - remove-array_size-duplicates-fix.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 02:20:37 -0700
+Message-ID: <200710010926.l919Qd8R009006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56484 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750963AbXJAJM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:12:26 -0400
+	by vger.kernel.org with ESMTP id S1751062AbXJAJ0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, 12o3l@tiscali.nl, davem@davemloft.net
+To: akpm@linux-foundation.org, 12o3l@tiscali.nl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      remove-array_size-duplicates-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      remove-array_size-duplicates-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into remove-array_size-duplicates.patch
 
 ------------------------------------------------------
 Subject: remove-array_size-duplicates-fix
@@ -196,6 +192,7 @@ tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 userc-ifdef-mq_bytes-fix.patch
 jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+remove-array_size-duplicates.patch
 remove-array_size-duplicates-fix.patch
 remove-array_size-duplicates-checkpatch-fixes.patch
 binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
