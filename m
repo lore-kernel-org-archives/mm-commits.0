@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch added to -mm tree
-Date: Mon, 01 Oct 2007 02:02:19 -0700
-Message-ID: <200710010908.l9198LG8008445@imap1.linux-foundation.org>
+Subject: + remove-array_size-duplicates-fix.patch added to -mm tree
+Date: Mon, 01 Oct 2007 02:06:16 -0700
+Message-ID: <200710010912.l919CIT9008540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43856 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37909 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751062AbXJAJIe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:08:34 -0400
+	by vger.kernel.org with ESMTP id S1750963AbXJAJM0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, clameter@sgi.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, 12o3l@tiscali.nl, davem@davemloft.net
 
 
 The patch titled
-     memcontrol-move-oom-task-exclusion-to-tasklist-fix
+     remove-array_size-duplicates-fix
 has been added to the -mm tree.  Its filename is
-     memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+     remove-array_size-duplicates-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memcontrol-move-oom-task-exclusion-to-tasklist-fix
+Subject: remove-array_size-duplicates-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/rmap.h:11,
-                 from mm/filemap_xip.c:15:
-include/linux/memcontrol.h: In function 'task_in_mem_cgroup':
-include/linux/memcontrol.h:63: error: implicit declaration of function 'task_lock'
-include/linux/memcontrol.h:64: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:64: error: dereferencing pointer to incomplete type
-include/linux/memcontrol.h:65: error: implicit declaration of function 'task_unlock'
-In file included from mm/filemap_xip.c:16:
-include/linux/sched.h: At top level:
-include/linux/sched.h:1709: warning: conflicting types for 'task_lock'
-include/linux/sched.h:1709: error: static declaration of 'task_lock' follows non-static declaration
-include/linux/memcontrol.h:63: error: previous implicit declaration of 'task_lock' was here
-include/linux/sched.h:1714: warning: conflicting types for 'task_unlock'
-include/linux/sched.h:1714: error: static declaration of 'task_unlock' follows non-static declaration
-include/linux/memcontrol.h:65: error: previous implicit declaration of 'task_unlock' was here
+net/ipv4/ipvs/ip_vs_proto_udp.c: In function 'udp_init':
+net/ipv4/ipvs/ip_vs_proto_udp.c:403: error: implicit declaration of function 'IP_VS_INIT_HASH_TABLE'
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Roel Kluin <12o3l@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +----------
- mm/memcontrol.c            |   10 ++++++++++
- 2 files changed, 11 insertions(+), 10 deletions(-)
+ net/ipv4/ipvs/ip_vs_proto_udp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcontrol-move-oom-task-exclusion-to-tasklist-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcontrol-move-oom-task-exclusion-to-tasklist-fix
-+++ a/include/linux/memcontrol.h
-@@ -45,6 +45,7 @@ extern unsigned long mem_cgroup_isolate_
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
- extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask);
-+int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem);
+diff -puN net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates-fix net/ipv4/ipvs/ip_vs_proto_udp.c
+--- a/net/ipv4/ipvs/ip_vs_proto_udp.c~remove-array_size-duplicates-fix
++++ a/net/ipv4/ipvs/ip_vs_proto_udp.c
+@@ -400,7 +400,7 @@ udp_state_transition(struct ip_vs_conn *
  
- static inline struct mem_cgroup *mm_cgroup(const struct mm_struct *mm)
+ static void udp_init(struct ip_vs_protocol *pp)
  {
-@@ -56,16 +57,6 @@ static inline void mem_cgroup_uncharge_p
- 	mem_cgroup_uncharge(page_get_page_cgroup(page));
+-	IP_VS_INIT_HASH_TABLE(udp_apps);
++	ip_vs_init_hash_table(udp_apps, ARRAY_SIZE(udp_apps));
+ 	pp->timeout_table = udp_timeouts;
  }
  
--static inline int task_in_mem_cgroup(struct task_struct *task,
--				     const struct mem_cgroup *mem)
--{
--	int ret;
--	task_lock(task);
--	ret = task->mm && mm_cgroup(task->mm) == mem;
--	task_unlock(task);
--	return ret;
--}
--
- #else /* CONFIG_CGROUP_MEM_CONT */
- static inline void mm_init_cgroup(struct mm_struct *mm,
- 					struct task_struct *p)
-diff -puN mm/memcontrol.c~memcontrol-move-oom-task-exclusion-to-tasklist-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcontrol-move-oom-task-exclusion-to-tasklist-fix
-+++ a/mm/memcontrol.c
-@@ -170,6 +170,16 @@ static void __mem_cgroup_move_lists(stru
- 		list_move(&pc->lru, &pc->mem_cgroup->inactive_list);
- }
- 
-+int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
-+{
-+	int ret;
-+
-+	task_lock(task);
-+	ret = task->mm && mm_cgroup(task->mm) == mem;
-+	task_unlock(task);
-+	return ret;
-+}
-+
- /*
-  * This routine assumes that the appropriate zone's lru lock is already held
-  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -247,6 +196,7 @@ tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 userc-ifdef-mq_bytes-fix.patch
 jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+remove-array_size-duplicates-fix.patch
 remove-array_size-duplicates-checkpatch-fixes.patch
 binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
