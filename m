@@ -1,50 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fixup-2.patch removed from -mm tree
-Date: Sun, 30 Sep 2007 23:50:56 -0700
-Message-ID: <200710010650.l916ouuk003689@imap1.linux-foundation.org>
+Subject: - git-dvb-build-fix.patch removed from -mm tree
+Date: Sun, 30 Sep 2007 23:51:09 -0700
+Message-ID: <200710010651.l916p9Df003718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750947AbXJAGu7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 02:50:59 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l916ovjd016066
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sun, 30 Sep 2007 23:50:58 -0700
+	by vger.kernel.org with ESMTP id S1751408AbXJAGvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 02:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup-2
+     git-dvb build fix
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fixup-2.patch
+     git-dvb-build-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup-2
+Subject: git-dvb build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/media/video/cx88/cx88-alsa.c:88: error: static declaration of 'snd_ctl_boolean_mono_info' follows non-static declaration
+include/sound/control.h:168: error: previous declaration of 'snd_ctl_boolean_mono_info' was here
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/i2c-id.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/cx88/cx88-alsa.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/i2c-id.h~git-dvb-fixup-2 include/linux/i2c-id.h
---- a/include/linux/i2c-id.h~git-dvb-fixup-2
-+++ a/include/linux/i2c-id.h
-@@ -120,6 +120,7 @@
- #define I2C_DRIVERID_WM8753	91	/* Wolfson WM8753 audio codec */
- #define I2C_DRIVERID_LM4857 	92 	/* LM4857 Audio Amplifier */
- #define I2C_DRIVERID_CS4270	93	/* Cirrus Logic 4270 audio codec */
-+#define I2C_DRIVERID_VP27SMPX	94	/* Panasonic VP27s tuner internal MPX */
+diff -puN drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix drivers/media/video/cx88/cx88-alsa.c
+--- a/drivers/media/video/cx88/cx88-alsa.c~git-dvb-build-fix
++++ a/drivers/media/video/cx88/cx88-alsa.c
+@@ -83,7 +83,7 @@ typedef struct cx88_audio_dev snd_cx88_c
  
- #define I2C_DRIVERID_I2CDEV	900
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
+ 
+ 
+-static int snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
++static int cx88_snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,
+ 			      struct snd_ctl_elem_info *uinfo)
+ {
+ 	uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;
+@@ -658,7 +658,7 @@ static int snd_cx88_switch_put(struct sn
+ static struct snd_kcontrol_new snd_cx88_dac_switch = {
+ 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ 	.name = "Playback Switch",
+-	.info = snd_ctl_boolean_mono_info,
++	.info = cx88_snd_ctl_boolean_mono_info,
+ 	.get = snd_cx88_switch_get,
+ 	.put = snd_cx88_switch_put,
+ 	.private_value = (1<<8),
+@@ -667,7 +667,7 @@ static struct snd_kcontrol_new snd_cx88_
+ static struct snd_kcontrol_new snd_cx88_source_switch = {
+ 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+ 	.name = "Capture Switch",
+-	.info = snd_ctl_boolean_mono_info,
++	.info = cx88_snd_ctl_boolean_mono_info,
+ 	.get = snd_cx88_switch_get,
+ 	.put = snd_cx88_switch_put,
+ 	.private_value = (1<<6),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +79,6 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 git-dvb.patch
-git-dvb-fixup-2.patch
 git-dvb-build-fix.patch
 git-hwmon-fixup.patch
 drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
