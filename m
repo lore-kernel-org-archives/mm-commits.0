@@ -1,98 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-sctp-build-fix.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:14:24 -0700
-Message-ID: <200710010714.l917EOB3004525@imap1.linux-foundation.org>
+Subject: - pata_ns87415-initial-cut-at-87415-87560-ide-support-fix.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:14:01 -0700
+Message-ID: <200710010714.l917E12L004491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752349AbXJAHOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:30 -0400
+	by vger.kernel.org with ESMTP id S1752227AbXJAHOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: kyle@mcmartin.ca, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: sctp build fix
+     pata_ns87415-initial-cut-at-87415-87560-ide-support fix
 has been removed from the -mm tree.  Its filename was
-     git-net-sctp-build-fix.patch
+     pata_ns87415-initial-cut-at-87415-87560-ide-support-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-net: sctp build fix
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: pata_ns87415-initial-cut-at-87415-87560-ide-support fix
+From: Kyle McMartin <kyle@mcmartin.ca>
 
-Cedric Le Goater wrote:
-> Andrew Morton wrote:
->> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23-rc7/2.6.23-rc7-mm1/
->
-> I also get this compile error on s390. 'linux/scatterlist.h' has disappeared
-> from the #include pile but where ?
->
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c: In function `sctp_auth_calculate_hmac':
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: error: storage size of 'sg' isn't known
-> /home/clg/linux/2.6.23-rc7-mm1/net/sctp/auth.c:695: warning: unused variable `sg'
+u8 tmp is undefined, and port should be void __iomem * if we're going to
+use pci-iomap accessors.
 
-The following patch works of course but it seems to simplistic for s390.
+Works good otherwise, I was able to mount and copy a cd. Patch attached.
+Queued a patch to move SUPERIO_IDE_MAX_RETRIES to <asm/superio.h>.
 
-Cheers,
-
-C.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/auth.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/ata/Kconfig        |    2 +-
+ drivers/ata/pata_ns87415.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN net/sctp/auth.c~git-net-sctp-build-fix net/sctp/auth.c
---- a/net/sctp/auth.c~git-net-sctp-build-fix
-+++ a/net/sctp/auth.c
-@@ -36,6 +36,7 @@
+diff -puN drivers/ata/Kconfig~pata_ns87415-initial-cut-at-87415-87560-ide-support-fix drivers/ata/Kconfig
+--- a/drivers/ata/Kconfig~pata_ns87415-initial-cut-at-87415-87560-ide-support-fix
++++ a/drivers/ata/Kconfig
+@@ -451,7 +451,7 @@ config PATA_NS87410
+ 	  If unsure, say N.
  
- #include <linux/types.h>
- #include <linux/crypto.h>
-+#include <linux/scatterlist.h>
- #include <net/sctp/sctp.h>
- #include <net/sctp/auth.h>
+ config PATA_NS87415
+-	tristate "Nat Semi NS87410 PATA support (Experimental)"
++	tristate "Nat Semi NS87415 PATA support (Experimental)"
+ 	depends on PCI && EXPERIMENTAL
+ 	help
+ 	  This option enables support for the National Semiconductor
+diff -puN drivers/ata/pata_ns87415.c~pata_ns87415-initial-cut-at-87415-87560-ide-support-fix drivers/ata/pata_ns87415.c
+--- a/drivers/ata/pata_ns87415.c~pata_ns87415-initial-cut-at-87415-87560-ide-support-fix
++++ a/drivers/ata/pata_ns87415.c
+@@ -222,8 +222,9 @@ static int ns87415_check_atapi_dma(struc
+  *	Work around chipset problems in the 87560 SuperIO chip
+  */
  
+-static u8 ns87560_read_buggy(unsigned long port)
++static u8 ns87560_read_buggy(void __iomem *port)
+ {
++	u8 tmp;
+ 	int retries = SUPERIO_IDE_MAX_RETRIES;
+ 	do {
+ 		tmp = ioread8(port);
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from kyle@mcmartin.ca are
 
-git-net.patch
-oom-move-prototypes-to-appropriate-header-file-fix.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-ipc-namespace-remove-config-ipc-ns-fix.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+origin.patch
+fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+parisc-extern-inline-static-inline.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+bitops-introduce-lock-ops.patch
