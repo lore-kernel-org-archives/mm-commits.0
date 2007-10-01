@@ -1,128 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - e100-fix-bogus-pci-quirk.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:13:46 -0700
-Message-ID: <200710010713.l917Dk4p004469@imap1.linux-foundation.org>
+Subject: - pata_atiixp-audit-notes-on-locking.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:14:06 -0700
+Message-ID: <200710010714.l917E6io004506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751719AbXJAHOQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:16 -0400
+	by vger.kernel.org with ESMTP id S1752252AbXJAHOU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, linas@austin.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e100: Fix bogus PCI quirk
+     pata_atiixp: Audit notes on locking
 has been removed from the -mm tree.  Its filename was
-     e100-fix-bogus-pci-quirk.patch
+     pata_atiixp-audit-notes-on-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: e100: Fix bogus PCI quirk
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: pata_atiixp: Audit notes on locking
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Linas reported that some machines were crashing at boot in
-quirk_e100_interrupt.  It appears that this quirk is doing an ioremap
-directly on a PCI BAR value, which isn't legal and will cause all sorts of
-bad things to happen on architectures where PCI BARs don't directly match
-processor bus addresses.
-
-This fixes it by using the proper PCI resources instead which is possible
-since the quirk has been moved by a previous commit to happen late enough
-for that.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Linas Vepstas <linas@austin.ibm.com>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pci/quirks.c~e100-fix-bogus-pci-quirk drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~e100-fix-bogus-pci-quirk
-+++ a/drivers/pci/quirks.c
-@@ -1444,7 +1444,6 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
- static void __devinit quirk_e100_interrupt(struct pci_dev *dev)
- {
- 	u16 command;
--	u32 bar;
- 	u8 __iomem *csr;
- 	u8 cmd_hi;
+diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking drivers/ata/pata_atiixp.c
+--- a/drivers/ata/pata_atiixp.c~pata_atiixp-audit-notes-on-locking
++++ a/drivers/ata/pata_atiixp.c
+@@ -173,6 +173,9 @@ static void atiixp_set_dmamode(struct at
+  *
+  *	When DMA begins we need to ensure that the UDMA control
+  *	register for the channel is correctly set.
++ *
++ *	Note: The host lock held by the libata layer protects
++ *	us from two channels both trying to set DMA bits at once
+  */
  
-@@ -1476,12 +1475,12 @@ static void __devinit quirk_e100_interru
- 	 * re-enable them when it's ready.
- 	 */
- 	pci_read_config_word(dev, PCI_COMMAND, &command);
--	pci_read_config_dword(dev, PCI_BASE_ADDRESS_0, &bar);
+ static void atiixp_bmdma_start(struct ata_queued_cmd *qc)
+@@ -199,6 +202,9 @@ static void atiixp_bmdma_start(struct at
+  *
+  *	DMA has completed. Clear the UDMA flag as the next operations will
+  *	be PIO ones not UDMA data transfer.
++ *
++ *	Note: The host lock held by the libata layer protects
++ *	us from two channels both trying to set DMA bits at once
+  */
  
--	if (!(command & PCI_COMMAND_MEMORY) || !bar)
-+	if (!(command & PCI_COMMAND_MEMORY) || !pci_resource_start(dev, 0))
- 		return;
- 
--	csr = ioremap(bar, 8);
-+	/* Convert from PCI bus to resource space.  */
-+	csr = ioremap(pci_resource_start(dev, 0), 8);
- 	if (!csr) {
- 		printk(KERN_WARNING "PCI: Can't map %s e100 registers\n",
- 			pci_name(dev));
+ static void atiixp_bmdma_stop(struct ata_queued_cmd *qc)
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-origin.patch
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-powerpc.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-powerpc-vdso-install-unstripped-copies-on-disk-update.patch
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-powerpc-ptrace-check_full_regs.patch
-adbhid-produce-all-capslock-key-events.patch
-git-kbuild.patch
 git-libata-all.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
-report-the-per-irq-statistics-on-allarches.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-delay-creation-of-khcvd-thread.patch
-radeonfb-xpress-200m-rc410-support-patch.patch
-add-scaled-time-to-taskstats-based-process-accounting.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
-powerpc-add-scaled-time-accounting.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-add-documentation-for-extended-crashkernel-syntax.patch
+pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+pata_acpi-use-ata_sff_port_start.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+libata-add-a-drivers-ide-style-dma-disable.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
+libata_scsi-fix-transfer-lengths.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+fix-ide-legacy-mode-resources-fix.patch
+git-scsi-misc.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+funsoft-fix-termios.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+visor-termios-bits.patch
