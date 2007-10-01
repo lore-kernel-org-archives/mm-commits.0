@@ -1,51 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - net-atm-lecc-printk-warning-fix.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:14:32 -0700
-Message-ID: <200710010714.l917EWwY004539@imap1.linux-foundation.org>
+Subject: - git-backlight-dependency-fix.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:14:37 -0700
+Message-ID: <200710010714.l917EbbS004545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46781 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107AbXJAHUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:20:51 -0400
+	by vger.kernel.org with ESMTP id S1751752AbXJAHVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:21:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/atm/lec.c printk warning fix
+     git-backlight dependency fix
 has been removed from the -mm tree.  Its filename was
-     net-atm-lecc-printk-warning-fix.patch
+     git-backlight-dependency-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/atm/lec.c printk warning fix
+Subject: git-backlight dependency fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/atm/lec.c: In function 'lec_start_xmit':
-net/atm/lec.c:371: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'long unsigned int'
+drivers/video/backlight/corgi_bl.c:21:30: error: asm/arch/sharpsl.h: No such file or directory
+drivers/video/backlight/corgi_bl.c:22:37: error: asm/hardware/sharpsl_pm.h: No such file or directory
+drivers/video/backlight/corgi_bl.c: In function 'corgibl_send_intensity':
+drivers/video/backlight/corgi_bl.c:51: error: 'sharpsl_battery_kick' undeclared (first use in this function)
+drivers/video/backlight/corgi_bl.c:51: error: (Each undeclared identifier is reported only once
+drivers/video/backlight/corgi_bl.c:51: error: for each function it appears in.)
+drivers/video/backlight/corgi_bl.c:51: warning: type defaults to 'int' in declaration of 'type name'
+drivers/video/backlight/corgi_bl.c:51: warning: assignment makes pointer from integer without a cast
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/lec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/atm/lec.c~net-atm-lecc-printk-warning-fix net/atm/lec.c
---- a/net/atm/lec.c~net-atm-lecc-printk-warning-fix
-+++ a/net/atm/lec.c
-@@ -368,7 +368,7 @@ static int lec_start_xmit(struct sk_buff
- #endif
- 	entry = NULL;
- 	vcc = lec_arp_resolve(priv, dst, is_rdesc, &entry);
--	pr_debug("%s:vcc:%p vcc_flags:%x, entry:%p\n", dev->name,
-+	pr_debug("%s:vcc:%p vcc_flags:%lx, entry:%p\n", dev->name,
- 		vcc, vcc ? vcc->flags : 0, entry);
- 	if (!vcc || !test_bit(ATM_VF_READY, &vcc->flags)) {
- 		if (entry && (entry->tx_wait.qlen < LEC_UNRES_QUE_LEN)) {
+diff -puN drivers/video/backlight/Kconfig~git-backlight-dependency-fix drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~git-backlight-dependency-fix
++++ a/drivers/video/backlight/Kconfig
+@@ -53,6 +53,7 @@ config BACKLIGHT_CLASS_DEVICE
+ config BACKLIGHT_CORGI
+ 	tristate "Generic (aka Sharp Corgi) Backlight Driver"
+ 	depends on BACKLIGHT_CLASS_DEVICE
++	depends on ARM
+ 	default n
+ 	help
+ 	  Say y to enable the generic platform backlight driver previously
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
