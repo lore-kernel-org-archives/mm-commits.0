@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + fix-x86_64-mm-sched-clock-share.patch added to -mm tree
-Date: Mon, 01 Oct 2007 01:45:15 -0700
-Message-ID: <200710010851.l918pHjp007870@imap1.linux-foundation.org>
+Date: Mon, 01 Oct 2007 01:45:46 -0700
+Message-ID: <200710010851.l918pmDV007873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713AbXJAIvX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 04:51:23 -0400
+	by vger.kernel.org with ESMTP id S1750956AbXJAIvy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 04:51:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -27,6 +27,9 @@ out what to do about this
 ------------------------------------------------------
 Subject: fix-x86_64-mm-sched-clock-share
 From: Andrew Morton <akpm@linux-foundation.org>
+
+arch/x86_64/kernel/built-in.o: In function `resync_freq':
+sched-clock.c:(.text+0x97f3): undefined reference to `cpufreq_get'
 
 Cc: Andi Kleen <ak@suse.de>
 Cc: Dave Jones <davej@codemonkey.org.uk>
