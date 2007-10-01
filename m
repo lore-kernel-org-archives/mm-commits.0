@@ -1,99 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:14:40 -0700
-Message-ID: <200710010714.l917Ee4u004548@imap1.linux-foundation.org>
+Subject: - sched-use-show_regs-to-improve-__schedule_bug-output.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:22:56 -0700
+Message-ID: <200710010722.l917MueU004893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51867 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750912AbXJAHVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:21:42 -0400
+	by vger.kernel.org with ESMTP id S1750912AbXJAHXT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:23:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: satyam@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in include/linux/nfs_fs.h
+     sched: Use show_regs() to improve __schedule_bug() output
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-include-linux-nfs_fsh.patch
+     sched-use-show_regs-to-improve-__schedule_bug-output.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in include/linux/nfs_fs.h
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: sched: Use show_regs() to improve __schedule_bug() output
+From: Satyam Sharma <satyam@infradead.org>
 
-This patch cleans up duplicate includes in
-	include/linux/nfs_fs.h
+A full register dump along with stack backtrace would make the "scheduling
+while atomic" message more helpful.  Use show_regs() instead of
+dump_stack() for this.  We already know we're atomic in here (that is why
+this function was called) so show_regs()'s atomicity expectations are
+guaranteed.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Also, modify the output of the "BUG: scheduling while atomic:" header a bit
+to keep task->comm and task->pid together and preempt_count() after them.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfs_fs.h |    2 --
- 1 files changed, 2 deletions(-)
+ kernel/sched.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/nfs_fs.h~clean-up-duplicate-includes-in-include-linux-nfs_fsh include/linux/nfs_fs.h
---- a/include/linux/nfs_fs.h~clean-up-duplicate-includes-in-include-linux-nfs_fsh
-+++ a/include/linux/nfs_fs.h
-@@ -47,10 +47,8 @@
- #include <linux/nfs3.h>
- #include <linux/nfs4.h>
- #include <linux/nfs_xdr.h>
--
- #include <linux/nfs_fs_sb.h>
+diff -puN kernel/sched.c~sched-use-show_regs-to-improve-__schedule_bug-output kernel/sched.c
+--- a/kernel/sched.c~sched-use-show_regs-to-improve-__schedule_bug-output
++++ a/kernel/sched.c
+@@ -63,6 +63,7 @@
+ #include <linux/unistd.h>
  
--#include <linux/rwsem.h>
- #include <linux/mempool.h>
+ #include <asm/tlb.h>
++#include <asm/irq_regs.h>
+ 
+ /*
+  * Scheduler clock - returns current time in nanosec units.
+@@ -3398,12 +3399,19 @@ EXPORT_SYMBOL(sub_preempt_count);
+  */
+ static noinline void __schedule_bug(struct task_struct *prev)
+ {
+-	printk(KERN_ERR "BUG: scheduling while atomic: %s/0x%08x/%d\n",
+-		prev->comm, preempt_count(), prev->pid);
++	struct pt_regs *regs = get_irq_regs();
++
++	printk(KERN_ERR "BUG: scheduling while atomic: %s/%d/0x%08x\n",
++		prev->comm, prev->pid, preempt_count());
++
+ 	debug_show_held_locks(prev);
+ 	if (irqs_disabled())
+ 		print_irqtrace_events(prev);
+-	dump_stack();
++
++	if (regs)
++		show_regs(regs);
++	else
++		dump_stack();
+ }
  
  /*
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-cifs.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
+origin.patch
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-libata-all.patch
 git-net.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-nfs.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
+git-s390.patch
+sched-use-show_regs-to-improve-__schedule_bug-output.patch
 git-scsi-misc.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+git-block.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
+i386-cpuid-misc-cpuinit-annotations.patch
