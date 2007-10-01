@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 14:39:45 -0700
-Message-ID: <200710012139.l91LdjBY004438@imap1.linux-foundation.org>
+Subject: - rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 14:39:49 -0700
+Message-ID: <200710012139.l91Ldncd004447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35160 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754020AbXJAVk0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 17:40:26 -0400
+	by vger.kernel.org with ESMTP id S1754310AbXJAVka (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 17:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix
+     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
 has been removed from the -mm tree.  Its filename was
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
+     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
 
 This patch was dropped because it was folded into rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
 
 ------------------------------------------------------
-Subject: rework-proc-locks-via-seq_files-and-seq_list-helpers-fix
+Subject: rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-no externs in C, please.  Ever.
+fs/locks.c: In function 'locks_show':
+fs/locks.c:2147: warning: cast from pointer to integer of different size
+fs/locks.c:2154: warning: cast to pointer from integer of different size
 
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    1 -
- include/linux/fs.h  |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ fs/locks.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix
-+++ a/fs/proc/proc_misc.c
-@@ -629,7 +629,6 @@ static int cmdline_read_proc(char *page,
- 	return proc_calc_metrics(page, start, off, count, eof, len);
+diff -puN fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2 fs/locks.c
+--- a/fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
++++ a/fs/locks.c
+@@ -2136,18 +2136,16 @@ static void lock_get_status(struct seq_f
+ 
+ static int locks_show(struct seq_file *f, void *v)
+ {
+-	int idx;
+ 	struct file_lock *fl, *bfl;
+ 
+ 	fl = list_entry(v, struct file_lock, fl_link);
+-	idx = (int)f->private;
+ 
+-	lock_get_status(f, fl, idx, "");
++	lock_get_status(f, fl, (long)f->private, "");
+ 
+ 	list_for_each_entry(bfl, &fl->fl_block, fl_block)
+-		lock_get_status(f, bfl, idx, " ->");
++		lock_get_status(f, bfl, (long)f->private, " ->");
+ 
+-	f->private = (void *)(idx + 1);
++	f->private++;
+ 	return 0;
  }
  
--extern struct seq_operations locks_seq_operations;
- static int locks_open(struct inode *inode, struct file *filp)
- {
- 	return seq_open(filp, &locks_seq_operations);
-diff -puN include/linux/fs.h~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix include/linux/fs.h
---- a/include/linux/fs.h~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix
-+++ a/include/linux/fs.h
-@@ -944,6 +944,7 @@ extern int vfs_setlease(struct file *, l
- extern int lease_modify(struct file_lock **, int);
- extern int lock_may_read(struct inode *, loff_t start, unsigned long count);
- extern int lock_may_write(struct inode *, loff_t start, unsigned long count);
-+extern struct seq_operations locks_seq_operations;
- 
- struct fasync_struct {
- 	int	magic;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -259,7 +263,6 @@ ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
 use-extended-crashkernel-command-line-on-i386.patch
 rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix.patch
 rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
 linux-kernel-markers-checkpatch-fixes.patch
