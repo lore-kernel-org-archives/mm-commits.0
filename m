@@ -1,67 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 14:39:49 -0700
-Message-ID: <200710012139.l91Ldncd004447@imap1.linux-foundation.org>
+Subject: - optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 14:50:20 -0700
+Message-ID: <200710012150.l91LoKgV004934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43158 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754310AbXJAVka (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 17:40:30 -0400
+	by vger.kernel.org with ESMTP id S1756625AbXJAVue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 17:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
+     fix-x86_64-mm-honor-notify_die-returning-notify_stop
 has been removed from the -mm tree.  Its filename was
-     rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
+     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 
-This patch was dropped because it was folded into rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+This patch was dropped because it was folded into optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 
 ------------------------------------------------------
-Subject: rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
+Subject: fix-x86_64-mm-honor-notify_die-returning-notify_stop
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/locks.c: In function 'locks_show':
-fs/locks.c:2147: warning: cast from pointer to integer of different size
-fs/locks.c:2154: warning: cast to pointer from integer of different size
+In file included from include/linux/kdebug.h:4,
+                 from kernel/notifier.c:1:
+include/asm/kdebug.h:25: error: syntax error before '__die'
+include/asm/kdebug.h:25: warning: type defaults to 'int' in declaration of '__die'
+include/asm/kdebug.h:25: warning: data definition has no type or storage class
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Missing __must_check since the notfier.h include was removed.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ include/asm-x86_64/kdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2 fs/locks.c
---- a/fs/locks.c~rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2
-+++ a/fs/locks.c
-@@ -2136,18 +2136,16 @@ static void lock_get_status(struct seq_f
+diff -puN include/asm-x86_64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix include/asm-x86_64/kdebug.h
+--- a/include/asm-x86_64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix
++++ a/include/asm-x86_64/kdebug.h
+@@ -1,6 +1,8 @@
+ #ifndef _X86_64_KDEBUG_H
+ #define _X86_64_KDEBUG_H 1
  
- static int locks_show(struct seq_file *f, void *v)
- {
--	int idx;
- 	struct file_lock *fl, *bfl;
++#include <linux/compiler.h>
++
+ struct pt_regs;
  
- 	fl = list_entry(v, struct file_lock, fl_link);
--	idx = (int)f->private;
- 
--	lock_get_status(f, fl, idx, "");
-+	lock_get_status(f, fl, (long)f->private, "");
- 
- 	list_for_each_entry(bfl, &fl->fl_block, fl_block)
--		lock_get_status(f, bfl, idx, " ->");
-+		lock_get_status(f, bfl, (long)f->private, " ->");
- 
--	f->private = (void *)(idx + 1);
-+	f->private++;
- 	return 0;
- }
- 
+ /* Grossly misnamed. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,11 +130,12 @@ ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
 asm-i386-ioh-fix-constness.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
 x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
 git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-fix.patch
 git-kgdb-fixup.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
@@ -263,7 +254,6 @@ ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
 use-extended-crashkernel-command-line-on-i386.patch
 rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers-fix-2.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
 linux-kernel-markers-checkpatch-fixes.patch
 linux-kernel-markers-samples-checkpatch-fixes.patch
