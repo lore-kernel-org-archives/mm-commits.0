@@ -1,96 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - remove-broken-netfilter-binary-sysctls-from-bridging-code.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:14:46 -0700
-Message-ID: <200710010714.l917Ek7R004558@imap1.linux-foundation.org>
+Subject: - document-the-fact-that-smsc-ircc2-will-not-use-pnp-by-default.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:14:34 -0700
+Message-ID: <200710010714.l917EYGX004542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55141 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751892AbXJAHVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:21:04 -0400
+	by vger.kernel.org with ESMTP id S1751892AbXJAHVB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:21:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jfannin@gmail.com, davem@davemloft.net, ebiederm@xmission.com, kaber@trash.net, mm-commits@vger.kernel.org
+To: joe@dastyle.net, bjorn.helgaas@hp.com, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove broken netfilter binary sysctls from bridging code
+     Document the fact that smsc-ircc2 will not use PNP by default
 has been removed from the -mm tree.  Its filename was
-     remove-broken-netfilter-binary-sysctls-from-bridging-code.patch
+     document-the-fact-that-smsc-ircc2-will-not-use-pnp-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove broken netfilter binary sysctls from bridging code
-From: jfannin@gmail.com (Joseph Fannin)
+Subject: Document the fact that smsc-ircc2 will not use PNP by default
+From: Jonathan Bastien-Filiatrault <joe@dastyle.net>
 
-The netfilter sysctls in the bridging code don't set strategy routines:
+This avoids user confusion when they see that their device is not detected.
 
- sysctl table check failed: /net/bridge/bridge-nf-call-arptables .3.10.1 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-iptables .3.10.2 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-call-ip6tables .3.10.3 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-vlan-tagged .3.10.4 Missing strategy
- sysctl table check failed: /net/bridge/bridge-nf-filter-pppoe-tagged .3.10.5 Missing strategy
-
-These binary sysctls can't work.  The binary sysctl numbers of other
-netfilter sysctls with this problem are being removed.  These need to go as
-well.
-
-Signed-off-by: Joseph Fannin <jfannin@gmail.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Samuel Ortiz <samuel@sortiz.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_netfilter.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/net/irda/smsc-ircc2.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code net/bridge/br_netfilter.c
---- a/net/bridge/br_netfilter.c~remove-broken-netfilter-binary-sysctls-from-bridging-code
-+++ a/net/bridge/br_netfilter.c
-@@ -904,7 +904,6 @@ int brnf_sysctl_call_tables(ctl_table * 
+diff -puN drivers/net/irda/smsc-ircc2.c~document-the-fact-that-smsc-ircc2-will-not-use-pnp-by-default drivers/net/irda/smsc-ircc2.c
+--- a/drivers/net/irda/smsc-ircc2.c~document-the-fact-that-smsc-ircc2-will-not-use-pnp-by-default
++++ a/drivers/net/irda/smsc-ircc2.c
+@@ -81,7 +81,7 @@ MODULE_LICENSE("GPL");
  
- static ctl_table brnf_table[] = {
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_ARPTABLES,
- 		.procname	= "bridge-nf-call-arptables",
- 		.data		= &brnf_call_arptables,
- 		.maxlen		= sizeof(int),
-@@ -912,7 +911,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IPTABLES,
- 		.procname	= "bridge-nf-call-iptables",
- 		.data		= &brnf_call_iptables,
- 		.maxlen		= sizeof(int),
-@@ -920,7 +918,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_CALL_IP6TABLES,
- 		.procname	= "bridge-nf-call-ip6tables",
- 		.data		= &brnf_call_ip6tables,
- 		.maxlen		= sizeof(int),
-@@ -928,7 +925,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_VLAN_TAGGED,
- 		.procname	= "bridge-nf-filter-vlan-tagged",
- 		.data		= &brnf_filter_vlan_tagged,
- 		.maxlen		= sizeof(int),
-@@ -936,7 +932,6 @@ static ctl_table brnf_table[] = {
- 		.proc_handler	= &brnf_sysctl_call_tables,
- 	},
- 	{
--		.ctl_name	= NET_BRIDGE_NF_FILTER_PPPOE_TAGGED,
- 		.procname	= "bridge-nf-filter-pppoe-tagged",
- 		.data		= &brnf_filter_pppoe_tagged,
- 		.maxlen		= sizeof(int),
+ static int smsc_nopnp = 1;
+ module_param_named(nopnp, smsc_nopnp, bool, 0);
+-MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings");
++MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings, defaults to true");
+ 
+ #define DMA_INVAL 255
+ static int ircc_dma = DMA_INVAL;
 _
 
-Patches currently in -mm which might be from jfannin@gmail.com are
+Patches currently in -mm which might be from joe@dastyle.net are
 
 git-net.patch
