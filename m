@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-vs-git-wireless.patch added to -mm tree
-Date: Mon, 01 Oct 2007 02:38:49 -0700
-Message-ID: <200710010944.l919ip3g009703@imap1.linux-foundation.org>
+Subject: + git-dvb-build-fix.patch added to -mm tree
+Date: Mon, 01 Oct 2007 02:49:40 -0700
+Message-ID: <200710010955.l919tgxo010069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47701 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbXJAJpg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:45:36 -0400
+	by vger.kernel.org with ESMTP id S1751291AbXJAJzw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 05:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     git-net-vs-git-wireless
+     git-dvb-build-fix
 has been added to the -mm tree.  Its filename is
-     git-net-vs-git-wireless.patch
+     git-dvb-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,59 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless
+Subject: git-dvb-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix this:
+drivers/media/video/vp27smpx.c:194: error: 'I2C_DRIVERID_VP27SMPX' undeclared here (not in a function)
 
-drivers/net/wireless/ath5k_base.c:1433: error: syntax error before 'set_key_cmd'
+please tell me when this was fixed so I can drop this patch.
 
-
-and just make this:
-
-drivers/net/wireless/ath5k_base.c:1534: error: unknown field 'open' specified in initializer
-drivers/net/wireless/ath5k_base.c:1535: warning: initialization from incompatible pointer type
-drivers/net/wireless/ath5k_base.c:1540: error: unknown field 'set_multicast_list' specified in initializer
-drivers/net/wireless/ath5k_base.c:1540: warning: initialization from incompatible pointer type
-
-go away :(
-
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_base.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/video/ivtv/ivtv-i2c.c |    1 -
+ drivers/media/video/vp27smpx.c      |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -1430,7 +1430,7 @@ static void ath_set_multicast_list(struc
- 	}
- }
+diff -puN drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix drivers/media/video/ivtv/ivtv-i2c.c
+--- a/drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix
++++ a/drivers/media/video/ivtv/ivtv-i2c.c
+@@ -109,7 +109,6 @@ static const u8 hw_driverids[] = {
+ 	I2C_DRIVERID_UPD64083,
+ 	I2C_DRIVERID_SAA717X,
+ 	I2C_DRIVERID_WM8739,
+-	I2C_DRIVERID_VP27SMPX,
+ 	0 		/* IVTV_HW_GPIO dummy driver ID */
+ };
  
--static int ath_set_key(struct ieee80211_hw *hw, set_key_cmd cmd,
-+static int ath_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
- 		const u8 *local_addr, const u8 *addr,
- 		struct ieee80211_key_conf *key)
- {
-@@ -1531,13 +1531,13 @@ end:
- 
- static struct ieee80211_ops ath_hw_ops = {
- 	.tx = ath_tx,
--	.open = ath_open,
-+//	.open = ath_open,
- 	.stop = ath_stop,
- 	.add_interface = ath_add_interface,
- 	.remove_interface = ath_remove_interface,
- 	.config = ath_config,
- 	.config_interface = ath_config_interface,
--	.set_multicast_list = ath_set_multicast_list,
-+//	.set_multicast_list = ath_set_multicast_list,
- 	.set_key = ath_set_key,
- 	.get_stats = ath_get_stats,
- 	.conf_tx = NULL,
+diff -puN drivers/media/video/vp27smpx.c~git-dvb-build-fix drivers/media/video/vp27smpx.c
+--- a/drivers/media/video/vp27smpx.c~git-dvb-build-fix
++++ a/drivers/media/video/vp27smpx.c
+@@ -191,7 +191,6 @@ static struct i2c_driver i2c_driver = {
+ 	.driver = {
+ 		.name = "vp27smpx",
+ 	},
+-	.id             = I2C_DRIVERID_VP27SMPX,
+ 	.attach_adapter = vp27smpx_probe,
+ 	.detach_client  = vp27smpx_detach,
+ 	.command        = vp27smpx_command,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +77,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 powerpc-proper-defconfig-for-crosscompiles-fix.patch
 git-dvb.patch
+git-dvb-build-fix.patch
 git-hwmon-fixup.patch
 drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
 git-infiniband.patch
