@@ -1,52 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - revert-git-battery.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 13:27:27 -0700
-Message-ID: <200710012027.l91KRS5w001615@imap1.linux-foundation.org>
+Subject: - md-software-raid-autodetect-dev-list-not-array-fix.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 14:05:49 -0700
+Message-ID: <200710012105.l91L5nBF003160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48096 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46915 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752146AbXJAU2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 16:28:05 -0400
+	by vger.kernel.org with ESMTP id S1752850AbXJAVF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 17:05:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dedekind@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mjevans1983@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert git-battery
+     md-software-raid-autodetect-dev-list-not-array-fix
 has been removed from the -mm tree.  Its filename was
-     revert-git-battery.patch
+     md-software-raid-autodetect-dev-list-not-array-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into md-software-raid-autodetect-dev-list-not-array.patch
 
 ------------------------------------------------------
-Subject: revert git-battery
+Subject: md-software-raid-autodetect-dev-list-not-array-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-greg's tree breaks this.
-
-drivers/power/power_supply_sysfs.c: In function 'power_supply_uevent':          drivers/power/power_supply_sysfs.c:286: error: 'envp' undeclared (first use in this function)                                                                   drivers/power/power_supply_sysfs.c:286: error: (Each undeclared identifier is reported only once                                                                drivers/power/power_supply_sysfs.c:286: error: for each function it appears in.)
-drivers/power/power_supply_sysfs.c:286: error: 'i' undeclared (first use in this
-
-Cc: Artem Bityutskiy <dedekind@infradead.org>
+Cc: Michael J. Evans <mjevans1983@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/md/md.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/power/power_supply_sysfs.c~revert-git-battery drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~revert-git-battery
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -283,7 +283,6 @@ int power_supply_uevent(struct device *d
- 		if (ret)
- 			goto out;
- 	}
--	envp[i] = NULL;
+diff -puN drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array-fix drivers/md/md.c
+--- a/drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array-fix
++++ a/drivers/md/md.c
+@@ -5789,14 +5789,13 @@ struct detected_devices_node {
+ void md_autodetect_dev(dev_t dev)
+ {
+ 	struct detected_devices_node *node_detected_dev;
+-	char strbuf[BDEVNAME_SIZE];
  
- out:
- 	free_page((unsigned long)prop_buf);
+ 	node_detected_dev = kzalloc(sizeof(*node_detected_dev), GFP_KERNEL);
+ 	if (node_detected_dev) {
+ 		node_detected_dev->dev = dev;
+ 		list_add_tail(&node_detected_dev->list, &all_detected_devices);
+ 	} else {
+-		printk(KERN_CRIT "md: md_autodetect_dev: kzAlloc node failed"
++		printk(KERN_CRIT "md: md_autodetect_dev: kzalloc failed"
+ 			", skipping dev(%d,%d)\n", MAJOR(dev), MINOR(dev));
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +97,6 @@ git-net-more-bustage.patch
 ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
 git-net-sctp-hack.patch
 forcedeth-power-down-phy-when-interface-is-down.patch
-revert-git-battery.patch
 git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
@@ -212,6 +215,7 @@ fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
 intel-fb-support-for-interlaced-video-modes.patch
 export-font_vga_8x16.patch
 drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
 md-software-raid-autodetect-dev-list-not-array-fix.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-iova-allocation-and-management-routines.patch
