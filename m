@@ -1,247 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - oops-in-pwc-v4l-driver.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:13:49 -0700
-Message-ID: <200710010713.l917Dnmv004476@imap1.linux-foundation.org>
+Subject: - e100-fix-bogus-pci-quirk.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:13:46 -0700
+Message-ID: <200710010713.l917Dk4p004469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44884 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751910AbXJAHOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:09 -0400
+	by vger.kernel.org with ESMTP id S1751719AbXJAHOQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:14:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oliver@neukum.org, lkml@alex-smith.me.uk, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, auke-jan.h.kok@intel.com, greg@kroah.com, jeff@garzik.org, linas@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix oops in pwc v4l driver
+     e100: Fix bogus PCI quirk
 has been removed from the -mm tree.  Its filename was
-     oops-in-pwc-v4l-driver.patch
+     e100-fix-bogus-pci-quirk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix oops in pwc v4l driver
-From: Oliver Neukum <oliver@neukum.org>
+Subject: e100: Fix bogus PCI quirk
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-unchangelogged patch.
+Linas reported that some machines were crashing at boot in
+quirk_e100_interrupt.  It appears that this quirk is doing an ioremap
+directly on a PCI BAR value, which isn't legal and will cause all sorts of
+bad things to happen on architectures where PCI BARs don't directly match
+processor bus addresses.
 
-Tested-by: "Alex Smith" <lkml@alex-smith.me.uk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+This fixes it by using the proper PCI resources instead which is possible
+since the quirk has been moved by a previous commit to happen late enough
+for that.
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Linas Vepstas <linas@austin.ibm.com>
+Cc: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pwc/pwc-if.c |   96 +++++++++++++++++++++--------
- 1 file changed, 72 insertions(+), 24 deletions(-)
 
-diff -puN drivers/media/video/pwc/pwc-if.c~oops-in-pwc-v4l-driver drivers/media/video/pwc/pwc-if.c
---- a/drivers/media/video/pwc/pwc-if.c~oops-in-pwc-v4l-driver
-+++ a/drivers/media/video/pwc/pwc-if.c
-@@ -907,31 +907,49 @@ int pwc_isoc_init(struct pwc_device *pde
- 	return 0;
- }
- 
--void pwc_isoc_cleanup(struct pwc_device *pdev)
-+static void pwc_iso_stop(struct pwc_device *pdev)
+diff -puN drivers/pci/quirks.c~e100-fix-bogus-pci-quirk drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~e100-fix-bogus-pci-quirk
++++ a/drivers/pci/quirks.c
+@@ -1444,7 +1444,6 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
+ static void __devinit quirk_e100_interrupt(struct pci_dev *dev)
  {
- 	int i;
+ 	u16 command;
+-	u32 bar;
+ 	u8 __iomem *csr;
+ 	u8 cmd_hi;
  
--	PWC_DEBUG_OPEN(">> pwc_isoc_cleanup()\n");
--	if (pdev == NULL)
--		return;
--	if (pdev->iso_init == 0)
--		return;
--
- 	/* Unlinking ISOC buffers one by one */
- 	for (i = 0; i < MAX_ISO_BUFS; i++) {
- 		struct urb *urb;
+@@ -1476,12 +1475,12 @@ static void __devinit quirk_e100_interru
+ 	 * re-enable them when it's ready.
+ 	 */
+ 	pci_read_config_word(dev, PCI_COMMAND, &command);
+-	pci_read_config_dword(dev, PCI_BASE_ADDRESS_0, &bar);
  
- 		urb = pdev->sbuf[i].urb;
- 		if (urb != 0) {
--			if (pdev->iso_init) {
--				PWC_DEBUG_MEMORY("Unlinking URB %p\n", urb);
--				usb_kill_urb(urb);
--			}
-+			PWC_DEBUG_MEMORY("Unlinking URB %p\n", urb);
-+			usb_kill_urb(urb);
-+		}
-+	}
-+}
-+
-+static void pwc_iso_free(struct pwc_device *pdev)
-+{
-+	int i;
-+
-+	/* Freeing ISOC buffers one by one */
-+	for (i = 0; i < MAX_ISO_BUFS; i++) {
-+		struct urb *urb;
-+
-+		urb = pdev->sbuf[i].urb;
-+		if (urb != 0) {
- 			PWC_DEBUG_MEMORY("Freeing URB\n");
- 			usb_free_urb(urb);
- 			pdev->sbuf[i].urb = NULL;
- 		}
- 	}
-+}
-+
-+void pwc_isoc_cleanup(struct pwc_device *pdev)
-+{
-+	PWC_DEBUG_OPEN(">> pwc_isoc_cleanup()\n");
-+	if (pdev == NULL)
-+		return;
-+	if (pdev->iso_init == 0)
-+		return;
-+
-+	pwc_iso_stop(pdev);
-+	pwc_iso_free(pdev);
+-	if (!(command & PCI_COMMAND_MEMORY) || !bar)
++	if (!(command & PCI_COMMAND_MEMORY) || !pci_resource_start(dev, 0))
+ 		return;
  
- 	/* Stop camera, but only if we are sure the camera is still there (unplug
- 	   is signalled by EPIPE)
-@@ -1211,6 +1229,7 @@ static int pwc_video_close(struct inode 
- 
- 	PWC_DEBUG_OPEN(">> video_close called(vdev = 0x%p).\n", vdev);
- 
-+	lock_kernel();
- 	pdev = (struct pwc_device *)vdev->priv;
- 	if (pdev->vopen == 0)
- 		PWC_DEBUG_MODULE("video_close() called on closed device?\n");
-@@ -1230,7 +1249,6 @@ static int pwc_video_close(struct inode 
- 	pwc_isoc_cleanup(pdev);
- 	pwc_free_buffers(pdev);
- 
--	lock_kernel();
- 	/* Turn off LEDS and power down camera, but only when not unplugged */
- 	if (!pdev->unplugged) {
- 		/* Turn LEDs off */
-@@ -1276,7 +1294,7 @@ static ssize_t pwc_video_read(struct fil
- 	struct pwc_device *pdev;
- 	int noblock = file->f_flags & O_NONBLOCK;
- 	DECLARE_WAITQUEUE(wait, current);
--	int bytes_to_read;
-+	int bytes_to_read, rv = 0;
- 	void *image_buffer_addr;
- 
- 	PWC_DEBUG_READ("pwc_video_read(vdev=0x%p, buf=%p, count=%zd) called.\n",
-@@ -1286,8 +1304,12 @@ static ssize_t pwc_video_read(struct fil
- 	pdev = vdev->priv;
- 	if (pdev == NULL)
- 		return -EFAULT;
--	if (pdev->error_status)
--		return -pdev->error_status; /* Something happened, report what. */
-+
-+	mutex_lock(&pdev->modlock);
-+	if (pdev->error_status) {
-+		rv = -pdev->error_status; /* Something happened, report what. */
-+		goto err_out;
-+	}
- 
- 	/* In case we're doing partial reads, we don't have to wait for a frame */
- 	if (pdev->image_read_pos == 0) {
-@@ -1298,17 +1320,20 @@ static ssize_t pwc_video_read(struct fil
- 			if (pdev->error_status) {
- 				remove_wait_queue(&pdev->frameq, &wait);
- 				set_current_state(TASK_RUNNING);
--				return -pdev->error_status ;
-+				rv = -pdev->error_status ;
-+				goto err_out;
- 			}
- 			if (noblock) {
- 				remove_wait_queue(&pdev->frameq, &wait);
- 				set_current_state(TASK_RUNNING);
--				return -EWOULDBLOCK;
-+				rv = -EWOULDBLOCK;
-+				goto err_out;
- 			}
- 			if (signal_pending(current)) {
- 				remove_wait_queue(&pdev->frameq, &wait);
- 				set_current_state(TASK_RUNNING);
--				return -ERESTARTSYS;
-+				rv = -ERESTARTSYS;
-+				goto err_out;
- 			}
- 			schedule();
- 			set_current_state(TASK_INTERRUPTIBLE);
-@@ -1317,8 +1342,10 @@ static ssize_t pwc_video_read(struct fil
- 		set_current_state(TASK_RUNNING);
- 
- 		/* Decompress and release frame */
--		if (pwc_handle_frame(pdev))
--			return -EFAULT;
-+		if (pwc_handle_frame(pdev)) {
-+			rv = -EFAULT;
-+			goto err_out;
-+		}
- 	}
- 
- 	PWC_DEBUG_READ("Copying data to user space.\n");
-@@ -1333,14 +1360,20 @@ static ssize_t pwc_video_read(struct fil
- 	image_buffer_addr = pdev->image_data;
- 	image_buffer_addr += pdev->images[pdev->fill_image].offset;
- 	image_buffer_addr += pdev->image_read_pos;
--	if (copy_to_user(buf, image_buffer_addr, count))
--		return -EFAULT;
-+	if (copy_to_user(buf, image_buffer_addr, count)) {
-+		rv = -EFAULT;
-+		goto err_out;
-+	}
- 	pdev->image_read_pos += count;
- 	if (pdev->image_read_pos >= bytes_to_read) { /* All data has been read */
- 		pdev->image_read_pos = 0;
- 		pwc_next_image(pdev);
- 	}
-+	mutex_unlock(&pdev->modlock);
- 	return count;
-+err_out:
-+	mutex_unlock(&pdev->modlock);
-+	return rv;
- }
- 
- static unsigned int pwc_video_poll(struct file *file, poll_table *wait)
-@@ -1366,7 +1399,20 @@ static unsigned int pwc_video_poll(struc
- static int pwc_video_ioctl(struct inode *inode, struct file *file,
- 			   unsigned int cmd, unsigned long arg)
- {
--	return video_usercopy(inode, file, cmd, arg, pwc_video_do_ioctl);
-+	struct video_device *vdev = file->private_data;
-+	struct pwc_device *pdev;
-+	int r = -ENODEV;
-+
-+	if (!vdev)
-+		goto out;
-+	pdev = vdev->priv;
-+
-+	mutex_lock(&pdev->modlock);
-+	if (!pdev->unplugged)
-+		r = video_usercopy(inode, file, cmd, arg, pwc_video_do_ioctl);
-+	mutex_unlock(&pdev->modlock);
-+out:
-+	return r;
- }
- 
- static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
-@@ -1809,7 +1855,10 @@ static void usb_pwc_disconnect(struct us
- 	wake_up_interruptible(&pdev->frameq);
- 	/* Wait until device is closed */
- 	if(pdev->vopen) {
-+		mutex_lock(&pdev->modlock);
- 		pdev->unplugged = 1;
-+		mutex_unlock(&pdev->modlock);
-+		pwc_iso_stop(pdev);
- 	} else {
- 		/* Device is closed, so we can safely unregister it */
- 		PWC_DEBUG_PROBE("Unregistering video device in disconnect().\n");
-@@ -1827,7 +1876,6 @@ disconnect_out:
- 	unlock_kernel();
- }
- 
--
- /* *grunt* We have to do atoi ourselves :-( */
- static int pwc_atoi(const char *s)
- {
+-	csr = ioremap(bar, 8);
++	/* Convert from PCI bus to resource space.  */
++	csr = ioremap(pci_resource_start(dev, 0), 8);
+ 	if (!csr) {
+ 		printk(KERN_WARNING "PCI: Can't map %s e100 registers\n",
+ 			pci_name(dev));
 _
 
-Patches currently in -mm which might be from oliver@neukum.org are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-git-dvb.patch
-git-hid.patch
+origin.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
+cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
+git-powerpc.patch
+powerpc-vdso-install-unstripped-copies-on-disk.patch
+powerpc-vdso-install-unstripped-copies-on-disk-update.patch
+sky-cpu-and-nexus-code-style-improvement.patch
+sky-cpu-and-nexus-include-ioh.patch
+sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
+sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
+sky-cpu-use-c99-style-for-struct-init.patch
+powerpc-proper-defconfig-for-crosscompiles.patch
+powerpc-proper-defconfig-for-crosscompiles-fix.patch
+powerpc-ptrace-check_full_regs.patch
+adbhid-produce-all-capslock-key-events.patch
+git-kbuild.patch
+git-libata-all.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+remove-frv-usage-of-flush_tlb_pgtables.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+report-the-per-irq-statistics-on-allarches.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+delay-creation-of-khcvd-thread.patch
+radeonfb-xpress-200m-rc410-support-patch.patch
+add-scaled-time-to-taskstats-based-process-accounting.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
+powerpc-add-scaled-time-accounting.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+add-documentation-for-extended-crashkernel-syntax.patch
