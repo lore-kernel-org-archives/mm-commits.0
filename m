@@ -1,128 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - futex_compat-simplify-pointer-magic.patch removed from -mm tree
-Date: Mon, 01 Oct 2007 00:08:07 -0700
-Message-ID: <200710010708.l917876M004295@imap1.linux-foundation.org>
+Subject: - futex_compat-update-to-match-native-version.patch removed from -mm tree
+Date: Mon, 01 Oct 2007 00:08:38 -0700
+Message-ID: <200710010708.l9178cgj004307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54552 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751543AbXJAHIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:08:44 -0400
+	by vger.kernel.org with ESMTP id S1751341AbXJAHJO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2007 03:09:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, davem@davemloft.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: arnd@arndb.de, davem@davemloft.net, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex_compat: simplify pointer magic
+     futex_compat: update to match native version
 has been removed from the -mm tree.  Its filename was
-     futex_compat-simplify-pointer-magic.patch
+     futex_compat-update-to-match-native-version.patch
 
 This patch was dropped because of rejects against mainline
 
 ------------------------------------------------------
-Subject: futex_compat: simplify pointer magic
+Subject: futex_compat: update to match native version
 From: Arnd Bergmann <arnd@arndb.de>
 
-The futex_compat code currently mixes pointers to robust_list and
-compat_robust_list for no apparent reason other than requiring extra
-typecasts.  It also uses an extra argument to fetch_robust_entry() that is not
-useful but has caused bugs to be introduced before.
+A few changes have gone into the futex code but not into the futex_compat
+code, the most significant one being a fix for FUTEX_WAKE_OP in commit
+f54f098612d7f86463b5fb4763d03533d634de73.
 
-Clean up the code to get rid of all this and make the compat version look more
-like the native one.
+This brings both versions in sync again.
 
 Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ kernel/futex_compat.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/futex_compat.c~futex_compat-simplify-pointer-magic kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex_compat-simplify-pointer-magic
+diff -puN kernel/futex_compat.c~futex_compat-update-to-match-native-version kernel/futex_compat.c
+--- a/kernel/futex_compat.c~futex_compat-update-to-match-native-version
 +++ a/kernel/futex_compat.c
-@@ -16,15 +16,17 @@
- /*
-  * Fetch a robust-list pointer. Bit 0 signals PI futexes:
-  */
--static inline int
--fetch_robust_entry(compat_uptr_t *uentry, struct robust_list __user **entry,
--		   compat_uptr_t __user *head, int *pi)
-+static inline int fetch_robust_entry(struct compat_robust_list __user **entry,
-+				     compat_uptr_t __user *head,
-+				     unsigned int *pi)
- {
--	if (get_user(*uentry, head))
-+	compat_uptr_t uentry;
-+
-+	if (get_user(uentry, head))
- 		return -EFAULT;
- 
--	*entry = compat_ptr((*uentry) & ~1);
--	*pi = (unsigned int)(*uentry) & 1;
-+	*entry = compat_ptr((uentry) & ~1);
-+	*pi = (unsigned int)(uentry) & 1;
- 
- 	return 0;
- }
-@@ -38,16 +40,16 @@ fetch_robust_entry(compat_uptr_t *uentry
- void compat_exit_robust_list(struct task_struct *curr)
- {
- 	struct compat_robust_list_head __user *head = curr->compat_robust_list;
--	struct robust_list __user *entry, *pending;
-+	struct compat_robust_list __user *entry, *pending;
- 	unsigned int limit = ROBUST_LIST_LIMIT, pi, pip;
--	compat_uptr_t uentry, upending;
-+
- 	compat_long_t futex_offset;
- 
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
- 	 * sys_set_robust_list()):
+@@ -62,8 +62,10 @@ void compat_exit_robust_list(struct task
  	 */
--	if (fetch_robust_entry(&uentry, &entry, &head->list.next, &pi))
-+	if (fetch_robust_entry(&entry, &head->list.next, &pi))
+ 	if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
  		return;
- 	/*
- 	 * Fetch the relative futex offset:
-@@ -58,13 +60,12 @@ void compat_exit_robust_list(struct task
- 	 * Fetch any possibly pending lock-add first, and handle it
- 	 * if it exists:
- 	 */
--	if (fetch_robust_entry(&upending, &pending,
--			       &head->list_op_pending, &pip))
-+	if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
- 		return;
++
  	if (pending)
- 		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
+-		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
++		handle_futex_death((void __user *)pending + futex_offset,
++				   curr, pip);
  
--	while (entry != (struct robust_list __user *) &head->list) {
-+	while (entry != &head->list) {
+ 	while (entry != &head->list) {
  		/*
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
-@@ -73,12 +74,10 @@ void compat_exit_robust_list(struct task
- 			if (handle_futex_death((void __user *)entry + futex_offset,
- 						curr, pi))
- 				return;
--
- 		/*
- 		 * Fetch the next entry in the list:
- 		 */
--		if (fetch_robust_entry(&uentry, &entry,
--				       (compat_uptr_t __user *)&entry->next, &pi))
-+		if (fetch_robust_entry(&entry, &entry->next, &pi))
- 			return;
- 		/*
- 		 * Avoid excessively long or circular lists:
+@@ -142,7 +144,7 @@ asmlinkage long compat_sys_futex(u32 __u
+ {
+ 	struct timespec ts;
+ 	ktime_t t, *tp = NULL;
+-	int val2 = 0;
++	u32 val2 = 0;
+ 	int cmd = op & FUTEX_CMD_MASK;
+ 
+ 	if (utime && (cmd == FUTEX_WAIT || cmd == FUTEX_LOCK_PI)) {
+@@ -156,8 +158,13 @@ asmlinkage long compat_sys_futex(u32 __u
+ 			t = ktime_add(ktime_get(), t);
+ 		tp = &t;
+ 	}
+-	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE)
+-		val2 = (int) (unsigned long) utime;
++	/*
++	 * requeue parameter in 'utime' if cmd == FUTEX_REQUEUE.
++	 * number of waiters to wake in 'utime' if cmd == FUTEX_WAKE_OP.
++	 */
++	if (cmd == FUTEX_REQUEUE || cmd == FUTEX_CMP_REQUEUE ||
++	    cmd == FUTEX_WAKE_OP)
++		val2 = (u32) (unsigned long) utime;
+ 
+ 	return do_futex(uaddr, op, val, tp, uaddr2, val2, val3);
+ }
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
-futex_compat-simplify-pointer-magic.patch
 futex_compat-update-to-match-native-version.patch
 whitespace-fixes-compat-syscalls.patch
