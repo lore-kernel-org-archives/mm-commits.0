@@ -1,131 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - libata-add-human-readable-error-value-decoding-v3.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:55:14 -0700
-Message-ID: <200710022255.l92MtE1h026769@imap1.linux-foundation.org>
+Subject: - i386-cpuid-misc-cpuinit-annotations.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 15:55:22 -0700
+Message-ID: <200710022255.l92MtMav026778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59707 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753355AbXJBWzf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:55:35 -0400
+	by vger.kernel.org with ESMTP id S1753271AbXJBWzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hancockr@shaw.ca, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: satyam@infradead.org, ak@suse.de, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: add human-readable error value decoding
+     i386 cpuid: Misc cpuinit annotations
 has been removed from the -mm tree.  Its filename was
-     libata-add-human-readable-error-value-decoding-v3.patch
+     i386-cpuid-misc-cpuinit-annotations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: add human-readable error value decoding
-From: Robert Hancock <hancockr@shaw.ca>
+Subject: i386 cpuid: Misc cpuinit annotations
+From: Satyam Sharma <satyam@infradead.org>
 
-This adds human-readable decoding of the ATA status and error registers
-(similar to what drivers/ide does) as well as the SATA Serror register to
-libata error handling output.  This prevents the need to pore through
-standards documents to figure out the meaning of the bits in these
-registers when looking at error reports.  Some bits that drivers/ide
-decoded are not decoded here, since the bits are either command-dependent
-or obsolete, and properly parsing them would add too much complexity.
+cpuid_class_cpu_callback() is callback function of a CPU hotplug
+notifier_block (that is already marked as __cpuinitdata).  Therefore it can
+safely be marked as __cpuinit.
 
-Signed-off-by: Robert Hancock <hancockr@shaw.ca>
-Acked-by: Alan Cox <alan@redhat.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+cpuid_device_create() is only referenced from other functions that are
+__cpuinit or __init.  So it can also be safely marked __cpuinit.
+
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Cc: Andi Kleen <ak@suse.de>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-eh.c |   45 ++++++++++++++++++++++++++++++++++++++
- include/linux/ata.h     |    9 +++++++
- 2 files changed, 54 insertions(+)
+ arch/i386/kernel/cpuid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-eh.c~libata-add-human-readable-error-value-decoding-v3 drivers/ata/libata-eh.c
---- a/drivers/ata/libata-eh.c~libata-add-human-readable-error-value-decoding-v3
-+++ a/drivers/ata/libata-eh.c
-@@ -1911,6 +1911,27 @@ static void ata_eh_link_report(struct at
- 			ata_link_printk(link, KERN_ERR, "%s\n", desc);
- 	}
+diff -puN arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations arch/i386/kernel/cpuid.c
+--- a/arch/i386/kernel/cpuid.c~i386-cpuid-misc-cpuinit-annotations
++++ a/arch/i386/kernel/cpuid.c
+@@ -136,7 +136,7 @@ static const struct file_operations cpui
+ 	.open = cpuid_open,
+ };
  
-+	if (ehc->i.serror)
-+		ata_port_printk(ap, KERN_ERR,
-+		  "SError: {%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s}\n",
-+		  ehc->i.serror & SERR_DATA_RECOVERED ? "RecovData " : "",
-+		  ehc->i.serror & SERR_COMM_RECOVERED ? "RecovComm " : "",
-+		  ehc->i.serror & SERR_DATA ? "UnrecovData " : "",
-+		  ehc->i.serror & SERR_PERSISTENT ? "Persist " : "",
-+		  ehc->i.serror & SERR_PROTOCOL ? "Proto " : "",
-+		  ehc->i.serror & SERR_INTERNAL ? "HostInt " : "",
-+		  ehc->i.serror & SERR_PHYRDY_CHG ? "PHYRdyChg " : "",
-+		  ehc->i.serror & SERR_PHY_INT_ERR ? "PHYInt " : "",
-+		  ehc->i.serror & SERR_COMM_WAKE ? "CommWake " : "",
-+		  ehc->i.serror & SERR_10B_8B_ERR ? "10B8B " : "",
-+		  ehc->i.serror & SERR_DISPARITY ? "Dispar " : "",
-+		  ehc->i.serror & SERR_CRC ? "BadCRC " : "",
-+		  ehc->i.serror & SERR_HANDSHAKE ? "Handshk " : "",
-+		  ehc->i.serror & SERR_LINK_SEQ_ERR ? "LinkSeq " : "",
-+		  ehc->i.serror & SERR_TRANS_ST_ERROR ? "TrStaTrns " : "",
-+		  ehc->i.serror & SERR_UNRECOG_FIS ? "UnrecFIS " : "",
-+		  ehc->i.serror & SERR_DEV_XCHG ? "DevExch " : "" );
-+
- 	for (tag = 0; tag < ATA_MAX_QUEUE; tag++) {
- 		static const char *dma_str[] = {
- 			[DMA_BIDIRECTIONAL]	= "bidi",
-@@ -1942,6 +1963,30 @@ static void ata_eh_link_report(struct at
- 			res->hob_lbal, res->hob_lbam, res->hob_lbah,
- 			res->device, qc->err_mask, ata_err_string(qc->err_mask),
- 			qc->err_mask & AC_ERR_NCQ ? " <F>" : "");
-+
-+		if (res->command & (ATA_BUSY | ATA_DRDY | ATA_DF | ATA_DRQ |
-+				    ATA_ERR) ) {
-+			if (res->command & ATA_BUSY)
-+				ata_dev_printk(qc->dev, KERN_ERR,
-+				  "status: {Busy}\n" );
-+			else
-+				ata_dev_printk(qc->dev, KERN_ERR,
-+				  "status: {%s%s%s%s}\n",
-+				  res->command & ATA_DRDY ? "DRDY " : "",
-+				  res->command & ATA_DF ? "DF " : "",
-+				  res->command & ATA_DRQ ? "DRQ " : "",
-+				  res->command & ATA_ERR ? "ERR " : "" );
-+		}
-+
-+		if (cmd->command != ATA_CMD_PACKET &&
-+		    (res->feature & (ATA_ICRC | ATA_UNC | ATA_IDNF |
-+				     ATA_ABORTED)))
-+			ata_dev_printk(qc->dev, KERN_ERR,
-+			  "error: {%s%s%s%s}\n",
-+			  res->feature & ATA_ICRC ? "ICRC " : "",
-+			  res->feature & ATA_UNC ? "UNC " : "",
-+			  res->feature & ATA_IDNF ? "IDNF " : "",
-+			  res->feature & ATA_ABORTED ? "ABRT " : "" );
- 	}
- }
+-static int cpuid_device_create(int cpu)
++static int __cpuinit cpuid_device_create(int cpu)
+ {
+ 	struct device *dev;
  
-diff -puN include/linux/ata.h~libata-add-human-readable-error-value-decoding-v3 include/linux/ata.h
---- a/include/linux/ata.h~libata-add-human-readable-error-value-decoding-v3
-+++ a/include/linux/ata.h
-@@ -287,6 +287,15 @@ enum {
- 	SERR_PROTOCOL		= (1 << 10), /* protocol violation */
- 	SERR_INTERNAL		= (1 << 11), /* host internal error */
- 	SERR_PHYRDY_CHG		= (1 << 16), /* PHY RDY changed */
-+	SERR_PHY_INT_ERR	= (1 << 17), /* PHY internal error */
-+	SERR_COMM_WAKE		= (1 << 18), /* Comm wake */
-+	SERR_10B_8B_ERR		= (1 << 19), /* 10b to 8b decode error */
-+	SERR_DISPARITY		= (1 << 20), /* Disparity */
-+	SERR_CRC		= (1 << 21), /* CRC error */
-+	SERR_HANDSHAKE		= (1 << 22), /* Handshake error */
-+	SERR_LINK_SEQ_ERR	= (1 << 23), /* Link sequence error */
-+	SERR_TRANS_ST_ERROR	= (1 << 24), /* Transport state trans. error */
-+	SERR_UNRECOG_FIS	= (1 << 25), /* Unrecognized FIS */
- 	SERR_DEV_XCHG		= (1 << 26), /* device exchanged */
- 
- 	/* struct ata_taskfile flags */
 _
 
-Patches currently in -mm which might be from hancockr@shaw.ca are
+Patches currently in -mm which might be from satyam@infradead.org are
 
+cpufreq-mark-hotplug-notifier-callback-as-__cpuinit.patch
+cpufreq-implement-config_cpu_freq-stub-for.patch
+cpufreq_stats-misc-cpuinit-section-annotations.patch
+git-hwmon.patch
+ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
+ia64-perfmon-remove-exit_pfm_fs.patch
+git-ieee1394.patch
+git-infiniband.patch
 git-libata-all.patch
+git-net.patch
+git-s390.patch
+git-scsi-misc.patch
+mpt-fusion-shut-up-uninitialized-variable.patch
+git-block.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
