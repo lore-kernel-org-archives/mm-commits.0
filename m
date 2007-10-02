@@ -1,201 +1,259 @@
 From: akpm@linux-foundation.org
-Subject: - pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:47:12 -0700
-Message-ID: <200710022047.l92KlCjS021491@imap1.linux-foundation.org>
+Subject: - git-net-fix-ax25-build.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 13:56:36 -0700
+Message-ID: <200710022056.l92Kua0N021897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55564 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752709AbXJBUrb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:47:31 -0400
+	by vger.kernel.org with ESMTP id S1753918AbXJBU4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:56:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_acpi: rework the ACPI drivers based upon experience of what the BIOS can do
+     git-net-fix-ax25-build
 has been removed from the -mm tree.  Its filename was
-     pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
+     git-net-fix-ax25-build.patch
 
-This patch was dropped because it was folded into pata_acpi-restore-driver.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: pata_acpi: rework the ACPI drivers based upon experience of what the BIOS can do
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: git-net-fix-ax25-build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't assume the BIOS can validate modes or has any sense at all.  Instead use
-the BIOS timings to deduce the modes.
+drivers/net/hamradio/scc.c: In function 'scc_net_setup':
+drivers/net/hamradio/scc.c:1554: error: 'ax25_hard_header_ops' undeclared (first use in this function)
+drivers/net/hamradio/scc.c:1554: error: (Each undeclared identifier is reported only once
+drivers/net/hamradio/scc.c:1554: error: for each function it appears in.)
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
+what the heck's going on over there?
+
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_acpi.c |   74 +++++++++++++-------------------------
- 1 files changed, 27 insertions(+), 47 deletions(-)
+ drivers/net/hamradio/scc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_acpi.c~pata_acpi-rework-the-acpi-drivers-based-upon-experience drivers/ata/pata_acpi.c
---- a/drivers/ata/pata_acpi.c~pata_acpi-rework-the-acpi-drivers-based-upon-experience
-+++ a/drivers/ata/pata_acpi.c
-@@ -2,8 +2,6 @@
-  *	ACPI PATA driver
-  *
-  *	(c) 2007 Red Hat  <alan@redhat.com>
-- *
-- *	TODO - restore modes after mode_filter chews them up
-  */
+diff -puN drivers/net/hamradio/scc.c~git-net-fix-ax25-build drivers/net/hamradio/scc.c
+--- a/drivers/net/hamradio/scc.c~git-net-fix-ax25-build
++++ a/drivers/net/hamradio/scc.c
+@@ -1551,7 +1551,7 @@ static void scc_net_setup(struct net_dev
+ 	dev->stop	     = scc_net_close;
  
- #include <linux/kernel.h>
-@@ -28,7 +26,7 @@
- #include "libata-acpi.h"
+ 	dev->hard_start_xmit = scc_net_tx;
+-	dev->header_ops      = &ax25_hard_header_ops;
++//	dev->header_ops      = &ax25_hard_header_ops;
  
- #define DRV_NAME	"pata_acpi"
--#define DRV_VERSION	"0.1.1"
-+#define DRV_VERSION	"0.2.1"
- 
- struct pata_acpi {
- 	void *handle;
-@@ -122,59 +120,41 @@ static unsigned long pacpi_discover_mode
- 	if (!(probe.flags & 0x10))
- 		unit = 0;
- 
--
--	/* In order to generate a valid mode mask as we need cycle through
--	   trying each proposed speed in turn */
-+	ata_acpi_gtm(ap. acpi->handle, &probe);
- 
- 	/* Start by scanning for PIO modes */
- 	for (i = 0; i < 7; i++) {
--		probe.drive[unit].pio = pio_cycle[i];
--		ata_acpi_stm(ap, acpi->handle, &probe);
--		ata_acpi_gtm(ap, acpi->handle, &probe);
- 		t = probe.drive[unit].pio;
--		if (t == 0xFFFFFFFF || (i &&  t >= pio_cycle[i-1]))
--			mask &= ~(1 << (i + ATA_SHIFT_PIO));
--	}
--
--	/* Select MWDMA */
--	probe.flags &= ~(1 << (2 * unit));
--
--	/* Scan for MWDMA modes */
--	for (i = 0; i < 5; i++) {
--		u32 t;
--		probe.drive[unit].dma = mwdma_cycle[i];
--		ata_acpi_stm(ap, acpi->handle, &probe);
--		ata_acpi_gtm(ap, acpi->handle, &probe);
--
--		t = probe.drive[unit].dma;
--
--		if (t == 0xFFFFFFFF || (i && t >= mwdma_cycle[i-1]))
--			mask &= ~ (1 << (i + ATA_SHIFT_MWDMA));
-+		if (t <= pio_cycle[i]) {
-+			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
-+			break;
-+		}
- 	}
- 
--	/* Select UDMA */
--	probe.flags |= (1 << (2 * unit));
--
--	/* Scan for UDMA modes */
--	for (i = 0; i < 7; i++) {
--		u32 t;
--		probe.drive[unit].dma = udma_cycle[i];
--		ata_acpi_stm(ap, acpi->handle, &probe);
--		ata_acpi_gtm(ap, acpi->handle, &probe);
--
--		t = probe.drive[unit].dma;
--
--		if (t == 0xFFFFFFFF || (i && t >= udma_cycle[i-1]))
--			mask &= ~ (1 << (i + ATA_SHIFT_UDMA));
-+	/* See if we have MWDMA or UDMA data. We don't bother with MWDMA
-+	   if UDMA is availabe as this means the BIOS set UDMA and our
-+	   error changedown if it works is UDMA to PIO anyway */
-+	if (probe.flags & (1 << (2 * unit))) {
-+		/* MWDMA */
-+		for (i = 0; i < 5; i++) {
-+			t = probe.drive[unit].dma;
-+			if (t <= mwdma_cycle[i]) {
-+				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
-+				break;
-+			}
-+		}
-+	} else {
-+		/* UDMA */
-+		for (i = 0; i < 7; i++) {
-+			t = probe.drive[unit].dma;
-+			if (t <= udma_cycle[i]) {
-+				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
-+				break;
-+			}
-+		}
- 	}
--
- 	if (mask & (0xF8 << ATA_SHIFT_UDMA))
- 		ap->cbl = ATA_CBL_PATA80;
--
--	/* Restore the programmed timings */
--	ata_acpi_stm(ap, acpi->handle, &acpi->gtm);
--	/* And finally we can hand back the list of speeds that actually are
--	   supported by the BIOS */
- 	return mask;
- }
- 
+ 	dev->set_mac_address = scc_net_set_mac_address;
+ 	dev->get_stats       = scc_net_get_stats;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
 git-libata-all.patch
-pata_acpi-restore-driver.patch
-pata_acpi-rework-the-acpi-drivers-based-upon-experience.patch
-pata_acpi-use-ata_sff_port_start.patch
-libata-correct-handling-of-srst-reset-sequences.patch
-libata-add-a-drivers-ide-style-dma-disable.patch
-ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
-drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
-libata-add-a-horkage-entry-for-drq-mishandling-atapi.patch
-libata_scsi-fix-transfer-lengths.patch
-libata-fix-hopefully-all-the-remaining-problems-with.patch
-introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
-pcmcia-use-dma_mask_none-for-the-default-for-all.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-8250_pci-autodetect-mainpine-cards-fix.patch
-wake-up-from-a-serial-port.patch
-fix-ide-legacy-mode-resources.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-fix-ax25-build.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+revert-gregkh-pci-pci_bridge-device.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
 fix-ide-legacy-mode-resources-fix.patch
+git-s390.patch
 git-scsi-misc.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-unionfs-fix-2.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-blackfin-enable-arbitary-speed-serial-setting.patch
-tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-funsoft-fix-termios.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-visor-termios-bits.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
