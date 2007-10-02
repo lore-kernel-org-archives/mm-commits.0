@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:53:43 -0700
-Message-ID: <200710022153.l92LrhTH024240@imap1.linux-foundation.org>
+Subject: - x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:54:38 -0700
+Message-ID: <200710022154.l92Lsc2g024319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44613 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753884AbXJBVxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:53:47 -0400
+	by vger.kernel.org with ESMTP id S1754346AbXJBVym (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
+     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
 
-This patch was dropped because it was folded into x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+This patch was dropped because it was folded into x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
 
 ------------------------------------------------------
-Subject: x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
+Subject: x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
@@ -29,32 +29,21 @@ Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/setup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/i386/pci/fixup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix arch/x86_64/kernel/setup.c
---- a/arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
-+++ a/arch/x86_64/kernel/setup.c
-@@ -492,7 +492,7 @@ static int nearby_node(int apicid)
- /*[39:8] */
- /* why not using 0xfe000000 ? */
- #define FAM10H_PCI_MMIO_BASE 0xc0000000
--static void fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
-+static void __cpuinit fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
- {
- 	u32 low, high, address;
+diff -puN arch/i386/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix arch/i386/pci/fixup.c
+--- a/arch/i386/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
++++ a/arch/i386/pci/fixup.c
+@@ -492,7 +492,7 @@ static void __devinit pci_siemens_interr
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
+ 			  pci_siemens_interrupt_controller);
  
-@@ -505,8 +505,8 @@ static void fam10h_check_enable_mmcfg(st
- 
- 	printk(KERN_INFO "Enable MMCONFIG on AMD Family 10h\n");
- 	/*
--	 * if it is not enable, let enable it and assume only one segement
--	 * with 256 buses
-+	 * If it is not enabled, enable it and assume only one segment
-+	 * with 256 busses.
- 	 */
- 	low &= ~(0xfff00000 | (0xf<<2));
- 	low |= (8<<2) | (1<<0);
+-/**
++/*
+  * Regular PCI devices have 256 bytes, but AMD Family 10h Opteron ext config
+  * have 4096 bytes.  Even if the device is capable, that doesn't mean we can
+  * access it.  Maybe we don't have a way to generate extended config space
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,7 +114,7 @@ ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 asm-i386-ioh-fix-constness.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
 x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
