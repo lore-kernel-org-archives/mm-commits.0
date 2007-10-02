@@ -1,70 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:02:57 -0700
-Message-ID: <200710022102.l92L2vru022118@imap1.linux-foundation.org>
+Subject: - fix-ide-legacy-mode-resources-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:18:05 -0700
+Message-ID: <200710022118.l92LI5BZ022751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33469 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754324AbXJBVDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:03:12 -0400
+	by vger.kernel.org with ESMTP id S1753940AbXJBVST (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:18:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, jesse@icplus.com.tw, sorbica@icplus.com.tw, tremyfr@yahoo.fr, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bzolnier@gmail.com, greg@kroah.com, ralf@linux-mips.org, yoichi_yuasa@tripeaks.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipgc-doesnt-compile-with-with-config_highmem64g-fix
+     fix-ide-legacy-mode-resources-fix
 has been removed from the -mm tree.  Its filename was
-     ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
+     fix-ide-legacy-mode-resources-fix.patch
 
-This patch was dropped because it was folded into ipgc-doesnt-compile-with-with-config_highmem64g.patch
+This patch was dropped because it was folded into fix-ide-legacy-mode-resources.patch
 
 ------------------------------------------------------
-Subject: ipgc-doesnt-compile-with-with-config_highmem64g-fix
+Subject: fix-ide-legacy-mode-resources-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Add needed include
+It's scary passing a half-initialised `struct resource' into callees: we don't
+know what they might do.  Let's make the other fields in there all-zeroes.
 
-- Don't assume that dma_addr_t was implemented as u64.
-
-Cc: trem <tremyfr@yahoo.fr>
-Cc: Sorbica Shieh <sorbica@icplus.com.tw>
-Cc: Jesse Huang <jesse@icplus.com.tw>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/pci/probe.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g-fix drivers/net/ipg.c
---- a/drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g-fix
-+++ a/drivers/net/ipg.c
-@@ -25,6 +25,8 @@
- #include <linux/mii.h>
- #include <linux/mutex.h>
- 
-+#include <asm/div64.h>
+diff -puN drivers/pci/probe.c~fix-ide-legacy-mode-resources-fix drivers/pci/probe.c
+--- a/drivers/pci/probe.c~fix-ide-legacy-mode-resources-fix
++++ a/drivers/pci/probe.c
+@@ -747,12 +747,15 @@ static int pci_setup_device(struct pci_d
+ 		if (class == PCI_CLASS_STORAGE_IDE) {
+ 			u8 progif;
+ 			struct pci_bus_region region;
+-			struct resource resource;
 +
- #define IPG_RX_RING_BYTES	(sizeof(struct ipg_rx) * IPG_RFDLIST_LENGTH)
- #define IPG_TX_RING_BYTES	(sizeof(struct ipg_tx) * IPG_TFDLIST_LENGTH)
- #define IPG_RESET_MASK \
-@@ -836,10 +838,14 @@ static void ipg_nic_txfree(struct net_de
- {
- 	struct ipg_nic_private *sp = netdev_priv(dev);
- 	void __iomem *ioaddr = sp->ioaddr;
--	const unsigned int curr = ipg_r32(TFD_LIST_PTR_0) -
--		do_div(sp->txd_map, sizeof(struct ipg_tx)) - 1;
-+	unsigned int curr;
-+	u64 txd_map;
- 	unsigned int released, pending;
- 
-+	txd_map = (u64)sp->txd_map;
-+	curr = ipg_r32(TFD_LIST_PTR_0) -
-+		do_div(txd_map, sizeof(struct ipg_tx)) - 1;
+ 			pci_read_config_byte(dev, PCI_CLASS_PROG, &progif);
+ 			if ((progif & 1) == 0) {
+-				resource.start = 0x1F0;
+-				resource.end = 0x1F7;
+-				resource.flags = LEGACY_IO_RESOURCE;
++				struct resource resource = {
++					.start = 0x1F0,
++					.end = 0x1F7,
++					.flags = LEGACY_IO_RESOURCE,
++				};
 +
- 	IPG_DEBUG_MSG("_nic_txfree\n");
- 
- 	pending = sp->tx_current - sp->tx_dirty;
+ 				pcibios_resource_to_bus(dev, &region, &resource);
+ 				dev->resource[0].start = region.start;
+ 				dev->resource[0].end = region.end;
+@@ -766,9 +769,12 @@ static int pci_setup_device(struct pci_d
+ 				dev->resource[1].flags = resource.flags;
+ 			}
+ 			if ((progif & 4) == 0) {
+-				resource.start = 0x170;
+-				resource.end = 0x177;
+-				resource.flags = LEGACY_IO_RESOURCE;
++				struct resource resource = {
++					.start = 0x170,
++					.end = 0x177,
++					.flags = LEGACY_IO_RESOURCE,
++				};
++
+ 				pcibios_resource_to_bus(dev, &region, &resource);
+ 				dev->resource[2].start = region.start;
+ 				dev->resource[2].end = region.end;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +114,6 @@ git-net.patch
 git-net-fixup.patch
 git-net-more-bustage.patch
 ipgc-doesnt-compile-with-with-config_highmem64g.patch
-ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
 git-net-sctp-hack.patch
 forcedeth-power-down-phy-when-interface-is-down.patch
 git-net-vs-git-nfs.patch
@@ -111,8 +122,8 @@ git-nfsd.patch
 git-nfsd-fixup.patch
 git-ocfs2.patch
 git-r8169-fixup.patch
-revert-gregkh-pci-pci_bridge-device.patch
 pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources.patch
 fix-ide-legacy-mode-resources-fix.patch
 git-s390.patch
 git-scsi-misc.patch
