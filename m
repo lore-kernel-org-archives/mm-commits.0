@@ -1,52 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-proper-defconfig-for-crosscompiles-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:28:53 -0700
-Message-ID: <200710022028.l92KSsuT020652@imap1.linux-foundation.org>
+Subject: - git-dvb-build-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 13:36:48 -0700
+Message-ID: <200710022036.l92KanEr021021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57229 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42442 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753409AbXJBU3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:29:16 -0400
+	by vger.kernel.org with ESMTP id S1752509AbXJBUhZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, bunk@kernel.org, olof@lixom.net, paulus@samba.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc-proper-defconfig-for-crosscompiles-fix
+     git-dvb-build-fix
 has been removed from the -mm tree.  Its filename was
-     powerpc-proper-defconfig-for-crosscompiles-fix.patch
+     git-dvb-build-fix.patch
 
-This patch was dropped because it was folded into powerpc-proper-defconfig-for-crosscompiles.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: powerpc-proper-defconfig-for-crosscompiles-fix
+Subject: git-dvb-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Olof Johansson <olof@lixom.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+drivers/media/video/vp27smpx.c:194: error: 'I2C_DRIVERID_VP27SMPX' undeclared here (not in a function)
+
+please tell me when this was fixed so I can drop this patch.
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/ivtv/ivtv-i2c.c |    1 -
+ drivers/media/video/vp27smpx.c      |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles-fix arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles-fix
-+++ a/arch/powerpc/Makefile
-@@ -38,7 +38,7 @@ export CROSS32CC CROSS32AS CROSS32LD CRO
- ifeq ($(CROSS_COMPILE),)
- KBUILD_DEFCONFIG := $(shell uname -m)_defconfig
- else
--KBUILD_DEFCONFIG := g5_defconfig
-+KBUILD_DEFCONFIG := ppc64_defconfig
- endif
+diff -puN drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix drivers/media/video/ivtv/ivtv-i2c.c
+--- a/drivers/media/video/ivtv/ivtv-i2c.c~git-dvb-build-fix
++++ a/drivers/media/video/ivtv/ivtv-i2c.c
+@@ -109,7 +109,6 @@ static const u8 hw_driverids[] = {
+ 	I2C_DRIVERID_UPD64083,
+ 	I2C_DRIVERID_SAA717X,
+ 	I2C_DRIVERID_WM8739,
+-	I2C_DRIVERID_VP27SMPX,
+ 	0 		/* IVTV_HW_GPIO dummy driver ID */
+ };
  
- ifeq ($(CONFIG_PPC64),y)
+diff -puN drivers/media/video/vp27smpx.c~git-dvb-build-fix drivers/media/video/vp27smpx.c
+--- a/drivers/media/video/vp27smpx.c~git-dvb-build-fix
++++ a/drivers/media/video/vp27smpx.c
+@@ -191,7 +191,6 @@ static struct i2c_driver i2c_driver = {
+ 	.driver = {
+ 		.name = "vp27smpx",
+ 	},
+-	.id             = I2C_DRIVERID_VP27SMPX,
+ 	.attach_adapter = vp27smpx_probe,
+ 	.detach_client  = vp27smpx_detach,
+ 	.command        = vp27smpx_command,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,9 +68,6 @@ acpi-suppress-uninitialized-var-warning.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
-powerpc-proper-defconfig-for-crosscompiles-fix.patch
-git-powerpc-galak.patch
 git-dvb.patch
 git-dvb-build-fix.patch
 git-hwmon-fixup.patch
