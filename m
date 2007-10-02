@@ -1,70 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:52:41 -0700
-Message-ID: <200710022152.l92LqfEY024224@imap1.linux-foundation.org>
+Subject: - x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:53:43 -0700
+Message-ID: <200710022153.l92LrhTH024240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46488 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbXJBVxK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:53:10 -0400
+	by vger.kernel.org with ESMTP id S1753884AbXJBVxr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:53:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
+     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
 has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 
-This patch was dropped because it was folded into ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+This patch was dropped because it was folded into x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
 
 ------------------------------------------------------
-Subject: ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
+Subject: x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/quirks.c: In function 'old_ich_force_enable_hpet':
-arch/i386/kernel/quirks.c:196: warning: 'gen_cntl' is used uninitialized in this function
-arch/i386/kernel/quirks.c: In function 'force_hpet_resume':
-arch/i386/kernel/quirks.c:171: warning: 'gen_cntl' is used uninitialized in this function
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Cc: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/setup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
---- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich5-quirk-to-force-detect-enable-fix
-+++ a/arch/i386/kernel/quirks.c
-@@ -161,7 +161,8 @@ static struct pci_dev *cached_dev;
- 
- static void old_ich_force_hpet_resume(void)
+diff -puN arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix arch/x86_64/kernel/setup.c
+--- a/arch/x86_64/kernel/setup.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix
++++ a/arch/x86_64/kernel/setup.c
+@@ -492,7 +492,7 @@ static int nearby_node(int apicid)
+ /*[39:8] */
+ /* why not using 0xfe000000 ? */
+ #define FAM10H_PCI_MMIO_BASE 0xc0000000
+-static void fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
++static void __cpuinit fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
  {
--	u32 val, gen_cntl;
-+	u32 val;
-+	u32 uninitialized_var(gen_cntl);
+ 	u32 low, high, address;
  
- 	if (!force_hpet_address || !cached_dev)
- 		return;
-@@ -182,7 +183,8 @@ static void old_ich_force_hpet_resume(vo
+@@ -505,8 +505,8 @@ static void fam10h_check_enable_mmcfg(st
  
- static void old_ich_force_enable_hpet(struct pci_dev *dev)
- {
--	u32 val, gen_cntl;
-+	u32 val;
-+	u32 uninitialized_var(gen_cntl);
- 
- 	if (hpet_address || force_hpet_address)
- 		return;
+ 	printk(KERN_INFO "Enable MMCONFIG on AMD Family 10h\n");
+ 	/*
+-	 * if it is not enable, let enable it and assume only one segement
+-	 * with 256 buses
++	 * If it is not enabled, enable it and assume only one segment
++	 * with 256 busses.
+ 	 */
+ 	low &= ~(0xfff00000 | (0xf<<2));
+ 	low |= (8<<2) | (1<<0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,8 +123,8 @@ intel_cacheinfo-misc-section-annotation-fixes.patch
 x86_64-cleanup-apic-c.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
 x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
 x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
