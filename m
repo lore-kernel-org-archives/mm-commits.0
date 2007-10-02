@@ -1,32 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - console-keyboard-events-and-accessibility-fix-2.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:40:43 -0700
-Message-ID: <200710022040.l92KehrM021221@imap1.linux-foundation.org>
+Subject: - console-keyboard-events-and-accessibility-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 13:40:40 -0700
+Message-ID: <200710022040.l92KeetG021218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38277 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34263 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbXJBUmB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:42:01 -0400
+	by vger.kernel.org with ESMTP id S1753843AbXJBUl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     console-keyboard-events-and-accessibility-fix-2
+     console-keyboard-events-and-accessibility-fix
 has been removed from the -mm tree.  Its filename was
-     console-keyboard-events-and-accessibility-fix-2.patch
+     console-keyboard-events-and-accessibility-fix.patch
 
 This patch was dropped because it was folded into console-keyboard-events-and-accessibility.patch
 
 ------------------------------------------------------
-Subject: console-keyboard-events-and-accessibility-fix-2
+Subject: console-keyboard-events-and-accessibility-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-- Fix `make headers_install'.
-
-- Remove unneeded include.
 
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Jiri Kosina <jkosina@suse.cz>
@@ -34,28 +30,37 @@ Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/keyboard.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/keyboard.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2 include/linux/keyboard.h
---- a/include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2
-+++ a/include/linux/keyboard.h
-@@ -2,7 +2,6 @@
- #define __LINUX_KEYBOARD_H
+diff -puN drivers/char/keyboard.c~console-keyboard-events-and-accessibility-fix drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~console-keyboard-events-and-accessibility-fix
++++ a/drivers/char/keyboard.c
+@@ -82,7 +82,7 @@ typedef void (k_handler_fn)(struct vc_da
+ 			    char up_flag);
+ static k_handler_fn K_HANDLERS;
+ k_handler_fn *k_handler[16] = { K_HANDLERS };
+-EXPORT_SYMBOL(k_handler);
++EXPORT_SYMBOL_GPL(k_handler);
  
- #include <linux/wait.h>
--#include <linux/notifier.h>
+ #define FN_HANDLERS\
+ 	fn_null,	fn_enter,	fn_show_ptregs,	fn_show_mem,\
+@@ -169,13 +169,13 @@ int register_keyboard_notifier(struct no
+ {
+ 	return atomic_notifier_chain_register(&keyboard_notifier_list, nb);
+ }
+-EXPORT_SYMBOL(register_keyboard_notifier);
++EXPORT_SYMBOL_GPL(register_keyboard_notifier);
  
- #define KG_SHIFT	0
- #define KG_CTRL		2
-@@ -24,6 +23,7 @@
- #define MAX_NR_OF_USER_KEYMAPS 256 	/* should be at least 7 */
+ int unregister_keyboard_notifier(struct notifier_block *nb)
+ {
+ 	return atomic_notifier_chain_unregister(&keyboard_notifier_list, nb);
+ }
+-EXPORT_SYMBOL(unregister_keyboard_notifier);
++EXPORT_SYMBOL_GPL(unregister_keyboard_notifier);
  
- #ifdef __KERNEL__
-+struct notifier_block;
- extern const int NR_TYPES;
- extern const int max_vals[];
- extern unsigned short *key_maps[MAX_NR_KEYMAPS];
+ /*
+  * Translation of scancodes to keycodes. We set them on only the first
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +79,7 @@ git-input.patch
 git-input-fixup.patch
 adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility.patch
+console-keyboard-events-and-accessibility-fix.patch
 console-keyboard-events-and-accessibility-fix-2.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
 git-jg-misc-fix.patch
