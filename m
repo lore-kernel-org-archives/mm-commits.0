@@ -1,53 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-cleanup-apic-c-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:44:53 -0700
-Message-ID: <200710022144.l92Lirbc023921@imap1.linux-foundation.org>
+Subject: - ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:45:53 -0700
+Message-ID: <200710022145.l92LjroX023945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53731 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53689 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753301AbXJBVpH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:45:07 -0400
+	by vger.kernel.org with ESMTP id S1753358AbXJBVr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:47:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-cleanup-apic-c-fix
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-cleanup-apic-c-fix.patch
+     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 
-This patch was dropped because it was folded into x86_64-cleanup-apic-c.patch
+This patch was dropped because it was folded into ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 
 ------------------------------------------------------
-Subject: x86_64-cleanup-apic-c-fix
+Subject: ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86_64/kernel/apic.c:45: error: static declaration of 'disable_apic_timer' follows non-static declaration
-include/asm/apic.h:22: error: previous declaration of 'disable_apic_timer' was here
+arch/i386/kernel/quirks.c: In function 'ich_force_enable_hpet':
+arch/i386/kernel/quirks.c:94: warning: 'rcba' is used uninitialized in this function
 
+Cc: Andi Kleen <ak@suse.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |    2 +-
- asm-x86_64/apic.h         |    0 
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix
-+++ a/arch/x86_64/kernel/apic.c
-@@ -42,7 +42,7 @@
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix arch/i386/kernel/quirks.c
+--- a/arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix
++++ a/arch/i386/kernel/quirks.c
+@@ -83,7 +83,8 @@ void ich_force_hpet_resume(void)
  
- int apic_verbosity;
- static int apic_calibrate_pmtmr __initdata;
--static int disable_apic_timer __initdata;
-+int disable_apic_timer __initdata;
+ static void ich_force_enable_hpet(struct pci_dev *dev)
+ {
+-	u32 val, rcba;
++	u32 val;
++	u32 uninitialized_var(rcba);
+ 	int err = 0;
  
- /* Local APIC timer works in C2? */
- int local_apic_timer_c2_ok;
-diff -puN include/asm-x86_64/apic.h~x86_64-cleanup-apic-c-fix include/asm-x86_64/apic.h
+ 	if (hpet_address || force_hpet_address)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,7 +119,7 @@ revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
 x86_64-cleanup-apic-c.patch
-x86_64-cleanup-apic-c-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
