@@ -1,49 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:54:38 -0700
-Message-ID: <200710022154.l92Lsc2g024319@imap1.linux-foundation.org>
+Subject: - x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:55:13 -0700
+Message-ID: <200710022155.l92LtDjQ024336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44613 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754346AbXJBVym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:54:42 -0400
+	by vger.kernel.org with ESMTP id S1754229AbXJBVzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, GHaskins@novell.com, ak@suse.de, dbahi@novell.com, jbeulich@novell.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
+     x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+     x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
 
-This patch was dropped because it was folded into x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
+This patch was dropped because it was folded into x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
 
 ------------------------------------------------------
-Subject: x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
+Subject: x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Yinghai Lu <Yinghai.Lu@Sun.COM>
-Cc: Yinghai Lu <yinghai.lu@sun.com>
+arch/x86_64/kernel/nmi.c: In function 'nmi_watchdog_tick':
+arch/x86_64/kernel/nmi.c:351: error: implicit declaration of function 'kstat_cpu'
+arch/x86_64/kernel/nmi.c:351: error: request for member 'irqs' in something not a structure or union
+
+Cc: David Bahi <dbahi@novell.com>
+Cc: "Gregory Haskins" <GHaskins@novell.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/fixup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86_64/kernel/nmi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix arch/i386/pci/fixup.c
---- a/arch/i386/pci/fixup.c~x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix
-+++ a/arch/i386/pci/fixup.c
-@@ -492,7 +492,7 @@ static void __devinit pci_siemens_interr
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_SIEMENS, 0x0015,
- 			  pci_siemens_interrupt_controller);
- 
--/**
-+/*
-  * Regular PCI devices have 256 bytes, but AMD Family 10h Opteron ext config
-  * have 4096 bytes.  Even if the device is capable, that doesn't mean we can
-  * access it.  Maybe we don't have a way to generate extended config space
+diff -puN arch/x86_64/kernel/nmi.c~x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix arch/x86_64/kernel/nmi.c
+--- a/arch/x86_64/kernel/nmi.c~x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix
++++ a/arch/x86_64/kernel/nmi.c
+@@ -18,6 +18,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/sysdev.h>
++#include <linux/kernel_stat.h>
+ #include <linux/sysctl.h>
+ #include <linux/kprobes.h>
+ #include <linux/cpumask.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,8 +120,7 @@ ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
 asm-i386-ioh-fix-constness.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
 x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
 git-xfs.patch
