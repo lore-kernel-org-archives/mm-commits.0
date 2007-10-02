@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-no-link-is-informational.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:14:11 -0700
-Message-ID: <200710022214.l92MEBlP025273@imap1.linux-foundation.org>
+Subject: - voyager-include-asm-smph-to-fix-compile-error.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 15:16:56 -0700
+Message-ID: <200710022216.l92MGuFE025337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753940AbXJBWOS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:14:18 -0400
+	by vger.kernel.org with ESMTP id S1753497AbXJBWRG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eswierk@arastra.com, aabdulla@nvidia.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: tklauser@distanz.ch, James.Bottomley@steeleye.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: "no link" is informational
+     voyager: #include <asm/smp.h> to fix compile error
 has been removed from the -mm tree.  Its filename was
-     forcedeth-no-link-is-informational.patch
+     voyager-include-asm-smph-to-fix-compile-error.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: forcedeth: "no link" is informational
-From: "Ed Swierk" <eswierk@arastra.com>
+Subject: voyager: #include <asm/smp.h> to fix compile error
+From: Tobias Klauser <tklauser@distanz.ch>
 
-Log "no link during initialization" at KERN_INFO as it's not an error, and
-occurs every time the interface comes up (when the forcedeth-phy-power-down
-patch is applied).
+Include smp.h to fix the following error when compiling with
+CONFIG_X86_VOYAGER=y and CONFIG_SMP not set (found using 'make
+randconfig').
 
-Signed-off-by: Ed Swierk <eswierk@arastra.com>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+arch/i386/mach-voyager/setup.c: In function 'time_init_hook':
+arch/i386/mach-voyager/setup.c:52: error: implicit declaration of function 'safe_smp_processor_id'
+
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/mach-voyager/setup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-no-link-is-informational drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-no-link-is-informational
-+++ a/drivers/net/forcedeth.c
-@@ -4921,7 +4921,7 @@ static int nv_open(struct net_device *de
- 	if (ret) {
- 		netif_carrier_on(dev);
- 	} else {
--		printk("%s: no link during initialization.\n", dev->name);
-+		printk(KERN_INFO "%s: no link during initialization.\n", dev->name);
- 		netif_carrier_off(dev);
- 	}
- 	if (oom)
+diff -puN arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error arch/i386/mach-voyager/setup.c
+--- a/arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error
++++ a/arch/i386/mach-voyager/setup.c
+@@ -9,6 +9,7 @@
+ #include <asm/e820.h>
+ #include <asm/io.h>
+ #include <asm/setup.h>
++#include <asm/smp.h>
+ 
+ void __init pre_intr_init_hook(void)
+ {
 _
 
-Patches currently in -mm which might be from eswierk@arastra.com are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
-git-net.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-no-link-is-informational.patch
+voyager-include-asm-smph-to-fix-compile-error.patch
