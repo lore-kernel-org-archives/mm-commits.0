@@ -1,51 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:38:56 -0700
-Message-ID: <200710022038.l92KcvWT021088@imap1.linux-foundation.org>
+Subject: - console-keyboard-events-and-accessibility-fix-2.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 13:40:43 -0700
+Message-ID: <200710022040.l92KehrM021221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38277 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753796AbXJBUkc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:40:32 -0400
+	by vger.kernel.org with ESMTP id S1753851AbXJBUmB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix
+     console-keyboard-events-and-accessibility-fix-2
 has been removed from the -mm tree.  Its filename was
-     drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
+     console-keyboard-events-and-accessibility-fix-2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into console-keyboard-events-and-accessibility.patch
 
 ------------------------------------------------------
-Subject: drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix
+Subject: console-keyboard-events-and-accessibility-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-while we're there...
+- Fix `make headers_install'.
+
+- Remove unneeded include.
 
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Joe Perches <joe@perches.com>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/linux/keyboard.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hid/hid-debug.c~drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix drivers/hid/hid-debug.c
---- a/drivers/hid/hid-debug.c~drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix
-+++ a/drivers/hid/hid-debug.c
-@@ -365,7 +365,8 @@ void hid_resolv_usage(unsigned usage) {
- }
- EXPORT_SYMBOL_GPL(hid_resolv_usage);
+diff -puN include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2 include/linux/keyboard.h
+--- a/include/linux/keyboard.h~console-keyboard-events-and-accessibility-fix-2
++++ a/include/linux/keyboard.h
+@@ -2,7 +2,6 @@
+ #define __LINUX_KEYBOARD_H
  
--static void tab(int n) {
-+static void tab(int n)
-+{
- 	printk(KERN_DEBUG "%*s", n, "");
- }
+ #include <linux/wait.h>
+-#include <linux/notifier.h>
  
+ #define KG_SHIFT	0
+ #define KG_CTRL		2
+@@ -24,6 +23,7 @@
+ #define MAX_NR_OF_USER_KEYMAPS 256 	/* should be at least 7 */
+ 
+ #ifdef __KERNEL__
++struct notifier_block;
+ extern const int NR_TYPES;
+ extern const int max_vals[];
+ extern unsigned short *key_maps[MAX_NR_KEYMAPS];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,13 +68,12 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-dvb.patch
 git-hwmon-fixup.patch
-drivers-hid-hid-debugc-add-kern_debug-prefix-fix-typo-constify-fix.patch
 git-infiniband.patch
 infiniband-work-around-gcc-slub-problem.patch
 git-input.patch
 git-input-fixup.patch
 adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility-fix.patch
+console-keyboard-events-and-accessibility.patch
 console-keyboard-events-and-accessibility-fix-2.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
 git-jg-misc-fix.patch
