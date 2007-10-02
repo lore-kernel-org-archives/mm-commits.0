@@ -1,88 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-cleanup-apic-c-fix-2.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 14:44:56 -0700
-Message-ID: <200710022144.l92LiuK0023925@imap1.linux-foundation.org>
+Subject: - x86_64-cleanup-apic-c-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:44:53 -0700
+Message-ID: <200710022144.l92Lirbc023921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42393 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753351AbXJBVpU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:45:20 -0400
+	by vger.kernel.org with ESMTP id S1753301AbXJBVpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix CPU hotplug breakage on HP nx6325
+     x86_64-cleanup-apic-c-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-cleanup-apic-c-fix-2.patch
+     x86_64-cleanup-apic-c-fix.patch
 
 This patch was dropped because it was folded into x86_64-cleanup-apic-c.patch
 
 ------------------------------------------------------
-Subject: Fix CPU hotplug breakage on HP nx6325
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: x86_64-cleanup-apic-c-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix CPU hotplug breakage on HP nx6325 and similar boxes caused by a reference
-to disable_apic_timer (labeled as __initdata) from the CPU initialization code.
+arch/x86_64/kernel/apic.c:45: error: static declaration of 'disable_apic_timer' follows non-static declaration
+include/asm/apic.h:22: error: previous declaration of 'disable_apic_timer' was here
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/x86_64/kernel/apic.c |    2 +-
+ asm-x86_64/apic.h         |    0 
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix-2 arch/x86_64/kernel/apic.c
---- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix-2
+diff -puN arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix arch/x86_64/kernel/apic.c
+--- a/arch/x86_64/kernel/apic.c~x86_64-cleanup-apic-c-fix
 +++ a/arch/x86_64/kernel/apic.c
 @@ -42,7 +42,7 @@
  
  int apic_verbosity;
  static int apic_calibrate_pmtmr __initdata;
--int disable_apic_timer __initdata;
-+int disable_apic_timer __cpuinitdata;
+-static int disable_apic_timer __initdata;
++int disable_apic_timer __initdata;
  
  /* Local APIC timer works in C2? */
  int local_apic_timer_c2_ok;
+diff -puN include/asm-x86_64/apic.h~x86_64-cleanup-apic-c-fix include/asm-x86_64/apic.h
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
-acpi-clean-up-acpi_enter_sleep_state_prep.patch
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
 git-net.patch
+git-net-fixup.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources.patch
+git-s390.patch
+git-sched.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-cpa-einval.patch
-x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
 x86_64-cleanup-apic-c.patch
-x86_64-cleanup-apic-c-fix-2.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+x86_64-cleanup-apic-c-fix.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable-fix.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron-fix.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is-fix.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386-fix.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-shrink_slab-handle-bad-shrinkers.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
