@@ -1,99 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:24:28 -0700
-Message-ID: <200710022224.l92MOSlH025643@imap1.linux-foundation.org>
+Subject: - cache-pipe-buf-page-address-for-non-highmem-arch.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 15:29:31 -0700
+Message-ID: <200710022229.l92MTVtq025808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51118 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40924 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbXJBWYb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:24:31 -0400
+	by vger.kernel.org with ESMTP id S1752055AbXJBWav (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: kenchen@google.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a potential NULL pointer deref in the aic7xxx, ahc_print_register() function
+     cache pipe buf page address for non-highmem arch
 has been removed from the -mm tree.  Its filename was
-     fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
+     cache-pipe-buf-page-address-for-non-highmem-arch.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was unpopular
 
 ------------------------------------------------------
-Subject: Fix a potential NULL pointer deref in the aic7xxx, ahc_print_register() function
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: cache pipe buf page address for non-highmem arch
+From: "Ken Chen" <kenchen@google.com>
 
-The Coverity checker noticed that we have a potential NULL pointer
-deref in drivers/scsi/aic7xxx/aic7xxx_core.c::ahc_print_register().
-This patch handles it by adding the same test against NULL that is
-used elsewhere in the same function.
+It is really sad that we always call kmap and friends for every pipe buffer
+page on 64-bit arch that doesn't use HIGHMEM, or on configuration that
+doesn't turn on HIGHMEM.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+The effect of calling kmap* is visible in the execution profile when pipe
+code is being stressed.  It is especially true on amd's x86-64 platform
+where kmap() has to traverse through numa node index calculation in order
+to convert struct page * to kernel virtual address.  It is fairly pointless
+to perform that calculation repeatly on system with no highmem (i.e.,
+64-bit arch like x86-64).  This patch caches kernel pipe buffer page's
+kernel vaddr to speed up pipe buffer mapping functions.
+
+There is another suboptimal block in pipe_read() where wake_up is called
+twice.  I think it was an oversight since in pipe_write(), it looks like it
+is doing the right thing.
+
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic7xxx_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/pipe.c |   70 +++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 64 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx/aic7xxx_core.c~fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function drivers/scsi/aic7xxx/aic7xxx_core.c
---- a/drivers/scsi/aic7xxx/aic7xxx_core.c~fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function
-+++ a/drivers/scsi/aic7xxx/aic7xxx_core.c
-@@ -6557,7 +6557,8 @@ ahc_print_register(ahc_reg_parse_entry_t
- 	printed = printf("%s[0x%x]", name, value);
- 	if (table == NULL) {
- 		printed += printf(" ");
--		*cur_column += printed;
-+		if (cur_column != NULL)
-+			*cur_column += printed;
- 		return (printed);
+diff -puN fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch fs/pipe.c
+--- a/fs/pipe.c~cache-pipe-buf-page-address-for-non-highmem-arch
++++ a/fs/pipe.c
+@@ -21,6 +21,40 @@
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+ 
++#ifdef CONFIG_HIGHMEM
++static inline void *pipe_kmap(struct page *page)
++{
++	return kmap(page);
++}
++
++static inline void pipe_kunmap(struct page *page)
++{
++	kunmap(page);
++}
++
++static inline void *pipe_kmap_atomic(struct page *page, enum km_type type)
++{
++	return kmap_atomic(page, type);
++}
++
++static inline void pipe_kunmap_atomic(void *addr, enum km_type type)
++{
++	kunmap_atomic(addr, type);
++}
++#else	/* CONFIG_HIGHMEM */
++static inline void *pipe_kmap(struct page *page)
++{
++	return (void *)page->private;
++}
++
++static inline void pipe_kunmap(struct page *page)
++{
++}
++
++#define pipe_kmap_atomic(page, type)	pipe_kmap(page)
++#define pipe_kunmap_atomic(page, type)	do { } while (0)
++#endif
++
+ /*
+  * We use a start+len construction, which provides full use of the 
+  * allocated memory.
+@@ -207,6 +241,27 @@ void generic_pipe_buf_unmap(struct pipe_
+ 		kunmap(buf->page);
+ }
+ 
++static void *pipe_buf_map(struct pipe_inode_info *pipe,
++			   struct pipe_buffer *buf, int atomic)
++{
++	if (atomic) {
++		buf->flags |= PIPE_BUF_FLAG_ATOMIC;
++		return pipe_kmap_atomic(buf->page, KM_USER0);
++	}
++
++	return pipe_kmap(buf->page);
++}
++
++static void pipe_buf_unmap(struct pipe_inode_info *pipe,
++			    struct pipe_buffer *buf, void *map_data)
++{
++	if (buf->flags & PIPE_BUF_FLAG_ATOMIC) {
++		buf->flags &= ~PIPE_BUF_FLAG_ATOMIC;
++		pipe_kunmap_atomic(map_data, KM_USER0);
++	} else
++		pipe_kunmap(buf->page);
++}
++
+ /**
+  * generic_pipe_buf_steal - attempt to take ownership of a @pipe_buffer
+  * @pipe:	the pipe that the buffer belongs to
+@@ -269,8 +324,8 @@ int generic_pipe_buf_confirm(struct pipe
+ 
+ static const struct pipe_buf_operations anon_pipe_buf_ops = {
+ 	.can_merge = 1,
+-	.map = generic_pipe_buf_map,
+-	.unmap = generic_pipe_buf_unmap,
++	.map = pipe_buf_map,
++	.unmap = pipe_buf_unmap,
+ 	.confirm = generic_pipe_buf_confirm,
+ 	.release = anon_pipe_buf_release,
+ 	.steal = generic_pipe_buf_steal,
+@@ -375,6 +430,7 @@ redo:
+ 		if (do_wakeup) {
+ 			wake_up_interruptible_sync(&pipe->wait);
+  			kill_fasync(&pipe->fasync_writers, SIGIO, POLL_OUT);
++			do_wakeup = 0;
+ 		}
+ 		pipe_wait(pipe);
  	}
- 	printed_mask = 0;
+@@ -482,6 +538,8 @@ redo1:
+ 					ret = ret ? : -ENOMEM;
+ 					break;
+ 				}
++				page->private = (unsigned long)
++							page_address(page);
+ 				pipe->tmp_page = page;
+ 			}
+ 			/* Always wake up, even if the copy fails. Otherwise
+@@ -497,16 +555,16 @@ redo1:
+ 			iov_fault_in_pages_read(iov, chars);
+ redo2:
+ 			if (atomic)
+-				src = kmap_atomic(page, KM_USER0);
++				src = pipe_kmap_atomic(page, KM_USER0);
+ 			else
+-				src = kmap(page);
++				src = pipe_kmap(page);
+ 
+ 			error = pipe_iov_copy_from_user(src, iov, chars,
+ 							atomic);
+ 			if (atomic)
+-				kunmap_atomic(src, KM_USER0);
++				pipe_kunmap_atomic(src, KM_USER0);
+ 			else
+-				kunmap(page);
++				pipe_kunmap(page);
+ 
+ 			if (unlikely(error)) {
+ 				if (atomic) {
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from kenchen@google.com are
 
-git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-cifs.patch
-git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-kbuild.patch
-git-mtd.patch
-git-ubi.patch
-git-net.patch
-avoid-possible-null-pointer-deref-in-3c359-driver.patch
-git-nfs.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
-git-scsi-misc.patch
-fix-a-potential-null-pointer-deref-in-the-aic7xxx-ahc_print_register-function.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+hugetlb-allow-extending-ftruncate-on-hugetlbfs.patch
+cache-pipe-buf-page-address-for-non-highmem-arch.patch
+writeback-fix-periodic-superblock-dirty-inode-flushing.patch
