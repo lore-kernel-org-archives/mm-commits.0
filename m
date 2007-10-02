@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-ax25-build.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:56:36 -0700
-Message-ID: <200710022056.l92Kua0N021897@imap1.linux-foundation.org>
+Subject: - ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 14:02:57 -0700
+Message-ID: <200710022102.l92L2vru022118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33469 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753918AbXJBU4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:56:40 -0400
+	by vger.kernel.org with ESMTP id S1754324AbXJBVDM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 17:03:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, jesse@icplus.com.tw, sorbica@icplus.com.tw, tremyfr@yahoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-fix-ax25-build
+     ipgc-doesnt-compile-with-with-config_highmem64g-fix
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-ax25-build.patch
+     ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into ipgc-doesnt-compile-with-with-config_highmem64g.patch
 
 ------------------------------------------------------
-Subject: git-net-fix-ax25-build
+Subject: ipgc-doesnt-compile-with-with-config_highmem64g-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/hamradio/scc.c: In function 'scc_net_setup':
-drivers/net/hamradio/scc.c:1554: error: 'ax25_hard_header_ops' undeclared (first use in this function)
-drivers/net/hamradio/scc.c:1554: error: (Each undeclared identifier is reported only once
-drivers/net/hamradio/scc.c:1554: error: for each function it appears in.)
+- Add needed include
 
-what the heck's going on over there?
+- Don't assume that dma_addr_t was implemented as u64.
 
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: trem <tremyfr@yahoo.fr>
+Cc: Sorbica Shieh <sorbica@icplus.com.tw>
+Cc: Jesse Huang <jesse@icplus.com.tw>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/scc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/hamradio/scc.c~git-net-fix-ax25-build drivers/net/hamradio/scc.c
---- a/drivers/net/hamradio/scc.c~git-net-fix-ax25-build
-+++ a/drivers/net/hamradio/scc.c
-@@ -1551,7 +1551,7 @@ static void scc_net_setup(struct net_dev
- 	dev->stop	     = scc_net_close;
+diff -puN drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g-fix drivers/net/ipg.c
+--- a/drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g-fix
++++ a/drivers/net/ipg.c
+@@ -25,6 +25,8 @@
+ #include <linux/mii.h>
+ #include <linux/mutex.h>
  
- 	dev->hard_start_xmit = scc_net_tx;
--	dev->header_ops      = &ax25_hard_header_ops;
-+//	dev->header_ops      = &ax25_hard_header_ops;
++#include <asm/div64.h>
++
+ #define IPG_RX_RING_BYTES	(sizeof(struct ipg_rx) * IPG_RFDLIST_LENGTH)
+ #define IPG_TX_RING_BYTES	(sizeof(struct ipg_tx) * IPG_TFDLIST_LENGTH)
+ #define IPG_RESET_MASK \
+@@ -836,10 +838,14 @@ static void ipg_nic_txfree(struct net_de
+ {
+ 	struct ipg_nic_private *sp = netdev_priv(dev);
+ 	void __iomem *ioaddr = sp->ioaddr;
+-	const unsigned int curr = ipg_r32(TFD_LIST_PTR_0) -
+-		do_div(sp->txd_map, sizeof(struct ipg_tx)) - 1;
++	unsigned int curr;
++	u64 txd_map;
+ 	unsigned int released, pending;
  
- 	dev->set_mac_address = scc_net_set_mac_address;
- 	dev->get_stats       = scc_net_get_stats;
++	txd_map = (u64)sp->txd_map;
++	curr = ipg_r32(TFD_LIST_PTR_0) -
++		do_div(txd_map, sizeof(struct ipg_tx)) - 1;
++
+ 	IPG_DEBUG_MSG("_nic_txfree\n");
+ 
+ 	pending = sp->tx_current - sp->tx_dirty;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,8 +100,8 @@ git-mtd.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
-git-net-fix-ax25-build.patch
 git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
 ipgc-doesnt-compile-with-with-config_highmem64g-fix.patch
 git-net-sctp-hack.patch
 forcedeth-power-down-phy-when-interface-is-down.patch
