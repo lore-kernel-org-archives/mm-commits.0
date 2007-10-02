@@ -1,181 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - robust-futex-thread-exit-race.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:54:59 -0700
-Message-ID: <200710022254.l92MsxeP026751@imap1.linux-foundation.org>
+Subject: - libata-add-a-drivers-ide-style-dma-disable.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 15:55:11 -0700
+Message-ID: <200710022255.l92MtBP1026766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753194AbXJBWz2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:55:28 -0400
+	by vger.kernel.org with ESMTP id S1753295AbXJBWzd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:55:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: schwidefsky@de.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     robust futex thread exit race
+     From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 has been removed from the -mm tree.  Its filename was
-     robust-futex-thread-exit-race.patch
+     libata-add-a-drivers-ide-style-dma-disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: robust futex thread exit race
-From: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Subject: From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Calling handle_futex_death in exit_robust_list for the different robust
-mutexes of a thread basically frees the mutex.  Another thread might grab
-the lock immediately which updates the next pointer of the mutex. 
-fetch_robust_entry over the next pointer might therefore branch into the
-robust mutex list of a different thread.  This can cause two problems: 1)
-some mutexes held by the dead thread are not getting freed and 2) some
-mutexs held by a different thread are freed.
 
-The next point need to be read before calling handle_futex_death.
+This is useful when debugging, handling problem systems, or for
+distributions just to get the system installed so it can be sorted
+out later.
 
-Signed-off-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+This is a bit smarter than the old IDE one and lets you do
+
+libata.pata_dma=0		Disable all PATA DMA like old IDE
+libata.pata_dma=1		Disk DMA only
+libata.pata_dma=2		ATAPI DMA only
+libata.pata_dma=4		CF DMA only
+
+(or combinations thereof - 0,1,3 being the useful ones I suspect)
+
+(I've split CF as it seems to be a seperate case of pain and suffering
+
+SATA is not affected - for one its not clear it makes sense to disable
+DMA for SATA if even always possible, for two we've seen no failure
+evidence to justify needing to support this kind of hammer on SATA.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c        |   26 ++++++++++++++++----------
- kernel/futex_compat.c |   28 ++++++++++++++++++----------
- 2 files changed, 34 insertions(+), 20 deletions(-)
+ drivers/ata/libata-core.c |   17 +++++++++++++++++
+ include/linux/libata.h    |    6 ++++++
+ 2 files changed, 23 insertions(+)
 
-diff -puN kernel/futex.c~robust-futex-thread-exit-race kernel/futex.c
---- a/kernel/futex.c~robust-futex-thread-exit-race
-+++ a/kernel/futex.c
-@@ -1943,9 +1943,10 @@ static inline int fetch_robust_entry(str
- void exit_robust_list(struct task_struct *curr)
- {
- 	struct robust_list_head __user *head = curr->robust_list;
--	struct robust_list __user *entry, *pending;
--	unsigned int limit = ROBUST_LIST_LIMIT, pi, pip;
-+	struct robust_list __user *entry, *next_entry, *pending;
-+	unsigned int limit = ROBUST_LIST_LIMIT, pi, next_pi, pip;
- 	unsigned long futex_offset;
-+	int rc;
+diff -puN drivers/ata/libata-core.c~libata-add-a-drivers-ide-style-dma-disable drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-add-a-drivers-ide-style-dma-disable
++++ a/drivers/ata/libata-core.c
+@@ -97,6 +97,10 @@ static int ata_ignore_hpa = 0;
+ module_param_named(ignore_hpa, ata_ignore_hpa, int, 0644);
+ MODULE_PARM_DESC(ignore_hpa, "Ignore HPA limit (0=keep BIOS limits, 1=ignore limits, using full disk)");
  
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
-@@ -1965,12 +1966,14 @@ void exit_robust_list(struct task_struct
- 	if (fetch_robust_entry(&pending, &head->list_op_pending, &pip))
- 		return;
- 
--	if (pending)
--		handle_futex_death((void __user *)pending + futex_offset,
--				   curr, pip);
--
-+	next_entry = NULL;	/* avoid warning with gcc */
- 	while (entry != &head->list) {
- 		/*
-+		 * Fetch the next entry in the list before calling
-+		 * handle_futex_death:
-+		 */
-+		rc = fetch_robust_entry(&next_entry, &entry->next, &next_pi);
-+		/*
- 		 * A pending lock might already be on the list, so
- 		 * don't process it twice:
- 		 */
-@@ -1978,11 +1981,10 @@ void exit_robust_list(struct task_struct
- 			if (handle_futex_death((void __user *)entry + futex_offset,
- 						curr, pi))
- 				return;
--		/*
--		 * Fetch the next entry in the list:
--		 */
--		if (fetch_robust_entry(&entry, &entry->next, &pi))
-+		if (rc)
- 			return;
-+		entry = next_entry;
-+		pi = next_pi;
- 		/*
- 		 * Avoid excessively long or circular lists:
- 		 */
-@@ -1991,6 +1993,10 @@ void exit_robust_list(struct task_struct
- 
- 		cond_resched();
- 	}
++static int ata_pata_dma = ATA_DMA_MASK_ATA|ATA_DMA_MASK_ATAPI|ATA_DMA_MASK_CFA;
++module_param_named(pata_dma, ata_pata_dma, int, 0644);
++MODULE_PARM_DESC(pata_dma, "Use DMA on PATA devices");
 +
-+	if (pending)
-+		handle_futex_death((void __user *)pending + futex_offset,
-+				   curr, pip);
- }
+ static int ata_probe_timeout = ATA_TMOUT_INTERNAL / HZ;
+ module_param(ata_probe_timeout, int, 0444);
+ MODULE_PARM_DESC(ata_probe_timeout, "Set ATA probing timeout (seconds)");
+@@ -2897,14 +2901,27 @@ int ata_do_set_mode(struct ata_link *lin
+ 	/* step 1: calculate xfer_mask */
+ 	ata_link_for_each_dev(dev, link) {
+ 		unsigned int pio_mask, dma_mask;
++		unsigned int mode_mask;
  
- long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
-diff -puN kernel/futex_compat.c~robust-futex-thread-exit-race kernel/futex_compat.c
---- a/kernel/futex_compat.c~robust-futex-thread-exit-race
-+++ a/kernel/futex_compat.c
-@@ -38,10 +38,11 @@ fetch_robust_entry(compat_uptr_t *uentry
- void compat_exit_robust_list(struct task_struct *curr)
- {
- 	struct compat_robust_list_head __user *head = curr->compat_robust_list;
--	struct robust_list __user *entry, *pending;
--	unsigned int limit = ROBUST_LIST_LIMIT, pi, pip;
--	compat_uptr_t uentry, upending;
-+	struct robust_list __user *entry, *next_entry, *pending;
-+	unsigned int limit = ROBUST_LIST_LIMIT, pi, next_pi, pip;
-+	compat_uptr_t uentry, next_uentry, upending;
- 	compat_long_t futex_offset;
-+	int rc;
+ 		if (!ata_dev_enabled(dev))
+ 			continue;
  
- 	/*
- 	 * Fetch the list head (which was registered earlier, via
-@@ -61,11 +62,16 @@ void compat_exit_robust_list(struct task
- 	if (fetch_robust_entry(&upending, &pending,
- 			       &head->list_op_pending, &pip))
- 		return;
--	if (pending)
--		handle_futex_death((void __user *)pending + futex_offset, curr, pip);
++		mode_mask = ATA_DMA_MASK_ATA;
++		if (dev->class == ATA_DEV_ATAPI)
++			mode_mask = ATA_DMA_MASK_ATAPI;
++		else if (ata_id_is_cfa(dev->id))
++			mode_mask = ATA_DMA_MASK_CFA;
++
+ 		ata_dev_xfermask(dev);
  
-+	next_entry = NULL;	/* avoid warning with gcc */
- 	while (entry != (struct robust_list __user *) &head->list) {
- 		/*
-+		 * Fetch the next entry in the list before calling
-+		 * handle_futex_death:
-+		 */
-+		rc = fetch_robust_entry(&next_uentry, &next_entry,
-+			(compat_uptr_t __user *)&entry->next, &next_pi);
-+		/*
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
- 		 */
-@@ -74,12 +80,11 @@ void compat_exit_robust_list(struct task
- 						curr, pi))
- 				return;
+ 		pio_mask = ata_pack_xfermask(dev->pio_mask, 0, 0);
+ 		dma_mask = ata_pack_xfermask(0, dev->mwdma_mask, dev->udma_mask);
++
++		if ((ata_pata_dma & mode_mask) || ap->cbl == ATA_CBL_SATA)
++			dma_mask = ata_pack_xfermask(0, dev->mwdma_mask, dev->udma_mask);
++		else
++			dma_mask = 0;
++
+ 		dev->pio_mode = ata_xfer_mask2mode(pio_mask);
+ 		dev->dma_mode = ata_xfer_mask2mode(dma_mask);
  
--		/*
--		 * Fetch the next entry in the list:
--		 */
--		if (fetch_robust_entry(&uentry, &entry,
--				       (compat_uptr_t __user *)&entry->next, &pi))
-+		if (rc)
- 			return;
-+		uentry = next_uentry;
-+		entry = next_entry;
-+		pi = next_pi;
- 		/*
- 		 * Avoid excessively long or circular lists:
- 		 */
-@@ -88,6 +93,9 @@ void compat_exit_robust_list(struct task
+diff -puN include/linux/libata.h~libata-add-a-drivers-ide-style-dma-disable include/linux/libata.h
+--- a/include/linux/libata.h~libata-add-a-drivers-ide-style-dma-disable
++++ a/include/linux/libata.h
+@@ -338,6 +338,12 @@ enum {
+ 	ATA_HORKAGE_BROKEN_HPA	= (1 << 4),	/* Broken HPA */
+ 	ATA_HORKAGE_SKIP_PM	= (1 << 5),	/* Skip PM operations */
+ 	ATA_HORKAGE_HPA_SIZE	= (1 << 6),	/* native size off by one */
++
++	/* DMA mask for user DMA control: User visible values do not
++	   renumber */
++	ATA_DMA_MASK_ATA	= (1 << 0),	/* DMA on ATA Disk */
++	ATA_DMA_MASK_ATAPI	= (1 << 1),	/* DMA on ATAPI */
++	ATA_DMA_MASK_CFA	= (1 << 2),	/* DMA on CF Card */
+ };
  
- 		cond_resched();
- 	}
-+	if (pending)
-+		handle_futex_death((void __user *)pending + futex_offset,
-+				   curr, pip);
- }
- 
- asmlinkage long
+ enum hsm_task_states {
 _
 
-Patches currently in -mm which might be from schwidefsky@de.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-s390.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-move-mm_struct-and-vm_area_struct.patch
-move-mm_struct-and-vm_area_struct-fix.patch
-unicode-diacritics-support-s390-fix.patch
-bitops-introduce-lock-ops.patch
+git-libata-all.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata_scsi-fix-transfer-lengths.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+git-scsi-misc.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+funsoft-fix-termios.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+visor-termios-bits.patch
