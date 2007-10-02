@@ -1,92 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - mm-expose-bdi-statistics-in-sysfs.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 01:55:40 -0700
-Message-ID: <200710020855.l928teHm027179@imap1.linux-foundation.org>
+Subject: - debug-sysfs-files-for-the-current-ratio-size-total.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 01:55:42 -0700
+Message-ID: <200710020855.l928tgaw027182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37554 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52465 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752184AbXJBI4O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 04:56:14 -0400
+	by vger.kernel.org with ESMTP id S1752217AbXJBI4S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 04:56:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: expose BDI statistics in sysfs
+     debug: sysfs files for the current ratio/size/total
 has been removed from the -mm tree.  Its filename was
-     mm-expose-bdi-statistics-in-sysfs.patch
+     debug-sysfs-files-for-the-current-ratio-size-total.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mm: expose BDI statistics in sysfs
+Subject: debug: sysfs files for the current ratio/size/total
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Expose the per BDI stats in /sys/block/<dev>/queue/*
+Expose the per bdi dirty limits in sysfs
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ block/ll_rw_blk.c   |   81 ++++++++++++++++++++++++++++++++++++++++++
+ mm/page-writeback.c |    4 +-
+ 2 files changed, 83 insertions(+), 2 deletions(-)
 
-diff -puN block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~mm-expose-bdi-statistics-in-sysfs
+diff -puN block/ll_rw_blk.c~debug-sysfs-files-for-the-current-ratio-size-total block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~debug-sysfs-files-for-the-current-ratio-size-total
 +++ a/block/ll_rw_blk.c
-@@ -4111,6 +4111,24 @@ static ssize_t queue_max_segments_show(s
- 	return queue_var_show(q->max_phys_segments, page);
- }
+@@ -4141,6 +4141,57 @@ static ssize_t queue_max_segments_store(
  
-+static ssize_t queue_nr_reclaimable_show(struct request_queue *q, char *page)
-+{
-+	unsigned long long nr_reclaimable =
-+		bdi_stat(&q->backing_dev_info, BDI_RECLAIMABLE);
+ 	return ret;
+ }
 +
-+	return sprintf(page, "%llu\n",
-+			nr_reclaimable >> (PAGE_CACHE_SHIFT - 10));
++extern void bdi_writeout_fraction(struct backing_dev_info *bdi,
++		long *numerator, long *denominator);
++
++static ssize_t queue_nr_cache_ratio_show(struct request_queue *q, char *page)
++{
++	long scale, div;
++
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++	scale *= 1024;
++	scale /= div;
++
++	return sprintf(page, "%ld\n", scale);
 +}
 +
-+static ssize_t queue_nr_writeback_show(struct request_queue *q, char *page)
++static ssize_t queue_nr_cache_num_show(struct request_queue *q, char *page)
 +{
-+	unsigned long long nr_writeback =
-+		bdi_stat(&q->backing_dev_info, BDI_WRITEBACK);
++	long scale, div;
 +
-+	return sprintf(page, "%llu\n",
-+			nr_writeback >> (PAGE_CACHE_SHIFT - 10));
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++
++	return sprintf(page, "%ld\n", scale);
 +}
 +
- static ssize_t queue_max_segments_store(struct request_queue *q,
- 					const char *page, size_t count)
- {
-@@ -4152,6 +4170,16 @@ static struct queue_sysfs_entry queue_ma
- 	.store = queue_max_segments_store,
++static ssize_t queue_nr_cache_denom_show(struct request_queue *q, char *page)
++{
++	long scale, div;
++
++	bdi_writeout_fraction(&q->backing_dev_info, &scale, &div);
++
++	return sprintf(page, "%ld\n", div);
++}
++
++extern void
++get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
++		struct backing_dev_info *bdi);
++
++static ssize_t queue_nr_cache_size_show(struct request_queue *q, char *page)
++{
++	long background, dirty, bdi_dirty;
++	get_dirty_limits(&background, &dirty, &bdi_dirty, &q->backing_dev_info);
++	return sprintf(page, "%ld\n", bdi_dirty);
++}
++
++static ssize_t queue_nr_cache_total_show(struct request_queue *q, char *page)
++{
++	long background, dirty, bdi_dirty;
++	get_dirty_limits(&background, &dirty, &bdi_dirty, &q->backing_dev_info);
++	return sprintf(page, "%ld\n", dirty);
++}
++
+ static struct queue_sysfs_entry queue_requests_entry = {
+ 	.attr = {.name = "nr_requests", .mode = S_IRUGO | S_IWUSR },
+ 	.show = queue_requests_show,
+@@ -4180,6 +4231,31 @@ static struct queue_sysfs_entry queue_wr
+ 	.show = queue_nr_writeback_show,
  };
  
-+static struct queue_sysfs_entry queue_reclaimable_entry = {
-+	.attr = {.name = "reclaimable_kb", .mode = S_IRUGO },
-+	.show = queue_nr_reclaimable_show,
++static struct queue_sysfs_entry queue_cache_ratio_entry = {
++	.attr = {.name = "cache_ratio", .mode = S_IRUGO },
++	.show = queue_nr_cache_ratio_show,
 +};
 +
-+static struct queue_sysfs_entry queue_writeback_entry = {
-+	.attr = {.name = "writeback_kb", .mode = S_IRUGO },
-+	.show = queue_nr_writeback_show,
++static struct queue_sysfs_entry queue_cache_num_entry = {
++	.attr = {.name = "cache_num", .mode = S_IRUGO },
++	.show = queue_nr_cache_num_show,
++};
++
++static struct queue_sysfs_entry queue_cache_denom_entry = {
++	.attr = {.name = "cache_denom", .mode = S_IRUGO },
++	.show = queue_nr_cache_denom_show,
++};
++
++static struct queue_sysfs_entry queue_cache_size_entry = {
++	.attr = {.name = "cache_size", .mode = S_IRUGO },
++	.show = queue_nr_cache_size_show,
++};
++
++static struct queue_sysfs_entry queue_cache_total_entry = {
++	.attr = {.name = "cache_total", .mode = S_IRUGO },
++	.show = queue_nr_cache_total_show,
 +};
 +
  static struct queue_sysfs_entry queue_iosched_entry = {
  	.attr = {.name = "scheduler", .mode = S_IRUGO | S_IWUSR },
  	.show = elv_iosched_show,
-@@ -4164,6 +4192,8 @@ static struct attribute *default_attrs[]
- 	&queue_max_hw_sectors_entry.attr,
- 	&queue_max_sectors_entry.attr,
+@@ -4194,6 +4270,11 @@ static struct attribute *default_attrs[]
  	&queue_max_segments_entry.attr,
-+	&queue_reclaimable_entry.attr,
-+	&queue_writeback_entry.attr,
+ 	&queue_reclaimable_entry.attr,
+ 	&queue_writeback_entry.attr,
++	&queue_cache_ratio_entry.attr,
++	&queue_cache_num_entry.attr,
++	&queue_cache_denom_entry.attr,
++	&queue_cache_size_entry.attr,
++	&queue_cache_total_entry.attr,
  	&queue_iosched_entry.attr,
  	NULL,
  };
+diff -puN mm/page-writeback.c~debug-sysfs-files-for-the-current-ratio-size-total mm/page-writeback.c
+--- a/mm/page-writeback.c~debug-sysfs-files-for-the-current-ratio-size-total
++++ a/mm/page-writeback.c
+@@ -169,7 +169,7 @@ static inline void task_dirty_inc(struct
+ /*
+  * Obtain an accurate fraction of the BDI's portion.
+  */
+-static void bdi_writeout_fraction(struct backing_dev_info *bdi,
++void bdi_writeout_fraction(struct backing_dev_info *bdi,
+ 		long *numerator, long *denominator)
+ {
+ 	if (bdi_cap_writeback_dirty(bdi)) {
+@@ -291,7 +291,7 @@ static unsigned long determine_dirtyable
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
+ 
+-static void
++void
+ get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
+ 		 struct backing_dev_info *bdi)
+ {
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
@@ -107,7 +180,6 @@ mm-bdi-init-hooks.patch
 mm-scalable-bdi-statistics-counters.patch
 mm-count-reclaimable-pages-per-bdi.patch
 mm-count-writeback-pages-per-bdi.patch
-mm-expose-bdi-statistics-in-sysfs.patch
 lib-floating-proportions.patch
 mm-per-device-dirty-threshold.patch
 mm-per-device-dirty-threshold-warning-fix.patch
