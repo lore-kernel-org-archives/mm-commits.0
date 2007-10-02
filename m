@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - voyager-include-asm-smph-to-fix-compile-error.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:16:56 -0700
-Message-ID: <200710022216.l92MGuFE025337@imap1.linux-foundation.org>
+Subject: - documentation-arm-00-index-add-missing-entries.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 15:17:47 -0700
+Message-ID: <200710022217.l92MHlvO025361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753497AbXJBWRG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:17:06 -0400
+	by vger.kernel.org with ESMTP id S1752855AbXJBWSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:18:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tklauser@distanz.ch, James.Bottomley@steeleye.com, ak@suse.de, mm-commits@vger.kernel.org
+To: rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     voyager: #include <asm/smp.h> to fix compile error
+     Documentation/arm/00-INDEX: add missing entries
 has been removed from the -mm tree.  Its filename was
-     voyager-include-asm-smph-to-fix-compile-error.patch
+     documentation-arm-00-index-add-missing-entries.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: voyager: #include <asm/smp.h> to fix compile error
-From: Tobias Klauser <tklauser@distanz.ch>
+Subject: Documentation/arm/00-INDEX: add missing entries
+From: Rob Landley <rob@landley.net>
 
-Include smp.h to fix the following error when compiling with
-CONFIG_X86_VOYAGER=y and CONFIG_SMP not set (found using 'make
-randconfig').
+Index two unindexed documentation files.
 
-arch/i386/mach-voyager/setup.c: In function 'time_init_hook':
-arch/i386/mach-voyager/setup.c:52: error: implicit declaration of function 'safe_smp_processor_id'
-
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/mach-voyager/setup.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/arm/00-INDEX |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error arch/i386/mach-voyager/setup.c
---- a/arch/i386/mach-voyager/setup.c~voyager-include-asm-smph-to-fix-compile-error
-+++ a/arch/i386/mach-voyager/setup.c
-@@ -9,6 +9,7 @@
- #include <asm/e820.h>
- #include <asm/io.h>
- #include <asm/setup.h>
-+#include <asm/smp.h>
- 
- void __init pre_intr_init_hook(void)
- {
+diff -puN Documentation/arm/00-INDEX~documentation-arm-00-index-add-missing-entries Documentation/arm/00-INDEX
+--- a/Documentation/arm/00-INDEX~documentation-arm-00-index-add-missing-entries
++++ a/Documentation/arm/00-INDEX
+@@ -20,3 +20,7 @@ memory.txt
+ 	- description of the virtual memory layout
+ nwfpe
+ 	- NWFPE floating point emulator documentation
++Porting
++	- Symbol definitions for porting Linux to a new ARM machine.
++Setup
++	- Kernel initialization parameters on ARM Linux
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from rob@landley.net are
 
-voyager-include-asm-smph-to-fix-compile-error.patch
+documentation-arm-00-index-add-missing-entries.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
