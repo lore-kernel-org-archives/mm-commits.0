@@ -1,66 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - console-keyboard-events-and-accessibility-fix.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 13:40:40 -0700
-Message-ID: <200710022040.l92KeetG021218@imap1.linux-foundation.org>
+Subject: - first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch removed from -mm tree
+Date: Tue, 02 Oct 2007 13:41:30 -0700
+Message-ID: <200710022041.l92KfUZY021260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34263 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45161 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbXJBUl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:41:59 -0400
+	by vger.kernel.org with ESMTP id S1753859AbXJBUmk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 16:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@opmeer.net, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     console-keyboard-events-and-accessibility-fix
+     first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
 has been removed from the -mm tree.  Its filename was
-     console-keyboard-events-and-accessibility-fix.patch
+     first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
 
-This patch was dropped because it was folded into console-keyboard-events-and-accessibility.patch
+This patch was dropped because it was folded into first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 
 ------------------------------------------------------
-Subject: console-keyboard-events-and-accessibility-fix
+Subject: first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+- fix a few of the checkpatch warnigns
+
+- make those stub functions static inline
+
+Cc: Arjan Opmeer <arjan@opmeer.net>
 Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/input/mouse/elantech.c |    8 ++++----
+ drivers/input/mouse/elantech.h |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/keyboard.c~console-keyboard-events-and-accessibility-fix drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~console-keyboard-events-and-accessibility-fix
-+++ a/drivers/char/keyboard.c
-@@ -82,7 +82,7 @@ typedef void (k_handler_fn)(struct vc_da
- 			    char up_flag);
- static k_handler_fn K_HANDLERS;
- k_handler_fn *k_handler[16] = { K_HANDLERS };
--EXPORT_SYMBOL(k_handler);
-+EXPORT_SYMBOL_GPL(k_handler);
+diff -puN drivers/input/mouse/elantech.c~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix drivers/input/mouse/elantech.c
+--- a/drivers/input/mouse/elantech.c~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
++++ a/drivers/input/mouse/elantech.c
+@@ -53,7 +53,7 @@ static int elantech_write_reg(struct psm
+ 	    psmouse_sliced_command(psmouse, reg) ||
+ 	    psmouse_sliced_command(psmouse, val) ||
+ 	    ps2_command(&psmouse->ps2dev, NULL, PSMOUSE_CMD_SETSCALE11)) {
+-	     	return -1;
++		return -1;
+ 	}
  
- #define FN_HANDLERS\
- 	fn_null,	fn_enter,	fn_show_ptregs,	fn_show_mem,\
-@@ -169,13 +169,13 @@ int register_keyboard_notifier(struct no
+ 	return 0;
+@@ -69,9 +69,8 @@ static psmouse_ret_t elantech_process_by
+ 	unsigned char 		*packet = psmouse->packet;
+ 	unsigned int 		z;
+ 
+-	if (psmouse->pktcnt < 4) {
++	if (psmouse->pktcnt < 4)
+ 		return PSMOUSE_GOOD_DATA;
+-	}
+ 
+ 	if (etd->reg_10 & ETP_RAW_MODE) {
+ 		/*
+@@ -340,7 +339,8 @@ int elantech_init(struct psmouse *psmous
+ 	struct elantech_data 	*priv;
+ 	int			error;
+ 
+-	psmouse->private = priv = kzalloc(sizeof(struct elantech_data), GFP_KERNEL);
++	priv = kzalloc(sizeof(struct elantech_data), GFP_KERNEL);
++	psmouse->private = priv;
+ 	if (!priv)
+ 		return -1;
+ 
+diff -puN drivers/input/mouse/elantech.h~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix drivers/input/mouse/elantech.h
+--- a/drivers/input/mouse/elantech.h~first-stab-at-elantech-touchpad-driver-for-26226-testers-fix
++++ a/drivers/input/mouse/elantech.h
+@@ -31,13 +31,13 @@ struct elantech_data {
+ int elantech_detect(struct psmouse *psmouse, int set_properties);
+ int elantech_init(struct psmouse *psmouse);
+ #else
+-inline int elantech_detect(struct psmouse *psmouse, int set_properties)
++static inline int elantech_detect(struct psmouse *psmouse, int set_properties)
  {
- 	return atomic_notifier_chain_register(&keyboard_notifier_list, nb);
+- 	return -ENOSYS;
++	return -ENOSYS;
  }
--EXPORT_SYMBOL(register_keyboard_notifier);
-+EXPORT_SYMBOL_GPL(register_keyboard_notifier);
- 
- int unregister_keyboard_notifier(struct notifier_block *nb)
+-inline int elantech_init(struct psmouse *psmouse)
++static inline int elantech_init(struct psmouse *psmouse)
  {
- 	return atomic_notifier_chain_unregister(&keyboard_notifier_list, nb);
+- 	return -ENOSYS;
++	return -ENOSYS;
  }
--EXPORT_SYMBOL(unregister_keyboard_notifier);
-+EXPORT_SYMBOL_GPL(unregister_keyboard_notifier);
+ #endif /* CONFIG_MOUSE_PS2_ELANTECH */
  
- /*
-  * Translation of scancodes to keycodes. We set them on only the first
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +110,7 @@ git-input.patch
 git-input-fixup.patch
 adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility.patch
-console-keyboard-events-and-accessibility-fix.patch
-console-keyboard-events-and-accessibility-fix-2.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers-fix.patch
 git-jg-misc-fix.patch
 git-jg-warning-fixes.patch
