@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + task_struct-move-fpu_counter-and-oomkilladj.patch added to -mm tree
-Date: Wed, 03 Oct 2007 13:25:50 -0700
-Message-ID: <200710032025.l93KPoFj007038@imap1.linux-foundation.org>
+Subject: + git-net-fix-a-compile-problem-in-macbc.patch added to -mm tree
+Date: Wed, 03 Oct 2007 13:31:20 -0700
+Message-ID: <200710032031.l93KVKMX007269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52153 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753559AbXJCU0f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:26:35 -0400
+	by vger.kernel.org with ESMTP id S1753811AbXJCUbp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:31:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, arjan@infradead.org
+Cc: hjk@linutronix.de, davem@davemloft.net
 
 
 The patch titled
-     task_struct: move ->fpu_counter and ->oomkilladj
+     git-net: fix a compile problem in macb.c
 has been added to the -mm tree.  Its filename is
-     task_struct-move-fpu_counter-and-oomkilladj.patch
+     git-net-fix-a-compile-problem-in-macbc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: task_struct: move ->fpu_counter and ->oomkilladj
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: git-net: fix a compile problem in macb.c
+From: Hans J. Koch <hjk@linutronix.de>
 
-There is nice 2 byte hole after struct task_struct::ioprio field
-into which we can put two 1-byte fields: ->fpu_counter and ->oomkilladj.
+Compiling macb.c fails because the type of parameter 2 of macb_poll()
+was changed from int* to int. Furthermore, a local variable was removed
+but was still used inside the function. This patch fixes it.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/sched.h~task_struct-move-fpu_counter-and-oomkilladj include/linux/sched.h
---- a/include/linux/sched.h~task_struct-move-fpu_counter-and-oomkilladj
-+++ a/include/linux/sched.h
-@@ -888,6 +888,16 @@ struct task_struct {
- #endif
+diff -puN drivers/net/macb.c~git-net-fix-a-compile-problem-in-macbc drivers/net/macb.c
+--- a/drivers/net/macb.c~git-net-fix-a-compile-problem-in-macbc
++++ a/drivers/net/macb.c
+@@ -492,7 +492,7 @@ static int macb_poll(struct napi_struct 
+ 	}
  
- 	unsigned short ioprio;
-+	/*
-+	 * fpu_counter contains the number of consecutive context switches
-+	 * that the FPU is used. If this is over a threshold, the lazy fpu
-+	 * saving becomes unlazy to save the trap. This is an unsigned char
-+	 * so that after 256 times the counter wraps and the behavior turns
-+	 * lazy again; this to deal with bursty apps that only use FPU for
-+	 * a short time
-+	 */
-+	unsigned char fpu_counter;
-+	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
- #ifdef CONFIG_BLK_DEV_IO_TRACE
- 	unsigned int btrace_seq;
- #endif
-@@ -972,16 +982,6 @@ struct task_struct {
- 	struct key *thread_keyring;	/* keyring private to this thread */
- 	unsigned char jit_keyring;	/* default keyring to attach requested keys to */
- #endif
--	/*
--	 * fpu_counter contains the number of consecutive context switches
--	 * that the FPU is used. If this is over a threshold, the lazy fpu
--	 * saving becomes unlazy to save the trap. This is an unsigned char
--	 * so that after 256 times the counter wraps and the behavior turns
--	 * lazy again; this to deal with bursty apps that only use FPU for
--	 * a short time
--	 */
--	unsigned char fpu_counter;
--	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
- 	char comm[TASK_COMM_LEN]; /* executable name excluding path
- 				     - access with [gs]et_task_comm (which lock
- 				       it with task_lock())
+ 	dev_dbg(&bp->pdev->dev, "poll: status = %08lx, budget = %d\n",
+-		(unsigned long)status, *budget);
++		(unsigned long)status, budget);
+ 
+ 	if (!(status & MACB_BIT(REC))) {
+ 		dev_warn(&bp->pdev->dev,
+@@ -503,7 +503,7 @@ static int macb_poll(struct napi_struct 
+ 	}
+ 
+ 	work_done = macb_rx(bp, budget);
+-	if (work_done < orig_budget)
++	if (work_done < budget)
+ 		netif_rx_complete(dev, napi);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from hjk@linutronix.de are
 
-consolidate-ptrace_detach.patch
-git-kbuild.patch
-git-sched.patch
-slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab-fix.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-userc-deinline.patch
-userc-ifdef-mq_bytes.patch
-userc-ifdef-mq_bytes-fix.patch
-move-kasprintfo-to-obj-y.patch
-task_struct-move-fpu_counter-and-oomkilladj.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-single_open-seq_release-leak-diagnostics.patch
+git-dvb.patch
+git-hwmon.patch
+git-net-fix-a-compile-problem-in-macbc.patch
+pxafb-add-support-for-other-palette-formats.patch
