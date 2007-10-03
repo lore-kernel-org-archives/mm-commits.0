@@ -1,65 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - fix-smp-poweroff-hangs.patch removed from -mm tree
-Date: Tue, 02 Oct 2007 15:54:55 -0700
-Message-ID: <200710022254.l92Mst8T026745@imap1.linux-foundation.org>
+Subject: - fix-mux-setup-for-composite-sound-on-avertv-307.patch removed from -mm tree
+Date: Wed, 03 Oct 2007 10:22:52 -0700
+Message-ID: <200710031722.l93HMq8f032070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57688 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753351AbXJBWzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2007 18:55:52 -0400
+	by vger.kernel.org with ESMTP id S1751354AbXJCRXr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 13:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lkml@rtr.ca, mlord@pobox.com, rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: stsp@aknet.ru, mchehab@infradead.org, nshmyrev@yandex.ru, peter.missel@onlinehome.de, zolotarev_andrey@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix SMP poweroff hangs
+     fix mux setup for composite sound on AverTV 307
 has been removed from the -mm tree.  Its filename was
-     fix-smp-poweroff-hangs.patch
+     fix-mux-setup-for-composite-sound-on-avertv-307.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix SMP poweroff hangs
-From: Mark Lord <lkml@rtr.ca>
+Subject: fix mux setup for composite sound on AverTV 307
+From: Stas Sergeev <stsp@aknet.ru>
 
-We need to disable all CPUs other than the boot CPU (usually 0) before
-attempting to power-off modern SMP machines.  This fixes the
-hang-on-poweroff issue on my MythTV SMP box, and also on Thomas Gleixner's
-new toybox.
+Right now the composite sound input doesn't work on AverTV 307 because of
+the wrong mux setup.  The composite sound is routed via an external
+4channel multiplexer controlled by GPIO, while the code assumes an internal
+multiplexer instead.
 
-Signed-off-by: Mark Lord <mlord@pobox.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Presumably this was a copy/paste error, and noone have ever tested the
+functionality.
+
+With the attached patch it works properly, which gives me an ability to
+finally watch the cable TV under linux.
+
+Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+Cc: Nickolay V. Shmyrev <nshmyrev@yandex.ru>
+Cc: Andrey Zolotarev <zolotarev_andrey@mail.ru>
+Cc: Peter Missel <peter.missel@onlinehome.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/video/saa7134/saa7134-cards.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sys.c~fix-smp-poweroff-hangs kernel/sys.c
---- a/kernel/sys.c~fix-smp-poweroff-hangs
-+++ a/kernel/sys.c
-@@ -32,6 +32,7 @@
- #include <linux/getcpu.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/seccomp.h>
-+#include <linux/cpu.h>
- 
- #include <linux/compat.h>
- #include <linux/syscalls.h>
-@@ -878,6 +879,7 @@ void kernel_power_off(void)
- 	kernel_shutdown_prepare(SYSTEM_POWER_OFF);
- 	if (pm_power_off_prepare)
- 		pm_power_off_prepare();
-+	disable_nonboot_cpus();
- 	sysdev_shutdown();
- 	printk(KERN_EMERG "Power down.\n");
- 	machine_power_off();
+diff -puN drivers/media/video/saa7134/saa7134-cards.c~fix-mux-setup-for-composite-sound-on-avertv-307 drivers/media/video/saa7134/saa7134-cards.c
+--- a/drivers/media/video/saa7134/saa7134-cards.c~fix-mux-setup-for-composite-sound-on-avertv-307
++++ a/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3164,18 +3164,18 @@ struct saa7134_board saa7134_boards[] = 
+ 		},{
+ 			.name = name_comp1,
+ 			.vmux = 0,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		},{
+ 			.name = name_comp2,
+ 			.vmux = 3,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		},{
+ 			.name = name_svideo,
+ 			.vmux = 8,
+-			.amux = LINE2,
+-			.gpio = 0x00,
++			.amux = LINE1,
++			.gpio = 0x02,
+ 		}},
+ 		.radio = {
+ 			.name = name_radio,
 _
 
-Patches currently in -mm which might be from lkml@rtr.ca are
+Patches currently in -mm which might be from stsp@aknet.ru are
 
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
-rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+git-dvb.patch
+fix-mux-setup-for-composite-sound-on-avertv-307.patch
