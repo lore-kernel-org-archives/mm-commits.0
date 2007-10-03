@@ -1,177 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-fix-for-iommu-early-crash.patch added to -mm tree
-Date: Wed, 03 Oct 2007 15:11:17 -0700
-Message-ID: <200710032211.l93MBHsD011230@imap1.linux-foundation.org>
+Subject: - mtd-fix-cfi_interleave-build-errors.patch removed from -mm tree
+Date: Wed, 03 Oct 2007 15:23:20 -0700
+Message-ID: <200710032223.l93MNKGD011597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58292 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38233 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751817AbXJCWLZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 18:11:25 -0400
+	by vger.kernel.org with ESMTP id S1756902AbXJCWXk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 18:23:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: anil.s.keshavamurthy@intel.com, greg@kroah.com, jeff@garzik.org
+To: mingo@elte.hu, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel-iommu: fix for IOMMU early crash
-has been added to the -mm tree.  Its filename is
-     intel-iommu-fix-for-iommu-early-crash.patch
+     MTD: fix cfi_interleave() build errors
+has been removed from the -mm tree.  Its filename was
+     mtd-fix-cfi_interleave-build-errors.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: intel-iommu: fix for IOMMU early crash
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
+Subject: MTD: fix cfi_interleave() build errors
+From: Ingo Molnar <mingo@elte.hu>
 
-pci_dev's->sysdata is highly overloaded and currently IOMMU is broken due
-to IOMMU code depending on this field.
+If the .config specifies no cfi_interleave() then generate a run-time bug. 
+This makes 'make randconfig' build tests work again.
 
-This patch introduces new field in pci_dev's struct to hold IOMMU specific
-per device IOMMU private data.
-
-Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash
-+++ a/drivers/pci/intel-iommu.c
-@@ -1348,7 +1348,7 @@ static void domain_remove_dev_info(struc
- 		list_del(&info->link);
- 		list_del(&info->global);
- 		if (info->dev)
--			info->dev->sysdata = NULL;
-+			info->dev->iommu_private = NULL;
- 		spin_unlock_irqrestore(&device_domain_lock, flags);
- 
- 		detach_domain_for_dev(info->domain, info->bus, info->devfn);
-@@ -1361,7 +1361,7 @@ static void domain_remove_dev_info(struc
- 
- /*
-  * find_domain
-- * Note: we use struct pci_dev->sysdata stores the info
-+ * Note: we use struct pci_dev->iommu_private stores the info
-  */
- struct dmar_domain *
- find_domain(struct pci_dev *pdev)
-@@ -1369,7 +1369,7 @@ find_domain(struct pci_dev *pdev)
- 	struct device_domain_info *info;
- 
- 	/* No lock here, assumes no domain exit in normal case */
--	info = pdev->sysdata;
-+	info = pdev->iommu_private;
- 	if (info)
- 		return info->domain;
- 	return NULL;
-@@ -1519,7 +1519,7 @@ found_domain:
- 	}
- 	list_add(&info->link, &domain->devices);
- 	list_add(&info->global, &device_domain_list);
--	pdev->sysdata = info;
-+	pdev->iommu_private = info;
- 	spin_unlock_irqrestore(&device_domain_lock, flags);
- 	return domain;
- error:
-@@ -1579,7 +1579,7 @@ error:
- static inline int iommu_prepare_rmrr_dev(struct dmar_rmrr_unit *rmrr,
- 	struct pci_dev *pdev)
- {
--	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
- 		return 0;
- 	return iommu_prepare_identity_map(pdev, rmrr->base_address,
- 		rmrr->end_address + 1);
-@@ -1595,7 +1595,7 @@ static void __init iommu_prepare_gfx_map
- 	int ret;
- 
- 	for_each_pci_dev(pdev) {
--		if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO ||
-+		if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO ||
- 				!IS_GFX_DEVICE(pdev))
- 			continue;
- 		printk(KERN_INFO "IOMMU: gfx device %s 1-1 mapping\n",
-@@ -1836,7 +1836,7 @@ static dma_addr_t intel_map_single(struc
- 	int prot = 0;
- 
- 	BUG_ON(dir == DMA_NONE);
--	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
- 		return virt_to_bus(addr);
- 
- 	domain = get_valid_domain_for_dev(pdev);
-@@ -1900,7 +1900,7 @@ static void intel_unmap_single(struct de
- 	unsigned long start_addr;
- 	struct iova *iova;
- 
--	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
- 		return;
- 	domain = find_domain(pdev);
- 	BUG_ON(!domain);
-@@ -1974,7 +1974,7 @@ static void intel_unmap_sg(struct device
- 	size_t size = 0;
- 	void *addr;
- 
--	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
- 		return;
- 
- 	domain = find_domain(pdev);
-@@ -2032,7 +2032,7 @@ static int intel_map_sg(struct device *h
- 	unsigned long start_addr;
- 
- 	BUG_ON(dir == DMA_NONE);
--	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
- 		return intel_nontranslate_map_sg(hwdev, sg, nelems, dir);
- 
- 	domain = get_valid_domain_for_dev(pdev);
-@@ -2234,7 +2234,7 @@ static void __init init_no_remapping_dev
- 		for (i = 0; i < drhd->devices_cnt; i++) {
- 			if (!drhd->devices[i])
- 				continue;
--			drhd->devices[i]->sysdata = DUMMY_DEVICE_DOMAIN_INFO;
-+			drhd->devices[i]->iommu_private = DUMMY_DEVICE_DOMAIN_INFO;
- 		}
- 	}
+diff -puN include/linux/mtd/cfi.h~mtd-fix-cfi_interleave-build-errors include/linux/mtd/cfi.h
+--- a/include/linux/mtd/cfi.h~mtd-fix-cfi_interleave-build-errors
++++ a/include/linux/mtd/cfi.h
+@@ -66,6 +66,10 @@ static inline int cfi_interleave(void *c
  }
-diff -puN include/linux/pci.h~intel-iommu-fix-for-iommu-early-crash include/linux/pci.h
---- a/include/linux/pci.h~intel-iommu-fix-for-iommu-early-crash
-+++ a/include/linux/pci.h
-@@ -195,6 +195,7 @@ struct pci_dev {
- #ifdef CONFIG_PCI_MSI
- 	struct list_head msi_list;
  #endif
-+	void		*iommu_private;	/* hook for IOMMU specific extension */
- };
  
- extern struct pci_dev *alloc_pci_dev(void);
++#ifndef cfi_interleave
++# define cfi_interleave(cfi) ({ BUG_ON(1); 0; })
++#endif
++
+ static inline int cfi_interleave_supported(int i)
+ {
+ 	switch (i) {
 _
 
-Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-kprobes-support-kretprobe-blacklist.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
-intel-iommu-fix-for-iommu-early-crash.patch
-intel-iommu-sg-chaining-support.patch
+origin.patch
+git-kvm.patch
+mtd-fix-cfi_interleave-build-errors.patch
+provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
+git-sched.patch
+rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
+some-proc-entries-are-missed-in-sched_domain-sys_ctl-debug.patch
+geode-mfgpt-clock-event-device-support.patch
+i386-convert-mm_context_t-semaphore-to-a-mutex.patch
+x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
+clockevents-remove-unused-inline-function.patch
+clockevents-allow-build-without-runtime-use.patch
+x86_64-consolidate-tsc-calibration.patch
+i386-prepare-sharing-hpet-code.patch
+i386-hpet-add-x8664-hpet-bits.patch
+i386-prepare-sharing-pit-code.patch
+x86_64-use-i386-i8253-h.patch
+x86_64-preparatory-apic-set-lvtt.patch
+x86_64-apic-remove-bogus-pit-synchronization.patch
+x86_64-apic-shuffle-calibration-around.patch
+x86_64-apic-calibration-remove-divisor.patch
+x86_64-apic-change-setup-calling-convention.patch
+x86_64-apic-remove-nested-irq-disable.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-apic-add-clockevents-functions.patch
+x86_64-convert-to-clockevents.patch
+x86_64-remove-unused-code.patch
+x86_64-cleanup-apic-c.patch
+jiffies-remove-unused-macros.patch
+acpi-remove-the-useless-ifdef-code.patch
+i386-pit-remove-the-useless-ifdefs.patch
+i386-hpet-sharing-optimize.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+immunize-rcu_dereference-against-crazy-compiler-writers.patch
+remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+softlockup-use-cpu_clock-instead-of-sched_clock.patch
+fix-the-softlockup-watchdog-to-actually-work.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+softlockup-improve-debug-output.patch
+softlockup-improve-debug-output-fix.patch
+softlockup-watchdog-style-cleanups.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+pie-executable-randomization-fix-2.patch
+pie-executable-randomization-fix-3.patch
+make-rcutorture-rng-use-temporal-entropy.patch
+shrink-task_struct-if-config_futex=n.patch
+move-preempt_notifiers-into-an-always-included-kconfig.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+mutex-documentation-is-unclear-about-software-interrupts-tasklets-and-timers.patch
+break-elf_platform-and-stack-pointer-randomization-dependency.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+lockdep-show-held-locks-when-showing-a-stackdump.patch
+kmap_atomic-debugging.patch
