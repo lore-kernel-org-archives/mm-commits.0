@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch added to -mm tree
-Date: Wed, 03 Oct 2007 13:53:11 -0700
-Message-ID: <200710032053.l93KrGer008087@imap1.linux-foundation.org>
+Subject: + ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch added to -mm tree
+Date: Wed, 03 Oct 2007 13:53:26 -0700
+Message-ID: <200710032053.l93KrQPl008110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34151 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756341AbXJCUxV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:21 -0400
+	by vger.kernel.org with ESMTP id S1757066AbXJCUxa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com
 
 
 The patch titled
-     ps3av: use PS3 video mode ids in autodetect code
+     ps3av: dont distinguish between `boot' and `non-boot' autodetection
 has been added to the -mm tree.  Its filename is
-     ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch
+     ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,11 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3av: use PS3 video mode ids in autodetect code
+Subject: ps3av: dont distinguish between `boot' and `non-boot' autodetection
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-It doesn't make much sense to use the PS3AV_CMD_VIDEO_VID_* values in the
-autodetection code, just to convert them to PS3 video mode ids afterwards.
+don't distinguish between `boot' and `non-boot' autodetection now the
+autodetection code has been improved
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
@@ -37,208 +37,134 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/ps3/ps3av.c~ps3av-use-ps3-video-mode-ids-in-autodetect-code drivers/ps3/ps3av.c
---- a/drivers/ps3/ps3av.c~ps3av-use-ps3-video-mode-ids-in-autodetect-code
+diff -puN drivers/ps3/ps3av.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection drivers/ps3/ps3av.c
+--- a/drivers/ps3/ps3av.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
 +++ a/drivers/ps3/ps3av.c
-@@ -585,75 +585,65 @@ static void ps3avd(struct work_struct *w
- 	complete(&ps3av->done);
+@@ -760,8 +760,7 @@ static void ps3av_fixup_monitor_info(str
+ 	}
  }
  
--static int ps3av_vid2table_id(int vid)
-+static int ps3av_resbit2id(u32 res_50, u32 res_60)
+-static int ps3av_auto_videomode(struct ps3av_pkt_av_get_hw_conf *av_hw_conf,
+-				int boot)
++static int ps3av_auto_videomode(struct ps3av_pkt_av_get_hw_conf *av_hw_conf)
  {
--	int i;
--
--	for (i = 1; i < ARRAY_SIZE(video_mode_table); i++)
--		if (video_mode_table[i].vid == vid)
--			return i;
--	return -1;
--}
--
--static int ps3av_resbit2vid(u32 res_50, u32 res_60)
--{
--	int vid = -1;
-+	int id = 0;
- 
- 	if (res_50 > res_60) {	/* if res_50 == res_60, res_60 will be used */
- 		if (res_50 & PS3AV_RESBIT_1920x1080P)
--			vid = PS3AV_CMD_VIDEO_VID_1080P_50HZ;
-+			id = 10;
- 		else if (res_50 & PS3AV_RESBIT_1920x1080I)
--			vid = PS3AV_CMD_VIDEO_VID_1080I_50HZ;
-+			id = 9;
- 		else if (res_50 & PS3AV_RESBIT_1280x720P)
--			vid = PS3AV_CMD_VIDEO_VID_720P_50HZ;
-+			id = 8;
- 		else if (res_50 & PS3AV_RESBIT_720x576P)
--			vid = PS3AV_CMD_VIDEO_VID_576P;
-+			id = 7;
- 		else
--			vid = -1;
-+			id = 0;
- 	} else {
- 		if (res_60 & PS3AV_RESBIT_1920x1080P)
--			vid = PS3AV_CMD_VIDEO_VID_1080P_60HZ;
-+			id = 5;
- 		else if (res_60 & PS3AV_RESBIT_1920x1080I)
--			vid = PS3AV_CMD_VIDEO_VID_1080I_60HZ;
-+			id = 4;
- 		else if (res_60 & PS3AV_RESBIT_1280x720P)
--			vid = PS3AV_CMD_VIDEO_VID_720P_60HZ;
-+			id = 3;
- 		else if (res_60 & PS3AV_RESBIT_720x480P)
--			vid = PS3AV_CMD_VIDEO_VID_480P;
-+			id = 2;
- 		else
--			vid = -1;
-+			id = 0;
- 	}
--	return vid;
-+	return id;
- }
- 
--static int ps3av_hdmi_get_vid(struct ps3av_info_monitor *info)
-+static int ps3av_hdmi_get_id(struct ps3av_info_monitor *info)
- {
- 	u32 res_50, res_60;
--	int vid = -1;
-+	int id;
- 
- 	if (info->monitor_type != PS3AV_MONITOR_TYPE_HDMI)
--		return -1;
-+		return 0;
- 
- 	/* check native resolution */
- 	res_50 = info->res_50.native & PS3AV_RES_MASK_50;
- 	res_60 = info->res_60.native & PS3AV_RES_MASK_60;
- 	if (res_50 || res_60) {
--		vid = ps3av_resbit2vid(res_50, res_60);
--		return vid;
-+		id = ps3av_resbit2id(res_50, res_60);
-+		return id;
- 	}
- 
- 	/* check resolution */
- 	res_50 = info->res_50.res_bits & PS3AV_RES_MASK_50;
- 	res_60 = info->res_60.res_bits & PS3AV_RES_MASK_60;
- 	if (res_50 || res_60) {
--		vid = ps3av_resbit2vid(res_50, res_60);
--		return vid;
-+		id = ps3av_resbit2id(res_50, res_60);
-+		return id;
- 	}
- 
- 	if (ps3av->region & PS3AV_REGION_60)
--		vid = PS3AV_DEFAULT_HDMI_VID_REG_60;
-+		id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
- 	else
--		vid = PS3AV_DEFAULT_HDMI_VID_REG_50;
--	return vid;
-+		id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
-+	return id;
- }
- 
- static void ps3av_monitor_info_dump(const struct ps3av_pkt_av_get_monitor_info *monitor_info)
-@@ -717,11 +707,11 @@ static void ps3av_monitor_info_dump(cons
- static int ps3av_auto_videomode(struct ps3av_pkt_av_get_hw_conf *av_hw_conf,
- 				int boot)
- {
--	int i, res, vid = -1, dvi = 0, rgb = 0;
-+	int i, res, id = 0, dvi = 0, rgb = 0;
+ 	int i, res, id = 0, dvi = 0, rgb = 0;
  	struct ps3av_pkt_av_get_monitor_info monitor_info;
- 	struct ps3av_info_monitor *info;
- 
--	/* get vid for hdmi */
-+	/* get mode id for hdmi */
- 	for (i = 0; i < av_hw_conf->num_of_hdmi; i++) {
- 		res = ps3av_cmd_video_get_monitor_info(&monitor_info,
- 						       PS3AV_CMD_AVPORT_HDMI_0 +
-@@ -737,49 +727,49 @@ static int ps3av_auto_videomode(struct p
- 			break;
- 		}
- 		/* check HDMI */
--		vid = ps3av_hdmi_get_vid(info);
--		if (vid != -1) {
--			/* got valid vid */
-+		id = ps3av_hdmi_get_id(info);
-+		if (id) {
-+			/* got valid mode id */
- 			break;
- 		}
- 	}
- 
- 	if (dvi) {
- 		/* DVI mode */
--		vid = PS3AV_DEFAULT_DVI_VID;
--	} else if (vid == -1) {
-+		id = PS3AV_DEFAULT_DVI_MODE_ID;
-+	} else if (!id) {
- 		/* no HDMI interface or HDMI is off */
- 		if (ps3av->region & PS3AV_REGION_60)
--			vid = PS3AV_DEFAULT_AVMULTI_VID_REG_60;
-+			id = PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60;
- 		else
--			vid = PS3AV_DEFAULT_AVMULTI_VID_REG_50;
-+			id = PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_50;
+@@ -799,28 +798,6 @@ static int ps3av_auto_videomode(struct p
  		if (ps3av->region & PS3AV_REGION_RGB)
  			rgb = PS3AV_MODE_RGB;
- 	} else if (boot) {
--		/* HDMI: using DEFAULT HDMI_VID while booting up */
-+		/* HDMI: using DEFAULT HDMI_MODE_ID while booting up */
- 		info = &monitor_info.info;
- 		if (ps3av->region & PS3AV_REGION_60) {
- 			if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_60;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
- 			else if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_50;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
- 			else {
- 				/* default */
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_60;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
- 			}
- 		} else {
- 			if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_50;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
- 			else if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_60;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
- 			else {
- 				/* default */
--				vid = PS3AV_DEFAULT_HDMI_VID_REG_50;
-+				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
- 			}
- 		}
+ 		pr_debug("%s: Using avmulti mode %d\n", __func__, id);
+-	} else if (boot) {
+-		/* HDMI: using DEFAULT HDMI_MODE_ID while booting up */
+-		info = &monitor_info.info;
+-		if (ps3av->region & PS3AV_REGION_60) {
+-			if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			else if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			else {
+-				/* default */
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			}
+-		} else {
+-			if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			else if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			else {
+-				/* default */
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			}
+-		}
  	}
  
--	return (ps3av_vid2table_id(vid) | dvi | rgb);
-+	return id | dvi | rgb;
+ 	return id | dvi | rgb;
+@@ -862,7 +839,7 @@ static int ps3av_get_hw_conf(struct ps3a
  }
  
- static int ps3av_get_hw_conf(struct ps3av *ps3av)
-diff -puN include/asm-powerpc/ps3av.h~ps3av-use-ps3-video-mode-ids-in-autodetect-code include/asm-powerpc/ps3av.h
---- a/include/asm-powerpc/ps3av.h~ps3av-use-ps3-video-mode-ids-in-autodetect-code
+ /* set mode using id */
+-int ps3av_set_video_mode(u32 id, int boot)
++int ps3av_set_video_mode(u32 id)
+ {
+ 	int size;
+ 	u32 option;
+@@ -876,7 +853,7 @@ int ps3av_set_video_mode(u32 id, int boo
+ 	/* auto mode */
+ 	option = id & ~PS3AV_MODE_MASK;
+ 	if ((id & PS3AV_MODE_MASK) == 0) {
+-		id = ps3av_auto_videomode(&ps3av->av_hw_conf, boot);
++		id = ps3av_auto_videomode(&ps3av->av_hw_conf);
+ 		if (id < 1) {
+ 			printk(KERN_ERR "%s: invalid id :%d\n", __func__, id);
+ 			return -EINVAL;
+@@ -896,9 +873,9 @@ int ps3av_set_video_mode(u32 id, int boo
+ 
+ EXPORT_SYMBOL_GPL(ps3av_set_video_mode);
+ 
+-int ps3av_get_auto_mode(int boot)
++int ps3av_get_auto_mode(void)
+ {
+-	return ps3av_auto_videomode(&ps3av->av_hw_conf, boot);
++	return ps3av_auto_videomode(&ps3av->av_hw_conf);
+ }
+ 
+ EXPORT_SYMBOL_GPL(ps3av_get_auto_mode);
+@@ -1044,7 +1021,7 @@ static int ps3av_probe(struct ps3_system
+ 		       res);
+ 
+ 	ps3av_get_hw_conf(ps3av);
+-	id = ps3av_auto_videomode(&ps3av->av_hw_conf, 1);
++	id = ps3av_auto_videomode(&ps3av->av_hw_conf);
+ 	mutex_lock(&ps3av->mutex);
+ 	ps3av->ps3av_mode = id;
+ 	mutex_unlock(&ps3av->mutex);
+diff -puN drivers/video/ps3fb.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
++++ a/drivers/video/ps3fb.c
+@@ -548,7 +548,6 @@ static int ps3fb_set_par(struct fb_info 
+ 	unsigned int mode;
+ 	int i;
+ 	unsigned long offset;
+-	static int first = 1;
+ 
+ 	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
+ 		info->var.xres, info->var.xres_virtual,
+@@ -572,10 +571,9 @@ static int ps3fb_set_par(struct fb_info 
+ 	/* Keep the special bits we cannot set using fb_var_screeninfo */
+ 	ps3fb_mode = (ps3fb_mode & ~PS3AV_MODE_MASK) | mode;
+ 
+-	if (ps3av_set_video_mode(ps3fb_mode, first))
++	if (ps3av_set_video_mode(ps3fb_mode))
+ 		return -EINVAL;
+ 
+-	first = 0;
+ 	return 0;
+ }
+ 
+@@ -737,7 +735,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 				break;
+ 
+ 			if (!(val & PS3AV_MODE_MASK)) {
+-				u32 id = ps3av_get_auto_mode(0);
++				u32 id = ps3av_get_auto_mode();
+ 				if (id > 0)
+ 					val = (val & ~PS3AV_MODE_MASK) | id;
+ 			}
+diff -puN include/asm-powerpc/ps3av.h~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection include/asm-powerpc/ps3av.h
+--- a/include/asm-powerpc/ps3av.h~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
 +++ a/include/asm-powerpc/ps3av.h
-@@ -300,11 +300,12 @@
+@@ -709,9 +709,9 @@ extern int ps3av_cmd_av_get_hw_conf(stru
+ extern int ps3av_cmd_video_get_monitor_info(struct ps3av_pkt_av_get_monitor_info *,
+ 					    u32);
  
- #define PS3AV_MONITOR_TYPE_HDMI			1	/* HDMI */
- #define PS3AV_MONITOR_TYPE_DVI			2	/* DVI */
--#define PS3AV_DEFAULT_HDMI_VID_REG_60		PS3AV_CMD_VIDEO_VID_480P
--#define PS3AV_DEFAULT_AVMULTI_VID_REG_60	PS3AV_CMD_VIDEO_VID_480I
--#define PS3AV_DEFAULT_HDMI_VID_REG_50		PS3AV_CMD_VIDEO_VID_576P
--#define PS3AV_DEFAULT_AVMULTI_VID_REG_50	PS3AV_CMD_VIDEO_VID_576I
--#define PS3AV_DEFAULT_DVI_VID			PS3AV_CMD_VIDEO_VID_480P
-+
-+#define PS3AV_DEFAULT_HDMI_MODE_ID_REG_60	2	/* 480p */
-+#define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60	1	/* 480i */
-+#define PS3AV_DEFAULT_HDMI_MODE_ID_REG_50	7	/* 576p */
-+#define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_50	6	/* 576i */
-+#define PS3AV_DEFAULT_DVI_MODE_ID		2	/* 480p */
- 
- #define PS3AV_REGION_60				0x01
- #define PS3AV_REGION_50				0x02
+-extern int ps3av_set_video_mode(u32, int);
++extern int ps3av_set_video_mode(u32);
+ extern int ps3av_set_audio_mode(u32, u32, u32, u32, u32);
+-extern int ps3av_get_auto_mode(int);
++extern int ps3av_get_auto_mode(void);
+ extern int ps3av_get_mode(void);
+ extern int ps3av_get_scanmode(int);
+ extern int ps3av_get_refresh_rate(int);
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
