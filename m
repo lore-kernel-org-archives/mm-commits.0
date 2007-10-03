@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pmagb-b-fb-improve-diagnostics.patch added to -mm tree
-Date: Wed, 03 Oct 2007 13:52:57 -0700
-Message-ID: <200710032052.l93KqvtP008056@imap1.linux-foundation.org>
+Subject: + ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch added to -mm tree
+Date: Wed, 03 Oct 2007 13:53:18 -0700
+Message-ID: <200710032053.l93KrIHa008090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58339 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756688AbXJCUxJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:09 -0400
+	by vger.kernel.org with ESMTP id S1756271AbXJCUxW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, adaplas@gmail.com
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com
 
 
 The patch titled
-     pmagb-b-fb: improve diagnostics
+     ps3av: treat DVI-D like HDMI in autodetect
 has been added to the -mm tree.  Its filename is
-     pmagb-b-fb-improve-diagnostics.patch
+     ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,121 +25,97 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pmagb-b-fb: improve diagnostics
-From: Maciej W. Rozycki <macro@linux-mips.org>
+Subject: ps3av: treat DVI-D like HDMI in autodetect
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Add error messages to the probe call.
+treat DVI-D monitors like HDMI monitors when autodetecting the best video mode
 
-[adaplas]
-On failure, return actual error value instead of -ENXIO.
-
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics drivers/video/pmagb-b-fb.c
---- a/drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics
-+++ a/drivers/video/pmagb-b-fb.c
-@@ -254,16 +254,23 @@ static int __init pmagbbfb_probe(struct 
- 	struct pmagbbfb_par *par;
- 	char freq0[12], freq1[12];
- 	u32 vid_base;
-+	int err;
+diff -puN drivers/ps3/ps3av.c~ps3av-treat-dvi-d-like-hdmi-in-autodetect drivers/ps3/ps3av.c
+--- a/drivers/ps3/ps3av.c~ps3av-treat-dvi-d-like-hdmi-in-autodetect
++++ a/drivers/ps3/ps3av.c
+@@ -620,9 +620,6 @@ static int ps3av_hdmi_get_id(struct ps3a
+ 	u32 res_50, res_60;
+ 	int id;
  
- 	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), dev);
--	if (!info)
-+	if (!info) {
-+		printk(KERN_ERR "%s: Cannot allocate memory\n", dev->bus_id);
- 		return -ENOMEM;
-+	}
+-	if (info->monitor_type != PS3AV_MONITOR_TYPE_HDMI)
+-		return 0;
+-
+ 	/* check native resolution */
+ 	res_50 = info->res_50.native & PS3AV_RES_MASK_50;
+ 	res_60 = info->res_60.native & PS3AV_RES_MASK_60;
+@@ -712,7 +709,7 @@ static int ps3av_auto_videomode(struct p
+ 	struct ps3av_info_monitor *info;
  
- 	par = info->par;
- 	dev_set_drvdata(dev, info);
+ 	/* get mode id for hdmi */
+-	for (i = 0; i < av_hw_conf->num_of_hdmi; i++) {
++	for (i = 0; i < av_hw_conf->num_of_hdmi && !id; i++) {
+ 		res = ps3av_cmd_video_get_monitor_info(&monitor_info,
+ 						       PS3AV_CMD_AVPORT_HDMI_0 +
+ 						       i);
+@@ -720,24 +717,19 @@ static int ps3av_auto_videomode(struct p
+ 			return -1;
  
--	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
-+	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
-+		printk(KERN_ERR "%s: Cannot allocate color map\n",
-+		       dev->bus_id);
-+		err = -ENOMEM;
- 		goto err_alloc;
-+	}
+ 		ps3av_monitor_info_dump(&monitor_info);
++
+ 		info = &monitor_info.info;
+-		/* check DVI */
+-		if (info->monitor_type == PS3AV_MONITOR_TYPE_DVI) {
++		switch (info->monitor_type) {
++		case PS3AV_MONITOR_TYPE_DVI:
+ 			dvi = PS3AV_MODE_DVI;
+-			break;
+-		}
+-		/* check HDMI */
+-		id = ps3av_hdmi_get_id(info);
+-		if (id) {
+-			/* got valid mode id */
++			/* fall through */
++		case PS3AV_MONITOR_TYPE_HDMI:
++			id = ps3av_hdmi_get_id(info);
+ 			break;
+ 		}
+ 	}
  
- 	info->fbops = &pmagbbfb_ops;
- 	info->fix = pmagbbfb_fix;
-@@ -273,22 +280,31 @@ static int __init pmagbbfb_probe(struct 
- 	/* Request the I/O MEM resource.  */
- 	start = tdev->resource.start;
- 	len = tdev->resource.end - start + 1;
--	if (!request_mem_region(start, len, dev->bus_id))
-+	if (!request_mem_region(start, len, dev->bus_id)) {
-+		printk(KERN_ERR "%s: Cannot reserve FB region\n", dev->bus_id);
-+		err = -EBUSY;
- 		goto err_cmap;
-+	}
+-	if (dvi) {
+-		/* DVI mode */
+-		id = PS3AV_DEFAULT_DVI_MODE_ID;
+-	} else if (!id) {
++	if (!id) {
+ 		/* no HDMI interface or HDMI is off */
+ 		if (ps3av->region & PS3AV_REGION_60)
+ 			id = PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60;
+diff -puN include/asm-powerpc/ps3av.h~ps3av-treat-dvi-d-like-hdmi-in-autodetect include/asm-powerpc/ps3av.h
+--- a/include/asm-powerpc/ps3av.h~ps3av-treat-dvi-d-like-hdmi-in-autodetect
++++ a/include/asm-powerpc/ps3av.h
+@@ -305,7 +305,6 @@
+ #define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60	1	/* 480i */
+ #define PS3AV_DEFAULT_HDMI_MODE_ID_REG_50	7	/* 576p */
+ #define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_50	6	/* 576i */
+-#define PS3AV_DEFAULT_DVI_MODE_ID		2	/* 480p */
  
- 	/* MMIO mapping setup.  */
- 	info->fix.mmio_start = start;
- 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
--	if (!par->mmio)
-+	if (!par->mmio) {
-+		printk(KERN_ERR "%s: Cannot map MMIO\n", dev->bus_id);
-+		err = -ENOMEM;
- 		goto err_resource;
-+	}
- 	par->sfb = par->mmio + PMAGB_B_SFB;
- 	par->dac = par->mmio + PMAGB_B_BT459;
- 
- 	/* Frame buffer mapping setup.  */
- 	info->fix.smem_start = start + PMAGB_B_FBMEM;
- 	par->smem = ioremap_nocache(info->fix.smem_start, info->fix.smem_len);
--	if (!par->smem)
-+	if (!par->smem) {
-+		printk(KERN_ERR "%s: Cannot map FB\n", dev->bus_id);
-+		err = -ENOMEM;
- 		goto err_mmio_map;
-+	}
- 	vid_base = sfb_read(par, SFB_REG_VID_BASE);
- 	info->screen_base = (void __iomem *)par->smem + vid_base * 0x1000;
- 	info->screen_size = info->fix.smem_len - 2 * vid_base * 0x1000;
-@@ -297,8 +313,12 @@ static int __init pmagbbfb_probe(struct 
- 	pmagbbfb_screen_setup(info);
- 	pmagbbfb_osc_setup(info);
- 
--	if (register_framebuffer(info) < 0)
-+	err = register_framebuffer(info);
-+	if (err < 0) {
-+		printk(KERN_ERR "%s: Cannot register framebuffer\n",
-+		       dev->bus_id);
- 		goto err_smem_map;
-+	}
- 
- 	get_device(dev);
- 
-@@ -330,7 +350,7 @@ err_cmap:
- 
- err_alloc:
- 	framebuffer_release(info);
--	return -ENXIO;
-+	return err;
- }
- 
- static int __exit pmagbbfb_remove(struct device *dev)
+ #define PS3AV_REGION_60				0x01
+ #define PS3AV_REGION_50				0x02
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-git-mips.patch
-git-net.patch
-phylib-spinlock-fixes-for-softirqs.patch
-phylib-irq-event-workqueue-handling-fixes.patch
-phylib-fix-an-interrupt-loop-potential-when-halting.patch
-include-linux-typesh-in-if_fddih.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-lk201-remove-obsolete-driver.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-drivers-video-kconfig-fix-fb_pmagb_b-dependencies.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-pmagb-b-fb-improve-diagnostics.patch
+git-powerpc.patch
+git-scsi-misc.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+ps3-fix-black-and-white-stripes.patch
+ps3fb-fix-spurious-mode-change-failures.patch
+ps3av-eliminate-unneeded-temporary-variables.patch
+ps3av-eliminate-ps3av_debug.patch
+ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch
+ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
+ps3av-add-autodetection-for-vesa-modes.patch
+ps3av-add-quirk-database-for-broken-monitors.patch
+ps3av-remove-unused-ps3av_set_mode.patch
+ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
