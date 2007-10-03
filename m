@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:19:20 -0700
-Message-ID: <200710032119.l93LJKx7009231@imap1.linux-foundation.org>
+Subject: + linux-kernel-markers-coding-style-fixes.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:20:32 -0700
+Message-ID: <200710032120.l93LKWed009272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49055 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54610 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753302AbXJCVT0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:19:26 -0400
+	by vger.kernel.org with ESMTP id S1758937AbXJCVUt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au
 
 
 The patch titled
-     kernel/fork.c: remove unneeded variable initialization in copy_process()
+     Linux Kernel Markers - Coding Style Fixes
 has been added to the -mm tree.  Its filename is
-     kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
+     linux-kernel-markers-coding-style-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,57 +25,175 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/fork.c: remove unneeded variable initialization in copy_process()
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Linux Kernel Markers - Coding Style Fixes
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-This initialization of is not needed so just remove it.
+- Use struct marker instead of struct __mark_marker.
+- Change a "private_data" parameter name for "private".
+- DEFINE_MUTEX(markers_mutex) is made static.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/fork.c~kernel-forkc-remove-unneeded-variable-initialization-in-copy_process kernel/fork.c
---- a/kernel/fork.c~kernel-forkc-remove-unneeded-variable-initialization-in-copy_process
-+++ a/kernel/fork.c
-@@ -981,7 +981,7 @@ static struct task_struct *copy_process(
- 					struct pid *pid)
- {
- 	int retval;
--	struct task_struct *p = NULL;
-+	struct task_struct *p;
- 	int cgroup_callbacks_done = 0;
+diff -puN include/linux/marker.h~linux-kernel-markers-coding-style-fixes include/linux/marker.h
+--- a/include/linux/marker.h~linux-kernel-markers-coding-style-fixes
++++ a/include/linux/marker.h
+@@ -15,11 +15,11 @@
+ #include <linux/types.h>
  
- 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
+ struct module;
+-struct __mark_marker;
++struct marker;
+ 
+ /**
+  * marker_probe_func - Type of a marker probe function
+- * @mdata: pointer of type struct __mark_marker
++ * @mdata: pointer of type struct marker
+  * @private_data: caller site private data
+  * @fmt: format string
+  * @...: variable argument list
+@@ -27,10 +27,10 @@ struct __mark_marker;
+  * Type of marker probe functions. They receive the mdata and need to parse the
+  * format string to recover the variable argument list.
+  */
+-typedef void marker_probe_func(const struct __mark_marker *mdata,
++typedef void marker_probe_func(const struct marker *mdata,
+ 	void *private_data, const char *fmt, ...);
+ 
+-struct __mark_marker {
++struct marker {
+ 	const char *name;	/* Marker name */
+ 	const char *format;	/* Marker format string, describing the
+ 				 * variable argument list.
+@@ -57,7 +57,7 @@ struct __mark_marker {
+ 		static const char __mstrtab_format_##name[]		\
+ 		__attribute__((section("__markers_strings")))		\
+ 		= format;						\
+-		static struct __mark_marker __mark_##name		\
++		static struct marker __mark_##name			\
+ 		__attribute__((section("__markers"))) =			\
+ 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
+ 		0, __mark_empty_function, NULL };			\
+@@ -72,13 +72,13 @@ struct __mark_marker {
+ 		}							\
+ 	} while (0)
+ 
+-extern void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module, int *refcount);
++extern void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module, int *refcount);
+ #else /* !CONFIG_MARKERS */
+ #define __trace_mark(name, call_data, format, args...) \
+ 		__mark_check_format(format, ## args)
+-static inline void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module, int *refcount)
++static inline void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module, int *refcount)
+ { }
+ #endif /* CONFIG_MARKERS */
+ 
+diff -puN include/linux/module.h~linux-kernel-markers-coding-style-fixes include/linux/module.h
+--- a/include/linux/module.h~linux-kernel-markers-coding-style-fixes
++++ a/include/linux/module.h
+@@ -372,7 +372,7 @@ struct module
+ 	   keeping pointers to this stuff */
+ 	char *args;
+ #ifdef CONFIG_MARKERS
+-	struct __mark_marker *markers;
++	struct marker *markers;
+ 	unsigned int num_markers;
+ #endif
+ };
+diff -puN kernel/marker.c~linux-kernel-markers-coding-style-fixes kernel/marker.c
+--- a/kernel/marker.c~linux-kernel-markers-coding-style-fixes
++++ a/kernel/marker.c
+@@ -24,14 +24,14 @@
+ #include <linux/marker.h>
+ #include <linux/err.h>
+ 
+-extern struct __mark_marker __start___markers[];
+-extern struct __mark_marker __stop___markers[];
++extern struct marker __start___markers[];
++extern struct marker __stop___markers[];
+ 
+ /*
+  * module_mutex nests inside markers_mutex. Markers mutex protects the builtin
+  * and module markers, the hash table and deferred_sync.
+  */
+-DEFINE_MUTEX(markers_mutex);
++static DEFINE_MUTEX(markers_mutex);
+ 
+ /*
+  * Marker deferred synchronization.
+@@ -63,7 +63,7 @@ static struct hlist_head marker_table[MA
+ 
+ /**
+  * __mark_empty_function - Empty probe callback
+- * @mdata: pointer of type const struct __mark_marker
++ * @mdata: pointer of type const struct marker
+  * @fmt: format string
+  * @...: variable argument list
+  *
+@@ -72,8 +72,7 @@ static struct hlist_head marker_table[MA
+  * though the function pointer change and the marker enabling are two distinct
+  * operations that modifies the execution flow of preemptible code.
+  */
+-void __mark_empty_function(const struct __mark_marker *mdata,
+-	void *private_data,
++void __mark_empty_function(const struct marker *mdata, void *private,
+ 	const char *fmt, ...)
+ {
+ }
+@@ -207,8 +206,7 @@ static int marker_set_format(struct mark
+ /*
+  * Sets the probe callback corresponding to one marker.
+  */
+-static int set_marker(struct marker_entry **entry,
+-			struct __mark_marker *elem)
++static int set_marker(struct marker_entry **entry, struct marker *elem)
+ {
+ 	int ret;
+ 	WARN_ON(strcmp((*entry)->name, elem->name) != 0);
+@@ -240,7 +238,7 @@ static int set_marker(struct marker_entr
+  * empty function insures that the original callback is not used anymore. This
+  * insured by preemption disabling around the call site.
+  */
+-static void disable_marker(struct __mark_marker *elem)
++static void disable_marker(struct marker *elem)
+ {
+ 	elem->state = 0;
+ 	elem->call = __mark_empty_function;
+@@ -261,11 +259,11 @@ static void disable_marker(struct __mark
+  * Updates the probe callback corresponding to a range of markers.
+  * Must be called with markers_mutex held.
+  */
+-void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module,
++void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module,
+ 	int *refcount)
+ {
+-	struct __mark_marker *iter;
++	struct marker *iter;
+ 	struct marker_entry *mark_entry;
+ 
+ 	for (iter = begin; iter < end; iter++) {
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-git-alsa.patch
-sound-snd_register_device_for_dev-fix.patch
-git-arm.patch
-fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
-git-powerpc.patch
-git-dvb.patch
-git-hid.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
+fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
+local_t-documentation-update-2.patch
+local_t-update-documentation.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+linux-kernel-markers.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-coding-style-fixes.patch
+add-samples-subdir.patch
+linux-kernel-markers-samples.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+linux-kernel-markers-documentation.patch
