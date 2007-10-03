@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-initializer-for-statically-declared-krefs.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:29:12 -0700
-Message-ID: <200710032129.l93LTCgq009605@imap1.linux-foundation.org>
+Subject: + uninline-forkc-exitc.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:30:46 -0700
+Message-ID: <200710032130.l93LUkoc009628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55578 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752874AbXJCV3S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:29:18 -0400
+	by vger.kernel.org with ESMTP id S1757237AbXJCVbh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, serue@us.ibm.com
+Cc: adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     Make initializer for statically declared krefs
+     Uninline fork.c/exit.c
 has been added to the -mm tree.  Its filename is
-     make-initializer-for-statically-declared-krefs.patch
+     uninline-forkc-exitc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,171 +25,191 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make initializer for statically declared krefs
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Uninline fork.c/exit.c
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Since the struct kref already has the _get, _put and _init routines, this
-seems useful to have an initializer for those statically declared (like for
-atomic_t or spinlock_t).
+Save ~650 bytes here.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+add/remove: 4/0 grow/shrink: 0/7 up/down: 430/-1088 (-658)
+function                                     old     new   delta
+__copy_fs_struct                               -     202    +202
+__put_fs_struct                                -     112    +112
+__exit_fs                                      -      58     +58
+__exit_files                                   -      58     +58
+exit_files                                    58       2     -56
+put_fs_struct                                112       5    -107
+exit_fs                                      161       2    -159
+sys_unshare                                  774     590    -184
+copy_process                                4031    3840    -191
+do_exit                                     1791    1597    -194
+copy_fs_struct                               202       5    -197
+
+No difference in lmbench lat_proc tests on 2-way Opteron 246.
+Smaaaal degradation on UP P4 (within errors).
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN include/linux/kref.h~make-initializer-for-statically-declared-krefs include/linux/kref.h
---- a/include/linux/kref.h~make-initializer-for-statically-declared-krefs
-+++ a/include/linux/kref.h
-@@ -24,6 +24,8 @@ struct kref {
- 	atomic_t refcount;
- };
+diff -puN kernel/exit.c~uninline-forkc-exitc kernel/exit.c
+--- a/kernel/exit.c~uninline-forkc-exitc
++++ a/kernel/exit.c
+@@ -492,7 +492,7 @@ void reset_files_struct(struct task_stru
+ }
+ EXPORT_SYMBOL(reset_files_struct);
  
-+#define INIT_KREF(count)	{ .refcount = ATOMIC_INIT(count), }
-+
- void kref_init(struct kref *kref);
- void kref_get(struct kref *kref);
- int kref_put(struct kref *kref, void (*release) (struct kref *kref));
-diff -puN init/version.c~make-initializer-for-statically-declared-krefs init/version.c
---- a/init/version.c~make-initializer-for-statically-declared-krefs
-+++ a/init/version.c
-@@ -19,9 +19,7 @@
- int version_string(LINUX_VERSION_CODE);
+-static inline void __exit_files(struct task_struct *tsk)
++static void __exit_files(struct task_struct *tsk)
+ {
+ 	struct files_struct * files = tsk->files;
  
- struct uts_namespace init_uts_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.name = {
- 		.sysname	= UTS_SYSNAME,
- 		.nodename	= UTS_NODENAME,
-diff -puN ipc/util.c~make-initializer-for-statically-declared-krefs ipc/util.c
---- a/ipc/util.c~make-initializer-for-statically-declared-krefs
-+++ a/ipc/util.c
-@@ -45,9 +45,7 @@ struct ipc_proc_iface {
- };
+@@ -509,7 +509,7 @@ void exit_files(struct task_struct *tsk)
+ 	__exit_files(tsk);
+ }
  
- struct ipc_namespace init_ipc_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- };
+-static inline void __put_fs_struct(struct fs_struct *fs)
++static void __put_fs_struct(struct fs_struct *fs)
+ {
+ 	/* No need to hold fs->lock if we are killing it */
+ 	if (atomic_dec_and_test(&fs->count)) {
+@@ -530,7 +530,7 @@ void put_fs_struct(struct fs_struct *fs)
+ 	__put_fs_struct(fs);
+ }
  
- static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
-diff -puN kernel/pid.c~make-initializer-for-statically-declared-krefs kernel/pid.c
---- a/kernel/pid.c~make-initializer-for-statically-declared-krefs
-+++ a/kernel/pid.c
-@@ -61,9 +61,7 @@ static inline int mk_pid(struct pid_name
-  * the scheme scales to up to 4 million PIDs, runtime.
+-static inline void __exit_fs(struct task_struct *tsk)
++static void __exit_fs(struct task_struct *tsk)
+ {
+ 	struct fs_struct * fs = tsk->fs;
+ 
+diff -puN kernel/fork.c~uninline-forkc-exitc kernel/fork.c
+--- a/kernel/fork.c~uninline-forkc-exitc
++++ a/kernel/fork.c
+@@ -207,7 +207,7 @@ static struct task_struct *dup_task_stru
+ }
+ 
+ #ifdef CONFIG_MMU
+-static inline int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
++static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+ {
+ 	struct vm_area_struct *mpnt, *tmp, **pprev;
+ 	struct rb_node **rb_link, *rb_parent;
+@@ -589,7 +589,7 @@ fail_nomem:
+ 	return retval;
+ }
+ 
+-static inline struct fs_struct *__copy_fs_struct(struct fs_struct *old)
++static struct fs_struct *__copy_fs_struct(struct fs_struct *old)
+ {
+ 	struct fs_struct *fs = kmem_cache_alloc(fs_cachep, GFP_KERNEL);
+ 	/* We don't need to lock fs - think why ;-) */
+@@ -621,7 +621,7 @@ struct fs_struct *copy_fs_struct(struct 
+ 
+ EXPORT_SYMBOL_GPL(copy_fs_struct);
+ 
+-static inline int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
+ {
+ 	if (clone_flags & CLONE_FS) {
+ 		atomic_inc(&current->fs->count);
+@@ -824,7 +824,7 @@ int unshare_files(void)
+ 
+ EXPORT_SYMBOL(unshare_files);
+ 
+-static inline int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
+ {
+ 	struct sighand_struct *sig;
+ 
+@@ -847,7 +847,7 @@ void __cleanup_sighand(struct sighand_st
+ 		kmem_cache_free(sighand_cachep, sighand);
+ }
+ 
+-static inline int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
+ {
+ 	struct signal_struct *sig;
+ 	int ret;
+@@ -927,7 +927,7 @@ void __cleanup_signal(struct signal_stru
+ 	kmem_cache_free(signal_cachep, sig);
+ }
+ 
+-static inline void cleanup_signal(struct task_struct *tsk)
++static void cleanup_signal(struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig = tsk->signal;
+ 
+@@ -937,7 +937,7 @@ static inline void cleanup_signal(struct
+ 		__cleanup_signal(sig);
+ }
+ 
+-static inline void copy_flags(unsigned long clone_flags, struct task_struct *p)
++static void copy_flags(unsigned long clone_flags, struct task_struct *p)
+ {
+ 	unsigned long new_flags = p->flags;
+ 
+@@ -956,7 +956,7 @@ asmlinkage long sys_set_tid_address(int 
+ 	return task_pid_vnr(current);
+ }
+ 
+-static inline void rt_mutex_init_task(struct task_struct *p)
++static void rt_mutex_init_task(struct task_struct *p)
+ {
+ 	spin_lock_init(&p->pi_lock);
+ #ifdef CONFIG_RT_MUTEXES
+@@ -1393,7 +1393,7 @@ struct task_struct * __cpuinit fork_idle
+ 	return task;
+ }
+ 
+-static inline int fork_traceflag (unsigned clone_flags)
++static int fork_traceflag (unsigned clone_flags)
+ {
+ 	if (clone_flags & CLONE_UNTRACED)
+ 		return 0;
+@@ -1526,7 +1526,7 @@ void __init proc_caches_init(void)
+  * Check constraints on flags passed to the unshare system call and
+  * force unsharing of additional process context as appropriate.
   */
- struct pid_namespace init_pid_ns = {
--	.kref = {
--		.refcount       = ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.pidmap = {
- 		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
- 	},
-diff -puN kernel/user_namespace.c~make-initializer-for-statically-declared-krefs kernel/user_namespace.c
---- a/kernel/user_namespace.c~make-initializer-for-statically-declared-krefs
-+++ a/kernel/user_namespace.c
-@@ -11,9 +11,7 @@
- #include <linux/user_namespace.h>
- 
- struct user_namespace init_user_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.root_user = &root_user,
- };
- 
+-static inline void check_unshare_flags(unsigned long *flags_ptr)
++static void check_unshare_flags(unsigned long *flags_ptr)
+ {
+ 	/*
+ 	 * If unsharing a thread from a thread group, must also
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-make-initializer-for-statically-declared-krefs.patch
-git-net.patch
-git-nfsd.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-cleanup-macros-for-distinguishing-mandatory-locks.patch
-gfs2-cleanup-explicit-check-for-mandatory-locks.patch
-9pfs-cleanup-explicit-check-for-mandatory-locks.patch
-afs-cleanup-explicit-check-for-mandatory-locks.patch
-nfs-cleanup-explicit-check-for-mandatory-locks.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+consolidate-ptrace_detach.patch
+git-kbuild.patch
+git-sched.patch
+slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab-fix.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+userc-deinline.patch
+userc-ifdef-mq_bytes.patch
+userc-ifdef-mq_bytes-fix.patch
+move-kasprintfo-to-obj-y.patch
+task_struct-move-fpu_counter-and-oomkilladj.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+single_open-seq_release-leak-diagnostics.patch
