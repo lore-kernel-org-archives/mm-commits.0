@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:41:08 -0700
-Message-ID: <200710032141.l93Lf9Br010051@imap1.linux-foundation.org>
+Subject: + hugetlb-add-hugetlb_dynamic_pool-sysctl.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:41:13 -0700
+Message-ID: <200710032141.l93LfD8D010059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48486 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38840 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754785AbXJCVmS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:42:18 -0400
+	by vger.kernel.org with ESMTP id S1755164AbXJCVmZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:42:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, apw@shadowen.org, bill.irwin@oracle.com, dave.mccracken@oracle.com, david@gibson.dropbear.id.au, kenchen@google.com, mel@csn.ul.ie, pbadari@us.ibm.com
+Cc: agl@us.ibm.com, apw@shadowen.org, bill.irwin@oracle.com, dave.mccracken@oracle.com, david@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com
 
 
 The patch titled
-     hugetlb: Try to grow hugetlb pool for MAP_PRIVATE mappings
+     hugetlb: Add hugetlb_dynamic_pool sysctl
 has been added to the -mm tree.  Its filename is
-     hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings.patch
+     hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,27 +25,20 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlb: Try to grow hugetlb pool for MAP_PRIVATE mappings
+Subject: hugetlb: Add hugetlb_dynamic_pool sysctl
 From: Adam Litke <agl@us.ibm.com>
 
-Because we overcommit hugepages for MAP_PRIVATE mappings, it is possible that
-the hugetlb pool will be exhausted or completely reserved when a hugepage is
-needed to satisfy a page fault.  Before killing the process in this situation,
-try to allocate a hugepage directly from the buddy allocator.
+The maximum size of the huge page pool can be controlled using the overall
+size of the hugetlb filesystem (via its 'size' mount option).  However in the
+common case the this will not be set as the pool is traditionally fixed in
+size at boot time.  In order to maintain the expected semantics, we need to
+prevent the pool expanding by default.
 
-The explicitly configured pool size becomes a low watermark.  When dynamically
-grown, the allocated huge pages are accounted as a surplus over the watermark.
- As huge pages are freed on a node, surplus pages are released to the buddy
-allocator so that the pool will shrink back to the watermark.
-
-Surplus accounting also allows for friendlier explicit pool resizing.  When
-shrinking a pool that is fully in-use, increase the surplus so pages will be
-returned to the buddy allocator as soon as they are freed.  When growing a
-pool that has a surplus, consume the surplus first and then allocate new
-pages.
+This patch introduces a new sysctl controlling dynamic pool resizing.  When
+this is enabled the pool will expand beyond its base size up to the size of
+the hugetlb filesystem.  It is disabled by default.
 
 Signed-off-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Acked-by: Andy Whitcroft <apw@shadowen.org>
 Acked-by: Dave McCracken <dave.mccracken@oracle.com>
 Cc: William Irwin <bill.irwin@oracle.com>
@@ -56,218 +49,57 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN mm/hugetlb.c~hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings
-+++ a/mm/hugetlb.c
-@@ -23,10 +23,12 @@
+diff -puN include/linux/hugetlb.h~hugetlb-add-hugetlb_dynamic_pool-sysctl include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/include/linux/hugetlb.h
+@@ -33,6 +33,7 @@ void hugetlb_unreserve_pages(struct inod
  
- const unsigned long hugetlb_zero = 0, hugetlb_infinity = ~0UL;
- static unsigned long nr_huge_pages, free_huge_pages, resv_huge_pages;
-+static unsigned long surplus_huge_pages;
- unsigned long max_huge_pages;
- static struct list_head hugepage_freelists[MAX_NUMNODES];
- static unsigned int nr_huge_pages_node[MAX_NUMNODES];
- static unsigned int free_huge_pages_node[MAX_NUMNODES];
-+static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+ extern unsigned long max_huge_pages;
+ extern unsigned long hugepages_treat_as_movable;
++extern int hugetlb_dynamic_pool;
+ extern const unsigned long hugetlb_zero, hugetlb_infinity;
+ extern int sysctl_hugetlb_shm_group;
+ 
+diff -puN kernel/sysctl.c~hugetlb-add-hugetlb_dynamic_pool-sysctl kernel/sysctl.c
+--- a/kernel/sysctl.c~hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/kernel/sysctl.c
+@@ -872,6 +872,14 @@ static ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= &hugetlb_treat_movable_handler,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "hugetlb_dynamic_pool",
++		.data		= &hugetlb_dynamic_pool,
++		.maxlen		= sizeof(hugetlb_dynamic_pool),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec,
++	},
+ #endif
+ 	{
+ 		.ctl_name	= VM_LOWMEM_RESERVE_RATIO,
+diff -puN mm/hugetlb.c~hugetlb-add-hugetlb_dynamic_pool-sysctl mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-hugetlb_dynamic_pool-sysctl
++++ a/mm/hugetlb.c
+@@ -31,6 +31,7 @@ static unsigned int free_huge_pages_node
+ static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
  static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
  unsigned long hugepages_treat_as_movable;
++int hugetlb_dynamic_pool;
  
-@@ -109,15 +111,57 @@ static void update_and_free_page(struct 
- 
- static void free_huge_page(struct page *page)
+ /*
+  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
+@@ -201,6 +202,10 @@ static struct page *alloc_buddy_huge_pag
  {
--	BUG_ON(page_count(page));
-+	int nid = page_to_nid(page);
+ 	struct page *page;
  
-+	BUG_ON(page_count(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
- 	spin_lock(&hugetlb_lock);
--	enqueue_huge_page(page);
-+	if (surplus_huge_pages_node[nid]) {
-+		update_and_free_page(page);
-+		surplus_huge_pages--;
-+		surplus_huge_pages_node[nid]--;
-+	} else {
-+		enqueue_huge_page(page);
-+	}
- 	spin_unlock(&hugetlb_lock);
- }
- 
-+/*
-+ * Increment or decrement surplus_huge_pages.  Keep node-specific counters
-+ * balanced by operating on them in a round-robin fashion.
-+ * Returns 1 if an adjustment was made.
-+ */
-+static int adjust_pool_surplus(int delta)
-+{
-+	static int prev_nid;
-+	int nid = prev_nid;
-+	int ret = 0;
++	/* Check if the dynamic pool is enabled */
++	if (!hugetlb_dynamic_pool)
++		return NULL;
 +
-+	VM_BUG_ON(delta != -1 && delta != 1);
-+	do {
-+		nid = next_node(nid, node_online_map);
-+		if (nid == MAX_NUMNODES)
-+			nid = first_node(node_online_map);
-+
-+		/* To shrink on this node, there must be a surplus page */
-+		if (delta < 0 && !surplus_huge_pages_node[nid])
-+			continue;
-+		/* Surplus cannot exceed the total number of pages */
-+		if (delta > 0 && surplus_huge_pages_node[nid] >=
-+						nr_huge_pages_node[nid])
-+			continue;
-+
-+		surplus_huge_pages += delta;
-+		surplus_huge_pages_node[nid] += delta;
-+		ret = 1;
-+		break;
-+	} while (nid != prev_nid);
-+
-+	prev_nid = nid;
-+	return ret;
-+}
-+
- static int alloc_fresh_huge_page(void)
- {
- 	static int prev_nid;
-@@ -150,10 +194,30 @@ static int alloc_fresh_huge_page(void)
- 	return 0;
- }
- 
-+static struct page *alloc_buddy_huge_page(struct vm_area_struct *vma,
-+						unsigned long address)
-+{
-+	struct page *page;
-+
-+	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
-+					HUGETLB_PAGE_ORDER);
-+	if (page) {
-+		set_compound_page_dtor(page, free_huge_page);
-+		spin_lock(&hugetlb_lock);
-+		nr_huge_pages++;
-+		nr_huge_pages_node[page_to_nid(page)]++;
-+		surplus_huge_pages++;
-+		surplus_huge_pages_node[page_to_nid(page)]++;
-+		spin_unlock(&hugetlb_lock);
-+	}
-+
-+	return page;
-+}
-+
- static struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				    unsigned long addr)
- {
--	struct page *page;
-+	struct page *page = NULL;
- 
- 	spin_lock(&hugetlb_lock);
- 	if (vma->vm_flags & VM_MAYSHARE)
-@@ -173,7 +237,16 @@ fail:
- 	if (vma->vm_flags & VM_MAYSHARE)
- 		resv_huge_pages++;
- 	spin_unlock(&hugetlb_lock);
--	return NULL;
-+
-+	/*
-+	 * Private mappings do not use reserved huge pages so the allocation
-+	 * may have failed due to an undersized hugetlb pool.  Try to grab a
-+	 * surplus huge page from the buddy allocator.
-+	 */
-+	if (!(vma->vm_flags & VM_MAYSHARE))
-+		page = alloc_buddy_huge_page(vma, addr);
-+
-+	return page;
- }
- 
- static int __init hugetlb_init(void)
-@@ -241,26 +314,62 @@ static inline void try_to_free_low(unsig
- }
- #endif
- 
-+#define persistent_huge_pages (nr_huge_pages - surplus_huge_pages)
- static unsigned long set_max_huge_pages(unsigned long count)
- {
--	while (count > nr_huge_pages) {
--		if (!alloc_fresh_huge_page())
--			return nr_huge_pages;
--	}
--	if (count >= nr_huge_pages)
--		return nr_huge_pages;
-+	unsigned long min_count, ret;
- 
-+	/*
-+	 * Increase the pool size
-+	 * First take pages out of surplus state.  Then make up the
-+	 * remaining difference by allocating fresh huge pages.
-+	 */
- 	spin_lock(&hugetlb_lock);
--	count = max(count, resv_huge_pages);
--	try_to_free_low(count);
--	while (count < nr_huge_pages) {
-+	while (surplus_huge_pages && count > persistent_huge_pages) {
-+		if (!adjust_pool_surplus(-1))
-+			break;
-+	}
-+
-+	while (count > persistent_huge_pages) {
-+		int ret;
-+		/*
-+		 * If this allocation races such that we no longer need the
-+		 * page, free_huge_page will handle it by freeing the page
-+		 * and reducing the surplus.
-+		 */
-+		spin_unlock(&hugetlb_lock);
-+		ret = alloc_fresh_huge_page();
-+		spin_lock(&hugetlb_lock);
-+		if (!ret)
-+			goto out;
-+
-+	}
-+	if (count >= persistent_huge_pages)
-+		goto out;
-+
-+	/*
-+	 * Decrease the pool size
-+	 * First return free pages to the buddy allocator (being careful
-+	 * to keep enough around to satisfy reservations).  Then place
-+	 * pages into surplus state as needed so the pool will shrink
-+	 * to the desired size as pages become free.
-+	 */
-+	min_count = max(count, resv_huge_pages);
-+	try_to_free_low(min_count);
-+	while (min_count < persistent_huge_pages) {
- 		struct page *page = dequeue_huge_page(NULL, 0);
- 		if (!page)
- 			break;
- 		update_and_free_page(page);
- 	}
-+	while (count < persistent_huge_pages) {
-+		if (!adjust_pool_surplus(1))
-+			break;
-+	}
-+out:
-+	ret = persistent_huge_pages;
- 	spin_unlock(&hugetlb_lock);
--	return nr_huge_pages;
-+	return ret;
- }
- 
- int hugetlb_sysctl_handler(struct ctl_table *table, int write,
-@@ -292,10 +401,12 @@ int hugetlb_report_meminfo(char *buf)
- 			"HugePages_Total: %5lu\n"
- 			"HugePages_Free:  %5lu\n"
- 			"HugePages_Rsvd:  %5lu\n"
-+			"HugePages_Surp:  %5lu\n"
- 			"Hugepagesize:    %5lu kB\n",
- 			nr_huge_pages,
- 			free_huge_pages,
- 			resv_huge_pages,
-+			surplus_huge_pages,
- 			HPAGE_SIZE/1024);
- }
- 
+ 	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
+ 					HUGETLB_PAGE_ORDER);
+ 	if (page) {
 _
 
 Patches currently in -mm which might be from agl@us.ibm.com are
