@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:06:39 -0700
-Message-ID: <200710032106.l93L6dTb008696@imap1.linux-foundation.org>
+Subject: + intel-iommu-sg-chaining-support.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:12:13 -0700
+Message-ID: <200710032112.l93LCDKS008893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47735 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbXJCVHT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:07:19 -0400
+	by vger.kernel.org with ESMTP id S1752747AbXJCVMs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, Laurent.Vivier@bull.net, ak@suse.de
+Cc: tomof@acm.org, anil.s.keshavamurthy@intel.com, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com
 
 
 The patch titled
-     i386: call free_init_pages() with irqs enabled in alternative_instructions()
+     intel-iommu sg chaining support
 has been added to the -mm tree.  Its filename is
-     i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch
+     intel-iommu-sg-chaining-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,125 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i386: call free_init_pages() with irqs enabled in alternative_instructions()
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: intel-iommu sg chaining support
+From: FUJITA Tomonori <tomof@acm.org>
 
-It fixes the warning message in smp_call_function*(), which should be called
-with irqs disabled.
+x86_64 defines ARCH_HAS_SG_CHAIN. So if IOMMU implementations don't
+support sg chaining, we will get data corruption.
 
-[    0.310000] CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
-[    0.310000] CPU: L2 Cache: 512K (64 bytes/line)
-[    0.310000] CPU 0/0 -> Node 0
-[    0.310000] SMP alternatives: switching to UP code
-[    0.310000] Freeing SMP alternatives: 25k freed
-[    0.310000] WARNING: at arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
-[    0.310000]
-[    0.310000] Call Trace:
-[    0.310000]  [<ffffffff8100dbde>] dump_trace+0x3ee/0x4a0
-[    0.310000]  [<ffffffff8100dcd3>] show_trace+0x43/0x70
-[    0.310000]  [<ffffffff8100dd15>] dump_stack+0x15/0x20
-[    0.310000]  [<ffffffff8101cd44>] smp_call_function_mask+0x94/0xa0
-[    0.310000]  [<ffffffff8101d0b2>] smp_call_function+0x32/0x40
-[    0.310000]  [<ffffffff8104277f>] on_each_cpu+0x1f/0x50
-[    0.310000]  [<ffffffff81026eac>] global_flush_tlb+0x8c/0x110
-[    0.310000]  [<ffffffff81025c85>] free_init_pages+0xe5/0xf0
-[    0.310000]  [<ffffffff81549b5e>] alternative_instructions+0x7e/0x150
-[    0.310000]  [<ffffffff8154a2ea>] check_bugs+0x1a/0x20
-[    0.310000]  [<ffffffff81540c4a>] start_kernel+0x2da/0x380
-[    0.310000]  [<ffffffff81540132>] _sinittext+0x132/0x140
-[    0.310000]
-[    0.320000] ACPI: Core revision 20070126
-[    0.560000] Using local APIC timer interrupts.
-[    0.590000] Detected 62.496 MHz APIC timer.
-[    0.590000] Brought up 1 CPUs
-
-Cc: Laurent Vivier <Laurent.Vivier@bull.net>
-Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/i386/kernel/alternative.c~i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions arch/i386/kernel/alternative.c
---- a/arch/i386/kernel/alternative.c~i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions
-+++ a/arch/i386/kernel/alternative.c
-@@ -435,9 +435,6 @@ void __init alternative_instructions(voi
- 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
- 						_text, _etext);
- 		}
--		free_init_pages("SMP alternatives",
--				(unsigned long)__smp_locks,
--				(unsigned long)__smp_locks_end);
- 	} else {
- 		alternatives_smp_module_add(NULL, "core kernel",
- 					    __smp_locks, __smp_locks_end,
-@@ -448,6 +445,11 @@ void __init alternative_instructions(voi
-  	apply_paravirt(__parainstructions, __parainstructions_end);
- 	local_irq_restore(flags);
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-sg-chaining-support drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-sg-chaining-support
++++ a/drivers/pci/intel-iommu.c
+@@ -1963,7 +1963,7 @@ static void intel_free_coherent(struct d
+ }
  
-+	if (smp_alt_once)
-+		free_init_pages("SMP alternatives",
-+				(unsigned long)__smp_locks,
-+				(unsigned long)__smp_locks_end);
-+
- 	restart_nmi();
- #ifdef CONFIG_X86_MCE
- 	restart_mce();
+ #define SG_ENT_VIRT_ADDRESS(sg)	(page_address((sg)->page) + (sg)->offset)
+-static void intel_unmap_sg(struct device *hwdev, struct scatterlist *sg,
++static void intel_unmap_sg(struct device *hwdev, struct scatterlist *sglist,
+ 	int nelems, int dir)
+ {
+ 	int i;
+@@ -1973,16 +1973,17 @@ static void intel_unmap_sg(struct device
+ 	struct iova *iova;
+ 	size_t size = 0;
+ 	void *addr;
++	struct scatterlist *sg;
+ 
+ 	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return;
+ 
+ 	domain = find_domain(pdev);
+ 
+-	iova = find_iova(&domain->iovad, IOVA_PFN(sg[0].dma_address));
++	iova = find_iova(&domain->iovad, IOVA_PFN(sglist[0].dma_address));
+ 	if (!iova)
+ 		return;
+-	for (i = 0; i < nelems; i++, sg++) {
++	for_each_sg(sglist, sg, nelems, i) {
+ 		addr = SG_ENT_VIRT_ADDRESS(sg);
+ 		size += aligned_size((u64)addr, sg->length);
+ 	}
+@@ -2003,20 +2004,20 @@ static void intel_unmap_sg(struct device
+ }
+ 
+ static int intel_nontranslate_map_sg(struct device *hddev,
+-	struct scatterlist *sg, int nelems, int dir)
++	struct scatterlist *sglist, int nelems, int dir)
+ {
+ 	int i;
++	struct scatterlist *sg;
+ 
+-	for (i = 0; i < nelems; i++) {
+-		struct scatterlist *s = &sg[i];
+-		BUG_ON(!s->page);
+-		s->dma_address = virt_to_bus(SG_ENT_VIRT_ADDRESS(s));
+-		s->dma_length = s->length;
++	for_each_sg(sglist, sg, nelems, i) {
++		BUG_ON(!sg->page);
++		sg->dma_address = virt_to_bus(SG_ENT_VIRT_ADDRESS(sg));
++		sg->dma_length = sg->length;
+ 	}
+ 	return nelems;
+ }
+ 
+-static int intel_map_sg(struct device *hwdev, struct scatterlist *sg,
++static int intel_map_sg(struct device *hwdev, struct scatterlist *sglist,
+ 	int nelems, int dir)
+ {
+ 	void *addr;
+@@ -2028,18 +2029,18 @@ static int intel_map_sg(struct device *h
+ 	size_t offset = 0;
+ 	struct iova *iova = NULL;
+ 	int ret;
+-	struct scatterlist *orig_sg = sg;
++	struct scatterlist *sg;
+ 	unsigned long start_addr;
+ 
+ 	BUG_ON(dir == DMA_NONE);
+ 	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
+-		return intel_nontranslate_map_sg(hwdev, sg, nelems, dir);
++		return intel_nontranslate_map_sg(hwdev, sglist, nelems, dir);
+ 
+ 	domain = get_valid_domain_for_dev(pdev);
+ 	if (!domain)
+ 		return 0;
+ 
+-	for (i = 0; i < nelems; i++, sg++) {
++	for_each_sg(sglist, sg, nelems, i) {
+ 		addr = SG_ENT_VIRT_ADDRESS(sg);
+ 		addr = (void *)virt_to_phys(addr);
+ 		size += aligned_size((u64)addr, sg->length);
+@@ -2047,7 +2048,7 @@ static int intel_map_sg(struct device *h
+ 
+ 	iova = __intel_alloc_iova(hwdev, domain, size);
+ 	if (!iova) {
+-		orig_sg->dma_length = 0;
++		sglist->dma_length = 0;
+ 		return 0;
+ 	}
+ 
+@@ -2063,8 +2064,7 @@ static int intel_map_sg(struct device *h
+ 
+ 	start_addr = iova->pfn_lo << PAGE_SHIFT_4K;
+ 	offset = 0;
+-	sg = orig_sg;
+-	for (i = 0; i < nelems; i++, sg++) {
++	for_each_sg(sglist, sg, nelems, i) {
+ 		addr = SG_ENT_VIRT_ADDRESS(sg);
+ 		addr = (void *)virt_to_phys(addr);
+ 		size = aligned_size((u64)addr, sg->length);
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from tomof@acm.org are
 
-i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-make-swappiness-safer-to-use.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-seqfile-merge-duplite-code-to-seq_open_private.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+git-scsi-misc.patch
+git-block.patch
+x86-64-pci-gart-iommu-sg-chaining-zeroes-wrong-sg.patch
+intel-iommu-sg-chaining-support.patch
