@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch added to -mm tree
-Date: Wed, 03 Oct 2007 13:53:18 -0700
-Message-ID: <200710032053.l93KrIHa008090@imap1.linux-foundation.org>
+Subject: + video-gfx-merge-kconfig-menus.patch added to -mm tree
+Date: Wed, 03 Oct 2007 13:53:05 -0700
+Message-ID: <200710032053.l93Kr6DR008075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48143 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756271AbXJCUxW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:22 -0400
+	by vger.kernel.org with ESMTP id S1751491AbXJCUxz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com
+Cc: randy.dunlap@oracle.com, adaplas@gmail.com, airlied@linux.ie
 
 
 The patch titled
-     ps3av: treat DVI-D like HDMI in autodetect
+     video gfx: merge kconfig menus
 has been added to the -mm tree.  Its filename is
-     ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
+     video-gfx-merge-kconfig-menus.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,132 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3av: treat DVI-D like HDMI in autodetect
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: video gfx: merge kconfig menus
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-treat DVI-D monitors like HDMI monitors when autodetecting the best video mode
+Move AGP and DRM menus into the video graphics support menu.
+  They use 'menuconfig' so that they can all be disabled with
+  one selection.
+Make the console menu use 'menuconfig' so that it can all be
+  disabled with one selection.
+Make the frame buffer menu use 'menuconfig' so that it can all be
+  disabled with one selection.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/ps3/ps3av.c~ps3av-treat-dvi-d-like-hdmi-in-autodetect drivers/ps3/ps3av.c
---- a/drivers/ps3/ps3av.c~ps3av-treat-dvi-d-like-hdmi-in-autodetect
-+++ a/drivers/ps3/ps3av.c
-@@ -620,9 +620,6 @@ static int ps3av_hdmi_get_id(struct ps3a
- 	u32 res_50, res_60;
- 	int id;
+diff -puN drivers/char/Kconfig~video-gfx-merge-kconfig-menus drivers/char/Kconfig
+--- a/drivers/char/Kconfig~video-gfx-merge-kconfig-menus
++++ a/drivers/char/Kconfig
+@@ -925,10 +925,6 @@ config GPIO_TB0219
+ 	depends on TANBAC_TB022X
+ 	select GPIO_VR41XX
  
--	if (info->monitor_type != PS3AV_MONITOR_TYPE_HDMI)
--		return 0;
+-source "drivers/char/agp/Kconfig"
 -
- 	/* check native resolution */
- 	res_50 = info->res_50.native & PS3AV_RES_MASK_50;
- 	res_60 = info->res_60.native & PS3AV_RES_MASK_60;
-@@ -712,7 +709,7 @@ static int ps3av_auto_videomode(struct p
- 	struct ps3av_info_monitor *info;
+-source "drivers/char/drm/Kconfig"
+-
+ source "drivers/char/pcmcia/Kconfig"
  
- 	/* get mode id for hdmi */
--	for (i = 0; i < av_hw_conf->num_of_hdmi; i++) {
-+	for (i = 0; i < av_hw_conf->num_of_hdmi && !id; i++) {
- 		res = ps3av_cmd_video_get_monitor_info(&monitor_info,
- 						       PS3AV_CMD_AVPORT_HDMI_0 +
- 						       i);
-@@ -720,24 +717,19 @@ static int ps3av_auto_videomode(struct p
- 			return -1;
+ config MWAVE
+diff -puN drivers/char/agp/Kconfig~video-gfx-merge-kconfig-menus drivers/char/agp/Kconfig
+--- a/drivers/char/agp/Kconfig~video-gfx-merge-kconfig-menus
++++ a/drivers/char/agp/Kconfig
+@@ -1,4 +1,4 @@
+-config AGP
++menuconfig AGP
+ 	tristate "/dev/agpgart (AGP Support)"
+ 	depends on ALPHA || IA64 || PARISC || PPC || X86
+ 	depends on PCI
+diff -puN drivers/char/drm/Kconfig~video-gfx-merge-kconfig-menus drivers/char/drm/Kconfig
+--- a/drivers/char/drm/Kconfig~video-gfx-merge-kconfig-menus
++++ a/drivers/char/drm/Kconfig
+@@ -4,7 +4,7 @@
+ # This driver provides support for the
+ # Direct Rendering Infrastructure (DRI) in XFree86 4.1.0 and higher.
+ #
+-config DRM
++menuconfig DRM
+ 	tristate "Direct Rendering Manager (XFree86 4.1.0 and higher DRI support)"
+ 	depends on (AGP || AGP=n) && PCI && !EMULATED_CMPXCHG
+ 	help
+diff -puN drivers/video/Kconfig~video-gfx-merge-kconfig-menus drivers/video/Kconfig
+--- a/drivers/video/Kconfig~video-gfx-merge-kconfig-menus
++++ a/drivers/video/Kconfig
+@@ -5,8 +5,9 @@
+ menu "Graphics support"
+ 	depends on HAS_IOMEM
  
- 		ps3av_monitor_info_dump(&monitor_info);
+-source "drivers/video/backlight/Kconfig"
+-source "drivers/video/display/Kconfig"
++source "drivers/char/agp/Kconfig"
 +
- 		info = &monitor_info.info;
--		/* check DVI */
--		if (info->monitor_type == PS3AV_MONITOR_TYPE_DVI) {
-+		switch (info->monitor_type) {
-+		case PS3AV_MONITOR_TYPE_DVI:
- 			dvi = PS3AV_MODE_DVI;
--			break;
--		}
--		/* check HDMI */
--		id = ps3av_hdmi_get_id(info);
--		if (id) {
--			/* got valid mode id */
-+			/* fall through */
-+		case PS3AV_MONITOR_TYPE_HDMI:
-+			id = ps3av_hdmi_get_id(info);
- 			break;
- 		}
- 	}
++source "drivers/char/drm/Kconfig"
  
--	if (dvi) {
--		/* DVI mode */
--		id = PS3AV_DEFAULT_DVI_MODE_ID;
--	} else if (!id) {
-+	if (!id) {
- 		/* no HDMI interface or HDMI is off */
- 		if (ps3av->region & PS3AV_REGION_60)
- 			id = PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60;
-diff -puN include/asm-powerpc/ps3av.h~ps3av-treat-dvi-d-like-hdmi-in-autodetect include/asm-powerpc/ps3av.h
---- a/include/asm-powerpc/ps3av.h~ps3av-treat-dvi-d-like-hdmi-in-autodetect
-+++ a/include/asm-powerpc/ps3av.h
-@@ -305,7 +305,6 @@
- #define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_60	1	/* 480i */
- #define PS3AV_DEFAULT_HDMI_MODE_ID_REG_50	7	/* 576p */
- #define PS3AV_DEFAULT_AVMULTI_MODE_ID_REG_50	6	/* 576i */
--#define PS3AV_DEFAULT_DVI_MODE_ID		2	/* 480p */
+ config VGASTATE
+        tristate
+@@ -18,7 +19,7 @@ config VIDEO_OUTPUT_CONTROL
+ 	  This framework adds support for low-level control of the video 
+ 	  output switch.
  
- #define PS3AV_REGION_60				0x01
- #define PS3AV_REGION_50				0x02
+-config FB
++menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+ 	  The frame buffer device provides an abstraction for the graphics
+@@ -1895,6 +1896,9 @@ if ARCH_OMAP
+ 	source "drivers/video/omap/Kconfig"
+ endif
+ 
++source "drivers/video/backlight/Kconfig"
++source "drivers/video/display/Kconfig"
++
+ if VT
+ 	source "drivers/video/console/Kconfig"
+ endif
+@@ -1904,4 +1908,3 @@ if FB || SGI_NEWPORT_CONSOLE
+ endif
+ 
+ endmenu
+-
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-powerpc.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+git-mtd.patch
+git-net.patch
+git-nfsd.patch
 git-scsi-misc.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-ps3-fix-black-and-white-stripes.patch
-ps3fb-fix-spurious-mode-change-failures.patch
-ps3av-eliminate-unneeded-temporary-variables.patch
-ps3av-eliminate-ps3av_debug.patch
-ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch
-ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
-ps3av-add-autodetection-for-vesa-modes.patch
-ps3av-add-quirk-database-for-broken-monitors.patch
-ps3av-remove-unused-ps3av_set_mode.patch
-ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+kgdb-fix-help-text.patch
+kgdb-fix-docbook-and-kernel-doc-typos.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
