@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + platinumfb-fix-resource-management.patch added to -mm tree
-Date: Wed, 03 Oct 2007 13:53:01 -0700
-Message-ID: <200710032053.l93Kr1Qi008064@imap1.linux-foundation.org>
+Subject: + pmagb-b-fb-improve-diagnostics.patch added to -mm tree
+Date: Wed, 03 Oct 2007 13:52:57 -0700
+Message-ID: <200710032052.l93KqvtP008056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58339 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756622AbXJCUxF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:05 -0400
+	by vger.kernel.org with ESMTP id S1756688AbXJCUxJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 16:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, adaplas@gmail.com
+Cc: macro@linux-mips.org, adaplas@gmail.com
 
 
 The patch titled
-     platinumfb: fix resource management
+     pmagb-b-fb: improve diagnostics
 has been added to the -mm tree.  Its filename is
-     platinumfb-fix-resource-management.patch
+     pmagb-b-fb-improve-diagnostics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,165 +25,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: platinumfb: fix resource management
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: pmagb-b-fb: improve diagnostics
+From: Maciej W. Rozycki <macro@linux-mips.org>
 
-Current kernels have a non-working platinumfb due to some resource management
-issues.  This fixes it.
+Add error messages to the probe call.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+[adaplas]
+On failure, return actual error value instead of -ENXIO.
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/platinumfb.c~platinumfb-fix-resource-management drivers/video/platinumfb.c
---- a/drivers/video/platinumfb.c~platinumfb-fix-resource-management
-+++ a/drivers/video/platinumfb.c
-@@ -17,6 +17,8 @@
-  *  more details.
-  */
+diff -puN drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics drivers/video/pmagb-b-fb.c
+--- a/drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics
++++ a/drivers/video/pmagb-b-fb.c
+@@ -254,16 +254,23 @@ static int __init pmagbbfb_probe(struct 
+ 	struct pmagbbfb_par *par;
+ 	char freq0[12], freq1[12];
+ 	u32 vid_base;
++	int err;
  
-+#undef DEBUG
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-@@ -535,33 +537,35 @@ static int __devinit platinumfb_probe(st
- 	volatile __u8		*fbuffer;
- 	int			bank0, bank1, bank2, bank3, rc;
- 
--	printk(KERN_INFO "platinumfb: Found Apple Platinum video hardware\n");
-+	dev_info(&odev->dev, "Found Apple Platinum video hardware\n");
- 
- 	info = framebuffer_alloc(sizeof(*pinfo), &odev->dev);
--	if (info == NULL)
-+	if (info == NULL) {
-+		dev_err(&odev->dev, "Failed to allocate fbdev !\n");
+ 	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), dev);
+-	if (!info)
++	if (!info) {
++		printk(KERN_ERR "%s: Cannot allocate memory\n", dev->bus_id);
  		return -ENOMEM;
 +	}
- 	pinfo = info->par;
  
- 	if (of_address_to_resource(dp, 0, &pinfo->rsrc_reg) ||
- 	    of_address_to_resource(dp, 1, &pinfo->rsrc_fb)) {
--		printk(KERN_ERR "platinumfb: Can't get resources\n");
--		framebuffer_release(info);
--		return -ENXIO;
--	}
--	if (!request_mem_region(pinfo->rsrc_reg.start,
--				pinfo->rsrc_reg.start -
--				pinfo->rsrc_reg.end + 1,
--				"platinumfb registers")) {
-+		dev_err(&odev->dev, "Can't get resources\n");
- 		framebuffer_release(info);
- 		return -ENXIO;
- 	}
-+	dev_dbg(&odev->dev, " registers  : 0x%llx...0x%llx\n",
-+		(unsigned long long)pinfo->rsrc_reg.start,
-+		(unsigned long long)pinfo->rsrc_reg.end);
-+	dev_dbg(&odev->dev, " framebuffer: 0x%llx...0x%llx\n",
-+		(unsigned long long)pinfo->rsrc_fb.start,
-+		(unsigned long long)pinfo->rsrc_fb.end);
-+
-+	/* Do not try to request register space, they overlap with the
-+	 * northbridge and that can fail. Only request framebuffer
-+	 */
- 	if (!request_mem_region(pinfo->rsrc_fb.start,
--				pinfo->rsrc_fb.start
--				- pinfo->rsrc_fb.end + 1,
-+				pinfo->rsrc_fb.end - pinfo->rsrc_fb.start + 1,
- 				"platinumfb framebuffer")) {
--		release_mem_region(pinfo->rsrc_reg.start,
--				   pinfo->rsrc_reg.end -
--				   pinfo->rsrc_reg.start + 1);
-+		printk(KERN_ERR "platinumfb: Can't request framebuffer !\n");
- 		framebuffer_release(info);
- 		return -ENXIO;
- 	}
-@@ -600,7 +604,8 @@ static int __devinit platinumfb_probe(st
- 	bank2 = fbuffer[0x200000] == 0x56;
- 	bank3 = fbuffer[0x300000] == 0x78;
- 	pinfo->total_vram = (bank0 + bank1 + bank2 + bank3) * 0x100000;
--	printk(KERN_INFO "platinumfb: Total VRAM = %dMB (%d%d%d%d)\n", (int) (pinfo->total_vram / 1024 / 1024),
-+	printk(KERN_INFO "platinumfb: Total VRAM = %dMB (%d%d%d%d)\n",
-+	       (unsigned int) (pinfo->total_vram / 1024 / 1024),
- 	       bank3, bank2, bank1, bank0);
+ 	par = info->par;
+ 	dev_set_drvdata(dev, info);
  
- 	/*
-@@ -644,16 +649,15 @@ static int __devexit platinumfb_remove(s
-         unregister_framebuffer (info);
- 	
- 	/* Unmap frame buffer and registers */
-+	iounmap(pinfo->frame_buffer);
-+	iounmap(pinfo->platinum_regs);
-+	iounmap(pinfo->cmap_regs);
-+
- 	release_mem_region(pinfo->rsrc_fb.start,
- 			   pinfo->rsrc_fb.end -
- 			   pinfo->rsrc_fb.start + 1);
--	release_mem_region(pinfo->rsrc_reg.start,
--			   pinfo->rsrc_reg.end -
--			   pinfo->rsrc_reg.start + 1);
--	iounmap(pinfo->frame_buffer);
--	iounmap(pinfo->platinum_regs);
-+
- 	release_mem_region(pinfo->cmap_regs_phys, 0x1000);
--	iounmap(pinfo->cmap_regs);
+-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
++	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
++		printk(KERN_ERR "%s: Cannot allocate color map\n",
++		       dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_alloc;
++	}
  
+ 	info->fbops = &pmagbbfb_ops;
+ 	info->fix = pmagbbfb_fix;
+@@ -273,22 +280,31 @@ static int __init pmagbbfb_probe(struct 
+ 	/* Request the I/O MEM resource.  */
+ 	start = tdev->resource.start;
+ 	len = tdev->resource.end - start + 1;
+-	if (!request_mem_region(start, len, dev->bus_id))
++	if (!request_mem_region(start, len, dev->bus_id)) {
++		printk(KERN_ERR "%s: Cannot reserve FB region\n", dev->bus_id);
++		err = -EBUSY;
+ 		goto err_cmap;
++	}
+ 
+ 	/* MMIO mapping setup.  */
+ 	info->fix.mmio_start = start;
+ 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
+-	if (!par->mmio)
++	if (!par->mmio) {
++		printk(KERN_ERR "%s: Cannot map MMIO\n", dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_resource;
++	}
+ 	par->sfb = par->mmio + PMAGB_B_SFB;
+ 	par->dac = par->mmio + PMAGB_B_BT459;
+ 
+ 	/* Frame buffer mapping setup.  */
+ 	info->fix.smem_start = start + PMAGB_B_FBMEM;
+ 	par->smem = ioremap_nocache(info->fix.smem_start, info->fix.smem_len);
+-	if (!par->smem)
++	if (!par->smem) {
++		printk(KERN_ERR "%s: Cannot map FB\n", dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_mmio_map;
++	}
+ 	vid_base = sfb_read(par, SFB_REG_VID_BASE);
+ 	info->screen_base = (void __iomem *)par->smem + vid_base * 0x1000;
+ 	info->screen_size = info->fix.smem_len - 2 * vid_base * 0x1000;
+@@ -297,8 +313,12 @@ static int __init pmagbbfb_probe(struct 
+ 	pmagbbfb_screen_setup(info);
+ 	pmagbbfb_osc_setup(info);
+ 
+-	if (register_framebuffer(info) < 0)
++	err = register_framebuffer(info);
++	if (err < 0) {
++		printk(KERN_ERR "%s: Cannot register framebuffer\n",
++		       dev->bus_id);
+ 		goto err_smem_map;
++	}
+ 
+ 	get_device(dev);
+ 
+@@ -330,7 +350,7 @@ err_cmap:
+ 
+ err_alloc:
  	framebuffer_release(info);
+-	return -ENXIO;
++	return err;
+ }
  
+ static int __exit pmagbbfb_remove(struct device *dev)
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-cpufreq-move-policys-governor-initialisation-out-of-low-level-drivers-into-cpufreq-core.patch
-cpufreq-allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default.patch
-git-powerpc.patch
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-powerpc-vdso-install-unstripped-copies-on-disk.patch
-sky-cpu-and-nexus-code-style-improvement.patch
-sky-cpu-and-nexus-include-ioh.patch
-sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
-sky-cpu-and-nexus-check-for-create_proc_entry-ret-code.patch
-sky-cpu-use-c99-style-for-struct-init.patch
-powerpc-proper-defconfig-for-crosscompiles.patch
-powerpc-ptrace-check_full_regs.patch
-adbhid-produce-all-capslock-key-events.patch
-git-kbuild.patch
-git-libata-all.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-remove-frv-usage-of-flush_tlb_pgtables.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
-report-the-per-irq-statistics-on-allarches.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-delay-creation-of-khcvd-thread.patch
-radeonfb-xpress-200m-rc410-support-patch.patch
-platinumfb-fix-resource-management.patch
-add-scaled-time-to-taskstats-based-process-accounting.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
-powerpc-add-scaled-time-accounting.patch
-powerpc-add-scaled-time-accounting-speedup.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-add-documentation-for-extended-crashkernel-syntax.patch
+git-mips.patch
+git-net.patch
+phylib-spinlock-fixes-for-softirqs.patch
+phylib-irq-event-workqueue-handling-fixes.patch
+phylib-fix-an-interrupt-loop-potential-when-halting.patch
+include-linux-typesh-in-if_fddih.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+lk201-remove-obsolete-driver.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+drivers-video-kconfig-fix-fb_pmagb_b-dependencies.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+pmagb-b-fb-improve-diagnostics.patch
