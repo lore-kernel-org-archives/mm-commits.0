@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + imxfb-fast-read-flag-and-nonstandard-field-configurable.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:06:52 -0700
-Message-ID: <200710032106.l93L6qrD008700@imap1.linux-foundation.org>
+Subject: + i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:06:39 -0700
+Message-ID: <200710032106.l93L6dTb008696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36480 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47735 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbXJCVHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:07:08 -0400
+	by vger.kernel.org with ESMTP id S1752966AbXJCVHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pisa@cmp.felk.cvut.cz, adaplas@gmail.com
+Cc: wfg@mail.ustc.edu.cn, Laurent.Vivier@bull.net, ak@suse.de
 
 
 The patch titled
-     imxfb: fast read flag and nonstandard field configurable
+     i386: call free_init_pages() with irqs enabled in alternative_instructions()
 has been added to the -mm tree.  Its filename is
-     imxfb-fast-read-flag-and-nonstandard-field-configurable.patch
+     i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,69 +25,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: imxfb: fast read flag and nonstandard field configurable
-From: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Subject: i386: call free_init_pages() with irqs enabled in alternative_instructions()
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The i.MX frame-buffer read operation should be faster for all configurations
-then drawing each individual character again in response to scroll events.
+It fixes the warning message in smp_call_function*(), which should be called
+with irqs disabled.
 
-The nonstandard fields allows to configure frame-buffer special options flags
-for different display configurations by board specific initialization code.
+[    0.310000] CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+[    0.310000] CPU: L2 Cache: 512K (64 bytes/line)
+[    0.310000] CPU 0/0 -> Node 0
+[    0.310000] SMP alternatives: switching to UP code
+[    0.310000] Freeing SMP alternatives: 25k freed
+[    0.310000] WARNING: at arch/x86_64/kernel/smp.c:397 smp_call_function_mask()
+[    0.310000]
+[    0.310000] Call Trace:
+[    0.310000]  [<ffffffff8100dbde>] dump_trace+0x3ee/0x4a0
+[    0.310000]  [<ffffffff8100dcd3>] show_trace+0x43/0x70
+[    0.310000]  [<ffffffff8100dd15>] dump_stack+0x15/0x20
+[    0.310000]  [<ffffffff8101cd44>] smp_call_function_mask+0x94/0xa0
+[    0.310000]  [<ffffffff8101d0b2>] smp_call_function+0x32/0x40
+[    0.310000]  [<ffffffff8104277f>] on_each_cpu+0x1f/0x50
+[    0.310000]  [<ffffffff81026eac>] global_flush_tlb+0x8c/0x110
+[    0.310000]  [<ffffffff81025c85>] free_init_pages+0xe5/0xf0
+[    0.310000]  [<ffffffff81549b5e>] alternative_instructions+0x7e/0x150
+[    0.310000]  [<ffffffff8154a2ea>] check_bugs+0x1a/0x20
+[    0.310000]  [<ffffffff81540c4a>] start_kernel+0x2da/0x380
+[    0.310000]  [<ffffffff81540132>] _sinittext+0x132/0x140
+[    0.310000]
+[    0.320000] ACPI: Core revision 20070126
+[    0.560000] Using local APIC timer interrupts.
+[    0.590000] Detected 62.496 MHz APIC timer.
+[    0.590000] Brought up 1 CPUs
 
-One of such specific options is reversed order of pixels in each individual
-byte.  i.MX frame-buffer seems to be designed for big-endian use first.  The
-byte order is correctly configured for little-endian ordering, but if 1, 2 or
-4 bits per pixel are used, pixels ordering is incompatible to Linux generic
-frame-buffer drawing functions.
-
-The patch "Allow generic BitBLT functions to work with swapped pixel order in
-bytes" introduces required functionality into FBDEV core.  The pixels ordering
-selection has to be enabled at compile time CONFIG_FB_CFB_REV_PIXELS_IN_BYTE
-and for each display configuration which requires it by flag
-FB_NONSTD_REV_PIX_IN_B in "nonstd" field of info structure.
-
-This patch provides way for board specific code to select this option.
-
-Signed-off-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Laurent Vivier <Laurent.Vivier@bull.net>
+Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/video/imxfb.c~imxfb-fast-read-flag-and-nonstandard-field-configurable drivers/video/imxfb.c
---- a/drivers/video/imxfb.c~imxfb-fast-read-flag-and-nonstandard-field-configurable
-+++ a/drivers/video/imxfb.c
-@@ -467,7 +467,7 @@ static int __init imxfb_init_fbinfo(stru
- 	info->var.vmode	= FB_VMODE_NONINTERLACED;
+diff -puN arch/i386/kernel/alternative.c~i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions arch/i386/kernel/alternative.c
+--- a/arch/i386/kernel/alternative.c~i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions
++++ a/arch/i386/kernel/alternative.c
+@@ -435,9 +435,6 @@ void __init alternative_instructions(voi
+ 			alternatives_smp_unlock(__smp_locks, __smp_locks_end,
+ 						_text, _etext);
+ 		}
+-		free_init_pages("SMP alternatives",
+-				(unsigned long)__smp_locks,
+-				(unsigned long)__smp_locks_end);
+ 	} else {
+ 		alternatives_smp_module_add(NULL, "core kernel",
+ 					    __smp_locks, __smp_locks_end,
+@@ -448,6 +445,11 @@ void __init alternative_instructions(voi
+  	apply_paravirt(__parainstructions, __parainstructions_end);
+ 	local_irq_restore(flags);
  
- 	info->fbops			= &imxfb_ops;
--	info->flags			= FBINFO_FLAG_DEFAULT;
-+	info->flags			= FBINFO_FLAG_DEFAULT | FBINFO_READS_FAST;
- 
- 	fbi->rgb[RGB_16]		= &def_rgb_16;
- 	fbi->rgb[RGB_8]			= &def_rgb_8;
-@@ -480,6 +480,7 @@ static int __init imxfb_init_fbinfo(stru
- 	info->var.yres_virtual		= inf->yres;
- 	fbi->max_bpp			= inf->bpp;
- 	info->var.bits_per_pixel	= inf->bpp;
-+	info->var.nonstd		= inf->nonstd;
- 	info->var.pixclock		= inf->pixclock;
- 	info->var.hsync_len		= inf->hsync_len;
- 	info->var.left_margin		= inf->left_margin;
-diff -puN include/asm-arm/arch-imx/imxfb.h~imxfb-fast-read-flag-and-nonstandard-field-configurable include/asm-arm/arch-imx/imxfb.h
---- a/include/asm-arm/arch-imx/imxfb.h~imxfb-fast-read-flag-and-nonstandard-field-configurable
-+++ a/include/asm-arm/arch-imx/imxfb.h
-@@ -7,6 +7,7 @@ struct imxfb_mach_info {
- 	u_short		xres;
- 	u_short		yres;
- 
-+	u_int		nonstd;
- 	u_char		bpp;
- 	u_char		hsync_len;
- 	u_char		left_margin;
++	if (smp_alt_once)
++		free_init_pages("SMP alternatives",
++				(unsigned long)__smp_locks,
++				(unsigned long)__smp_locks_end);
++
+ 	restart_nmi();
+ #ifdef CONFIG_X86_MCE
+ 	restart_mce();
 _
 
-Patches currently in -mm which might be from pisa@cmp.felk.cvut.cz are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-fbdev-support-for-byte-reversed-framebuffer-formats.patch
-imxfb-fast-read-flag-and-nonstandard-field-configurable.patch
+i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch
+readahead-compacting-file_ra_state.patch
+readahead-mmap-read-around-simplification.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+radixtree-introduce-radix_tree_next_hole.patch
+readahead-basic-support-of-interleaved-reads.patch
+readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
+readahead-remove-several-readahead-macros.patch
+readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
+filemap-trivial-code-cleanups.patch
+filemap-convert-some-unsigned-long-to-pgoff_t.patch
+make-swappiness-safer-to-use.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+convert-ill-defined-log2-to-ilog2.patch
+seqfile-merge-duplite-code-to-seq_open_private.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
