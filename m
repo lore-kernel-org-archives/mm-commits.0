@@ -1,111 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-add-hugetlb_dynamic_pool-sysctl.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:41:13 -0700
-Message-ID: <200710032141.l93LfD8D010059@imap1.linux-foundation.org>
+Subject: - pci-remove-irritating-try-pci=assign-busses-warning.patch removed from -mm tree
+Date: Wed, 03 Oct 2007 15:06:53 -0700
+Message-ID: <200710032206.l93M6rZa011070@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38840 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755164AbXJCVmZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:42:25 -0400
+	by vger.kernel.org with ESMTP id S1753559AbXJCWHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 18:07:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, apw@shadowen.org, bill.irwin@oracle.com, dave.mccracken@oracle.com, david@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com
+To: akpm@linux-foundation.org, bk@suse.de, greg@kroah.com, protasnb@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: Add hugetlb_dynamic_pool sysctl
-has been added to the -mm tree.  Its filename is
-     hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
+     pci: remove irritating "try 'pci=assign-busses'" warning
+has been removed from the -mm tree.  Its filename was
+     pci-remove-irritating-try-pci=assign-busses-warning.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: hugetlb: Add hugetlb_dynamic_pool sysctl
-From: Adam Litke <agl@us.ibm.com>
+Subject: pci: remove irritating "try 'pci=assign-busses'" warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The maximum size of the huge page pool can be controlled using the overall
-size of the hugetlb filesystem (via its 'size' mount option).  However in the
-common case the this will not be set as the pool is traditionally fixed in
-size at boot time.  In order to maintain the expected semantics, we need to
-prevent the pool expanding by default.
+This keeps on worrying people and nobody ever does anything about it.
 
-This patch introduces a new sysctl controlling dynamic pool resizing.  When
-this is enabled the pool will expand beyond its base size up to the size of
-the hugetlb filesystem.  It is disabled by default.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Dave McCracken <dave.mccracken@oracle.com>
-Cc: William Irwin <bill.irwin@oracle.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Bernhard Kaindl <bk@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/pci/probe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlb-add-hugetlb_dynamic_pool-sysctl include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/include/linux/hugetlb.h
-@@ -33,6 +33,7 @@ void hugetlb_unreserve_pages(struct inod
+diff -puN drivers/pci/probe.c~pci-remove-irritating-try-pci=assign-busses-warning drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-remove-irritating-try-pci=assign-busses-warning
++++ a/drivers/pci/probe.c
+@@ -646,6 +646,7 @@ int pci_scan_bridge(struct pci_bus *bus,
  
- extern unsigned long max_huge_pages;
- extern unsigned long hugepages_treat_as_movable;
-+extern int hugetlb_dynamic_pool;
- extern const unsigned long hugetlb_zero, hugetlb_infinity;
- extern int sysctl_hugetlb_shm_group;
+ 	/* Has only triggered on CardBus, fixup is in yenta_socket */
+ 	while (bus->parent) {
++#if 0
+ 		if ((child->subordinate > bus->subordinate) ||
+ 		    (child->number > bus->subordinate) ||
+ 		    (child->number < bus->number) ||
+@@ -659,6 +660,7 @@ int pci_scan_bridge(struct pci_bus *bus,
+ 				bus->self->transparent ? " transparent" : " ",
+ 				bus->number, bus->subordinate);
+ 		}
++#endif
+ 		bus = bus->parent;
+ 	}
  
-diff -puN kernel/sysctl.c~hugetlb-add-hugetlb_dynamic_pool-sysctl kernel/sysctl.c
---- a/kernel/sysctl.c~hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/kernel/sysctl.c
-@@ -872,6 +872,14 @@ static ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= &hugetlb_treat_movable_handler,
- 	},
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "hugetlb_dynamic_pool",
-+		.data		= &hugetlb_dynamic_pool,
-+		.maxlen		= sizeof(hugetlb_dynamic_pool),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
- #endif
- 	{
- 		.ctl_name	= VM_LOWMEM_RESERVE_RATIO,
-diff -puN mm/hugetlb.c~hugetlb-add-hugetlb_dynamic_pool-sysctl mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-hugetlb_dynamic_pool-sysctl
-+++ a/mm/hugetlb.c
-@@ -31,6 +31,7 @@ static unsigned int free_huge_pages_node
- static unsigned int surplus_huge_pages_node[MAX_NUMNODES];
- static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
-+int hugetlb_dynamic_pool;
- 
- /*
-  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
-@@ -201,6 +202,10 @@ static struct page *alloc_buddy_huge_pag
- {
- 	struct page *page;
- 
-+	/* Check if the dynamic pool is enabled */
-+	if (!hugetlb_dynamic_pool)
-+		return NULL;
-+
- 	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
- 					HUGETLB_PAGE_ORDER);
- 	if (page) {
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-move-update_and_free_page.patch
-hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings.patch
-hugetlb-try-to-grow-hugetlb-pool-for-map_shared-mappings.patch
-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
-hugetlb-allow-extending-ftruncate-on-hugetlbfs.patch
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources.patch
+git-s390.patch
+git-sched.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+f_dupfd_cloexec-implementation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
