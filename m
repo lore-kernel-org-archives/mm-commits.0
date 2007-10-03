@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uninline-forkc-exitc.patch added to -mm tree
-Date: Wed, 03 Oct 2007 14:30:46 -0700
-Message-ID: <200710032130.l93LUkoc009628@imap1.linux-foundation.org>
+Subject: + uninline-forkc-exitc-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 03 Oct 2007 14:32:18 -0700
+Message-ID: <200710032132.l93LWIdx009678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35999 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757237AbXJCVbh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:31:37 -0400
+	by vger.kernel.org with ESMTP id S1752658AbXJCVdO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 17:33:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu
 
 
 The patch titled
-     Uninline fork.c/exit.c
+     uninline-forkc-exitc-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     uninline-forkc-exitc.patch
+     uninline-forkc-exitc-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Uninline fork.c/exit.c
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: uninline-forkc-exitc-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Save ~650 bytes here.
+ERROR: "foo * bar" should be "foo *bar"
+#85: FILE: kernel/fork.c:624:
++static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
 
-add/remove: 4/0 grow/shrink: 0/7 up/down: 430/-1088 (-658)
-function                                     old     new   delta
-__copy_fs_struct                               -     202    +202
-__put_fs_struct                                -     112    +112
-__exit_fs                                      -      58     +58
-__exit_files                                   -      58     +58
-exit_files                                    58       2     -56
-put_fs_struct                                112       5    -107
-exit_fs                                      161       2    -159
-sys_unshare                                  774     590    -184
-copy_process                                4031    3840    -191
-do_exit                                     1791    1597    -194
-copy_fs_struct                               202       5    -197
+ERROR: "foo * bar" should be "foo *bar"
+#94: FILE: kernel/fork.c:827:
++static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
 
-No difference in lmbench lat_proc tests on 2-way Opteron 246.
-Smaaaal degradation on UP P4 (within errors).
+ERROR: "foo * bar" should be "foo *bar"
+#103: FILE: kernel/fork.c:850:
++static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+WARNING: no space between function name and open parenthesis '('
+#139: FILE: kernel/fork.c:1396:
++static int fork_traceflag (unsigned clone_flags)
+
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/exit.c~uninline-forkc-exitc kernel/exit.c
---- a/kernel/exit.c~uninline-forkc-exitc
-+++ a/kernel/exit.c
-@@ -492,7 +492,7 @@ void reset_files_struct(struct task_stru
- }
- EXPORT_SYMBOL(reset_files_struct);
- 
--static inline void __exit_files(struct task_struct *tsk)
-+static void __exit_files(struct task_struct *tsk)
- {
- 	struct files_struct * files = tsk->files;
- 
-@@ -509,7 +509,7 @@ void exit_files(struct task_struct *tsk)
- 	__exit_files(tsk);
- }
- 
--static inline void __put_fs_struct(struct fs_struct *fs)
-+static void __put_fs_struct(struct fs_struct *fs)
- {
- 	/* No need to hold fs->lock if we are killing it */
- 	if (atomic_dec_and_test(&fs->count)) {
-@@ -530,7 +530,7 @@ void put_fs_struct(struct fs_struct *fs)
- 	__put_fs_struct(fs);
- }
- 
--static inline void __exit_fs(struct task_struct *tsk)
-+static void __exit_fs(struct task_struct *tsk)
- {
- 	struct fs_struct * fs = tsk->fs;
- 
-diff -puN kernel/fork.c~uninline-forkc-exitc kernel/fork.c
---- a/kernel/fork.c~uninline-forkc-exitc
+diff -puN kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes kernel/fork.c
+--- a/kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes
 +++ a/kernel/fork.c
-@@ -207,7 +207,7 @@ static struct task_struct *dup_task_stru
- }
- 
- #ifdef CONFIG_MMU
--static inline int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
-+static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
- {
- 	struct vm_area_struct *mpnt, *tmp, **pprev;
- 	struct rb_node **rb_link, *rb_parent;
-@@ -589,7 +589,7 @@ fail_nomem:
- 	return retval;
- }
- 
--static inline struct fs_struct *__copy_fs_struct(struct fs_struct *old)
-+static struct fs_struct *__copy_fs_struct(struct fs_struct *old)
- {
- 	struct fs_struct *fs = kmem_cache_alloc(fs_cachep, GFP_KERNEL);
- 	/* We don't need to lock fs - think why ;-) */
 @@ -621,7 +621,7 @@ struct fs_struct *copy_fs_struct(struct 
  
  EXPORT_SYMBOL_GPL(copy_fs_struct);
  
--static inline int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
+-static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_fs(unsigned long clone_flags, struct task_struct *tsk)
  {
  	if (clone_flags & CLONE_FS) {
  		atomic_inc(&current->fs->count);
@@ -118,8 +67,8 @@ diff -puN kernel/fork.c~uninline-forkc-exitc kernel/fork.c
  
  EXPORT_SYMBOL(unshare_files);
  
--static inline int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
+-static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_sighand(unsigned long clone_flags, struct task_struct *tsk)
  {
  	struct sighand_struct *sig;
  
@@ -127,89 +76,222 @@ diff -puN kernel/fork.c~uninline-forkc-exitc kernel/fork.c
  		kmem_cache_free(sighand_cachep, sighand);
  }
  
--static inline int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
+-static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_signal(unsigned long clone_flags, struct task_struct *tsk)
  {
  	struct signal_struct *sig;
  	int ret;
-@@ -927,7 +927,7 @@ void __cleanup_signal(struct signal_stru
- 	kmem_cache_free(signal_cachep, sig);
- }
- 
--static inline void cleanup_signal(struct task_struct *tsk)
-+static void cleanup_signal(struct task_struct *tsk)
- {
- 	struct signal_struct *sig = tsk->signal;
- 
-@@ -937,7 +937,7 @@ static inline void cleanup_signal(struct
- 		__cleanup_signal(sig);
- }
- 
--static inline void copy_flags(unsigned long clone_flags, struct task_struct *p)
-+static void copy_flags(unsigned long clone_flags, struct task_struct *p)
- {
- 	unsigned long new_flags = p->flags;
- 
-@@ -956,7 +956,7 @@ asmlinkage long sys_set_tid_address(int 
- 	return task_pid_vnr(current);
- }
- 
--static inline void rt_mutex_init_task(struct task_struct *p)
-+static void rt_mutex_init_task(struct task_struct *p)
- {
- 	spin_lock_init(&p->pi_lock);
- #ifdef CONFIG_RT_MUTEXES
 @@ -1393,7 +1393,7 @@ struct task_struct * __cpuinit fork_idle
  	return task;
  }
  
--static inline int fork_traceflag (unsigned clone_flags)
-+static int fork_traceflag (unsigned clone_flags)
+-static int fork_traceflag (unsigned clone_flags)
++static int fork_traceflag(unsigned clone_flags)
  {
  	if (clone_flags & CLONE_UNTRACED)
  		return 0;
-@@ -1526,7 +1526,7 @@ void __init proc_caches_init(void)
-  * Check constraints on flags passed to the unshare system call and
-  * force unsharing of additional process context as appropriate.
-  */
--static inline void check_unshare_flags(unsigned long *flags_ptr)
-+static void check_unshare_flags(unsigned long *flags_ptr)
- {
- 	/*
- 	 * If unsharing a thread from a thread group, must also
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-consolidate-ptrace_detach.patch
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
 git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+pci-remove-irritating-try-pci=assign-busses-warning.patch
+fix-ide-legacy-mode-resources.patch
+git-s390.patch
 git-sched.patch
-slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab-fix.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
 add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-userc-deinline.patch
-userc-ifdef-mq_bytes.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
 userc-ifdef-mq_bytes-fix.patch
-move-kasprintfo-to-obj-y.patch
-task_struct-move-fpu_counter-and-oomkilladj.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-single_open-seq_release-leak-diagnostics.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+f_dupfd_cloexec-implementation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
