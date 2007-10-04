@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-qos-infrastructure-and-interface.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:16:55 -0700
-Message-ID: <200710042216.l94MGtBx031291@imap1.linux-foundation.org>
+Subject: + update-dma-mapping-documentation.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:27:55 -0700
+Message-ID: <200710042227.l94MRtbl031646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49778 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54666 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754597AbXJDWSd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:18:33 -0400
+	by vger.kernel.org with ESMTP id S1760195AbXJDW17 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com, arjan@infradead.org, lenb@kernel.org, linville@tuxdriver.com, perex@suse.cz, tiwai@suse.de
+Cc: matthew@wil.cx, davem@davemloft.net, willy@linux.intel.com
 
 
 The patch titled
-     pm qos infrastructure and interface
+     Update DMA-mapping documentation
 has been added to the -mm tree.  Its filename is
-     pm-qos-infrastructure-and-interface.patch
+     update-dma-mapping-documentation.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,624 +25,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm qos infrastructure and interface
-From: Mark Gross <mgross@linux.intel.com>
+Subject: Update DMA-mapping documentation
+From: Matthew Wilcox <matthew@wil.cx>
 
-The following patch is a generalization of the latency.c implementation done
-by Arjan last year.  It provides infrastructure for more than one parameter,
-and exposes a user mode interface for processes to register pm_qos
-expectations of processes.
+A couple of updates haven't considered whether the documentation makes
+sense as a whole any more.  Three changes here:
 
-This interface provides a kernel and user mode interface for registering
-performance expectations by drivers, subsystems and user space applications on
-one of the parameters.
+ - Remove the reference to the "DAC Addressing for Address Space Hungry
+   Devices" section which was deleted by Jan Beulich.
+ - Remove the comment about DMA_24BIT_MASK which became obsolete when
+   Tobias Klauser changed the code to actually use DMA_24BIT_MASK.
+ - Remove the section "64-bit DMA and DAC cycle support" since it's
+   fully covered above, and contains a reference to the section deleted
+   by Jan.
 
-Currently we have {cpu_dma_latency, network_latency, network_throughput} as
-the initial set of pm_qos parameters.
-
-The infrastructure exposes multiple misc device nodes one per implemented
-parameter.  The set of parameters implement is defined by pm_qos_power_init()
-and pm_qos_params.h.  This is done because having the available parameters
-being runtime configurable or changeable from a driver was seen as too easy to
-abuse.
-
-For each parameter a list of performance requirements is maintained along with
-an aggregated target value.  The aggregated target value is updated with
-changes to the requirement list or elements of the list.  Typically the
-aggregated target value is simply the max or min of the requirement values
-held in the parameter list elements.
-
-From kernel mode the use of this interface is simple:
-
-pm_qos_add_requirement(param_id, name, target_value):
-
-  Will insert a named element in the list for that identified PM_QOS
-  parameter with the target value.  Upon change to this list the new target is
-  recomputed and any registered notifiers are called only if the target value
-  is now different.
-
-pm_qos_update_requirement(param_id, name, new_target_value):
-
-  Will search the list identified by the param_id for the named list element
-  and then update its target value, calling the notification tree if the
-  aggregated target is changed.  with that name is already registered.
-
-pm_qos_remove_requirement(param_id, name):
-
-  Will search the identified list for the named element and remove it, after
-  removal it will update the aggregate target and call the notification tree
-  if the target was changed as a result of removing the named requirement.
-
-From user mode:
-
-  Only processes can register a pm_qos requirement.  To provide for
-  automatic cleanup for process the interface requires the process to register
-  its parameter requirements in the following way:
-
-  To register the default pm_qos target for the specific parameter, the
-  process must open one of /dev/[cpu_dma_latency, network_latency,
-  network_throughput]
-
-  As long as the device node is held open that process has a registered
-  requirement on the parameter.  The name of the requirement is
-  "process_<PID>" derived from the current->pid from within the open system
-  call.
-
-  To change the requested target value the process needs to write a s32
-  value to the open device node.  This translates to a
-  pm_qos_update_requirement call.
-
-  To remove the user mode request for a target value simply close the device
-  node.
-
-Signed-off-by: mark gross <mgross@linux.intel.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN /dev/null Documentation/pm_qos_interface.txt
---- /dev/null
-+++ a/Documentation/pm_qos_interface.txt
-@@ -0,0 +1,59 @@
-+PM quality of Service interface.
-+
-+This interface provides a kernel and user mode interface for registering
-+performance expectations by drivers, subsystems and user space applications on
-+one of the parameters.
-+
-+Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
-+initial set of pm_qos parameters.
-+
-+The infrastructure exposes multiple misc device nodes one per implemented
-+parameter.  The set of parameters implement is defined by pm_qos_power_init()
-+and pm_qos_params.h.  This is done because having the available parameters
-+being runtime configurable or changeable from a driver was seen as too easy to
-+abuse.
-+
-+For each parameter a list of performance requirements is maintained along with
-+an aggregated target value.  The aggregated target value is updated with
-+changes to the requirement list or elements of the list.  Typically the
-+aggregated target value is simply the max or min of the requirement values held
-+in the parameter list elements.
-+
-+From kernel mode the use of this interface is simple:
-+pm_qos_add_requirement(param_id, name, target_value):
-+Will insert a named element in the list for that identified PM_QOS parameter
-+with the target value.  Upon change to this list the new target is recomputed
-+and any registered notifiers are called only if the target value is now
-+different.
-+
-+pm_qos_update_requirement(param_id, name, new_target_value):
-+Will search the list identified by the param_id for the named list element and
-+then update its target value, calling the notification tree if the aggregated
-+target is changed.  with that name is already registered.
-+
-+pm_qos_remove_requirement(param_id, name):
-+Will search the identified list for the named element and remove it, after
-+removal it will update the aggregate target and call the notification tree if
-+the target was changed as a result of removing the named requirement.
-+
-+
-+From user mode:
-+Only processes can register a pm_qos requirement.  To provide for automatic
-+cleanup for process the interface requires the process to register its
-+parameter requirements in the following way:
-+
-+To register the default pm_qos target for the specific parameter, the process
-+must open one of /dev/[cpu_dma_latency, network_latency, network_throughput]
-+
-+As long as the device node is held open that process has a registered
-+requirement on the parameter.  The name of the requirement is "process_<PID>"
-+derived from the current->pid from within the open system call.
-+
-+To change the requested target value the process needs to write a s32 value to
-+the open device node.  This translates to a pm_qos_update_requirement call.
-+
-+To remove the user mode request for a target value simply close the device
-+node.
-+
-+
-+
-diff -puN /dev/null include/linux/pm_qos_params.h
---- /dev/null
-+++ a/include/linux/pm_qos_params.h
-@@ -0,0 +1,35 @@
-+/* interface for the pm_qos_power infrastructure of the linux kernel.
-+ *
-+ * Mark Gross
-+ */
-+#include <linux/list.h>
-+#include <linux/notifier.h>
-+#include <linux/miscdevice.h>
-+
-+struct requirement_list {
-+	struct list_head list;
-+	union {
-+		s32 value;
-+		s32 usec;
-+		s32 kbps;
-+	};
-+	char *name;
-+};
-+
-+#define PM_QOS_RESERVED 0
-+#define PM_QOS_CPU_DMA_LATENCY 1
-+#define PM_QOS_NETWORK_LATENCY 2
-+#define PM_QOS_NETWORK_THROUGHPUT 3
-+
-+#define PM_QOS_NUM_CLASSES 4
-+#define PM_QOS_DEFAULT_VALUE -1
-+
-+int pm_qos_add_requirement(int qos, char *name, s32 value);
-+int pm_qos_update_requirement(int qos, char *name, s32 new_value);
-+void pm_qos_remove_requirement(int qos, char *name);
-+
-+int pm_qos_requirement(int qos);
-+
-+int pm_qos_add_notifier(int qos, struct notifier_block *notifier);
-+int pm_qos_remove_notifier(int qos, struct notifier_block *notifier);
-+
-diff -puN kernel/Makefile~pm-qos-infrastructure-and-interface kernel/Makefile
---- a/kernel/Makefile~pm-qos-infrastructure-and-interface
-+++ a/kernel/Makefile
-@@ -9,7 +9,7 @@ obj-y     = sched.o fork.o exec_domain.o
- 	    rcupdate.o extable.o params.o posix-timers.o \
- 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
- 	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o \
--	    utsname.o
-+	    utsname.o pm_qos_params.o
+diff -puN Documentation/DMA-mapping.txt~update-dma-mapping-documentation Documentation/DMA-mapping.txt
+--- a/Documentation/DMA-mapping.txt~update-dma-mapping-documentation
++++ a/Documentation/DMA-mapping.txt
+@@ -189,12 +189,6 @@ smaller mask as pci_set_dma_mask(). Howe
+ device driver only uses consistent allocations, one would have to
+ check the return value from pci_set_consistent_dma_mask().
  
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
- obj-y += time/
-diff -puN /dev/null kernel/pm_qos_params.c
---- /dev/null
-+++ a/kernel/pm_qos_params.c
-@@ -0,0 +1,417 @@
-+/*
-+ * This module exposes the interface to kernel space for specifying
-+ * QoS dependencies.  It provides infrastructure for registration of:
-+ *
-+ * Dependents on a QoS value : register requirements
-+ * Watchers of QoS value : get notified when target QoS value changes
-+ *
-+ * This QoS design is best effort based.  Dependents register their QoS needs.
-+ * Watchers register to keep track of the current QoS needs of the system.
-+ *
-+ * There are 3 basic classes of QoS parameter: latency, timeout, throughput
-+ * each have defined units:
-+ * latency: usec
-+ * timeout: usec <-- currently not used.
-+ * throughput: kbs (kilo byte / sec)
-+ *
-+ * There are lists of pm_qos_objects each one wrapping requirements, notifiers
-+ *
-+ * User mode requirements on a QOS parameter register themselves to the
-+ * subsystem by opening the device node /dev/... and writing there request to
-+ * the node.  As long as the process holds a file handle open to the node the
-+ * client continues to be accounted for.  Upon file release the usermode
-+ * requirement is removed and a new qos target is computed.  This way when the
-+ * requirement that the application has is cleaned up when closes the file
-+ * pointer or exits the pm_qos_object will get an opportunity to clean up.
-+ *
-+ * mark gross mgross@linux.intel.com
-+ */
-+
-+#include <linux/pm_qos_params.h>
-+#include <linux/sched.h>
-+#include <linux/spinlock.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/fs.h>
-+#include <linux/device.h>
-+#include <linux/miscdevice.h>
-+#include <linux/string.h>
-+#include <linux/platform_device.h>
-+#include <linux/init.h>
-+
-+#include <linux/uaccess.h>
-+
-+/*
-+ * locking rule: all changes to target_value or requirements or notifiers lists
-+ * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
-+ * held, taken with _irqsave.  One lock to rule them all
-+ */
-+
-+struct pm_qos_object {
-+	struct requirement_list requirements;
-+	struct srcu_notifier_head notifiers;
-+	struct miscdevice pm_qos_power_miscdev;
-+	char *name;
-+	s32 default_value;
-+	s32 target_value;
-+	s32 (*comparitor)(s32, s32);
-+};
-+static struct pm_qos_object pm_qos_array[PM_QOS_NUM_CLASSES];
-+static DEFINE_SPINLOCK(pm_qos_lock);
-+
-+static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
-+		size_t count, loff_t *f_pos);
-+static int pm_qos_power_open(struct inode *inode, struct file *filp);
-+static int pm_qos_power_release(struct inode *inode, struct file *filp);
-+
-+static const struct file_operations pm_qos_power_fops = {
-+	.write = pm_qos_power_write,
-+	.open = pm_qos_power_open,
-+	.release = pm_qos_power_release,
-+};
-+
-+/* static helper functions */
-+static s32 max_compare(s32 v1, s32 v2)
-+{
-+	return max(v1, v2);
-+}
-+
-+static s32 min_compare(s32 v1, s32 v2)
-+{
-+	return min(v1, v2);
-+}
-+
-+/* assumes pm_qos_lock is held */
-+static void update_target(int target)
-+{
-+	s32 extreme_value;
-+	struct requirement_list *node;
-+
-+	extreme_value = pm_qos_array[target].default_value;
-+	list_for_each_entry(node,
-+			&pm_qos_array[target].requirements.list, list) {
-+		extreme_value = pm_qos_array[target].comparitor(
-+				extreme_value, node->value);
-+	}
-+	if (pm_qos_array[target].target_value != extreme_value) {
-+		pm_qos_array[target].target_value = extreme_value;
-+		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
-+			pm_qos_array[target].target_value);
-+		srcu_notifier_call_chain(&pm_qos_array[target].notifiers,
-+			(unsigned long) pm_qos_array[target].target_value,
-+						NULL);
-+	}
-+}
-+
-+static int register_new_pm_qos_misc(struct pm_qos_object *qos)
-+{
-+	qos->pm_qos_power_miscdev.minor = MISC_DYNAMIC_MINOR;
-+	qos->pm_qos_power_miscdev.name = qos->name;
-+	qos->pm_qos_power_miscdev.fops = &pm_qos_power_fops;
-+
-+	return misc_register(&qos->pm_qos_power_miscdev);
-+}
-+
-+
-+/* constructors */
-+static int init_pm_qos_object(int pm_qos_class, const char *name,
-+			s32 default_value, s32 (*comparitor)(s32, s32))
-+{
-+	int ret = -ENOMEM;
-+	struct pm_qos_object *qos = NULL;
-+
-+	if (pm_qos_class < PM_QOS_NUM_CLASSES) {
-+		qos = &pm_qos_array[pm_qos_class];
-+		qos->name = kstrdup(name, GFP_KERNEL);
-+		if (!qos->name)
-+			goto cleanup;
-+
-+		qos->default_value = default_value;
-+		qos->target_value = default_value;
-+		qos->comparitor = comparitor;
-+		srcu_init_notifier_head(&qos->notifiers);
-+		INIT_LIST_HEAD(&qos->requirements.list);
-+		ret = register_new_pm_qos_misc(qos);
-+		if (ret < 0)
-+			goto cleanup;
-+	} else
-+		ret = -EINVAL;
-+
-+	return ret;
-+cleanup:
-+	kfree(qos->name);
-+
-+	return ret;
-+}
-+
-+static int find_pm_qos_object_by_minor(int minor)
-+{
-+	int pm_qos_class;
-+
-+	for (pm_qos_class = 0;
-+		pm_qos_class < PM_QOS_NUM_CLASSES; pm_qos_class++) {
-+		if (minor ==
-+			pm_qos_array[pm_qos_class].pm_qos_power_miscdev.minor)
-+			return pm_qos_class;
-+	}
-+	return -1;
-+}
-+
-+static int new_latency_qos(int pm_qos_class, const char *name)
-+{
-+	return init_pm_qos_object(pm_qos_class, name, 2000 * USEC_PER_SEC,
-+			min_compare);
-+	/* 2000 sec is about infinite */
-+}
-+
-+static int new_throughput_qos(int pm_qos_class, const char *name)
-+{
-+	return init_pm_qos_object(pm_qos_class, name, 0, max_compare);
-+}
-+
-+/**
-+ * pm_qos_requirement - returns current system wide qos expectation
-+ * @pm_qos_class: identification of which qos value is requested
-+ *
-+ * This function returns the current target value in an atomic manner.
-+ */
-+int pm_qos_requirement(int pm_qos_class)
-+{
-+	int ret_val;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pm_qos_lock, flags);
-+	ret_val = pm_qos_array[pm_qos_class].target_value;
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+	return ret_val;
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_requirement);
-+
-+/**
-+ * pm_qos_add_requirement - inserts new qos request into the list
-+ * @pm_qos_class: identifies which list of qos request to us
-+ * @name: identifies the request
-+ * @value: defines the qos request
-+ *
-+ * This function inserts a new entry in the pm_qos_class list of requested qos
-+ * performance charactoistics.  It recomputes the agregate QoS expectations for
-+ * the pm_qos_class of parrameters.
-+ */
-+int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
-+{
-+	struct requirement_list *dep;
-+	unsigned long flags;
-+
-+	dep = kzalloc(sizeof(struct requirement_list), GFP_KERNEL);
-+	if (dep) {
-+		if (value == PM_QOS_DEFAULT_VALUE)
-+			dep->value = pm_qos_array[pm_qos_class].default_value;
-+		else
-+			dep->value = value;
-+		dep->name = kstrdup(name, GFP_KERNEL);
-+		if (!dep->name)
-+			goto cleanup;
-+
-+		spin_lock_irqsave(&pm_qos_lock, flags);
-+		list_add(&dep->list,
-+			&pm_qos_array[pm_qos_class].requirements.list);
-+		update_target(pm_qos_class);
-+		spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+		return 0;
-+	}
-+
-+cleanup:
-+	kfree(dep);
-+	return -ENOMEM;
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_add_requirement);
-+
-+/**
-+ * pm_qos_update_requirement - modifies an existing qos request
-+ * @pm_qos_class: identifies which list of qos request to us
-+ * @name: identifies the request
-+ * @value: defines the qos request
-+ *
-+ * Updates an existing qos requierement for the pm_qos_class of parameters along
-+ * with updating the target pm_qos_class value.
-+ *
-+ * If the named request isn't in the lest then no change is made.
-+ */
-+int pm_qos_update_requirement(int pm_qos_class, char *name, s32 new_value)
-+{
-+	unsigned long flags;
-+	struct requirement_list *node;
-+	int pending_update = 0;
-+
-+	spin_lock_irqsave(&pm_qos_lock, flags);
-+	list_for_each_entry(node,
-+		&pm_qos_array[pm_qos_class].requirements.list, list) {
-+		if (strcmp(node->name, name) == 0) {
-+			if (new_value == PM_QOS_DEFAULT_VALUE)
-+				node->value =
-+				pm_qos_array[pm_qos_class].default_value;
-+			else
-+				node->value = new_value;
-+			pending_update = 1;
-+			break;
-+		}
-+	}
-+	if (pending_update)
-+		update_target(pm_qos_class);
-+
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_update_requirement);
-+
-+/**
-+ * pm_qos_remove_requirement - modifies an existing qos request
-+ * @pm_qos_class: identifies which list of qos request to us
-+ * @name: identifies the request
-+ *
-+ * Will remove named qos request from pm_qos_class list of parrameters and
-+ * recompute the current target value for the pm_qos_class.
-+ */
-+void pm_qos_remove_requirement(int pm_qos_class, char *name)
-+{
-+	unsigned long flags;
-+	struct requirement_list *node;
-+	int pending_update = 0;
-+
-+	spin_lock_irqsave(&pm_qos_lock, flags);
-+	list_for_each_entry(node,
-+		&pm_qos_array[pm_qos_class].requirements.list, list) {
-+		if (strcmp(node->name, name) == 0) {
-+			kfree(node->name);
-+			list_del(&node->list);
-+			kfree(node);
-+			pending_update = 1;
-+			break;
-+		}
-+	}
-+	if (pending_update)
-+		update_target(pm_qos_class);
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_remove_requirement);
-+
-+/**
-+ * pm_qos_add_notifier - sets notification entry for changes to target value
-+ * @pm_qos_class: identifies which qos target changes should be notified.
-+ * @notifier: notifier block managed by caller.
-+ *
-+ * will register the notifier into a notification chain that gets called
-+ * uppon changes to the pm_qos_class target value.
-+ */
-+ int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
-+{
-+	unsigned long flags;
-+	int retval;
-+
-+	spin_lock_irqsave(&pm_qos_lock, flags);
-+	retval = srcu_notifier_chain_register(
-+			&pm_qos_array[pm_qos_class].notifiers, notifier);
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+	return retval;
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
-+
-+/**
-+ * pm_qos_remove_notifier - deletes notification entry from chain.
-+ * @pm_qos_class: identifies which qos target changes are notified.
-+ * @notifier: notifier block to be removed.
-+ *
-+ * will remove the notifier from the notification chain that gets called
-+ * uppon changes to the pm_qos_class target value.
-+ */
-+int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
-+{
-+	unsigned long flags;
-+	int retval;
-+
-+	spin_lock_irqsave(&pm_qos_lock, flags);
-+	retval = srcu_notifier_chain_unregister(
-+			&pm_qos_array[pm_qos_class].notifiers, notifier);
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+	return retval;
-+}
-+EXPORT_SYMBOL_GPL(pm_qos_remove_notifier);
-+
-+#define PID_NAME_LEN sizeof("process_1234567890")
-+static char name[PID_NAME_LEN];
-+
-+static int pm_qos_power_open(struct inode *inode, struct file *filp)
-+{
-+	int ret;
-+	int pm_qos_class;
-+
-+	pm_qos_class = find_pm_qos_object_by_minor(iminor(inode));
-+	if (pm_qos_class >= 0) {
-+		filp->private_data = (void *) pm_qos_class;
-+		sprintf(name, "process_%d", current->pid);
-+		ret = pm_qos_add_requirement(pm_qos_class, name,
-+					PM_QOS_DEFAULT_VALUE);
-+		if (ret >= 0)
-+			return 0;
-+	}
-+
-+	return -EPERM;
-+}
-+
-+static int pm_qos_power_release(struct inode *inode, struct file *filp)
-+{
-+	int pm_qos_class;
-+
-+	pm_qos_class = (int) filp->private_data;
-+	sprintf(name, "process_%d", current->pid);
-+	pm_qos_remove_requirement(pm_qos_class, name);
-+
-+	return 0;
-+}
-+
-+static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
-+		size_t count, loff_t *f_pos)
-+{
-+	s32 value;
-+	int pm_qos_class;
-+
-+	pm_qos_class = (int) filp->private_data;
-+	if (count != sizeof(s32))
-+		return -EINVAL;
-+	if (copy_from_user(&value, buf, sizeof(s32)))
-+		return -EFAULT;
-+	sprintf(name, "process_%d", current->pid);
-+	pm_qos_update_requirement(pm_qos_class, name, value);
-+
-+	return  sizeof(s32);
-+}
-+
-+
-+static int __init pm_qos_power_init(void)
-+{
-+	int ret = 0;
-+	ret = new_latency_qos(PM_QOS_CPU_DMA_LATENCY, "cpu_dma_latency");
-+	if (ret < 0) {
-+		printk(KERN_ERR "pm_qos_param: cpu_dma_latency setup failed\n");
-+		return ret;
-+	}
-+	ret = new_latency_qos(PM_QOS_NETWORK_LATENCY, "network_latency");
-+	if (ret < 0) {
-+		printk(KERN_ERR "pm_qos_param: network_latency setup failed\n");
-+		return ret;
-+	}
-+	ret = new_throughput_qos(PM_QOS_NETWORK_THROUGHPUT,
-+			"network_throughput");
-+	if (ret < 0)
-+		printk(KERN_ERR
-+			"pm_qos_param: network_throughput setup failed\n");
-+
-+	return ret;
-+}
-+
-+late_initcall(pm_qos_power_init);
+-If your 64-bit device is going to be an enormous consumer of DMA
+-mappings, this can be problematic since the DMA mappings are a
+-finite resource on many platforms.  Please see the "DAC Addressing
+-for Address Space Hungry Devices" section near the end of this
+-document for how to handle this case.
+-
+ Finally, if your device can only drive the low 24-bits of
+ address during PCI bus mastering you might do something like:
+ 
+@@ -203,8 +197,6 @@ address during PCI bus mastering you mig
+ 		       "mydev: 24-bit DMA addressing not available.\n");
+ 		goto ignore_this_device;
+ 	}
+-[Better use DMA_24BIT_MASK instead of 0x00ffffff.
+-See linux/include/dma-mapping.h for reference.]
+ 
+ When pci_set_dma_mask() is successful, and returns zero, the PCI layer
+ saves away this mask you have provided.  The PCI layer will use this
+@@ -652,18 +644,6 @@ It is planned to completely remove virt_
+ they are entirely deprecated.  Some ports already do not provide these
+ as it is impossible to correctly support them.
+ 
+-		64-bit DMA and DAC cycle support
+-
+-Do you understand all of the text above?  Great, then you already
+-know how to use 64-bit DMA addressing under Linux.  Simply make
+-the appropriate pci_set_dma_mask() calls based upon your cards
+-capabilities, then use the mapping APIs above.
+-
+-It is that simple.
+-
+-Well, not for some odd devices.  See the next section for information
+-about that.
+-
+ 		Optimizing Unmap State Space Consumption
+ 
+ On many platforms, pci_unmap_{single,page}() is simply a nop.
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
-pm-qos-infrastructure-and-interface.patch
-latencyc-use-qos-infrastructure.patch
+git-scsi-misc.patch
+update-dma-mapping-documentation.patch
+make-sure-nobodys-leaking-resources.patch
