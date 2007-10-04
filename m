@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-fix-for-iommu-early-crash.patch removed from -mm tree
-Date: Thu, 04 Oct 2007 13:01:27 -0700
-Message-ID: <200710042001.l94K1SKd026332@imap1.linux-foundation.org>
+Subject: + intel-iommu-fix-for-iommu-early-crash-2.patch added to -mm tree
+Date: Thu, 04 Oct 2007 13:03:05 -0700
+Message-ID: <200710042003.l94K35gI026358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757243AbXJDUBg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 16:01:36 -0400
+	by vger.kernel.org with ESMTP id S1756116AbXJDUDN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 16:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anil.s.keshavamurthy@intel.com, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
      intel-iommu: fix for IOMMU early crash
-has been removed from the -mm tree.  Its filename was
-     intel-iommu-fix-for-iommu-early-crash.patch
+has been added to the -mm tree.  Its filename is
+     intel-iommu-fix-for-iommu-early-crash-2.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: intel-iommu: fix for IOMMU early crash
@@ -27,25 +31,26 @@ From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 pci_dev's->sysdata is highly overloaded and currently IOMMU is broken due
 to IOMMU code depending on this field.
 
-This patch introduces new field in pci_dev's struct to hold IOMMU specific
-per device IOMMU private data.
+This patch introduces new field in pci_dev's dev.archdata struct to hold
+IOMMU specific per device IOMMU private data.
 
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Greg KH <greg@kroah.com>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash-2 drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash-2
 +++ a/drivers/pci/intel-iommu.c
 @@ -1348,7 +1348,7 @@ static void domain_remove_dev_info(struc
  		list_del(&info->link);
  		list_del(&info->global);
  		if (info->dev)
 -			info->dev->sysdata = NULL;
-+			info->dev->iommu_private = NULL;
++			info->dev->dev.archdata.iommu = NULL;
  		spin_unlock_irqrestore(&device_domain_lock, flags);
  
  		detach_domain_for_dev(info->domain, info->bus, info->devfn);
@@ -54,7 +59,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  /*
   * find_domain
 - * Note: we use struct pci_dev->sysdata stores the info
-+ * Note: we use struct pci_dev->iommu_private stores the info
++ * Note: we use struct pci_dev->dev.archdata.iommu stores the info
   */
  struct dmar_domain *
  find_domain(struct pci_dev *pdev)
@@ -63,7 +68,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  
  	/* No lock here, assumes no domain exit in normal case */
 -	info = pdev->sysdata;
-+	info = pdev->iommu_private;
++	info = pdev->dev.archdata.iommu;
  	if (info)
  		return info->domain;
  	return NULL;
@@ -72,7 +77,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  	list_add(&info->link, &domain->devices);
  	list_add(&info->global, &device_domain_list);
 -	pdev->sysdata = info;
-+	pdev->iommu_private = info;
++	pdev->dev.archdata.iommu = info;
  	spin_unlock_irqrestore(&device_domain_lock, flags);
  	return domain;
  error:
@@ -81,7 +86,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  	struct pci_dev *pdev)
  {
 -	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
  		return 0;
  	return iommu_prepare_identity_map(pdev, rmrr->base_address,
  		rmrr->end_address + 1);
@@ -90,7 +95,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  
  	for_each_pci_dev(pdev) {
 -		if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO ||
-+		if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO ||
++		if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO ||
  				!IS_GFX_DEVICE(pdev))
  			continue;
  		printk(KERN_INFO "IOMMU: gfx device %s 1-1 mapping\n",
@@ -99,7 +104,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  
  	BUG_ON(dir == DMA_NONE);
 -	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
  		return virt_to_bus(addr);
  
  	domain = get_valid_domain_for_dev(pdev);
@@ -108,7 +113,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  	struct iova *iova;
  
 -	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
  		return;
  	domain = find_domain(pdev);
  	BUG_ON(!domain);
@@ -117,7 +122,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  	void *addr;
  
 -	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
  		return;
  
  	domain = find_domain(pdev);
@@ -126,7 +131,7 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  
  	BUG_ON(dir == DMA_NONE);
 -	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
-+	if (pdev->iommu_private == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
  		return intel_nontranslate_map_sg(hwdev, sg, nelems, dir);
  
  	domain = get_valid_domain_for_dev(pdev);
@@ -135,21 +140,23 @@ diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash driver
  			if (!drhd->devices[i])
  				continue;
 -			drhd->devices[i]->sysdata = DUMMY_DEVICE_DOMAIN_INFO;
-+			drhd->devices[i]->iommu_private = DUMMY_DEVICE_DOMAIN_INFO;
++			drhd->devices[i]->dev.archdata.iommu = DUMMY_DEVICE_DOMAIN_INFO;
  		}
  	}
  }
-diff -puN include/linux/pci.h~intel-iommu-fix-for-iommu-early-crash include/linux/pci.h
---- a/include/linux/pci.h~intel-iommu-fix-for-iommu-early-crash
-+++ a/include/linux/pci.h
-@@ -195,6 +195,7 @@ struct pci_dev {
- #ifdef CONFIG_PCI_MSI
- 	struct list_head msi_list;
+diff -puN include/asm-x86_64/device.h~intel-iommu-fix-for-iommu-early-crash-2 include/asm-x86_64/device.h
+--- a/include/asm-x86_64/device.h~intel-iommu-fix-for-iommu-early-crash-2
++++ a/include/asm-x86_64/device.h
+@@ -10,6 +10,9 @@ struct dev_archdata {
+ #ifdef CONFIG_ACPI
+ 	void	*acpi_handle;
  #endif
-+	void		*iommu_private;	/* hook for IOMMU specific extension */
++#ifdef CONFIG_DMAR
++	void *iommu; /* hook for IOMMU specific extension */
++#endif
  };
  
- extern struct pci_dev *alloc_pci_dev(void);
+ #endif /* _ASM_X86_64_DEVICE_H */
 _
 
 Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
@@ -169,5 +176,5 @@ intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
 intel-iommu-iommu-floppy-workaround.patch
 intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
 intel-iommu-optimize-sg-map-unmap-calls.patch
-intel-iommu-fix-for-iommu-early-crash.patch
+intel-iommu-fix-for-iommu-early-crash-2.patch
 git-block-intel-iommu-sg-chaining-support.patch
