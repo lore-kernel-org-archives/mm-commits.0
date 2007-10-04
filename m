@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-support-bsd-locking-semantics.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:12 -0700
-Message-ID: <200710042257.l94MvCpH032747@imap1.linux-foundation.org>
+Subject: + fuse-add-atomic-opentruncate-support.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:10 -0700
+Message-ID: <200710042257.l94MvAw4032744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760731AbXJDW5S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:18 -0400
+	by vger.kernel.org with ESMTP id S1760765AbXJDW5R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: support BSD locking semantics
+     fuse: add atomic open+truncate support
 has been added to the -mm tree.  Its filename is
-     fuse-support-bsd-locking-semantics.patch
+     fuse-add-atomic-opentruncate-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,145 +25,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: support BSD locking semantics
+Subject: fuse: add atomic open+truncate support
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-It is trivial to add support for flock(2) semantics to the existing protocol,
-by setting the lock owner field to the file pointer, and passing a new
-FUSE_LK_FLOCK flag with the locking request.
+This patch allows fuse filesystems to implement open(..., O_TRUNC) as a single
+request, instead of separate truncate and open requests.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/file.c~fuse-support-bsd-locking-semantics fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-support-bsd-locking-semantics
-+++ a/fs/fuse/file.c
-@@ -699,7 +699,8 @@ static int convert_fuse_file_lock(const 
- }
+diff -puN fs/fuse/dir.c~fuse-add-atomic-opentruncate-support fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-atomic-opentruncate-support
++++ a/fs/fuse/dir.c
+@@ -1083,6 +1083,9 @@ static int fuse_do_setattr(struct dentry
+ 			return err;
+ 	}
  
- static void fuse_lk_fill(struct fuse_req *req, struct file *file,
--			 const struct file_lock *fl, int opcode, pid_t pid)
-+			 const struct file_lock *fl, int opcode, pid_t pid,
-+			 int flock)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-@@ -712,6 +713,8 @@ static void fuse_lk_fill(struct fuse_req
- 	arg->lk.end = fl->fl_end;
- 	arg->lk.type = fl->fl_type;
- 	arg->lk.pid = pid;
-+	if (flock)
-+		arg->lk_flags |= FUSE_LK_FLOCK;
- 	req->in.h.opcode = opcode;
++	if ((attr->ia_valid & ATTR_OPEN) && fc->atomic_o_trunc)
++		return 0;
++
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		unsigned long limit;
+ 		if (IS_SWAPFILE(inode))
+diff -puN fs/fuse/file.c~fuse-add-atomic-opentruncate-support fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-atomic-opentruncate-support
++++ a/fs/fuse/file.c
+@@ -28,7 +28,9 @@ static int fuse_send_open(struct inode *
+ 		return PTR_ERR(req);
+ 
+ 	memset(&inarg, 0, sizeof(inarg));
+-	inarg.flags = file->f_flags & ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
++	inarg.flags = file->f_flags & ~(O_CREAT | O_EXCL | O_NOCTTY);
++	if (!fc->atomic_o_trunc)
++		inarg.flags &= ~O_TRUNC;
+ 	req->in.h.opcode = isdir ? FUSE_OPENDIR : FUSE_OPEN;
  	req->in.h.nodeid = get_node_id(inode);
  	req->in.numargs = 1;
-@@ -731,7 +734,7 @@ static int fuse_getlk(struct file *file,
- 	if (IS_ERR(req))
- 		return PTR_ERR(req);
+diff -puN fs/fuse/fuse_i.h~fuse-add-atomic-opentruncate-support fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-atomic-opentruncate-support
++++ a/fs/fuse/fuse_i.h
+@@ -320,6 +320,9 @@ struct fuse_conn {
+ 	/** Do readpages asynchronously?  Only set in INIT */
+ 	unsigned async_read : 1;
  
--	fuse_lk_fill(req, file, fl, FUSE_GETLK, 0);
-+	fuse_lk_fill(req, file, fl, FUSE_GETLK, 0, 0);
- 	req->out.numargs = 1;
- 	req->out.args[0].size = sizeof(outarg);
- 	req->out.args[0].value = &outarg;
-@@ -744,7 +747,7 @@ static int fuse_getlk(struct file *file,
- 	return err;
- }
- 
--static int fuse_setlk(struct file *file, struct file_lock *fl)
-+static int fuse_setlk(struct file *file, struct file_lock *fl, int flock)
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-@@ -761,7 +764,7 @@ static int fuse_setlk(struct file *file,
- 	if (IS_ERR(req))
- 		return PTR_ERR(req);
- 
--	fuse_lk_fill(req, file, fl, opcode, pid);
-+	fuse_lk_fill(req, file, fl, opcode, pid, flock);
- 	request_send(fc, req);
- 	err = req->out.h.error;
- 	/* locking is restartable */
-@@ -787,11 +790,28 @@ static int fuse_file_lock(struct file *f
- 		if (fc->no_lock)
- 			err = posix_lock_file_wait(file, fl);
- 		else
--			err = fuse_setlk(file, fl);
-+			err = fuse_setlk(file, fl, 0);
- 	}
- 	return err;
- }
- 
-+static int fuse_file_flock(struct file *file, int cmd, struct file_lock *fl)
-+{
-+	struct inode *inode = file->f_path.dentry->d_inode;
-+	struct fuse_conn *fc = get_fuse_conn(inode);
-+	int err;
++	/** Do not send separate SETATTR request before open(O_TRUNC)  */
++	unsigned atomic_o_trunc : 1;
 +
-+	if (fc->no_lock) {
-+		err = flock_lock_file_wait(file, fl);
-+	} else {
-+		/* emulate flock with POSIX locks */
-+		fl->fl_owner = (fl_owner_t) file;
-+		err = fuse_setlk(file, fl, 1);
-+	}
-+
-+	return err;
-+}
-+
- static sector_t fuse_bmap(struct address_space *mapping, sector_t block)
- {
- 	struct inode *inode = mapping->host;
-@@ -840,6 +860,7 @@ static const struct file_operations fuse
- 	.release	= fuse_release,
- 	.fsync		= fuse_fsync,
- 	.lock		= fuse_file_lock,
-+	.flock		= fuse_file_flock,
- 	.splice_read	= generic_file_splice_read,
- };
- 
-@@ -852,6 +873,7 @@ static const struct file_operations fuse
- 	.release	= fuse_release,
- 	.fsync		= fuse_fsync,
- 	.lock		= fuse_file_lock,
-+	.flock		= fuse_file_flock,
- 	/* no mmap and splice_read */
- };
- 
-diff -puN include/linux/fuse.h~fuse-support-bsd-locking-semantics include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-support-bsd-locking-semantics
+ 	/*
+ 	 * The following bitfields are only for optimization purposes
+ 	 * and hence races in setting them will not cause malfunction
+diff -puN fs/fuse/inode.c~fuse-add-atomic-opentruncate-support fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-atomic-opentruncate-support
++++ a/fs/fuse/inode.c
+@@ -548,6 +548,8 @@ static void process_init_reply(struct fu
+ 				fc->async_read = 1;
+ 			if (!(arg->flags & FUSE_POSIX_LOCKS))
+ 				fc->no_lock = 1;
++			if (arg->flags & FUSE_ATOMIC_O_TRUNC)
++				fc->atomic_o_trunc = 1;
+ 		} else {
+ 			ra_pages = fc->max_read / PAGE_CACHE_SIZE;
+ 			fc->no_lock = 1;
+@@ -570,7 +572,8 @@ static void fuse_send_init(struct fuse_c
+ 	arg->major = FUSE_KERNEL_VERSION;
+ 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
+ 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
+-	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS;
++	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS |
++		FUSE_ATOMIC_O_TRUNC;
+ 	req->in.h.opcode = FUSE_INIT;
+ 	req->in.numargs = 1;
+ 	req->in.args[0].size = sizeof(*arg);
+diff -puN include/linux/fuse.h~fuse-add-atomic-opentruncate-support include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-atomic-opentruncate-support
 +++ a/include/linux/fuse.h
-@@ -13,6 +13,7 @@
-  *
-  * 7.9:
-  *  - new fuse_getattr_in input argument of GETATTR
-+ *  - add lk_flags in fuse_lk_in
-  */
+@@ -101,6 +101,7 @@ struct fuse_file_lock {
+ #define FUSE_ASYNC_READ		(1 << 0)
+ #define FUSE_POSIX_LOCKS	(1 << 1)
+ #define FUSE_FILE_OPS		(1 << 2)
++#define FUSE_ATOMIC_O_TRUNC	(1 << 3)
  
- #include <asm/types.h>
-@@ -113,6 +114,11 @@ struct fuse_file_lock {
-  */
- #define FUSE_GETATTR_FH		(1 << 0)
- 
-+/**
-+ * Lock flags
-+ */
-+#define FUSE_LK_FLOCK		(1 << 0)
-+
- enum fuse_opcode {
- 	FUSE_LOOKUP	   = 1,
- 	FUSE_FORGET	   = 2,  /* no reply */
-@@ -295,6 +301,8 @@ struct fuse_lk_in {
- 	__u64	fh;
- 	__u64	owner;
- 	struct fuse_file_lock lk;
-+	__u32	lk_flags;
-+	__u32	padding;
- };
- 
- struct fuse_lk_out {
+ /**
+  * Release flags
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
