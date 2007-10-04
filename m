@@ -1,237 +1,253 @@
 From: akpm@linux-foundation.org
-Subject: + change-struct-marker-users.patch added to -mm tree
-Date: Wed, 03 Oct 2007 15:22:25 -0700
-Message-ID: <200710032222.l93MMPd0011585@imap1.linux-foundation.org>
+Subject: - f_dupfd_cloexec-implementation-fix.patch removed from -mm tree
+Date: Wed, 03 Oct 2007 21:18:18 -0700
+Message-ID: <200710040418.l944IIRg023294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41197 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756810AbXJCWXc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2007 18:23:32 -0400
+	by vger.kernel.org with ESMTP id S1752341AbXJDESt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 00:18:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, James.Bottomley@SteelEye.com, ctindel@users.sourceforge.net, david.somayajulu@qlogic.com, fubar@us.ibm.com, ravi.anand@qlogic.com
+To: akpm@linux-foundation.org, drepper@redhat.com, hch@lst.de, kyle@mcmartin.ca, linux-arch@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Change struct marker users
-has been added to the -mm tree.  Its filename is
-     change-struct-marker-users.patch
+     f_dupfd_cloexec-implementation-fix
+has been removed from the -mm tree.  Its filename was
+     f_dupfd_cloexec-implementation-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Change struct marker users
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: f_dupfd_cloexec-implementation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Prior to use struct marker in the linux kernel markers, we need to clean
-two drivers which use this structure name.
+ok?
 
-Change bonding driver types :
-- struct marker to struct bond_marker.
-- marker_t to bond_marker_t.
-- marker_header to bond_marker_header.
-- marker_header_t to bond_marker_header_t.
-
-Change qla4xxx struct marker_entry usage :
-- Change struct marker_entry for struct qla4_marker_entry.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Chad Tindel <ctindel@users.sourceforge.net>
-Cc: Jay Vosburgh <fubar@us.ibm.com>
-Cc: David Somayajulu <david.somayajulu@qlogic.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Ravi Anand <ravi.anand@qlogic.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/net/bonding/bond_3ad.c~change-struct-marker-users drivers/net/bonding/bond_3ad.c
---- a/drivers/net/bonding/bond_3ad.c~change-struct-marker-users
-+++ a/drivers/net/bonding/bond_3ad.c
-@@ -126,7 +126,7 @@ static struct aggregator *__get_active_a
+diff -puN include/asm-parisc/fcntl.h~f_dupfd_cloexec-implementation-fix include/asm-parisc/fcntl.h
+--- a/include/asm-parisc/fcntl.h~f_dupfd_cloexec-implementation-fix
++++ a/include/asm-parisc/fcntl.h
+@@ -28,6 +28,7 @@
+ #define F_SETOWN	12	/*  for sockets. */
+ #define F_SETSIG	13	/*  for sockets. */
+ #define F_GETSIG	14	/*  for sockets. */
++#define F_DUPFD_CLOEXEC 15
  
- // ================= main 802.3ad protocol functions ==================
- static int ad_lacpdu_send(struct port *port);
--static int ad_marker_send(struct port *port, struct marker *marker);
-+static int ad_marker_send(struct port *port, struct bond_marker *marker);
- static void ad_mux_machine(struct port *port);
- static void ad_rx_machine(struct lacpdu *lacpdu, struct port *port);
- static void ad_tx_machine(struct port *port);
-@@ -139,8 +139,8 @@ static void ad_initialize_port(struct po
- static void ad_initialize_lacpdu(struct lacpdu *Lacpdu);
- static void ad_enable_collecting_distributing(struct port *port);
- static void ad_disable_collecting_distributing(struct port *port);
--static void ad_marker_info_received(struct marker *marker_info, struct port *port);
--static void ad_marker_response_received(struct marker *marker, struct port *port);
-+static void ad_marker_info_received(struct bond_marker *marker_info, struct port *port);
-+static void ad_marker_response_received(struct bond_marker *marker, struct port *port);
- 
- 
- /////////////////////////////////////////////////////////////////////////////////
-@@ -889,12 +889,12 @@ static int ad_lacpdu_send(struct port *p
-  * Returns:   0 on success
-  *          < 0 on error
-  */
--static int ad_marker_send(struct port *port, struct marker *marker)
-+static int ad_marker_send(struct port *port, struct bond_marker *marker)
- {
- 	struct slave *slave = port->slave;
- 	struct sk_buff *skb;
--	struct marker_header *marker_header;
--	int length = sizeof(struct marker_header);
-+	struct bond_marker_header *marker_header;
-+	int length = sizeof(struct bond_marker_header);
- 	struct mac_addr lacpdu_multicast_address = AD_MULTICAST_LACPDU_ADDR;
- 
- 	skb = dev_alloc_skb(length + 16);
-@@ -909,7 +909,7 @@ static int ad_marker_send(struct port *p
- 	skb->network_header = skb->mac_header + ETH_HLEN;
- 	skb->protocol = PKT_TYPE_LACPDU;
- 
--	marker_header = (struct marker_header *)skb_put(skb, length);
-+	marker_header = (struct bond_marker_header *)skb_put(skb, length);
- 
- 	marker_header->ad_header.destination_address = lacpdu_multicast_address;
- 	/* Note: source addres is set to be the member's PERMANENT address, because we use it
-@@ -1709,7 +1709,7 @@ static void ad_disable_collecting_distri
-  */
- static void ad_marker_info_send(struct port *port)
- {
--	struct marker marker;
-+	struct bond_marker marker;
- 	u16 index;
- 
- 	// fill the marker PDU with the appropriate values
-@@ -1742,13 +1742,14 @@ static void ad_marker_info_send(struct p
-  * @port: the port we're looking at
-  *
-  */
--static void ad_marker_info_received(struct marker *marker_info,struct port *port)
-+static void ad_marker_info_received(struct bond_marker *marker_info,
-+	struct port *port)
- {
--	struct marker marker;
-+	struct bond_marker marker;
- 
- 	// copy the received marker data to the response marker
- 	//marker = *marker_info;
--	memcpy(&marker, marker_info, sizeof(struct marker));
-+	memcpy(&marker, marker_info, sizeof(struct bond_marker));
- 	// change the marker subtype to marker response
- 	marker.tlv_type=AD_MARKER_RESPONSE_SUBTYPE;
- 	// send the marker response
-@@ -1767,7 +1768,8 @@ static void ad_marker_info_received(stru
-  * response for marker PDU's, in this stage, but only to respond to marker
-  * information.
-  */
--static void ad_marker_response_received(struct marker *marker, struct port *port)
-+static void ad_marker_response_received(struct bond_marker *marker,
-+	struct port *port)
- {
- 	marker=NULL; // just to satisfy the compiler
- 	port=NULL;  // just to satisfy the compiler
-@@ -2164,15 +2166,15 @@ static void bond_3ad_rx_indication(struc
- 		case AD_TYPE_MARKER:
- 			// No need to convert fields to Little Endian since we don't use the marker's fields.
- 
--			switch (((struct marker *)lacpdu)->tlv_type) {
-+			switch (((struct bond_marker *)lacpdu)->tlv_type) {
- 			case AD_MARKER_INFORMATION_SUBTYPE:
- 				dprintk("Received Marker Information on port %d\n", port->actor_port_number);
--				ad_marker_info_received((struct marker *)lacpdu, port);
-+				ad_marker_info_received((struct bond_marker *)lacpdu, port);
- 				break;
- 
- 			case AD_MARKER_RESPONSE_SUBTYPE:
- 				dprintk("Received Marker Response on port %d\n", port->actor_port_number);
--				ad_marker_response_received((struct marker *)lacpdu, port);
-+				ad_marker_response_received((struct bond_marker *)lacpdu, port);
- 				break;
- 
- 			default:
-diff -puN drivers/net/bonding/bond_3ad.h~change-struct-marker-users drivers/net/bonding/bond_3ad.h
---- a/drivers/net/bonding/bond_3ad.h~change-struct-marker-users
-+++ a/drivers/net/bonding/bond_3ad.h
-@@ -92,7 +92,7 @@ typedef enum {
- typedef enum {
- 	AD_MARKER_INFORMATION_SUBTYPE = 1, // marker imformation subtype
- 	AD_MARKER_RESPONSE_SUBTYPE     // marker response subtype
--} marker_subtype_t;
-+} bond_marker_subtype_t;
- 
- // timers types(43.4.9 in the 802.3ad standard)
- typedef enum {
-@@ -148,7 +148,7 @@ typedef struct lacpdu_header {
- } lacpdu_header_t;
- 
- // Marker Protocol Data Unit(PDU) structure(43.5.3.2 in the 802.3ad standard)
--typedef struct marker {
-+typedef struct bond_marker {
- 	u8 subtype;		 //  = 0x02  (marker PDU)
- 	u8 version_number;	 //  = 0x01
- 	u8 tlv_type;		 //  = 0x01  (marker information)
-@@ -161,12 +161,12 @@ typedef struct marker {
- 	u8 tlv_type_terminator;	     //  = 0x00
- 	u8 terminator_length;	     //  = 0x00
- 	u8 reserved_90[90];	     //  = 0
--} marker_t;
-+} bond_marker_t;
- 
--typedef struct marker_header {
-+typedef struct bond_marker_header {
- 	struct ad_header ad_header;
--	struct marker marker;
--} marker_header_t;
-+	struct bond_marker marker;
-+} bond_marker_header_t;
- 
- #pragma pack()
- 
-diff -puN drivers/scsi/qla4xxx/ql4_fw.h~change-struct-marker-users drivers/scsi/qla4xxx/ql4_fw.h
---- a/drivers/scsi/qla4xxx/ql4_fw.h~change-struct-marker-users
-+++ a/drivers/scsi/qla4xxx/ql4_fw.h
-@@ -671,7 +671,7 @@ struct continuation_t1_entry {
- #define ET_CONTINUE	ET_CONT_T1
- 
- /* Marker entry structure*/
--struct marker_entry {
-+struct qla4_marker_entry {
- 	struct qla4_header hdr;	/* 00-03 */
- 
- 	uint32_t system_defined; /* 04-07 */
-diff -puN drivers/scsi/qla4xxx/ql4_iocb.c~change-struct-marker-users drivers/scsi/qla4xxx/ql4_iocb.c
---- a/drivers/scsi/qla4xxx/ql4_iocb.c~change-struct-marker-users
-+++ a/drivers/scsi/qla4xxx/ql4_iocb.c
-@@ -69,7 +69,7 @@ static int qla4xxx_get_req_pkt(struct sc
- static int qla4xxx_send_marker_iocb(struct scsi_qla_host *ha,
- 				    struct ddb_entry *ddb_entry, int lun)
- {
--	struct marker_entry *marker_entry;
-+	struct qla4_marker_entry *marker_entry;
- 	unsigned long flags = 0;
- 	uint8_t status = QLA_SUCCESS;
- 
+ /* for posix fcntl() and lockf() */
+ #define F_RDLCK		01
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-powerpc-include-pagemaph-in-asm-powerpc-tlbh.patch
-fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
-local_t-documentation-update-2.patch
-local_t-update-documentation.patch
-change-struct-marker-users.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-linux-kernel-markers.patch
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+fix-ide-legacy-mode-resources.patch
+git-s390.patch
+git-sched.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-nmi_watchdog-fix-to-be-more-like-i386.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+f_dupfd_cloexec-implementation-fix.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
 linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-alignment-fix.patch
-add-samples-subdir.patch
-linux-kernel-markers-samples.patch
 linux-kernel-markers-samples-checkpatch-fixes.patch
-linux-kernel-markers-samples-coding-style-fix.patch
-linux-kernel-markers-documentation.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
