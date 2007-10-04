@@ -1,274 +1,526 @@
 From: akpm@linux-foundation.org
-Subject: + longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:05:37 -0700
-Message-ID: <200710042205.l94M5bWq030857@imap1.linux-foundation.org>
+Subject: - implement-power-management-quality-of-service-infrastructure.patch removed from -mm tree
+Date: Thu, 04 Oct 2007 15:14:57 -0700
+Message-ID: <200710042214.l94MEvs2031182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759703AbXJDWF5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:05:57 -0400
+	by vger.kernel.org with ESMTP id S1758190AbXJDWQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:16:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, rafalbilski@interia.pl
+To: mgross@linux.intel.com, arjan@infradead.org, lenb@kernel.org, linville@tuxdriver.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch
+     implement power management quality of service infrastructure
+has been removed from the -mm tree.  Its filename was
+     implement-power-management-quality-of-service-infrastructure.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: implement power management quality of service infrastructure
+From: Mark Gross <mgross@linux.intel.com>
 
-Cc: Dave Jones <davej@redhat.com>
-Cc: Rafal Bilski <rafalbilski@interia.pl>
+Implememtn the power management quality of service infrastructure discussed
+at the pm summit last June.
+
+It is a generalization of the latency code put into the kernel last year by
+Arjan.
+
+One thing to note about this implementation is that it exposes an interface
+to user space for registering pm_qos constraints in addition to the kernel
+exports.  Its a file based interface where a module can register a
+constraint and the constraint is valid only as long as the device node is
+held open.  Upon closing of the device node that constraint is cleaned up.
+
+Signed-off-by: mark gross <mgross@linux.intel.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/i386/kernel/cpu/cpufreq/longhaul.c~longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes arch/i386/kernel/cpu/cpufreq/longhaul.c
---- a/arch/i386/kernel/cpu/cpufreq/longhaul.c~longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes
-+++ a/arch/i386/kernel/cpu/cpufreq/longhaul.c
-@@ -356,7 +356,8 @@ retry_loop:
- 		 * multiplier and FSB, but will not change bits in Longhaul
- 		 * MSR nor enable voltage scaling. */
- 		if (!revid_errata) {
--			printk(KERN_INFO PFX "Enabling \"Ignore Revision ID\" option.\n");
-+			printk(KERN_INFO PFX "Enabling \"Ignore Revision ID\" "
-+						"option.\n");
- 			revid_errata = 1;
- 			msleep(200);
- 			goto retry_loop;
-@@ -369,7 +370,8 @@ retry_loop:
- 			printk(KERN_INFO PFX "Disabling ACPI C3 support.\n");
- 			longhaul_flags &= ~USE_ACPI_C3;
- 			if (revid_errata) {
--				printk(KERN_INFO PFX "Disabling \"Ignore Revision ID\" option.\n");
-+				printk(KERN_INFO PFX "Disabling \"Ignore "
-+						"Revision ID\" option.\n");
- 				revid_errata = 0;
- 			}
- 			msleep(200);
-@@ -1011,7 +1013,7 @@ MODULE_PARM_DESC(scale_voltage, "Scale v
- /* Force revision key to 0 for processors which doesn't
-  * support voltage scaling, but are introducing itself as
-  * such. */
--module_param (revid_errata, int, 0644);
-+module_param(revid_errata, int, 0644);
- MODULE_PARM_DESC(revid_errata, "Ignore CPU Revision ID");
+diff -puN /dev/null include/linux/pm_qos_params.h
+--- /dev/null
++++ a/include/linux/pm_qos_params.h
+@@ -0,0 +1,35 @@
++/* interface for the pm_qos_power infrastructure of the linux kernel.
++ *
++ * Mark Gross
++ */
++#include <linux/list.h>
++#include <linux/notifier.h>
++#include <linux/miscdevice.h>
++
++struct requirement_list {
++	struct list_head list;
++	union {
++		s32 value;
++		s32 usec;
++		s32 kbps;
++	};
++	char *name;
++};
++
++#define PM_QOS_RESERVED 0
++#define PM_QOS_CPU_DMA_LATENCY 1
++#define PM_QOS_NETWORK_LATENCY 2
++#define PM_QOS_NETWORK_THROUGHPUT 3
++
++#define PM_QOS_NUM_CLASSES 4
++#define PM_QOS_DEFAULT_VALUE -1
++
++int pm_qos_add_requirement(int qos, char *name, s32 value);
++int pm_qos_update_requirement(int qos, char *name, s32 new_value);
++void pm_qos_remove_requirement(int qos, char *name);
++
++int pm_qos_requirement(int qos);
++
++int pm_qos_add_notifier(int qos, struct notifier_block *notifier);
++int pm_qos_remove_notifier(int qos, struct notifier_block *notifier);
++
+diff -puN kernel/Makefile~implement-power-management-quality-of-service-infrastructure kernel/Makefile
+--- a/kernel/Makefile~implement-power-management-quality-of-service-infrastructure
++++ a/kernel/Makefile
+@@ -9,7 +9,7 @@ obj-y     = sched.o fork.o exec_domain.o
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+ 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
+ 	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o \
+-	    utsname.o
++	    utsname.o pm_qos_params.o
  
- MODULE_AUTHOR ("Dave Jones <davej@codemonkey.org.uk>");
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+ obj-y += time/
+diff -puN /dev/null kernel/pm_qos_params.c
+--- /dev/null
++++ a/kernel/pm_qos_params.c
+@@ -0,0 +1,417 @@
++/*
++ * This module exposes the interface to kernel space for specifying
++ * QoS dependencies.  It provides infrastructure for registration of:
++ *
++ * Dependents on a QoS value : register requirements
++ * Watchers of QoS value : get notified when target QoS value changes
++ *
++ * This QoS design is best effort based.  Dependents register their QoS needs.
++ * Watchers register to keep track of the current QoS needs of the system.
++ *
++ * There are 3 basic classes of QoS parameter: latency, timeout, throughput
++ * each have defined units:
++ * latency: usec
++ * timeout: usec <-- currently not used.
++ * throughput: kbs (kilo byte / sec)
++ *
++ * There are lists of pm_qos_objects each one wrapping requirements, notifiers
++ *
++ * User mode requirements on a QOS parameter register themselves to the
++ * subsystem by opening the device node /dev/... and writing there request to
++ * the node.  As long as the process holds a file handle open to the node the
++ * client continues to be accounted for.  Upon file release the usermode
++ * requirement is removed and a new qos target is computed.  This way when the
++ * requirement that the application has is cleaned up when closes the file
++ * pointer or exits the pm_qos_object will get an opportunity to clean up.
++ *
++ * mark gross mgross@linux.intel.com
++ */
++
++#include <linux/pm_qos_params.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/fs.h>
++#include <linux/device.h>
++#include <linux/miscdevice.h>
++#include <linux/string.h>
++#include <linux/platform_device.h>
++#include <linux/init.h>
++
++#include <linux/uaccess.h>
++
++/*
++ * locking rule: all changes to target_value or requirements or notifiers lists
++ * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
++ * held, taken with _irqsave.  One lock to rule them all
++ */
++
++struct pm_qos_object {
++	struct requirement_list requirements;
++	struct srcu_notifier_head notifiers;
++	struct miscdevice pm_qos_power_miscdev;
++	char *name;
++	s32 default_value;
++	s32 target_value;
++	s32 (*comparitor)(s32, s32);
++};
++static struct pm_qos_object pm_qos_array[PM_QOS_NUM_CLASSES];
++static DEFINE_SPINLOCK(pm_qos_lock);
++
++static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
++		size_t count, loff_t *f_pos);
++static int pm_qos_power_open(struct inode *inode, struct file *filp);
++static int pm_qos_power_release(struct inode *inode, struct file *filp);
++
++static const struct file_operations pm_qos_power_fops = {
++	.write = pm_qos_power_write,
++	.open = pm_qos_power_open,
++	.release = pm_qos_power_release,
++};
++
++/* static helper functions */
++static s32 max_compare(s32 v1, s32 v2)
++{
++	return max(v1, v2);
++}
++
++static s32 min_compare(s32 v1, s32 v2)
++{
++	return min(v1, v2);
++}
++
++/* assumes pm_qos_lock is held */
++static void update_target(int target)
++{
++	s32 extreme_value;
++	struct requirement_list *node;
++
++	extreme_value = pm_qos_array[target].default_value;
++	list_for_each_entry(node,
++			&pm_qos_array[target].requirements.list, list) {
++		extreme_value = pm_qos_array[target].comparitor(
++				extreme_value, node->value);
++	}
++	if (pm_qos_array[target].target_value != extreme_value) {
++		pm_qos_array[target].target_value = extreme_value;
++		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
++			pm_qos_array[target].target_value);
++		srcu_notifier_call_chain(&pm_qos_array[target].notifiers,
++			(unsigned long) pm_qos_array[target].target_value,
++						NULL);
++	}
++}
++
++static int register_new_pm_qos_misc(struct pm_qos_object *qos)
++{
++	qos->pm_qos_power_miscdev.minor = MISC_DYNAMIC_MINOR;
++	qos->pm_qos_power_miscdev.name = qos->name;
++	qos->pm_qos_power_miscdev.fops = &pm_qos_power_fops;
++
++	return misc_register(&qos->pm_qos_power_miscdev);
++}
++
++
++/* constructors */
++static int init_pm_qos_object(int pm_qos_class, const char *name,
++			s32 default_value, s32 (*comparitor)(s32, s32))
++{
++	int ret = -ENOMEM;
++	struct pm_qos_object *qos = NULL;
++
++	if (pm_qos_class < PM_QOS_NUM_CLASSES) {
++		qos = &pm_qos_array[pm_qos_class];
++		qos->name = kstrdup(name, GFP_KERNEL);
++		if (!qos->name)
++			goto cleanup;
++
++		qos->default_value = default_value;
++		qos->target_value = default_value;
++		qos->comparitor = comparitor;
++		srcu_init_notifier_head(&qos->notifiers);
++		INIT_LIST_HEAD(&qos->requirements.list);
++		ret = register_new_pm_qos_misc(qos);
++		if (ret < 0)
++			goto cleanup;
++	} else
++		ret = -EINVAL;
++
++	return ret;
++cleanup:
++	kfree(qos->name);
++
++	return ret;
++}
++
++static int find_pm_qos_object_by_minor(int minor)
++{
++	int pm_qos_class;
++
++	for (pm_qos_class = 0;
++		pm_qos_class < PM_QOS_NUM_CLASSES; pm_qos_class++) {
++		if (minor ==
++			pm_qos_array[pm_qos_class].pm_qos_power_miscdev.minor)
++			return pm_qos_class;
++	}
++	return -1;
++}
++
++static int new_latency_qos(int pm_qos_class, const char *name)
++{
++	return init_pm_qos_object(pm_qos_class, name, 2000 * USEC_PER_SEC,
++			min_compare);
++	/* 2000 sec is about infinite */
++}
++
++static int new_throughput_qos(int pm_qos_class, const char *name)
++{
++	return init_pm_qos_object(pm_qos_class, name, 0, max_compare);
++}
++
++/**
++ * pm_qos_requirement - returns current system wide qos expectation
++ * @pm_qos_class: identification of which qos value is requested
++ *
++ * This function returns the current target value in an atomic manner.
++ */
++int pm_qos_requirement(int pm_qos_class)
++{
++	int ret_val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pm_qos_lock, flags);
++	ret_val = pm_qos_array[pm_qos_class].target_value;
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	return ret_val;
++}
++EXPORT_SYMBOL_GPL(pm_qos_requirement);
++
++/**
++ * pm_qos_add_requirement - inserts new qos request into the list
++ * @pm_qos_class: identifies which list of qos request to us
++ * @name: identifies the request
++ * @value: defines the qos request
++ *
++ * This function inserts a new entry in the pm_qos_class list of requested qos
++ * performance charactoistics.  It recomputes the agregate QoS expectations for
++ * the pm_qos_class of parrameters.
++ */
++int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
++{
++	struct requirement_list *dep;
++	unsigned long flags;
++
++	dep = kzalloc(sizeof(struct requirement_list), GFP_KERNEL);
++	if (dep) {
++		if (value == PM_QOS_DEFAULT_VALUE)
++			dep->value = pm_qos_array[pm_qos_class].default_value;
++		else
++			dep->value = value;
++		dep->name = kstrdup(name, GFP_KERNEL);
++		if (!dep->name)
++			goto cleanup;
++
++		spin_lock_irqsave(&pm_qos_lock, flags);
++		list_add(&dep->list,
++			&pm_qos_array[pm_qos_class].requirements.list);
++		update_target(pm_qos_class);
++		spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++		return 0;
++	}
++
++cleanup:
++	kfree(dep);
++	return -ENOMEM;
++}
++EXPORT_SYMBOL_GPL(pm_qos_add_requirement);
++
++/**
++ * pm_qos_update_requirement - modifies an existing qos request
++ * @pm_qos_class: identifies which list of qos request to us
++ * @name: identifies the request
++ * @value: defines the qos request
++ *
++ * Updates an existing qos requierement for the pm_qos_class of parameters along
++ * with updating the target pm_qos_class value.
++ *
++ * If the named request isn't in the lest then no change is made.
++ */
++int pm_qos_update_requirement(int pm_qos_class, char *name, s32 new_value)
++{
++	unsigned long flags;
++	struct requirement_list *node;
++	int pending_update = 0;
++
++	spin_lock_irqsave(&pm_qos_lock, flags);
++	list_for_each_entry(node,
++		&pm_qos_array[pm_qos_class].requirements.list, list) {
++		if (strcmp(node->name, name) == 0) {
++			if (new_value == PM_QOS_DEFAULT_VALUE)
++				node->value =
++				pm_qos_array[pm_qos_class].default_value;
++			else
++				node->value = new_value;
++			pending_update = 1;
++			break;
++		}
++	}
++	if (pending_update)
++		update_target(pm_qos_class);
++
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(pm_qos_update_requirement);
++
++/**
++ * pm_qos_remove_requirement - modifies an existing qos request
++ * @pm_qos_class: identifies which list of qos request to us
++ * @name: identifies the request
++ *
++ * Will remove named qos request from pm_qos_class list of parrameters and
++ * recompute the current target value for the pm_qos_class.
++ */
++void pm_qos_remove_requirement(int pm_qos_class, char *name)
++{
++	unsigned long flags;
++	struct requirement_list *node;
++	int pending_update = 0;
++
++	spin_lock_irqsave(&pm_qos_lock, flags);
++	list_for_each_entry(node,
++		&pm_qos_array[pm_qos_class].requirements.list, list) {
++		if (strcmp(node->name, name) == 0) {
++			kfree(node->name);
++			list_del(&node->list);
++			kfree(node);
++			pending_update = 1;
++			break;
++		}
++	}
++	if (pending_update)
++		update_target(pm_qos_class);
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++}
++EXPORT_SYMBOL_GPL(pm_qos_remove_requirement);
++
++/**
++ * pm_qos_add_notifier - sets notification entry for changes to target value
++ * @pm_qos_class: identifies which qos target changes should be notified.
++ * @notifier: notifier block managed by caller.
++ *
++ * will register the notifier into a notification chain that gets called
++ * uppon changes to the pm_qos_class target value.
++ */
++ int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
++{
++	unsigned long flags;
++	int retval;
++
++	spin_lock_irqsave(&pm_qos_lock, flags);
++	retval = srcu_notifier_chain_register(
++			&pm_qos_array[pm_qos_class].notifiers, notifier);
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	return retval;
++}
++EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
++
++/**
++ * pm_qos_remove_notifier - deletes notification entry from chain.
++ * @pm_qos_class: identifies which qos target changes are notified.
++ * @notifier: notifier block to be removed.
++ *
++ * will remove the notifier from the notification chain that gets called
++ * uppon changes to the pm_qos_class target value.
++ */
++int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
++{
++	unsigned long flags;
++	int retval;
++
++	spin_lock_irqsave(&pm_qos_lock, flags);
++	retval = srcu_notifier_chain_unregister(
++			&pm_qos_array[pm_qos_class].notifiers, notifier);
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	return retval;
++}
++EXPORT_SYMBOL_GPL(pm_qos_remove_notifier);
++
++#define PID_NAME_LEN sizeof("process_1234567890")
++static char name[PID_NAME_LEN];
++
++static int pm_qos_power_open(struct inode *inode, struct file *filp)
++{
++	int ret;
++	int pm_qos_class;
++
++	pm_qos_class = find_pm_qos_object_by_minor(iminor(inode));
++	if (pm_qos_class >= 0) {
++		filp->private_data = (void *) pm_qos_class;
++		sprintf(name, "process_%d", current->pid);
++		ret = pm_qos_add_requirement(pm_qos_class, name,
++					PM_QOS_DEFAULT_VALUE);
++		if (ret >= 0)
++			return 0;
++	}
++
++	return -EPERM;
++}
++
++static int pm_qos_power_release(struct inode *inode, struct file *filp)
++{
++	int pm_qos_class;
++
++	pm_qos_class = (int) filp->private_data;
++	sprintf(name, "process_%d", current->pid);
++	pm_qos_remove_requirement(pm_qos_class, name);
++
++	return 0;
++}
++
++static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
++		size_t count, loff_t *f_pos)
++{
++	s32 value;
++	int pm_qos_class;
++
++	pm_qos_class = (int) filp->private_data;
++	if (count != sizeof(s32))
++		return -EINVAL;
++	if (copy_from_user(&value, buf, sizeof(s32)))
++		return -EFAULT;
++	sprintf(name, "process_%d", current->pid);
++	pm_qos_update_requirement(pm_qos_class, name, value);
++
++	return  sizeof(s32);
++}
++
++
++static int __init pm_qos_power_init(void)
++{
++	int ret = 0;
++	ret = new_latency_qos(PM_QOS_CPU_DMA_LATENCY, "cpu_dma_latency");
++	if (ret < 0) {
++		printk(KERN_ERR "pm_qos_param: cpu_dma_latency setup failed\n");
++		return ret;
++	}
++	ret = new_latency_qos(PM_QOS_NETWORK_LATENCY, "network_latency");
++	if (ret < 0) {
++		printk(KERN_ERR "pm_qos_param: network_latency setup failed\n");
++		return ret;
++	}
++	ret = new_throughput_qos(PM_QOS_NETWORK_THROUGHPUT,
++			"network_throughput");
++	if (ret < 0)
++		printk(KERN_ERR
++			"pm_qos_param: network_throughput setup failed\n");
++
++	return ret;
++}
++
++late_initcall(pm_qos_power_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch
-slow-down-printk-during-boot.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-dvb.patch
-git-hwmon-fixup.patch
-git-infiniband.patch
-infiniband-work-around-gcc-slub-problem.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-misc-fix.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-git-net-more-bustage.patch
-ipgc-doesnt-compile-with-with-config_highmem64g.patch
-git-net-sctp-hack.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-git-ocfs2.patch
-git-r8169-fixup.patch
-fix-ide-legacy-mode-resources.patch
-git-s390.patch
-git-sched.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-net-vs-git-wireless.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-git-xfs.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-uml-fix-stub-address-calculations-checkpatch-fixes.patch
-uml-arch-um-drivers-formatting-checkpatch-fixes.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+implement-power-management-quality-of-service-infrastructure.patch
+latencyc-use-qos-infrastructure.patch
