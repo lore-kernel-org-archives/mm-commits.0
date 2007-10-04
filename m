@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-support-large-blocksize-up-to-pagesize.patch added to -mm tree
-Date: Thu, 04 Oct 2007 13:13:24 -0700
-Message-ID: <200710042013.l94KDPkK026725@imap1.linux-foundation.org>
+Subject: + add-documentation-power-00-index.patch added to -mm tree
+Date: Thu, 04 Oct 2007 13:30:31 -0700
+Message-ID: <200710042030.l94KUVHr027288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57931 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbXJDUNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 16:13:36 -0400
+	by vger.kernel.org with ESMTP id S1755713AbXJDUao (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 16:30:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sho@tnes.nec.co.jp, clameter@sgi.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org
+Cc: rob@landley.net
 
 
 The patch titled
-     ext3: support large blocksize up to PAGESIZE
+     Add Documentation/power/00-INDEX
 has been added to the -mm tree.  Its filename is
-     ext3-support-large-blocksize-up-to-pagesize.patch
+     add-documentation-power-00-index.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: support large blocksize up to PAGESIZE
-From: Takashi Sato <sho@tnes.nec.co.jp>
+Subject: Add Documentation/power/00-INDEX
+From: Rob Landley <rob@landley.net>
 
-This patch set supports large block size(>4k, <=64k) in ext3 just enlarging
-the block size limit.  But it is NOT possible to have 64kB blocksize on
-ext3 without some changes to the directory handling code.  The reason is
-that an empty 64kB directory block would have a rec_len == (__u16)2^16 ==
-0, and this would cause an error to be hit in the filesystem.  The proposed
-solution is treat 64k rec_len with a an impossible value like rec_len =
-0xffff to handle this.
+Add Documentation/power/00-INDEX
 
-The Patch-set consists of the following 2 patches.
-  [1/2]  ext3: enlarge blocksize
-         - Allow blocksize up to pagesize
-
-  [2/2]  ext3: fix rec_len overflow
-         - prevent rec_len from overflow with 64KB blocksize
-
-Now on 64k page ppc64 box runs with this patch set we could create a 64k
-block size ext3, and able to handle empty directory block.
-
-Signed-off-by: Takashi Sato <sho@tnes.nec.co.jp>
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/ext3/super.c~ext3-support-large-blocksize-up-to-pagesize fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-support-large-blocksize-up-to-pagesize
-+++ a/fs/ext3/super.c
-@@ -1620,7 +1620,11 @@ static int ext3_fill_super (struct super
- 		}
- 
- 		brelse (bh);
--		sb_set_blocksize(sb, blocksize);
-+		if (!sb_set_blocksize(sb, blocksize)) {
-+			printk(KERN_ERR "EXT3-fs: bad blocksize %d.\n",
-+				blocksize);
-+			goto out_fail;
-+		}
- 		logic_sb_block = (sb_block * EXT3_MIN_BLOCK_SIZE) / blocksize;
- 		offset = (sb_block * EXT3_MIN_BLOCK_SIZE) % blocksize;
- 		bh = sb_bread(sb, logic_sb_block);
-diff -puN include/linux/ext3_fs.h~ext3-support-large-blocksize-up-to-pagesize include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-support-large-blocksize-up-to-pagesize
-+++ a/include/linux/ext3_fs.h
-@@ -72,8 +72,8 @@
-  * Macro-instructions used to manage several block sizes
-  */
- #define EXT3_MIN_BLOCK_SIZE		1024
--#define	EXT3_MAX_BLOCK_SIZE		4096
--#define EXT3_MIN_BLOCK_LOG_SIZE		  10
-+#define	EXT3_MAX_BLOCK_SIZE		65536
-+#define EXT3_MIN_BLOCK_LOG_SIZE		10
- #ifdef __KERNEL__
- # define EXT3_BLOCK_SIZE(s)		((s)->s_blocksize)
- #else
+diff -puN /dev/null Documentation/power/00-INDEX
+--- /dev/null
++++ a/Documentation/power/00-INDEX
+@@ -0,0 +1,34 @@
++00-INDEX
++	- This file
++basic-pm-debugging.txt
++	- Debugging suspend and resume
++devices.txt
++	- How drivers interact with system-wide power management
++drivers-testing.txt
++	- Testing suspend and resume support in device drivers
++freezing-of-tasks.txt
++	- How processes and controlled during suspend
++interface.txt
++	- Power management user interface in /sys/power
++notifiers.txt
++	- Registering suspend notifiers in device drivers
++pci.txt
++	- How the PCI Subsystem Does Power Management
++s2ram.txt
++	- How to get suspend to ram working (and debug it when it isn't)
++states.txt
++	- System power management states
++swsusp-and-swap-files.txt
++	- Using swap files with software suspend (to disk)
++swsusp-dmcrypt.txt
++	- How to use dm-crypt and software suspend (to disk) together
++swsusp.txt
++	- Goals, implementation, and usage of software suspend (ACPI S3)
++tricks.txt
++	- How to trick software suspend (to disk) into working when it isn't
++userland-swsusp.txt
++	- Experimental implementation of software suspend in userspace
++video_extension.txt
++	- ACPI video extensions
++video.txt
++	- Video issues during resume from suspend
 _
 
-Patches currently in -mm which might be from sho@tnes.nec.co.jp are
+Patches currently in -mm which might be from rob@landley.net are
 
-ext3-support-large-blocksize-up-to-pagesize.patch
-ext2-support-large-blocksize-up-to-pagesize.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+tweak-documentation-sm501txt.patch
+add-missing-entries-to-top-level-documentation-00-index.patch
+add-documentation-w1w1-masters-00-index.patch
+add-missing-entries-to-documentation-arm-00-index.patch
+update-documentation-scsi-00-index.patch
+add-entries-to-documentation-powerpc.patch
+add-documentation-power-00-index.patch
