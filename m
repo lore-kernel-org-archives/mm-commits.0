@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-stub-address-calculations.patch added to -mm tree
-Date: Thu, 04 Oct 2007 12:29:02 -0700
-Message-ID: <200710041929.l94JT2TK025137@imap1.linux-foundation.org>
+Subject: + uml-fix-stub-address-calculations-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 04 Oct 2007 12:30:03 -0700
+Message-ID: <200710041930.l94JU3kn025166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60379 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58014 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbXJDT3Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:29:16 -0400
+	by vger.kernel.org with ESMTP id S1755855AbXJDTaK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: fix stub address calculations
+     uml-fix-stub-address-calculations-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     uml-fix-stub-address-calculations.patch
+     uml-fix-stub-address-calculations-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,616 +25,231 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix stub address calculations
-From: Jeff Dike <jdike@addtoit.com>
+Subject: uml-fix-stub-address-calculations-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The calculation of CONFIG_STUB_CODE and CONFIG_STUB_DATA didn't take into
-account anything but 3G/1G and 2G/2G, leaving the other vmsplits out in the
-cold.
-
-I'd rather not duplicate the four known host vmsplit cases for each of these
-symbols.  I'd also like to calculate them based on the highest userspace
-address.
-
-The Kconfig language seems not to allow calculation of hex constants, so I
-moved this to as-layout.h.  CONFIG_STUB_CODE, CONFIG_STUB_DATA, and
-CONFIG_STUB_START are now gone.  In their place are STUB_CODE, STUB_DATA, and
-STUB_START in as-layout.h.
-
-i386 and x86_64 seem to differ as to whether an unadorned constant is an int
-or a long, so I cast them to unsigned long so they can be printed
-consistently.  However, they are also used in stub.S, where C types don't work
-so well.  So, there are ASM_ versions of these constants for use in stub.S.  I
-also ifdef-ed the non-asm-friendly portion of as-layout.h.
-
-With this in place, most of the rest of this patch is changing CONFIG_STUB_*
-to STUB_*, except in stub.S, where they are changed to ASM_STUB_*.
-
-defconfig has the old symbols deleted.
-
-I also print these addresses out in case there is any problem mapping them on
-the host.
-
-The two stub.S files had some trailing whitespace, so that is cleaned up here.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/um/Kconfig.i386~uml-fix-stub-address-calculations arch/um/Kconfig.i386
---- a/arch/um/Kconfig.i386~uml-fix-stub-address-calculations
-+++ a/arch/um/Kconfig.i386
-@@ -65,20 +65,6 @@ config 3_LEVEL_PGTABLES
- 	However, this it experimental on 32-bit architectures, so if unsure say
- 	N (on x86-64 it's automatically enabled, instead, as it's safe there).
- 
--config STUB_CODE
--	hex
--	default 0xbfffe000 if !HOST_VMSPLIT_2G
--	default 0x7fffe000 if HOST_VMSPLIT_2G
--
--config STUB_DATA
--	hex
--	default 0xbffff000 if !HOST_VMSPLIT_2G
--	default 0x7ffff000 if HOST_VMSPLIT_2G
--
--config STUB_START
--	hex
--	default STUB_CODE
--
- config ARCH_HAS_SC_SIGNALS
- 	bool
- 	default y
-diff -puN arch/um/Kconfig.x86_64~uml-fix-stub-address-calculations arch/um/Kconfig.x86_64
---- a/arch/um/Kconfig.x86_64~uml-fix-stub-address-calculations
-+++ a/arch/um/Kconfig.x86_64
-@@ -17,24 +17,12 @@ config SEMAPHORE_SLEEPERS
- 
- config TOP_ADDR
-  	hex
--	default 0x80000000
-+	default 0x7fc0000000
- 
- config 3_LEVEL_PGTABLES
-        bool
-        default y
- 
--config STUB_CODE
--	hex
--	default 0x7fbfffe000
--
--config STUB_DATA
--	hex
--	default 0x7fbffff000
--
--config STUB_START
--	hex
--	default STUB_CODE
--
- config ARCH_HAS_SC_SIGNALS
- 	bool
- 	default n
-diff -puN arch/um/defconfig~uml-fix-stub-address-calculations arch/um/defconfig
---- a/arch/um/defconfig~uml-fix-stub-address-calculations
-+++ a/arch/um/defconfig
-@@ -59,9 +59,6 @@ CONFIG_SEMAPHORE_SLEEPERS=y
- # CONFIG_HOST_2G_2G is not set
- CONFIG_TOP_ADDR=0xc0000000
- # CONFIG_3_LEVEL_PGTABLES is not set
--CONFIG_STUB_CODE=0xbfffe000
--CONFIG_STUB_DATA=0xbffff000
--CONFIG_STUB_START=0xbfffe000
- CONFIG_ARCH_HAS_SC_SIGNALS=y
- CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA=y
- CONFIG_GENERIC_HWEIGHT=y
-diff -puN arch/um/include/as-layout.h~uml-fix-stub-address-calculations arch/um/include/as-layout.h
---- a/arch/um/include/as-layout.h~uml-fix-stub-address-calculations
-+++ a/arch/um/include/as-layout.h
-@@ -6,6 +6,28 @@
- #ifndef __START_H__
- #define __START_H__
- 
-+#include "uml-config.h"
-+#include "kern_constants.h"
-+
-+/*
-+ * Assembly doesn't want any casting, but C does, so define these
-+ * without casts here, and define new symbols with casts inside the C
-+ * section.
-+ */
-+#define ASM_STUB_CODE (UML_CONFIG_TOP_ADDR - 2 * UM_KERN_PAGE_SIZE)
-+#define ASM_STUB_DATA (UML_CONFIG_TOP_ADDR - UM_KERN_PAGE_SIZE)
-+#define ASM_STUB_START ASM_STUB_CODE
-+
-+/*
-+ * This file is included by the assembly stubs, which just want the
-+ * definitions above.
-+ */
-+#ifndef __ASSEMBLY__
-+
-+#define STUB_CODE ((unsigned long) ASM_STUB_CODE)
-+#define STUB_DATA ((unsigned long) ASM_STUB_DATA)
-+#define STUB_START ((unsigned long) ASM_STUB_START)
-+
- #include "sysdep/ptrace.h"
- 
- struct cpu_task {
-@@ -32,3 +54,5 @@ extern int linux_main(int argc, char **a
- extern void (*sig_info[])(int, struct uml_pt_regs *);
- 
- #endif
-+
-+#endif
-diff -puN arch/um/include/sysdep-i386/stub.h~uml-fix-stub-address-calculations arch/um/include/sysdep-i386/stub.h
---- a/arch/um/include/sysdep-i386/stub.h~uml-fix-stub-address-calculations
-+++ a/arch/um/include/sysdep-i386/stub.h
-@@ -9,6 +9,7 @@
- #include <sys/mman.h>
- #include <asm/ptrace.h>
- #include <asm/unistd.h>
-+#include "as-layout.h"
- #include "stub-data.h"
- #include "kern_constants.h"
- #include "uml-config.h"
-@@ -89,12 +90,12 @@ static inline void remap_stack(int fd, u
- {
- 	__asm__ volatile ("movl %%eax,%%ebp ; movl %0,%%eax ; int $0x80 ;"
- 			  "movl %7, %%ebx ; movl %%eax, (%%ebx)"
--			  : : "g" (STUB_MMAP_NR), "b" (UML_CONFIG_STUB_DATA), 
--			    "c" (UM_KERN_PAGE_SIZE), 
-+			  : : "g" (STUB_MMAP_NR), "b" (STUB_DATA),
-+			    "c" (UM_KERN_PAGE_SIZE),
- 			    "d" (PROT_READ | PROT_WRITE),
--			    "S" (MAP_FIXED | MAP_SHARED), "D" (fd), 
--			    "a" (offset), 
--			    "i" (&((struct stub_data *) UML_CONFIG_STUB_DATA)->err) 
-+			    "S" (MAP_FIXED | MAP_SHARED), "D" (fd),
-+			    "a" (offset),
-+			    "i" (&((struct stub_data *) STUB_DATA)->err)
- 			  : "memory");
- }
- 
-diff -puN arch/um/include/sysdep-x86_64/stub.h~uml-fix-stub-address-calculations arch/um/include/sysdep-x86_64/stub.h
---- a/arch/um/include/sysdep-x86_64/stub.h~uml-fix-stub-address-calculations
-+++ a/arch/um/include/sysdep-x86_64/stub.h
-@@ -9,6 +9,7 @@
- #include <sys/mman.h>
- #include <asm/unistd.h>
- #include <sysdep/ptrace_user.h>
-+#include "as-layout.h"
- #include "stub-data.h"
- #include "kern_constants.h"
- #include "uml-config.h"
-@@ -94,13 +95,13 @@ static inline void remap_stack(long fd, 
- {
- 	__asm__ volatile ("movq %4,%%r10 ; movq %5,%%r8 ; "
- 			  "movq %6, %%r9; " __syscall "; movq %7, %%rbx ; "
--			  "movq %%rax, (%%rbx)": 
--			  : "a" (STUB_MMAP_NR), "D" (UML_CONFIG_STUB_DATA), 
--			    "S" (UM_KERN_PAGE_SIZE), 
--			    "d" (PROT_READ | PROT_WRITE), 
--                            "g" (MAP_FIXED | MAP_SHARED), "g" (fd), 
-+			  "movq %%rax, (%%rbx)":
-+			  : "a" (STUB_MMAP_NR), "D" (STUB_DATA),
-+			    "S" (UM_KERN_PAGE_SIZE),
-+			    "d" (PROT_READ | PROT_WRITE),
-+                            "g" (MAP_FIXED | MAP_SHARED), "g" (fd),
- 			    "g" (offset),
--			    "i" (&((struct stub_data *) UML_CONFIG_STUB_DATA)->err)
-+			    "i" (&((struct stub_data *) STUB_DATA)->err)
- 			  : __syscall_clobber, "r10", "r8", "r9" );
- }
- 
-diff -puN arch/um/kernel/exec.c~uml-fix-stub-address-calculations arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-fix-stub-address-calculations
-+++ a/arch/um/kernel/exec.c
-@@ -11,6 +11,7 @@
- #include "asm/current.h"
- #include "asm/processor.h"
- #include "asm/uaccess.h"
-+#include "as-layout.h"
- #include "mem_user.h"
- #include "skas.h"
- #include "os.h"
-@@ -18,7 +19,7 @@
- void flush_thread(void)
- {
- 	void *data = NULL;
--	unsigned long end = proc_mm ? task_size : CONFIG_STUB_START;
-+	unsigned long end = proc_mm ? task_size : STUB_START;
- 	int ret;
- 
- 	arch_flush_thread(&current->thread.arch);
-diff -puN arch/um/kernel/skas/clone.c~uml-fix-stub-address-calculations arch/um/kernel/skas/clone.c
---- a/arch/um/kernel/skas/clone.c~uml-fix-stub-address-calculations
-+++ a/arch/um/kernel/skas/clone.c
-@@ -4,6 +4,7 @@
- #include <sys/time.h>
- #include <asm/unistd.h>
- #include <asm/page.h>
-+#include "as-layout.h"
- #include "ptrace_user.h"
- #include "skas.h"
- #include "stub-data.h"
-@@ -21,12 +22,11 @@
- void __attribute__ ((__section__ (".__syscall_stub")))
- stub_clone_handler(void)
- {
--	struct stub_data *data = (struct stub_data *) UML_CONFIG_STUB_DATA;
-+	struct stub_data *data = (struct stub_data *) STUB_DATA;
- 	long err;
- 
- 	err = stub_syscall2(__NR_clone, CLONE_PARENT | CLONE_FILES | SIGCHLD,
--			    UML_CONFIG_STUB_DATA + UM_KERN_PAGE_SIZE / 2 -
--			    sizeof(void *));
-+			    STUB_DATA + UM_KERN_PAGE_SIZE / 2 - sizeof(void *));
- 	if(err != 0)
- 		goto out;
- 
-diff -puN arch/um/kernel/skas/mmu.c~uml-fix-stub-address-calculations arch/um/kernel/skas/mmu.c
---- a/arch/um/kernel/skas/mmu.c~uml-fix-stub-address-calculations
-+++ a/arch/um/kernel/skas/mmu.c
-@@ -7,6 +7,7 @@
- #include "linux/sched.h"
- #include "asm/pgalloc.h"
- #include "asm/pgtable.h"
-+#include "as-layout.h"
- #include "os.h"
- #include "skas.h"
- 
-@@ -83,12 +84,12 @@ int init_new_context(struct task_struct 
- 		 */
- 		mm->pgd[USER_PTRS_PER_PGD] = __pgd(0);
- 
--		ret = init_stub_pte(mm, CONFIG_STUB_CODE,
-+		ret = init_stub_pte(mm, STUB_CODE,
- 				    (unsigned long) &__syscall_stub_start);
- 		if (ret)
- 			goto out_free;
- 
--		ret = init_stub_pte(mm, CONFIG_STUB_DATA, stack);
-+		ret = init_stub_pte(mm, STUB_DATA, stack);
- 		if (ret)
- 			goto out_free;
- 
-diff -puN arch/um/kernel/skas/process.c~uml-fix-stub-address-calculations arch/um/kernel/skas/process.c
---- a/arch/um/kernel/skas/process.c~uml-fix-stub-address-calculations
-+++ a/arch/um/kernel/skas/process.c
-@@ -18,7 +18,7 @@ int new_mm(unsigned long stack)
- 		return fd;
- 
- 	if (skas_needs_stub)
--		map_stub_pages(fd, CONFIG_STUB_CODE, CONFIG_STUB_DATA, stack);
-+		map_stub_pages(fd, STUB_CODE, STUB_DATA, stack);
- 
- 	return fd;
- }
-diff -puN arch/um/kernel/tlb.c~uml-fix-stub-address-calculations arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-fix-stub-address-calculations
-+++ a/arch/um/kernel/tlb.c
-@@ -485,8 +485,8 @@ void __flush_tlb_one(unsigned long addr)
- static void fix_range(struct mm_struct *mm, unsigned long start_addr,
- 		      unsigned long end_addr, int force)
- {
--	if (!proc_mm && (end_addr > CONFIG_STUB_START))
--		end_addr = CONFIG_STUB_START;
-+	if (!proc_mm && (end_addr > STUB_START))
-+		end_addr = STUB_START;
- 
- 	fix_range_common(mm, start_addr, end_addr, force);
- }
-@@ -510,7 +510,7 @@ void flush_tlb_mm(struct mm_struct *mm)
- 	if (atomic_read(&mm->mm_users) == 0)
- 		return;
- 
--	end = proc_mm ? task_size : CONFIG_STUB_START;
-+	end = proc_mm ? task_size : STUB_START;
- 	fix_range(mm, 0, end, 0);
- }
- 
-diff -puN arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations
+diff -puN arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations-checkpatch-fixes arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations-checkpatch-fixes
 +++ a/arch/um/kernel/um_arch.c
-@@ -242,7 +242,7 @@ static unsigned long set_task_sizes_skas
+@@ -242,7 +242,8 @@ static unsigned long set_task_sizes_skas
  
  	if (!skas_needs_stub)
  		*task_size_out = host_task_size;
--	else *task_size_out = CONFIG_STUB_START & PGDIR_MASK;
-+	else *task_size_out = STUB_START & PGDIR_MASK;
+-	else *task_size_out = STUB_START & PGDIR_MASK;
++	else
++		*task_size_out = STUB_START & PGDIR_MASK;
  
  	return host_task_size;
  }
-diff -puN arch/um/os-Linux/skas/mem.c~uml-fix-stub-address-calculations arch/um/os-Linux/skas/mem.c
---- a/arch/um/os-Linux/skas/mem.c~uml-fix-stub-address-calculations
-+++ a/arch/um/os-Linux/skas/mem.c
-@@ -10,6 +10,7 @@
- #include <sys/mman.h>
- #include "init.h"
- #include "kern_constants.h"
-+#include "as-layout.h"
- #include "mm_id.h"
- #include "os.h"
- #include "proc_mm.h"
-@@ -40,7 +41,7 @@ static unsigned long syscall_regs[MAX_RE
- static int __init init_syscall_regs(void)
- {
- 	get_safe_registers(syscall_regs);
--	syscall_regs[REGS_IP_INDEX] = UML_CONFIG_STUB_CODE +
-+	syscall_regs[REGS_IP_INDEX] = STUB_CODE +
- 		((unsigned long) &batch_syscall_stub -
- 		 (unsigned long) &__syscall_stub_start);
- 	return 0;
-@@ -93,8 +94,7 @@ static inline long do_syscall_stub(struc
- 	ret = *((unsigned long *) mm_idp->stack);
- 	offset = *((unsigned long *) mm_idp->stack + 1);
- 	if (offset) {
--		data = (unsigned long *)(mm_idp->stack +
--					 offset - UML_CONFIG_STUB_DATA);
-+		data = (unsigned long *)(mm_idp->stack + offset - STUB_DATA);
- 		printk(UM_KERN_ERR "do_syscall_stub : ret = %ld, offset = %ld, "
- 		       "data = %p\n", ret, offset, data);
- 		syscall = (unsigned long *)((unsigned long)data + data[0]);
-@@ -182,7 +182,7 @@ long syscall_stub_data(struct mm_id * mm
- 	memcpy(stack + 1, data, data_count * sizeof(long));
- 
- 	*stub_addr = (void *)(((unsigned long)(stack + 1) &
--			       ~UM_KERN_PAGE_MASK) + UML_CONFIG_STUB_DATA);
-+			       ~UM_KERN_PAGE_MASK) + STUB_DATA);
- 
- 	return 0;
- }
-diff -puN arch/um/os-Linux/skas/process.c~uml-fix-stub-address-calculations arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-fix-stub-address-calculations
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -191,22 +191,23 @@ static int userspace_tramp(void *stack)
- 		int fd;
- 		unsigned long long offset;
- 		fd = phys_mapping(to_phys(&__syscall_stub_start), &offset);
--		addr = mmap64((void *) UML_CONFIG_STUB_CODE, UM_KERN_PAGE_SIZE,
-+		addr = mmap64((void *) STUB_CODE, UM_KERN_PAGE_SIZE,
- 			      PROT_EXEC, MAP_FIXED | MAP_PRIVATE, fd, offset);
- 		if (addr == MAP_FAILED) {
--			printk(UM_KERN_ERR "mapping mmap stub failed, "
--			       "errno = %d\n", errno);
-+			printk(UM_KERN_ERR "mapping mmap stub at 0x%lx failed, "
-+			       "errno = %d\n", STUB_CODE, errno);
- 			exit(1);
- 		}
- 
- 		if (stack != NULL) {
- 			fd = phys_mapping(to_phys(stack), &offset);
--			addr = mmap((void *) UML_CONFIG_STUB_DATA,
-+			addr = mmap((void *) STUB_DATA,
- 				    UM_KERN_PAGE_SIZE, PROT_READ | PROT_WRITE,
- 				    MAP_FIXED | MAP_SHARED, fd, offset);
- 			if (addr == MAP_FAILED) {
- 				printk(UM_KERN_ERR "mapping segfault stack "
--				       "failed, errno = %d\n", errno);
-+				       "at 0x%lx failed, errno = %d\n",
-+				       STUB_DATA, errno);
- 				exit(1);
- 			}
- 		}
-@@ -214,11 +215,11 @@ static int userspace_tramp(void *stack)
- 	if (!ptrace_faultinfo && (stack != NULL)) {
- 		struct sigaction sa;
- 
--		unsigned long v = UML_CONFIG_STUB_CODE +
-+		unsigned long v = STUB_CODE +
- 				  (unsigned long) stub_segv_handler -
- 				  (unsigned long) &__syscall_stub_start;
- 
--		set_sigstack((void *) UML_CONFIG_STUB_DATA, UM_KERN_PAGE_SIZE);
-+		set_sigstack((void *) STUB_DATA, UM_KERN_PAGE_SIZE);
- 		sigemptyset(&sa.sa_mask);
- 		sigaddset(&sa.sa_mask, SIGIO);
- 		sigaddset(&sa.sa_mask, SIGWINCH);
-@@ -382,10 +383,10 @@ static int __init init_thread_regs(void)
- {
- 	get_safe_registers(thread_regs);
- 	/* Set parent's instruction pointer to start of clone-stub */
--	thread_regs[REGS_IP_INDEX] = UML_CONFIG_STUB_CODE +
-+	thread_regs[REGS_IP_INDEX] = STUB_CODE +
- 				(unsigned long) stub_clone_handler -
- 				(unsigned long) &__syscall_stub_start;
--	thread_regs[REGS_SP_INDEX] = UML_CONFIG_STUB_DATA + UM_KERN_PAGE_SIZE -
-+	thread_regs[REGS_SP_INDEX] = STUB_DATA + UM_KERN_PAGE_SIZE -
- 		sizeof(void *);
- #ifdef __SIGNAL_FRAMESIZE
- 	thread_regs[REGS_SP_INDEX] -= __SIGNAL_FRAMESIZE;
-@@ -443,7 +444,7 @@ int copy_context_skas0(unsigned long new
- 	 * child's stack and check it.
- 	 */
- 	wait_stub_done(pid);
--	if (child_data->err != UML_CONFIG_STUB_DATA)
-+	if (child_data->err != STUB_DATA)
- 		panic("copy_context_skas0 - stub-child reports error %ld\n",
- 		      child_data->err);
- 
-diff -puN arch/um/sys-i386/stub.S~uml-fix-stub-address-calculations arch/um/sys-i386/stub.S
---- a/arch/um/sys-i386/stub.S~uml-fix-stub-address-calculations
-+++ a/arch/um/sys-i386/stub.S
-@@ -1,4 +1,5 @@
- #include "uml-config.h"
-+#include "as-layout.h"
- 
- 	.globl syscall_stub
- .section .__syscall_stub, "x"
-@@ -6,7 +7,7 @@
- 	.globl batch_syscall_stub
- batch_syscall_stub:
- 	/* load pointer to first operation */
--	mov	$(UML_CONFIG_STUB_DATA+8), %esp
-+	mov	$(ASM_STUB_DATA+8), %esp
- 
- again:
- 	/* load length of additional data */
-@@ -14,12 +15,12 @@ again:
- 
- 	/* if(length == 0) : end of list */
- 	/* write possible 0 to header */
--	mov	%eax, UML_CONFIG_STUB_DATA+4
-+	mov	%eax, ASM_STUB_DATA+4
- 	cmpl	$0, %eax
- 	jz	done
- 
- 	/* save current pointer */
--	mov	%esp, UML_CONFIG_STUB_DATA+4
-+	mov	%esp, ASM_STUB_DATA+4
- 
- 	/* skip additional data */
- 	add	%eax, %esp
-@@ -45,7 +46,7 @@ again:
- 
- done:
- 	/* save return value */
--	mov	%eax, UML_CONFIG_STUB_DATA
-+	mov	%eax, ASM_STUB_DATA
- 
- 	/* stop */
- 	int3
-diff -puN arch/um/sys-i386/stub_segv.c~uml-fix-stub-address-calculations arch/um/sys-i386/stub_segv.c
---- a/arch/um/sys-i386/stub_segv.c~uml-fix-stub-address-calculations
-+++ a/arch/um/sys-i386/stub_segv.c
-@@ -6,6 +6,7 @@
- #include <signal.h>
- #include <sys/select.h> /* The only way I can see to get sigset_t */
- #include <asm/unistd.h>
-+#include "as-layout.h"
- #include "uml-config.h"
- #include "sysdep/stub.h"
- #include "sysdep/sigcontext.h"
-@@ -17,8 +18,7 @@ stub_segv_handler(int sig)
- 	struct sigcontext *sc = (struct sigcontext *) (&sig + 1);
- 	int pid;
- 
--	GET_FAULTINFO_FROM_SC(*((struct faultinfo *) UML_CONFIG_STUB_DATA),
--			      sc);
-+	GET_FAULTINFO_FROM_SC(*((struct faultinfo *) STUB_DATA), sc);
- 
- 	pid = stub_syscall0(__NR_getpid);
- 	stub_syscall2(__NR_kill, pid, SIGUSR1);
-diff -puN arch/um/sys-x86_64/stub.S~uml-fix-stub-address-calculations arch/um/sys-x86_64/stub.S
---- a/arch/um/sys-x86_64/stub.S~uml-fix-stub-address-calculations
-+++ a/arch/um/sys-x86_64/stub.S
-@@ -1,4 +1,5 @@
- #include "uml-config.h"
-+#include "as-layout.h"
- 
- 	.globl syscall_stub
- .section .__syscall_stub, "x"
-@@ -7,18 +8,18 @@ syscall_stub:
- 	/* We don't have 64-bit constants, so this constructs the address
- 	 * we need.
- 	 */
--	movq	$(UML_CONFIG_STUB_DATA >> 32), %rbx
-+	movq	$(ASM_STUB_DATA >> 32), %rbx
- 	salq	$32, %rbx
--	movq	$(UML_CONFIG_STUB_DATA & 0xffffffff), %rcx
-+	movq	$(ASM_STUB_DATA & 0xffffffff), %rcx
- 	or	%rcx, %rbx
- 	movq	%rax, (%rbx)
- 	int3
- 
- 	.globl batch_syscall_stub
- batch_syscall_stub:
--	mov	$(UML_CONFIG_STUB_DATA >> 32), %rbx
-+	mov	$(ASM_STUB_DATA >> 32), %rbx
- 	sal	$32, %rbx
--	mov	$(UML_CONFIG_STUB_DATA & 0xffffffff), %rax
-+	mov	$(ASM_STUB_DATA & 0xffffffff), %rax
- 	or	%rax, %rbx
- 	/* load pointer to first operation */
- 	mov	%rbx, %rsp
-diff -puN arch/um/sys-x86_64/stub_segv.c~uml-fix-stub-address-calculations arch/um/sys-x86_64/stub_segv.c
---- a/arch/um/sys-x86_64/stub_segv.c~uml-fix-stub-address-calculations
-+++ a/arch/um/sys-x86_64/stub_segv.c
-@@ -6,6 +6,7 @@
- #include <stddef.h>
- #include <signal.h>
- #include <asm/unistd.h>
-+#include "as-layout.h"
- #include "uml-config.h"
- #include "sysdep/sigcontext.h"
- #include "sysdep/faultinfo.h"
-@@ -33,7 +34,7 @@ stub_segv_handler(int sig)
-         int pid;
- 
- 	__asm__ __volatile__("movq %%rdx, %0" : "=g" (uc) :);
--	GET_FAULTINFO_FROM_SC(*((struct faultinfo *) UML_CONFIG_STUB_DATA),
-+	GET_FAULTINFO_FROM_SC(*((struct faultinfo *) STUB_DATA),
- 			      &uc->uc_mcontext);
- 
- 	pid = stub_syscall0(__NR_getpid);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+fix-timer_stats-printout-of-events-sec.patch
+slow-down-printk-during-boot.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+git-infiniband.patch
+infiniband-work-around-gcc-slub-problem.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-misc-fix.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
-hostfs-convert-to-new-aops.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-uml-fix-console-writing-bugs.patch
-uml-console-tidying.patch
-uml-stop-using-libc-asm-pageh.patch
-uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
-uml-fix-nonremovability-of-watchdog.patch
-uml-stop-specially-protecting-kernel-stacks.patch
-uml-stop-saving-process-fp-state.patch
-uml-stop-saving-process-fp-state-fix.patch
-uml-physmem-code-tidying.patch
-uml-add-vde-networking-support.patch
-uml-remove-unnecessary-hostfs_getattr.patch
-uml-throw-out-config_mode_tt.patch
-uml-remove-sysdep-threadh.patch
-uml-style-fixes-pass-1.patch
-uml-throw-out-choose_mode.patch
-uml-style-fixes-pass-2.patch
-uml-remove-code-made-redundant-by-choose_mode-removal.patch
-uml-style-fixes-pass-3.patch
-uml-remove-__u64-usage-from-physical-memory-subsystem.patch
-uml-get-rid-of-do_longjmp.patch
-uml-fold-mmu_context_skas-into-mm_context.patch
-uml-rename-pt_regs-general-purpose-register-file.patch
-uml-rename-pt_regs-general-purpose-register-file-fix.patch
-uml-free-ldt-state-on-process-exit.patch
-uml-remove-os_-usage-from-userspace-files.patch
-uml-replace-clone-with-fork.patch
-uml-fix-inlines.patch
-uml-userspace-files-should-call-libc-directly.patch
-uml-clean-up-tlb-flush-path.patch
-uml-remove-unneeded-if-from-hostfs.patch
-uml-fix-hostfs-style.patch
-uml-dont-use-glibc-asm-userh.patch
-uml-floating-point-signal-delivery-fixes.patch
-uml-ptrace-floating-point-fixes.patch
-uml-coredumping-floating-point-fixes.patch
-uml-sysrq-and-mconsole-fixes.patch
-uml-style-fixes-in-fp-code.patch
-uml-eliminate-floating-point-state-from-register-file.patch
-uml-remove-unused-file.patch
-uml-more-idiomatic-parameter-parsing.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+git-net-more-bustage.patch
+ipgc-doesnt-compile-with-with-config_highmem64g.patch
+git-net-sctp-hack.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-r8169-fixup.patch
+fix-ide-legacy-mode-resources.patch
+git-s390.patch
+git-sched.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+advansys-printk-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-sisusb2vga-convert-printk-to-dev_-macros.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-net-vs-git-wireless.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+net-add-ath5k-wireless-driver-fix.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
 uml-clocksource-support-fix.patch
-uml-tickless-support.patch
 uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-time-build-fix.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-uml-network-formatting.patch
-uml-network-driver-mtu-cleanups.patch
-uml-correctly-handle-skb-allocation-failures.patch
-uml-correctly-handle-skb-allocation-failures-fix.patch
-uml-fix-stub-address-calculations.patch
-uml-arch-um-drivers-formatting.patch
-bitops-introduce-lock-ops.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+binfmt_flat-minimum-support-for-the-blackfin-relocations-checkpatch-fixes.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+ecryptfs-printk-warning-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+rework-proc-locks-via-seq_files-and-seq_list-helpers.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+check_dirty_inode_list.patch
+w1-build-fix.patch
