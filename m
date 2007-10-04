@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-add-helper-for-asynchronous-writes.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:18 -0700
-Message-ID: <200710042257.l94MvIi1032753@imap1.linux-foundation.org>
+Subject: + fuse-add-blksize-field-to-fuse_attr.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:23 -0700
+Message-ID: <200710042257.l94MvN73032759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49376 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760778AbXJDW5X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:23 -0400
+	by vger.kernel.org with ESMTP id S1760874AbXJDW5a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: add helper for asynchronous writes
+     fuse: add blksize field to fuse_attr
 has been added to the -mm tree.  Its filename is
-     fuse-add-helper-for-asynchronous-writes.patch
+     fuse-add-blksize-field-to-fuse_attr.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: add helper for asynchronous writes
+Subject: fuse: add blksize field to fuse_attr
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-This patch adds a new helper function fuse_write_fill() which makes it
-possible to send WRITE requests asynchronously.
-
-A new flag for WRITE requests is also added which indicates that this a write
-from the page cache, and not a "normal" file write.
-
-This patch is in preparation for writable mmap support.
+Allow the userspace filesystem to supply a blksize value to be returned by
+stat() and friends.  If the field is zero, it defaults to the old
+PAGE_CACHE_SIZE value.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes
-+++ a/fs/fuse/file.c
-@@ -443,30 +443,37 @@ out:
- 	return err;
- }
- 
--static size_t fuse_send_write(struct fuse_req *req, struct file *file,
--			      struct inode *inode, loff_t pos, size_t count)
--{
--	struct fuse_conn *fc = get_fuse_conn(inode);
--	struct fuse_file *ff = file->private_data;
--	struct fuse_write_in inarg;
--	struct fuse_write_out outarg;
--
--	memset(&inarg, 0, sizeof(struct fuse_write_in));
--	inarg.fh = ff->fh;
--	inarg.offset = pos;
--	inarg.size = count;
-+static void fuse_write_fill(struct fuse_req *req, struct fuse_file *ff,
-+			    struct inode *inode, loff_t pos, size_t count,
-+			    int writepage)
-+{
-+	struct fuse_write_in *inarg = &req->misc.write.in;
-+	struct fuse_write_out *outarg = &req->misc.write.out;
+diff -puN fs/fuse/dir.c~fuse-add-blksize-field-to-fuse_attr fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-blksize-field-to-fuse_attr
++++ a/fs/fuse/dir.c
+@@ -116,13 +116,19 @@ static void fuse_lookup_init(struct fuse
+ 			     struct dentry *entry,
+ 			     struct fuse_entry_out *outarg)
+ {
++	struct fuse_conn *fc = get_fuse_conn(dir);
 +
-+	memset(inarg, 0, sizeof(struct fuse_write_in));
-+	inarg->fh = ff->fh;
-+	inarg->offset = pos;
-+	inarg->size = count;
-+	inarg->write_flags = writepage ? FUSE_WRITE_CACHE : 0;
- 	req->in.h.opcode = FUSE_WRITE;
- 	req->in.h.nodeid = get_node_id(inode);
- 	req->in.argpages = 1;
- 	req->in.numargs = 2;
- 	req->in.args[0].size = sizeof(struct fuse_write_in);
--	req->in.args[0].value = &inarg;
-+	req->in.args[0].value = inarg;
- 	req->in.args[1].size = count;
++	memset(outarg, 0, sizeof(struct fuse_entry_out));
+ 	req->in.h.opcode = FUSE_LOOKUP;
+ 	req->in.h.nodeid = get_node_id(dir);
+ 	req->in.numargs = 1;
+ 	req->in.args[0].size = entry->d_name.len + 1;
+ 	req->in.args[0].value = entry->d_name.name;
  	req->out.numargs = 1;
- 	req->out.args[0].size = sizeof(struct fuse_write_out);
--	req->out.args[0].value = &outarg;
-+	req->out.args[0].value = outarg;
-+}
-+
-+static size_t fuse_send_write(struct fuse_req *req, struct file *file,
-+			      struct inode *inode, loff_t pos, size_t count)
-+{
-+	struct fuse_conn *fc = get_fuse_conn(inode);
-+	fuse_write_fill(req, file->private_data, inode, pos, count, 0);
- 	request_send(fc, req);
--	return outarg.size;
-+	return req->misc.write.out.size;
+-	req->out.args[0].size = sizeof(struct fuse_entry_out);
++	if (fc->minor < 9)
++		req->out.args[0].size = FUSE_COMPAT_ENTRY_OUT_SIZE;
++	else
++		req->out.args[0].size = sizeof(struct fuse_entry_out);
+ 	req->out.args[0].value = outarg;
  }
  
- static int fuse_write_begin(struct file *file, struct address_space *mapping,
-diff -puN fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes
-+++ a/fs/fuse/fuse_i.h
-@@ -219,6 +219,10 @@ struct fuse_req {
- 		struct fuse_init_in init_in;
- 		struct fuse_init_out init_out;
- 		struct fuse_read_in read_in;
-+		struct {
-+			struct fuse_write_in in;
-+			struct fuse_write_out out;
-+		} write;
- 		struct fuse_lk_in lk_in;
- 	} misc;
+@@ -356,6 +362,7 @@ static int fuse_create_open(struct inode
  
-diff -puN include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes
-+++ a/include/linux/fuse.h
-@@ -119,6 +119,13 @@ struct fuse_file_lock {
-  */
- #define FUSE_LK_FLOCK		(1 << 0)
+ 	flags &= ~O_NOCTTY;
+ 	memset(&inarg, 0, sizeof(inarg));
++	memset(&outentry, 0, sizeof(outentry));
+ 	inarg.flags = flags;
+ 	inarg.mode = mode;
+ 	req->in.h.opcode = FUSE_CREATE;
+@@ -366,7 +373,10 @@ static int fuse_create_open(struct inode
+ 	req->in.args[1].size = entry->d_name.len + 1;
+ 	req->in.args[1].value = entry->d_name.name;
+ 	req->out.numargs = 2;
+-	req->out.args[0].size = sizeof(outentry);
++	if (fc->minor < 9)
++		req->out.args[0].size = FUSE_COMPAT_ENTRY_OUT_SIZE;
++	else
++		req->out.args[0].size = sizeof(outentry);
+ 	req->out.args[0].value = &outentry;
+ 	req->out.args[1].size = sizeof(outopen);
+ 	req->out.args[1].value = &outopen;
+@@ -431,9 +441,13 @@ static int create_new_entry(struct fuse_
+ 		return PTR_ERR(forget_req);
+ 	}
  
-+/**
-+ * WRITE flags
-+ *
-+ * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
-+ */
-+#define FUSE_WRITE_CACHE	(1 << 0)
++	memset(&outarg, 0, sizeof(outarg));
+ 	req->in.h.nodeid = get_node_id(dir);
+ 	req->out.numargs = 1;
+-	req->out.args[0].size = sizeof(outarg);
++	if (fc->minor < 9)
++		req->out.args[0].size = FUSE_COMPAT_ENTRY_OUT_SIZE;
++	else
++		req->out.args[0].size = sizeof(outarg);
+ 	req->out.args[0].value = &outarg;
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+@@ -724,6 +738,7 @@ static int fuse_do_getattr(struct inode 
+ 	spin_unlock(&fc->lock);
+ 
+ 	memset(&inarg, 0, sizeof(inarg));
++	memset(&outarg, 0, sizeof(outarg));
+ 	/* Directories have separate file-handle space */
+ 	if (file && S_ISREG(inode->i_mode)) {
+ 		struct fuse_file *ff = file->private_data;
+@@ -737,7 +752,10 @@ static int fuse_do_getattr(struct inode 
+ 	req->in.args[0].size = sizeof(inarg);
+ 	req->in.args[0].value = &inarg;
+ 	req->out.numargs = 1;
+-	req->out.args[0].size = sizeof(outarg);
++	if (fc->minor < 9)
++		req->out.args[0].size = FUSE_COMPAT_ATTR_OUT_SIZE;
++	else
++		req->out.args[0].size = sizeof(outarg);
+ 	req->out.args[0].value = &outarg;
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+@@ -1102,6 +1120,7 @@ static int fuse_do_setattr(struct dentry
+ 		return PTR_ERR(req);
+ 
+ 	memset(&inarg, 0, sizeof(inarg));
++	memset(&outarg, 0, sizeof(outarg));
+ 	iattr_to_fattr(attr, &inarg);
+ 	if (file) {
+ 		struct fuse_file *ff = file->private_data;
+@@ -1119,7 +1138,10 @@ static int fuse_do_setattr(struct dentry
+ 	req->in.args[0].size = sizeof(inarg);
+ 	req->in.args[0].value = &inarg;
+ 	req->out.numargs = 1;
+-	req->out.args[0].size = sizeof(outarg);
++	if (fc->minor < 9)
++		req->out.args[0].size = FUSE_COMPAT_ATTR_OUT_SIZE;
++	else
++		req->out.args[0].size = sizeof(outarg);
+ 	req->out.args[0].value = &outarg;
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+diff -puN fs/fuse/inode.c~fuse-add-blksize-field-to-fuse_attr fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-blksize-field-to-fuse_attr
++++ a/fs/fuse/inode.c
+@@ -148,6 +148,11 @@ void fuse_change_attributes(struct inode
+ 	inode->i_ctime.tv_sec   = attr->ctime;
+ 	inode->i_ctime.tv_nsec  = attr->ctimensec;
+ 
++	if (attr->blksize != 0)
++		inode->i_blkbits = ilog2(attr->blksize);
++	else
++		inode->i_blkbits = inode->i_sb->s_blocksize_bits;
 +
- enum fuse_opcode {
- 	FUSE_LOOKUP	   = 1,
- 	FUSE_FORGET	   = 2,  /* no reply */
+ 	/*
+ 	 * Don't set the sticky bit in i_mode, unless we want the VFS
+ 	 * to check permissions.  This prevents failures due to the
+diff -puN include/linux/fuse.h~fuse-add-blksize-field-to-fuse_attr include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-blksize-field-to-fuse_attr
++++ a/include/linux/fuse.h
+@@ -15,6 +15,7 @@
+  *  - new fuse_getattr_in input argument of GETATTR
+  *  - add lk_flags in fuse_lk_in
+  *  - add lock_owner field to fuse_setattr_in, fuse_read_in and fuse_write_in
++ *  - add blksize field to fuse_attr
+  */
+ 
+ #include <asm/types.h>
+@@ -53,6 +54,8 @@ struct fuse_attr {
+ 	__u32	uid;
+ 	__u32	gid;
+ 	__u32	rdev;
++	__u32	blksize;
++	__u32	padding;
+ };
+ 
+ struct fuse_kstatfs {
+@@ -177,6 +180,8 @@ enum fuse_opcode {
+ /* The read buffer is required to be at least 8k, but may be much larger */
+ #define FUSE_MIN_READ_BUFFER 8192
+ 
++#define FUSE_COMPAT_ENTRY_OUT_SIZE 120
++
+ struct fuse_entry_out {
+ 	__u64	nodeid;		/* Inode ID */
+ 	__u64	generation;	/* Inode generation: nodeid:gen must
+@@ -198,6 +203,8 @@ struct fuse_getattr_in {
+ 	__u64	fh;
+ };
+ 
++#define FUSE_COMPAT_ATTR_OUT_SIZE 96
++
+ struct fuse_attr_out {
+ 	__u64	attr_valid;	/* Cache timeout for the attributes */
+ 	__u32	attr_valid_nsec;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
