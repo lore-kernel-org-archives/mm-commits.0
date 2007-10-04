@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-fix-ntfs-with-sb_has_dirty_inodes.patch added to -mm tree
-Date: Thu, 04 Oct 2007 14:28:21 -0700
-Message-ID: <200710042128.l94LSLIE029529@imap1.linux-foundation.org>
+Subject: + writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch added to -mm tree
+Date: Thu, 04 Oct 2007 14:28:28 -0700
+Message-ID: <200710042128.l94LSTQB029538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759638AbXJDV2j (ORCPT
+	by vger.kernel.org with ESMTP id S1759116AbXJDV2j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 17:28:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, aia21@cantab.net, akpm@linux-foundation.org, kenchen@google.com
+Cc: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, dgc@sgi.com, kenchen@google.com
 
 
 The patch titled
-     writeback: fix ntfs with sb_has_dirty_inodes()
+     writeback: introduce writeback_control.more_io to indicate more io
 has been added to the -mm tree.  Its filename is
-     writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
+     writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,13 +25,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: fix ntfs with sb_has_dirty_inodes()
+Subject: writeback: introduce writeback_control.more_io to indicate more io
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-NTFS's if-condition on dirty inodes is not complete.  Fix it with
-sb_has_dirty_inodes().
+After making dirty a 100M file, the normal behavior is to start the writeback
+for all data after 30s delays.  But sometimes the following happens instead:
 
-Cc: Anton Altaparmakov <aia21@cantab.net>
+	- after 30s:    ~4M
+	- after 5s:     ~4M
+	- after 5s:     all remaining 92M
+
+Some analyze shows that the internal io dispatch queues goes like this:
+
+		s_io            s_more_io
+		-------------------------
+	1)	100M,1K         0
+	2)	1K              96M
+	3)	0               96M
+
+1) initial state with a 100M file and a 1K file
+2) 4M written, nr_to_write <= 0, so write more
+3) 1K written, nr_to_write > 0, no more writes(BUG)
+
+nr_to_write > 0 in (3) fools the upper layer to think that data have all been
+written out.  The big dirty file is actually still sitting in s_more_io.  We
+cannot simply splice s_more_io back to s_io as soon as s_io becomes empty, and
+let the loop in generic_sync_sb_inodes() continue: this may starve newly
+expired inodes in s_dirty.  It is also not an option to draw inodes from both
+s_more_io and s_dirty, an let the loop go on: this might lead to live locks,
+and might also starve other superblocks in sync time(well kupdate may still
+starve some superblocks, that's another bug).
+
+We have to return when a full scan of s_io completes.  So nr_to_write > 0 does
+not necessarily mean that "all data are written".  This patch introduces a
+flag writeback_control.more_io to indicate this situation.  With it the big
+dirty file no longer has to wait for the next kupdate invocation 5s later.
+
+Cc: David Chinner <dgc@sgi.com>
 Cc: Ken Chen <kenchen@google.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
@@ -39,64 +69,66 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fs-writeback.c~writeback-fix-ntfs-with-sb_has_dirty_inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-ntfs-with-sb_has_dirty_inodes
+diff -puN fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
 +++ a/fs/fs-writeback.c
-@@ -199,6 +199,14 @@ static void queue_io(struct super_block 
- 	move_expired_inodes(&sb->s_dirty, &sb->s_io, older_than_this);
+@@ -473,6 +473,8 @@ sync_sb_inodes(struct super_block *sb, s
+ 		if (wbc->nr_to_write <= 0)
+ 			break;
+ 	}
++	if (!list_empty(&sb->s_more_io))
++		wbc->more_io = 1;
+ 	return;		/* Leave any unwritten inodes on s_io */
  }
  
-+int sb_has_dirty_inodes(struct super_block *sb)
-+{
-+	return !list_empty(&sb->s_dirty) ||
-+	       !list_empty(&sb->s_io) ||
-+	       !list_empty(&sb->s_more_io);
-+}
-+EXPORT_SYMBOL(sb_has_dirty_inodes);
-+
- /*
-  * Write a single inode's dirty pages and inode data out to disk.
-  * If `wait' is set, wait on the writeout.
-@@ -497,7 +505,7 @@ writeback_inodes(struct writeback_contro
- restart:
- 	sb = sb_entry(super_blocks.prev);
- 	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
--		if (!list_empty(&sb->s_dirty) || !list_empty(&sb->s_io)) {
-+		if (sb_has_dirty_inodes(sb)) {
- 			/* we're making our own get_super here */
- 			sb->s_count++;
- 			spin_unlock(&sb_lock);
-diff -puN fs/ntfs/super.c~writeback-fix-ntfs-with-sb_has_dirty_inodes fs/ntfs/super.c
---- a/fs/ntfs/super.c~writeback-fix-ntfs-with-sb_has_dirty_inodes
-+++ a/fs/ntfs/super.c
-@@ -2381,14 +2381,14 @@ static void ntfs_put_super(struct super_
- 	 */
- 	ntfs_commit_inode(vol->mft_ino);
- 	write_inode_now(vol->mft_ino, 1);
--	if (!list_empty(&sb->s_dirty)) {
-+	if (sb_has_dirty_inodes(sb)) {
- 		const char *s1, *s2;
+diff -puN include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
++++ a/include/linux/writeback.h
+@@ -62,6 +62,7 @@ struct writeback_control {
+ 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
+ 	unsigned for_writepages:1;	/* This is a writepages() call */
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
++	unsigned more_io:1;		/* more io to be dispatched */
+ 	void *fs_private;               /* For use by ->writepages() */
+ };
  
- 		mutex_lock(&vol->mft_ino->i_mutex);
- 		truncate_inode_pages(vol->mft_ino->i_mapping, 0);
- 		mutex_unlock(&vol->mft_ino->i_mutex);
- 		write_inode_now(vol->mft_ino, 1);
--		if (!list_empty(&sb->s_dirty)) {
-+		if (sb_has_dirty_inodes(sb)) {
- 			static const char *_s1 = "inodes";
- 			static const char *_s2 = "";
- 			s1 = _s1;
-diff -puN include/linux/fs.h~writeback-fix-ntfs-with-sb_has_dirty_inodes include/linux/fs.h
---- a/include/linux/fs.h~writeback-fix-ntfs-with-sb_has_dirty_inodes
-+++ a/include/linux/fs.h
-@@ -1717,6 +1717,7 @@ extern int bdev_read_only(struct block_d
- extern int set_blocksize(struct block_device *, int);
- extern int sb_set_blocksize(struct super_block *, int);
- extern int sb_min_blocksize(struct super_block *, int);
-+extern int sb_has_dirty_inodes(struct super_block *);
- 
- extern int generic_file_mmap(struct file *, struct vm_area_struct *);
- extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
+diff -puN mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
++++ a/mm/page-writeback.c
+@@ -553,6 +553,7 @@ static void background_writeout(unsigned
+ 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
+ 				&& min_pages <= 0)
+ 			break;
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		wbc.pages_skipped = 0;
+@@ -560,8 +561,9 @@ static void background_writeout(unsigned
+ 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
+ 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
+ 			/* Wrote less than expected */
+-			congestion_wait(WRITE, HZ/10);
+-			if (!wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
++				congestion_wait(WRITE, HZ/10);
++			else
+ 				break;
+ 		}
+ 	}
+@@ -626,11 +628,12 @@ static void wb_kupdate(unsigned long arg
+ 			global_page_state(NR_UNSTABLE_NFS) +
+ 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
+ 	while (nr_to_write > 0) {
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		writeback_inodes(&wbc);
+ 		if (wbc.nr_to_write > 0) {
+-			if (wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
+ 				congestion_wait(WRITE, HZ/10);
+ 			else
+ 				break;	/* All the old data is written */
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
