@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-improve-utimes-support.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:07 -0700
-Message-ID: <200710042257.l94Mv7Si032736@imap1.linux-foundation.org>
+Subject: + fuse-add-list-of-writable-files-to-fuse_inode.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:15 -0700
+Message-ID: <200710042257.l94MvFma032750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50463 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41053 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760714AbXJDW5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:15 -0400
+	by vger.kernel.org with ESMTP id S1760853AbXJDW5U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: improve utimes support
+     fuse: add list of writable files to fuse_inode
 has been added to the -mm tree.  Its filename is
-     fuse-improve-utimes-support.patch
+     fuse-add-list-of-writable-files-to-fuse_inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: improve utimes support
+Subject: fuse: add list of writable files to fuse_inode
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add two new flags for setattr: FATTR_ATIME_NOW and FATTR_MTIME_NOW.  These
-mean, that atime or mtime should be changed to the current time.
+Each WRITE request must carry a valid file descriptor.  When a page is written
+back from a memory mapping, the file through which the page was dirtied is not
+available, so a new mechananism is needed to find a suitable file in
+->writepage(s).
 
-Also it is now possible to update atime or mtime individually, not just
-together.
+A list of fuse_files is added to fuse_inode.  The file is removed from the
+list in fuse_release().
+
+This patch is in preparation for writable mmap support.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/dir.c~fuse-improve-utimes-support fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-improve-utimes-support
-+++ a/fs/fuse/dir.c
-@@ -1014,6 +1014,20 @@ static int fuse_dir_fsync(struct file *f
- 	return file ? fuse_fsync_common(file, de, datasync, 1) : 0;
- }
- 
-+static bool update_mtime(unsigned ivalid)
-+{
-+	/* Always update if mtime is explicitly set  */
-+	if (ivalid & ATTR_MTIME_SET)
-+		return true;
-+
-+	/* If it's an open(O_TRUNC) or an ftruncate(), don't update */
-+	if ((ivalid & ATTR_SIZE) && (ivalid & (ATTR_OPEN | ATTR_FILE)))
-+		return false;
-+
-+	/* In all other cases update */
-+	return true;
-+}
-+
- static void iattr_to_fattr(struct iattr *iattr, struct fuse_setattr_in *arg)
- {
- 	unsigned ivalid = iattr->ia_valid;
-@@ -1026,11 +1040,19 @@ static void iattr_to_fattr(struct iattr 
- 		arg->valid |= FATTR_GID,    arg->gid = iattr->ia_gid;
- 	if (ivalid & ATTR_SIZE)
- 		arg->valid |= FATTR_SIZE,   arg->size = iattr->ia_size;
--	/* You can only _set_ these together (they may change by themselves) */
--	if ((ivalid & (ATTR_ATIME | ATTR_MTIME)) == (ATTR_ATIME | ATTR_MTIME)) {
--		arg->valid |= FATTR_ATIME | FATTR_MTIME;
-+	if (ivalid & ATTR_ATIME) {
-+		arg->valid |= FATTR_ATIME;
- 		arg->atime = iattr->ia_atime.tv_sec;
-+		arg->atimensec = iattr->ia_atime.tv_nsec;
-+		if (!(ivalid & ATTR_ATIME_SET))
-+			arg->valid |= FATTR_ATIME_NOW;
-+	}
-+	if ((ivalid & ATTR_MTIME) && update_mtime(ivalid)) {
-+		arg->valid |= FATTR_MTIME;
- 		arg->mtime = iattr->ia_mtime.tv_sec;
-+		arg->mtimensec = iattr->ia_mtime.tv_nsec;
-+		if (!(ivalid & ATTR_MTIME_SET))
-+			arg->valid |= FATTR_MTIME_NOW;
+diff -puN fs/fuse/file.c~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-list-of-writable-files-to-fuse_inode
++++ a/fs/fuse/file.c
+@@ -56,6 +56,7 @@ struct fuse_file *fuse_file_alloc(void)
+ 			kfree(ff);
+ 			ff = NULL;
+ 		}
++		INIT_LIST_HEAD(&ff->write_entry);
+ 		atomic_set(&ff->count, 0);
  	}
- }
+ 	return ff;
+@@ -150,12 +151,18 @@ int fuse_release_common(struct inode *in
+ {
+ 	struct fuse_file *ff = file->private_data;
+ 	if (ff) {
++		struct fuse_conn *fc = get_fuse_conn(inode);
++
+ 		fuse_release_fill(ff, get_node_id(inode), file->f_flags,
+ 				  isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
  
-diff -puN include/linux/fuse.h~fuse-improve-utimes-support include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-improve-utimes-support
-+++ a/include/linux/fuse.h
-@@ -83,6 +83,8 @@ struct fuse_file_lock {
- #define FATTR_ATIME	(1 << 4)
- #define FATTR_MTIME	(1 << 5)
- #define FATTR_FH	(1 << 6)
-+#define FATTR_ATIME_NOW	(1 << 7)
-+#define FATTR_MTIME_NOW	(1 << 8)
+ 		/* Hold vfsmount and dentry until release is finished */
+ 		ff->reserved_req->vfsmount = mntget(file->f_path.mnt);
+ 		ff->reserved_req->dentry = dget(file->f_path.dentry);
++
++		spin_lock(&fc->lock);
++		list_del(&ff->write_entry);
++		spin_unlock(&fc->lock);
+ 		/*
+ 		 * Normally this will send the RELEASE request,
+ 		 * however if some asynchronous READ or WRITE requests
+diff -puN fs/fuse/fuse_i.h~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-list-of-writable-files-to-fuse_inode
++++ a/fs/fuse/fuse_i.h
+@@ -70,6 +70,9 @@ struct fuse_inode {
  
- /**
-  * Flags returned by the OPEN request
+ 	/** Version of last attribute change */
+ 	u64 attr_version;
++
++	/** Files usable in writepage.  Protected by fc->lock */
++	struct list_head write_files;
+ };
+ 
+ /** FUSE specific file data */
+@@ -82,6 +85,9 @@ struct fuse_file {
+ 
+ 	/** Refcount */
+ 	atomic_t count;
++
++	/** Entry on inode's write_files list */
++	struct list_head write_entry;
+ };
+ 
+ /** One input argument of a request */
+diff -puN fs/fuse/inode.c~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-list-of-writable-files-to-fuse_inode
++++ a/fs/fuse/inode.c
+@@ -56,6 +56,7 @@ static struct inode *fuse_alloc_inode(st
+ 	fi->i_time = 0;
+ 	fi->nodeid = 0;
+ 	fi->nlookup = 0;
++	INIT_LIST_HEAD(&fi->write_files);
+ 	fi->forget_req = fuse_request_alloc();
+ 	if (!fi->forget_req) {
+ 		kmem_cache_free(fuse_inode_cachep, inode);
+@@ -68,6 +69,7 @@ static struct inode *fuse_alloc_inode(st
+ static void fuse_destroy_inode(struct inode *inode)
+ {
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
++	BUG_ON(!list_empty(&fi->write_files));
+ 	if (fi->forget_req)
+ 		fuse_request_free(fi->forget_req);
+ 	kmem_cache_free(fuse_inode_cachep, inode);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
