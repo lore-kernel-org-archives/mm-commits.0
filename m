@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch added to -mm tree
-Date: Thu, 04 Oct 2007 12:15:39 -0700
-Message-ID: <200710041915.l94JFdQs024659@imap1.linux-foundation.org>
+Subject: + initio-fix-conflict-when-loading-driver.patch added to -mm tree
+Date: Thu, 04 Oct 2007 12:18:39 -0700
+Message-ID: <200710041918.l94JIdmW024733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44252 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754500AbXJDTPz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:15:55 -0400
+	by vger.kernel.org with ESMTP id S1756658AbXJDTTL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, dgc@sgi.com, hch@lst.de, xfs-masters@oss.sgi.com
+Cc: alan@lxorguk.ukuu.org.uk, James.Bottomley@steeleye.com, alan@redhat.com, simps05192@yahoo.com
 
 
 The patch titled
-     update sb->s_frozen when freezing read-only mounted device, too
+     initio: fix conflict when loading driver
 has been added to the -mm tree.  Its filename is
-     update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
+     initio-fix-conflict-when-loading-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: update sb->s_frozen when freezing read-only mounted device, too
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: initio: fix conflict when loading driver
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-freeze_bdev() with the device which is mounted as read only does not change
-sb->s_frozen from SB_UNFROZEN to SB_FREEZE_TRANS.
+> I have a scanner connected to a Initio INI-950 SCSI card and I recently
+> upgraded from SuSE 10.2 to 10.3.  The new kernel doesn't see any of my
+> devices.  I get the following in /var/log/messages:
+>
+> ACPI: PCI Interrupt 0000:00:0a.0[A] -> GSI 17 (level, low) -> IRQ 16
+> initio: I/O port range 0x0 is busy.
+> ACPI: PCI interrupt for device 0000:00:0a.0 disabled
 
-Because of this behavior, xfs_freeze can break read-only XFS filesystem.
+Humm not a collision - thats a bug in the driver updating.  Looks like the
+changes I made and combined with Christoph's lost a line somewhere when I
+was merging it all.  Try the following
 
-Because xfs_thaw does nothing for the filesystem whose sb->s_frozen is
-SB_UNFROZEN.  So freezed readonly XFS filesystem will never be unfreezed. 
-Then we cannot do any unmount/remount operations for that filesystem.
-
-This patch updates sb->s_frozen when freeze_bdev() is called for read-only
-mounted device, too.
-
-Cc: Tim Shimmin <xfs-masters@oss.sgi.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Scott Simpson <simps05192@yahoo.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too fs/buffer.c
---- a/fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too
-+++ a/fs/buffer.c
-@@ -190,19 +190,22 @@ struct super_block *freeze_bdev(struct b
- 
- 	down(&bdev->bd_mount_sem);
- 	sb = get_super(bdev);
--	if (sb && !(sb->s_flags & MS_RDONLY)) {
-+	if (sb) {
- 		sb->s_frozen = SB_FREEZE_WRITE;
- 		smp_wmb();
- 
--		__fsync_super(sb);
-+		if (!(sb->s_flags & MS_RDONLY))
-+			__fsync_super(sb);
- 
- 		sb->s_frozen = SB_FREEZE_TRANS;
- 		smp_wmb();
- 
--		sync_blockdev(sb->s_bdev);
-+		if (!(sb->s_flags & MS_RDONLY)) {
-+			sync_blockdev(sb->s_bdev);
- 
--		if (sb->s_op->write_super_lockfs)
--			sb->s_op->write_super_lockfs(sb);
-+			if (sb->s_op->write_super_lockfs)
-+				sb->s_op->write_super_lockfs(sb);
-+		}
+diff -puN drivers/scsi/initio.c~initio-fix-conflict-when-loading-driver drivers/scsi/initio.c
+--- a/drivers/scsi/initio.c~initio-fix-conflict-when-loading-driver
++++ a/drivers/scsi/initio.c
+@@ -2866,6 +2866,7 @@ static int initio_probe_one(struct pci_d
  	}
+ 	host = (struct initio_host *)shost->hostdata;
+ 	memset(host, 0, sizeof(struct initio_host));
++	host->addr = pci_resource_start(pdev, 0);
  
- 	sync_blockdev(bdev);
+ 	if (!request_region(host->addr, 256, "i91u")) {
+ 		printk(KERN_WARNING "initio: I/O port range 0x%x is busy.\n", host->addr);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-module-return-error-when-mod_sysfs_init-failed.patch
-update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+git-libata-all.patch
+libata-correct-handling-of-srst-reset-sequences.patch
+ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
+drivers-ata-pata_ixp4xx_cfc-ioremap-return-code-check.patch
+libata_scsi-fix-transfer-lengths.patch
+libata-fix-hopefully-all-the-remaining-problems-with.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+fix-ide-legacy-mode-resources.patch
+git-scsi-misc.patch
+initio-fix-conflict-when-loading-driver.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+funsoft-fix-termios.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+visor-termios-bits.patch
