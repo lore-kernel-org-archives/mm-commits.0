@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-timer_stats-printout-of-events-sec.patch added to -mm tree
-Date: Thu, 04 Oct 2007 12:21:23 -0700
-Message-ID: <200710041921.l94JLNCF024893@imap1.linux-foundation.org>
+Subject: + ext3-lighten-up-resize-transaction-requirements.patch added to -mm tree
+Date: Thu, 04 Oct 2007 12:24:12 -0700
+Message-ID: <200710041924.l94JOCPq024950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33587 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756303AbXJDTVl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:21:41 -0400
+	by vger.kernel.org with ESMTP id S1756133AbXJDTYe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton@samba.org, akpm@linux-foundation.org, mingo@elte.hu
+Cc: sandeen@redhat.com, adilger@clusterfs.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     Fix timer_stats printout of events/sec
+     ext3: lighten up resize transaction requirements
 has been added to the -mm tree.  Its filename is
-     fix-timer_stats-printout-of-events-sec.patch
+     ext3-lighten-up-resize-transaction-requirements.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,137 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix timer_stats printout of events/sec
-From: Anton Blanchard <anton@samba.org>
+Subject: ext3: lighten up resize transaction requirements
+From: Eric Sandeen <sandeen@redhat.com>
 
-When using /proc/timer_stats on ppc64 I noticed the events/sec field wasnt
-accurate.  Sometimes the integer part was incorrect due to rounding (we
-werent taking the fractional seconds into consideration).
+When resizing online, setup_new_group_blocks attempts to reserve a
+potentially very large transaction, depending on the current filesystem
+geometry.  For some journal sizes, there may not be enough room for this
+transaction, and the online resize will fail.
 
-The fraction part is also wrong, we need to pad the printf statement and
-take the bottom three digits of 1000 times the value.
+The patch below resizes & restarts the transaction as necessary while
+setting up the new group, and should work with even the smallest journal.
 
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Tested with something like:
+
+[root@newbox ~]# dd if=/dev/zero of=fsfile bs=1024 count=32768
+[root@newbox ~]# mkfs.ext3 -b 1024 fsfile 16384
+[root@newbox ~]# mount -o loop fsfile mnt/
+[root@newbox ~]# resize2fs /dev/loop0
+resize2fs 1.40.2 (12-Jul-2007)
+Filesystem at /dev/loop0 is mounted on /root/mnt; on-line resizing required
+old desc_blocks = 1, new_desc_blocks = 1
+Performing an on-line resize of /dev/loop0 to 32768 (1k) blocks.
+resize2fs: No space left on device While trying to add group #2
+[root@newbox ~]# dmesg | tail -n 1
+JBD: resize2fs wants too many credits (258 > 256)
+[root@newbox ~]#
+
+With the below change, it works.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Acked-by: Andreas Dilger <adilger@clusterfs.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN kernel/time/timer_stats.c~fix-timer_stats-printout-of-events-sec kernel/time/timer_stats.c
---- a/kernel/time/timer_stats.c~fix-timer_stats-printout-of-events-sec
-+++ a/kernel/time/timer_stats.c
-@@ -327,8 +327,9 @@ static int tstats_show(struct seq_file *
- 		ms = 1;
+diff -puN fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements
++++ a/fs/ext3/resize.c
+@@ -154,6 +154,32 @@ static void mark_bitmap_end(int start_bi
+ }
  
- 	if (events && period.tv_sec)
--		seq_printf(m, "%ld total events, %ld.%ld events/sec\n", events,
--			   events / period.tv_sec, events * 1000 / ms);
-+		seq_printf(m, "%ld total events, %ld.%03ld events/sec\n",
-+			   events, events * 1000 / ms,
-+			   (events * 1000000 / ms) % 1000);
- 	else
- 		seq_printf(m, "%ld total events\n", events);
+ /*
++ * If we have fewer than thresh credits, extend by EXT3_MAX_TRANS_DATA.
++ * If that fails, restart the transaction & regain write access for the
++ * buffer head which is used for block_bitmap modifications.
++ */
++static int extend_or_restart_transaction(handle_t *handle, int thresh,
++					 struct buffer_head *bh)
++{
++	int err;
++
++	if (handle->h_buffer_credits >= thresh)
++		return 0;
++
++	err = ext3_journal_extend(handle, EXT3_MAX_TRANS_DATA);
++	if (err < 0)
++		return err;
++	if (err) {
++		if ((err = ext3_journal_restart(handle, EXT3_MAX_TRANS_DATA)))
++			return err;
++	        if ((err = ext3_journal_get_write_access(handle, bh)))
++			return err;
++        }
++
++	return 0;
++}
++
++/*
+  * Set up the block and inode bitmaps, and the inode table for the new group.
+  * This doesn't need to be part of the main transaction, since we are only
+  * changing blocks outside the actual filesystem.  We still do journaling to
+@@ -175,8 +201,9 @@ static int setup_new_group_blocks(struct
+ 	int i;
+ 	int err = 0, err2;
  
+-	handle = ext3_journal_start_sb(sb, reserved_gdb + gdblocks +
+-				       2 + sbi->s_itb_per_group);
++	/* This transaction may be extended/restarted along the way */
++	handle = ext3_journal_start_sb(sb, EXT3_MAX_TRANS_DATA);
++
+ 	if (IS_ERR(handle))
+ 		return PTR_ERR(handle);
+ 
+@@ -203,6 +230,9 @@ static int setup_new_group_blocks(struct
+ 
+ 		ext3_debug("update backup group %#04lx (+%d)\n", block, bit);
+ 
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++			goto exit_bh;
++
+ 		gdb = sb_getblk(sb, block);
+ 		if (!gdb) {
+ 			err = -EIO;
+@@ -228,6 +258,9 @@ static int setup_new_group_blocks(struct
+ 
+ 		ext3_debug("clear reserved block %#04lx (+%d)\n", block, bit);
+ 
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++			goto exit_bh;
++
+ 		if (IS_ERR(gdb = bclean(handle, sb, block))) {
+ 			err = PTR_ERR(bh);
+ 			goto exit_bh;
+@@ -249,6 +282,10 @@ static int setup_new_group_blocks(struct
+ 		struct buffer_head *it;
+ 
+ 		ext3_debug("clear inode block %#04lx (+%d)\n", block, bit);
++
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++			goto exit_bh;
++
+ 		if (IS_ERR(it = bclean(handle, sb, block))) {
+ 			err = PTR_ERR(it);
+ 			goto exit_bh;
+@@ -257,6 +294,10 @@ static int setup_new_group_blocks(struct
+ 		brelse(it);
+ 		ext3_set_bit(bit, bh->b_data);
+ 	}
++
++	if ((err = extend_or_restart_transaction(handle, 2, bh)))
++		goto exit_bh;
++
+ 	mark_bitmap_end(input->blocks_count, EXT3_BLOCKS_PER_GROUP(sb),
+ 			bh->b_data);
+ 	ext3_journal_dirty_metadata(handle, bh);
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-origin.patch
-fix-timer_stats-printout-of-events-sec.patch
-git-infiniband.patch
+remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
+limit-minixfs-printks-on-corrupted-dir-i_size.patch
+ext3-remove-ifdef-config_ext3_index.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+ext4-remove-ifdef-config_ext4_index.patch
