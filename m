@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-add-atomic-opentruncate-support.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:10 -0700
-Message-ID: <200710042257.l94MvAw4032744@imap1.linux-foundation.org>
+Subject: + fuse-add-helper-for-asynchronous-writes.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:18 -0700
+Message-ID: <200710042257.l94MvIi1032753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760765AbXJDW5R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:17 -0400
+	by vger.kernel.org with ESMTP id S1760778AbXJDW5X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: add atomic open+truncate support
+     fuse: add helper for asynchronous writes
 has been added to the -mm tree.  Its filename is
-     fuse-add-atomic-opentruncate-support.patch
+     fuse-add-helper-for-asynchronous-writes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,90 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: add atomic open+truncate support
+Subject: fuse: add helper for asynchronous writes
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-This patch allows fuse filesystems to implement open(..., O_TRUNC) as a single
-request, instead of separate truncate and open requests.
+This patch adds a new helper function fuse_write_fill() which makes it
+possible to send WRITE requests asynchronously.
+
+A new flag for WRITE requests is also added which indicates that this a write
+from the page cache, and not a "normal" file write.
+
+This patch is in preparation for writable mmap support.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/dir.c~fuse-add-atomic-opentruncate-support fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-add-atomic-opentruncate-support
-+++ a/fs/fuse/dir.c
-@@ -1083,6 +1083,9 @@ static int fuse_do_setattr(struct dentry
- 			return err;
- 	}
- 
-+	if ((attr->ia_valid & ATTR_OPEN) && fc->atomic_o_trunc)
-+		return 0;
-+
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		unsigned long limit;
- 		if (IS_SWAPFILE(inode))
-diff -puN fs/fuse/file.c~fuse-add-atomic-opentruncate-support fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-atomic-opentruncate-support
+diff -puN fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes
 +++ a/fs/fuse/file.c
-@@ -28,7 +28,9 @@ static int fuse_send_open(struct inode *
- 		return PTR_ERR(req);
+@@ -443,30 +443,37 @@ out:
+ 	return err;
+ }
  
- 	memset(&inarg, 0, sizeof(inarg));
--	inarg.flags = file->f_flags & ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
-+	inarg.flags = file->f_flags & ~(O_CREAT | O_EXCL | O_NOCTTY);
-+	if (!fc->atomic_o_trunc)
-+		inarg.flags &= ~O_TRUNC;
- 	req->in.h.opcode = isdir ? FUSE_OPENDIR : FUSE_OPEN;
- 	req->in.h.nodeid = get_node_id(inode);
- 	req->in.numargs = 1;
-diff -puN fs/fuse/fuse_i.h~fuse-add-atomic-opentruncate-support fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-atomic-opentruncate-support
-+++ a/fs/fuse/fuse_i.h
-@@ -320,6 +320,9 @@ struct fuse_conn {
- 	/** Do readpages asynchronously?  Only set in INIT */
- 	unsigned async_read : 1;
- 
-+	/** Do not send separate SETATTR request before open(O_TRUNC)  */
-+	unsigned atomic_o_trunc : 1;
+-static size_t fuse_send_write(struct fuse_req *req, struct file *file,
+-			      struct inode *inode, loff_t pos, size_t count)
+-{
+-	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_file *ff = file->private_data;
+-	struct fuse_write_in inarg;
+-	struct fuse_write_out outarg;
+-
+-	memset(&inarg, 0, sizeof(struct fuse_write_in));
+-	inarg.fh = ff->fh;
+-	inarg.offset = pos;
+-	inarg.size = count;
++static void fuse_write_fill(struct fuse_req *req, struct fuse_file *ff,
++			    struct inode *inode, loff_t pos, size_t count,
++			    int writepage)
++{
++	struct fuse_write_in *inarg = &req->misc.write.in;
++	struct fuse_write_out *outarg = &req->misc.write.out;
 +
- 	/*
- 	 * The following bitfields are only for optimization purposes
- 	 * and hence races in setting them will not cause malfunction
-diff -puN fs/fuse/inode.c~fuse-add-atomic-opentruncate-support fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-add-atomic-opentruncate-support
-+++ a/fs/fuse/inode.c
-@@ -548,6 +548,8 @@ static void process_init_reply(struct fu
- 				fc->async_read = 1;
- 			if (!(arg->flags & FUSE_POSIX_LOCKS))
- 				fc->no_lock = 1;
-+			if (arg->flags & FUSE_ATOMIC_O_TRUNC)
-+				fc->atomic_o_trunc = 1;
- 		} else {
- 			ra_pages = fc->max_read / PAGE_CACHE_SIZE;
- 			fc->no_lock = 1;
-@@ -570,7 +572,8 @@ static void fuse_send_init(struct fuse_c
- 	arg->major = FUSE_KERNEL_VERSION;
- 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
- 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
--	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS;
-+	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS |
-+		FUSE_ATOMIC_O_TRUNC;
- 	req->in.h.opcode = FUSE_INIT;
- 	req->in.numargs = 1;
- 	req->in.args[0].size = sizeof(*arg);
-diff -puN include/linux/fuse.h~fuse-add-atomic-opentruncate-support include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-atomic-opentruncate-support
-+++ a/include/linux/fuse.h
-@@ -101,6 +101,7 @@ struct fuse_file_lock {
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
- #define FUSE_FILE_OPS		(1 << 2)
-+#define FUSE_ATOMIC_O_TRUNC	(1 << 3)
++	memset(inarg, 0, sizeof(struct fuse_write_in));
++	inarg->fh = ff->fh;
++	inarg->offset = pos;
++	inarg->size = count;
++	inarg->write_flags = writepage ? FUSE_WRITE_CACHE : 0;
+ 	req->in.h.opcode = FUSE_WRITE;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.argpages = 1;
+ 	req->in.numargs = 2;
+ 	req->in.args[0].size = sizeof(struct fuse_write_in);
+-	req->in.args[0].value = &inarg;
++	req->in.args[0].value = inarg;
+ 	req->in.args[1].size = count;
+ 	req->out.numargs = 1;
+ 	req->out.args[0].size = sizeof(struct fuse_write_out);
+-	req->out.args[0].value = &outarg;
++	req->out.args[0].value = outarg;
++}
++
++static size_t fuse_send_write(struct fuse_req *req, struct file *file,
++			      struct inode *inode, loff_t pos, size_t count)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	fuse_write_fill(req, file->private_data, inode, pos, count, 0);
+ 	request_send(fc, req);
+-	return outarg.size;
++	return req->misc.write.out.size;
+ }
  
- /**
-  * Release flags
+ static int fuse_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes
++++ a/fs/fuse/fuse_i.h
+@@ -219,6 +219,10 @@ struct fuse_req {
+ 		struct fuse_init_in init_in;
+ 		struct fuse_init_out init_out;
+ 		struct fuse_read_in read_in;
++		struct {
++			struct fuse_write_in in;
++			struct fuse_write_out out;
++		} write;
+ 		struct fuse_lk_in lk_in;
+ 	} misc;
+ 
+diff -puN include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes
++++ a/include/linux/fuse.h
+@@ -119,6 +119,13 @@ struct fuse_file_lock {
+  */
+ #define FUSE_LK_FLOCK		(1 << 0)
+ 
++/**
++ * WRITE flags
++ *
++ * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
++ */
++#define FUSE_WRITE_CACHE	(1 << 0)
++
+ enum fuse_opcode {
+ 	FUSE_LOOKUP	   = 1,
+ 	FUSE_FORGET	   = 2,  /* no reply */
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
