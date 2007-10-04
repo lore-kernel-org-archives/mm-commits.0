@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:56:13 -0700
-Message-ID: <200710042256.l94MuDmD032710@imap1.linux-foundation.org>
+Subject: + fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:56:56 -0700
+Message-ID: <200710042256.l94MuuxH032721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760701AbXJDW42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:56:28 -0400
+	by vger.kernel.org with ESMTP id S1760685AbXJDW5H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jakub.bogusz@gemius.pl, mszeredi@suse.cz
+Cc: akpm@linux-foundation.org, mszeredi@suse.cz
 
 
 The patch titled
-     fuse-fix-race-between-getattr-and-write-checkpatch-fixes
+     fuse-add-file-handle-to-getattr-operation-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+     fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse-fix-race-between-getattr-and-write-checkpatch-fixes
+Subject: fuse-add-file-handle-to-getattr-operation-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: use tabs not spaces
-#267: FILE: fs/fuse/dir.c:851:
+#88: FILE: fs/fuse/dir.c:864:
 +^I^I ^I$
 
-Cc: Jakub Bogusz <jakub.bogusz@gemius.pl>
 Cc: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/dir.c~fuse-fix-race-between-getattr-and-write-checkpatch-fixes fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-fix-race-between-getattr-and-write-checkpatch-fixes
+diff -puN fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation-checkpatch-fixes fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation-checkpatch-fixes
 +++ a/fs/fuse/dir.c
-@@ -848,7 +848,7 @@ static int fuse_permission(struct inode 
+@@ -861,7 +861,7 @@ static int fuse_permission(struct inode 
  		   attributes.  This is also needed, because the root
  		   node will at first have no permissions */
  		if (err == -EACCES && !refreshed) {
--		 	err = fuse_do_getattr(inode, NULL);
-+			err = fuse_do_getattr(inode, NULL);
+-		 	err = fuse_do_getattr(inode, NULL, NULL);
++			err = fuse_do_getattr(inode, NULL, NULL);
  			if (!err)
  				err = generic_permission(inode, mask, NULL);
  		}
@@ -251,6 +250,7 @@ linux-kernel-markers-checkpatch-fixes.patch
 linux-kernel-markers-samples-checkpatch-fixes.patch
 uninline-forkc-exitc-checkpatch-fixes.patch
 fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
 reiser4.patch
 git-block-vs-reiser4.patch
 git-nfsd-broke-reiser4.patch
