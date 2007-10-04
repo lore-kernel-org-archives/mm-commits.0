@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch added to -mm tree
-Date: Thu, 04 Oct 2007 14:28:28 -0700
-Message-ID: <200710042128.l94LSTQB029538@imap1.linux-foundation.org>
+Subject: + writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch added to -mm tree
+Date: Thu, 04 Oct 2007 14:28:18 -0700
+Message-ID: <200710042128.l94LSID0029526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48404 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44435 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759116AbXJDV2j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 17:28:39 -0400
+	by vger.kernel.org with ESMTP id S1759116AbXJDV2y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 17:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, dgc@sgi.com, kenchen@google.com
+Cc: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, kenchen@google.com
 
 
 The patch titled
-     writeback: introduce writeback_control.more_io to indicate more io
+     writeback: fix time ordering of the per superblock inode lists 8
 has been added to the -mm tree.  Its filename is
-     writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
+     writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,43 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: introduce writeback_control.more_io to indicate more io
+Subject: writeback: fix time ordering of the per superblock inode lists 8
 From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-After making dirty a 100M file, the normal behavior is to start the writeback
-for all data after 30s delays.  But sometimes the following happens instead:
+Streamline the management of dirty inode lists and fix time ordering bugs.
 
-	- after 30s:    ~4M
-	- after 5s:     ~4M
-	- after 5s:     all remaining 92M
+The writeback logic used to moving not-yet-expired dirty inodes from s_dirty
+to s_io, *only to* move them back.  The move-inodes-back-and-forth thing is a
+mess, which is eliminated by this patch.
 
-Some analyze shows that the internal io dispatch queues goes like this:
+The new scheme is:
+- s_dirty acts as a time ordered io delaying queue;
+- s_io/s_more_io together acts as an io dispatching queue.
 
-		s_io            s_more_io
-		-------------------------
-	1)	100M,1K         0
-	2)	1K              96M
-	3)	0               96M
+On kupdate writeback, we pull some inodes from s_dirty to s_io at the start of
+every full scan of s_io.  Otherwise(i.e.  for sync/throttle/background
+writeback), we always pull from s_dirty on each run(a partial scan).
 
-1) initial state with a 100M file and a 1K file
-2) 4M written, nr_to_write <= 0, so write more
-3) 1K written, nr_to_write > 0, no more writes(BUG)
+Note that the line
+	list_splice_init(&sb->s_more_io, &sb->s_io);
+is moved to queue_io() to leave s_io empty. Otherwise a big dirtied file will
+sit in s_io for a long time, preventing new expired inodes to get in.
 
-nr_to_write > 0 in (3) fools the upper layer to think that data have all been
-written out.  The big dirty file is actually still sitting in s_more_io.  We
-cannot simply splice s_more_io back to s_io as soon as s_io becomes empty, and
-let the loop in generic_sync_sb_inodes() continue: this may starve newly
-expired inodes in s_dirty.  It is also not an option to draw inodes from both
-s_more_io and s_dirty, an let the loop go on: this might lead to live locks,
-and might also starve other superblocks in sync time(well kupdate may still
-starve some superblocks, that's another bug).
-
-We have to return when a full scan of s_io completes.  So nr_to_write > 0 does
-not necessarily mean that "all data are written".  This patch introduces a
-flag writeback_control.more_io to indicate this situation.  With it the big
-dirty file no longer has to wait for the next kupdate invocation 5s later.
-
-Cc: David Chinner <dgc@sgi.com>
 Cc: Ken Chen <kenchen@google.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
@@ -69,66 +54,133 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8
 +++ a/fs/fs-writeback.c
-@@ -473,6 +473,8 @@ sync_sb_inodes(struct super_block *sb, s
+@@ -119,7 +119,7 @@ void __mark_inode_dirty(struct inode *in
+ 			goto out;
+ 
+ 		/*
+-		 * If the inode was already on s_dirty or s_io, don't
++		 * If the inode was already on s_dirty/s_io/s_more_io, don't
+ 		 * reposition it (that would break s_dirty time-ordering).
+ 		 */
+ 		if (!was_dirty) {
+@@ -173,6 +173,33 @@ static void requeue_io(struct inode *ino
+ }
+ 
+ /*
++ * Move expired dirty inodes from @delaying_queue to @dispatch_queue.
++ */
++static void move_expired_inodes(struct list_head *delaying_queue,
++			       struct list_head *dispatch_queue,
++				unsigned long *older_than_this)
++{
++	while (!list_empty(delaying_queue)) {
++		struct inode *inode = list_entry(delaying_queue->prev,
++						struct inode, i_list);
++		if (older_than_this &&
++			time_after(inode->dirtied_when, *older_than_this))
++			break;
++		list_move(&inode->i_list, dispatch_queue);
++	}
++}
++
++/*
++ * Queue all expired dirty inodes for io, eldest first.
++ */
++static void queue_io(struct super_block *sb,
++				unsigned long *older_than_this)
++{
++	list_splice_init(&sb->s_more_io, sb->s_io.prev);
++	move_expired_inodes(&sb->s_dirty, &sb->s_io, older_than_this);
++}
++
++/*
+  * Write a single inode's dirty pages and inode data out to disk.
+  * If `wait' is set, wait on the writeout.
+  *
+@@ -222,7 +249,7 @@ __sync_single_inode(struct inode *inode,
+ 			/*
+ 			 * We didn't write back all the pages.  nfs_writepages()
+ 			 * sometimes bales out without doing anything. Redirty
+-			 * the inode.  It is moved from s_io onto s_dirty.
++			 * the inode; Move it from s_io onto s_more_io/s_dirty.
+ 			 */
+ 			/*
+ 			 * akpm: if the caller was the kupdate function we put
+@@ -235,10 +262,9 @@ __sync_single_inode(struct inode *inode,
+ 			 */
+ 			if (wbc->for_kupdate) {
+ 				/*
+-				 * For the kupdate function we leave the inode
+-				 * at the head of sb_dirty so it will get more
+-				 * writeout as soon as the queue becomes
+-				 * uncongested.
++				 * For the kupdate function we move the inode
++				 * to s_more_io so it will get more writeout as
++				 * soon as the queue becomes uncongested.
+ 				 */
+ 				inode->i_state |= I_DIRTY_PAGES;
+ 				requeue_io(inode);
+@@ -296,10 +322,10 @@ __writeback_single_inode(struct inode *i
+ 
+ 		/*
+ 		 * We're skipping this inode because it's locked, and we're not
+-		 * doing writeback-for-data-integrity.  Move it to the head of
+-		 * s_dirty so that writeback can proceed with the other inodes
+-		 * on s_io.  We'll have another go at writing back this inode
+-		 * when the s_dirty iodes get moved back onto s_io.
++		 * doing writeback-for-data-integrity.  Move it to s_more_io so
++		 * that writeback can proceed with the other inodes on s_io.
++		 * We'll have another go at writing back this inode when we
++		 * completed a full scan of s_io.
+ 		 */
+ 		requeue_io(inode);
+ 
+@@ -366,7 +392,7 @@ sync_sb_inodes(struct super_block *sb, s
+ 	const unsigned long start = jiffies;	/* livelock avoidance */
+ 
+ 	if (!wbc->for_kupdate || list_empty(&sb->s_io))
+-		list_splice_init(&sb->s_dirty, &sb->s_io);
++		queue_io(sb, wbc->older_than_this);
+ 
+ 	while (!list_empty(&sb->s_io)) {
+ 		struct inode *inode = list_entry(sb->s_io.prev,
+@@ -411,13 +437,6 @@ sync_sb_inodes(struct super_block *sb, s
+ 		if (time_after(inode->dirtied_when, start))
+ 			break;
+ 
+-		/* Was this inode dirtied too recently? */
+-		if (wbc->older_than_this && time_after(inode->dirtied_when,
+-						*wbc->older_than_this)) {
+-			list_splice_init(&sb->s_io, sb->s_dirty.prev);
+-			break;
+-		}
+-
+ 		/* Is another pdflush already flushing this queue? */
+ 		if (current_is_pdflush() && !writeback_acquire(bdi))
+ 			break;
+@@ -446,10 +465,6 @@ sync_sb_inodes(struct super_block *sb, s
  		if (wbc->nr_to_write <= 0)
  			break;
  	}
-+	if (!list_empty(&sb->s_more_io))
-+		wbc->more_io = 1;
+-
+-	if (list_empty(&sb->s_io))
+-		list_splice_init(&sb->s_more_io, &sb->s_io);
+-
  	return;		/* Leave any unwritten inodes on s_io */
  }
  
-diff -puN include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io include/linux/writeback.h
---- a/include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
-+++ a/include/linux/writeback.h
-@@ -62,6 +62,7 @@ struct writeback_control {
- 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
- 	unsigned for_writepages:1;	/* This is a writepages() call */
- 	unsigned range_cyclic:1;	/* range_start is cyclic */
-+	unsigned more_io:1;		/* more io to be dispatched */
- 	void *fs_private;               /* For use by ->writepages() */
- };
- 
-diff -puN mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
-+++ a/mm/page-writeback.c
-@@ -553,6 +553,7 @@ static void background_writeout(unsigned
- 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
- 				&& min_pages <= 0)
- 			break;
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		wbc.pages_skipped = 0;
-@@ -560,8 +561,9 @@ static void background_writeout(unsigned
- 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
- 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
- 			/* Wrote less than expected */
--			congestion_wait(WRITE, HZ/10);
--			if (!wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
-+				congestion_wait(WRITE, HZ/10);
-+			else
- 				break;
- 		}
- 	}
-@@ -626,11 +628,12 @@ static void wb_kupdate(unsigned long arg
- 			global_page_state(NR_UNSTABLE_NFS) +
- 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
- 	while (nr_to_write > 0) {
-+		wbc.more_io = 0;
- 		wbc.encountered_congestion = 0;
- 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
- 		writeback_inodes(&wbc);
- 		if (wbc.nr_to_write > 0) {
--			if (wbc.encountered_congestion)
-+			if (wbc.encountered_congestion || wbc.more_io)
- 				congestion_wait(WRITE, HZ/10);
- 			else
- 				break;	/* All the old data is written */
+@@ -459,7 +474,7 @@ sync_sb_inodes(struct super_block *sb, s
+  * Note:
+  * We don't need to grab a reference to superblock here. If it has non-empty
+  * ->s_dirty it's hadn't been killed yet and kill_super() won't proceed
+- * past sync_inodes_sb() until both the ->s_dirty and ->s_io lists are
++ * past sync_inodes_sb() until the ->s_dirty/s_io/s_more_io lists are all
+  * empty. Since __sync_single_inode() regains inode_lock before it finally moves
+  * inode from superblock lists we are OK.
+  *
 _
 
 Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
