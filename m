@@ -1,115 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + uml-definitively-kill-subprocesses-on-panic.patch added to -mm tree
-Date: Thu, 04 Oct 2007 12:31:51 -0700
-Message-ID: <200710041931.l94JVpM0025257@imap1.linux-foundation.org>
+Subject: - forcedeth-power-down-phy-when-interface-is-down.patch removed from -mm tree
+Date: Thu, 04 Oct 2007 12:33:14 -0700
+Message-ID: <200710041933.l94JXFl6025284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45566 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756731AbXJDTb4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:31:56 -0400
+	by vger.kernel.org with ESMTP id S1756154AbXJDTd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 15:33:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ytht.net@gmail.com, jdike@linux.intel.com
+To: eswierk@arastra.com, aabdulla@nvidia.com, akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: definitively kill subprocesses on panic
-has been added to the -mm tree.  Its filename is
-     uml-definitively-kill-subprocesses-on-panic.patch
+     forcedeth: power down phy when interface is down
+has been removed from the -mm tree.  Its filename was
+     forcedeth-power-down-phy-when-interface-is-down.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: uml: definitively kill subprocesses on panic
-From: Lepton Wu <ytht.net@gmail.com>
+Subject: forcedeth: power down phy when interface is down
+From: "Ed Swierk" <eswierk@arastra.com>
 
-In a stock 2.6.22.6 kernel, poweroff a user mode linux guest (2.6.22.6 running
-in skas0 mode) will halt the host linux.  I think the reason is the kernel
-thread abort because of a bug.  Then the sys_reboot in process of user mode
-linux guest is not trapped by the user mode linux kernel and is executed by
-host.  I think it is better to make sure all of our children process to quit
-when user mode linux kernel abort.
+Bring the physical link down when the interface is down, by placing the PHY in
+power-down state.  This mirrors the behavior of other drivers including e1000
+and tg3.
 
-[ jdike - the kernel process needs to ignore SIGTERM, plus the waitpid/kill
-loop is needed to make sure that all of our children are dead before the
-kernel exits ]
+Signed-off-by: Ed Swierk <eswierk@arastra.com>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 
-Signed-off-by: Lepton Wu <ytht.net@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+On Sat, 29 Sep 2007 01:57:04 -0400 Jeff Garzik <jeff@garzik.org> wrote:
+
+> akpm@linux-foundation.org wrote:
+> > From: "Ed Swierk" <eswierk@arastra.com>
+> > 
+> > Bring the physical link down when the interface is down, by placing the PHY in
+> > power-down state.  This mirrors the behavior of other drivers including e1000
+> > and tg3.
+> > 
+> > Signed-off-by: Ed Swierk <eswierk@arastra.com>
+> > Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+> > Cc: Jeff Garzik <jeff@garzik.org>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> 
+> 
+> HOLD -- waiting a bit for comment from others, particularly NVIDIA.
+> 
+> I'm not opposed to applying it, the patch looks correct, but I would 
+> also like see testing results and general "it's ok for this hardware" 
+> comments.
+> 
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/net/forcedeth.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -177,7 +177,7 @@ static int userspace_tramp(void *stack)
+diff -puN drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-power-down-phy-when-interface-is-down
++++ a/drivers/net/forcedeth.c
+@@ -1313,9 +1313,9 @@ static int phy_init(struct net_device *d
+ 	/* some phys clear out pause advertisment on reset, set it back */
+ 	mii_rw(dev, np->phyaddr, MII_ADVERTISE, reg);
  
- 	ptrace(PTRACE_TRACEME, 0, 0, 0);
+-	/* restart auto negotiation */
++	/* restart auto negotiation, power down phy */
+ 	mii_control = mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ);
+-	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE);
++	mii_control |= (BMCR_ANRESTART | BMCR_ANENABLE | BMCR_PDOWN);
+ 	if (mii_rw(dev, np->phyaddr, MII_BMCR, mii_control)) {
+ 		return PHY_ERROR;
+ 	}
+@@ -4791,6 +4791,10 @@ static int nv_open(struct net_device *de
  
--	init_new_thread_signals();
-+	signal(SIGTERM, SIG_DFL);
- 	err = set_interval();
- 	if (err)
- 		panic("userspace_tramp - setting timer failed, errno = %d\n",
-diff -puN arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic
-+++ a/arch/um/os-Linux/util.c
-@@ -105,6 +105,44 @@ int setjmp_wrapper(void (*proc)(void *, 
+ 	dprintk(KERN_DEBUG "nv_open: begin\n");
  
- void os_dump_core(void)
- {
-+	int pid;
++	/* power up phy */
++	mii_rw(dev, np->phyaddr, MII_BMCR,
++	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) & ~BMCR_PDOWN);
 +
- 	signal(SIGSEGV, SIG_DFL);
+ 	/* erase previous misconfiguration */
+ 	if (np->driver_data & DEV_HAS_POWER_CNTRL)
+ 		nv_mac_reset(dev);
+@@ -4975,6 +4979,10 @@ static int nv_close(struct net_device *d
+ 		nv_start_rx(dev);
+ 	}
+ 
++	/* power down phy */
++	mii_rw(dev, np->phyaddr, MII_BMCR,
++	       mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ) | BMCR_PDOWN);
 +
-+	/*
-+	 * We are about to SIGTERM this entire process group to ensure that
-+	 * nothing is around to run after the kernel exits.  The
-+	 * kernel wants to abort, not die through SIGTERM, so we
-+	 * ignore it here.
-+	 */
-+
-+	signal(SIGTERM, SIG_IGN);
-+	kill(0, SIGTERM);
-+	/*
-+	 * Most of the other processes associated with this UML are
-+	 * likely sTopped, so give them a SIGCONT so they see the
-+	 * SIGTERM.
-+	 */
-+	kill(0, SIGCONT);
-+
-+	/*
-+	 * Now, having sent signals to everyone but us, make sure they
-+	 * die by ptrace.  Processes can survive what's been done to
-+	 * them so far - the mechanism I understand is receiving a
-+	 * SIGSEGV and segfaulting immediately upon return.  There is
-+	 * always a SIGSEGV pending, and (I'm guessing) signals are
-+	 * processed in numeric order so the SIGTERM (signal 15 vs
-+	 * SIGSEGV being signal 11) is never handled.
-+	 *
-+	 * Run a waitpid loop until we get some kind of error.
-+	 * Hopefully, it's ECHILD, but there's not a lot we can do if
-+	 * it's something else.  Tell os_kill_ptraced_process not to
-+	 * wait for the child to report its death because there's
-+	 * nothing reasonable to do if that fails.
-+	 */
-+
-+	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0)
-+		os_kill_ptraced_process(pid, 0);
-+
- 	abort();
- }
+ 	/* FIXME: power down nic */
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from ytht.net@gmail.com are
+Patches currently in -mm which might be from eswierk@arastra.com are
 
-uml-definitively-kill-subprocesses-on-panic.patch
-reiserfs-fix-kernel-panic-on-corrupted-directory.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+git-net.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
