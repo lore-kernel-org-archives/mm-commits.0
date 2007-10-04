@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-clean-up-open-file-passing-in-setattr.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:00 -0700
-Message-ID: <200710042257.l94Mv0WP032724@imap1.linux-foundation.org>
+Subject: + fuse-improve-utimes-support.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:07 -0700
+Message-ID: <200710042257.l94Mv7Si032736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48740 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760705AbXJDW5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:09 -0400
+	by vger.kernel.org with ESMTP id S1760714AbXJDW5P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: clean up open file passing in setattr
+     fuse: improve utimes support
 has been added to the -mm tree.  Its filename is
-     fuse-clean-up-open-file-passing-in-setattr.patch
+     fuse-improve-utimes-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,70 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: clean up open file passing in setattr
+Subject: fuse: improve utimes support
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Clean up supplying open file to the setattr operation.  In addition to being a
-cleanup it prepares for the changes in the way the open file is passed to the
-setattr method.
+Add two new flags for setattr: FATTR_ATIME_NOW and FATTR_MTIME_NOW.  These
+mean, that atime or mtime should be changed to the current time.
+
+Also it is now possible to update atime or mtime individually, not just
+together.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/dir.c~fuse-clean-up-open-file-passing-in-setattr fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-clean-up-open-file-passing-in-setattr
+diff -puN fs/fuse/dir.c~fuse-improve-utimes-support fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-improve-utimes-support
 +++ a/fs/fuse/dir.c
-@@ -1032,11 +1032,6 @@ static void iattr_to_fattr(struct iattr 
- 		arg->atime = iattr->ia_atime.tv_sec;
- 		arg->mtime = iattr->ia_mtime.tv_sec;
- 	}
--	if (ivalid & ATTR_FILE) {
--		struct fuse_file *ff = iattr->ia_file->private_data;
--		arg->valid |= FATTR_FH;
--		arg->fh = ff->fh;
--	}
+@@ -1014,6 +1014,20 @@ static int fuse_dir_fsync(struct file *f
+ 	return file ? fuse_fsync_common(file, de, datasync, 1) : 0;
  }
  
- /*
-@@ -1047,7 +1042,8 @@ static void iattr_to_fattr(struct iattr 
-  * vmtruncate() doesn't allow for this case, so do the rlimit checking
-  * and the actual truncation by hand.
-  */
--static int fuse_setattr(struct dentry *entry, struct iattr *attr)
-+static int fuse_do_setattr(struct dentry *entry, struct iattr *attr,
-+			   struct file *file)
- {
- 	struct inode *inode = entry->d_inode;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-@@ -1082,6 +1078,11 @@ static int fuse_setattr(struct dentry *e
- 
- 	memset(&inarg, 0, sizeof(inarg));
- 	iattr_to_fattr(attr, &inarg);
-+	if (file) {
-+		struct fuse_file *ff = file->private_data;
-+		inarg.valid |= FATTR_FH;
-+		inarg.fh = ff->fh;
-+	}
- 	req->in.h.opcode = FUSE_SETATTR;
- 	req->in.h.nodeid = get_node_id(inode);
- 	req->in.numargs = 1;
-@@ -1108,6 +1109,14 @@ static int fuse_setattr(struct dentry *e
- 	return 0;
- }
- 
-+static int fuse_setattr(struct dentry *entry, struct iattr *attr)
++static bool update_mtime(unsigned ivalid)
 +{
-+	if (attr->ia_valid & ATTR_FILE)
-+		return fuse_do_setattr(entry, attr, attr->ia_file);
-+	else
-+		return fuse_do_setattr(entry, attr, NULL);
++	/* Always update if mtime is explicitly set  */
++	if (ivalid & ATTR_MTIME_SET)
++		return true;
++
++	/* If it's an open(O_TRUNC) or an ftruncate(), don't update */
++	if ((ivalid & ATTR_SIZE) && (ivalid & (ATTR_OPEN | ATTR_FILE)))
++		return false;
++
++	/* In all other cases update */
++	return true;
 +}
 +
- static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
- 			struct kstat *stat)
+ static void iattr_to_fattr(struct iattr *iattr, struct fuse_setattr_in *arg)
  {
+ 	unsigned ivalid = iattr->ia_valid;
+@@ -1026,11 +1040,19 @@ static void iattr_to_fattr(struct iattr 
+ 		arg->valid |= FATTR_GID,    arg->gid = iattr->ia_gid;
+ 	if (ivalid & ATTR_SIZE)
+ 		arg->valid |= FATTR_SIZE,   arg->size = iattr->ia_size;
+-	/* You can only _set_ these together (they may change by themselves) */
+-	if ((ivalid & (ATTR_ATIME | ATTR_MTIME)) == (ATTR_ATIME | ATTR_MTIME)) {
+-		arg->valid |= FATTR_ATIME | FATTR_MTIME;
++	if (ivalid & ATTR_ATIME) {
++		arg->valid |= FATTR_ATIME;
+ 		arg->atime = iattr->ia_atime.tv_sec;
++		arg->atimensec = iattr->ia_atime.tv_nsec;
++		if (!(ivalid & ATTR_ATIME_SET))
++			arg->valid |= FATTR_ATIME_NOW;
++	}
++	if ((ivalid & ATTR_MTIME) && update_mtime(ivalid)) {
++		arg->valid |= FATTR_MTIME;
+ 		arg->mtime = iattr->ia_mtime.tv_sec;
++		arg->mtimensec = iattr->ia_mtime.tv_nsec;
++		if (!(ivalid & ATTR_MTIME_SET))
++			arg->valid |= FATTR_MTIME_NOW;
+ 	}
+ }
+ 
+diff -puN include/linux/fuse.h~fuse-improve-utimes-support include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-improve-utimes-support
++++ a/include/linux/fuse.h
+@@ -83,6 +83,8 @@ struct fuse_file_lock {
+ #define FATTR_ATIME	(1 << 4)
+ #define FATTR_MTIME	(1 << 5)
+ #define FATTR_FH	(1 << 6)
++#define FATTR_ATIME_NOW	(1 << 7)
++#define FATTR_MTIME_NOW	(1 << 8)
+ 
+ /**
+  * Flags returned by the OPEN request
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
