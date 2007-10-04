@@ -1,51 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - f_dupfd_cloexec-implementation-fix.patch removed from -mm tree
-Date: Wed, 03 Oct 2007 21:18:18 -0700
-Message-ID: <200710040418.l944IIRg023294@imap1.linux-foundation.org>
+Subject: + f_dupfd_cloexec-implementation-fix-2.patch added to -mm tree
+Date: Wed, 03 Oct 2007 21:18:13 -0700
+Message-ID: <200710040418.l944IDeu023291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752341AbXJDESt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 00:18:49 -0400
+	by vger.kernel.org with ESMTP id S1751228AbXJDESs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 00:18:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drepper@redhat.com, hch@lst.de, kyle@mcmartin.ca, linux-arch@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, drepper@redhat.com, hch@lst.de, kyle@mcmartin.ca, linux-arch@vger.kernel.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     f_dupfd_cloexec-implementation-fix
-has been removed from the -mm tree.  Its filename was
-     f_dupfd_cloexec-implementation-fix.patch
+     f_dupfd_cloexec-implementation-fix-2
+has been added to the -mm tree.  Its filename is
+     f_dupfd_cloexec-implementation-fix-2.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: f_dupfd_cloexec-implementation-fix
+Subject: f_dupfd_cloexec-implementation-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ok?
+On Thu, 4 Oct 2007 13:53:31 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+
+> On Wed, 03 Oct 2007 13:39:39 -0700 akpm@linux-foundation.org wrote:
+> >
+> > 
+> > diff -puN include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation include/asm-generic/fcntl.h
+> > --- a/include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation
+> > +++ a/include/asm-generic/fcntl.h
+> > @@ -73,6 +73,9 @@
+> >  #define F_SETSIG	10	/* for sockets. */
+> >  #define F_GETSIG	11	/* for sockets. */
+> >  #endif
+> > +#ifndef F_DUPFD_CLOEXEC
+> > +#define F_DUPFD_CLOEXEC	12
+> > +#endif
+> 
+> Why not put
+> 
+> #define F_DUPFD_CLOEXEC		(F_LINUX_SPECIFIC_BASE + 6)
+> 
+> in include/linux/fcntl.h?  That way it will be the same for all
+> architectures and won't clash with any of them.
+> 
+> F_LINUX_SPECIFIC_BASE is probably badly named.  It was meant to be a
+> value that was greater than any of the F_ constants for all architestures
+> so that we could define new F_ constants Linux wide.
+> 
 
 Cc: <linux-arch@vger.kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ include/asm-generic/fcntl.h |    3 ---
+ include/linux/fcntl.h       |   15 ++++++++++-----
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-parisc/fcntl.h~f_dupfd_cloexec-implementation-fix include/asm-parisc/fcntl.h
---- a/include/asm-parisc/fcntl.h~f_dupfd_cloexec-implementation-fix
-+++ a/include/asm-parisc/fcntl.h
-@@ -28,6 +28,7 @@
- #define F_SETOWN	12	/*  for sockets. */
- #define F_SETSIG	13	/*  for sockets. */
- #define F_GETSIG	14	/*  for sockets. */
-+#define F_DUPFD_CLOEXEC 15
+diff -puN include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation-fix-2 include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation-fix-2
++++ a/include/asm-generic/fcntl.h
+@@ -73,9 +73,6 @@
+ #define F_SETSIG	10	/* for sockets. */
+ #define F_GETSIG	11	/* for sockets. */
+ #endif
+-#ifndef F_DUPFD_CLOEXEC
+-#define F_DUPFD_CLOEXEC	12
+-#endif
  
- /* for posix fcntl() and lockf() */
- #define F_RDLCK		01
+ /* for F_[GET|SET]FL */
+ #define FD_CLOEXEC	1	/* actually anything with low bit set goes */
+diff -puN include/linux/fcntl.h~f_dupfd_cloexec-implementation-fix-2 include/linux/fcntl.h
+--- a/include/linux/fcntl.h~f_dupfd_cloexec-implementation-fix-2
++++ a/include/linux/fcntl.h
+@@ -3,12 +3,17 @@
+ 
+ #include <asm/fcntl.h>
+ 
+-/* Cancel a blocking posix lock; internal use only until we expose an
+- * asynchronous lock api to userspace: */
+-#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE+5)
++#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE + 0)
++#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE + 1)
+ 
+-#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE+0)
+-#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE+1)
++/*
++ * Cancel a blocking posix lock; internal use only until we expose an
++ * asynchronous lock api to userspace:
++ */
++#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE + 5)
++
++/* Create a file descriptor with FD_CLOEXEC set. */
++#define F_DUPFD_CLOEXEC	(F_LINUX_SPECIFIC_BASE + 6)
+ 
+ /*
+  * Request nofications on a directory.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
