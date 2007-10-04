@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch added to -mm tree
-Date: Thu, 04 Oct 2007 14:28:26 -0700
-Message-ID: <200710042128.l94LSQtj029535@imap1.linux-foundation.org>
+Subject: + longhaul-add-auto-enabled-revid_errata-option.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:03:10 -0700
+Message-ID: <200710042203.l94M3BlT030818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34730 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759747AbXJDV3L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 17:29:11 -0400
+	by vger.kernel.org with ESMTP id S1759161AbXJDWDf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:03:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, dgc@sgi.com, kenchen@google.com, miklos@szeredi.hu
+Cc: rafalbilski@interia.pl, davej@redhat.com
 
 
 The patch titled
-     writeback: remove pages_skipped accounting in __block_write_full_page()
+     Longhaul: add auto enabled "revid_errata" option
 has been added to the -mm tree.  Its filename is
-     writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
+     longhaul-add-auto-enabled-revid_errata-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,195 +25,151 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: writeback: remove pages_skipped accounting in __block_write_full_page()
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: Longhaul: add auto enabled "revid_errata" option
+From: Rafal Bilski <rafalbilski@interia.pl>
 
-Miklos Szeredi <miklos@szeredi.hu> and me identified a writeback bug:
+VIA C3 Ezra-T has RevisionID equal to 1, but it needs RevisionKey to be 0
+or CPU will ignore new frequency and will continue to work at old
+frequency.  New "revid_errata" option will force RevisionKey to be set to
+0, whatever RevisionID is.
 
-> The following strange behavior can be observed:
->
-> 1. large file is written
-> 2. after 30 seconds, nr_dirty goes down by 1024
-> 3. then for some time (< 30 sec) nothing happens (disk idle)
-> 4. then nr_dirty again goes down by 1024
-> 5. repeat from 3. until whole file is written
->
-> So basically a 4Mbyte chunk of the file is written every 30 seconds.
-> I'm quite sure this is not the intended behavior.
+Additionaly "Longhaul" will not silently ignore unsuccessful transition. 
+It will try to check if "revid_errata" or "disable_acpi_c3" options need to
+be enabled for this processor/system.
 
-It can be produced by the following test scheme:
+Same for Longhaul ver.  2 support.  It will be disabled if none of above
+options will work.
 
-# cat bin/test-writeback.sh
-grep nr_dirty /proc/vmstat
-echo 1 > /proc/sys/fs/inode_debug
-dd if=/dev/zero of=/var/x bs=1K count=204800&
-while true; do grep nr_dirty /proc/vmstat; sleep 1; done
+ Best case scenario (with patch apllied and v2 enabled):
+ longhaul: VIA C3 'Ezra' [C5C] CPU detected.  Longhaul v2 supported.
+ longhaul: Using northbridge support.
+ longhaul: VRM 8.5
+ longhaul: Max VID=1.350  Min VID=1.050, 13 possible voltage scales
+ longhaul: f: 300000 kHz, index: 0, vid: 1050 mV
+ [...]
+ longhaul: Voltage scaling enabled.
+ Worst case scenario:
+ longhaul: VIA C3 'Ezra-T' [C5M] CPU detected.  Powersaver supported.
+ longhaul: Using northbridge support.
+ longhaul: Using ACPI support.
+ longhaul: VRM 8.5
+ longhaul: Claims to support voltage scaling but min & max are both 1.250. Voltage scaling disabled
+ longhaul: Failed to set requested frequency!
+ longhaul: Enabling "Ignore Revision ID" option.
+ longhaul: Failed to set requested frequency!
+ longhaul: Disabling ACPI C3 support.
+ longhaul: Disabling "Ignore Revision ID" option.
+ longhaul: Failed to set requested frequency!
+ longhaul: Enabling "Ignore Revision ID" option.
 
-# bin/test-writeback.sh
-nr_dirty 19207
-nr_dirty 19207
-nr_dirty 30924
-204800+0 records in
-204800+0 records out
-209715200 bytes (210 MB) copied, 1.58363 seconds, 132 MB/s
-nr_dirty 47150
-nr_dirty 47141
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47205
-nr_dirty 47214
-nr_dirty 47214
-nr_dirty 47214
-nr_dirty 47214
-nr_dirty 47214
-nr_dirty 47215
-nr_dirty 47216
-nr_dirty 47216
-nr_dirty 47216
-nr_dirty 47154
-nr_dirty 47143
-nr_dirty 47143
-nr_dirty 47143
-nr_dirty 47143
-nr_dirty 47143
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47142
-nr_dirty 47134
-nr_dirty 47134
-nr_dirty 47135
-nr_dirty 47135
-nr_dirty 47135
-nr_dirty 46097 <== -1038
-nr_dirty 46098
-nr_dirty 46098
-nr_dirty 46098
-[...]
-nr_dirty 46091
-nr_dirty 46092
-nr_dirty 46092
-nr_dirty 45069 <== -1023
-nr_dirty 45056
-nr_dirty 45056
-nr_dirty 45056
-[...]
-nr_dirty 37822
-nr_dirty 36799 <== -1023
-[...]
-nr_dirty 36781
-nr_dirty 35758 <== -1023
-[...]
-nr_dirty 34708
-nr_dirty 33672 <== -1024
-[...]
-nr_dirty 33692
-nr_dirty 32669 <== -1023
-
-% ls -li /var/x
-847824 -rw-r--r-- 1 root root 200M 2007-08-12 04:12 /var/x
-
-% dmesg|grep 847824  # generated by a debug printk
-[  529.263184] redirtied inode 847824 line 548
-[  564.250872] redirtied inode 847824 line 548
-[  594.272797] redirtied inode 847824 line 548
-[  629.231330] redirtied inode 847824 line 548
-[  659.224674] redirtied inode 847824 line 548
-[  689.219890] redirtied inode 847824 line 548
-[  724.226655] redirtied inode 847824 line 548
-[  759.198568] redirtied inode 847824 line 548
-
-# line 548 in fs/fs-writeback.c:
-543                 if (wbc->pages_skipped != pages_skipped) {
-544                         /*
-545                          * writeback is not making progress due to locked
-546                          * buffers.  Skip this inode for now.
-547                          */
-548                         redirty_tail(inode);
-549                 }
-
-More debug efforts show that __block_write_full_page()
-never has the chance to call submit_bh() for that big dirty file:
-the buffer head is *clean*. So basicly no page io is issued by
-__block_write_full_page(), hence pages_skipped goes up.
-
-Also the comment in generic_sync_sb_inodes():
-
-544                         /*
-545                          * writeback is not making progress due to locked
-546                          * buffers.  Skip this inode for now.
-547                          */
-
-and the comment in __block_write_full_page():
-
-1713                 /*
-1714                  * The page was marked dirty, but the buffers were
-1715                  * clean.  Someone wrote them back by hand with
-1716                  * ll_rw_block/submit_bh.  A rare case.
-1717                  */
-
-do not quite agree with each other. The page writeback should be skipped for
-'locked buffer', but here it is 'clean buffer'!
-
-This patch fixes this bug. Though I'm not sure why __block_write_full_page()
-is called only to do nothing and who actually issued the writeback for us.
-
-This is the two possible new behaviors after the patch:
-
-1) pretty nice: wait 30s and write ALL:)
-2) not so good:
-	- during the dd: ~16M
-	- after 30s:      ~4M
-	- after 5s:       ~4M
-	- after 5s:     ~176M
-
-The next patch will fix case (2).
-
-Cc: David Chinner <dgc@sgi.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: Rafal Bilski <rafalbilski@interia.pl>
+Signed-off-by: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/buffer.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page fs/buffer.c
---- a/fs/buffer.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page
-+++ a/fs/buffer.c
-@@ -1731,7 +1731,6 @@ done:
- 		 * The page and buffer_heads can be released at any time from
- 		 * here on.
- 		 */
--		wbc->pages_skipped++;	/* We didn't write this page */
- 	}
- 	return err;
+diff -puN arch/i386/kernel/cpu/cpufreq/longhaul.c~longhaul-add-auto-enabled-revid_errata-option arch/i386/kernel/cpu/cpufreq/longhaul.c
+--- a/arch/i386/kernel/cpu/cpufreq/longhaul.c~longhaul-add-auto-enabled-revid_errata-option
++++ a/arch/i386/kernel/cpu/cpufreq/longhaul.c
+@@ -76,6 +76,7 @@ static unsigned int longhaul_index;
+ /* Module parameters */
+ static int scale_voltage;
+ static int disable_acpi_c3;
++static int revid_errata;
  
+ #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, "longhaul", msg)
+ 
+@@ -168,7 +169,10 @@ static void do_powersaver(int cx_address
+ 
+ 	rdmsrl(MSR_VIA_LONGHAUL, longhaul.val);
+ 	/* Setup new frequency */
+-	longhaul.bits.RevisionKey = longhaul.bits.RevisionID;
++	if (!revid_errata)
++		longhaul.bits.RevisionKey = longhaul.bits.RevisionID;
++	else
++		longhaul.bits.RevisionKey = 0;
+ 	longhaul.bits.SoftBusRatio = clock_ratio_index & 0xf;
+ 	longhaul.bits.SoftBusRatio4 = (clock_ratio_index & 0x10) >> 4;
+ 	/* Setup new voltage */
+@@ -272,7 +276,7 @@ static void longhaul_setstate(unsigned i
+ 
+ 	dprintk ("Setting to FSB:%dMHz Mult:%d.%dx (%s)\n",
+ 			fsb, mult/10, mult%10, print_speed(speed/1000));
+-
++retry_loop:
+ 	preempt_disable();
+ 	local_irq_save(flags);
+ 
+@@ -344,6 +348,45 @@ static void longhaul_setstate(unsigned i
+ 	preempt_enable();
+ 
+ 	freqs.new = calc_speed(longhaul_get_cpu_mult());
++	/* Check if requested frequency is set. */
++	if (unlikely(freqs.new != speed)) {
++		printk(KERN_INFO PFX "Failed to set requested frequency!\n");
++		/* Revision ID = 1 but processor is expecting revision key
++		 * equal to 0. Jumpers at the bottom of processor will change
++		 * multiplier and FSB, but will not change bits in Longhaul
++		 * MSR nor enable voltage scaling. */
++		if (!revid_errata) {
++			printk(KERN_INFO PFX "Enabling \"Ignore Revision ID\" option.\n");
++			revid_errata = 1;
++			msleep(200);
++			goto retry_loop;
++		}
++		/* Why ACPI C3 sometimes doesn't work is a mystery for me.
++		 * But it does happen. Processor is entering ACPI C3 state,
++		 * but it doesn't change frequency. I tried poking various
++		 * bits in northbridge registers, but without success. */
++		if (longhaul_flags & USE_ACPI_C3) {
++			printk(KERN_INFO PFX "Disabling ACPI C3 support.\n");
++			longhaul_flags &= ~USE_ACPI_C3;
++			if (revid_errata) {
++				printk(KERN_INFO PFX "Disabling \"Ignore Revision ID\" option.\n");
++				revid_errata = 0;
++			}
++			msleep(200);
++			goto retry_loop;
++		}
++		/* This shouldn't happen. Longhaul ver. 2 was reported not
++		 * working on processors without voltage scaling, but with
++		 * RevID = 1. RevID errata will make things right. Just
++		 * to be 100% sure. */
++		if (longhaul_version == TYPE_LONGHAUL_V2) {
++			printk(KERN_INFO PFX "Switching to Longhaul ver. 1\n");
++			longhaul_version = TYPE_LONGHAUL_V1;
++			msleep(200);
++			goto retry_loop;
++		}
++	}
++	/* Report true CPU frequency */
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+ 
+ 	if (!bm_timeout)
+@@ -956,11 +999,20 @@ static void __exit longhaul_exit(void)
+ 	kfree(longhaul_table);
+ }
+ 
++/* Even if BIOS is exporting ACPI C3 state, and it is used
++ * with success when CPU is idle, this state doesn't
++ * trigger frequency transition in some cases. */
+ module_param (disable_acpi_c3, int, 0644);
+ MODULE_PARM_DESC(disable_acpi_c3, "Don't use ACPI C3 support");
+-
++/* Change CPU voltage with frequency. Very usefull to save
++ * power, but most VIA C3 processors aren't supporting it. */
+ module_param (scale_voltage, int, 0644);
+ MODULE_PARM_DESC(scale_voltage, "Scale voltage of processor");
++/* Force revision key to 0 for processors which doesn't
++ * support voltage scaling, but are introducing itself as
++ * such. */
++module_param (revid_errata, int, 0644);
++MODULE_PARM_DESC(revid_errata, "Ignore CPU Revision ID");
+ 
+ MODULE_AUTHOR ("Dave Jones <davej@codemonkey.org.uk>");
+ MODULE_DESCRIPTION ("Longhaul driver for VIA Cyrix processors.");
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from rafalbilski@interia.pl are
 
-i386-call-free_init_pages-with-irqs-enabled-in-alternative_instructions.patch
-readahead-compacting-file_ra_state.patch
-readahead-mmap-read-around-simplification.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-radixtree-introduce-radix_tree_next_hole.patch
-readahead-basic-support-of-interleaved-reads.patch
-readahead-remove-the-local-copy-of-ra-in-do_generic_mapping_read.patch
-readahead-remove-several-readahead-macros.patch
-readahead-remove-the-limit-max_sectors_kb-imposed-on-max_readahead_kb.patch
-filemap-trivial-code-cleanups.patch
-filemap-convert-some-unsigned-long-to-pgoff_t.patch
-make-swappiness-safer-to-use.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-seqfile-merge-duplite-code-to-seq_open_private.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
-writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
-writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+longhaul-add-auto-enabled-revid_errata-option.patch
