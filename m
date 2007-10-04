@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-add-list-of-writable-files-to-fuse_inode.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:15 -0700
-Message-ID: <200710042257.l94MvFma032750@imap1.linux-foundation.org>
+Subject: + vfs-allow-filesystems-to-implement-atomic-opentruncate.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:03 -0700
+Message-ID: <200710042257.l94Mv3uN032733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760853AbXJDW5U (ORCPT
+	by vger.kernel.org with ESMTP id S1760791AbXJDW5U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mszeredi@suse.cz, adilger@clusterfs.com, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fuse: add list of writable files to fuse_inode
+     VFS: allow filesystems to implement atomic open+truncate
 has been added to the -mm tree.  Its filename is
-     fuse-add-list-of-writable-files-to-fuse_inode.patch
+     vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: add list of writable files to fuse_inode
+Subject: VFS: allow filesystems to implement atomic open+truncate
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Each WRITE request must carry a valid file descriptor.  When a page is written
-back from a memory mapping, the file through which the page was dirtied is not
-available, so a new mechananism is needed to find a suitable file in
-->writepage(s).
+Add a new attribute flag ATTR_OPEN, with the meaning: "truncation was
+initiated by open() due to the O_TRUNC flag".
 
-A list of fuse_files is added to fuse_inode.  The file is removed from the
-list in fuse_release().
+This way filesystems wanting to implement truncation within their ->open()
+method can ignore such truncate requests.
 
-This patch is in preparation for writable mmap support.
+This is a quick & dirty hack, but it comes for free.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/fuse/file.c~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-list-of-writable-files-to-fuse_inode
-+++ a/fs/fuse/file.c
-@@ -56,6 +56,7 @@ struct fuse_file *fuse_file_alloc(void)
- 			kfree(ff);
- 			ff = NULL;
+diff -puN fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate fs/namei.c
+--- a/fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate
++++ a/fs/namei.c
+@@ -1667,8 +1667,10 @@ int may_open(struct nameidata *nd, int a
+ 		error = locks_verify_locked(inode);
+ 		if (!error) {
+ 			DQUOT_INIT(inode);
+-			
+-			error = do_truncate(dentry, 0, ATTR_MTIME|ATTR_CTIME, NULL);
++
++			error = do_truncate(dentry, 0,
++					    ATTR_MTIME|ATTR_CTIME|ATTR_OPEN,
++					    NULL);
  		}
-+		INIT_LIST_HEAD(&ff->write_entry);
- 		atomic_set(&ff->count, 0);
- 	}
- 	return ff;
-@@ -150,12 +151,18 @@ int fuse_release_common(struct inode *in
- {
- 	struct fuse_file *ff = file->private_data;
- 	if (ff) {
-+		struct fuse_conn *fc = get_fuse_conn(inode);
-+
- 		fuse_release_fill(ff, get_node_id(inode), file->f_flags,
- 				  isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
+ 		put_write_access(inode);
+ 		if (error)
+diff -puN include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate include/linux/fs.h
+--- a/include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate
++++ a/include/linux/fs.h
+@@ -337,6 +337,7 @@ typedef void (dio_iodone_t)(struct kiocb
+ #define ATTR_KILL_SGID	4096
+ #define ATTR_FILE	8192
+ #define ATTR_KILL_PRIV	16384
++#define ATTR_OPEN	32768	/* Truncating from open(O_TRUNC) */
  
- 		/* Hold vfsmount and dentry until release is finished */
- 		ff->reserved_req->vfsmount = mntget(file->f_path.mnt);
- 		ff->reserved_req->dentry = dget(file->f_path.dentry);
-+
-+		spin_lock(&fc->lock);
-+		list_del(&ff->write_entry);
-+		spin_unlock(&fc->lock);
- 		/*
- 		 * Normally this will send the RELEASE request,
- 		 * however if some asynchronous READ or WRITE requests
-diff -puN fs/fuse/fuse_i.h~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-list-of-writable-files-to-fuse_inode
-+++ a/fs/fuse/fuse_i.h
-@@ -70,6 +70,9 @@ struct fuse_inode {
- 
- 	/** Version of last attribute change */
- 	u64 attr_version;
-+
-+	/** Files usable in writepage.  Protected by fc->lock */
-+	struct list_head write_files;
- };
- 
- /** FUSE specific file data */
-@@ -82,6 +85,9 @@ struct fuse_file {
- 
- 	/** Refcount */
- 	atomic_t count;
-+
-+	/** Entry on inode's write_files list */
-+	struct list_head write_entry;
- };
- 
- /** One input argument of a request */
-diff -puN fs/fuse/inode.c~fuse-add-list-of-writable-files-to-fuse_inode fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-add-list-of-writable-files-to-fuse_inode
-+++ a/fs/fuse/inode.c
-@@ -56,6 +56,7 @@ static struct inode *fuse_alloc_inode(st
- 	fi->i_time = 0;
- 	fi->nodeid = 0;
- 	fi->nlookup = 0;
-+	INIT_LIST_HEAD(&fi->write_files);
- 	fi->forget_req = fuse_request_alloc();
- 	if (!fi->forget_req) {
- 		kmem_cache_free(fuse_inode_cachep, inode);
-@@ -68,6 +69,7 @@ static struct inode *fuse_alloc_inode(st
- static void fuse_destroy_inode(struct inode *inode)
- {
- 	struct fuse_inode *fi = get_fuse_inode(inode);
-+	BUG_ON(!list_empty(&fi->write_files));
- 	if (fi->forget_req)
- 		fuse_request_free(fi->forget_req);
- 	kmem_cache_free(fuse_inode_cachep, inode);
+ /*
+  * This is the Inode Attributes structure, used for notify_change().  It
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
