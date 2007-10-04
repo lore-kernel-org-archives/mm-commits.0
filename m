@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-allow-filesystems-to-implement-atomic-opentruncate.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:57:03 -0700
-Message-ID: <200710042257.l94Mv3uN032733@imap1.linux-foundation.org>
+Subject: + fuse-support-bsd-locking-semantics.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:57:12 -0700
+Message-ID: <200710042257.l94MvCpH032747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56030 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760791AbXJDW5U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:20 -0400
+	by vger.kernel.org with ESMTP id S1760731AbXJDW5S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:57:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, adilger@clusterfs.com, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     VFS: allow filesystems to implement atomic open+truncate
+     fuse: support BSD locking semantics
 has been added to the -mm tree.  Its filename is
-     vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+     fuse-support-bsd-locking-semantics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: VFS: allow filesystems to implement atomic open+truncate
+Subject: fuse: support BSD locking semantics
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a new attribute flag ATTR_OPEN, with the meaning: "truncation was
-initiated by open() due to the O_TRUNC flag".
-
-This way filesystems wanting to implement truncation within their ->open()
-method can ignore such truncate requests.
-
-This is a quick & dirty hack, but it comes for free.
+It is trivial to add support for flock(2) semantics to the existing protocol,
+by setting the lock owner field to the file pointer, and passing a new
+FUSE_LK_FLOCK flag with the locking request.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate fs/namei.c
---- a/fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate
-+++ a/fs/namei.c
-@@ -1667,8 +1667,10 @@ int may_open(struct nameidata *nd, int a
- 		error = locks_verify_locked(inode);
- 		if (!error) {
- 			DQUOT_INIT(inode);
--			
--			error = do_truncate(dentry, 0, ATTR_MTIME|ATTR_CTIME, NULL);
-+
-+			error = do_truncate(dentry, 0,
-+					    ATTR_MTIME|ATTR_CTIME|ATTR_OPEN,
-+					    NULL);
- 		}
- 		put_write_access(inode);
- 		if (error)
-diff -puN include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate include/linux/fs.h
---- a/include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate
-+++ a/include/linux/fs.h
-@@ -337,6 +337,7 @@ typedef void (dio_iodone_t)(struct kiocb
- #define ATTR_KILL_SGID	4096
- #define ATTR_FILE	8192
- #define ATTR_KILL_PRIV	16384
-+#define ATTR_OPEN	32768	/* Truncating from open(O_TRUNC) */
+diff -puN fs/fuse/file.c~fuse-support-bsd-locking-semantics fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-support-bsd-locking-semantics
++++ a/fs/fuse/file.c
+@@ -699,7 +699,8 @@ static int convert_fuse_file_lock(const 
+ }
  
- /*
-  * This is the Inode Attributes structure, used for notify_change().  It
+ static void fuse_lk_fill(struct fuse_req *req, struct file *file,
+-			 const struct file_lock *fl, int opcode, pid_t pid)
++			 const struct file_lock *fl, int opcode, pid_t pid,
++			 int flock)
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+@@ -712,6 +713,8 @@ static void fuse_lk_fill(struct fuse_req
+ 	arg->lk.end = fl->fl_end;
+ 	arg->lk.type = fl->fl_type;
+ 	arg->lk.pid = pid;
++	if (flock)
++		arg->lk_flags |= FUSE_LK_FLOCK;
+ 	req->in.h.opcode = opcode;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.numargs = 1;
+@@ -731,7 +734,7 @@ static int fuse_getlk(struct file *file,
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+ 
+-	fuse_lk_fill(req, file, fl, FUSE_GETLK, 0);
++	fuse_lk_fill(req, file, fl, FUSE_GETLK, 0, 0);
+ 	req->out.numargs = 1;
+ 	req->out.args[0].size = sizeof(outarg);
+ 	req->out.args[0].value = &outarg;
+@@ -744,7 +747,7 @@ static int fuse_getlk(struct file *file,
+ 	return err;
+ }
+ 
+-static int fuse_setlk(struct file *file, struct file_lock *fl)
++static int fuse_setlk(struct file *file, struct file_lock *fl, int flock)
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+@@ -761,7 +764,7 @@ static int fuse_setlk(struct file *file,
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+ 
+-	fuse_lk_fill(req, file, fl, opcode, pid);
++	fuse_lk_fill(req, file, fl, opcode, pid, flock);
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+ 	/* locking is restartable */
+@@ -787,11 +790,28 @@ static int fuse_file_lock(struct file *f
+ 		if (fc->no_lock)
+ 			err = posix_lock_file_wait(file, fl);
+ 		else
+-			err = fuse_setlk(file, fl);
++			err = fuse_setlk(file, fl, 0);
+ 	}
+ 	return err;
+ }
+ 
++static int fuse_file_flock(struct file *file, int cmd, struct file_lock *fl)
++{
++	struct inode *inode = file->f_path.dentry->d_inode;
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	int err;
++
++	if (fc->no_lock) {
++		err = flock_lock_file_wait(file, fl);
++	} else {
++		/* emulate flock with POSIX locks */
++		fl->fl_owner = (fl_owner_t) file;
++		err = fuse_setlk(file, fl, 1);
++	}
++
++	return err;
++}
++
+ static sector_t fuse_bmap(struct address_space *mapping, sector_t block)
+ {
+ 	struct inode *inode = mapping->host;
+@@ -840,6 +860,7 @@ static const struct file_operations fuse
+ 	.release	= fuse_release,
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
++	.flock		= fuse_file_flock,
+ 	.splice_read	= generic_file_splice_read,
+ };
+ 
+@@ -852,6 +873,7 @@ static const struct file_operations fuse
+ 	.release	= fuse_release,
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
++	.flock		= fuse_file_flock,
+ 	/* no mmap and splice_read */
+ };
+ 
+diff -puN include/linux/fuse.h~fuse-support-bsd-locking-semantics include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-support-bsd-locking-semantics
++++ a/include/linux/fuse.h
+@@ -13,6 +13,7 @@
+  *
+  * 7.9:
+  *  - new fuse_getattr_in input argument of GETATTR
++ *  - add lk_flags in fuse_lk_in
+  */
+ 
+ #include <asm/types.h>
+@@ -113,6 +114,11 @@ struct fuse_file_lock {
+  */
+ #define FUSE_GETATTR_FH		(1 << 0)
+ 
++/**
++ * Lock flags
++ */
++#define FUSE_LK_FLOCK		(1 << 0)
++
+ enum fuse_opcode {
+ 	FUSE_LOOKUP	   = 1,
+ 	FUSE_FORGET	   = 2,  /* no reply */
+@@ -295,6 +301,8 @@ struct fuse_lk_in {
+ 	__u64	fh;
+ 	__u64	owner;
+ 	struct fuse_file_lock lk;
++	__u32	lk_flags;
++	__u32	padding;
+ };
+ 
+ struct fuse_lk_out {
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
