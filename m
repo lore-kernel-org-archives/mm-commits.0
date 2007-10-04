@@ -1,40 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - implement-power-management-quality-of-service-infrastructure.patch removed from -mm tree
-Date: Thu, 04 Oct 2007 15:14:57 -0700
-Message-ID: <200710042214.l94MEvs2031182@imap1.linux-foundation.org>
+Subject: + pm-qos-infrastructure-and-interface.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:16:55 -0700
+Message-ID: <200710042216.l94MGtBx031291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49778 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758190AbXJDWQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:16:42 -0400
+	by vger.kernel.org with ESMTP id S1754597AbXJDWSd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgross@linux.intel.com, arjan@infradead.org, lenb@kernel.org, linville@tuxdriver.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgross@linux.intel.com, arjan@infradead.org, lenb@kernel.org, linville@tuxdriver.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     implement power management quality of service infrastructure
-has been removed from the -mm tree.  Its filename was
-     implement-power-management-quality-of-service-infrastructure.patch
+     pm qos infrastructure and interface
+has been added to the -mm tree.  Its filename is
+     pm-qos-infrastructure-and-interface.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: implement power management quality of service infrastructure
+Subject: pm qos infrastructure and interface
 From: Mark Gross <mgross@linux.intel.com>
 
-Implememtn the power management quality of service infrastructure discussed
-at the pm summit last June.
+The following patch is a generalization of the latency.c implementation done
+by Arjan last year.  It provides infrastructure for more than one parameter,
+and exposes a user mode interface for processes to register pm_qos
+expectations of processes.
 
-It is a generalization of the latency code put into the kernel last year by
-Arjan.
+This interface provides a kernel and user mode interface for registering
+performance expectations by drivers, subsystems and user space applications on
+one of the parameters.
 
-One thing to note about this implementation is that it exposes an interface
-to user space for registering pm_qos constraints in addition to the kernel
-exports.  Its a file based interface where a module can register a
-constraint and the constraint is valid only as long as the device node is
-held open.  Upon closing of the device node that constraint is cleaned up.
+Currently we have {cpu_dma_latency, network_latency, network_throughput} as
+the initial set of pm_qos parameters.
+
+The infrastructure exposes multiple misc device nodes one per implemented
+parameter.  The set of parameters implement is defined by pm_qos_power_init()
+and pm_qos_params.h.  This is done because having the available parameters
+being runtime configurable or changeable from a driver was seen as too easy to
+abuse.
+
+For each parameter a list of performance requirements is maintained along with
+an aggregated target value.  The aggregated target value is updated with
+changes to the requirement list or elements of the list.  Typically the
+aggregated target value is simply the max or min of the requirement values
+held in the parameter list elements.
+
+From kernel mode the use of this interface is simple:
+
+pm_qos_add_requirement(param_id, name, target_value):
+
+  Will insert a named element in the list for that identified PM_QOS
+  parameter with the target value.  Upon change to this list the new target is
+  recomputed and any registered notifiers are called only if the target value
+  is now different.
+
+pm_qos_update_requirement(param_id, name, new_target_value):
+
+  Will search the list identified by the param_id for the named list element
+  and then update its target value, calling the notification tree if the
+  aggregated target is changed.  with that name is already registered.
+
+pm_qos_remove_requirement(param_id, name):
+
+  Will search the identified list for the named element and remove it, after
+  removal it will update the aggregate target and call the notification tree
+  if the target was changed as a result of removing the named requirement.
+
+From user mode:
+
+  Only processes can register a pm_qos requirement.  To provide for
+  automatic cleanup for process the interface requires the process to register
+  its parameter requirements in the following way:
+
+  To register the default pm_qos target for the specific parameter, the
+  process must open one of /dev/[cpu_dma_latency, network_latency,
+  network_throughput]
+
+  As long as the device node is held open that process has a registered
+  requirement on the parameter.  The name of the requirement is
+  "process_<PID>" derived from the current->pid from within the open system
+  call.
+
+  To change the requested target value the process needs to write a s32
+  value to the open device node.  This translates to a
+  pm_qos_update_requirement call.
+
+  To remove the user mode request for a target value simply close the device
+  node.
 
 Signed-off-by: mark gross <mgross@linux.intel.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
@@ -46,6 +105,69 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
+diff -puN /dev/null Documentation/pm_qos_interface.txt
+--- /dev/null
++++ a/Documentation/pm_qos_interface.txt
+@@ -0,0 +1,59 @@
++PM quality of Service interface.
++
++This interface provides a kernel and user mode interface for registering
++performance expectations by drivers, subsystems and user space applications on
++one of the parameters.
++
++Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
++initial set of pm_qos parameters.
++
++The infrastructure exposes multiple misc device nodes one per implemented
++parameter.  The set of parameters implement is defined by pm_qos_power_init()
++and pm_qos_params.h.  This is done because having the available parameters
++being runtime configurable or changeable from a driver was seen as too easy to
++abuse.
++
++For each parameter a list of performance requirements is maintained along with
++an aggregated target value.  The aggregated target value is updated with
++changes to the requirement list or elements of the list.  Typically the
++aggregated target value is simply the max or min of the requirement values held
++in the parameter list elements.
++
++From kernel mode the use of this interface is simple:
++pm_qos_add_requirement(param_id, name, target_value):
++Will insert a named element in the list for that identified PM_QOS parameter
++with the target value.  Upon change to this list the new target is recomputed
++and any registered notifiers are called only if the target value is now
++different.
++
++pm_qos_update_requirement(param_id, name, new_target_value):
++Will search the list identified by the param_id for the named list element and
++then update its target value, calling the notification tree if the aggregated
++target is changed.  with that name is already registered.
++
++pm_qos_remove_requirement(param_id, name):
++Will search the identified list for the named element and remove it, after
++removal it will update the aggregate target and call the notification tree if
++the target was changed as a result of removing the named requirement.
++
++
++From user mode:
++Only processes can register a pm_qos requirement.  To provide for automatic
++cleanup for process the interface requires the process to register its
++parameter requirements in the following way:
++
++To register the default pm_qos target for the specific parameter, the process
++must open one of /dev/[cpu_dma_latency, network_latency, network_throughput]
++
++As long as the device node is held open that process has a registered
++requirement on the parameter.  The name of the requirement is "process_<PID>"
++derived from the current->pid from within the open system call.
++
++To change the requested target value the process needs to write a s32 value to
++the open device node.  This translates to a pm_qos_update_requirement call.
++
++To remove the user mode request for a target value simply close the device
++node.
++
++
++
 diff -puN /dev/null include/linux/pm_qos_params.h
 --- /dev/null
 +++ a/include/linux/pm_qos_params.h
@@ -85,8 +207,8 @@ diff -puN /dev/null include/linux/pm_qos_params.h
 +int pm_qos_add_notifier(int qos, struct notifier_block *notifier);
 +int pm_qos_remove_notifier(int qos, struct notifier_block *notifier);
 +
-diff -puN kernel/Makefile~implement-power-management-quality-of-service-infrastructure kernel/Makefile
---- a/kernel/Makefile~implement-power-management-quality-of-service-infrastructure
+diff -puN kernel/Makefile~pm-qos-infrastructure-and-interface kernel/Makefile
+--- a/kernel/Makefile~pm-qos-infrastructure-and-interface
 +++ a/kernel/Makefile
 @@ -9,7 +9,7 @@ obj-y     = sched.o fork.o exec_domain.o
  	    rcupdate.o extable.o params.o posix-timers.o \
@@ -522,5 +644,5 @@ _
 
 Patches currently in -mm which might be from mgross@linux.intel.com are
 
-implement-power-management-quality-of-service-infrastructure.patch
+pm-qos-infrastructure-and-interface.patch
 latencyc-use-qos-infrastructure.patch
