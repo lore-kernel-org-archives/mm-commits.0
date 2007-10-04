@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-documentation.patch added to -mm tree
-Date: Thu, 04 Oct 2007 15:31:54 -0700
-Message-ID: <200710042231.l94MVs4X031812@imap1.linux-foundation.org>
+Subject: + fuse-fix-allowing-operations.patch added to -mm tree
+Date: Thu, 04 Oct 2007 15:55:18 -0700
+Message-ID: <200710042255.l94MtIlT032602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55098 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760434AbXJDWc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:32:27 -0400
+	by vger.kernel.org with ESMTP id S1755892AbXJDWzX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2007 18:55:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, mingo@elte.hu, rdunlap@xenotime.net, rob@landley.net
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     lockstat: documentation
+     fuse: fix allowing operations
 has been added to the -mm tree.  Its filename is
-     lockstat-documentation.patch
+     fuse-fix-allowing-operations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,212 +25,133 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lockstat: documentation
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: fuse: fix allowing operations
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Provide some documentation for CONFIG_LOCK_STAT.
+The following operation didn't check if sending the request was allowed:
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Rob Landley <rob@landley.net>
+  setattr
+  listxattr
+  statfs
+
+Some other operations don't explicitly do the check, but VFS calls
+->permission() which checks this.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN /dev/null Documentation/lockstat.txt
---- /dev/null
-+++ a/Documentation/lockstat.txt
-@@ -0,0 +1,120 @@
-+
-+LOCK STATISTICS
-+
-+- WHAT
-+
-+As the name suggests, it provides statistics on locks.
-+
-+- WHY
-+
-+Because things like lock contention can severely impact performance.
-+
-+- HOW
-+
-+Lockdep already has hooks in the lock functions and maps lock instances to
-+lock classes. We build on that. The graph below shows the relation between
-+the lock functions and the various hooks therein.
-+
-+        __acquire
-+            |
-+           lock _____
-+            |        \
-+            |    __contended
-+            |         |
-+            |       <wait>
-+            | _______/
-+            |/
-+            |
-+       __acquired
-+            |
-+            .
-+          <hold>
-+            .
-+            |
-+       __release
-+            |
-+         unlock
-+
-+lock, unlock	- the regular lock functions
-+__*		- the hooks
-+<> 		- states
-+
-+With these hooks we provide the following statistics:
-+
-+ con-bounces       - number of lock contention that involved x-cpu data
-+ contentions       - number of lock acquisitions that had to wait
-+ wait time min     - shortest (non-0) time we ever had to wait for a lock
-+           max     - longest time we ever had to wait for a lock
-+           total   - total time we spend waiting on this lock
-+ acq-bounces       - number of lock acquisitions that involved x-cpu data
-+ acquisitions      - number of times we took the lock
-+ hold time min     - shortest (non-0) time we ever held the lock
-+           max     - longest time we ever held the lock
-+           total   - total time this lock was held
-+
-+From these number various other statistics can be derived, such as:
-+
-+ hold time average = hold time total / acquisitions
-+
-+These numbers are gathered per lock class, per read/write state (when
-+applicable).
-+
-+It also tracks 4 contention points per class. A contention point is a call site
-+that had to wait on lock acquisition.
-+
-+ - USAGE
-+
-+Look at the current lock statistics:
-+
-+( line numbers not part of actual output, done for clarity in the explanation
-+  below )
-+
-+# less /proc/lock_stat
-+
-+01 lock_stat version 0.2
-+02 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-+03                               class name    con-bounces    contentions   waittime-min   waittime-max waittime-total    acq-bounces   acquisitions   holdtime-min   holdtime-max holdtime-total
-+04 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-+05
-+06               &inode->i_data.tree_lock-W:            15          21657           0.18     1093295.30 11547131054.85             58          10415           0.16          87.51        6387.60
-+07               &inode->i_data.tree_lock-R:             0              0           0.00           0.00           0.00          23302         231198           0.25           8.45       98023.38
-+08               --------------------------
-+09                 &inode->i_data.tree_lock              0          [<ffffffff8027c08f>] add_to_page_cache+0x5f/0x190
-+10
-+11 ...............................................................................................................................................................................................
-+12
-+13                              dcache_lock:          1037           1161           0.38          45.32         774.51           6611         243371           0.15         306.48       77387.24
-+14                              -----------
-+15                              dcache_lock            180          [<ffffffff802c0d7e>] sys_getcwd+0x11e/0x230
-+16                              dcache_lock            165          [<ffffffff802c002a>] d_alloc+0x15a/0x210
-+17                              dcache_lock             33          [<ffffffff8035818d>] _atomic_dec_and_lock+0x4d/0x70
-+18                              dcache_lock              1          [<ffffffff802beef8>] shrink_dcache_parent+0x18/0x130
-+
-+This excerpt shows the first two lock class statistics. Line 01 shows the
-+output version - each time the format changes this will be updated. Line 02-04
-+show the header with column descriptions. Lines 05-10 and 13-18 show the actual
-+statistics. These statistics come in two parts; the actual stats separated by a
-+short separator (line 08, 14) from the contention points.
-+
-+The first lock (05-10) is a read/write lock, and shows two lines above the
-+short separator. The contention points don't match the column descriptors,
-+they have two: contentions and [<IP>] symbol.
-+
-+
-+View the top contending locks:
-+
-+# grep : /proc/lock_stat | head
-+              &inode->i_data.tree_lock-W:            15          21657           0.18     1093295.30 11547131054.85             58          10415           0.16          87.51        6387.60
-+              &inode->i_data.tree_lock-R:             0              0           0.00           0.00           0.00          23302         231198           0.25           8.45       98023.38
-+                             dcache_lock:          1037           1161           0.38          45.32         774.51           6611         243371           0.15         306.48       77387.24
-+                         &inode->i_mutex:           161            286 18446744073709       62882.54     1244614.55           3653          20598 18446744073709       62318.60     1693822.74
-+                         &zone->lru_lock:            94             94           0.53           7.33          92.10           4366          32690           0.29          59.81       16350.06
-+              &inode->i_data.i_mmap_lock:            79             79           0.40           3.77          53.03          11779          87755           0.28         116.93       29898.44
-+                        &q->__queue_lock:            48             50           0.52          31.62          86.31            774          13131           0.17         113.08       12277.52
-+                        &rq->rq_lock_key:            43             47           0.74          68.50         170.63           3706          33929           0.22         107.99       17460.62
-+                      &rq->rq_lock_key#2:            39             46           0.75           6.68          49.03           2979          32292           0.17         125.17       17137.63
-+                         tasklist_lock-W:            15             15           1.45          10.87          32.70           1201           7390           0.58          62.55       13648.47
-+
-+Clear the statistics:
-+
-+# echo 0 > /proc/lock_stat
-diff -puN lib/Kconfig.debug~lockstat-documentation lib/Kconfig.debug
---- a/lib/Kconfig.debug~lockstat-documentation
-+++ a/lib/Kconfig.debug
-@@ -294,6 +294,8 @@ config LOCK_STAT
- 	help
- 	 This feature enables tracking lock contention points
+diff -puN fs/fuse/dir.c~fuse-fix-allowing-operations fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-allowing-operations
++++ a/fs/fuse/dir.c
+@@ -721,7 +721,7 @@ static int fuse_refresh_attributes(struc
+  * for which the owner of the mount has ptrace privilege.  This
+  * excludes processes started by other users, suid or sgid processes.
+  */
+-static int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task)
++int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task)
+ {
+ 	if (fc->flags & FUSE_ALLOW_OTHER)
+ 		return 1;
+@@ -1005,6 +1005,9 @@ static int fuse_setattr(struct dentry *e
+ 	struct fuse_attr_out outarg;
+ 	int err;
  
-+	 For more details, see Documentation/lockstat.txt
++	if (!fuse_allow_task(fc, current))
++		return -EACCES;
 +
- config DEBUG_LOCKDEP
- 	bool "Lock dependency engine debugging"
- 	depends on DEBUG_KERNEL && LOCKDEP
+ 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
+ 		err = inode_change_ok(inode, attr);
+ 		if (err)
+@@ -1172,6 +1175,9 @@ static ssize_t fuse_listxattr(struct den
+ 	struct fuse_getxattr_out outarg;
+ 	ssize_t ret;
+ 
++	if (!fuse_allow_task(fc, current))
++		return -EACCES;
++
+ 	if (fc->no_listxattr)
+ 		return -EOPNOTSUPP;
+ 
+diff -puN fs/fuse/fuse_i.h~fuse-fix-allowing-operations fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-allowing-operations
++++ a/fs/fuse/fuse_i.h
+@@ -565,3 +565,8 @@ void fuse_ctl_remove_conn(struct fuse_co
+  * Is file type valid?
+  */
+ int fuse_valid_type(int m);
++
++/**
++ * Is task allowed to perform filesystem operation?
++ */
++int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task);
+diff -puN fs/fuse/inode.c~fuse-fix-allowing-operations fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-allowing-operations
++++ a/fs/fuse/inode.c
+@@ -287,6 +287,11 @@ static int fuse_statfs(struct dentry *de
+ 	struct fuse_statfs_out outarg;
+ 	int err;
+ 
++	if (!fuse_allow_task(fc, current)) {
++		buf->f_type = FUSE_SUPER_MAGIC;
++		return 0;
++	}
++
+ 	req = fuse_get_req(fc);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-lockstat-documentation.patch
-git-sched.patch
-radix-tree-use-indirect-bit.patch
-nfs-remove-congestion_end.patch
-lib-percpu_counter_add.patch
-lib-percpu_counter_sub.patch
-lib-percpu_counter-variable-batch.patch
-lib-make-percpu_counter_add-take-s64.patch
-lib-percpu_counter_set.patch
-lib-percpu_counter_sum_positive.patch
-lib-percpu_count_sum.patch
-lib-percpu_counter_init-error-handling.patch
-lib-percpu_counter_init_irq.patch
-mm-bdi-init-hooks.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
-mm-count-writeback-pages-per-bdi.patch
-lib-floating-proportions.patch
-mm-per-device-dirty-threshold.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-per-device-dirty-threshold-fix.patch
-mm-dirty-balancing-for-tasks.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-lockdep-give-each-filesystem-its-own-inode-lock-class.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
-task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
+fuse-convert-to-new-aops.patch
+uml-remove-unnecessary-hostfs_getattr.patch
+ext2-show-all-mount-options.patch
+ext3-show-all-mount-options.patch
+ext4-show-all-mount-options.patch
+vfs-check-nanoseconds-in-utimensat.patch
+fix-execute-checking-in-permission.patch
+exec-remove-unnecessary-check-for-mnt_noexec.patch
+clean-out-unused-code-in-dentry-pruning.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+fuse-update-backing_dev_info-congestion-state.patch
+fuse-fix-reserved-request-wake-up.patch
+fuse-add-reference-counting-to-fuse_file.patch
+fuse-truncate-on-spontaneous-size-change.patch
+fuse-fix-page-invalidation.patch
+fuse-set-i_nlink-to-sane-value-after-mount.patch
+fuse-refresh-stale-attributes-in-fuse_permission.patch
+fuse-fix-permission-checking-on-sticky-directories.patch
+fuse-fix-permission-checking-on-sticky-directories-fix.patch
+fuse-fix-permission-checking-on-sticky-directories-fix-setting-i_mode-bits.patch
+fuse-cleanup-in-release.patch
+fuse-no-abort-on-interrupt.patch
+fuse-no-enoent-from-fuse-device-read.patch
+fuse-clean-up-execute-permission-checking.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
