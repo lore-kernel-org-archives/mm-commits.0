@@ -1,60 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:36 -0700
-Message-ID: <200710051957.l95Jva94022480@imap1.linux-foundation.org>
+Subject: - 9pfs-cleanup-explicit-check-for-mandatory-locks.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:59:02 -0700
+Message-ID: <200710051959.l95Jx2vd022601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39093 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763491AbXJEUBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:33 -0400
+	by vger.kernel.org with ESMTP id S1763451AbXJEUBf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: micah.gruber@gmail.com, grundler@parisc-linux.org, jeff@garzik.org, kyle@mcmartin.ca, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a potential NULL pointer dereference in uli526x_interrupt() in drivers/net/tulip/uli526x.c
+     9PFS: clean up explicit check for mandatory locks
 has been removed from the -mm tree.  Its filename was
-     fix-a-potential-null-pointer-dereference-in-uli526x_interrupt.patch
+     9pfs-cleanup-explicit-check-for-mandatory-locks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix a potential NULL pointer dereference in uli526x_interrupt() in drivers/net/tulip/uli526x.c
-From: Micah Gruber <micah.gruber@gmail.com>
+Subject: 9PFS: clean up explicit check for mandatory locks
+From: Pavel Emelyanov <xemul@openvz.org>
 
-This patch fixes an apparent potential null dereference bug where we
-dereference dev before a null check.  This patch simply remvoes the
-can't-happen test for a null pointer.
+The __mandatory_lock(inode) macro makes the same check, but makes the code
+more readable.
 
-Signed-off-by: Micah Gruber <micah.gruber@gmail.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Acked-by: Jeff Garzik <jeff@garzik.org>
-Acked-by: Kyle McMartin <kyle@mcmartin.ca>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/uli526x.c |    5 -----
- 1 file changed, 5 deletions(-)
 
-diff -puN drivers/net/tulip/uli526x.c~fix-a-potential-null-pointer-dereference-in-uli526x_interrupt drivers/net/tulip/uli526x.c
---- a/drivers/net/tulip/uli526x.c~fix-a-potential-null-pointer-dereference-in-uli526x_interrupt
-+++ a/drivers/net/tulip/uli526x.c
-@@ -664,11 +664,6 @@ static irqreturn_t uli526x_interrupt(int
- 	unsigned long ioaddr = dev->base_addr;
- 	unsigned long flags;
+diff -puN fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks
++++ a/fs/9p/vfs_file.c
+@@ -105,7 +105,7 @@ static int v9fs_file_lock(struct file *f
+ 	P9_DPRINTK(P9_DEBUG_VFS, "filp: %p lock: %p\n", filp, fl);
  
--	if (!dev) {
--		ULI526X_DBUG(1, "uli526x_interrupt() without DEVICE arg", 0);
--		return IRQ_NONE;
--	}
--
- 	spin_lock_irqsave(&db->lock, flags);
- 	outl(0, ioaddr + DCR7);
+ 	/* No mandatory locks */
+-	if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
++	if (__mandatory_lock(inode))
+ 		return -ENOLCK;
  
+ 	if ((IS_SETLK(cmd) || IS_SETLKW(cmd)) && fl->fl_type != F_UNLCK) {
 _
 
-Patches currently in -mm which might be from micah.gruber@gmail.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
+make-initializer-for-statically-declared-krefs.patch
 git-net.patch
+git-nfsd.patch
+remove-unused-member-from-nsproxy.patch
+use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
