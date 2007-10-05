@@ -1,53 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-redundant-phy-write-line-for-uli526x-ethernet.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:45 -0700
-Message-ID: <200710051957.l95Jvj1Q022499@imap1.linux-foundation.org>
+Subject: - pci-x-pci-express-read-control-interfaces-e1000.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:28 -0700
+Message-ID: <200710051957.l95JvSNN022467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49126 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763528AbXJEUB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:28 -0400
+	by vger.kernel.org with ESMTP id S1763384AbXJEUB0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tie-fei.zang@freescale.com, grundler@parisc-linux.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: peter.oruba@amd.com, auke-jan.h.kok@intel.com, bunk@stusta.de, jeff@garzik.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up redundant PHY write line for ULi526x Ethernet driver
+     PCI-X/PCI-Express read control interfaces: use them in e1000
 has been removed from the -mm tree.  Its filename was
-     clean-up-redundant-phy-write-line-for-uli526x-ethernet.patch
+     pci-x-pci-express-read-control-interfaces-e1000.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up redundant PHY write line for ULi526x Ethernet driver
-From: Roy Zang <tie-fei.zang@freescale.com>
+Subject: PCI-X/PCI-Express read control interfaces: use them in e1000
+From: "Peter Oruba" <peter.oruba@amd.com>
 
-Clean up redundant PHY write line for ULi526x Ethernet Driver.
+These driver changes incorporate the proposed PCI-X / PCI-Express read byte
+count interface.  Reading and setting those valuse doesn't take place
+"manually", instead wrapping functions are called to allow quirks for some
+PCI bridges.
 
-Signed-off-by: Roy Zang <tie-fei.zang@freescale.com>
+[bunk@stusta.de: e1000: #if 0 two functions]
+Signed-off by: Peter Oruba <peter.oruba@amd.com>
+Based on work by Stephen Hemminger <shemminger@linux-foundation.org>
+Acked-by: Auke Kok <auke-jan.h.kok@intel.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/uli526x.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/e1000/e1000_hw.c   |   25 +++----------------------
+ drivers/net/e1000/e1000_hw.h   |    4 ++--
+ drivers/net/e1000/e1000_main.c |   18 ++++++++++++++++++
+ 3 files changed, 23 insertions(+), 24 deletions(-)
 
-diff -puN drivers/net/tulip/uli526x.c~clean-up-redundant-phy-write-line-for-uli526x-ethernet drivers/net/tulip/uli526x.c
---- a/drivers/net/tulip/uli526x.c~clean-up-redundant-phy-write-line-for-uli526x-ethernet
-+++ a/drivers/net/tulip/uli526x.c
-@@ -1599,7 +1599,6 @@ static void uli526x_process_mode(struct 
- 			case ULI526X_100MFD: phy_reg = 0x2100; break;
- 			}
- 			phy_write(db->ioaddr, db->phy_addr, 0, phy_reg, db->chip_id);
--       			phy_write(db->ioaddr, db->phy_addr, 0, phy_reg, db->chip_id);
- 		}
- 	}
+diff -puN drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.c
+--- a/drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_hw.c
+@@ -871,10 +871,6 @@ e1000_init_hw(struct e1000_hw *hw)
+     uint32_t ctrl;
+     uint32_t i;
+     int32_t ret_val;
+-    uint16_t pcix_cmd_word;
+-    uint16_t pcix_stat_hi_word;
+-    uint16_t cmd_mmrbc;
+-    uint16_t stat_mmrbc;
+     uint32_t mta_size;
+     uint32_t reg_data;
+     uint32_t ctrl_ext;
+@@ -964,24 +960,9 @@ e1000_init_hw(struct e1000_hw *hw)
+         break;
+     default:
+         /* Workaround for PCI-X problem when BIOS sets MMRBC incorrectly. */
+-        if (hw->bus_type == e1000_bus_type_pcix) {
+-            e1000_read_pci_cfg(hw, PCIX_COMMAND_REGISTER, &pcix_cmd_word);
+-            e1000_read_pci_cfg(hw, PCIX_STATUS_REGISTER_HI,
+-                &pcix_stat_hi_word);
+-            cmd_mmrbc = (pcix_cmd_word & PCIX_COMMAND_MMRBC_MASK) >>
+-                PCIX_COMMAND_MMRBC_SHIFT;
+-            stat_mmrbc = (pcix_stat_hi_word & PCIX_STATUS_HI_MMRBC_MASK) >>
+-                PCIX_STATUS_HI_MMRBC_SHIFT;
+-            if (stat_mmrbc == PCIX_STATUS_HI_MMRBC_4K)
+-                stat_mmrbc = PCIX_STATUS_HI_MMRBC_2K;
+-            if (cmd_mmrbc > stat_mmrbc) {
+-                pcix_cmd_word &= ~PCIX_COMMAND_MMRBC_MASK;
+-                pcix_cmd_word |= stat_mmrbc << PCIX_COMMAND_MMRBC_SHIFT;
+-                e1000_write_pci_cfg(hw, PCIX_COMMAND_REGISTER,
+-                    &pcix_cmd_word);
+-            }
+-        }
+-        break;
++	if (hw->bus_type == e1000_bus_type_pcix && e1000_pcix_get_mmrbc(hw) > 2048)
++		e1000_pcix_set_mmrbc(hw, 2048);
++	break;
+     }
+ 
+     /* More time needed for PHY to initialize */
+diff -puN drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.h
+--- a/drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_hw.h
+@@ -421,9 +421,9 @@ void e1000_tbi_adjust_stats(struct e1000
+ void e1000_get_bus_info(struct e1000_hw *hw);
+ void e1000_pci_set_mwi(struct e1000_hw *hw);
+ void e1000_pci_clear_mwi(struct e1000_hw *hw);
+-void e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+-void e1000_write_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
+ int32_t e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value);
++void e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc);
++int e1000_pcix_get_mmrbc(struct e1000_hw *hw);
+ /* Port I/O is only supported on 82544 and newer */
+ void e1000_io_write(struct e1000_hw *hw, unsigned long port, uint32_t value);
+ int32_t e1000_disable_pciex_master(struct e1000_hw *hw);
+diff -puN drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000
++++ a/drivers/net/e1000/e1000_main.c
+@@ -4887,6 +4887,8 @@ e1000_pci_clear_mwi(struct e1000_hw *hw)
+ 	pci_clear_mwi(adapter->pdev);
  }
+ 
++#if 0
++
+ void
+ e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
+ {
+@@ -4903,6 +4905,22 @@ e1000_write_pci_cfg(struct e1000_hw *hw,
+ 	pci_write_config_word(adapter->pdev, reg, *value);
+ }
+ 
++#endif  /*  0  */
++
++int
++e1000_pcix_get_mmrbc(struct e1000_hw *hw)
++{
++	struct e1000_adapter *adapter = hw->back;
++	return pcix_get_mmrbc(adapter->pdev);
++}
++
++void
++e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc)
++{
++	struct e1000_adapter *adapter = hw->back;
++	pcix_set_mmrbc(adapter->pdev, mmrbc);
++}
++
+ int32_t
+ e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
+ {
 _
 
-Patches currently in -mm which might be from tie-fei.zang@freescale.com are
+Patches currently in -mm which might be from peter.oruba@amd.com are
 
+git-infiniband.patch
 git-net.patch
