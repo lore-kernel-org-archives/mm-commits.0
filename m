@@ -1,93 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-fixup.patch added to -mm tree
-Date: Fri, 05 Oct 2007 11:46:43 -0700
-Message-ID: <200710051846.l95IkhNH019727@imap1.linux-foundation.org>
+Subject: - git-net-more-bustage.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 11:48:51 -0700
+Message-ID: <200710051848.l95Impe8019774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53081 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbXJESrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 14:47:14 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l95IkhEo004070
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 5 Oct 2007 11:46:46 -0700
+	by vger.kernel.org with ESMTP id S1757734AbXJEStZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 14:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-fixup
-has been added to the -mm tree.  Its filename is
-     git-mips-fixup.patch
+     git-net: make it compile (not for applying?)
+has been removed from the -mm tree.  Its filename was
+     git-net-more-bustage.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mips-fixup
+Subject: git-net: make it compile (not for applying?)
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/net/hamradio/baycom_epp.c: In function 'baycom_probe':
+drivers/net/hamradio/baycom_epp.c:1162: error: 'struct net_device' has no member named 'hard_header'
+drivers/net/hamradio/baycom_epp.c:1163: error: 'struct net_device' has no member named 'rebuild_header'
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Makefile               |   20 ++++++++++++++++++++
- arch/mips/lemote/lm2e/Makefile   |    1 -
- arch/mips/sibyte/common/Makefile |    1 -
- 3 files changed, 20 insertions(+), 2 deletions(-)
+ drivers/net/hamradio/baycom_epp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/Makefile~git-mips-fixup arch/mips/Makefile
---- a/arch/mips/Makefile~git-mips-fixup
-+++ a/arch/mips/Makefile
-@@ -588,6 +588,26 @@ else
- JIFFIES			= jiffies_64
- endif
- 
-+#
-+# Automatically detect the build format. By default we choose
-+# the elf format according to the load address.
-+# We can always force a build with a 64-bits symbol format by
-+# passing 'KBUILD_SYM32=no' option to the make's command line.
-+#
-+ifdef CONFIG_64BIT
-+  ifndef KBUILD_SYM32
-+    ifeq ($(shell expr $(load-y) \< 0xffffffff80000000), 0)
-+      KBUILD_SYM32 = y
-+    endif
-+  endif
-+
-+  ifeq ($(KBUILD_SYM32), y)
-+    ifeq ($(call cc-option-yn,-msym32), y)
-+      cflags-y += -msym32 -DKBUILD_64BIT_SYM32
-+    endif
-+  endif
-+endif
-+
- KBUILD_AFLAGS	+= $(cflags-y)
- KBUILD_CFLAGS	+= $(cflags-y) \
- 			-D"VMLINUX_LOAD_ADDRESS=$(load-y)"
-diff -puN arch/mips/lemote/lm2e/Makefile~git-mips-fixup arch/mips/lemote/lm2e/Makefile
---- a/arch/mips/lemote/lm2e/Makefile~git-mips-fixup
-+++ a/arch/mips/lemote/lm2e/Makefile
-@@ -4,5 +4,4 @@
- 
- obj-y += setup.o prom.o reset.o irq.o pci.o bonito-irq.o dbg_io.o mem.o
- 
--EXTRA_AFLAGS := $(KBUILD_CFLAGS)
- EXTRA_CFLAGS += -Werror
-diff -puN arch/mips/sibyte/common/Makefile~git-mips-fixup arch/mips/sibyte/common/Makefile
---- a/arch/mips/sibyte/common/Makefile~git-mips-fixup
-+++ a/arch/mips/sibyte/common/Makefile
-@@ -2,5 +2,4 @@ obj-y :=
- 
- obj-$(CONFIG_SIBYTE_TBPROF)		+= sb_tbprof.o
- 
--EXTRA_AFLAGS := $(KBUILD_CFLAGS)
- EXTRA_CFLAGS += -Werror
+diff -puN drivers/net/hamradio/baycom_epp.c~git-net-more-bustage drivers/net/hamradio/baycom_epp.c
+--- a/drivers/net/hamradio/baycom_epp.c~git-net-more-bustage
++++ a/drivers/net/hamradio/baycom_epp.c
+@@ -1159,8 +1159,8 @@ static void baycom_probe(struct net_devi
+ 	/* Fill in the fields of the device structure */
+ 	bc->skb = NULL;
+ 	
+-	dev->hard_header = ax25_hard_header;
+-	dev->rebuild_header = ax25_rebuild_header;
++//	dev->hard_header = ax25_hard_header;
++//	dev->rebuild_header = ax25_rebuild_header;
+ 	dev->set_mac_address = baycom_set_mac_address;
+ 	
+ 	dev->type = ARPHRD_AX25;           /* AF_AX25 device */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
