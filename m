@@ -1,142 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - update-documentation-scsi-00-index.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:58:52 -0700
-Message-ID: <200710051958.l95Jwq5J022583@imap1.linux-foundation.org>
+Subject: - platinumfb-fix-resource-management.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:48 -0700
+Message-ID: <200710051958.l95JwmL2022577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33198 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763165AbXJEUBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:14 -0400
+	by vger.kernel.org with ESMTP id S1763201AbXJEUBS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Update Documentation/scsi/00-INDEX
+     platinumfb: fix resource management
 has been removed from the -mm tree.  Its filename was
-     update-documentation-scsi-00-index.patch
+     platinumfb-fix-resource-management.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Update Documentation/scsi/00-INDEX
-From: Rob Landley <rob@landley.net>
+Subject: platinumfb: fix resource management
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Update Documentation/scsi/00-INDEX to match current files.
+Current kernels have a non-working platinumfb due to some resource management
+issues.  This fixes it.
 
-Signed-off-by: Rob Landley <rob@landley.net>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/scsi/00-INDEX~update-documentation-scsi-00-index Documentation/scsi/00-INDEX
---- a/Documentation/scsi/00-INDEX~update-documentation-scsi-00-index
-+++ a/Documentation/scsi/00-INDEX
-@@ -2,14 +2,20 @@
- 	- this file
- 53c700.txt
- 	- info on driver for 53c700 based adapters
--AM53C974.txt
--	- info on driver for AM53c974 based adapters
- BusLogic.txt
- 	- info on driver for adapters with BusLogic chips
--ChangeLog
-+ChangeLog.1992-1997
- 	- Changes to scsi files, if not listed elsewhere
-+ChangeLog.arcmsr
-+	- Changes to driver for ARECA's SATA RAID controller cards
- ChangeLog.ips
- 	- IBM ServeRAID driver Changelog
-+ChangeLog.lpfc
-+	- Changes to lpfc driver
-+ChangeLog.megaraid
-+	- Changes to LSI megaraid controller.
-+ChangeLog.megaraid_sas
-+	- Changes to serial attached scsi version of LSI megaraid controller.
- ChangeLog.ncr53c8xx
- 	- Changes to ncr53c8xx driver
- ChangeLog.sym53c8xx
-@@ -20,26 +26,44 @@ FlashPoint.txt
- 	- info on driver for BusLogic FlashPoint adapters
- LICENSE.FlashPoint
- 	- Licence of the Flashpoint driver
-+LICENSE.qla2xxx
-+	- License for QLogic Linux Fibre Channel HBA Driver firmware.
- Mylex.txt
- 	- info on driver for Mylex adapters
- NinjaSCSI.txt
- 	- info on WorkBiT NinjaSCSI-32/32Bi driver
-+aacraid.txt
-+	- Driver supporting Adaptec RAID controllers
- aha152x.txt
- 	- info on driver for Adaptec AHA152x based adapters
-+aic79xx.txt
-+	- Adaptec Ultra320 SCSI host adapters
- aic7xxx.txt
- 	- info on driver for Adaptec controllers
- aic7xxx_old.txt
- 	- info on driver for Adaptec controllers, old generation
-+arcmsr_spec.txt
-+	- ARECA FIRMWARE SPEC (for IOP331 adapter)
-+dc395x.txt
-+	- README file for the dc395x SCSI driver
- dpti.txt
- 	- info on driver for DPT SmartRAID and Adaptec I2O RAID based adapters
- dtc3x80.txt
- 	- info on driver for DTC 2x80 based adapters
- g_NCR5380.txt
- 	- info on driver for NCR5380 and NCR53c400 based adapters
-+hptiop.txt
-+	- HIGHPOINT ROCKETRAID 3xxx RAID DRIVER
- ibmmca.txt
- 	- info on driver for IBM adapters with MCA bus
- in2000.txt
- 	- info on in2000 driver
-+libsas.txt
-+	- Serial Attached SCSI management layer.
-+lpfc.txt
-+	- LPFC driver release notes
-+megaraid.txt
-+	- Common Management Module, shared code handling ioctls for LSI drivers
- ncr53c7xx.txt
- 	- info on driver for NCR53c7xx based adapters
- ncr53c8xx.txt
-@@ -50,6 +74,8 @@ ppa.txt
- 	- info on driver for IOmega zip drive
- qlogicfas.txt
- 	- info on driver for QLogic FASxxx based adapters
-+scsi-changer.txt
-+	- README for the SCSI media changer driver
- scsi-generic.txt
- 	- info on the sg driver for generic (non-disk/CD/tape) SCSI devices.
- scsi.txt
-@@ -58,6 +84,8 @@ scsi_mid_low_api.txt
- 	- info on API between SCSI layer and low level drivers
- scsi_eh.txt
- 	- info on SCSI midlayer error handling infrastructure
-+scsi_fc_transport.txt
-+	- SCSI Fiber Channel Tansport
- st.txt
- 	- info on scsi tape driver
- sym53c500_cs.txt
+diff -puN drivers/video/platinumfb.c~platinumfb-fix-resource-management drivers/video/platinumfb.c
+--- a/drivers/video/platinumfb.c~platinumfb-fix-resource-management
++++ a/drivers/video/platinumfb.c
+@@ -17,6 +17,8 @@
+  *  more details.
+  */
+ 
++#undef DEBUG
++
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+@@ -535,33 +537,35 @@ static int __devinit platinumfb_probe(st
+ 	volatile __u8		*fbuffer;
+ 	int			bank0, bank1, bank2, bank3, rc;
+ 
+-	printk(KERN_INFO "platinumfb: Found Apple Platinum video hardware\n");
++	dev_info(&odev->dev, "Found Apple Platinum video hardware\n");
+ 
+ 	info = framebuffer_alloc(sizeof(*pinfo), &odev->dev);
+-	if (info == NULL)
++	if (info == NULL) {
++		dev_err(&odev->dev, "Failed to allocate fbdev !\n");
+ 		return -ENOMEM;
++	}
+ 	pinfo = info->par;
+ 
+ 	if (of_address_to_resource(dp, 0, &pinfo->rsrc_reg) ||
+ 	    of_address_to_resource(dp, 1, &pinfo->rsrc_fb)) {
+-		printk(KERN_ERR "platinumfb: Can't get resources\n");
+-		framebuffer_release(info);
+-		return -ENXIO;
+-	}
+-	if (!request_mem_region(pinfo->rsrc_reg.start,
+-				pinfo->rsrc_reg.start -
+-				pinfo->rsrc_reg.end + 1,
+-				"platinumfb registers")) {
++		dev_err(&odev->dev, "Can't get resources\n");
+ 		framebuffer_release(info);
+ 		return -ENXIO;
+ 	}
++	dev_dbg(&odev->dev, " registers  : 0x%llx...0x%llx\n",
++		(unsigned long long)pinfo->rsrc_reg.start,
++		(unsigned long long)pinfo->rsrc_reg.end);
++	dev_dbg(&odev->dev, " framebuffer: 0x%llx...0x%llx\n",
++		(unsigned long long)pinfo->rsrc_fb.start,
++		(unsigned long long)pinfo->rsrc_fb.end);
++
++	/* Do not try to request register space, they overlap with the
++	 * northbridge and that can fail. Only request framebuffer
++	 */
+ 	if (!request_mem_region(pinfo->rsrc_fb.start,
+-				pinfo->rsrc_fb.start
+-				- pinfo->rsrc_fb.end + 1,
++				pinfo->rsrc_fb.end - pinfo->rsrc_fb.start + 1,
+ 				"platinumfb framebuffer")) {
+-		release_mem_region(pinfo->rsrc_reg.start,
+-				   pinfo->rsrc_reg.end -
+-				   pinfo->rsrc_reg.start + 1);
++		printk(KERN_ERR "platinumfb: Can't request framebuffer !\n");
+ 		framebuffer_release(info);
+ 		return -ENXIO;
+ 	}
+@@ -600,7 +604,8 @@ static int __devinit platinumfb_probe(st
+ 	bank2 = fbuffer[0x200000] == 0x56;
+ 	bank3 = fbuffer[0x300000] == 0x78;
+ 	pinfo->total_vram = (bank0 + bank1 + bank2 + bank3) * 0x100000;
+-	printk(KERN_INFO "platinumfb: Total VRAM = %dMB (%d%d%d%d)\n", (int) (pinfo->total_vram / 1024 / 1024),
++	printk(KERN_INFO "platinumfb: Total VRAM = %dMB (%d%d%d%d)\n",
++	       (unsigned int) (pinfo->total_vram / 1024 / 1024),
+ 	       bank3, bank2, bank1, bank0);
+ 
+ 	/*
+@@ -644,16 +649,15 @@ static int __devexit platinumfb_remove(s
+         unregister_framebuffer (info);
+ 	
+ 	/* Unmap frame buffer and registers */
++	iounmap(pinfo->frame_buffer);
++	iounmap(pinfo->platinum_regs);
++	iounmap(pinfo->cmap_regs);
++
+ 	release_mem_region(pinfo->rsrc_fb.start,
+ 			   pinfo->rsrc_fb.end -
+ 			   pinfo->rsrc_fb.start + 1);
+-	release_mem_region(pinfo->rsrc_reg.start,
+-			   pinfo->rsrc_reg.end -
+-			   pinfo->rsrc_reg.start + 1);
+-	iounmap(pinfo->frame_buffer);
+-	iounmap(pinfo->platinum_regs);
++
+ 	release_mem_region(pinfo->cmap_regs_phys, 0x1000);
+-	iounmap(pinfo->cmap_regs);
+ 
+ 	framebuffer_release(info);
+ 
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-lockstat-documentation.patch
-git-arm.patch
-git-scsi-misc.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-documentation-make-headers_installtxt.patch
-documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-tweak-documentation-sm501txt.patch
-add-missing-entries-to-top-level-documentation-00-index.patch
-add-documentation-w1w1-masters-00-index.patch
-add-entries-to-documentation-powerpc.patch
-add-documentation-power-00-index.patch
+git-cpufreq.patch
+git-powerpc.patch
+adbhid-produce-all-capslock-key-events.patch
+git-kbuild.patch
+git-libata-all.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+sparsemem-clean-up-spelling-error-in-comments.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+generic-virtual-memmap-support-for-sparsemem.patch
+ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+remove-frv-usage-of-flush_tlb_pgtables.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+report-the-per-irq-statistics-on-allarches.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+delay-creation-of-khcvd-thread.patch
+radeonfb-xpress-200m-rc410-support-patch.patch
+intel-iommu-fix-for-iommu-early-crash-2.patch
+add-scaled-time-to-taskstats-based-process-accounting.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
+powerpc-add-scaled-time-accounting.patch
+powerpc-add-scaled-time-accounting-speedup.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+add-documentation-for-extended-crashkernel-syntax.patch
