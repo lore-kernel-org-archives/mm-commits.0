@@ -1,103 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-possible-null-pointer-deref-in-3c359-driver.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:32 -0700
-Message-ID: <200710051957.l95JvWAu022473@imap1.linux-foundation.org>
+Subject: - drivers-net-cxgb3-xgmacc-remove-dead-code.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:30 -0700
+Message-ID: <200710051957.l95JvURG022470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54971 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762564AbXJEUBD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:03 -0400
+	by vger.kernel.org with ESMTP id S1762797AbXJEUBJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Avoid possible NULL pointer deref in 3c359 driver
+     drivers/net/cxgb3/xgmac.c: remove dead code
 has been removed from the -mm tree.  Its filename was
-     avoid-possible-null-pointer-deref-in-3c359-driver.patch
+     drivers-net-cxgb3-xgmacc-remove-dead-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Avoid possible NULL pointer deref in 3c359 driver
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: drivers/net/cxgb3/xgmac.c: remove dead code
+From: Adrian Bunk <bunk@stusta.de>
 
-In xl_freemem(), if dev_if is NULL, the line
+This patch removes dead code ("tx_xcnt" can never be != 0 at this place)
+spotted by the Coverity checker.
 
-  struct xl_private *xl_priv =(struct xl_private *)dev->priv;
-
-will cause a NULL pointer dereference.
-
-(akpm: don't try to fix it: just delete the pointless test-for-null)
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/net/cxgb3/xgmac.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver drivers/net/tokenring/3c359.c
---- a/drivers/net/tokenring/3c359.c~avoid-possible-null-pointer-deref-in-3c359-driver
-+++ a/drivers/net/tokenring/3c359.c
-@@ -1045,11 +1045,6 @@ static irqreturn_t xl_interrupt(int irq,
- 	u8 __iomem * xl_mmio = xl_priv->xl_mmio ; 
- 	u16 intstatus, macstatus  ;
+diff -puN drivers/net/cxgb3/xgmac.c~drivers-net-cxgb3-xgmacc-remove-dead-code drivers/net/cxgb3/xgmac.c
+--- a/drivers/net/cxgb3/xgmac.c~drivers-net-cxgb3-xgmacc-remove-dead-code
++++ a/drivers/net/cxgb3/xgmac.c
+@@ -522,10 +522,7 @@ int t3b2_mac_watchdog_task(struct cmac *
+ 		goto rxcheck;
+ 	}
  
--	if (!dev) { 
--		printk(KERN_WARNING "Device structure dead, aaahhhh !\n") ;
--		return IRQ_NONE; 
--	}
--
- 	intstatus = readw(xl_mmio + MMIO_INTSTATUS) ;  
- 
- 	if (!(intstatus & 1)) /* We didn't generate the interrupt */
+-	if (((tx_tcnt != mac->tx_tcnt) &&
+-	     (tx_xcnt == 0) && (mac->tx_xcnt == 0)) ||
+-	    ((mac->tx_mcnt == tx_mcnt) &&
+-	     (tx_xcnt != 0) && (mac->tx_xcnt != 0))) {
++	if ((tx_tcnt != mac->tx_tcnt) && (mac->tx_xcnt == 0))  {
+ 		if (mac->toggle_cnt > 4) {
+ 			status = 2;
+ 			goto out;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
+slow-down-printk-during-boot.patch
+git-acpi.patch
 git-alsa.patch
-fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
-git-cifs.patch
+git-cpufreq.patch
 git-powerpc.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
 git-dvb.patch
-git-gfs2-nmw.patch
 git-kbuild.patch
+include-linux-kbuild-remove-duplicate-entries.patch
+git-kvm.patch
+git-mmc.patch
 git-mtd.patch
-git-ubi.patch
+remove-fs-jffs2-ioctlc.patch
 git-net.patch
 git-backlight.patch
 git-nfs.patch
-clean-up-duplicate-includes-in-fs-ntfs.patch
+parisc-extern-inline-static-inline.patch
 git-scsi-misc.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-clean-up-duplicate-includes-in-mm.patch
-mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
-uml-remove-unneeded-void-cast.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
-isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
-fbdev-update-documentation-fb-00-index.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+drivers-scsi-pcmcia-nsp_csc-remove-kernel-24-code.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+drivers-scsi-immc-fix-check-after-use.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-cryptodev.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+maps2-add-proc-kpagemap-interface.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
