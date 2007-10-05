@@ -1,81 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-r8169-fixup.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 11:53:14 -0700
-Message-ID: <200710051853.l95IrEXd019921@imap1.linux-foundation.org>
+Subject: - advansys-printk-fix.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:04:09 -0700
+Message-ID: <200710051904.l95J49An020367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46014 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60010 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752251AbXJESxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 14:53:51 -0400
+	by vger.kernel.org with ESMTP id S1750991AbXJETEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:04:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-r8169-fixup
+     advansys printk fix
 has been removed from the -mm tree.  Its filename was
-     git-r8169-fixup.patch
+     advansys-printk-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-r8169-fixup
+Subject: advansys printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix rejects w/ Linus
+Fix this:
 
-Cc: Francois Romieu <romieu@fr.zoreil.com>
+drivers/scsi/advansys.c: In function 'advansys_board_found':
+drivers/scsi/advansys.c:16320: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
+
+and clean the code up a little.
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/r8169.c |   30 ------------------------------
- 1 file changed, 30 deletions(-)
+ drivers/scsi/advansys.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/r8169.c~git-r8169-fixup drivers/net/r8169.c
---- a/drivers/net/r8169.c~git-r8169-fixup
-+++ a/drivers/net/r8169.c
-@@ -1313,39 +1313,9 @@ static void rtl8169s_hw_phy_config(void 
- 	}, *p = phy_magic;
- 	unsigned int i;
- 
--<<<<<<< HEAD/drivers/net/r8169.c
--	rtl8169_print_mac_version(tp);
--	rtl8169_print_phy_version(tp);
--
--	if (tp->mac_version <= RTL_GIGA_MAC_VER_01)
--		return;
--	if (tp->phy_version >= RTL_GIGA_PHY_VER_H)
--		return;
--
--	dprintk("MAC version != 0 && PHY version == 0 or 1\n");
--	dprintk("Do final_reg2.cfg\n");
--
--	/* Shazam ! */
--
--	if (tp->mac_version == RTL_GIGA_MAC_VER_04) {
--		mdio_write(ioaddr, 31, 0x0002);
--		mdio_write(ioaddr,  1, 0x90d0);
--		mdio_write(ioaddr, 31, 0x0000);
--		return;
--	}
--
--	if ((tp->mac_version != RTL_GIGA_MAC_VER_02) &&
--	    (tp->mac_version != RTL_GIGA_MAC_VER_03))
--		return;
--
--	mdio_write(ioaddr, 31, 0x0001);			//w 31 2 0 1
--	mdio_write(ioaddr, 21, 0x1000);			//w 21 15 0 1000
--	mdio_write(ioaddr, 24, 0x65c7);			//w 24 15 0 65c7
--=======
- 	mdio_write(ioaddr, 0x1f, 0x0001);		//w 31 2 0 1
- 	mdio_write(ioaddr, 0x15, 0x1000);		//w 21 15 0 1000
- 	mdio_write(ioaddr, 0x18, 0x65c7);		//w 24 15 0 65c7
-->>>>>>> /drivers/net/r8169.c
- 	rtl8169_write_gmii_reg_bit(ioaddr, 4, 11, 0);	//w 4 11 11 0
- 
- 	for (i = 0; i < ARRAY_SIZE(phy_magic); i++, p++) {
+diff -puN drivers/scsi/advansys.c~advansys-printk-fix drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~advansys-printk-fix
++++ a/drivers/scsi/advansys.c
+@@ -14254,10 +14254,11 @@ advansys_board_found(int iop, struct dev
+ 		boardp->ioremap_addr = ioremap(pci_resource_start(pdev, 1),
+ 					       boardp->asc_n_io_port);
+ 		if (!boardp->ioremap_addr) {
+-			ASC_PRINT3
+-			    ("advansys_board_found: board %d: ioremap(%x, %d) returned NULL\n",
+-			     boardp->id, pci_resource_start(pdev, 1),
+-			     boardp->asc_n_io_port);
++			ASC_PRINT3("advansys_board_found: board %d: "
++				"ioremap(%llx, %d) returned NULL\n",
++				boardp->id,
++				(unsigned long long)pci_resource_start(pdev, 1),
++				boardp->asc_n_io_port);
+ 			goto err_shost;
+ 		}
+ 		adv_dvc_varp->iop_base = (AdvPortAddr)boardp->ioremap_addr
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,8 +104,6 @@ git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-nfsd-fixup.patch
 git-ocfs2.patch
-git-r8169-fixup.patch
-fix-ide-legacy-mode-resources.patch
 git-s390.patch
 git-sched.patch
 git-sh.patch
