@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sparse-pointer-use-of-zero-as-null.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:49:31 -0700
-Message-ID: <200710052349.l95NnVST031220@imap1.linux-foundation.org>
+Subject: + sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 05 Oct 2007 16:50:51 -0700
+Message-ID: <200710052350.l95NopDB031327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39308 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50495 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753265AbXJEXuH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:50:07 -0400
+	by vger.kernel.org with ESMTP id S1757215AbXJEXvb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, ak@suse.de, arnd@arndb.de, davidel@xmailserver.org, jeff@garzik.org, mpm@selenic.com, raven@themaw.net, sds@tycho.nsa.gov
+Cc: akpm@linux-foundation.org, ak@suse.de, arnd@arndb.de, davidel@xmailserver.org, jeff@garzik.org, mpm@selenic.com, raven@themaw.net, sds@tycho.nsa.gov, shemminger@linux-foundation.org
 
 
 The patch titled
-     sparse pointer use of zero as null
+     sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sparse-pointer-use-of-zero-as-null.patch
+     sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,380 +25,287 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sparse pointer use of zero as null
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: sparse-pointer-use-of-zero-as-null-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Get rid of sparse related warnings from places that use integer as NULL
-pointer.
+ERROR: do not use assignment in if condition
+#50: FILE: drivers/base/dmapool.c:369:
++	if ((page = pool_find_page (pool, dma)) == NULL) {
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+ERROR: no space after that open parenthesis '('
+#74: FILE: fs/autofs/waitq.c:185:
++	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
+
+ERROR: no space before that close parenthesis ')'
+#74: FILE: fs/autofs/waitq.c:185:
++	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
+
+WARNING: line over 80 characters
+#155: FILE: fs/jbd/journal.c:232:
++		wait_event(journal->j_wait_done_commit, journal->j_task == NULL);
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
 Cc: Andi Kleen <ak@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Ian Kent <raven@themaw.net>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/x86_64/kernel/vsyscall.c~sparse-pointer-use-of-zero-as-null arch/x86_64/kernel/vsyscall.c
---- a/arch/x86_64/kernel/vsyscall.c~sparse-pointer-use-of-zero-as-null
-+++ a/arch/x86_64/kernel/vsyscall.c
-@@ -174,7 +174,7 @@ time_t __vsyscall(1) vtime(time_t *t)
- 	if (unlikely(!__vsyscall_gtod_data.sysctl_enabled))
- 		return time_syscall(t);
- 
--	vgettimeofday(&tv, 0);
-+	vgettimeofday(&tv, NULL);
- 	result = tv.tv_sec;
- 	if (t)
- 		*t = result;
-diff -puN drivers/ata/libata-sff.c~sparse-pointer-use-of-zero-as-null drivers/ata/libata-sff.c
---- a/drivers/ata/libata-sff.c~sparse-pointer-use-of-zero-as-null
-+++ a/drivers/ata/libata-sff.c
-@@ -906,7 +906,7 @@ unsigned long ata_pci_default_filter(str
- 	/* Filter out DMA modes if the device has been configured by
- 	   the BIOS as PIO only */
- 
--	if (adev->link->ap->ioaddr.bmdma_addr == 0)
-+	if (adev->link->ap->ioaddr.bmdma_addr == NULL)
- 		xfer_mask &= ~(ATA_MASK_MWDMA | ATA_MASK_UDMA);
- 	return xfer_mask;
- }
-diff -puN drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null drivers/base/dmapool.c
---- a/drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null
+diff -puN drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes drivers/base/dmapool.c
+--- a/drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 +++ a/drivers/base/dmapool.c
 @@ -366,7 +366,7 @@ dma_pool_free (struct dma_pool *pool, vo
  	unsigned long		flags;
  	int			map, block;
  
--	if ((page = pool_find_page (pool, dma)) == 0) {
-+	if ((page = pool_find_page (pool, dma)) == NULL) {
+-	if ((page = pool_find_page (pool, dma)) == NULL) {
++	if ((page = pool_find_page(pool, dma)) == NULL) {
  		if (pool->dev)
  			dev_err(pool->dev, "dma_pool_free %s, %p/%lx (bad dma)\n",
  				pool->name, vaddr, (unsigned long) dma);
-diff -puN drivers/char/random.c~sparse-pointer-use-of-zero-as-null drivers/char/random.c
---- a/drivers/char/random.c~sparse-pointer-use-of-zero-as-null
-+++ a/drivers/char/random.c
-@@ -649,7 +649,7 @@ EXPORT_SYMBOL_GPL(add_input_randomness);
- 
- void add_interrupt_randomness(int irq)
- {
--	if (irq >= NR_IRQS || irq_timer_state[irq] == 0)
-+	if (irq >= NR_IRQS || irq_timer_state[irq] == NULL)
- 		return;
- 
- 	DEBUG_ENT("irq event %d\n", irq);
-diff -puN fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null fs/autofs/waitq.c
---- a/fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null
+diff -puN fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes fs/autofs/waitq.c
+--- a/fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 +++ a/fs/autofs/waitq.c
 @@ -182,7 +182,7 @@ int autofs_wait_release(struct autofs_sb
  {
  	struct autofs_wait_queue *wq, **wql;
  
--	for ( wql = &sbi->queues ; (wq = *wql) != 0 ; wql = &wq->next ) {
-+	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
+-	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
++	for (wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next) {
  		if ( wq->wait_queue_token == wait_queue_token )
  			break;
  	}
-diff -puN fs/autofs4/waitq.c~sparse-pointer-use-of-zero-as-null fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/autofs4/waitq.c
-@@ -376,7 +376,7 @@ int autofs4_wait_release(struct autofs_s
- 	struct autofs_wait_queue *wq, **wql;
- 
- 	mutex_lock(&sbi->wq_mutex);
--	for (wql = &sbi->queues ; (wq = *wql) != 0 ; wql = &wq->next) {
-+	for (wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next) {
- 		if (wq->wait_queue_token == wait_queue_token)
- 			break;
- 	}
-diff -puN fs/compat_ioctl.c~sparse-pointer-use-of-zero-as-null fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/compat_ioctl.c
-@@ -3672,7 +3672,7 @@ static int __init init_sys32_ioctl(void)
- 	int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(ioctl_start); i++) {
--		if (ioctl_start[i].next != 0) {
-+		if (ioctl_start[i].next) {
- 			printk("ioctl translation %d bad\n",i);
- 			return -1;
- 		}
-diff -puN fs/eventpoll.c~sparse-pointer-use-of-zero-as-null fs/eventpoll.c
---- a/fs/eventpoll.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/eventpoll.c
-@@ -462,7 +462,7 @@ static void ep_free(struct eventpoll *ep
- 	 * holding "epmutex" we can be sure that no file cleanup code will hit
- 	 * us during this operation. So we can avoid the lock on "ep->lock".
- 	 */
--	while ((rbp = rb_first(&ep->rbr)) != 0) {
-+	while ((rbp = rb_first(&ep->rbr)) != NULL) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		ep_remove(ep, epi);
- 	}
-diff -puN fs/ext3/fsync.c~sparse-pointer-use-of-zero-as-null fs/ext3/fsync.c
---- a/fs/ext3/fsync.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/ext3/fsync.c
-@@ -47,7 +47,7 @@ int ext3_sync_file(struct file * file, s
- 	struct inode *inode = dentry->d_inode;
- 	int ret = 0;
- 
--	J_ASSERT(ext3_journal_current_handle() == 0);
-+	J_ASSERT(ext3_journal_current_handle() == NULL);
- 
- 	/*
- 	 * data=writeback:
-diff -puN fs/ext3/inode.c~sparse-pointer-use-of-zero-as-null fs/ext3/inode.c
---- a/fs/ext3/inode.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/ext3/inode.c
-@@ -1028,7 +1028,7 @@ struct buffer_head *ext3_getblk(handle_t
- 		}
- 		if (buffer_new(&dummy)) {
- 			J_ASSERT(create != 0);
--			J_ASSERT(handle != 0);
-+			J_ASSERT(handle != NULL);
- 
- 			/*
- 			 * Now that we do not always journal data, we should
-diff -puN fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null fs/jbd/journal.c
---- a/fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null
+diff -puN fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes fs/jbd/journal.c
+--- a/fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 +++ a/fs/jbd/journal.c
-@@ -217,7 +217,7 @@ static int journal_start_thread(journal_
- 	if (IS_ERR(t))
- 		return PTR_ERR(t);
- 
--	wait_event(journal->j_wait_done_commit, journal->j_task != 0);
-+	wait_event(journal->j_wait_done_commit, journal->j_task != NULL);
- 	return 0;
- }
- 
-@@ -229,7 +229,7 @@ static void journal_kill_thread(journal_
+@@ -229,7 +229,8 @@ static void journal_kill_thread(journal_
  	while (journal->j_task) {
  		wake_up(&journal->j_wait_commit);
  		spin_unlock(&journal->j_state_lock);
--		wait_event(journal->j_wait_done_commit, journal->j_task == 0);
-+		wait_event(journal->j_wait_done_commit, journal->j_task == NULL);
+-		wait_event(journal->j_wait_done_commit, journal->j_task == NULL);
++		wait_event(journal->j_wait_done_commit,
++				journal->j_task == NULL);
  		spin_lock(&journal->j_state_lock);
  	}
  	spin_unlock(&journal->j_state_lock);
-@@ -1651,14 +1651,14 @@ static struct journal_head *journal_allo
- 	atomic_inc(&nr_journal_heads);
- #endif
- 	ret = kmem_cache_alloc(journal_head_cache, GFP_NOFS);
--	if (ret == 0) {
-+	if (ret == NULL) {
- 		jbd_debug(1, "out of memory for journal_head\n");
- 		if (time_after(jiffies, last_warning + 5*HZ)) {
- 			printk(KERN_NOTICE "ENOMEM in %s, retrying.\n",
- 			       __FUNCTION__);
- 			last_warning = jiffies;
- 		}
--		while (ret == 0) {
-+		while (ret == NULL) {
- 			yield();
- 			ret = kmem_cache_alloc(journal_head_cache, GFP_NOFS);
- 		}
-diff -puN fs/jbd/transaction.c~sparse-pointer-use-of-zero-as-null fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/jbd/transaction.c
-@@ -1165,7 +1165,7 @@ int journal_dirty_metadata(handle_t *han
- 	}
- 
- 	/* That test should have eliminated the following case: */
--	J_ASSERT_JH(jh, jh->b_frozen_data == 0);
-+	J_ASSERT_JH(jh, jh->b_frozen_data == NULL);
- 
- 	JBUFFER_TRACE(jh, "file as BJ_Metadata");
- 	spin_lock(&journal->j_list_lock);
-@@ -1513,7 +1513,7 @@ static void __journal_temp_unlink_buffer
- 
- 	J_ASSERT_JH(jh, jh->b_jlist < BJ_Types);
- 	if (jh->b_jlist != BJ_None)
--		J_ASSERT_JH(jh, transaction != 0);
-+		J_ASSERT_JH(jh, transaction != NULL);
- 
- 	switch (jh->b_jlist) {
- 	case BJ_None:
-@@ -1582,11 +1582,11 @@ __journal_try_to_free_buffer(journal_t *
- 	if (buffer_locked(bh) || buffer_dirty(bh))
- 		goto out;
- 
--	if (jh->b_next_transaction != 0)
-+	if (jh->b_next_transaction != NULL)
- 		goto out;
- 
- 	spin_lock(&journal->j_list_lock);
--	if (jh->b_transaction != 0 && jh->b_cp_transaction == 0) {
-+	if (jh->b_transaction != NULL && jh->b_cp_transaction == NULL) {
- 		if (jh->b_jlist == BJ_SyncData || jh->b_jlist == BJ_Locked) {
- 			/* A written-back ordered data buffer */
- 			JBUFFER_TRACE(jh, "release data");
-@@ -1594,7 +1594,7 @@ __journal_try_to_free_buffer(journal_t *
- 			journal_remove_journal_head(bh);
- 			__brelse(bh);
- 		}
--	} else if (jh->b_cp_transaction != 0 && jh->b_transaction == 0) {
-+	} else if (jh->b_cp_transaction != NULL && jh->b_transaction == NULL) {
- 		/* written-back checkpointed metadata buffer */
- 		if (jh->b_jlist == BJ_None) {
- 			JBUFFER_TRACE(jh, "remove from checkpoint list");
-@@ -1954,7 +1954,7 @@ void __journal_file_buffer(struct journa
- 
- 	J_ASSERT_JH(jh, jh->b_jlist < BJ_Types);
- 	J_ASSERT_JH(jh, jh->b_transaction == transaction ||
--				jh->b_transaction == 0);
-+				jh->b_transaction == NULL);
- 
- 	if (jh->b_transaction && jh->b_jlist == jlist)
- 		return;
-diff -puN fs/nls/nls_base.c~sparse-pointer-use-of-zero-as-null fs/nls/nls_base.c
---- a/fs/nls/nls_base.c~sparse-pointer-use-of-zero-as-null
-+++ a/fs/nls/nls_base.c
-@@ -111,7 +111,7 @@ utf8_wctomb(__u8 *s, wchar_t wc, int max
- 	int c, nc;
- 	const struct utf8_table *t;
-   
--	if (s == 0)
-+	if (!s)
- 		return 0;
-   
- 	l = wc;
-diff -puN init/do_mounts_rd.c~sparse-pointer-use-of-zero-as-null init/do_mounts_rd.c
---- a/init/do_mounts_rd.c~sparse-pointer-use-of-zero-as-null
-+++ a/init/do_mounts_rd.c
-@@ -57,7 +57,7 @@ identify_ramdisk_image(int fd, int start
- 	unsigned char *buf;
- 
- 	buf = kmalloc(size, GFP_KERNEL);
--	if (buf == 0)
-+	if (!buf)
- 		return -1;
- 
- 	minixsb = (struct minix_super_block *) buf;
-@@ -407,12 +407,12 @@ static int __init crd_load(int in_fd, in
- 	crd_infd = in_fd;
- 	crd_outfd = out_fd;
- 	inbuf = kmalloc(INBUFSIZ, GFP_KERNEL);
--	if (inbuf == 0) {
-+	if (!inbuf) {
- 		printk(KERN_ERR "RAMDISK: Couldn't allocate gzip buffer\n");
- 		return -1;
- 	}
- 	window = kmalloc(WSIZE, GFP_KERNEL);
--	if (window == 0) {
-+	if (!window) {
- 		printk(KERN_ERR "RAMDISK: Couldn't allocate gzip window\n");
- 		kfree(inbuf);
- 		return -1;
-diff -puN kernel/futex.c~sparse-pointer-use-of-zero-as-null kernel/futex.c
---- a/kernel/futex.c~sparse-pointer-use-of-zero-as-null
-+++ a/kernel/futex.c
-@@ -296,7 +296,7 @@ EXPORT_SYMBOL_GPL(get_futex_key_refs);
-  */
- void drop_futex_key_refs(union futex_key *key)
- {
--	if (key->both.ptr == 0)
-+	if (!key->both.ptr)
- 		return;
- 	switch (key->both.offset & (FUT_OFF_INODE|FUT_OFF_MMSHARED)) {
- 		case FUT_OFF_INODE:
-@@ -1048,7 +1048,7 @@ static int unqueue_me(struct futex_q *q)
-  retry:
- 	lock_ptr = q->lock_ptr;
- 	barrier();
--	if (lock_ptr != 0) {
-+	if (lock_ptr != NULL) {
- 		spin_lock(lock_ptr);
- 		/*
- 		 * q->lock_ptr can change between reading it and
-diff -puN kernel/kexec.c~sparse-pointer-use-of-zero-as-null kernel/kexec.c
---- a/kernel/kexec.c~sparse-pointer-use-of-zero-as-null
-+++ a/kernel/kexec.c
-@@ -785,7 +785,7 @@ static int kimage_load_normal_segment(st
- 		size_t uchunk, mchunk;
- 
- 		page = kimage_alloc_page(image, GFP_HIGHUSER, maddr);
--		if (page == 0) {
-+		if (!page) {
- 			result  = -ENOMEM;
- 			goto out;
- 		}
-@@ -844,7 +844,7 @@ static int kimage_load_crash_segment(str
- 		size_t uchunk, mchunk;
- 
- 		page = pfn_to_page(maddr >> PAGE_SHIFT);
--		if (page == 0) {
-+		if (!page) {
- 			result  = -ENOMEM;
- 			goto out;
- 		}
-diff -puN mm/hugetlb.c~sparse-pointer-use-of-zero-as-null mm/hugetlb.c
---- a/mm/hugetlb.c~sparse-pointer-use-of-zero-as-null
-+++ a/mm/hugetlb.c
-@@ -988,7 +988,7 @@ static long region_chg(struct list_head 
- 	 * size such that we can guarentee to record the reservation. */
- 	if (&rg->link == head || t < rg->from) {
- 		nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
--		if (nrg == 0)
-+		if (!nrg)
- 			return -ENOMEM;
- 		nrg->from = f;
- 		nrg->to   = f;
-diff -puN mm/mremap.c~sparse-pointer-use-of-zero-as-null mm/mremap.c
---- a/mm/mremap.c~sparse-pointer-use-of-zero-as-null
-+++ a/mm/mremap.c
-@@ -291,7 +291,7 @@ unsigned long do_mremap(unsigned long ad
- 		if ((addr <= new_addr) && (addr+old_len) > new_addr)
- 			goto out;
- 
--		ret = security_file_mmap(0, 0, 0, 0, new_addr, 1);
-+		ret = security_file_mmap(NULL, 0, 0, 0, new_addr, 1);
- 		if (ret)
- 			goto out;
- 
-@@ -399,7 +399,7 @@ unsigned long do_mremap(unsigned long ad
- 				goto out;
- 			}
- 
--			ret = security_file_mmap(0, 0, 0, 0, new_addr, 1);
-+			ret = security_file_mmap(NULL, 0, 0, 0, new_addr, 1);
- 			if (ret)
- 				goto out;
- 		}
-diff -puN mm/vmscan.c~sparse-pointer-use-of-zero-as-null mm/vmscan.c
---- a/mm/vmscan.c~sparse-pointer-use-of-zero-as-null
-+++ a/mm/vmscan.c
-@@ -1326,7 +1326,7 @@ out:
- 	 */
- 	if (priority < 0)
- 		priority = 0;
--	for (i = 0; zones[i] != 0; i++) {
-+	for (i = 0; zones[i] != NULL; i++) {
- 		struct zone *zone = zones[i];
- 
- 		if (!cpuset_zone_allowed_hardwall(zone, GFP_KERNEL))
-diff -puN security/selinux/xfrm.c~sparse-pointer-use-of-zero-as-null security/selinux/xfrm.c
---- a/security/selinux/xfrm.c~sparse-pointer-use-of-zero-as-null
-+++ a/security/selinux/xfrm.c
-@@ -448,7 +448,7 @@ int selinux_xfrm_postroute_last(u32 isec
- 	if (dst) {
- 		struct dst_entry *dst_test;
- 
--		for (dst_test = dst; dst_test != 0;
-+		for (dst_test = dst; dst_test != NULL;
- 		     dst_test = dst_test->child) {
- 			struct xfrm_state *x = dst_test->xfrm;
- 
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
 git-infiniband.patch
 git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
 git-net.patch
+git-net-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-backlight.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+git-sh64.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fixup-fix.patch
+git-unionfs.patch
 git-wireless.patch
-sparse-pointer-use-of-zero-as-null.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
