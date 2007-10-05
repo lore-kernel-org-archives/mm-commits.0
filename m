@@ -1,55 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-more-bustage.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 11:48:51 -0700
-Message-ID: <200710051848.l95Impe8019774@imap1.linux-foundation.org>
+Subject: - git-r8169-fixup.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 11:53:14 -0700
+Message-ID: <200710051853.l95IrEXd019921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46014 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757734AbXJEStZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 14:49:25 -0400
+	by vger.kernel.org with ESMTP id S1752251AbXJESxv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 14:53:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, romieu@fr.zoreil.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: make it compile (not for applying?)
+     git-r8169-fixup
 has been removed from the -mm tree.  Its filename was
-     git-net-more-bustage.patch
+     git-r8169-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net: make it compile (not for applying?)
+Subject: git-r8169-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/hamradio/baycom_epp.c: In function 'baycom_probe':
-drivers/net/hamradio/baycom_epp.c:1162: error: 'struct net_device' has no member named 'hard_header'
-drivers/net/hamradio/baycom_epp.c:1163: error: 'struct net_device' has no member named 'rebuild_header'
+fix rejects w/ Linus
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Francois Romieu <romieu@fr.zoreil.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/baycom_epp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/r8169.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
-diff -puN drivers/net/hamradio/baycom_epp.c~git-net-more-bustage drivers/net/hamradio/baycom_epp.c
---- a/drivers/net/hamradio/baycom_epp.c~git-net-more-bustage
-+++ a/drivers/net/hamradio/baycom_epp.c
-@@ -1159,8 +1159,8 @@ static void baycom_probe(struct net_devi
- 	/* Fill in the fields of the device structure */
- 	bc->skb = NULL;
- 	
--	dev->hard_header = ax25_hard_header;
--	dev->rebuild_header = ax25_rebuild_header;
-+//	dev->hard_header = ax25_hard_header;
-+//	dev->rebuild_header = ax25_rebuild_header;
- 	dev->set_mac_address = baycom_set_mac_address;
- 	
- 	dev->type = ARPHRD_AX25;           /* AF_AX25 device */
+diff -puN drivers/net/r8169.c~git-r8169-fixup drivers/net/r8169.c
+--- a/drivers/net/r8169.c~git-r8169-fixup
++++ a/drivers/net/r8169.c
+@@ -1313,39 +1313,9 @@ static void rtl8169s_hw_phy_config(void 
+ 	}, *p = phy_magic;
+ 	unsigned int i;
+ 
+-<<<<<<< HEAD/drivers/net/r8169.c
+-	rtl8169_print_mac_version(tp);
+-	rtl8169_print_phy_version(tp);
+-
+-	if (tp->mac_version <= RTL_GIGA_MAC_VER_01)
+-		return;
+-	if (tp->phy_version >= RTL_GIGA_PHY_VER_H)
+-		return;
+-
+-	dprintk("MAC version != 0 && PHY version == 0 or 1\n");
+-	dprintk("Do final_reg2.cfg\n");
+-
+-	/* Shazam ! */
+-
+-	if (tp->mac_version == RTL_GIGA_MAC_VER_04) {
+-		mdio_write(ioaddr, 31, 0x0002);
+-		mdio_write(ioaddr,  1, 0x90d0);
+-		mdio_write(ioaddr, 31, 0x0000);
+-		return;
+-	}
+-
+-	if ((tp->mac_version != RTL_GIGA_MAC_VER_02) &&
+-	    (tp->mac_version != RTL_GIGA_MAC_VER_03))
+-		return;
+-
+-	mdio_write(ioaddr, 31, 0x0001);			//w 31 2 0 1
+-	mdio_write(ioaddr, 21, 0x1000);			//w 21 15 0 1000
+-	mdio_write(ioaddr, 24, 0x65c7);			//w 24 15 0 65c7
+-=======
+ 	mdio_write(ioaddr, 0x1f, 0x0001);		//w 31 2 0 1
+ 	mdio_write(ioaddr, 0x15, 0x1000);		//w 21 15 0 1000
+ 	mdio_write(ioaddr, 0x18, 0x65c7);		//w 24 15 0 65c7
+->>>>>>> /drivers/net/r8169.c
+ 	rtl8169_write_gmii_reg_bit(ioaddr, 4, 11, 0);	//w 4 11 11 0
+ 
+ 	for (i = 0; i < ARRAY_SIZE(phy_magic); i++, p++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,9 +116,6 @@ git-mtd.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
-git-net-more-bustage.patch
-ipgc-doesnt-compile-with-with-config_highmem64g.patch
-git-net-sctp-hack.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 git-backlight.patch
 git-net-vs-git-nfs.patch
