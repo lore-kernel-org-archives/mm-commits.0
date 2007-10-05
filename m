@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cmos-probe-cleanup.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:40:43 -0700
-Message-ID: <200710052340.l95Neh1C030993@imap1.linux-foundation.org>
+Subject: + rtc-cmos-probe-cleanup-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 05 Oct 2007 16:41:15 -0700
+Message-ID: <200710052341.l95NfFNK031011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbXJEXlT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:41:19 -0400
+	by vger.kernel.org with ESMTP id S1751583AbXJEXlk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:41:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     rtc-cmos probe() cleanup
+     rtc-cmos-probe-cleanup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-cmos-probe-cleanup.patch
+     rtc-cmos-probe-cleanup-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,153 +25,237 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-cmos probe() cleanup
-From: David Brownell <david-b@pacbell.net>
+Subject: rtc-cmos-probe-cleanup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some cleanups for the rtc-cmos probe logic:
-
- - Claim i/o ports with request_region() not request_resource(),
-   for better coexistence betwen platform and pnp bus glues.
-
- - Claim those ports earlier, to help work around procfs bugs
-   (it allows duplicate names, like /proc/driver/rtc).
-
- - Fix some glitches in cleanup code, notably a cut'n'paste-o
-   where the i/o port region might not get released during
-   cleanup after a probe fault.
-
-And some comment clarifications, including noting that this code
-must work with PNPBIOS not just PNPACPI..
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup-checkpatch-fixes drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup-checkpatch-fixes
 +++ a/drivers/rtc/rtc-cmos.c
-@@ -433,6 +433,19 @@ cmos_do_probe(struct device *dev, struct
- 	if (!ports)
- 		return -ENODEV;
+@@ -568,7 +568,7 @@ static void __exit cmos_do_remove(struct
+ 	rtc_device_unregister(cmos->rtc);
+ 	cmos->rtc = NULL;
  
-+	/* Claim I/O ports ASAP, minimizing conflict with legacy driver.
-+	 *
-+	 * REVISIT non-x86 systems may instead use memory space resources
-+	 * (needing ioremap etc), not i/o space resources like this ...
-+	 */
-+	ports = request_region(ports->start,
-+			ports->end + 1 - ports->start,
-+			driver_name);
-+	if (!ports) {
-+		dev_dbg(dev, "i/o registers already in use\n");
-+		return -EBUSY;
-+	}
-+
- 	cmos_rtc.irq = rtc_irq;
- 	cmos_rtc.iomem = ports;
+-	ports= cmos->iomem;
++	ports = cmos->iomem;
+ 	release_region(ports->start, ports->end + 1 - ports->start);
+ 	cmos->iomem = NULL;
  
-@@ -454,24 +467,13 @@ cmos_do_probe(struct device *dev, struct
- 
- 	cmos_rtc.rtc = rtc_device_register(driver_name, dev,
- 				&cmos_rtc_ops, THIS_MODULE);
--	if (IS_ERR(cmos_rtc.rtc))
--		return PTR_ERR(cmos_rtc.rtc);
-+	if (IS_ERR(cmos_rtc.rtc)) {
-+		retval = PTR_ERR(cmos_rtc.rtc);
-+		goto cleanup0;
-+	}
- 
- 	cmos_rtc.dev = dev;
- 	dev_set_drvdata(dev, &cmos_rtc);
--
--	/* platform and pnp busses handle resources incompatibly.
--	 *
--	 * REVISIT for non-x86 systems we may need to handle io memory
--	 * resources: ioremap them, and request_mem_region().
--	 */
--	if (is_pnp()) {
--		retval = request_resource(&ioport_resource, ports);
--		if (retval < 0) {
--			dev_dbg(dev, "i/o registers already in use\n");
--			goto cleanup0;
--		}
--	}
- 	rename_region(ports, cmos_rtc.rtc->dev.bus_id);
- 
- 	spin_lock_irq(&rtc_lock);
-@@ -534,9 +536,10 @@ cmos_do_probe(struct device *dev, struct
- 	return 0;
- 
- cleanup1:
--	rename_region(ports, NULL);
--cleanup0:
-+	cmos_rtc.dev = NULL;
- 	rtc_device_unregister(cmos_rtc.rtc);
-+cleanup0:
-+	release_region(ports->start, ports->end + 1 - ports->start);
- 	return retval;
- }
- 
-@@ -555,19 +558,21 @@ static void cmos_do_shutdown(void)
- static void __exit cmos_do_remove(struct device *dev)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
-+	struct resource *ports;
- 
- 	cmos_do_shutdown();
- 
--	if (is_pnp())
--		release_resource(cmos->iomem);
--	rename_region(cmos->iomem, NULL);
--
- 	if (is_valid_irq(cmos->irq))
--		free_irq(cmos->irq, cmos_rtc.rtc);
-+		free_irq(cmos->irq, cmos->rtc);
- 
--	rtc_device_unregister(cmos_rtc.rtc);
-+	rtc_device_unregister(cmos->rtc);
-+	cmos->rtc = NULL;
- 
--	cmos_rtc.dev = NULL;
-+	ports= cmos->iomem;
-+	release_region(ports->start, ports->end + 1 - ports->start);
-+	cmos->iomem = NULL;
-+
-+	cmos->dev = NULL;
- 	dev_set_drvdata(dev, NULL);
- }
- 
-@@ -654,7 +659,8 @@ static int cmos_resume(struct device *de
- /*----------------------------------------------------------------*/
- 
- /* The "CMOS" RTC normally lives on the platform_bus.  On ACPI systems,
-- * the device node will always be created as a PNPACPI device.
-+ * the device node will always be created as a PNPACPI device.  Plus
-+ * pre-ACPI PCs probably list it in the PNPBIOS tables.
-  */
- 
- #ifdef	CONFIG_PNP
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+origin.patch
+longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+acpi-suppress-uninitialized-var-warning.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-git-avr32.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-dvb.patch
+git-hwmon-fixup.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
 git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-clean-up-duplicate-includes-in-drivers-spi.patch
-spi-driver-runtime-footprint-shrinkage.patch
-rtc-periodic-irq-fix.patch
-rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
-rtc-make-rtc-ds1553-driver-hotplug-aware-take-3.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-rtc-rtc-class-driver-for-the-ds1374.patch
-rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
-rtc-cmos-probe-cleanup.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-backlight.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+git-sh64.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-scsi-misc-arcmsr-build-fix.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fixup-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
