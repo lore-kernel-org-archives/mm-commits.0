@@ -1,87 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup-fix.patch added to -mm tree
-Date: Fri, 05 Oct 2007 12:25:22 -0700
-Message-ID: <200710051925.l95JPMu8021154@imap1.linux-foundation.org>
+Subject: - track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:36:36 -0700
+Message-ID: <200710051936.l95JaaxG021585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38227 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35812 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760511AbXJET1G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:27:06 -0400
+	by vger.kernel.org with ESMTP id S1759784AbXJEThJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, willy@debian.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-fixup-fix
-has been added to the -mm tree.  Its filename is
-     git-block-fixup-fix.patch
+     track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
+has been removed from the -mm tree.  Its filename was
+     track-accurate-idle-time-with-tick_schedidle_sleeptime-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because changes in git-acpi broke it
 
 ------------------------------------------------------
-Subject: git-block-fixup-fix
+Subject: track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git-rejects between git-scsi-misc and git-block.
+kernel/time/tick-sched.c: In function 'tick_nohz_stop_sched_tick':
+kernel/time/tick-sched.c:192: warning: unused variable 'now'
 
-Note that local variable bulkdata goes away - this is more than a simple
-reject fixup.
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ kernel/time/tick-sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid.c~git-block-fixup-fix drivers/scsi/megaraid.c
---- a/drivers/scsi/megaraid.c~git-block-fixup-fix
-+++ a/drivers/scsi/megaraid.c
-@@ -1737,12 +1737,9 @@ mega_build_sglist(adapter_t *adapter, sc
- 	Scsi_Cmnd	*cmd;
- 	int	sgcnt;
- 	int	idx;
--	int	bulkdata;
+diff -puN kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime-fix kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~track-accurate-idle-time-with-tick_schedidle_sleeptime-fix
++++ a/kernel/time/tick-sched.c
+@@ -189,7 +189,7 @@ void tick_nohz_stop_sched_tick(void)
+ {
+ 	unsigned long seq, last_jiffies, next_jiffies, delta_jiffies, flags;
+ 	struct tick_sched *ts;
+-	ktime_t last_update, expires, now;
++	ktime_t last_update, expires;
+ 	int cpu;
  
- 	cmd = scb->cmd;
- 
--	bulkdata = (scsi_sg_count(cmd) == 1) ? 1 : 0;
--
- 	/*
- 	 * Copy Scatter-Gather list info into controller structure.
- 	 *
-@@ -1756,7 +1753,6 @@ mega_build_sglist(adapter_t *adapter, sc
- 
- 	*len = 0;
- 
--<<<<<<< HEAD/drivers/scsi/megaraid.c
- 	if (scsi_sg_count(cmd) == 1 && !adapter->has_64bit_addr) {
- 		sg = scsi_sglist(cmd);
- 		scb->dma_h_bulkdata = sg_dma_address(sg);
-@@ -1765,16 +1761,6 @@ mega_build_sglist(adapter_t *adapter, sc
- 		return 0;
- 	}
- 
--=======
--	if (bulkdata && !adapter->has_64bit_addr) {
--		sg = scsi_sglist(cmd);
--		scb->dma_h_bulkdata = sg_dma_address(sg);
--		*buf = (u32)scb->dma_h_bulkdata;
--		*len = sg_dma_len(sg);
--		return 0;
--	}
--
-->>>>>>> /drivers/scsi/megaraid.c
- 	scsi_for_each_sg(cmd, sg, sgcnt, idx) {
- 		if (adapter->has_64bit_addr) {
- 			scb->sgl64[idx].address = sg_dma_address(sg);
+ 	local_irq_save(flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
