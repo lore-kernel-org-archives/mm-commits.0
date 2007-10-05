@@ -1,78 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:34 -0700
-Message-ID: <200710051957.l95JvYK6022476@imap1.linux-foundation.org>
+Subject: - ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:00 -0700
+Message-ID: <200710051957.l95Jv011022423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50544 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762945AbXJEUBL (ORCPT
+	by vger.kernel.org with ESMTP id S1763038AbXJEUBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, jeff@garzik.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     skge: remove broken and unused PHY_M_PC_MDI_XMODE macro
+     Ata: pata_marvell, use ioread* for iomap-ped memory
 has been removed from the -mm tree.  Its filename was
-     skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro.patch
+     ata-pata_marvell-use-ioread-for-iomap-ped-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: skge: remove broken and unused PHY_M_PC_MDI_XMODE macro
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Ata: pata_marvell, use ioread* for iomap-ped memory
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+pata_marvell, use ioread* for iomap-ped memory
+
+read* on pci_iomapped memory is incorrect, fix it
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/skge.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/pata_marvell.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/skge.h~skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro drivers/net/skge.h
---- a/drivers/net/skge.h~skge-remove-broken-and-unused-phy_m_pc_mdi_xmode-macro
-+++ a/drivers/net/skge.h
-@@ -1351,8 +1351,6 @@ enum {
- 	PHY_M_PC_EN_DET_PLUS	= 3<<8, /* Energy Detect Plus (Mode 2) */
- };
+diff -puN drivers/ata/pata_marvell.c~ata-pata_marvell-use-ioread-for-iomap-ped-memory drivers/ata/pata_marvell.c
+--- a/drivers/ata/pata_marvell.c~ata-pata_marvell-use-ioread-for-iomap-ped-memory
++++ a/drivers/ata/pata_marvell.c
+@@ -45,10 +45,10 @@ static int marvell_pre_reset(struct ata_
+ 		return -ENOMEM;
+ 	printk("BAR5:");
+ 	for(i = 0; i <= 0x0F; i++)
+-		printk("%02X:%02X ", i, readb(barp + i));
++		printk("%02X:%02X ", i, ioread8(barp + i));
+ 	printk("\n");
  
--#define PHY_M_PC_MDI_XMODE(x)	((((u16)(x)<<5) & PHY_M_PC_MDIX_MSK)
--
- enum {
- 	PHY_M_PC_MAN_MDI	= 0, /* 00 = Manual MDI configuration */
- 	PHY_M_PC_MAN_MDIX	= 1, /* 01 = Manual MDIX configuration */
+-	devices = readl(barp + 0x0C);
++	devices = ioread32(barp + 0x0C);
+ 	pci_iounmap(pdev, barp);
+ 
+ 	if ((pdev->device == 0x6145) && (ap->port_no == 0) &&
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-git-alsa.patch
-sound-snd_register_device_for_dev-fix.patch
-git-arm.patch
-git-cifs.patch
-git-powerpc.patch
-git-dvb.patch
-git-hid.patch
-git-mmc.patch
-git-mtd.patch
+origin.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
 git-net.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-wireless.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+char-mxser_new-upgrade-to-110.patch
+char-mxser_new-move-to-pci_vdevice.patch
+char-mxser_new-remove-useless-comments-in-mxser_cards.patch
+mxser-remove-commented-crap.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+char-moxa-fix-and-optimise-empty-timer.patch
+char-cyclades-remove-bottom-half-processing.patch
+char-cyclades-make-the-isr-code-readable.patch
+char-cyclades-move-spin_lock-to-one-place.patch
+char-cyclades-fix-some-w-warnings.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
+char-moxa-cleanup-prints.patch
+char-moxa-function-names-cleanup.patch
+char-moxa-remove-sleep_on.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
