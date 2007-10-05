@@ -1,143 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - pci-x-pci-express-read-control-interfaces-e1000.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:28 -0700
-Message-ID: <200710051957.l95JvSNN022467@imap1.linux-foundation.org>
+Subject: - update-documentation-scsi-00-index.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:52 -0700
+Message-ID: <200710051958.l95Jwq5J022583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33198 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763384AbXJEUB0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:26 -0400
+	by vger.kernel.org with ESMTP id S1763165AbXJEUBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peter.oruba@amd.com, auke-jan.h.kok@intel.com, bunk@stusta.de, jeff@garzik.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI-X/PCI-Express read control interfaces: use them in e1000
+     Update Documentation/scsi/00-INDEX
 has been removed from the -mm tree.  Its filename was
-     pci-x-pci-express-read-control-interfaces-e1000.patch
+     update-documentation-scsi-00-index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCI-X/PCI-Express read control interfaces: use them in e1000
-From: "Peter Oruba" <peter.oruba@amd.com>
+Subject: Update Documentation/scsi/00-INDEX
+From: Rob Landley <rob@landley.net>
 
-These driver changes incorporate the proposed PCI-X / PCI-Express read byte
-count interface.  Reading and setting those valuse doesn't take place
-"manually", instead wrapping functions are called to allow quirks for some
-PCI bridges.
+Update Documentation/scsi/00-INDEX to match current files.
 
-[bunk@stusta.de: e1000: #if 0 two functions]
-Signed-off by: Peter Oruba <peter.oruba@amd.com>
-Based on work by Stephen Hemminger <shemminger@linux-foundation.org>
-Acked-by: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_hw.c   |   25 +++----------------------
- drivers/net/e1000/e1000_hw.h   |    4 ++--
- drivers/net/e1000/e1000_main.c |   18 ++++++++++++++++++
- 3 files changed, 23 insertions(+), 24 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.c
---- a/drivers/net/e1000/e1000_hw.c~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_hw.c
-@@ -871,10 +871,6 @@ e1000_init_hw(struct e1000_hw *hw)
-     uint32_t ctrl;
-     uint32_t i;
-     int32_t ret_val;
--    uint16_t pcix_cmd_word;
--    uint16_t pcix_stat_hi_word;
--    uint16_t cmd_mmrbc;
--    uint16_t stat_mmrbc;
-     uint32_t mta_size;
-     uint32_t reg_data;
-     uint32_t ctrl_ext;
-@@ -964,24 +960,9 @@ e1000_init_hw(struct e1000_hw *hw)
-         break;
-     default:
-         /* Workaround for PCI-X problem when BIOS sets MMRBC incorrectly. */
--        if (hw->bus_type == e1000_bus_type_pcix) {
--            e1000_read_pci_cfg(hw, PCIX_COMMAND_REGISTER, &pcix_cmd_word);
--            e1000_read_pci_cfg(hw, PCIX_STATUS_REGISTER_HI,
--                &pcix_stat_hi_word);
--            cmd_mmrbc = (pcix_cmd_word & PCIX_COMMAND_MMRBC_MASK) >>
--                PCIX_COMMAND_MMRBC_SHIFT;
--            stat_mmrbc = (pcix_stat_hi_word & PCIX_STATUS_HI_MMRBC_MASK) >>
--                PCIX_STATUS_HI_MMRBC_SHIFT;
--            if (stat_mmrbc == PCIX_STATUS_HI_MMRBC_4K)
--                stat_mmrbc = PCIX_STATUS_HI_MMRBC_2K;
--            if (cmd_mmrbc > stat_mmrbc) {
--                pcix_cmd_word &= ~PCIX_COMMAND_MMRBC_MASK;
--                pcix_cmd_word |= stat_mmrbc << PCIX_COMMAND_MMRBC_SHIFT;
--                e1000_write_pci_cfg(hw, PCIX_COMMAND_REGISTER,
--                    &pcix_cmd_word);
--            }
--        }
--        break;
-+	if (hw->bus_type == e1000_bus_type_pcix && e1000_pcix_get_mmrbc(hw) > 2048)
-+		e1000_pcix_set_mmrbc(hw, 2048);
-+	break;
-     }
- 
-     /* More time needed for PHY to initialize */
-diff -puN drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_hw.h
---- a/drivers/net/e1000/e1000_hw.h~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_hw.h
-@@ -421,9 +421,9 @@ void e1000_tbi_adjust_stats(struct e1000
- void e1000_get_bus_info(struct e1000_hw *hw);
- void e1000_pci_set_mwi(struct e1000_hw *hw);
- void e1000_pci_clear_mwi(struct e1000_hw *hw);
--void e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
--void e1000_write_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t * value);
- int32_t e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value);
-+void e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc);
-+int e1000_pcix_get_mmrbc(struct e1000_hw *hw);
- /* Port I/O is only supported on 82544 and newer */
- void e1000_io_write(struct e1000_hw *hw, unsigned long port, uint32_t value);
- int32_t e1000_disable_pciex_master(struct e1000_hw *hw);
-diff -puN drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000 drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~pci-x-pci-express-read-control-interfaces-e1000
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -4887,6 +4887,8 @@ e1000_pci_clear_mwi(struct e1000_hw *hw)
- 	pci_clear_mwi(adapter->pdev);
- }
- 
-+#if 0
-+
- void
- e1000_read_pci_cfg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
- {
-@@ -4903,6 +4905,22 @@ e1000_write_pci_cfg(struct e1000_hw *hw,
- 	pci_write_config_word(adapter->pdev, reg, *value);
- }
- 
-+#endif  /*  0  */
-+
-+int
-+e1000_pcix_get_mmrbc(struct e1000_hw *hw)
-+{
-+	struct e1000_adapter *adapter = hw->back;
-+	return pcix_get_mmrbc(adapter->pdev);
-+}
-+
-+void
-+e1000_pcix_set_mmrbc(struct e1000_hw *hw, int mmrbc)
-+{
-+	struct e1000_adapter *adapter = hw->back;
-+	pcix_set_mmrbc(adapter->pdev, mmrbc);
-+}
-+
- int32_t
- e1000_read_pcie_cap_reg(struct e1000_hw *hw, uint32_t reg, uint16_t *value)
- {
+diff -puN Documentation/scsi/00-INDEX~update-documentation-scsi-00-index Documentation/scsi/00-INDEX
+--- a/Documentation/scsi/00-INDEX~update-documentation-scsi-00-index
++++ a/Documentation/scsi/00-INDEX
+@@ -2,14 +2,20 @@
+ 	- this file
+ 53c700.txt
+ 	- info on driver for 53c700 based adapters
+-AM53C974.txt
+-	- info on driver for AM53c974 based adapters
+ BusLogic.txt
+ 	- info on driver for adapters with BusLogic chips
+-ChangeLog
++ChangeLog.1992-1997
+ 	- Changes to scsi files, if not listed elsewhere
++ChangeLog.arcmsr
++	- Changes to driver for ARECA's SATA RAID controller cards
+ ChangeLog.ips
+ 	- IBM ServeRAID driver Changelog
++ChangeLog.lpfc
++	- Changes to lpfc driver
++ChangeLog.megaraid
++	- Changes to LSI megaraid controller.
++ChangeLog.megaraid_sas
++	- Changes to serial attached scsi version of LSI megaraid controller.
+ ChangeLog.ncr53c8xx
+ 	- Changes to ncr53c8xx driver
+ ChangeLog.sym53c8xx
+@@ -20,26 +26,44 @@ FlashPoint.txt
+ 	- info on driver for BusLogic FlashPoint adapters
+ LICENSE.FlashPoint
+ 	- Licence of the Flashpoint driver
++LICENSE.qla2xxx
++	- License for QLogic Linux Fibre Channel HBA Driver firmware.
+ Mylex.txt
+ 	- info on driver for Mylex adapters
+ NinjaSCSI.txt
+ 	- info on WorkBiT NinjaSCSI-32/32Bi driver
++aacraid.txt
++	- Driver supporting Adaptec RAID controllers
+ aha152x.txt
+ 	- info on driver for Adaptec AHA152x based adapters
++aic79xx.txt
++	- Adaptec Ultra320 SCSI host adapters
+ aic7xxx.txt
+ 	- info on driver for Adaptec controllers
+ aic7xxx_old.txt
+ 	- info on driver for Adaptec controllers, old generation
++arcmsr_spec.txt
++	- ARECA FIRMWARE SPEC (for IOP331 adapter)
++dc395x.txt
++	- README file for the dc395x SCSI driver
+ dpti.txt
+ 	- info on driver for DPT SmartRAID and Adaptec I2O RAID based adapters
+ dtc3x80.txt
+ 	- info on driver for DTC 2x80 based adapters
+ g_NCR5380.txt
+ 	- info on driver for NCR5380 and NCR53c400 based adapters
++hptiop.txt
++	- HIGHPOINT ROCKETRAID 3xxx RAID DRIVER
+ ibmmca.txt
+ 	- info on driver for IBM adapters with MCA bus
+ in2000.txt
+ 	- info on in2000 driver
++libsas.txt
++	- Serial Attached SCSI management layer.
++lpfc.txt
++	- LPFC driver release notes
++megaraid.txt
++	- Common Management Module, shared code handling ioctls for LSI drivers
+ ncr53c7xx.txt
+ 	- info on driver for NCR53c7xx based adapters
+ ncr53c8xx.txt
+@@ -50,6 +74,8 @@ ppa.txt
+ 	- info on driver for IOmega zip drive
+ qlogicfas.txt
+ 	- info on driver for QLogic FASxxx based adapters
++scsi-changer.txt
++	- README for the SCSI media changer driver
+ scsi-generic.txt
+ 	- info on the sg driver for generic (non-disk/CD/tape) SCSI devices.
+ scsi.txt
+@@ -58,6 +84,8 @@ scsi_mid_low_api.txt
+ 	- info on API between SCSI layer and low level drivers
+ scsi_eh.txt
+ 	- info on SCSI midlayer error handling infrastructure
++scsi_fc_transport.txt
++	- SCSI Fiber Channel Tansport
+ st.txt
+ 	- info on scsi tape driver
+ sym53c500_cs.txt
 _
 
-Patches currently in -mm which might be from peter.oruba@amd.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-git-infiniband.patch
-git-net.patch
+lockstat-documentation.patch
+git-arm.patch
+git-scsi-misc.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+tweak-documentation-sm501txt.patch
+add-missing-entries-to-top-level-documentation-00-index.patch
+add-documentation-w1w1-masters-00-index.patch
+add-entries-to-documentation-powerpc.patch
+add-documentation-power-00-index.patch
