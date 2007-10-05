@@ -1,186 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:12 -0700
-Message-ID: <200710051957.l95JvCLf022452@imap1.linux-foundation.org>
+Subject: - bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:56:54 -0700
+Message-ID: <200710051956.l95Jus4e022410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35885 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763521AbXJEUBg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:36 -0400
+	by vger.kernel.org with ESMTP id S1763564AbXJEUBs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: blaisorblade@yahoo.it, giuseppe.patane@tvblob.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: brett.warden@gmail.com, alan@redhat.com, mchehab@infradead.org, ray-lk@madrabbit.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a few ov=
-erlooked files
+     bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register fix
 has been removed from the -mm tree.  Its filename was
-     mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-ove=
-rlooked-files.patch
+     bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a fe=
-w overlooked files
-=46rom: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
+Subject: bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register fix
+From: "Brett Warden" <brett.warden@gmail.com>
 
-=46inish the rename of CONFIG_USB_OHCI to CONFIG_USB_OHCI_HCD, which st=
-arted
-in 2005 (before 2.6.12-rc2).  The patch in this message has not been
-applied yet; moreover, it is not something to fix afterwards.  I've
-verified that no more instances of 'CONFIG_USB_[UOE]HCI\>' exist in the
-source tree.
+coding-style repairs
 
-http://www.linux-mips.org/archives/linux-mips/2005-06/msg00060.html
-
-I'm also sending a script to detect undefined Kconfig variables in next=
- patch.
-
-Thanks to my colleague Giuseppe Patan=C3=A8 for the original report: he=
- discovered
-the original mail (above) and for verified that the fix had not yet bee=
-n
-applied.
-
-Cc: Giuseppe Patan=C3=A8 <giuseppe.patane@tvblob.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Brett T. Warden <brett.warden@gmail.com>
+Cc: "Ray Lee" <ray-lk@madrabbit.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/mtx-1/board_setup.c  |    4 ++--
- arch/mips/au1000/pb1000/board_setup.c |    6 +++---
- arch/mips/au1000/pb1100/board_setup.c |    4 ++--
- arch/mips/au1000/pb1500/board_setup.c |    6 +++---
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/video/bw-qcam.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_=
-ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au100=
-0/mtx-1/board_setup.c
---- a/arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_ohci=
--with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/mtx-1/board_setup.c
-@@ -54,11 +54,11 @@ void board_reset (void)
-=20
- void __init board_setup(void)
+diff -puN drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix drivers/media/video/bw-qcam.c
+--- a/drivers/media/video/bw-qcam.c~bw-qcam-use-data_reverse-instead-of-manually-poking-the-control-register-fix
++++ a/drivers/media/video/bw-qcam.c
+@@ -104,7 +104,7 @@ static inline void write_lpdata(struct q
+ 
+ static inline void write_lpcontrol(struct qcam_device *q, int d)
  {
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	// enable USB power switch
- 	au_writel( au_readl(GPIO2_DIR) | 0x10, GPIO2_DIR );
- 	au_writel( 0x100000, GPIO2_OUTPUT );
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- #ifdef CONFIG_PCI
- #if defined(__MIPSEB__)
-diff -puN arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1000/board_setup.c
---- a/arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1000/board_setup.c
-@@ -54,7 +54,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PINSTATERD);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	/* zero and disable FREQ2 */
- 	sys_freqctrl =3D au_readl(SYS_FREQCTRL0);
- 	sys_freqctrl &=3D ~0xFFF00000;
-@@ -102,7 +102,7 @@ void __init board_setup(void)
- 	/*
- 	 * Route 48MHz FREQ2 into USB Host and/or Device
- 	 */
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
- #endif
- 	au_writel(sys_clksrc, SYS_CLKSRC);
-@@ -116,7 +116,7 @@ void __init board_setup(void)
- 	au_writel(pin_func, SYS_PINFUNC);
- 	au_writel(0x2800, SYS_TRIOUTCLR);
- 	au_writel(0x0030, SYS_OUTPUTCLR);
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- 	// make gpio 15 an input (for interrupt line)
- 	pin_func =3D au_readl(SYS_PINFUNC) & (u32)(~0x100);
-diff -puN arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1100/board_setup.c
---- a/arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1100/board_setup.c
-@@ -54,7 +54,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PININPUTEN);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	{
- 		u32 pin_func, sys_freqctrl, sys_clksrc;
-=20
-@@ -98,7 +98,7 @@ void __init board_setup(void)
- 		pin_func |=3D 0x8000;
- 		au_writel(pin_func, SYS_PINFUNC);
+-	if(0x20 & d) {
++	if (d & 0x20) {
+ 		/* Set bidirectional mode to reverse (data in) */
+ 		parport_data_reverse(q->pport);
+ 	} else {
+@@ -355,11 +355,11 @@ static int qc_detect(struct qcam_device 
+ 	/* Be (even more) liberal in what you accept...  */
+ 
+ /*	if (count > 30 && count < 200) */
+-	if (count > 20 && count < 400)
+-	{
++	if (count > 20 && count < 400) {
+ 		return 1;	/* found */
+ 	} else {
+-		printk(KERN_ERR "No Quickcam found on port %s\n", q->pport->name);
++		printk(KERN_ERR "No Quickcam found on port %s\n",
++			q->pport->name);
+ 		return 0;	/* not found */
  	}
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
- 	/* Enable sys bus clock divider when IDLE state or no bus activity. *=
-/
- 	au_writel(au_readl(SYS_POWERCTRL) | (0x3 << 5), SYS_POWERCTRL);
-diff -puN arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb=
-_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
-00/pb1500/board_setup.c
---- a/arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb_ohc=
-i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
-+++ a/arch/mips/au1000/pb1500/board_setup.c
-@@ -56,7 +56,7 @@ void __init board_setup(void)
- 	au_writel(0, SYS_PINSTATERD);
- 	udelay(100);
-=20
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
-=20
- 	/* GPIO201 is input for PCMCIA card detect */
- 	/* GPIO203 is input for PCMCIA interrupt request */
-@@ -85,7 +85,7 @@ void __init board_setup(void)
- 	/*
- 	 * Route 48MHz FREQ2 into USB Host and/or Device
- 	 */
--#ifdef CONFIG_USB_OHCI
-+#ifdef CONFIG_USB_OHCI_HCD
- 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
- #endif
- 	au_writel(sys_clksrc, SYS_CLKSRC);
-@@ -95,7 +95,7 @@ void __init board_setup(void)
- 	// 2nd USB port is USB host
- 	pin_func |=3D 0x8000;
- 	au_writel(pin_func, SYS_PINFUNC);
--#endif // defined (CONFIG_USB_OHCI)
-+#endif // defined (CONFIG_USB_OHCI_HCD)
-=20
-=20
-=20
+ }
 _
 
-Patches currently in -mm which might be from blaisorblade@yahoo.it are
+Patches currently in -mm which might be from brett.warden@gmail.com are
 
-git-kbuild.patch
-git-mips.patch
-uml-move-userspace-code-to-userspace-file.patch
-uml-tidy-recently-moved-code.patch
-uml-fix-error-cleanup-ordering.patch
-uml-console-subsystem-tidying.patch
-script-to-check-for-undefined-kconfig-symbols.patch
-bitops-introduce-lock-ops.patch
+git-dvb.patch
