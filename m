@@ -1,99 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - ipgc-doesnt-compile-with-with-config_highmem64g.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:16 -0700
-Message-ID: <200710051957.l95JvGJ6022455@imap1.linux-foundation.org>
+Subject: - mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:12 -0700
+Message-ID: <200710051957.l95JvCLf022452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48529 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35885 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763521AbXJEUBq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:46 -0400
+	by vger.kernel.org with ESMTP id S1763521AbXJEUBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tremyfr@yahoo.fr, davem@davemloft.net, jeff@garzik.org, jesse@icplus.com.tw, sorbica@icplus.com.tw, mm-commits@vger.kernel.org
+To: blaisorblade@yahoo.it, giuseppe.patane@tvblob.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipg.c doesn't compile with with CONFIG_HIGHMEM64G
+     mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a few ov=
+erlooked files
 has been removed from the -mm tree.  Its filename was
-     ipgc-doesnt-compile-with-with-config_highmem64g.patch
+     mips-replace-config_usb_ohci-with-config_usb_ohci_hcd-in-a-few-ove=
+rlooked-files.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: ipg.c doesn't compile with with CONFIG_HIGHMEM64G
-From: trem <tremyfr@yahoo.fr>
+Subject: mips: replace CONFIG_USB_OHCI with CONFIG_USB_OHCI_HCD in a fe=
+w overlooked files
+=46rom: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
 
-I've tried to compile 2.6.23-rc8-mm2, but it fails on ipg.c with the
-error : ERROR: "__udivdi3" [drivers/net/ipg.ko] undefined!
+=46inish the rename of CONFIG_USB_OHCI to CONFIG_USB_OHCI_HCD, which st=
+arted
+in 2005 (before 2.6.12-rc2).  The patch in this message has not been
+applied yet; moreover, it is not something to fix afterwards.  I've
+verified that no more instances of 'CONFIG_USB_[UOE]HCI\>' exist in the
+source tree.
 
-I've instigated a bit, and I've found this code in ipg.c :
+http://www.linux-mips.org/archives/linux-mips/2005-06/msg00060.html
 
-static void ipg_nic_txfree(struct net_device *dev)
-{
-       struct ipg_nic_private *sp = netdev_priv(dev);
-       void __iomem *ioaddr = sp->ioaddr;
-       const unsigned int curr = ipg_r32(TFD_LIST_PTR_0) -
-               (sp->txd_map / sizeof(struct ipg_tx)) - 1;
-       unsigned int released, pending;
+I'm also sending a script to detect undefined Kconfig variables in next=
+ patch.
 
-sp->txd_map is an u64
-because :
-	dma_addr_t txd_map;
+Thanks to my colleague Giuseppe Patan=C3=A8 for the original report: he=
+ discovered
+the original mail (above) and for verified that the fix had not yet bee=
+n
+applied.
 
-And in asm-i386/types.h, I see :
-#ifdef CONFIG_HIGHMEM64G
-typedef u64 dma_addr_t;
-#else
-typedef u32 dma_addr_t;
-#endif
-I my config, I use CONFIG_HIGHMEM64G
-
-sizeof(struct ipg_tx) is an u32
-So the div failed on i386 because of u64 / u32.
-
-[akpm@linux-foundation.org: cleanups]
-Cc: Sorbica Shieh <sorbica@icplus.com.tw>
-Cc: Jesse Huang <jesse@icplus.com.tw>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Giuseppe Patan=C3=A8 <giuseppe.patane@tvblob.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ipg.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/mips/au1000/mtx-1/board_setup.c  |    4 ++--
+ arch/mips/au1000/pb1000/board_setup.c |    6 +++---
+ arch/mips/au1000/pb1100/board_setup.c |    4 ++--
+ arch/mips/au1000/pb1500/board_setup.c |    6 +++---
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g drivers/net/ipg.c
---- a/drivers/net/ipg.c~ipgc-doesnt-compile-with-with-config_highmem64g
-+++ a/drivers/net/ipg.c
-@@ -25,6 +25,8 @@
- #include <linux/mii.h>
- #include <linux/mutex.h>
- 
-+#include <asm/div64.h>
-+
- #define IPG_RX_RING_BYTES	(sizeof(struct ipg_rx) * IPG_RFDLIST_LENGTH)
- #define IPG_TX_RING_BYTES	(sizeof(struct ipg_tx) * IPG_TFDLIST_LENGTH)
- #define IPG_RESET_MASK \
-@@ -836,10 +838,14 @@ static void ipg_nic_txfree(struct net_de
+diff -puN arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_=
+ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au100=
+0/mtx-1/board_setup.c
+--- a/arch/mips/au1000/mtx-1/board_setup.c~mips-replace-config_usb_ohci=
+-with-config_usb_ohci_hcd-in-a-few-overlooked-files
++++ a/arch/mips/au1000/mtx-1/board_setup.c
+@@ -54,11 +54,11 @@ void board_reset (void)
+=20
+ void __init board_setup(void)
  {
- 	struct ipg_nic_private *sp = netdev_priv(dev);
- 	void __iomem *ioaddr = sp->ioaddr;
--	const unsigned int curr = ipg_r32(TFD_LIST_PTR_0) -
--		(sp->txd_map / sizeof(struct ipg_tx)) - 1;
-+	unsigned int curr;
-+	u64 txd_map;
- 	unsigned int released, pending;
- 
-+	txd_map = (u64)sp->txd_map;
-+	curr = ipg_r32(TFD_LIST_PTR_0) -
-+		do_div(txd_map, sizeof(struct ipg_tx)) - 1;
-+
- 	IPG_DEBUG_MSG("_nic_txfree\n");
- 
- 	pending = sp->tx_current - sp->tx_dirty;
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+ 	// enable USB power switch
+ 	au_writel( au_readl(GPIO2_DIR) | 0x10, GPIO2_DIR );
+ 	au_writel( 0x100000, GPIO2_OUTPUT );
+-#endif // defined (CONFIG_USB_OHCI)
++#endif // defined (CONFIG_USB_OHCI_HCD)
+=20
+ #ifdef CONFIG_PCI
+ #if defined(__MIPSEB__)
+diff -puN arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb=
+_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
+00/pb1000/board_setup.c
+--- a/arch/mips/au1000/pb1000/board_setup.c~mips-replace-config_usb_ohc=
+i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
++++ a/arch/mips/au1000/pb1000/board_setup.c
+@@ -54,7 +54,7 @@ void __init board_setup(void)
+ 	au_writel(0, SYS_PINSTATERD);
+ 	udelay(100);
+=20
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+ 	/* zero and disable FREQ2 */
+ 	sys_freqctrl =3D au_readl(SYS_FREQCTRL0);
+ 	sys_freqctrl &=3D ~0xFFF00000;
+@@ -102,7 +102,7 @@ void __init board_setup(void)
+ 	/*
+ 	 * Route 48MHz FREQ2 into USB Host and/or Device
+ 	 */
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+ 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
+ #endif
+ 	au_writel(sys_clksrc, SYS_CLKSRC);
+@@ -116,7 +116,7 @@ void __init board_setup(void)
+ 	au_writel(pin_func, SYS_PINFUNC);
+ 	au_writel(0x2800, SYS_TRIOUTCLR);
+ 	au_writel(0x0030, SYS_OUTPUTCLR);
+-#endif // defined (CONFIG_USB_OHCI)
++#endif // defined (CONFIG_USB_OHCI_HCD)
+=20
+ 	// make gpio 15 an input (for interrupt line)
+ 	pin_func =3D au_readl(SYS_PINFUNC) & (u32)(~0x100);
+diff -puN arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb=
+_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
+00/pb1100/board_setup.c
+--- a/arch/mips/au1000/pb1100/board_setup.c~mips-replace-config_usb_ohc=
+i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
++++ a/arch/mips/au1000/pb1100/board_setup.c
+@@ -54,7 +54,7 @@ void __init board_setup(void)
+ 	au_writel(0, SYS_PININPUTEN);
+ 	udelay(100);
+=20
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+ 	{
+ 		u32 pin_func, sys_freqctrl, sys_clksrc;
+=20
+@@ -98,7 +98,7 @@ void __init board_setup(void)
+ 		pin_func |=3D 0x8000;
+ 		au_writel(pin_func, SYS_PINFUNC);
+ 	}
+-#endif // defined (CONFIG_USB_OHCI)
++#endif // defined (CONFIG_USB_OHCI_HCD)
+=20
+ 	/* Enable sys bus clock divider when IDLE state or no bus activity. *=
+/
+ 	au_writel(au_readl(SYS_POWERCTRL) | (0x3 << 5), SYS_POWERCTRL);
+diff -puN arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb=
+_ohci-with-config_usb_ohci_hcd-in-a-few-overlooked-files arch/mips/au10=
+00/pb1500/board_setup.c
+--- a/arch/mips/au1000/pb1500/board_setup.c~mips-replace-config_usb_ohc=
+i-with-config_usb_ohci_hcd-in-a-few-overlooked-files
++++ a/arch/mips/au1000/pb1500/board_setup.c
+@@ -56,7 +56,7 @@ void __init board_setup(void)
+ 	au_writel(0, SYS_PINSTATERD);
+ 	udelay(100);
+=20
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+=20
+ 	/* GPIO201 is input for PCMCIA card detect */
+ 	/* GPIO203 is input for PCMCIA interrupt request */
+@@ -85,7 +85,7 @@ void __init board_setup(void)
+ 	/*
+ 	 * Route 48MHz FREQ2 into USB Host and/or Device
+ 	 */
+-#ifdef CONFIG_USB_OHCI
++#ifdef CONFIG_USB_OHCI_HCD
+ 	sys_clksrc |=3D ((4<<12) | (0<<11) | (0<<10));
+ #endif
+ 	au_writel(sys_clksrc, SYS_CLKSRC);
+@@ -95,7 +95,7 @@ void __init board_setup(void)
+ 	// 2nd USB port is USB host
+ 	pin_func |=3D 0x8000;
+ 	au_writel(pin_func, SYS_PINFUNC);
+-#endif // defined (CONFIG_USB_OHCI)
++#endif // defined (CONFIG_USB_OHCI_HCD)
+=20
+=20
+=20
 _
 
-Patches currently in -mm which might be from tremyfr@yahoo.fr are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
-git-net.patch
+git-kbuild.patch
+git-mips.patch
+uml-move-userspace-code-to-userspace-file.patch
+uml-tidy-recently-moved-code.patch
+uml-fix-error-cleanup-ordering.patch
+uml-console-subsystem-tidying.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+bitops-introduce-lock-ops.patch
