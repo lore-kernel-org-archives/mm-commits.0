@@ -1,62 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - advansys-printk-fix.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:04:09 -0700
-Message-ID: <200710051904.l95J49An020367@imap1.linux-foundation.org>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Fri, 05 Oct 2007 12:18:10 -0700
+Message-ID: <200710051918.l95JIAAV020805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60010 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991AbXJETEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:04:48 -0400
+	by vger.kernel.org with ESMTP id S1750842AbXJETSi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:18:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     advansys printk fix
-has been removed from the -mm tree.  Its filename was
-     advansys-printk-fix.patch
+     git-block-fixup
+has been added to the -mm tree.  Its filename is
+     git-block-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: advansys printk fix
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+Fix rejects between git-block and rest-of-the-world
 
-drivers/scsi/advansys.c: In function 'advansys_board_found':
-drivers/scsi/advansys.c:16320: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
-
-and clean the code up a little.
-
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/advansys.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/md/dm-crypt.c   |    3 +--
+ drivers/md/dm.c         |    5 ++---
+ drivers/md/raid5.c      |   13 +++----------
+ drivers/scsi/hosts.c    |    1 +
+ drivers/scsi/ide-scsi.c |   13 +------------
+ drivers/scsi/scsi_lib.c |    9 +++++----
+ drivers/scsi/sd.c       |    1 -
+ include/linux/blkdev.h  |    2 --
+ 8 files changed, 13 insertions(+), 34 deletions(-)
 
-diff -puN drivers/scsi/advansys.c~advansys-printk-fix drivers/scsi/advansys.c
---- a/drivers/scsi/advansys.c~advansys-printk-fix
-+++ a/drivers/scsi/advansys.c
-@@ -14254,10 +14254,11 @@ advansys_board_found(int iop, struct dev
- 		boardp->ioremap_addr = ioremap(pci_resource_start(pdev, 1),
- 					       boardp->asc_n_io_port);
- 		if (!boardp->ioremap_addr) {
--			ASC_PRINT3
--			    ("advansys_board_found: board %d: ioremap(%x, %d) returned NULL\n",
--			     boardp->id, pci_resource_start(pdev, 1),
--			     boardp->asc_n_io_port);
-+			ASC_PRINT3("advansys_board_found: board %d: "
-+				"ioremap(%llx, %d) returned NULL\n",
-+				boardp->id,
-+				(unsigned long long)pci_resource_start(pdev, 1),
-+				boardp->asc_n_io_port);
- 			goto err_shost;
- 		}
- 		adv_dvc_varp->iop_base = (AdvPortAddr)boardp->ioremap_addr
+diff -puN drivers/scsi/scsi_lib.c~git-block-fixup drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~git-block-fixup
++++ a/drivers/scsi/scsi_lib.c
+@@ -290,13 +290,14 @@ static int scsi_req_map_sg(struct reques
+ 	int nr_pages = (bufflen + sgl[0].offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	unsigned int data_len = bufflen, len, bytes, off;
+ 	struct page *page;
++	struct scatterlist *sg;
+ 	struct bio *bio = NULL;
+ 	int i, err, nr_vecs = 0;
+ 
+-	for (i = 0; i < nsegs; i++) {
+-		page = sgl[i].page;
+-		off = sgl[i].offset;
+-		len = sgl[i].length;
++	for_each_sg(sgl, sg, nsegs, i) {
++		page = sg->page;
++		off = sg->offset;
++		len = sg->length;
+ 
+ 		while (len > 0 && data_len > 0) {
+ 			/*
+diff -puN drivers/scsi/hosts.c~git-block-fixup drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~git-block-fixup
++++ a/drivers/scsi/hosts.c
+@@ -343,6 +343,7 @@ struct Scsi_Host *scsi_host_alloc(struct
+ 	shost->use_clustering = sht->use_clustering;
+ 	shost->ordered_tag = sht->ordered_tag;
+ 	shost->active_mode = sht->supported_mode;
++	shost->use_sg_chaining = sht->use_sg_chaining;
+ 
+ 	if (sht->max_host_blocked)
+ 		shost->max_host_blocked = sht->max_host_blocked;
+diff -puN drivers/infiniband/ulp/iser/iser_memory.c~git-block-fixup drivers/infiniband/ulp/iser/iser_memory.c
+diff -puN drivers/scsi/sd.c~git-block-fixup drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~git-block-fixup
++++ a/drivers/scsi/sd.c
+@@ -1682,7 +1682,6 @@ static int sd_probe(struct device *dev)
+ 	sd_revalidate_disk(gd);
+ 
+ 	blk_queue_prep_rq(sdp->request_queue, sd_prep_fn);
+-	blk_queue_issue_flush_fn(sdp->request_queue, sd_issue_flush);
+ 
+ 	gd->driverfs_dev = &sdp->sdev_gendev;
+ 	gd->flags = GENHD_FL_DRIVERFS;
+diff -puN drivers/scsi/ide-scsi.c~git-block-fixup drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~git-block-fixup
++++ a/drivers/scsi/ide-scsi.c
+@@ -174,12 +174,6 @@ static void idescsi_input_buffers (ide_d
+ 	char *buf;
+ 
+ 	while (bcount) {
+-		if (pc->sg - scsi_sglist(pc->scsi_cmd) >
+-		                                 scsi_sg_count(pc->scsi_cmd)) {
+-			printk (KERN_ERR "ide-scsi: scatter gather table too small, discarding data\n");
+-			idescsi_discard_data (drive, bcount);
+-			return;
+-		}
+ 		count = min(pc->sg->length - pc->b_count, bcount);
+ 		if (PageHighMem(pc->sg->page)) {
+ 			unsigned long flags;
+@@ -217,12 +211,6 @@ static void idescsi_output_buffers (ide_
+ 	char *buf;
+ 
+ 	while (bcount) {
+-		if (pc->sg - scsi_sglist(pc->scsi_cmd) >
+-		                                 scsi_sg_count(pc->scsi_cmd)) {
+-			printk (KERN_ERR "ide-scsi: scatter gather table too small, padding with zeros\n");
+-			idescsi_output_zeros (drive, bcount);
+-			return;
+-		}
+ 		count = min(pc->sg->length - pc->b_count, bcount);
+ 		if (PageHighMem(pc->sg->page)) {
+ 			unsigned long flags;
+@@ -819,6 +807,7 @@ static int idescsi_queue (struct scsi_cm
+ 	memcpy (pc->c, cmd->cmnd, cmd->cmd_len);
+ 	pc->buffer = NULL;
+ 	pc->sg = scsi_sglist(cmd);
++	pc->last_sg = sg_last(pc->sg, cmd->use_sg);
+ 	pc->b_count = 0;
+ 	pc->request_transfer = pc->buffer_size = scsi_bufflen(cmd);
+ 	pc->scsi_cmd = cmd;
+diff -puN include/linux/blkdev.h~git-block-fixup include/linux/blkdev.h
+--- a/include/linux/blkdev.h~git-block-fixup
++++ a/include/linux/blkdev.h
+@@ -346,8 +346,6 @@ struct bio_vec;
+ typedef int (merge_bvec_fn) (struct request_queue *, struct block_device *bi_bdev,
+ 			     sector_t bi_sector, unsigned bi_size,
+ 			     unsigned long bi_rw, struct bio_vec *);
+-typedef int (issue_flush_fn) (struct request_queue *, struct gendisk *, sector_t *);
+-typedef void (prepare_flush_fn) (struct request_queue *, struct request *);
+ typedef void (softirq_done_fn)(struct request *);
+ 
+ enum blk_queue_state {
+diff -puN drivers/scsi/advansys.c~git-block-fixup drivers/scsi/advansys.c
+diff -puN drivers/md/raid5.c~git-block-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-block-fixup
++++ a/drivers/md/raid5.c
+@@ -1674,11 +1674,9 @@ static void raid5_end_read_request(struc
+ 	clear_bit(R5_LOCKED, &sh->dev[i].flags);
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+ 	release_stripe(sh);
+-	return 0;
+ }
+ 
+-static int raid5_end_write_request (struct bio *bi, unsigned int bytes_done,
+-				    int error)
++static void raid5_end_write_request(struct bio *bi, int error)
+ {
+  	struct stripe_head *sh = bi->bi_private;
+ 	struct stripe_queue *sq = sh->sq;
+@@ -1686,9 +1684,6 @@ static int raid5_end_write_request (stru
+ 	int disks = sh->disks, i;
+ 	int uptodate = test_bit(BIO_UPTODATE, &bi->bi_flags);
+ 
+-	if (bi->bi_size)
+-		return 1;
+-
+ 	for (i=0 ; i<disks; i++)
+ 		if (bi == &sh->dev[i].req)
+ 			break;
+@@ -1709,7 +1704,6 @@ static int raid5_end_write_request (stru
+ 	clear_bit(R5_LOCKED, &sh->dev[i].flags);
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+ 	release_stripe(sh);
+-	return 0;
+ }
+ 
+ static void raid5_build_block (struct stripe_head *sh, int i)
+@@ -3891,17 +3885,16 @@ static void raid5_align_endio(struct bio
+ 	rdev_dec_pending(rdev, conf->mddev);
+ 
+ 	if (!error && uptodate) {
+-		bio_endio(raid_bi, bytes, 0);
++		bio_endio(raid_bi, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+ 			wake_up(&conf->wait_for_queue);
+-		return 0;
++		return;
+ 	}
+ 
+ 
+ 	pr_debug("raid5_align_endio : io error...handing IO for a retry\n");
+ 
+ 	add_bio_to_retry(raid_bi, conf);
+-	return 0;
+ }
+ 
+ static int bio_fits_rdev(struct bio *bi)
+diff -puN drivers/md/dm.c~git-block-fixup drivers/md/dm.c
+--- a/drivers/md/dm.c~git-block-fixup
++++ a/drivers/md/dm.c
+@@ -877,7 +877,7 @@ static int dm_request(struct request_que
+ 
+ out_req:
+ 	if (r < 0)
+-		bio_io_error(bio, bio->bi_size);
++		bio_io_error(bio);
+ 
+ 	return 0;
+ }
+@@ -1030,7 +1030,6 @@ static struct mapped_device *alloc_dev(i
+ 	blk_queue_make_request(md->queue, dm_request);
+ 	blk_queue_bounce_limit(md->queue, BLK_BOUNCE_ANY);
+ 	md->queue->unplug_fn = dm_unplug_all;
+-	md->queue->issue_flush_fn = dm_flush_all;
+ 	blk_queue_merge_bvec(md->queue, dm_merge_bvec);
+ 
+ 	md->io_pool = mempool_create_slab_pool(MIN_IOS, _io_cache);
+@@ -1278,7 +1277,7 @@ static void __flush_deferred_io(struct m
+ 		n = c->bi_next;
+ 		c->bi_next = NULL;
+ 		if (__split_bio(md, c))
+-			bio_io_error(c, c->bi_size);
++			bio_io_error(c);
+ 		c = n;
+ 	}
+ }
+diff -puN drivers/md/dm-crypt.c~git-block-fixup drivers/md/dm-crypt.c
+--- a/drivers/md/dm-crypt.c~git-block-fixup
++++ a/drivers/md/dm-crypt.c
+@@ -550,12 +550,11 @@ static void crypt_endio(struct bio *clon
+ 
+ 	bio_put(clone);
+ 	kcryptd_queue_crypt(io);
+-	return 0;
++	return;
+ 
+ out:
+ 	bio_put(clone);
+ 	crypt_dec_pending(io, error);
+-	return error;
+ }
+ 
+ static void clone_init(struct dm_crypt_io *io, struct bio *clone)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +293,6 @@ git-sh64.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
 git-scsi-misc-arcmsr-build-fix.patch
-advansys-printk-fix.patch
 git-block.patch
 git-block-fixup.patch
 git-unionfs.patch
