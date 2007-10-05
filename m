@@ -1,95 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:56:14 -0700
-Message-ID: <200710051956.l95JuEAs022338@imap1.linux-foundation.org>
+Subject: - sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:56:34 -0700
+Message-ID: <200710051956.l95JuYZ0022362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761117AbXJET4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:40 -0400
+	by vger.kernel.org with ESMTP id S1761143AbXJET4m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: trenn@suse.de, bunk@stusta.de, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, benh@kernel.crashing.org, galak@gate.crashing.org, paulus@samba.org, waite@skycomputers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: Only check for transition latency on problematic governors (kconfig fix)
+     Sky Cpu and Nexus: check for platform_get_resource ret 	code
 has been removed from the -mm tree.  Its filename was
-     allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix.patch
+     sky-cpu-and-nexus-check-for-platform_get_resource-ret.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpufreq: Only check for transition latency on problematic governors (kconfig fix)
-From: Thomas Renninger <trenn@suse.de>
+Subject: Sky Cpu and Nexus: check for platform_get_resource ret 	code
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+tAdd adds checking for platform_get_resource() return code to prevent possible
+NULL pointer usage.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Brian Waite <waite@skycomputers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |   27 ++++++++++++++++++++-------
- include/linux/cpufreq.h   |    3 ++-
- 2 files changed, 22 insertions(+), 8 deletions(-)
+ drivers/misc/hdpuftrs/hdpu_cpustate.c |    5 +++++
+ drivers/misc/hdpuftrs/hdpu_nexus.c    |    7 ++++++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -1484,17 +1484,30 @@ static int __cpufreq_governor(struct cpu
- 					unsigned int event)
- {
+diff -puN drivers/misc/hdpuftrs/hdpu_cpustate.c~sky-cpu-and-nexus-check-for-platform_get_resource-ret drivers/misc/hdpuftrs/hdpu_cpustate.c
+--- a/drivers/misc/hdpuftrs/hdpu_cpustate.c~sky-cpu-and-nexus-check-for-platform_get_resource-ret
++++ a/drivers/misc/hdpuftrs/hdpu_cpustate.c
+@@ -194,6 +194,11 @@ static int hdpu_cpustate_probe(struct pl
  	int ret;
--	struct cpufreq_governor *gov = CPUFREQ_PERFORMANCE_GOVERNOR;
-+
-+	/* Only must be defined when default governor is known to have latency
-+	   restrictions, like e.g. conservative or ondemand.
-+	   That this is the case is already ensured in Kconfig
-+	*/
-+#ifdef CONFIG_CPU_FREQ_GOV_PERFORMANCE
-+	struct cpufreq_governor *gov = &cpufreq_gov_performance;
-+#else
-+	struct cpufreq_governor *gov = NULL;
-+#endif
  
- 	if (policy->governor->max_transition_latency &&
- 	    policy->cpuinfo.transition_latency >
- 	    policy->governor->max_transition_latency) {
--		printk(KERN_WARNING "%s governor failed, too long"
--		       " transition latency of HW, fallback"
--		       " to %s governor\n",
--		       policy->governor->name,
--		       gov->name);
--		       policy->governor = gov;
-+		if (!gov)
-+			return -EINVAL;
-+		else {
-+			printk(KERN_WARNING "%s governor failed, too long"
-+			       " transition latency of HW, fallback"
-+			       " to %s governor\n",
-+			       policy->governor->name,
-+			       gov->name);
-+			policy->governor = gov;
-+		}
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		printk(KERN_ERR "sky_cpustate: "
++		       "Invalid memory resource.\n");
++		return -EINVAL;
++	}
+ 	cpustate.set_addr = (unsigned long *)res->start;
+ 	cpustate.clr_addr = (unsigned long *)res->end - 1;
+ 
+diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~sky-cpu-and-nexus-check-for-platform_get_resource-ret drivers/misc/hdpuftrs/hdpu_nexus.c
+--- a/drivers/misc/hdpuftrs/hdpu_nexus.c~sky-cpu-and-nexus-check-for-platform_get_resource-ret
++++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
+@@ -62,6 +62,11 @@ static int hdpu_nexus_probe(struct platf
+ 	int *nexus_id_addr;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		printk(KERN_ERR "sky_nexus: "
++		       "Invalid memory resource.\n");
++		return -EINVAL;
++	}
+ 	nexus_id_addr = ioremap(res->start,
+ 				(unsigned long)(res->end - res->start));
+ 	if (nexus_id_addr) {
+@@ -69,7 +74,7 @@ static int hdpu_nexus_probe(struct platf
+ 		chassis_id = *nexus_id_addr & 0xff;
+ 		iounmap(nexus_id_addr);
+ 	} else {
+-		printk(KERN_ERR "Could not map slot id\n");
++		printk(KERN_ERR "sky_nexus: Could not map slot id\n");
  	}
  
- 	if (!try_module_get(policy->governor->owner))
-diff -puN include/linux/cpufreq.h~allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~allow-ondemand-and-conservative-cpufreq-governors-to-be-used-as-default-kconfig-fix
-+++ a/include/linux/cpufreq.h
-@@ -286,8 +286,9 @@ static inline unsigned int cpufreq_quick
-   Performance governor is fallback governor if any other gov failed to
-   auto load due latency restrictions
- */
-+#ifdef CONFIG_CPU_FREQ_GOV_PERFORMANCE
- extern struct cpufreq_governor cpufreq_gov_performance;
--#define CPUFREQ_PERFORMANCE_GOVERNOR	(&cpufreq_gov_performance)
-+#endif
- #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
- #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_performance)
- #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE)
+ 	hdpu_slot_id = create_proc_entry("sky_slot_id", 0666, &proc_root);
 _
 
-Patches currently in -mm which might be from trenn@suse.de are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-git-cpufreq.patch
+git-cifs.patch
+git-powerpc.patch
+udf-code-style-fixup-v3.patch
