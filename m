@@ -1,170 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - ax88796-add-93cx6-eeprom-support.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:57:47 -0700
-Message-ID: <200710051957.l95Jvlnu022504@imap1.linux-foundation.org>
+Subject: - correct-printk-with-pfx-before-kern_-in-drivers-net-wireless-bcm43xx-bcm43xx_wxc.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:28 -0700
+Message-ID: <200710051958.l95JwS0u022548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38111 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762648AbXJEUCM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:02:12 -0400
+	by vger.kernel.org with ESMTP id S1763597AbXJEUC1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: magnus.damm@gmail.com, ben-linux@fluff.org, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: joe@perches.com, Larry.Finger@lwfinger.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ax88796: add 93cx6 eeprom support
+     Correct printk with PFX before KERN_ in drivers/net/wireless/bcm43xx/bcm43xx_wx.c
 has been removed from the -mm tree.  Its filename was
-     ax88796-add-93cx6-eeprom-support.patch
+     correct-printk-with-pfx-before-kern_-in-drivers-net-wireless-bcm43xx-bcm43xx_wxc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ax88796: add 93cx6 eeprom support
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Correct printk with PFX before KERN_ in drivers/net/wireless/bcm43xx/bcm43xx_wx.c
+From: Joe Perches <joe@perches.com>
 
-Hook up the 93cx6 eeprom code to the ax88796 driver and modify the ax88796
-driver to read out the mac address from the eeprom.  We need this for the
-ax88796 on certain SuperH boards.  The pin configuration used to connect
-the eeprom to the ax88796 on these boards is the same as pointed out by the
-ax88796 datasheet, so we can probably reuse this code for multiple
-platforms in the future.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig          |    7 ++++
- drivers/net/ax88796.c        |   49 +++++++++++++++++++++++++++++++++
- include/linux/eeprom_93cx6.h |    3 +-
- include/net/ax88796.h        |    1 
- 4 files changed, 59 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/Kconfig~ax88796-add-93cx6-eeprom-support drivers/net/Kconfig
---- a/drivers/net/Kconfig~ax88796-add-93cx6-eeprom-support
-+++ a/drivers/net/Kconfig
-@@ -240,6 +240,13 @@ config AX88796
- 	  AX88796 driver, using platform bus to provide
- 	  chip detection and resources
+diff -puN drivers/net/wireless/bcm43xx/bcm43xx_wx.c~correct-printk-with-pfx-before-kern_-in-drivers-net-wireless-bcm43xx-bcm43xx_wxc drivers/net/wireless/bcm43xx/bcm43xx_wx.c
+--- a/drivers/net/wireless/bcm43xx/bcm43xx_wx.c~correct-printk-with-pfx-before-kern_-in-drivers-net-wireless-bcm43xx-bcm43xx_wxc
++++ a/drivers/net/wireless/bcm43xx/bcm43xx_wx.c
+@@ -444,7 +444,7 @@ static int bcm43xx_wx_set_xmitpower(stru
+ 	u16 maxpower;
  
-+config AX88796_93CX6
-+	bool "ASIX AX88796 external 93CX6 eeprom support"
-+	depends on AX88796
-+	select EEPROM_93CX6
-+	help
-+	  Select this if your platform comes with an external 93CX6 eeprom.
-+
- config MACE
- 	tristate "MACE (Power Mac ethernet) support"
- 	depends on PPC_PMAC && PPC32
-diff -puN drivers/net/ax88796.c~ax88796-add-93cx6-eeprom-support drivers/net/ax88796.c
---- a/drivers/net/ax88796.c~ax88796-add-93cx6-eeprom-support
-+++ a/drivers/net/ax88796.c
-@@ -24,6 +24,7 @@
- #include <linux/etherdevice.h>
- #include <linux/ethtool.h>
- #include <linux/mii.h>
-+#include <linux/eeprom_93cx6.h>
- 
- #include <net/ax88796.h>
- 
-@@ -582,6 +583,37 @@ static const struct ethtool_ops ax_ethto
- 	.get_link		= ax_get_link,
- };
- 
-+#ifdef CONFIG_AX88796_93CX6
-+static void ax_eeprom_register_read(struct eeprom_93cx6 *eeprom)
-+{
-+	struct ei_device *ei_local = eeprom->data;
-+	u8 reg = ei_inb(ei_local->mem + AX_MEMR);
-+
-+	eeprom->reg_data_in = reg & AX_MEMR_EEI;
-+	eeprom->reg_data_out = reg & AX_MEMR_EEO; /* Input pin */
-+	eeprom->reg_data_clock = reg & AX_MEMR_EECLK;
-+	eeprom->reg_chip_select = reg & AX_MEMR_EECS;
-+}
-+
-+static void ax_eeprom_register_write(struct eeprom_93cx6 *eeprom)
-+{
-+	struct ei_device *ei_local = eeprom->data;
-+	u8 reg = ei_inb(ei_local->mem + AX_MEMR);
-+
-+	reg &= ~(AX_MEMR_EEI | AX_MEMR_EECLK | AX_MEMR_EECS);
-+
-+	if (eeprom->reg_data_in)
-+		reg |= AX_MEMR_EEI;
-+	if (eeprom->reg_data_clock)
-+		reg |= AX_MEMR_EECLK;
-+	if (eeprom->reg_chip_select)
-+		reg |= AX_MEMR_EECS;
-+
-+	ei_outb(reg, ei_local->mem + AX_MEMR);
-+	udelay(10);
-+}
-+#endif
-+
- /* setup code */
- 
- static void ax_initial_setup(struct net_device *dev, struct ei_device *ei_local)
-@@ -640,6 +672,23 @@ static int ax_init_dev(struct net_device
- 		memcpy(dev->dev_addr,  SA_prom, 6);
+ 	if ((data->txpower.flags & IW_TXPOW_TYPE) != IW_TXPOW_DBM) {
+-		printk(PFX KERN_ERR "TX power not in dBm.\n");
++		printk(KERN_ERR PFX "TX power not in dBm.\n");
+ 		return -EOPNOTSUPP;
  	}
  
-+#ifdef CONFIG_AX88796_93CX6
-+	if (first_init && ax->plat->flags & AXFLG_HAS_93CX6) {
-+		unsigned char mac_addr[6];
-+		struct eeprom_93cx6 eeprom;
-+
-+		eeprom.data = ei_local;
-+		eeprom.register_read = ax_eeprom_register_read;
-+		eeprom.register_write = ax_eeprom_register_write;
-+		eeprom.width = PCI_EEPROM_WIDTH_93C56;
-+
-+		eeprom_93cx6_multiread(&eeprom, 0,
-+				       (__le16 __force *)mac_addr,
-+				       sizeof(mac_addr) >> 1);
-+
-+		memcpy(dev->dev_addr,  mac_addr, 6);
-+	}
-+#endif
- 	if (ax->plat->wordlength == 2) {
- 		/* We must set the 8390 for word mode. */
- 		ei_outb(ax->plat->dcr_val, ei_local->mem + EN0_DCFG);
-diff -puN include/linux/eeprom_93cx6.h~ax88796-add-93cx6-eeprom-support include/linux/eeprom_93cx6.h
---- a/include/linux/eeprom_93cx6.h~ax88796-add-93cx6-eeprom-support
-+++ a/include/linux/eeprom_93cx6.h
-@@ -21,13 +21,14 @@
- /*
- 	Module: eeprom_93cx6
- 	Abstract: EEPROM reader datastructures for 93cx6 chipsets.
--	Supported chipsets: 93c46 & 93c66.
-+	Supported chipsets: 93c46, 93c56 and 93c66.
-  */
- 
- /*
-  * EEPROM operation defines.
-  */
- #define PCI_EEPROM_WIDTH_93C46	6
-+#define PCI_EEPROM_WIDTH_93C56	8
- #define PCI_EEPROM_WIDTH_93C66	8
- #define PCI_EEPROM_WIDTH_OPCODE	3
- #define PCI_EEPROM_WRITE_OPCODE	0x05
-diff -puN include/net/ax88796.h~ax88796-add-93cx6-eeprom-support include/net/ax88796.h
---- a/include/net/ax88796.h~ax88796-add-93cx6-eeprom-support
-+++ a/include/net/ax88796.h
-@@ -14,6 +14,7 @@
- 
- #define AXFLG_HAS_EEPROM		(1<<0)
- #define AXFLG_MAC_FROMDEV		(1<<1)	/* device already has MAC */
-+#define AXFLG_HAS_93CX6			(1<<2)	/* use eeprom_93cx6 driver */
- 
- struct ax_plat_data {
- 	unsigned int	 flags;
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+origin.patch
+git-hid.patch
 git-net.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
