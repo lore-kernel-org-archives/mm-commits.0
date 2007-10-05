@@ -1,128 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - 9pfs-cleanup-explicit-check-for-mandatory-locks.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:59:02 -0700
-Message-ID: <200710051959.l95Jx2vd022601@imap1.linux-foundation.org>
+Subject: - rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:04 -0700
+Message-ID: <200710051958.l95Jw4AJ022521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33408 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763451AbXJEUBf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:35 -0400
+	by vger.kernel.org with ESMTP id S1763552AbXJEUBj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
+To: ego@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9PFS: clean up explicit check for mandatory locks
+     rt ptracer can monopolize CPU (was: Cpu-Hotplug and Real-Time)
 has been removed from the -mm tree.  Its filename was
-     9pfs-cleanup-explicit-check-for-mandatory-locks.patch
+     rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 9PFS: clean up explicit check for mandatory locks
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: rt ptracer can monopolize CPU (was: Cpu-Hotplug and Real-Time)
+From: Gautham R Shenoy <ego@in.ibm.com>
 
-The __mandatory_lock(inode) macro makes the same check, but makes the code
-more readable.
+yield() in wait_task_inactive(), can cause a high priority thread to be
+scheduled back in, and there by loop forever while it is waiting for some
+lower priority thread which is unfortunately still on the runqueue.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Use schedule_timeout_uninterruptible(1) instead.
+
+Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Credit: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks fs/9p/vfs_file.c
---- a/fs/9p/vfs_file.c~9pfs-cleanup-explicit-check-for-mandatory-locks
-+++ a/fs/9p/vfs_file.c
-@@ -105,7 +105,7 @@ static int v9fs_file_lock(struct file *f
- 	P9_DPRINTK(P9_DEBUG_VFS, "filp: %p lock: %p\n", filp, fl);
+diff -puN kernel/sched.c~rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time kernel/sched.c
+--- a/kernel/sched.c~rt-ptracer-can-monopolize-cpu-was-cpu-hotplug-and-real-time
++++ a/kernel/sched.c
+@@ -1130,7 +1130,7 @@ repeat:
+ 	 * yield - it could be a while.
+ 	 */
+ 	if (unlikely(on_rq)) {
+-		yield();
++		schedule_timeout_uninterruptible(1);
+ 		goto repeat;
+ 	}
  
- 	/* No mandatory locks */
--	if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID)
-+	if (__mandatory_lock(inode))
- 		return -ENOLCK;
- 
- 	if ((IS_SETLK(cmd) || IS_SETLKW(cmd)) && fl->fl_type != F_UNLCK) {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from ego@in.ibm.com are
 
-make-initializer-for-statically-declared-krefs.patch
-git-net.patch
-git-nfsd.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+git-sched.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
