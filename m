@@ -1,166 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: - fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:56:03 -0700
-Message-ID: <200710051956.l95Ju3aV022302@imap1.linux-foundation.org>
+Subject: - powerpc-vdso-install-unstripped-copies-on-disk.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:56:27 -0700
+Message-ID: <200710051956.l95JuRih022353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59549 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759171AbXJET4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:10 -0400
+	by vger.kernel.org with ESMTP id S1761117AbXJET4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
+     powerpc vDSO: install unstripped copies on disk
 has been removed from the -mm tree.  Its filename was
-     fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
+     powerpc-vdso-install-unstripped-copies-on-disk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: powerpc vDSO: install unstripped copies on disk
+From: Roland McGrath <roland@redhat.com>
 
-This patch does kmalloc + memset conversion to kzalloc and removes some
-redundant argument checks.
+This keeps an unstripped copy of the vDSO images built before they are
+stripped and embedded in the kernel.  The unstripped copies get installed in
+$(MODLIB)/vdso/ by "make install".  These files can be useful when they
+contain source-level debugging information.
 
- fs/cifs/connect.c | 109282 -> 109078 (-204 bytes)
- fs/cifs/connect.o | 211804 -> 211576 (-228 bytes)
-
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/connect.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ arch/powerpc/Makefile               |    8 +++++++-
+ arch/powerpc/kernel/vdso32/Makefile |   20 +++++++++++++++++---
+ arch/powerpc/kernel/vdso64/Makefile |   19 ++++++++++++++++---
+ 3 files changed, 40 insertions(+), 7 deletions(-)
 
-diff -puN fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc fs/cifs/connect.c
---- a/fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/cifs/connect.c
-@@ -673,10 +673,8 @@ multi_t2_fnd:
- 		server->ssocket = NULL;
- 	}
- 	/* buffer usuallly freed in free_mid - need to free it here on exit */
--	if (bigbuf != NULL)
--		cifs_buf_release(bigbuf);
--	if (smallbuf != NULL)
--		cifs_small_buf_release(smallbuf);
-+	cifs_buf_release(bigbuf);
-+	cifs_small_buf_release(smallbuf);
+diff -puN arch/powerpc/Makefile~powerpc-vdso-install-unstripped-copies-on-disk arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~powerpc-vdso-install-unstripped-copies-on-disk
++++ a/arch/powerpc/Makefile
+@@ -162,9 +162,15 @@ define archhelp
+   @echo '  *_defconfig     - Select default config from arch/$(ARCH)/configs'
+ endef
  
- 	read_lock(&GlobalSMBSeslock);
- 	if (list_empty(&server->pending_mid_q)) {
-@@ -1910,8 +1908,8 @@ cifs_mount(struct super_block *sb, struc
- 			return rc;
- 		}
+-install:
++install: vdso_install
+ 	$(Q)$(MAKE) $(build)=$(boot) BOOTIMAGE=$(KBUILD_IMAGE) install
  
--		srvTcp = kmalloc(sizeof (struct TCP_Server_Info), GFP_KERNEL);
--		if (srvTcp == NULL) {
-+		srvTcp = kzalloc(sizeof(struct TCP_Server_Info), GFP_KERNEL);
-+		if (!srvTcp) {
- 			rc = -ENOMEM;
- 			sock_release(csocket);
- 			kfree(volume_info.UNC);
-@@ -1920,7 +1918,6 @@ cifs_mount(struct super_block *sb, struc
- 			FreeXid(xid);
- 			return rc;
- 		} else {
--			memset(srvTcp, 0, sizeof (struct TCP_Server_Info));
- 			memcpy(&srvTcp->addr.sockAddr, &sin_server,
- 				sizeof (struct sockaddr_in));
- 			atomic_set(&srvTcp->inFlight, 0);
-@@ -2155,8 +2152,8 @@ cifs_mount(struct super_block *sb, struc
- 			}
- 		}
- 		 /* If find_unc succeeded then rc == 0 so we can not end */
--		if (tcon)  /* up accidently freeing someone elses tcon struct */
--			tconInfoFree(tcon);
-+		/* up accidently freeing someone elses tcon struct */
-+		tconInfoFree(tcon);
- 		if (existingCifsSes == NULL) {
- 			if (pSesInfo) {
- 				if ((pSesInfo->server) &&
-@@ -2529,8 +2526,7 @@ CIFSSessSetup(unsigned int xid, struct c
- sesssetup_nomem:	/* do not return an error on nomem for the info strings,
- 			   since that could make reconnection harder, and
- 			   reconnection might be needed to free memory */
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
++vdso_install:
++ifeq ($(CONFIG_PPC64),y)
++	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso64 $@
++endif
++	$(Q)$(MAKE) $(build)=arch/$(ARCH)/kernel/vdso32 $@
++
+ archclean:
+ 	$(Q)$(MAKE) $(clean)=$(boot)
  
- 	return rc;
- }
-@@ -2868,8 +2864,7 @@ CIFSNTLMSSPNegotiateSessSetup(unsigned i
- 		rc = -EIO;
- 	}
+diff -puN arch/powerpc/kernel/vdso32/Makefile~powerpc-vdso-install-unstripped-copies-on-disk arch/powerpc/kernel/vdso32/Makefile
+--- a/arch/powerpc/kernel/vdso32/Makefile~powerpc-vdso-install-unstripped-copies-on-disk
++++ a/arch/powerpc/kernel/vdso32/Makefile
+@@ -9,11 +9,11 @@ ifeq ($(CONFIG_PPC32),y)
+ CROSS32CC := $(CC)
+ endif
  
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
+-targets := $(obj-vdso32) vdso32.so
++targets := $(obj-vdso32) vdso32.so vdso32.so.dbg
+ obj-vdso32 := $(addprefix $(obj)/, $(obj-vdso32))
  
- 	return rc;
- }
-@@ -3277,8 +3272,7 @@ CIFSNTLMSSPAuthSessSetup(unsigned int xi
- 		rc = -EIO;
- 	}
  
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
+-EXTRA_CFLAGS := -shared -s -fno-common -fno-builtin
++EXTRA_CFLAGS := -shared -fno-common -fno-builtin
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso32.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO32__ -s
+@@ -26,9 +26,14 @@ CPPFLAGS_vdso32.lds += -P -C -Upowerpc
+ $(obj)/vdso32_wrapper.o : $(obj)/vdso32.so
  
- 	return rc;
- }
-@@ -3446,8 +3440,7 @@ CIFSTCon(unsigned int xid, struct cifsSe
- 		ses->ipc_tid = smb_buffer_response->Tid;
- 	}
+ # link rule for the .so file, .lds has to be first
+-$(obj)/vdso32.so: $(src)/vdso32.lds $(obj-vdso32)
++$(obj)/vdso32.so.dbg: $(src)/vdso32.lds $(obj-vdso32)
+ 	$(call if_changed,vdso32ld)
  
--	if (smb_buffer)
--		cifs_buf_release(smb_buffer);
-+	cifs_buf_release(smb_buffer);
- 	return rc;
- }
++# strip rule for the .so file
++$(obj)/%.so: OBJCOPYFLAGS := -S
++$(obj)/%.so: $(obj)/%.so.dbg FORCE
++	$(call if_changed,objcopy)
++
+ # assembly rules for the .S files
+ $(obj-vdso32): %.o: %.S
+ 	$(call if_changed_dep,vdso32as)
+@@ -39,3 +44,12 @@ quiet_cmd_vdso32ld = VDSO32L $@
+ quiet_cmd_vdso32as = VDSO32A $@
+       cmd_vdso32as = $(CROSS32CC) $(a_flags) -c -o $@ $<
  
-@@ -3498,8 +3491,7 @@ cifs_umount(struct super_block *sb, stru
- 	kfree(tmp);
- 	if (ses)
- 		schedule_timeout_interruptible(msecs_to_jiffies(500));
--	if (ses)
--		sesInfoFree(ses);
-+	sesInfoFree(ses);
++# install commands for the unstripped file
++quiet_cmd_vdso_install = INSTALL $@
++      cmd_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/vdso/$@
++
++vdso32.so: $(obj)/vdso32.so.dbg
++	@mkdir -p $(MODLIB)/vdso
++	$(call cmd,vdso_install)
++
++vdso_install: vdso32.so
+diff -puN arch/powerpc/kernel/vdso64/Makefile~powerpc-vdso-install-unstripped-copies-on-disk arch/powerpc/kernel/vdso64/Makefile
+--- a/arch/powerpc/kernel/vdso64/Makefile~powerpc-vdso-install-unstripped-copies-on-disk
++++ a/arch/powerpc/kernel/vdso64/Makefile
+@@ -4,10 +4,10 @@ obj-vdso64 = sigtramp.o gettimeofday.o d
  
- 	FreeXid(xid);
- 	return rc;	/* BB check if we should always return zero here */
+ # Build rules
+ 
+-targets := $(obj-vdso64) vdso64.so
++targets := $(obj-vdso64) vdso64.so vdso64.so.dbg
+ obj-vdso64 := $(addprefix $(obj)/, $(obj-vdso64))
+ 
+-EXTRA_CFLAGS := -shared -s -fno-common -fno-builtin
++EXTRA_CFLAGS := -shared -fno-common -fno-builtin
+ EXTRA_CFLAGS += -nostdlib -Wl,-soname=linux-vdso64.so.1 \
+ 		$(call ld-option, -Wl$(comma)--hash-style=sysv)
+ EXTRA_AFLAGS := -D__VDSO64__ -s
+@@ -20,9 +20,14 @@ CPPFLAGS_vdso64.lds += -P -C -U$(ARCH)
+ $(obj)/vdso64_wrapper.o : $(obj)/vdso64.so
+ 
+ # link rule for the .so file, .lds has to be first
+-$(obj)/vdso64.so: $(src)/vdso64.lds $(obj-vdso64)
++$(obj)/vdso64.so.dbg: $(src)/vdso64.lds $(obj-vdso64)
+ 	$(call if_changed,vdso64ld)
+ 
++# strip rule for the .so file
++$(obj)/%.so: OBJCOPYFLAGS := -S
++$(obj)/%.so: $(obj)/%.so.dbg FORCE
++	$(call if_changed,objcopy)
++
+ # assembly rules for the .S files
+ $(obj-vdso64): %.o: %.S
+ 	$(call if_changed_dep,vdso64as)
+@@ -33,4 +38,12 @@ quiet_cmd_vdso64ld = VDSO64L $@
+ quiet_cmd_vdso64as = VDSO64A $@
+       cmd_vdso64as = $(CC) $(a_flags) -c -o $@ $<
+ 
++# install commands for the unstripped file
++quiet_cmd_vdso_install = INSTALL $@
++      cmd_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/vdso/$@
++
++vdso64.so: $(obj)/vdso64.so.dbg
++	@mkdir -p $(MODLIB)/vdso
++	$(call cmd,vdso_install)
+ 
++vdso_install: vdso64.so
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-alsa.patch
-sound-snd_register_device_for_dev-fix.patch
-git-arm.patch
-git-cifs.patch
 git-powerpc.patch
-git-dvb.patch
-git-hid.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-kbuild.patch
+x86_64-vdso-linker-script-cleanup.patch
+x86_64-vdso-put-vars-in-rodata.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
+add-mmf_dump_elf_headers.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+pie-executable-randomization-fix-2.patch
+pie-executable-randomization-fix-3.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+fix-tsk-exit_state-usage-resend.patch
