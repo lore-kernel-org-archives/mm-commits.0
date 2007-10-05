@@ -1,135 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - fix-sys_remap_file_pages-bug-at-highmemc15.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:56:00 -0700
-Message-ID: <200710051956.l95Ju0ng022293@imap1.linux-foundation.org>
+Subject: - fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:56:03 -0700
+Message-ID: <200710051956.l95Ju3aV022302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755705AbXJET4R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:17 -0400
+	by vger.kernel.org with ESMTP id S1759171AbXJET4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:56:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, gurudas.pai@oracle.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix sys_remap_file_pages BUG at highmem.c:15!
+     fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     fix-sys_remap_file_pages-bug-at-highmemc15.patch
+     fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix sys_remap_file_pages BUG at highmem.c:15!
-From: Hugh Dickins <hugh@veritas.com>
+Subject: fs/cifs/connect.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Gurudas Pai reports kernel BUG at arch/i386/mm/highmem.c:15!  below
-sys_remap_file_pages, while running Oracle database test on x86 in 6GB RAM:
-kunmap thinks we're in_interrupt because the preempt count has wrapped.
+This patch does kmalloc + memset conversion to kzalloc and removes some
+redundant argument checks.
 
-That's because __do_fault expected to unmap page_table, but one of its two
-callers do_nonlinear_fault already unmapped it: let do_linear_fault unmap
-it first too, and then there's no need to pass the page_table arg down.
+ fs/cifs/connect.c | 109282 -> 109078 (-204 bytes)
+ fs/cifs/connect.o | 211804 -> 211576 (-228 bytes)
 
-Why have we been so slow to notice this?  Probably through forgetting that
-the mapping_cap_account_dirty test means that sys_remap_file_pages nowadays
-only goes the full nonlinear vma route on a few memory-backed filesystems
-like ramfs, tmpfs and hugetlbfs.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: gurudas pai <gurudas.pai@oracle.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/cifs/connect.c |   30 +++++++++++-------------------
+ 1 file changed, 11 insertions(+), 19 deletions(-)
 
-diff -puN mm/memory.c~fix-sys_remap_file_pages-bug-at-highmemc15 mm/memory.c
---- a/mm/memory.c~fix-sys_remap_file_pages-bug-at-highmemc15
-+++ a/mm/memory.c
-@@ -2307,13 +2307,14 @@ oom:
-  * do not need to flush old virtual caches or the TLB.
-  *
-  * We enter with non-exclusive mmap_sem (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-+ * but allow concurrent faults), and pte neither mapped nor locked.
-  * We return with mmap_sem still held, but pte unmapped and unlocked.
-  */
- static int __do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
--		unsigned long address, pte_t *page_table, pmd_t *pmd,
-+		unsigned long address, pmd_t *pmd,
- 		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
- {
-+	pte_t *page_table;
- 	spinlock_t *ptl;
- 	struct page *page;
- 	pte_t entry;
-@@ -2327,7 +2328,6 @@ static int __do_fault(struct mm_struct *
- 	vmf.flags = flags;
- 	vmf.page = NULL;
+diff -puN fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc fs/cifs/connect.c
+--- a/fs/cifs/connect.c~fs-cifs-connectc-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/cifs/connect.c
+@@ -673,10 +673,8 @@ multi_t2_fnd:
+ 		server->ssocket = NULL;
+ 	}
+ 	/* buffer usuallly freed in free_mid - need to free it here on exit */
+-	if (bigbuf != NULL)
+-		cifs_buf_release(bigbuf);
+-	if (smallbuf != NULL)
+-		cifs_small_buf_release(smallbuf);
++	cifs_buf_release(bigbuf);
++	cifs_small_buf_release(smallbuf);
  
--	pte_unmap(page_table);
- 	BUG_ON(vma->vm_flags & VM_PFNMAP);
+ 	read_lock(&GlobalSMBSeslock);
+ 	if (list_empty(&server->pending_mid_q)) {
+@@ -1910,8 +1908,8 @@ cifs_mount(struct super_block *sb, struc
+ 			return rc;
+ 		}
  
- 	if (likely(vma->vm_ops->fault)) {
-@@ -2468,8 +2468,8 @@ static int do_linear_fault(struct mm_str
- 			- vma->vm_start) >> PAGE_CACHE_SHIFT) + vma->vm_pgoff;
- 	unsigned int flags = (write_access ? FAULT_FLAG_WRITE : 0);
+-		srvTcp = kmalloc(sizeof (struct TCP_Server_Info), GFP_KERNEL);
+-		if (srvTcp == NULL) {
++		srvTcp = kzalloc(sizeof(struct TCP_Server_Info), GFP_KERNEL);
++		if (!srvTcp) {
+ 			rc = -ENOMEM;
+ 			sock_release(csocket);
+ 			kfree(volume_info.UNC);
+@@ -1920,7 +1918,6 @@ cifs_mount(struct super_block *sb, struc
+ 			FreeXid(xid);
+ 			return rc;
+ 		} else {
+-			memset(srvTcp, 0, sizeof (struct TCP_Server_Info));
+ 			memcpy(&srvTcp->addr.sockAddr, &sin_server,
+ 				sizeof (struct sockaddr_in));
+ 			atomic_set(&srvTcp->inFlight, 0);
+@@ -2155,8 +2152,8 @@ cifs_mount(struct super_block *sb, struc
+ 			}
+ 		}
+ 		 /* If find_unc succeeded then rc == 0 so we can not end */
+-		if (tcon)  /* up accidently freeing someone elses tcon struct */
+-			tconInfoFree(tcon);
++		/* up accidently freeing someone elses tcon struct */
++		tconInfoFree(tcon);
+ 		if (existingCifsSes == NULL) {
+ 			if (pSesInfo) {
+ 				if ((pSesInfo->server) &&
+@@ -2529,8 +2526,7 @@ CIFSSessSetup(unsigned int xid, struct c
+ sesssetup_nomem:	/* do not return an error on nomem for the info strings,
+ 			   since that could make reconnection harder, and
+ 			   reconnection might be needed to free memory */
+-	if (smb_buffer)
+-		cifs_buf_release(smb_buffer);
++	cifs_buf_release(smb_buffer);
  
--	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
--							flags, orig_pte);
-+	pte_unmap(page_table);
-+	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
+ 	return rc;
  }
- 
- 
-@@ -2552,9 +2552,7 @@ static int do_nonlinear_fault(struct mm_
+@@ -2868,8 +2864,7 @@ CIFSNTLMSSPNegotiateSessSetup(unsigned i
+ 		rc = -EIO;
  	}
  
- 	pgoff = pte_to_pgoff(orig_pte);
--
--	return __do_fault(mm, vma, address, page_table, pmd, pgoff,
--							flags, orig_pte);
-+	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
+-	if (smb_buffer)
+-		cifs_buf_release(smb_buffer);
++	cifs_buf_release(smb_buffer);
+ 
+ 	return rc;
+ }
+@@ -3277,8 +3272,7 @@ CIFSNTLMSSPAuthSessSetup(unsigned int xi
+ 		rc = -EIO;
+ 	}
+ 
+-	if (smb_buffer)
+-		cifs_buf_release(smb_buffer);
++	cifs_buf_release(smb_buffer);
+ 
+ 	return rc;
+ }
+@@ -3446,8 +3440,7 @@ CIFSTCon(unsigned int xid, struct cifsSe
+ 		ses->ipc_tid = smb_buffer_response->Tid;
+ 	}
+ 
+-	if (smb_buffer)
+-		cifs_buf_release(smb_buffer);
++	cifs_buf_release(smb_buffer);
+ 	return rc;
  }
  
- /*
+@@ -3498,8 +3491,7 @@ cifs_umount(struct super_block *sb, stru
+ 	kfree(tmp);
+ 	if (ses)
+ 		schedule_timeout_interruptible(msecs_to_jiffies(500));
+-	if (ses)
+-		sesInfoFree(ses);
++	sesInfoFree(ses);
+ 
+ 	FreeXid(xid);
+ 	return rc;	/* BB check if we should always return zero here */
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-origin.patch
+git-alsa.patch
+sound-snd_register_device_for_dev-fix.patch
+git-arm.patch
+git-cifs.patch
 git-powerpc.patch
-git-libata-all.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-mm-clarify-__add_to_swap_cache-locking.patch
-mm-clarify-__add_to_swap_cache-locking-fix.patch
-radix-tree-use-indirect-bit.patch
-use-vm_read-write-exec-to-set-vm_page_prot.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-2.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-bug-at-include-linux-mmh220.patch
-mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch
-mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain.patch
-introduce-write_begin-write_end-aops-important-fix.patch
-reiserfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix.patch
-affs-convert-to-new-aops-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-mm-shmemc-make-3-functions-static.patch
-lib-percpu_counter_sub.patch
-mm-per-device-dirty-threshold-fix.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-shmem-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
-prio_tree-debugging-patch.patch
+git-dvb.patch
+git-hid.patch
+git-mmc.patch
+git-mtd.patch
+git-net.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+git-scsi-misc.patch
+include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
