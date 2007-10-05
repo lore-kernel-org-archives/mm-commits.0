@@ -1,231 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - dvb_en_50221-convert-to-kthread-api.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:56:51 -0700
-Message-ID: <200710051956.l95JupKN022407@imap1.linux-foundation.org>
+Subject: - phylib-irq-event-workqueue-handling-fixes.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:40 -0700
+Message-ID: <200710051957.l95Jvehf022486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37405 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763547AbXJEUBe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:34 -0400
+	by vger.kernel.org with ESMTP id S1763573AbXJEUB4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@infradead.org, adq_dvb@lidskialf.net, ebiederm@xmission.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, afleming@freescale.com, jgarzik@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb_en_50221: convert to kthread API
+     PHYLIB: IRQ event workqueue handling fixes
 has been removed from the -mm tree.  Its filename was
-     dvb_en_50221-convert-to-kthread-api.patch
+     phylib-irq-event-workqueue-handling-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dvb_en_50221: convert to kthread API
-From: Christoph Hellwig <hch@infradead.org>
+Subject: PHYLIB: IRQ event workqueue handling fixes
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Here's an attempted update to the full kthread API + wake_up_process:
+Keep track of disable_irq_nosync() invocations and call enable_irq() the
+right number of times if work has been cancelled that would include them.
 
-Cc: Andrew de Quincey <adq_dvb@lidskialf.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Now that the call to flush_work_keventd() (problematic because of
+rtnl_mutex being held) has been replaced by cancel_work_sync() another
+issue has arisen and been left unresolved.  As the MDIO bus cannot be
+accessed from the interrupt context the PHY interrupt handler uses
+disable_irq_nosync() to prevent from looping and schedules some work to be
+done as a softirq, which, apart from handling the state change of the
+originating PHY, is responsible for reenabling the interrupt.  Now if the
+interrupt line is shared by another device and a call to the softirq
+handler has been cancelled, that call to enable_irq() never happens and the
+other device cannot use its interrupt anymore as its stuck disabled.
+
+I decided to use a counter rather than a flag because there may be more
+than one call to phy_change() cancelled in the queue -- a real one and a
+fake one triggered by free_irq() if DEBUG_SHIRQ is used, if nothing else. 
+Therefore because of its nesting property enable_irq() has to be called the
+right number of times to match the number disable_irq_nosync() was called
+and restore the original state.  This DEBUG_SHIRQ feature is also the
+reason why free_irq() has to be called before cancel_work_sync().
+
+While at it I updated the comment about phy_stop_interrupts() being called
+from `keventd' -- this is no longer relevant as the use of
+cancel_work_sync() makes such an approach unnecessary.  OTOH a similar
+comment referring to flush_scheduled_work() in phy_stop() still applies as
+using cancel_work_sync() there would be dangerous.
+
+Checked with checkpatch.pl and at the run time (with and without
+DEBUG_SHIRQ).
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Andy Fleming <afleming@freescale.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-core/dvb_ca_en50221.c |   84 +++---------------
- 1 file changed, 16 insertions(+), 68 deletions(-)
+ drivers/net/phy/phy.c |   24 +++++++++++++++++++-----
+ include/linux/phy.h   |    3 +++
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dvb_ca_en50221.c~dvb_en_50221-convert-to-kthread-api drivers/media/dvb/dvb-core/dvb_ca_en50221.c
---- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c~dvb_en_50221-convert-to-kthread-api
-+++ a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-@@ -36,6 +36,7 @@
- #include <linux/delay.h>
- #include <linux/spinlock.h>
- #include <linux/sched.h>
-+#include <linux/kthread.h>
- 
- #include "dvb_ca_en50221.h"
- #include "dvb_ringbuffer.h"
-@@ -139,13 +140,7 @@ struct dvb_ca_private {
- 	wait_queue_head_t wait_queue;
- 
- 	/* PID of the monitoring thread */
--	pid_t thread_pid;
--
--	/* Wait queue used when shutting thread down */
--	wait_queue_head_t thread_queue;
--
--	/* Flag indicating when thread should exit */
--	unsigned int exit:1;
-+	struct task_struct *thread;
- 
- 	/* Flag indicating if the CA device is open */
- 	unsigned int open:1;
-@@ -901,28 +896,10 @@ static void dvb_ca_en50221_thread_wakeup
- 
- 	ca->wakeup = 1;
- 	mb();
--	wake_up_interruptible(&ca->thread_queue);
-+	wake_up_process(ca->thread);
- }
- 
- /**
-- * Used by the CA thread to determine if an early wakeup is necessary
-- *
-- * @param ca CA instance.
-- */
--static int dvb_ca_en50221_thread_should_wakeup(struct dvb_ca_private *ca)
--{
--	if (ca->wakeup) {
--		ca->wakeup = 0;
--		return 1;
--	}
--	if (ca->exit)
--		return 1;
--
--	return 0;
--}
--
--
--/**
-  * Update the delay used by the thread.
+diff -puN drivers/net/phy/phy.c~phylib-irq-event-workqueue-handling-fixes drivers/net/phy/phy.c
+--- a/drivers/net/phy/phy.c~phylib-irq-event-workqueue-handling-fixes
++++ a/drivers/net/phy/phy.c
+@@ -7,7 +7,7 @@
+  * Author: Andy Fleming
   *
-  * @param ca CA instance.
-@@ -981,7 +958,6 @@ static void dvb_ca_en50221_thread_update
- static int dvb_ca_en50221_thread(void *data)
- {
- 	struct dvb_ca_private *ca = data;
--	char name[15];
- 	int slot;
- 	int flags;
- 	int status;
-@@ -990,28 +966,17 @@ static int dvb_ca_en50221_thread(void *d
+  * Copyright (c) 2004 Freescale Semiconductor, Inc.
+- * Copyright (c) 2006  Maciej W. Rozycki
++ * Copyright (c) 2006, 2007  Maciej W. Rozycki
+  *
+  * This program is free software; you can redistribute  it and/or modify it
+  * under  the terms of  the GNU General  Public License as published by the
+@@ -35,6 +35,7 @@
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
  
- 	dprintk("%s\n", __FUNCTION__);
++#include <asm/atomic.h>
+ #include <asm/io.h>
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+@@ -562,6 +563,7 @@ static irqreturn_t phy_interrupt(int irq
+ 	 * queue will write the PHY to disable and clear the
+ 	 * interrupt, and then reenable the irq line. */
+ 	disable_irq_nosync(irq);
++	atomic_inc(&phydev->irq_disable);
  
--	/* setup kernel thread */
--	snprintf(name, sizeof(name), "kdvb-ca-%i:%i", ca->dvbdev->adapter->num, ca->dvbdev->id);
+ 	schedule_work(&phydev->phy_queue);
+ 
+@@ -632,6 +634,7 @@ int phy_start_interrupts(struct phy_devi
+ 
+ 	INIT_WORK(&phydev->phy_queue, phy_change);
+ 
++	atomic_set(&phydev->irq_disable, 0);
+ 	if (request_irq(phydev->irq, phy_interrupt,
+ 				IRQF_SHARED,
+ 				"phy_interrupt",
+@@ -662,13 +665,22 @@ int phy_stop_interrupts(struct phy_devic
+ 	if (err)
+ 		phy_error(phydev);
+ 
++	free_irq(phydev->irq, phydev);
++
+ 	/*
+-	 * Finish any pending work; we might have been scheduled to be called
+-	 * from keventd ourselves, but cancel_work_sync() handles that.
++	 * Cannot call flush_scheduled_work() here as desired because
++	 * of rtnl_lock(), but we do not really care about what would
++	 * be done, except from enable_irq(), so cancel any work
++	 * possibly pending and take care of the matter below.
+ 	 */
+ 	cancel_work_sync(&phydev->phy_queue);
 -
--	lock_kernel();
--	daemonize(name);
--	sigfillset(&current->blocked);
--	unlock_kernel();
--
- 	/* choose the correct initial delay */
- 	dvb_ca_en50221_thread_update_delay(ca);
+-	free_irq(phydev->irq, phydev);
++	/*
++	 * If work indeed has been cancelled, disable_irq() will have
++	 * been left unbalanced from phy_interrupt() and enable_irq()
++	 * has to be called so that other devices on the line work.
++	 */
++	while (atomic_dec_return(&phydev->irq_disable) >= 0)
++		enable_irq(phydev->irq);
  
- 	/* main loop */
--	while (!ca->exit) {
-+	while (!kthread_should_stop()) {
- 		/* sleep for a bit */
--		if (!ca->wakeup) {
--			flags = wait_event_interruptible_timeout(ca->thread_queue,
--								 dvb_ca_en50221_thread_should_wakeup(ca),
--								 ca->delay);
--			if ((flags == -ERESTARTSYS) || ca->exit) {
--				/* got signal or quitting */
--				break;
--			}
-+		while (!ca->wakeup) {
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_timeout(ca->delay);
-+			if (kthread_should_stop())
-+				return 0;
- 		}
- 		ca->wakeup = 0;
- 
-@@ -1180,10 +1145,6 @@ static int dvb_ca_en50221_thread(void *d
- 		}
- 	}
- 
--	/* completed */
--	ca->thread_pid = 0;
--	mb();
--	wake_up_interruptible(&ca->thread_queue);
- 	return 0;
+ 	return err;
  }
+@@ -695,6 +707,7 @@ static void phy_change(struct work_struc
+ 		phydev->state = PHY_CHANGELINK;
+ 	spin_unlock_bh(&phydev->lock);
  
-@@ -1683,9 +1644,6 @@ int dvb_ca_en50221_init(struct dvb_adapt
- 		goto error;
- 	}
- 	init_waitqueue_head(&ca->wait_queue);
--	ca->thread_pid = 0;
--	init_waitqueue_head(&ca->thread_queue);
--	ca->exit = 0;
- 	ca->open = 0;
- 	ca->wakeup = 0;
- 	ca->next_read_slot = 0;
-@@ -1711,14 +1669,14 @@ int dvb_ca_en50221_init(struct dvb_adapt
- 	mb();
++	atomic_dec(&phydev->irq_disable);
+ 	enable_irq(phydev->irq);
  
- 	/* create a kthread for monitoring this CA device */
--
--	ret = kernel_thread(dvb_ca_en50221_thread, ca, 0);
--
--	if (ret < 0) {
--		printk("dvb_ca_init: failed to start kernel_thread (%d)\n", ret);
-+	ca->thread = kthread_run(dvb_ca_en50221_thread, ca, "kdvb-ca-%i:%i",
-+				 ca->dvbdev->adapter->num, ca->dvbdev->id);
-+	if (IS_ERR(ca->thread)) {
-+		ret = PTR_ERR(ca->thread);
-+		printk("dvb_ca_init: failed to start kernel_thread (%d)\n",
-+			ret);
- 		goto error;
- 	}
--	ca->thread_pid = ret;
- 	return 0;
+ 	/* Reenable interrupts */
+@@ -708,6 +721,7 @@ static void phy_change(struct work_struc
  
- error:
-@@ -1749,17 +1707,7 @@ void dvb_ca_en50221_release(struct dvb_c
- 	dprintk("%s\n", __FUNCTION__);
+ irq_enable_err:
+ 	disable_irq(phydev->irq);
++	atomic_inc(&phydev->irq_disable);
+ phy_err:
+ 	phy_error(phydev);
+ }
+diff -puN include/linux/phy.h~phylib-irq-event-workqueue-handling-fixes include/linux/phy.h
+--- a/include/linux/phy.h~phylib-irq-event-workqueue-handling-fixes
++++ a/include/linux/phy.h
+@@ -25,6 +25,8 @@
+ #include <linux/timer.h>
+ #include <linux/workqueue.h>
  
- 	/* shutdown the thread if there was one */
--	if (ca->thread_pid) {
--		if (kill_proc(ca->thread_pid, 0, 1) == -ESRCH) {
--			printk("dvb_ca_release adapter %d: thread PID %d already died\n",
--			       ca->dvbdev->adapter->num, ca->thread_pid);
--		} else {
--			ca->exit = 1;
--			mb();
--			dvb_ca_en50221_thread_wakeup(ca);
--			wait_event_interruptible(ca->thread_queue, ca->thread_pid == 0);
--		}
--	}
-+	kthread_stop(ca->thread);
++#include <asm/atomic.h>
++
+ #define PHY_BASIC_FEATURES	(SUPPORTED_10baseT_Half | \
+ 				 SUPPORTED_10baseT_Full | \
+ 				 SUPPORTED_100baseT_Half | \
+@@ -281,6 +283,7 @@ struct phy_device {
+ 	/* Interrupt and Polling infrastructure */
+ 	struct work_struct phy_queue;
+ 	struct timer_list phy_timer;
++	atomic_t irq_disable;
  
- 	for (i = 0; i < ca->slot_count; i++) {
- 		dvb_ca_en50221_slot_shutdown(ca, i);
+ 	spinlock_t lock;
+ 
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-consolidate-ptrace_detach.patch
-git-dvb.patch
-git-nfsd.patch
-git-scsi-misc.patch
-git-xfs.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+origin.patch
+git-mips.patch
+git-net.patch
+include-linux-typesh-in-if_fddih.patch
 avoid-negative-and-full-width-shifts-in-radix-treec.patch
-introduce-i_sync.patch
-r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
-r-o-bind-mounts-elevate-write-count-opend-files.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-linux-kernel-markers.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-alignment-fix.patch
-linux-kernel-markers-documentation.patch
+lk201-remove-obsolete-driver.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+drivers-video-kconfig-fix-fb_pmagb_b-dependencies.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+pmagb-b-fb-improve-diagnostics.patch
