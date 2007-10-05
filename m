@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cmos-probe-cleanup-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:41:15 -0700
-Message-ID: <200710052341.l95NfFNK031011@imap1.linux-foundation.org>
+Subject: + reiserfs-do-not-repair-wrong-journal-params.patch added to -mm tree
+Date: Fri, 05 Oct 2007 16:46:22 -0700
+Message-ID: <200710052346.l95NkMfd031175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbXJEXlk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:41:40 -0400
+	by vger.kernel.org with ESMTP id S1760290AbXJEXrF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:47:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
+Cc: edward@namesys.com, chris.mason@oracle.com, jeffm@suse.com
 
 
 The patch titled
-     rtc-cmos-probe-cleanup-checkpatch-fixes
+     reiserfs: do not repair wrong journal params
 has been added to the -mm tree.  Its filename is
-     rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+     reiserfs-do-not-repair-wrong-journal-params.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,237 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-cmos-probe-cleanup-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: reiserfs: do not repair wrong journal params
+From: Edward Shishkin <edward@namesys.com>
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+When mounting a file system with wrong journal params do not try to repair
+them, suggest fsck instead.
+
+Signed-off-by: Edward Shishkin <edward@namesys.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup-checkpatch-fixes drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup-checkpatch-fixes
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -568,7 +568,7 @@ static void __exit cmos_do_remove(struct
- 	rtc_device_unregister(cmos->rtc);
- 	cmos->rtc = NULL;
+diff -puN fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params
++++ a/fs/reiserfs/journal.c
+@@ -2649,6 +2649,61 @@ static int journal_init_dev(struct super
+ 	return result;
+ }
  
--	ports= cmos->iomem;
-+	ports = cmos->iomem;
- 	release_region(ports->start, ports->end + 1 - ports->start);
- 	cmos->iomem = NULL;
++/**
++ * When creating/tuning a file system user can assign some
++ * journal params within boundaries which depend on the ratio
++ * blocksize/standard_blocksize.
++ *
++ * For blocks >= standard_blocksize transaction size should
++ * be not less then JOURNAL_TRANS_MIN_DEFAULT, and not more
++ * then JOURNAL_TRANS_MAX_DEFAULT.
++ *
++ * For blocks < standard_blocksize these boundaries should be
++ * decreased proportionally.
++ */
++#define REISERFS_STANDARD_BLKSIZE (4096)
++
++static int check_advise_trans_params(struct super_block *p_s_sb,
++				     struct reiserfs_journal *journal)
++{
++        if (journal->j_trans_max) {
++	        /* Non-default journal params.
++		   Do sanity check for them. */
++	        int ratio = 1;
++		if (p_s_sb->s_blocksize < REISERFS_STANDARD_BLKSIZE)
++		        ratio = REISERFS_STANDARD_BLKSIZE / p_s_sb->s_blocksize;
++
++		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio ||
++		    journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio ||
++		    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
++		    JOURNAL_MIN_RATIO) {
++		        reiserfs_warning(p_s_sb,
++				 "sh-462: bad transaction max size (%u). FSCK?",
++				 journal->j_trans_max);
++			return 1;
++		}
++		if (journal->j_max_batch != (journal->j_trans_max) *
++		        JOURNAL_MAX_BATCH_DEFAULT/JOURNAL_TRANS_MAX_DEFAULT) {
++		        reiserfs_warning(p_s_sb,
++				"sh-463: bad transaction max batch (%u). FSCK?",
++				journal->j_max_batch);
++			return 1;
++		}
++	} else {
++		/* Default journal params.
++                   The file system was created by old version
++		   of mkreiserfs, so some fields contain zeros,
++		   and we need to advise proper values for them */
++	        if (p_s_sb->s_blocksize != REISERFS_STANDARD_BLKSIZE)
++	                reiserfs_panic(p_s_sb, "sh-464: bad blocksize (%u)",
++				       p_s_sb->s_blocksize);
++		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
++		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
++		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
++	}
++	return 0;
++}
++
+ /*
+ ** must be called once on fs mount.  calls journal_read for you
+ */
+@@ -2744,49 +2799,8 @@ int journal_init(struct super_block *p_s
+ 	    le32_to_cpu(jh->jh_journal.jp_journal_max_commit_age);
+ 	journal->j_max_trans_age = JOURNAL_MAX_TRANS_AGE;
  
+-	if (journal->j_trans_max) {
+-		/* make sure these parameters are available, assign it if they are not */
+-		__u32 initial = journal->j_trans_max;
+-		__u32 ratio = 1;
+-
+-		if (p_s_sb->s_blocksize < 4096)
+-			ratio = 4096 / p_s_sb->s_blocksize;
+-
+-		if (SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
+-		    JOURNAL_MIN_RATIO)
+-			journal->j_trans_max =
+-			    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / JOURNAL_MIN_RATIO;
+-		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio)
+-			journal->j_trans_max =
+-			    JOURNAL_TRANS_MAX_DEFAULT / ratio;
+-		if (journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio)
+-			journal->j_trans_max =
+-			    JOURNAL_TRANS_MIN_DEFAULT / ratio;
+-
+-		if (journal->j_trans_max != initial)
+-			reiserfs_warning(p_s_sb,
+-					 "sh-461: journal_init: wrong transaction max size (%u). Changed to %u",
+-					 initial, journal->j_trans_max);
+-
+-		journal->j_max_batch = journal->j_trans_max *
+-		    JOURNAL_MAX_BATCH_DEFAULT / JOURNAL_TRANS_MAX_DEFAULT;
+-	}
+-
+-	if (!journal->j_trans_max) {
+-		/*we have the file system was created by old version of mkreiserfs 
+-		   so this field contains zero value */
+-		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
+-		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
+-		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
+-
+-		/* for blocksize >= 4096 - max transaction size is 1024. For block size < 4096
+-		   trans max size is decreased proportionally */
+-		if (p_s_sb->s_blocksize < 4096) {
+-			journal->j_trans_max /= (4096 / p_s_sb->s_blocksize);
+-			journal->j_max_batch = (journal->j_trans_max) * 9 / 10;
+-		}
+-	}
+-
++	if (check_advise_trans_params(p_s_sb, journal) != 0)
++	        goto free_and_return;
+ 	journal->j_default_max_commit_age = journal->j_max_commit_age;
+ 
+ 	if (commit_max_age != 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edward@namesys.com are
 
-origin.patch
-longhaul-add-auto-enabled-revid_errata-option-checkpatch-fixes.patch
-slow-down-printk-during-boot.patch
-git-acpi.patch
-acpi-add-reboot-mechanism.patch
-acpi-suppress-uninitialized-var-warning.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-cifs.patch
-git-cpufreq.patch
-git-powerpc.patch
-git-dvb.patch
-git-hwmon-fixup.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-git-infiniband.patch
-git-input.patch
-git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
-git-libata-all.patch
-ide-arm-hack.patch
-git-mips.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
-git-mtd.patch
-git-mtd-vs-powerpc.patch
-git-net.patch
-git-net-fixup.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-git-backlight.patch
-git-net-vs-git-nfs.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
-git-ocfs2.patch
-git-s390.patch
-git-sched.patch
-git-sh.patch
-git-sh64.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
-git-block.patch
-git-block-fixup.patch
-git-block-fixup-fix.patch
-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-x86_64-cleanup-apic-c.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-git-xfs.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-git-kgdb-fixup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support-fix.patch
-uml-fix-stub-address-calculations-checkpatch-fixes.patch
-uml-arch-um-drivers-formatting-checkpatch-fixes.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-lockdep-annotate-kprobes-irq-fiddling-fix.patch
-ecryptfs-printk-warning-fixes.patch
-rtc-cmos-probe-cleanup-checkpatch-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+reiserfs-do-not-repair-wrong-journal-params.patch
 reiser4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
+reiser4-fix-extent2tail.patch
+reiser4-fix-read_tail.patch
+reiser4-fix-unix-file-readpages-filler.patch
+reiser4-fix-readpage_unix_file.patch
+reiser4-fix-for-new-aops-patches.patch
 git-block-vs-reiser4.patch
+reiser4-cryptcompress-misc-fixups.patch
+reiser4-cryptcompress-misc-fixups-2.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+reiser4-change-error-code-base.patch
+reiser4-use-lzo-library-functions.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
 git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+reiser4-do-not-allocate-struct-file-on-stack.patch
