@@ -1,52 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - net-add-ath5k-wireless-driver-fix.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:21:08 -0700
-Message-ID: <200710051921.l95JL8a1020994@imap1.linux-foundation.org>
+Subject: + git-block-fixup-fix.patch added to -mm tree
+Date: Fri, 05 Oct 2007 12:25:22 -0700
+Message-ID: <200710051925.l95JPMu8021154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38227 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760133AbXJETWA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:22:00 -0400
+	by vger.kernel.org with ESMTP id S1760511AbXJET1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, willy@debian.org
 
 
 The patch titled
-     ath5k: remove CVS control string
-has been removed from the -mm tree.  Its filename was
-     net-add-ath5k-wireless-driver-fix.patch
+     git-block-fixup-fix
+has been added to the -mm tree.  Its filename is
+     git-block-fixup-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ath5k: remove CVS control string
+Subject: git-block-fixup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove pointless empty CVS ID string.
+Fix git-rejects between git-scsi-misc and git-block.
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Note that local variable bulkdata goes away - this is more than a simple
+reject fixup.
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_hw.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/scsi/megaraid.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix drivers/net/wireless/ath5k_hw.h
---- a/drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix
-+++ a/drivers/net/wireless/ath5k_hw.h
-@@ -13,8 +13,6 @@
-  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-- *
-- * $Id$
-  */
+diff -puN drivers/scsi/megaraid.c~git-block-fixup-fix drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~git-block-fixup-fix
++++ a/drivers/scsi/megaraid.c
+@@ -1737,12 +1737,9 @@ mega_build_sglist(adapter_t *adapter, sc
+ 	Scsi_Cmnd	*cmd;
+ 	int	sgcnt;
+ 	int	idx;
+-	int	bulkdata;
  
- /*
+ 	cmd = scb->cmd;
+ 
+-	bulkdata = (scsi_sg_count(cmd) == 1) ? 1 : 0;
+-
+ 	/*
+ 	 * Copy Scatter-Gather list info into controller structure.
+ 	 *
+@@ -1756,7 +1753,6 @@ mega_build_sglist(adapter_t *adapter, sc
+ 
+ 	*len = 0;
+ 
+-<<<<<<< HEAD/drivers/scsi/megaraid.c
+ 	if (scsi_sg_count(cmd) == 1 && !adapter->has_64bit_addr) {
+ 		sg = scsi_sglist(cmd);
+ 		scb->dma_h_bulkdata = sg_dma_address(sg);
+@@ -1765,16 +1761,6 @@ mega_build_sglist(adapter_t *adapter, sc
+ 		return 0;
+ 	}
+ 
+-=======
+-	if (bulkdata && !adapter->has_64bit_addr) {
+-		sg = scsi_sglist(cmd);
+-		scb->dma_h_bulkdata = sg_dma_address(sg);
+-		*buf = (u32)scb->dma_h_bulkdata;
+-		*len = sg_dma_len(sg);
+-		return 0;
+-	}
+-
+->>>>>>> /drivers/scsi/megaraid.c
+ 	scsi_for_each_sg(cmd, sg, sgcnt, idx) {
+ 		if (adapter->has_64bit_addr) {
+ 			scb->sgl64[idx].address = sg_dma_address(sg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,11 +138,11 @@ git-scsi-misc-fixup.patch
 git-scsi-misc-arcmsr-build-fix.patch
 git-block.patch
 git-block-fixup.patch
+git-block-fixup-fix.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
