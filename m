@@ -1,128 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-cleanup-explicit-check-for-mandatory-locks.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:59:06 -0700
-Message-ID: <200710051959.l95Jx6sp022673@imap1.linux-foundation.org>
+Subject: - libata_scsi-fix-transfer-lengths.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:57:04 -0700
+Message-ID: <200710051957.l95Jv4wW022435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33065 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763576AbXJEUBw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:52 -0400
+	by vger.kernel.org with ESMTP id S1763433AbXJEUBY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: clean up explicit check for mandatory locks
+     libata_scsi: Fix transfer lengths
 has been removed from the -mm tree.  Its filename was
-     nfs-cleanup-explicit-check-for-mandatory-locks.patch
+     libata_scsi-fix-transfer-lengths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: clean up explicit check for mandatory locks
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: libata_scsi: Fix transfer lengths
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The __mandatory_lock(inode) macro makes the same check, but makes the code
-more readable.
+This should get into the base tree very soon anyway but it fixes a ton of
+devices so it would be nice to have in -mm so I can get people to test -mm not
+"-mm + a bit" when reporting ATAPI problems.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/ata/libata-scsi.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfs/file.c~nfs-cleanup-explicit-check-for-mandatory-locks fs/nfs/file.c
---- a/fs/nfs/file.c~nfs-cleanup-explicit-check-for-mandatory-locks
-+++ a/fs/nfs/file.c
-@@ -617,8 +617,7 @@ static int nfs_lock(struct file *filp, i
- 	nfs_inc_stats(inode, NFSIOS_VFSLOCK);
+diff -puN drivers/ata/libata-scsi.c~libata_scsi-fix-transfer-lengths drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~libata_scsi-fix-transfer-lengths
++++ a/drivers/ata/libata-scsi.c
+@@ -2336,8 +2336,8 @@ static void atapi_request_sense(struct a
+ 		qc->tf.feature |= ATAPI_PKT_DMA;
+ 	} else {
+ 		qc->tf.protocol = ATA_PROT_ATAPI;
+-		qc->tf.lbam = (8 * 1024) & 0xff;
+-		qc->tf.lbah = (8 * 1024) >> 8;
++		qc->tf.lbam = SCSI_SENSE_BUFFERSIZE;
++		qc->tf.lbah = 0;
+ 	}
+ 	qc->nbytes = SCSI_SENSE_BUFFERSIZE;
  
- 	/* No mandatory locks over NFS */
--	if ((inode->i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
--	    fl->fl_type != F_UNLCK)
-+	if (__mandatory_lock(inode) && fl->fl_type != F_UNLCK)
- 		return -ENOLCK;
+@@ -2446,6 +2446,7 @@ static unsigned int atapi_xlat(struct at
+ 	struct ata_device *dev = qc->dev;
+ 	int using_pio = (dev->flags & ATA_DFLAG_PIO);
+ 	int nodata = (scmd->sc_data_direction == DMA_NONE);
++	unsigned int nbytes;
  
- 	if (IS_GETLK(cmd))
+ 	memset(qc->cdb, 0, dev->cdb_len);
+ 	memcpy(qc->cdb, scmd->cmnd, scmd->cmd_len);
+@@ -2465,14 +2466,20 @@ static unsigned int atapi_xlat(struct at
+ 	if (!using_pio && ata_check_atapi_dma(qc))
+ 		using_pio = 1;
+ 
++	/* Some controller variants snoop this value for Packet transfers
++	   to do state machine and FIFO management. Thus we want to set it
++	   properly, and for DMA where it is effectively meaningless */
++	nbytes = min(qc->nbytes, (unsigned int)63 * 1024);
++
++	qc->tf.lbam = (nbytes & 0xFF);
++	qc->tf.lbah = (nbytes >> 8);
++
+ 	if (using_pio || nodata) {
+ 		/* no data, or PIO data xfer */
+ 		if (nodata)
+ 			qc->tf.protocol = ATA_PROT_ATAPI_NODATA;
+ 		else
+ 			qc->tf.protocol = ATA_PROT_ATAPI;
+-		qc->tf.lbam = (8 * 1024) & 0xff;
+-		qc->tf.lbah = (8 * 1024) >> 8;
+ 	} else {
+ 		/* DMA data xfer */
+ 		qc->tf.protocol = ATA_PROT_ATAPI_DMA;
+@@ -2483,6 +2490,9 @@ static unsigned int atapi_xlat(struct at
+ 			qc->tf.feature |= ATAPI_DMADIR;
+ 	}
+ 
++
++	/* FIXME: We need to translate 0x05 READ_BLOCK_LIMITS to a MODE_SENSE
++	   as ATAPI tape drives don't get this right otherwise */
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-make-initializer-for-statically-declared-krefs.patch
-git-net.patch
-git-nfsd.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+origin.patch
+git-libata-all.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
+git-scsi-misc.patch
+initio-fix-conflict-when-loading-driver.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+funsoft-fix-termios.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+visor-termios-bits.patch
