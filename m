@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + vmtxt-document-min_free_pages-as-critical-for-correctness.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:28:07 -0700
-Message-ID: <200710052328.l95NS7iu030489@imap1.linux-foundation.org>
+Subject: + sysrq-docs-document-sequence-that-actually-works.patch added to -mm tree
+Date: Fri, 05 Oct 2007 16:28:42 -0700
+Message-ID: <200710052328.l95NSg7k030520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40512 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763962AbXJEX2N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:28:13 -0400
+	by vger.kernel.org with ESMTP id S1761445AbXJEX2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: pavel@ucw.cz, pavel@suse.cz
 
 
 The patch titled
-     vm.txt: document min_free_pages as critical for correctness
+     sysrq docs: document sequence that actually works
 has been added to the -mm tree.  Its filename is
-     vmtxt-document-min_free_pages-as-critical-for-correctness.patch
+     sysrq-docs-document-sequence-that-actually-works.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vm.txt: document min_free_pages as critical for correctness
+Subject: sysrq docs: document sequence that actually works
 From: Pavel Machek <pavel@ucw.cz>
 
-min_free_pages is critical for correctness, document it as such.
+Document sequence of keypresses that actually works. Yes, this changed
+year-or-so ago.
 
 Signed-off-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/sysctl/vm.txt~vmtxt-document-min_free_pages-as-critical-for-correctness Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~vmtxt-document-min_free_pages-as-critical-for-correctness
-+++ a/Documentation/sysctl/vm.txt
-@@ -112,6 +112,12 @@ of kilobytes free.  The VM uses this num
- value for each lowmem zone in the system.  Each lowmem zone gets 
- a number of reserved free pages based proportionally on its size.
+diff -puN Documentation/sysrq.txt~sysrq-docs-document-sequence-that-actually-works Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~sysrq-docs-document-sequence-that-actually-works
++++ a/Documentation/sysrq.txt
+@@ -43,7 +43,7 @@ On x86   - You press the key combo 'ALT-
+            keyboards may not have a key labeled 'SysRq'. The 'SysRq' key is
+            also known as the 'Print Screen' key. Also some keyboards cannot
+ 	   handle so many keys being pressed at the same time, so you might
+-	   have better luck with "press Alt", "press SysRq", "release Alt",
++	   have better luck with "press Alt", "press SysRq", "release SysRq",
+ 	   "press <command key>", release everything.
  
-+Some minimal ammount of memory is needed to satisfy PF_MEMALLOC
-+allocations; if you set this to lower than 1024KB, your system will
-+become subtly broken, and prone to deadlock under high loads.
-+
-+Setting this too high will OOM your machine instantly.
-+
- ==============================================================
- 
- percpu_pagelist_fraction
+ On SPARC - You press 'ALT-STOP-<command key>', I believe.
 _
 
 Patches currently in -mm which might be from pavel@ucw.cz are
@@ -86,3 +83,4 @@ hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
 pnp-make-pnpacpi_suspend-handle-errors.patch
 kdump-documentation-cleanups.patch
 vmtxt-document-min_free_pages-as-critical-for-correctness.patch
+sysrq-docs-document-sequence-that-actually-works.patch
