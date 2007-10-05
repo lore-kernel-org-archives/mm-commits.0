@@ -1,79 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-wireless.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:20:59 -0700
-Message-ID: <200710051921.l95JKxGB020965@imap1.linux-foundation.org>
+Subject: - net-add-ath5k-wireless-driver-fix.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:21:08 -0700
+Message-ID: <200710051921.l95JL8a1020994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34653 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47576 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763529AbXJETVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:21:42 -0400
+	by vger.kernel.org with ESMTP id S1760133AbXJETWA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:22:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-wireless
+     ath5k: remove CVS control string
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-wireless.patch
+     net-add-ath5k-wireless-driver-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-wireless
+Subject: ath5k: remove CVS control string
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix this:
-
-drivers/net/wireless/ath5k_base.c:1433: error: syntax error before 'set_key_cmd'
-
-
-and just make this:
-
-drivers/net/wireless/ath5k_base.c:1534: error: unknown field 'open' specified in initializer
-drivers/net/wireless/ath5k_base.c:1535: warning: initialization from incompatible pointer type
-drivers/net/wireless/ath5k_base.c:1540: error: unknown field 'set_multicast_list' specified in initializer
-drivers/net/wireless/ath5k_base.c:1540: warning: initialization from incompatible pointer type
-
-go away :(
+Remove pointless empty CVS ID string.
 
 Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k_base.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/wireless/ath5k_hw.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless drivers/net/wireless/ath5k_base.c
---- a/drivers/net/wireless/ath5k_base.c~git-net-vs-git-wireless
-+++ a/drivers/net/wireless/ath5k_base.c
-@@ -1430,7 +1430,7 @@ static void ath_set_multicast_list(struc
- 	}
- }
+diff -puN drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix drivers/net/wireless/ath5k_hw.h
+--- a/drivers/net/wireless/ath5k_hw.h~net-add-ath5k-wireless-driver-fix
++++ a/drivers/net/wireless/ath5k_hw.h
+@@ -13,8 +13,6 @@
+  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+- *
+- * $Id$
+  */
  
--static int ath_set_key(struct ieee80211_hw *hw, set_key_cmd cmd,
-+static int ath_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
- 		const u8 *local_addr, const u8 *addr,
- 		struct ieee80211_key_conf *key)
- {
-@@ -1531,13 +1531,13 @@ end:
- 
- static struct ieee80211_ops ath_hw_ops = {
- 	.tx = ath_tx,
--	.open = ath_open,
-+//	.open = ath_open,
- 	.stop = ath_stop,
- 	.add_interface = ath_add_interface,
- 	.remove_interface = ath_remove_interface,
- 	.config = ath_config,
- 	.config_interface = ath_config_interface,
--	.set_multicast_list = ath_set_multicast_list,
-+//	.set_multicast_list = ath_set_multicast_list,
- 	.set_key = ath_set_key,
- 	.get_stats = ath_get_stats,
- 	.conf_tx = NULL,
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +106,6 @@ git-block-fixup.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
-git-net-vs-git-wireless.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 net-add-ath5k-wireless-driver-fix.patch
 revert-x86_64-mm-cpa-einval.patch
