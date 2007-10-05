@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lp_console-cleanups.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:30:00 -0700
-Message-ID: <200710052330.l95NU0lA030561@imap1.linux-foundation.org>
+Subject: + rtc-cmos-probe-cleanup.patch added to -mm tree
+Date: Fri, 05 Oct 2007 16:40:43 -0700
+Message-ID: <200710052340.l95Neh1C030993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55556 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751537AbXJEXaH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:30:07 -0400
+	by vger.kernel.org with ESMTP id S1751583AbXJEXlT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, pavel@suse.cz
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     lp_console: cleanups
+     rtc-cmos probe() cleanup
 has been added to the -mm tree.  Its filename is
-     lp_console-cleanups.patch
+     rtc-cmos-probe-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,114 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lp_console: cleanups
-From: Pavel Machek <pavel@ucw.cz>
+Subject: rtc-cmos probe() cleanup
+From: David Brownell <david-b@pacbell.net>
 
-Remove NULL initializers and clean whitespace a bit.
+Some cleanups for the rtc-cmos probe logic:
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+ - Claim i/o ports with request_region() not request_resource(),
+   for better coexistence betwen platform and pnp bus glues.
+
+ - Claim those ports earlier, to help work around procfs bugs
+   (it allows duplicate names, like /proc/driver/rtc).
+
+ - Fix some glitches in cleanup code, notably a cut'n'paste-o
+   where the i/o port region might not get released during
+   cleanup after a probe fault.
+
+And some comment clarifications, including noting that this code
+must work with PNPBIOS not just PNPACPI..
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/char/lp.c~lp_console-cleanups drivers/char/lp.c
---- a/drivers/char/lp.c~lp_console-cleanups
-+++ a/drivers/char/lp.c
-@@ -144,7 +144,7 @@ static unsigned int lp_count = 0;
- static struct class *lp_class;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-probe-cleanup
++++ a/drivers/rtc/rtc-cmos.c
+@@ -433,6 +433,19 @@ cmos_do_probe(struct device *dev, struct
+ 	if (!ports)
+ 		return -ENODEV;
  
- #ifdef CONFIG_LP_CONSOLE
--static struct parport *console_registered; // initially NULL
-+static struct parport *console_registered;
- #endif /* CONFIG_LP_CONSOLE */
++	/* Claim I/O ports ASAP, minimizing conflict with legacy driver.
++	 *
++	 * REVISIT non-x86 systems may instead use memory space resources
++	 * (needing ioremap etc), not i/o space resources like this ...
++	 */
++	ports = request_region(ports->start,
++			ports->end + 1 - ports->start,
++			driver_name);
++	if (!ports) {
++		dev_dbg(dev, "i/o registers already in use\n");
++		return -EBUSY;
++	}
++
+ 	cmos_rtc.irq = rtc_irq;
+ 	cmos_rtc.iomem = ports;
  
- #undef LP_DEBUG
-@@ -749,8 +749,8 @@ static struct console lpcons = {
- /* --- initialisation code ------------------------------------- */
+@@ -454,24 +467,13 @@ cmos_do_probe(struct device *dev, struct
  
- static int parport_nr[LP_NO] = { [0 ... LP_NO-1] = LP_PARPORT_UNSPEC };
--static char *parport[LP_NO] = { NULL,  };
--static int reset = 0;
-+static char *parport[LP_NO];
-+static int reset;
+ 	cmos_rtc.rtc = rtc_device_register(driver_name, dev,
+ 				&cmos_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(cmos_rtc.rtc))
+-		return PTR_ERR(cmos_rtc.rtc);
++	if (IS_ERR(cmos_rtc.rtc)) {
++		retval = PTR_ERR(cmos_rtc.rtc);
++		goto cleanup0;
++	}
  
- module_param_array(parport, charp, NULL, 0);
- module_param(reset, bool, 0);
-@@ -758,10 +758,10 @@ module_param(reset, bool, 0);
- #ifndef MODULE
- static int __init lp_setup (char *str)
+ 	cmos_rtc.dev = dev;
+ 	dev_set_drvdata(dev, &cmos_rtc);
+-
+-	/* platform and pnp busses handle resources incompatibly.
+-	 *
+-	 * REVISIT for non-x86 systems we may need to handle io memory
+-	 * resources: ioremap them, and request_mem_region().
+-	 */
+-	if (is_pnp()) {
+-		retval = request_resource(&ioport_resource, ports);
+-		if (retval < 0) {
+-			dev_dbg(dev, "i/o registers already in use\n");
+-			goto cleanup0;
+-		}
+-	}
+ 	rename_region(ports, cmos_rtc.rtc->dev.bus_id);
+ 
+ 	spin_lock_irq(&rtc_lock);
+@@ -534,9 +536,10 @@ cmos_do_probe(struct device *dev, struct
+ 	return 0;
+ 
+ cleanup1:
+-	rename_region(ports, NULL);
+-cleanup0:
++	cmos_rtc.dev = NULL;
+ 	rtc_device_unregister(cmos_rtc.rtc);
++cleanup0:
++	release_region(ports->start, ports->end + 1 - ports->start);
+ 	return retval;
+ }
+ 
+@@ -555,19 +558,21 @@ static void cmos_do_shutdown(void)
+ static void __exit cmos_do_remove(struct device *dev)
  {
--	static int parport_ptr; // initially zero
-+	static int parport_ptr;
- 	int x;
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
++	struct resource *ports;
  
--	if (get_option (&str, &x)) {
-+	if (get_option(&str, &x)) {
- 		if (x == 0) {
- 			/* disable driver on "lp=" or "lp=0" */
- 			parport_nr[0] = LP_PARPORT_OFF;
-@@ -807,7 +807,7 @@ static int lp_register(int nr, struct pa
- #ifdef CONFIG_LP_CONSOLE
- 	if (!nr) {
- 		if (port->modes & PARPORT_MODE_SAFEININT) {
--			register_console (&lpcons);
-+			register_console(&lpcons);
- 			console_registered = port;
- 			printk (KERN_INFO "lp%d: console ready\n", CONSOLE_LP);
- 		} else
-@@ -823,8 +823,7 @@ static void lp_attach (struct parport *p
- {
- 	unsigned int i;
+ 	cmos_do_shutdown();
  
--	switch (parport_nr[0])
--	{
-+	switch (parport_nr[0]) {
- 	case LP_PARPORT_UNSPEC:
- 	case LP_PARPORT_AUTO:
- 		if (parport_nr[0] == LP_PARPORT_AUTO &&
-@@ -855,7 +854,7 @@ static void lp_detach (struct parport *p
- 	/* Write this some day. */
- #ifdef CONFIG_LP_CONSOLE
- 	if (console_registered == port) {
--		unregister_console (&lpcons);
-+		unregister_console(&lpcons);
- 		console_registered = NULL;
- 	}
- #endif /* CONFIG_LP_CONSOLE */
+-	if (is_pnp())
+-		release_resource(cmos->iomem);
+-	rename_region(cmos->iomem, NULL);
+-
+ 	if (is_valid_irq(cmos->irq))
+-		free_irq(cmos->irq, cmos_rtc.rtc);
++		free_irq(cmos->irq, cmos->rtc);
+ 
+-	rtc_device_unregister(cmos_rtc.rtc);
++	rtc_device_unregister(cmos->rtc);
++	cmos->rtc = NULL;
+ 
+-	cmos_rtc.dev = NULL;
++	ports= cmos->iomem;
++	release_region(ports->start, ports->end + 1 - ports->start);
++	cmos->iomem = NULL;
++
++	cmos->dev = NULL;
+ 	dev_set_drvdata(dev, NULL);
+ }
+ 
+@@ -654,7 +659,8 @@ static int cmos_resume(struct device *de
+ /*----------------------------------------------------------------*/
+ 
+ /* The "CMOS" RTC normally lives on the platform_bus.  On ACPI systems,
+- * the device node will always be created as a PNPACPI device.
++ * the device node will always be created as a PNPACPI device.  Plus
++ * pre-ACPI PCs probably list it in the PNPBIOS tables.
+  */
+ 
+ #ifdef	CONFIG_PNP
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-sysrq-docs-document-sequence-that-actually-works.patch
-hibernation-make-sure-that-acpi-is-enabled-in-acpi_hibernation_finish.patch
-acpi-clean-up-acpi_enter_sleep_state_prep.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-freezer-be-more-verbose.patch
-freezer-use-wait-queue-instead-of-busy-looping.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
-lp_console-cleanups.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-kdump-documentation-cleanups.patch
-vmtxt-document-min_free_pages-as-critical-for-correctness.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+git-arm.patch
+git-avr32.patch
+git-mmc.patch
+git-mtd.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+spi-driver-runtime-footprint-shrinkage.patch
+rtc-periodic-irq-fix.patch
+rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
+rtc-make-rtc-ds1553-driver-hotplug-aware-take-3.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+rtc-rtc-class-driver-for-the-ds1374.patch
+rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
+rtc-cmos-probe-cleanup.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
