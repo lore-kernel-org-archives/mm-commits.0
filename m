@@ -1,133 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - sh64-cleanup-struct-irqaction-initializers.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:58:13 -0700
-Message-ID: <200710051958.l95JwDr6022530@imap1.linux-foundation.org>
+Subject: - binfmt_flat-minimum-support-for-the-blackfin-relocations.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:36 -0700
+Message-ID: <200710051958.l95JwaBk022557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33777 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763521AbXJEUB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:28 -0400
+	by vger.kernel.org with ESMTP id S1763528AbXJEUBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: bernd.schmidt@analog.com, bryan.wu@analog.com, davidm@snapgear.com, gerg@snapgear.com, miles.bader@necel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SH64: cleanup struct irqaction initializers
+     binfmt_flat: minimum support for the Blackfin relocations
 has been removed from the -mm tree.  Its filename was
-     sh64-cleanup-struct-irqaction-initializers.patch
+     binfmt_flat-minimum-support-for-the-blackfin-relocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SH64: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: binfmt_flat: minimum support for the Blackfin relocations
+From: Bernd Schmidt <bernd.schmidt@analog.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Add minimum support for the Blackfin relocations, since we don't have
+enough space in each reloc.  The idea is to store a value with one
+relocation so that subsequent ones can access it.
+
+Actually, this patch is required for Blackfin.  Currently if BINFMT_FLAT is
+enabled, git-tree kernel will fail to compile.
+
+Signed-off-by: Bernd Schmidt <bernd.schmidt@analog.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Cc: David McCullough <davidm@snapgear.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Miles Bader <miles.bader@necel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh64/kernel/time.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers arch/sh64/kernel/time.c
---- a/arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers
-+++ a/arch/sh64/kernel/time.c
-@@ -476,8 +476,18 @@ static irqreturn_t sh64_rtc_interrupt(in
- 	return IRQ_HANDLED;
- }
+diff -puN fs/binfmt_flat.c~binfmt_flat-minimum-support-for-the-blackfin-relocations fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/fs/binfmt_flat.c
+@@ -744,6 +744,7 @@ static int load_flat_file(struct linux_b
+ 	 * __start to address 4 so that is okay).
+ 	 */
+ 	if (rev > OLD_FLAT_VERSION) {
++		unsigned long persistent = 0;
+ 		for (i=0; i < relocs; i++) {
+ 			unsigned long addr, relval;
  
--static struct irqaction irq0  = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL};
--static struct irqaction irq1  = { sh64_rtc_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "rtc", NULL, NULL};
-+static struct irqaction irq0  = {
-+	.handler = timer_interrupt,
-+	.flags = IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "timer",
-+};
-+static struct irqaction irq1  = {
-+	.handler = sh64_rtc_interrupt,
-+	.flags = IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "rtc",
-+};
+@@ -751,6 +752,8 @@ static int load_flat_file(struct linux_b
+ 			   relocated (of course, the address has to be
+ 			   relocated first).  */
+ 			relval = ntohl(reloc[i]);
++			if (flat_set_persistent (relval, &persistent))
++				continue;
+ 			addr = flat_get_relocate_addr(relval);
+ 			rp = (unsigned long *) calc_reloc(addr, libinfo, id, 1);
+ 			if (rp == (unsigned long *)RELOC_FAILED) {
+@@ -759,7 +762,7 @@ static int load_flat_file(struct linux_b
+ 			}
  
- void __init time_init(void)
+ 			/* Get the pointer's value.  */
+-			addr = flat_get_addr_from_rp(rp, relval, flags);
++			addr = flat_get_addr_from_rp(rp, relval, flags, &persistent);
+ 			if (addr != 0) {
+ 				/*
+ 				 * Do the relocation.  PIC relocs in the data section are
+diff -puN include/asm-h8300/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations include/asm-h8300/flat.h
+--- a/include/asm-h8300/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/include/asm-h8300/flat.h
+@@ -9,6 +9,7 @@
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		1
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
++#define	flat_set_persistent(relval, p)		0
+ 
+ /*
+  * on the H8 a couple of the relocations have an instruction in the
+@@ -18,7 +19,7 @@
+  */
+ 
+ #define	flat_get_relocate_addr(rel)		(rel)
+-#define flat_get_addr_from_rp(rp, relval, flags) \
++#define flat_get_addr_from_rp(rp, relval, flags, persistent) \
+         (get_unaligned(rp) & ((flags & FLAT_FLAG_GOTPIC) ? 0xffffffff: 0x00ffffff))
+ #define flat_put_addr_at_rp(rp, addr, rel) \
+ 	put_unaligned (((*(char *)(rp)) << 24) | ((addr) & 0x00ffffff), rp)
+diff -puN include/asm-m32r/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations include/asm-m32r/flat.h
+--- a/include/asm-m32r/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/include/asm-m32r/flat.h
+@@ -15,9 +15,10 @@
+ #define	flat_stack_align(sp)		(*sp += (*sp & 3 ? (4 - (*sp & 3)): 0))
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
++#define	flat_set_persistent(relval, p)		0
+ #define	flat_reloc_valid(reloc, size)		\
+ 	(((reloc) - textlen_for_m32r_lo16_data) <= (size))
+-#define flat_get_addr_from_rp(rp, relval, flags) \
++#define flat_get_addr_from_rp(rp, relval, flags, persistent) \
+ 	m32r_flat_get_addr_from_rp(rp, relval, (text_len) )
+ 
+ #define flat_put_addr_at_rp(rp, addr, relval) \
+diff -puN include/asm-m68knommu/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations include/asm-m68knommu/flat.h
+--- a/include/asm-m68knommu/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/include/asm-m68knommu/flat.h
+@@ -9,8 +9,9 @@
+ #define	flat_argvp_envp_on_stack()		1
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+-#define	flat_get_addr_from_rp(rp, relval, flags)	get_unaligned(rp)
++#define	flat_get_addr_from_rp(rp, relval, flags, p)	get_unaligned(rp)
+ #define	flat_put_addr_at_rp(rp, val, relval)	put_unaligned(val,rp)
+ #define	flat_get_relocate_addr(rel)		(rel)
++#define	flat_set_persistent(relval, p)		0
+ 
+ #endif /* __M68KNOMMU_FLAT_H__ */
+diff -puN include/asm-sh/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations include/asm-sh/flat.h
+--- a/include/asm-sh/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/include/asm-sh/flat.h
+@@ -16,8 +16,9 @@
+ #define	flat_argvp_envp_on_stack()		0
+ #define	flat_old_ram_flag(flags)		(flags)
+ #define	flat_reloc_valid(reloc, size)		((reloc) <= (size))
+-#define	flat_get_addr_from_rp(rp, relval, flags)	get_unaligned(rp)
++#define	flat_get_addr_from_rp(rp, relval, flags, p)	get_unaligned(rp)
+ #define	flat_put_addr_at_rp(rp, val, relval)	put_unaligned(val,rp)
+ #define	flat_get_relocate_addr(rel)		(rel)
++#define	flat_set_persistent(relval, p)		0
+ 
+ #endif /* __ASM_SH_FLAT_H */
+diff -puN include/asm-v850/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations include/asm-v850/flat.h
+--- a/include/asm-v850/flat.h~binfmt_flat-minimum-support-for-the-blackfin-relocations
++++ a/include/asm-v850/flat.h
+@@ -25,6 +25,7 @@
+ #define	flat_stack_align(sp)		/* nothing needed */
+ #define	flat_argvp_envp_on_stack()	0
+ #define	flat_old_ram_flag(flags)	(flags)
++#define	flat_set_persistent(relval, p)	0
+ 
+ /* We store the type of relocation in the top 4 bits of the `relval.' */
+ 
+@@ -46,7 +47,8 @@ flat_get_relocate_addr (unsigned long re
+    For the v850, RP should always be half-word aligned.  */
+ static inline unsigned long flat_get_addr_from_rp (unsigned long *rp,
+ 						   unsigned long relval,
+-						   unsigned long flags)
++						   unsigned long flags,
++						   unsigned long *persistent)
  {
+ 	short *srp = (short *)rp;
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from bernd.schmidt@analog.com are
 
-clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch
-git-acpi.patch
-git-arm.patch
-git-mips.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
-git-sched.patch
-git-sh.patch
-git-sh64.patch
-geode-mfgpt-support-for-geode-class-machines.patch
-geode-mfgpt-clock-event-device-support.patch
-x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support.patch
-uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+origin.patch
