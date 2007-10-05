@@ -1,102 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-proper-defconfig-for-crosscompiles.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:56:44 -0700
-Message-ID: <200710051956.l95Jui2I022386@imap1.linux-foundation.org>
+Subject: - powerpc-ptrace-check_full_regs.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:56:46 -0700
+Message-ID: <200710051956.l95JukgC022390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56921 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45648 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932193AbXJET5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:57:03 -0400
+	by vger.kernel.org with ESMTP id S932173AbXJET5B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 15:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, benh@kernel.crashing.org, olof@lixom.net, paulus@samba.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: proper defconfig for crosscompiles
+     powerpc: ptrace CHECK_FULL_REGS
 has been removed from the -mm tree.  Its filename was
-     powerpc-proper-defconfig-for-crosscompiles.patch
+     powerpc-ptrace-check_full_regs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: proper defconfig for crosscompiles
-From: Adrian Bunk <bunk@kernel.org>
+Subject: powerpc: ptrace CHECK_FULL_REGS
+From: Roland McGrath <roland@redhat.com>
 
-The trick for finding the right defconfig is neat, but you forgot to
-provide an i686_defconfig.  ;-)
+This restores the CHECK_FULL_REGS sanity check to every place that can access
+the nonvolatile GPRs for ptrace.  This is already done for native-bitwidth
+PTRACE_PEEKUSR, but was omitted for many other cases (32-bit ptrace,
+PTRACE_GETREGS, etc.); I think there may have been more uniform checks before
+that were lost in the recent cleanup of GETREGS et al.
 
-More seriously, cross compiling the defconfig is often useful, e.g. for
-testing the compilation of patches that touch multiple architectures,
-and this patch therefore chooses g5_defconfig if $(CROSS_COMPILE) is
-non-empty.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Fair-enough-to: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/powerpc/kernel/ptrace.c   |    4 ++++
+ arch/powerpc/kernel/ptrace32.c |    8 ++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~powerpc-proper-defconfig-for-crosscompiles
-+++ a/arch/powerpc/Makefile
-@@ -35,7 +35,11 @@ endif
+diff -puN arch/powerpc/kernel/ptrace.c~powerpc-ptrace-check_full_regs arch/powerpc/kernel/ptrace.c
+--- a/arch/powerpc/kernel/ptrace.c~powerpc-ptrace-check_full_regs
++++ a/arch/powerpc/kernel/ptrace.c
+@@ -331,6 +331,7 @@ static long arch_ptrace_old(struct task_
+ 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
+ 		unsigned long __user *tmp = (unsigned long __user *)addr;
  
- export CROSS32CC CROSS32AS CROSS32LD CROSS32AR CROSS32OBJCOPY
++		CHECK_FULL_REGS(child->thread.regs);
+ 		for (i = 0; i < 32; i++) {
+ 			ret = put_user(*reg, tmp);
+ 			if (ret)
+@@ -346,6 +347,7 @@ static long arch_ptrace_old(struct task_
+ 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
+ 		unsigned long __user *tmp = (unsigned long __user *)addr;
  
-+ifeq ($(CROSS_COMPILE),)
- KBUILD_DEFCONFIG := $(shell uname -m)_defconfig
-+else
-+KBUILD_DEFCONFIG := ppc64_defconfig
-+endif
++		CHECK_FULL_REGS(child->thread.regs);
+ 		for (i = 0; i < 32; i++) {
+ 			ret = get_user(*reg, tmp);
+ 			if (ret)
+@@ -513,6 +515,7 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = -EIO;
+ 			break;
+ 		}
++		CHECK_FULL_REGS(child->thread.regs);
+ 		ret = 0;
+ 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
+ 			ret |= __put_user(ptrace_get_reg(child, ui),
+@@ -533,6 +536,7 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = -EIO;
+ 			break;
+ 		}
++		CHECK_FULL_REGS(child->thread.regs);
+ 		ret = 0;
+ 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
+ 			ret = __get_user(tmp, (unsigned long __user *) data);
+diff -puN arch/powerpc/kernel/ptrace32.c~powerpc-ptrace-check_full_regs arch/powerpc/kernel/ptrace32.c
+--- a/arch/powerpc/kernel/ptrace32.c~powerpc-ptrace-check_full_regs
++++ a/arch/powerpc/kernel/ptrace32.c
+@@ -53,6 +53,7 @@ static long compat_ptrace_old(struct tas
+ 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
+ 		unsigned int __user *tmp = (unsigned int __user *)addr;
  
- ifeq ($(CONFIG_PPC64),y)
- OLDARCH	:= ppc64
++		CHECK_FULL_REGS(child->thread.regs);
+ 		for (i = 0; i < 32; i++) {
+ 			ret = put_user(*reg, tmp);
+ 			if (ret)
+@@ -68,6 +69,7 @@ static long compat_ptrace_old(struct tas
+ 		unsigned long *reg = &((unsigned long *)child->thread.regs)[0];
+ 		unsigned int __user *tmp = (unsigned int __user *)addr;
+ 
++		CHECK_FULL_REGS(child->thread.regs);
+ 		for (i = 0; i < 32; i++) {
+ 			ret = get_user(*reg, tmp);
+ 			if (ret)
+@@ -164,6 +166,7 @@ long compat_sys_ptrace(int request, int 
+ 		if ((addr & 3) || (index > PT_FPSCR32))
+ 			break;
+ 
++		CHECK_FULL_REGS(child->thread.regs);
+ 		if (index < PT_FPR0) {
+ 			tmp = ptrace_get_reg(child, index);
+ 		} else {
+@@ -210,6 +213,7 @@ long compat_sys_ptrace(int request, int 
+ 		if ((addr & 3) || numReg > PT_FPSCR)
+ 			break;
+ 
++		CHECK_FULL_REGS(child->thread.regs);
+ 		if (numReg >= PT_FPR0) {
+ 			flush_fp_to_thread(child);
+ 			tmp = ((unsigned long int *)child->thread.fpr)[numReg - PT_FPR0];
+@@ -270,6 +274,7 @@ long compat_sys_ptrace(int request, int 
+ 		if ((addr & 3) || (index > PT_FPSCR32))
+ 			break;
+ 
++		CHECK_FULL_REGS(child->thread.regs);
+ 		if (index < PT_FPR0) {
+ 			ret = ptrace_put_reg(child, index, data);
+ 		} else {
+@@ -307,6 +312,7 @@ long compat_sys_ptrace(int request, int 
+ 		 */
+ 		if ((addr & 3) || (numReg > PT_FPSCR))
+ 			break;
++		CHECK_FULL_REGS(child->thread.regs);
+ 		if (numReg < PT_FPR0) {
+ 			unsigned long freg = ptrace_get_reg(child, numReg);
+ 			if (index % 2)
+@@ -342,6 +348,7 @@ long compat_sys_ptrace(int request, int 
+ 			ret = -EIO;
+ 			break;
+ 		}
++		CHECK_FULL_REGS(child->thread.regs);
+ 		ret = 0;
+ 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
+ 			ret |= __put_user(ptrace_get_reg(child, ui),
+@@ -359,6 +366,7 @@ long compat_sys_ptrace(int request, int 
+ 			ret = -EIO;
+ 			break;
+ 		}
++		CHECK_FULL_REGS(child->thread.regs);
+ 		ret = 0;
+ 		for (ui = 0; ui < PT_REGS_COUNT; ui ++) {
+ 			ret = __get_user(tmp, (unsigned int __user *) data);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-alsa.patch
-git-arm.patch
 git-powerpc.patch
-git-dvb.patch
 git-kbuild.patch
-git-net.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-nfsd.patch
-drivers-scsi-immc-fix-check-after-use.patch
-git-block.patch
-i386-visws-extern-inline-static-inline.patch
-file-capabilities-clear-fcaps-on-inode-change-fix.patch
-security-cleanups.patch
-make-kernel-power-maincsuspend_enter-static.patch
-uml-fix-inlines.patch
-i-oat-add-support-for-msi-and-msi-x-fix.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-isdn-hisax-hfc_usbc-fix-check-after-use.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-bitmaph-remove-dead-artifacts.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+x86_64-vdso-linker-script-cleanup.patch
+x86_64-vdso-put-vars-in-rodata.patch
+add-sys-module-name-notes.patch
+do_sigaction-remove-now-unneeded-recalc_sigpending.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+wait_task_zombie-remove-unneeded-child-signal-check.patch
+wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
+exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+zap_other_threads-dont-optimize-thread_group_empty-case.patch
+wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
+add-mmf_dump_elf_headers.patch
+pie-executable-randomization.patch
+pie-executable-randomization-fix.patch
+pie-executable-randomization-fix-2.patch
+pie-executable-randomization-fix-3.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+exec-simplify-sighand-switching.patch
+exec-simplify-the-new-sighand-allocation.patch
+exec-consolidate-2-fast-paths.patch
+exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
+do_sigaction-dont-worry-about-signal_pending.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+fix-tsk-exit_state-usage-resend.patch
