@@ -1,127 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - afs-cleanup-explicit-check-for-mandatory-locks.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 12:59:04 -0700
-Message-ID: <200710051959.l95Jx4tx022670@imap1.linux-foundation.org>
+Subject: - sh64-cleanup-struct-irqaction-initializers.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 12:58:13 -0700
+Message-ID: <200710051958.l95JwDr6022530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37341 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763192AbXJEUB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:27 -0400
+	by vger.kernel.org with ESMTP id S1763521AbXJEUB2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 16:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     AFS: clean up explicit check for mandatory locks
+     SH64: cleanup struct irqaction initializers
 has been removed from the -mm tree.  Its filename was
-     afs-cleanup-explicit-check-for-mandatory-locks.patch
+     sh64-cleanup-struct-irqaction-initializers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: AFS: clean up explicit check for mandatory locks
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: SH64: cleanup struct irqaction initializers
+From: Thomas Gleixner <tglx@linutronix.de>
 
-The __mandatory_lock(inode) macro makes the same check, but makes the code
-more readable.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/sh64/kernel/time.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks fs/afs/flock.c
---- a/fs/afs/flock.c~afs-cleanup-explicit-check-for-mandatory-locks
-+++ a/fs/afs/flock.c
-@@ -524,8 +524,7 @@ int afs_lock(struct file *file, int cmd,
- 	       (long long) fl->fl_start, (long long) fl->fl_end);
+diff -puN arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers arch/sh64/kernel/time.c
+--- a/arch/sh64/kernel/time.c~sh64-cleanup-struct-irqaction-initializers
++++ a/arch/sh64/kernel/time.c
+@@ -476,8 +476,18 @@ static irqreturn_t sh64_rtc_interrupt(in
+ 	return IRQ_HANDLED;
+ }
  
- 	/* AFS doesn't support mandatory locks */
--	if ((vnode->vfs_inode.i_mode & (S_ISGID | S_IXGRP)) == S_ISGID &&
--	    fl->fl_type != F_UNLCK)
-+	if (__mandatory_lock(&vnode->vfs_inode) && fl->fl_type != F_UNLCK)
- 		return -ENOLCK;
+-static struct irqaction irq0  = { timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL};
+-static struct irqaction irq1  = { sh64_rtc_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "rtc", NULL, NULL};
++static struct irqaction irq0  = {
++	.handler = timer_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "timer",
++};
++static struct irqaction irq1  = {
++	.handler = sh64_rtc_interrupt,
++	.flags = IRQF_DISABLED,
++	.mask = CPU_MASK_NONE,
++	.name = "rtc",
++};
  
- 	if (IS_GETLK(cmd))
+ void __init time_init(void)
+ {
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-make-initializer-for-statically-declared-krefs.patch
-git-net.patch
-git-nfsd.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch
+git-acpi.patch
+git-arm.patch
+git-mips.patch
+provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
+git-sched.patch
+git-sh.patch
+git-sh64.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
+clockevents-remove-unused-inline-function.patch
+clockevents-allow-build-without-runtime-use.patch
+x86_64-consolidate-tsc-calibration.patch
+i386-prepare-sharing-hpet-code.patch
+i386-hpet-add-x8664-hpet-bits.patch
+i386-prepare-sharing-pit-code.patch
+x86_64-use-i386-i8253-h.patch
+x86_64-preparatory-apic-set-lvtt.patch
+x86_64-apic-remove-bogus-pit-synchronization.patch
+x86_64-apic-shuffle-calibration-around.patch
+x86_64-apic-calibration-remove-divisor.patch
+x86_64-apic-change-setup-calling-convention.patch
+x86_64-apic-remove-nested-irq-disable.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-apic-add-clockevents-functions.patch
+x86_64-convert-to-clockevents.patch
+x86_64-remove-unused-code.patch
+x86_64-cleanup-apic-c.patch
+jiffies-remove-unused-macros.patch
+acpi-remove-the-useless-ifdef-code.patch
+i386-pit-remove-the-useless-ifdefs.patch
+i386-hpet-sharing-optimize.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+i386-cleanup-struct-irqaction-initializers.patch
+x86_64-cleanup-struct-irqaction-initializers.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+frv-cleanup-struct-irqaction-initializers.patch
+m32r-cleanup-struct-irqaction-initializers.patch
+cris-cleanup-struct-irqaction-initializers.patch
+uml-eliminate-hz.patch
+uml-fix-timer-switching.patch
+uml-simplify-interval-setting.patch
+uml-separate-timer-initialization.patch
+uml-generic_time-support.patch
+uml-generic_clockevents-support.patch
+uml-clocksource-support.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support.patch
+uml-tickless-support-fix.patch
+uml-eliminate-interrupts-in-the-idle-loop.patch
+uml-eliminate-sigalrm.patch
+uml-use-sec_per_sec-constants.patch
+v850-cleanup-struct-irqaction-initializers.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
+spin_lock_unlocked-cleanups.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
