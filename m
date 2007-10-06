@@ -1,107 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + dontdiff-update-based-on-gitignore-updates.patch added to -mm tree
-Date: Fri, 05 Oct 2007 17:13:36 -0700
-Message-ID: <200710060013.l960Daua032124@imap1.linux-foundation.org>
+Subject: - update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch removed from -mm tree
+Date: Fri, 05 Oct 2007 21:32:57 -0700
+Message-ID: <200710060432.l964WvGc007707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35851 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755944AbXJFAOG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 20:14:06 -0400
+	by vger.kernel.org with ESMTP id S1750716AbXJFEdX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Oct 2007 00:33:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, bunk@stusta.de, zaitcev@redhat.com
+To: akinobu.mita@gmail.com, dgc@sgi.com, hch@lst.de, xfs-masters@oss.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dontdiff: update based on gitignore updates
-has been added to the -mm tree.  Its filename is
-     dontdiff-update-based-on-gitignore-updates.patch
+     update sb->s_frozen when freezing read-only mounted device, too
+has been removed from the -mm tree.  Its filename was
+     update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: dontdiff: update based on gitignore updates
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: update sb->s_frozen when freezing read-only mounted device, too
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Update dontdiff, based on .gitignore patches from Pete Zaitcev and Adrian
-Bunk.
+freeze_bdev() with the device which is mounted as read only does not change
+sb->s_frozen from SB_UNFROZEN to SB_FREEZE_TRANS.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Adrian Bunk <bunk@stusta.de>
+Because of this behavior, xfs_freeze can break read-only XFS filesystem.
+
+Because xfs_thaw does nothing for the filesystem whose sb->s_frozen is
+SB_UNFROZEN.  So freezed readonly XFS filesystem will never be unfreezed. 
+Then we cannot do any unmount/remount operations for that filesystem.
+
+This patch updates sb->s_frozen when freeze_bdev() is called for read-only
+mounted device, too.
+
+Cc: Tim Shimmin <xfs-masters@oss.sgi.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/dontdiff~dontdiff-update-based-on-gitignore-updates Documentation/dontdiff
---- a/Documentation/dontdiff~dontdiff-update-based-on-gitignore-updates
-+++ a/Documentation/dontdiff
-@@ -42,6 +42,9 @@
- *.9.gz
- .*
- .cscope
-+.gitignore
-+.mailmap
-+.mm
- 53c700_d.h
- 53c7xx_d.h
- 53c7xx_u.h
-@@ -175,11 +178,13 @@ times.h*
- tkparse
- trix_boot.h
- utsrelease.h*
-+vdso.lds
- version.h*
- vmlinux
- vmlinux-*
- vmlinux.aout
--vmlinux.lds
-+vmlinux*.lds*
-+vmlinux*.scr
- vsyscall.lds
- wanxlfw.inc
- uImage
+diff -puN fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too fs/buffer.c
+--- a/fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too
++++ a/fs/buffer.c
+@@ -190,19 +190,22 @@ struct super_block *freeze_bdev(struct b
+ 
+ 	down(&bdev->bd_mount_sem);
+ 	sb = get_super(bdev);
+-	if (sb && !(sb->s_flags & MS_RDONLY)) {
++	if (sb) {
+ 		sb->s_frozen = SB_FREEZE_WRITE;
+ 		smp_wmb();
+ 
+-		__fsync_super(sb);
++		if (!(sb->s_flags & MS_RDONLY))
++			__fsync_super(sb);
+ 
+ 		sb->s_frozen = SB_FREEZE_TRANS;
+ 		smp_wmb();
+ 
+-		sync_blockdev(sb->s_bdev);
++		if (!(sb->s_flags & MS_RDONLY)) {
++			sync_blockdev(sb->s_bdev);
+ 
+-		if (sb->s_op->write_super_lockfs)
+-			sb->s_op->write_super_lockfs(sb);
++			if (sb->s_op->write_super_lockfs)
++				sb->s_op->write_super_lockfs(sb);
++		}
+ 	}
+ 
+ 	sync_blockdev(bdev);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
-git-mtd.patch
-git-net.patch
-git-nfsd.patch
-pci-implement-pci=noaer.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-kgdb-fix-help-text.patch
-kgdb-fix-docbook-and-kernel-doc-typos.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-video-gfx-merge-kconfig-menus.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+origin.patch
+module-return-error-when-mod_sysfs_init-failed.patch
+update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
