@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + replace-__attribute_pure__-with-__pure.patch added to -mm tree
-Date: Fri, 05 Oct 2007 17:05:22 -0700
-Message-ID: <200710060005.l9605M2Z031851@imap1.linux-foundation.org>
+Subject: + pci-implement-pci=noaer.patch added to -mm tree
+Date: Fri, 05 Oct 2007 17:11:12 -0700
+Message-ID: <200710060011.l960BCb8032049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37686 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752666AbXJFAF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 20:05:58 -0400
+	by vger.kernel.org with ESMTP id S1756529AbXJFALX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 20:11:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, benh@kernel.crashing.org, bryan.wu@analog.com, mchehab@infradead.org, paulus@samba.org, rmk@arm.linux.org.uk
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     Replace __attribute_pure__ with __pure
+     pci: implement "pci=noaer"
 has been added to the -mm tree.  Its filename is
-     replace-__attribute_pure__-with-__pure.patch
+     pci-implement-pci=noaer.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,263 +25,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Replace __attribute_pure__ with __pure
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: pci: implement "pci=noaer"
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-To be consistent with the use of attributes in the rest of the kernel
-replace all use of __attribute_pure__ with __pure and delete the definition
-of __attribute_pure__.
+For cases in which CONFIG_PCIEAER=y (such as distro kernels), allow users
+to disable PCIE Advanced Error Reporting by using "pci=noaer" on the kernel
+command line.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This can be used to work around hardware or (kernel) software problems.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/arm/nwfpe/fpopcode.h~replace-__attribute_pure__-with-__pure arch/arm/nwfpe/fpopcode.h
---- a/arch/arm/nwfpe/fpopcode.h~replace-__attribute_pure__-with-__pure
-+++ a/arch/arm/nwfpe/fpopcode.h
-@@ -369,20 +369,20 @@ TABLE 5
- #define getRoundingMode(opcode)		((opcode & MASK_ROUNDING_MODE) >> 5)
- 
- #ifdef CONFIG_FPE_NWFPE_XP
--static inline __attribute_pure__ floatx80 getExtendedConstant(const unsigned int nIndex)
-+static inline floatx80 __pure getExtendedConstant(const unsigned int nIndex)
- {
- 	extern const floatx80 floatx80Constant[];
- 	return floatx80Constant[nIndex];
- }
+diff -puN Documentation/kernel-parameters.txt~pci-implement-pci=noaer Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~pci-implement-pci=noaer
++++ a/Documentation/kernel-parameters.txt
+@@ -67,6 +67,7 @@ parameter is applicable:
+ 	PARIDE	The ParIDE (parallel port IDE) subsystem is enabled.
+ 	PARISC	The PA-RISC architecture is enabled.
+ 	PCI	PCI bus support is enabled.
++	PCIE	PCI Express support is enabled.
+ 	PCMCIA	The PCMCIA subsystem is enabled.
+ 	PNP	Plug & Play support is enabled.
+ 	PPC	PowerPC architecture is enabled.
+@@ -1274,6 +1275,9 @@ and is between 256 and 4096 characters. 
+ 				Mechanism 1.
+ 		conf2		[X86-32] Force use of PCI Configuration
+ 				Mechanism 2.
++		noaer		[PCIE] If the PCIEAER kernel config parameter is
++				enabled, this kernel boot option can be used to
++				disable the use of PCIE advanced error reporting.
+ 		nommconf	[X86-32,X86_64] Disable use of MMCONFIG for PCI
+ 				Configuration
+ 		nomsi		[MSI] If the PCI_MSI kernel config parameter is
+diff -puN drivers/pci/pci.c~pci-implement-pci=noaer drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-implement-pci=noaer
++++ a/drivers/pci/pci.c
+@@ -1586,6 +1586,8 @@ static int __devinit pci_setup(char *str
+ 		if (*str && (str = pcibios_setup(str)) && *str) {
+ 			if (!strcmp(str, "nomsi")) {
+ 				pci_no_msi();
++			} else if (!strcmp(str, "noaer")) {
++				pci_no_aer();
+ 			} else if (!strncmp(str, "cbiosize=", 9)) {
+ 				pci_cardbus_io_size = memparse(str + 9, &str);
+ 			} else if (!strncmp(str, "cbmemsize=", 10)) {
+diff -puN drivers/pci/pci.h~pci-implement-pci=noaer drivers/pci/pci.h
+--- a/drivers/pci/pci.h~pci-implement-pci=noaer
++++ a/drivers/pci/pci.h
+@@ -51,6 +51,12 @@ void pci_restore_msi_state(struct pci_de
+ static inline void pci_restore_msi_state(struct pci_dev *dev) {}
  #endif
  
--static inline __attribute_pure__ float64 getDoubleConstant(const unsigned int nIndex)
-+static inline float64 __pure getDoubleConstant(const unsigned int nIndex)
++#ifdef CONFIG_PCIEAER
++void pci_no_aer(void);
++#else
++static inline void pci_no_aer(void) { }
++#endif
++
+ static inline int pci_no_d1d2(struct pci_dev *dev)
  {
- 	extern const float64 float64Constant[];
- 	return float64Constant[nIndex];
- }
- 
--static inline __attribute_pure__ float32 getSingleConstant(const unsigned int nIndex)
-+static inline float32 __pure getSingleConstant(const unsigned int nIndex)
- {
- 	extern const float32 float32Constant[];
- 	return float32Constant[nIndex];
-diff -puN drivers/media/video/v4l1-compat.c~replace-__attribute_pure__-with-__pure drivers/media/video/v4l1-compat.c
---- a/drivers/media/video/v4l1-compat.c~replace-__attribute_pure__-with-__pure
-+++ a/drivers/media/video/v4l1-compat.c
-@@ -144,7 +144,7 @@ const static unsigned int palette2pixelf
- 	[VIDEO_PALETTE_YUV422P] = V4L2_PIX_FMT_YUV422P,
+ 	unsigned int parent_dstates = 0;
+diff -puN drivers/pci/pcie/aer/aerdrv.c~pci-implement-pci=noaer drivers/pci/pcie/aer/aerdrv.c
+--- a/drivers/pci/pcie/aer/aerdrv.c~pci-implement-pci=noaer
++++ a/drivers/pci/pcie/aer/aerdrv.c
+@@ -81,6 +81,13 @@ static struct pcie_port_service_driver a
+ 	.reset_link	= aer_root_reset,
  };
  
--static unsigned int __attribute_pure__
-+static unsigned int __pure
- palette_to_pixelformat(unsigned int palette)
- {
- 	if (palette < ARRAY_SIZE(palette2pixelformat))
-diff -puN include/asm-blackfin/processor.h~replace-__attribute_pure__-with-__pure include/asm-blackfin/processor.h
---- a/include/asm-blackfin/processor.h~replace-__attribute_pure__-with-__pure
-+++ a/include/asm-blackfin/processor.h
-@@ -104,13 +104,13 @@ unsigned long get_wchan(struct task_stru
- #define cpu_relax()    	barrier()
- 
- /* Get the Silicon Revision of the chip */
--static inline __attribute_pure__ uint32_t bfin_revid(void)
-+static inline uint32_t __pure bfin_revid(void)
- {
- 	/* stored in the upper 4 bits */
- 	return bfin_read_CHIPID() >> 28;
- }
- 
--static inline __attribute_pure__ uint32_t bfin_compiled_revid(void)
-+static inline uint32_t __pure bfin_compiled_revid(void)
- {
- #if defined(CONFIG_BF_REV_0_0)
- 	return 0;
-diff -puN include/asm-ppc/time.h~replace-__attribute_pure__-with-__pure include/asm-ppc/time.h
---- a/include/asm-ppc/time.h~replace-__attribute_pure__-with-__pure
-+++ a/include/asm-ppc/time.h
-@@ -57,7 +57,7 @@ static __inline__ void set_dec(unsigned 
- /* Accessor functions for the timebase (RTC on 601) registers. */
- /* If one day CONFIG_POWER is added just define __USE_RTC as 1 */
- #ifdef CONFIG_6xx
--extern __inline__ int __attribute_pure__ __USE_RTC(void) {
-+extern __inline__ int __pure __USE_RTC(void) {
- 	return (mfspr(SPRN_PVR)>>16) == 1;
- }
- #else
-diff -puN include/linux/compiler-gcc.h~replace-__attribute_pure__-with-__pure include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~replace-__attribute_pure__-with-__pure
-+++ a/include/linux/compiler-gcc.h
-@@ -36,10 +36,20 @@
- #define __weak				__attribute__((weak))
- #define __naked				__attribute__((naked))
- #define __noreturn			__attribute__((noreturn))
++static int pcie_aer_disable;
 +
-+/*
-+ * From the GCC manual:
-+ *
-+ * Many functions have no effects except the return value and their
-+ * return value depends only on the parameters and/or global
-+ * variables.  Such a function can be subject to common subexpression
-+ * elimination and loop optimization just as an arithmetic operator
-+ * would be.
-+ * [...]
-+ */
- #define __pure				__attribute__((pure))
- #define __aligned(x)			__attribute__((aligned(x)))
- #define __printf(a,b)			__attribute__((format(printf,a,b)))
- #define  noinline			__attribute__((noinline))
--#define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
- #define __maybe_unused			__attribute__((unused))
-diff -puN include/linux/compiler.h~replace-__attribute_pure__-with-__pure include/linux/compiler.h
---- a/include/linux/compiler.h~replace-__attribute_pure__-with-__pure
-+++ a/include/linux/compiler.h
-@@ -132,20 +132,6 @@ extern void __chk_io_ptr(const volatile 
- # define __maybe_unused		/* unimplemented */
- #endif
- 
--/*
-- * From the GCC manual:
-- *
-- * Many functions have no effects except the return value and their
-- * return value depends only on the parameters and/or global
-- * variables.  Such a function can be subject to common subexpression
-- * elimination and loop optimization just as an arithmetic operator
-- * would be.
-- * [...]
-- */
--#ifndef __attribute_pure__
--# define __attribute_pure__	/* unimplemented */
--#endif
--
- #ifndef noinline
- #define noinline
- #endif
-diff -puN lib/crc32.c~replace-__attribute_pure__-with-__pure lib/crc32.c
---- a/lib/crc32.c~replace-__attribute_pure__-with-__pure
-+++ a/lib/crc32.c
-@@ -49,7 +49,7 @@ MODULE_LICENSE("GPL");
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len);
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len);
- 
- #if CRC_LE_BITS == 1
- /*
-@@ -57,7 +57,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
-  * simplified by inlining the table in ?: form.
-  */
- 
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
++void pci_no_aer(void)
++{
++	pcie_aer_disable = 1;	/* has priority over 'forceload' */
++}
++
+ /**
+  * aer_irq - Root Port's ISR
+  * @irq: IRQ assigned to Root Port
+@@ -327,6 +334,8 @@ static void aer_error_resume(struct pci_
+  **/
+ static int __init aer_service_init(void)
  {
- 	int i;
- 	while (len--) {
-@@ -69,7 +69,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
- }
- #else				/* Table-based approach */
- 
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
- {
- # if CRC_LE_BITS == 8
- 	const u32      *b =(u32 *)p;
-@@ -145,7 +145,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len);
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len);
- 
- #if CRC_BE_BITS == 1
- /*
-@@ -153,7 +153,7 @@ u32 __attribute_pure__ crc32_be(u32 crc,
-  * simplified by inlining the table in ?: form.
-  */
- 
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
- 	while (len--) {
-@@ -167,7 +167,7 @@ u32 __attribute_pure__ crc32_be(u32 crc,
++	if (pcie_aer_disable)
++		return -ENXIO;
+ 	return pcie_port_service_register(&aerdriver);
  }
  
- #else				/* Table-based approach */
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- # if CRC_BE_BITS == 8
- 	const u32      *b =(u32 *)p;
-diff -puN lib/libcrc32c.c~replace-__attribute_pure__-with-__pure lib/libcrc32c.c
---- a/lib/libcrc32c.c~replace-__attribute_pure__-with-__pure
-+++ a/lib/libcrc32c.c
-@@ -66,7 +66,7 @@ EXPORT_SYMBOL(crc32c_le);
-  * loop below with crc32 and vary the POLY if we don't find value in terms
-  * of space and maintainability in keeping the two modules separate.
-  */
--u32 __attribute_pure__
-+u32 __pure
- crc32c_le(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
-@@ -160,7 +160,7 @@ static const u32 crc32c_table[256] = {
-  * crc using table.
-  */
- 
--u32 __attribute_pure__
-+u32 __pure
- crc32c_le(u32 seed, unsigned char const *data, size_t length)
- {
- 	u32 crc = __cpu_to_le32(seed);
-@@ -177,7 +177,7 @@ crc32c_le(u32 seed, unsigned char const 
- EXPORT_SYMBOL(crc32c_be);
- 
- #if CRC_BE_BITS == 1
--u32 __attribute_pure__
-+u32 __pure
- crc32c_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch
-fix-amd-mips-alchemy-au1550-i2c-interface.patch
-git-leds.patch
-git-mips.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
 git-mtd.patch
 git-net.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lk201-remove-obsolete-driver.patch
-fix-wrong-filename-reference-in-drivers-testingtxt.patch
-completely-remove-deprecated-irq-flags-sa_.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-break-elf_platform-and-stack-pointer-randomization-dependency.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+git-nfsd.patch
+pci-implement-pci=noaer.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+kgdb-fix-help-text.patch
+kgdb-fix-docbook-and-kernel-doc-typos.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
