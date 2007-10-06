@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + increase-at_vector_size-to-terminate-saved_auxv-properly-updates.patch added to -mm tree
-Date: Fri, 05 Oct 2007 16:54:32 -0700
-Message-ID: <200710052354.l95NsW0E031394@imap1.linux-foundation.org>
+Subject: + documentation-vm-slabinfoc-clean-up-this-code.patch added to -mm tree
+Date: Fri, 05 Oct 2007 17:02:51 -0700
+Message-ID: <200710060003.l96036Kt031736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48387 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761390AbXJEXym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 19:54:42 -0400
+	by vger.kernel.org with ESMTP id S1759093AbXJFADP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2007 20:03:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olaf@aepfle.de, tony.luck@intel.com
+Cc: xiyou.wangcong@gmail.com, clameter@sgi.com
 
 
 The patch titled
-     increase-at_vector_size-to-terminate-saved_auxv-properly updates
+     Documentation/vm/slabinfo.c: clean up this code
 has been added to the -mm tree.  Its filename is
-     increase-at_vector_size-to-terminate-saved_auxv-properly-updates.patch
+     documentation-vm-slabinfoc-clean-up-this-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,197 +25,149 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: increase-at_vector_size-to-terminate-saved_auxv-properly updates
-From: Olaf Hering <olaf@aepfle.de>
+Subject: Documentation/vm/slabinfo.c: clean up this code
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-On Wed, Sep 26, Luck, Tony wrote:
+This patch does the following cleanups for Documentation/vm/slabinfo.c:
 
-> +#define AT_VECTOR_SIZE_BASE  (14 + 2) /* generic entries in auxiliary table. */
->
-> It might be nice to add a more descriptive comment here saying that
-> the "14" and the "2" come from the number of NEW_AUX_ENT() insertions
-> in fs/binfmt_elf.c.  Perhaps even more important would be an extra
-> comment in fs/binfmt_elf.c pointing out that AT_VECTOR_SIZE_BASE needs
-> to be changed if the number of NEW_AUX_ENT() calls changes.
->
-> Similarly adding AT_VECTOR_SIZE_ARCH definition to asm/system.h is quite
-> far away from the code that constrains the value (ARCH_DLINFO definition
-> in <asm/elf.h>).  If it is hard to move this definition next to the code
-> that requires it, then some more comments are needed to point out the
-> dependency.
+	- Fix two memory leaks;
+	- Constify some char pointers;
+	- Use snprintf instead of sprintf in case of buffer overflow;
+	- Fix some indentations;
+	- Other little improvements.
 
-See the update for 2.6.23-rc8-mm2 below.
-Is this acceptable for you?
-
-> And/or add a BUG_ON() just before the memset() in fs/binfmt_elf.c that
-> checks there are at least the two entries for the AT_NULL entry available
-> in saved_auxv?
-
-I'm not sure if this is needed. In the worst case, the app may crash.
-No need to bring down the entire system.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Acked-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN fs/binfmt_elf.c~increase-at_vector_size-to-terminate-saved_auxv-properly-updates fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/fs/binfmt_elf.c
-@@ -175,6 +175,7 @@ create_elf_tables(struct linux_binprm *b
+diff -puN Documentation/vm/slabinfo.c~documentation-vm-slabinfoc-clean-up-this-code Documentation/vm/slabinfo.c
+--- a/Documentation/vm/slabinfo.c~documentation-vm-slabinfoc-clean-up-this-code
++++ a/Documentation/vm/slabinfo.c
+@@ -11,6 +11,7 @@
+ #include <stdlib.h>
+ #include <sys/types.h>
+ #include <dirent.h>
++#include <strings.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include <stdarg.h>
+@@ -84,7 +85,7 @@ void fatal(const char *x, ...)
+ 	va_start(ap, x);
+ 	vfprintf(stderr, x, ap);
+ 	va_end(ap);
+-	exit(1);
++	exit(EXIT_FAILURE);
+ }
  
- 	/* Create the ELF interpreter info */
- 	elf_info = (elf_addr_t *)current->mm->saved_auxv;
-+	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
- #define NEW_AUX_ENT(id, val) \
- 	do { \
- 		elf_info[ei_index++] = id; \
-@@ -185,6 +186,8 @@ create_elf_tables(struct linux_binprm *b
- 	/* 
- 	 * ARCH_DLINFO must come first so PPC can do its special alignment of
- 	 * AUXV.
-+	 * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT() in
-+	 * ARCH_DLINFO changes
- 	 */
- 	ARCH_DLINFO;
- #endif
-diff -puN include/asm-alpha/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-alpha/elf.h
---- a/include/asm-alpha/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-alpha/elf.h
-@@ -155,6 +155,7 @@ extern int alpha_l1d_cacheshape;
- extern int alpha_l2_cacheshape;
- extern int alpha_l3_cacheshape;
+ void usage(void)
+@@ -119,14 +120,14 @@ void usage(void)
+ 	);
+ }
  
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO						\
-   do {								\
-     NEW_AUX_ENT(AT_L1I_CACHESHAPE, alpha_l1i_cacheshape);	\
-diff -puN include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-alpha/system.h
---- a/include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-alpha/system.h
-@@ -48,7 +48,7 @@
+-unsigned long read_obj(char *name)
++unsigned long read_obj(const char *name)
+ {
+ 	FILE *f = fopen(name, "r");
  
- #ifndef __ASSEMBLY__
- #include <linux/kernel.h>
--#define AT_VECTOR_SIZE_ARCH 4
-+#define AT_VECTOR_SIZE_ARCH 4 /* entries in ARCH_DLINFO */
- 
+ 	if (!f)
+ 		buffer[0] = 0;
+ 	else {
+-		if (!fgets(buffer,sizeof(buffer), f))
++		if (!fgets(buffer, sizeof(buffer), f))
+ 			buffer[0] = 0;
+ 		fclose(f);
+ 		if (buffer[strlen(buffer)] == '\n')
+@@ -139,7 +140,7 @@ unsigned long read_obj(char *name)
  /*
-  * This is the logout header that should be common to all platforms
-diff -puN include/asm-i386/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-i386/elf.h
---- a/include/asm-i386/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-i386/elf.h
-@@ -152,6 +152,7 @@ extern int arch_setup_additional_pages(s
- 
- extern unsigned int vdso_enabled;
- 
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO							\
- do if (vdso_enabled) {							\
- 		NEW_AUX_ENT(AT_SYSINFO,	VDSO_ENTRY);			\
-diff -puN include/asm-i386/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-i386/system.h
---- a/include/asm-i386/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-i386/system.h
-@@ -7,7 +7,7 @@
- #include <asm/cmpxchg.h>
- 
- #ifdef __KERNEL__
--#define AT_VECTOR_SIZE_ARCH 2
-+#define AT_VECTOR_SIZE_ARCH 2 /* entries in ARCH_DLINFO */
- 
- struct task_struct;	/* one of the stranger aspects of C forward declarations.. */
- extern struct task_struct * FASTCALL(__switch_to(struct task_struct *prev, struct task_struct *next));
-diff -puN include/asm-ia64/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-ia64/elf.h
---- a/include/asm-ia64/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-ia64/elf.h
-@@ -192,6 +192,7 @@ extern int dump_task_fpu (struct task_st
- 
- #define GATE_EHDR	((const struct elfhdr *) GATE_ADDR)
- 
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO								\
- do {										\
- 	extern char __kernel_syscall_via_epc[];					\
-diff -puN include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-ia64/system.h
---- a/include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-ia64/system.h
-@@ -32,7 +32,7 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- 
--#define AT_VECTOR_SIZE_ARCH 2
-+#define AT_VECTOR_SIZE_ARCH 2 /* entries in ARCH_DLINFO */
- 
- struct pci_vector_struct {
- 	__u16 segment;	/* PCI Segment number */
-diff -puN include/asm-powerpc/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-powerpc/elf.h
---- a/include/asm-powerpc/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-powerpc/elf.h
-@@ -283,6 +283,7 @@ extern int arch_setup_additional_pages(s
-  *   AT_IGNOREPPC is used for that.
-  * - for compatibility with glibc ARCH_DLINFO must always be defined on PPC,
-  *   even if DLINFO_ARCH_ITEMS goes to zero or is undefined.
-+ * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes
+  * Get the contents of an attribute
   */
- #define ARCH_DLINFO							\
- do {									\
-diff -puN include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-powerpc/system.h
---- a/include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-powerpc/system.h
-@@ -40,7 +40,7 @@
- #define set_mb(var, value)	do { var = value; mb(); } while (0)
+-unsigned long get_obj(char *name)
++unsigned long get_obj(const char *name)
+ {
+ 	if (!read_obj(name))
+ 		return 0;
+@@ -147,7 +148,7 @@ unsigned long get_obj(char *name)
+ 	return atol(buffer);
+ }
  
- #ifdef __KERNEL__
--#define AT_VECTOR_SIZE_ARCH 6
-+#define AT_VECTOR_SIZE_ARCH 6 /* entries in ARCH_DLINFO */
- #ifdef CONFIG_SMP
- #define smp_mb()	mb()
- #define smp_rmb()	rmb()
-diff -puN include/asm-sh/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-sh/elf.h
---- a/include/asm-sh/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-sh/elf.h
-@@ -133,6 +133,7 @@ extern void __kernel_vsyscall;
- #define VDSO_BASE		((unsigned long)current->mm->context.vdso)
- #define VDSO_SYM(x)		(VDSO_BASE + (unsigned long)(x))
+-unsigned long get_obj_and_str(char *name, char **x)
++unsigned long get_obj_and_str(const char *name, char **x)
+ {
+ 	unsigned long result = 0;
+ 	char *p;
+@@ -166,12 +167,12 @@ unsigned long get_obj_and_str(char *name
+ 	return result;
+ }
  
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO						\
- do {								\
- 	if (vdso_enabled)					\
-diff -puN include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/asm-sh/system.h
---- a/include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/asm-sh/system.h
-@@ -15,7 +15,7 @@
- struct task_struct *__switch_to(struct task_struct *prev,
- 				struct task_struct *next);
+-void set_obj(struct slabinfo *s, char *name, int n)
++void set_obj(struct slabinfo *s, const char *name, int n)
+ {
+ 	char x[100];
+ 	FILE *f;
  
--#define AT_VECTOR_SIZE_ARCH 1
-+#define AT_VECTOR_SIZE_ARCH 1 /* entries in ARCH_DLINFO */
- /*
-  *	switch_to() should switch tasks to task nr n, first
-  */
-diff -puN include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates include/linux/auxvec.h
---- a/include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly-updates
-+++ a/include/linux/auxvec.h
-@@ -27,7 +27,7 @@
- #define AT_SECURE 23   /* secure mode boolean */
+-	sprintf(x, "%s/%s", s->name, name);
++	snprintf(x, 100, "%s/%s", s->name, name);
+ 	f = fopen(x, "w");
+ 	if (!f)
+ 		fatal("Cannot write to %s\n", x);
+@@ -180,13 +181,13 @@ void set_obj(struct slabinfo *s, char *n
+ 	fclose(f);
+ }
  
- #ifdef __KERNEL__
--#define AT_VECTOR_SIZE_BASE  (14 + 2) /* generic entries in auxiliary table. */
-+#define AT_VECTOR_SIZE_BASE (14 + 2) /* NEW_AUX_ENT entries in auxiliary table */
- #endif
+-unsigned long read_slab_obj(struct slabinfo *s, char *name)
++unsigned long read_slab_obj(struct slabinfo *s, const char *name)
+ {
+ 	char x[100];
+ 	FILE *f;
+-	int l;
++	size_t l;
  
- #endif /* _LINUX_AUXVEC_H */
+-	sprintf(x, "%s/%s", s->name, name);
++	snprintf(x, 100, "%s/%s", s->name, name);
+ 	f = fopen(x, "r");
+ 	if (!f) {
+ 		buffer[0] = 0;
+@@ -453,7 +454,7 @@ void slabcache(struct slabinfo *s)
+ 		return;
+ 
+ 	store_size(size_str, slab_size(s));
+-	sprintf(dist_str,"%lu/%lu/%d", s->slabs, s->partial, s->cpu_slabs);
++	snprintf(dist_str, 40, "%lu/%lu/%d", s->slabs, s->partial, s->cpu_slabs);
+ 
+ 	if (!line++)
+ 		first_line();
+@@ -1062,6 +1063,7 @@ void read_slab_dir(void)
+ 			slab->partial = get_obj("partial");
+ 			slab->partial = get_obj_and_str("partial", &t);
+ 			decode_numa_list(slab->numa_partial, t);
++			free(t);
+ 			slab->poison = get_obj("poison");
+ 			slab->reclaim_account = get_obj("reclaim_account");
+ 			slab->red_zone = get_obj("red_zone");
+@@ -1069,6 +1071,7 @@ void read_slab_dir(void)
+ 			slab->slab_size = get_obj("slab_size");
+ 			slab->slabs = get_obj_and_str("slabs", &t);
+ 			decode_numa_list(slab->numa, t);
++			free(t);
+ 			slab->store_user = get_obj("store_user");
+ 			slab->trace = get_obj("trace");
+ 			chdir("..");
+@@ -1148,7 +1151,7 @@ int main(int argc, char *argv[])
+ 
+ 	while ((c = getopt_long(argc, argv, "ad::efhil1noprstvzTS",
+ 						opts, NULL)) != -1)
+-	switch(c) {
++		switch (c) {
+ 		case '1':
+ 			show_single_ref = 1;
+ 			break;
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-git-powerpc.patch
 git-net.patch
-unexport-asm-shmparamh.patch
-remove-consolemaph-from-header-exports.patch
-include-linux-typesh-in-if_fddih.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly-updates.patch
-keep-track-of-network-interface-renaming.patch
+fs-romfs-inodec-trivial-improvements.patch
+fs-udf-ballocc-mark-a-variable-as-uninitialized_var.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
