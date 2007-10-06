@@ -1,95 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch removed from -mm tree
-Date: Fri, 05 Oct 2007 21:32:57 -0700
-Message-ID: <200710060432.l964WvGc007707@imap1.linux-foundation.org>
+Subject: + documentation-spi-spidev_testc-constify-some-variables.patch added to -mm tree
+Date: Sat, 06 Oct 2007 00:49:29 -0700
+Message-ID: <200710060749.l967nTIb013695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35977 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750716AbXJFEdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Oct 2007 00:33:23 -0400
+	by vger.kernel.org with ESMTP id S1752139AbXJFHtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 6 Oct 2007 03:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, dgc@sgi.com, hch@lst.de, xfs-masters@oss.sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: xiyou.wangcong@gmail.com, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     update sb->s_frozen when freezing read-only mounted device, too
-has been removed from the -mm tree.  Its filename was
-     update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
+     Documentation/spi/spidev_test.c: constify some variables
+has been added to the -mm tree.  Its filename is
+     documentation-spi-spidev_testc-constify-some-variables.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: update sb->s_frozen when freezing read-only mounted device, too
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Documentation/spi/spidev_test.c: constify some variables
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-freeze_bdev() with the device which is mounted as read only does not change
-sb->s_frozen from SB_UNFROZEN to SB_FREEZE_TRANS.
+Constify two char pointers and a struct in Documentation/spi/spidev_test.c.
 
-Because of this behavior, xfs_freeze can break read-only XFS filesystem.
-
-Because xfs_thaw does nothing for the filesystem whose sb->s_frozen is
-SB_UNFROZEN.  So freezed readonly XFS filesystem will never be unfreezed. 
-Then we cannot do any unmount/remount operations for that filesystem.
-
-This patch updates sb->s_frozen when freeze_bdev() is called for read-only
-mounted device, too.
-
-Cc: Tim Shimmin <xfs-masters@oss.sgi.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: David Chinner <dgc@sgi.com>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ Documentation/spi/spidev_test.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too fs/buffer.c
---- a/fs/buffer.c~update-sb-s_frozen-when-freezing-read-only-mounted-device-too
-+++ a/fs/buffer.c
-@@ -190,19 +190,22 @@ struct super_block *freeze_bdev(struct b
+diff -puN Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-constify-some-variables Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-constify-some-variables
++++ a/Documentation/spi/spidev_test.c
+@@ -29,7 +29,7 @@ static void pabort(const char *s)
+ 	abort();
+ }
  
- 	down(&bdev->bd_mount_sem);
- 	sb = get_super(bdev);
--	if (sb && !(sb->s_flags & MS_RDONLY)) {
-+	if (sb) {
- 		sb->s_frozen = SB_FREEZE_WRITE;
- 		smp_wmb();
+-static char *device = "/dev/spidev1.1";
++static const char *device = "/dev/spidev1.1";
+ static uint8_t mode;
+ static uint8_t bits = 8;
+ static uint32_t speed = 500000;
+@@ -69,7 +69,7 @@ static void transfer(int fd)
+ 	puts("");
+ }
  
--		__fsync_super(sb);
-+		if (!(sb->s_flags & MS_RDONLY))
-+			__fsync_super(sb);
- 
- 		sb->s_frozen = SB_FREEZE_TRANS;
- 		smp_wmb();
- 
--		sync_blockdev(sb->s_bdev);
-+		if (!(sb->s_flags & MS_RDONLY)) {
-+			sync_blockdev(sb->s_bdev);
- 
--		if (sb->s_op->write_super_lockfs)
--			sb->s_op->write_super_lockfs(sb);
-+			if (sb->s_op->write_super_lockfs)
-+				sb->s_op->write_super_lockfs(sb);
-+		}
- 	}
- 
- 	sync_blockdev(bdev);
+-void print_usage(char *prog)
++void print_usage(const char *prog)
+ {
+ 	printf("Usage: %s [-DsbdlHOLC3]\n", prog);
+ 	puts("  -D --device   device to use (default /dev/spidev1.1)\n"
+@@ -88,7 +88,7 @@ void print_usage(char *prog)
+ void parse_opts(int argc, char *argv[])
+ {
+ 	while (1) {
+-		static struct option lopts[] = {
++		static const struct option lopts[] = {
+ 			{ "device",  1, 0, 'D' },
+ 			{ "speed",   1, 0, 's' },
+ 			{ "delay",   1, 0, 'd' },
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-origin.patch
-module-return-error-when-mod_sysfs_init-failed.patch
-update-sb-s_frozen-when-freezing-read-only-mounted-device-too.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+git-net.patch
+fs-romfs-inodec-trivial-improvements.patch
+fs-udf-ballocc-mark-a-variable-as-uninitialized_var.patch
+documentation-spi-spidev_testc-constify-some-variables.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
