@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - funsoft-fix-termios.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:11:10 -0700
-Message-ID: <200710102111.l9ALBA1o026024@imap1.linux-foundation.org>
+Subject: - visor-termios-bits.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:11:12 -0700
+Message-ID: <200710102111.l9ALBCki026027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38862 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756270AbXJJVVV (ORCPT
+	by vger.kernel.org with ESMTP id S1755935AbXJJVVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:21:21 -0400
+	Wed, 10 Oct 2007 17:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     funsoft: fix termios
+     visor: termios bits
 has been removed from the -mm tree.  Its filename was
-     funsoft-fix-termios.patch
+     visor-termios-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: funsoft: fix termios
+Subject: visor: termios bits
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Funsoft has a bogus ioctl handler doing bogus termios handling in a bogus
-manner. Fortunately we can simply delete all the bogus bits and get the
-right default behaviour !
+Visor has a huge complex routine which displays termios bits for debug but
+doesn't do anything.  Get the correct behaviour by removing it all
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -35,44 +34,108 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/funsoft.c~funsoft-fix-termios drivers/usb/serial/funsoft.c
---- a/drivers/usb/serial/funsoft.c~funsoft-fix-termios
-+++ a/drivers/usb/serial/funsoft.c
-@@ -24,26 +24,6 @@ static struct usb_device_id id_table [] 
- };
- MODULE_DEVICE_TABLE(usb, id_table);
+diff -puN drivers/usb/serial/visor.c~visor-termios-bits drivers/usb/serial/visor.c
+--- a/drivers/usb/serial/visor.c~visor-termios-bits
++++ a/drivers/usb/serial/visor.c
+@@ -46,7 +46,6 @@ static int  visor_probe		(struct usb_ser
+ static int  visor_calc_num_ports(struct usb_serial *serial);
+ static void visor_shutdown	(struct usb_serial *serial);
+ static int  visor_ioctl		(struct usb_serial_port *port, struct file * file, unsigned int cmd, unsigned long arg);
+-static void visor_set_termios	(struct usb_serial_port *port, struct ktermios *old_termios);
+ static void visor_write_bulk_callback	(struct urb *urb);
+ static void visor_read_bulk_callback	(struct urb *urb);
+ static void visor_read_int_callback	(struct urb *urb);
+@@ -203,7 +202,6 @@ static struct usb_serial_driver handspri
+ 	.calc_num_ports =	visor_calc_num_ports,
+ 	.shutdown =		visor_shutdown,
+ 	.ioctl =		visor_ioctl,
+-	.set_termios =		visor_set_termios,
+ 	.write =		visor_write,
+ 	.write_room =		visor_write_room,
+ 	.chars_in_buffer =	visor_chars_in_buffer,
+@@ -234,7 +232,6 @@ static struct usb_serial_driver clie_5_d
+ 	.calc_num_ports =	visor_calc_num_ports,
+ 	.shutdown =		visor_shutdown,
+ 	.ioctl =		visor_ioctl,
+-	.set_termios =		visor_set_termios,
+ 	.write =		visor_write,
+ 	.write_room =		visor_write_room,
+ 	.chars_in_buffer =	visor_chars_in_buffer,
+@@ -262,7 +259,6 @@ static struct usb_serial_driver clie_3_5
+ 	.unthrottle =		visor_unthrottle,
+ 	.attach =		clie_3_5_startup,
+ 	.ioctl =		visor_ioctl,
+-	.set_termios =		visor_set_termios,
+ 	.write =		visor_write,
+ 	.write_room =		visor_write_room,
+ 	.chars_in_buffer =	visor_chars_in_buffer,
+@@ -936,66 +932,6 @@ static int visor_ioctl (struct usb_seria
+ 	return -ENOIOCTLCMD;
+ }
  
--static int funsoft_ioctl(struct usb_serial_port *port, struct file *file,
--			 unsigned int cmd, unsigned long arg)
+-
+-/* This function is all nice and good, but we don't change anything based on it :) */
+-static void visor_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
 -{
--	struct ktermios t;
+-	unsigned int cflag;
 -
--	dbg("%s - port %d, cmd 0x%04x", __FUNCTION__, port->number, cmd);
+-	dbg("%s - port %d", __FUNCTION__, port->number);
 -
--	if (cmd == TCSETSF) {
--		if (user_termios_to_kernel_termios(&t, (struct termios __user *)arg))
--			return -EFAULT;
--
--		dbg("%s - iflag:%x oflag:%x cflag:%x lflag:%x", __FUNCTION__,
--		    t.c_iflag, t.c_oflag, t.c_cflag, t.c_lflag);
--
--		if (!(t.c_lflag & ICANON))
--			return -EINVAL;
+-	if ((!port->tty) || (!port->tty->termios)) {
+-		dbg("%s - no tty structures", __FUNCTION__);
+-		return;
 -	}
--	return -ENOIOCTLCMD;
+-
+-	cflag = port->tty->termios->c_cflag;
+-
+-	/* get the byte size */
+-	switch (cflag & CSIZE) {
+-		case CS5:	dbg("%s - data bits = 5", __FUNCTION__);   break;
+-		case CS6:	dbg("%s - data bits = 6", __FUNCTION__);   break;
+-		case CS7:	dbg("%s - data bits = 7", __FUNCTION__);   break;
+-		default:
+-		case CS8:	dbg("%s - data bits = 8", __FUNCTION__);   break;
+-	}
+-	
+-	/* determine the parity */
+-	if (cflag & PARENB)
+-		if (cflag & PARODD)
+-			dbg("%s - parity = odd", __FUNCTION__);
+-		else
+-			dbg("%s - parity = even", __FUNCTION__);
+-	else
+-		dbg("%s - parity = none", __FUNCTION__);
+-
+-	/* figure out the stop bits requested */
+-	if (cflag & CSTOPB)
+-		dbg("%s - stop bits = 2", __FUNCTION__);
+-	else
+-		dbg("%s - stop bits = 1", __FUNCTION__);
+-
+-	
+-	/* figure out the flow control settings */
+-	if (cflag & CRTSCTS)
+-		dbg("%s - RTS/CTS is enabled", __FUNCTION__);
+-	else
+-		dbg("%s - RTS/CTS is disabled", __FUNCTION__);
+-	
+-	/* determine software flow control */
+-	if (I_IXOFF(port->tty))
+-		dbg("%s - XON/XOFF is enabled, XON = %2x, XOFF = %2x",
+-		    __FUNCTION__, START_CHAR(port->tty), STOP_CHAR(port->tty));
+-	else
+-		dbg("%s - XON/XOFF is disabled", __FUNCTION__);
+-
+-	/* get the baud rate wanted */
+-	dbg("%s - baud rate = %d", __FUNCTION__, tty_get_baud_rate(port->tty));
+-
+-	return;
 -}
 -
- static struct usb_driver funsoft_driver = {
- 	.name =		"funsoft",
- 	.probe =	usb_serial_probe,
-@@ -63,7 +43,6 @@ static struct usb_serial_driver funsoft_
- 	.num_bulk_in =		NUM_DONT_CARE,
- 	.num_bulk_out =		NUM_DONT_CARE,
- 	.num_ports =		1,
--	.ioctl =		funsoft_ioctl,
- };
- 
- static int __init funsoft_init(void)
+-
+ static int __init visor_init (void)
+ {
+ 	int i, retval;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
