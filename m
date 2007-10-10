@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-fixup.patch added to -mm tree
-Date: Wed, 10 Oct 2007 13:29:24 -0700
-Message-ID: <200710102029.l9AKTQrT024250@imap1.linux-foundation.org>
+Subject: + do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch added to -mm tree
+Date: Wed, 10 Oct 2007 14:07:36 -0700
+Message-ID: <200710102107.l9AL7ach025757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48159 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59484 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753698AbXJJU3g (ORCPT
+	by vger.kernel.org with ESMTP id S1756022AbXJJVIH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 16:29:36 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9AKTV00018126
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2007 13:29:32 -0700
+	Wed, 10 Oct 2007 17:08:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com, cpw@sgi.com, ego@in.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, vatsa@in.ibm.com
 
 
 The patch titled
-     git-dvb-fixup
+     do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-fixup.patch
+     do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,39 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+attempt to fix things up after gratuitous not-needed-now git-sched changes.
+
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    2 +-
- include/linux/i2c-id.h                      |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/sched.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -905,7 +905,7 @@ struct pvr2_sysfs *pvr2_sysfs_create(str
+diff -puN kernel/sched.c~do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix kernel/sched.c
+--- a/kernel/sched.c~do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix
++++ a/kernel/sched.c
+@@ -4969,6 +4969,17 @@ wait_to_die:
  }
  
+ #ifdef CONFIG_HOTPLUG_CPU
++
++static int __migrate_task_irq(struct task_struct *p, int src_cpu, int dest_cpu)
++{
++	int ret;
++
++	local_irq_disable();
++	ret = __migrate_task_irq(p, src_cpu, dest_cpu);
++	local_irq_restore();
++	return ret;
++}
++
+ /*
+  * Figure out where task on dead CPU should go, use force if neccessary.
+  * NOTE: interrupts should be disabled by the caller
+@@ -5007,7 +5018,7 @@ static void move_task_off_dead_cpu(int d
+ 				       "longer affine to cpu%d\n",
+ 				       p->pid, p->comm, dead_cpu);
+ 		}
+-	} while (!__migrate_task(p, dead_cpu, dest_cpu));
++	} while (!__migrate_task_irq(p, dead_cpu, dest_cpu));
+ }
  
--static int pvr2_sysfs_hotplug(struct class_device *cd,
-+static int pvr2_sysfs_hotplug(struct device *device,
- 			      struct kobj_uevent_env *env)
- {
- 	/* Even though we don't do anything here, we still need this function
-diff -puN include/linux/i2c-id.h~git-dvb-fixup include/linux/i2c-id.h
---- a/include/linux/i2c-id.h~git-dvb-fixup
-+++ a/include/linux/i2c-id.h
-@@ -120,6 +120,7 @@
- #define I2C_DRIVERID_WM8753	91	/* Wolfson WM8753 audio codec */
- #define I2C_DRIVERID_LM4857 	92 	/* LM4857 Audio Amplifier */
- #define I2C_DRIVERID_CS4270	93	/* Cirrus Logic 4270 audio codec */
-+#define I2C_DRIVERID_VP27SMPX	94	/* Panasonic VP27s tuner internal MPX */
- 
- #define I2C_DRIVERID_I2CDEV	900
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +125,6 @@ git-sh.patch
 git-sh64.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
-git-scsi-misc-arcmsr-build-fix.patch
 git-block.patch
 git-block-fixup.patch
 git-block-fixup-fix.patch
@@ -223,6 +232,7 @@ export-font_vga_8x16.patch
 drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
 fbcon-logo-disable-logo-at-boot-fix.patch
 md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
 intel-iommu-pci-generic-helper-function.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
