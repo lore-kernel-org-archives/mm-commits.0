@@ -1,187 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - make-initializer-for-statically-declared-krefs.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:16:09 -0700
-Message-ID: <200710102116.l9ALG9R8026208@imap1.linux-foundation.org>
+Subject: - fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:10:56 -0700
+Message-ID: <200710102110.l9ALAuum025974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55637 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756093AbXJJVRK (ORCPT
+	by vger.kernel.org with ESMTP id S1752439AbXJJVVI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:17:10 -0400
+	Wed, 10 Oct 2007 17:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, greg@kroah.com, kay.sievers@vrfy.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: nix.or.die@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make initializer for statically declared krefs
+     Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
 has been removed from the -mm tree.  Its filename was
-     make-initializer-for-statically-declared-krefs.patch
+     fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make initializer for statically declared krefs
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
+From: Gabriel C <nix.or.die@googlemail.com>
 
-Since the struct kref already has the _get, _put and _init routines, this
-seems useful to have an initializer for those statically declared (like for
-atomic_t or spinlock_t).
+I get this warnings on current git when CONFIG_PCI is not set :
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+drivers/scsi/fdomain.c:390: warning: 'PCI_dev' defined but not used
+drivers/scsi/fdomain.c:1768: warning: 'fdomain_pci_tbl' defined but not used
+
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/scsi/fdomain.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kref.h~make-initializer-for-statically-declared-krefs include/linux/kref.h
---- a/include/linux/kref.h~make-initializer-for-statically-declared-krefs
-+++ a/include/linux/kref.h
-@@ -24,6 +24,8 @@ struct kref {
- 	atomic_t refcount;
+diff -puN drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings drivers/scsi/fdomain.c
+--- a/drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings
++++ a/drivers/scsi/fdomain.c
+@@ -387,7 +387,9 @@ static void __iomem *    bios_mem;
+ static int               bios_major;
+ static int               bios_minor;
+ static int               PCI_bus;
++#ifdef CONFIG_PCI
+ static struct pci_dev	*PCI_dev;
++#endif
+ static int               Quantum;	/* Quantum board variant */
+ static int               interrupt_level;
+ static volatile int      in_command;
+@@ -1764,6 +1766,7 @@ struct scsi_host_template fdomain_driver
  };
  
-+#define INIT_KREF(count)	{ .refcount = ATOMIC_INIT(count), }
-+
- void kref_init(struct kref *kref);
- void kref_get(struct kref *kref);
- int kref_put(struct kref *kref, void (*release) (struct kref *kref));
-diff -puN init/version.c~make-initializer-for-statically-declared-krefs init/version.c
---- a/init/version.c~make-initializer-for-statically-declared-krefs
-+++ a/init/version.c
-@@ -19,9 +19,7 @@
- int version_string(LINUX_VERSION_CODE);
+ #ifndef PCMCIA
++#ifdef CONFIG_PCI
  
- struct uts_namespace init_uts_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.name = {
- 		.sysname	= UTS_SYSNAME,
- 		.nodename	= UTS_NODENAME,
-diff -puN ipc/util.c~make-initializer-for-statically-declared-krefs ipc/util.c
---- a/ipc/util.c~make-initializer-for-statically-declared-krefs
-+++ a/ipc/util.c
-@@ -45,9 +45,7 @@ struct ipc_proc_iface {
+ static struct pci_device_id fdomain_pci_tbl[] __devinitdata = {
+ 	{ PCI_VENDOR_ID_FD, PCI_DEVICE_ID_FD_36C70,
+@@ -1771,7 +1774,7 @@ static struct pci_device_id fdomain_pci_
+ 	{ }
  };
- 
- struct ipc_namespace init_ipc_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- };
- 
- static struct ipc_namespace *clone_ipc_ns(struct ipc_namespace *old_ns)
-diff -puN kernel/pid.c~make-initializer-for-statically-declared-krefs kernel/pid.c
---- a/kernel/pid.c~make-initializer-for-statically-declared-krefs
-+++ a/kernel/pid.c
-@@ -61,9 +61,7 @@ static inline int mk_pid(struct pid_name
-  * the scheme scales to up to 4 million PIDs, runtime.
-  */
- struct pid_namespace init_pid_ns = {
--	.kref = {
--		.refcount       = ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.pidmap = {
- 		[ 0 ... PIDMAP_ENTRIES-1] = { ATOMIC_INIT(BITS_PER_PAGE), NULL }
- 	},
-diff -puN kernel/user_namespace.c~make-initializer-for-statically-declared-krefs kernel/user_namespace.c
---- a/kernel/user_namespace.c~make-initializer-for-statically-declared-krefs
-+++ a/kernel/user_namespace.c
-@@ -11,9 +11,7 @@
- #include <linux/user_namespace.h>
- 
- struct user_namespace init_user_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
-+	.kref = INIT_KREF(2),
- 	.root_user = &root_user,
- };
+ MODULE_DEVICE_TABLE(pci, fdomain_pci_tbl);
+-
++#endif
+ #define driver_template fdomain_driver_template
+ #include "scsi_module.c"
  
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
-make-initializer-for-statically-declared-krefs.patch
-git-net.patch
-git-nfsd.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-use-task_pid_nr-instead-of-pid_nrtask_pid.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+git-powerpc.patch
+git-kbuild.patch
+git-kvm.patch
+git-scsi-misc.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
