@@ -1,148 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - pci-implement-pci=noaer.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:10:48 -0700
-Message-ID: <200710102110.l9ALAmGw025959@imap1.linux-foundation.org>
+Subject: - funsoft-fix-termios.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:11:10 -0700
+Message-ID: <200710102111.l9ALBA1o026024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38862 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753729AbXJJVVR (ORCPT
+	by vger.kernel.org with ESMTP id S1756270AbXJJVVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:21:17 -0400
+	Wed, 10 Oct 2007 17:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: implement "pci=noaer"
+     funsoft: fix termios
 has been removed from the -mm tree.  Its filename was
-     pci-implement-pci=noaer.patch
+     funsoft-fix-termios.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pci: implement "pci=noaer"
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: funsoft: fix termios
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-For cases in which CONFIG_PCIEAER=y (such as distro kernels), allow users
-to disable PCIE Advanced Error Reporting by using "pci=noaer" on the kernel
-command line.
+Funsoft has a bogus ioctl handler doing bogus termios handling in a bogus
+manner. Fortunately we can simply delete all the bogus bits and get the
+right default behaviour !
 
-This can be used to work around hardware or (kernel) software problems.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN Documentation/kernel-parameters.txt~pci-implement-pci=noaer Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~pci-implement-pci=noaer
-+++ a/Documentation/kernel-parameters.txt
-@@ -67,6 +67,7 @@ parameter is applicable:
- 	PARIDE	The ParIDE (parallel port IDE) subsystem is enabled.
- 	PARISC	The PA-RISC architecture is enabled.
- 	PCI	PCI bus support is enabled.
-+	PCIE	PCI Express support is enabled.
- 	PCMCIA	The PCMCIA subsystem is enabled.
- 	PNP	Plug & Play support is enabled.
- 	PPC	PowerPC architecture is enabled.
-@@ -1274,6 +1275,9 @@ and is between 256 and 4096 characters. 
- 				Mechanism 1.
- 		conf2		[X86-32] Force use of PCI Configuration
- 				Mechanism 2.
-+		noaer		[PCIE] If the PCIEAER kernel config parameter is
-+				enabled, this kernel boot option can be used to
-+				disable the use of PCIE advanced error reporting.
- 		nommconf	[X86-32,X86_64] Disable use of MMCONFIG for PCI
- 				Configuration
- 		nomsi		[MSI] If the PCI_MSI kernel config parameter is
-diff -puN drivers/pci/pci.c~pci-implement-pci=noaer drivers/pci/pci.c
---- a/drivers/pci/pci.c~pci-implement-pci=noaer
-+++ a/drivers/pci/pci.c
-@@ -1586,6 +1586,8 @@ static int __devinit pci_setup(char *str
- 		if (*str && (str = pcibios_setup(str)) && *str) {
- 			if (!strcmp(str, "nomsi")) {
- 				pci_no_msi();
-+			} else if (!strcmp(str, "noaer")) {
-+				pci_no_aer();
- 			} else if (!strncmp(str, "cbiosize=", 9)) {
- 				pci_cardbus_io_size = memparse(str + 9, &str);
- 			} else if (!strncmp(str, "cbmemsize=", 10)) {
-diff -puN drivers/pci/pci.h~pci-implement-pci=noaer drivers/pci/pci.h
---- a/drivers/pci/pci.h~pci-implement-pci=noaer
-+++ a/drivers/pci/pci.h
-@@ -51,6 +51,12 @@ void pci_restore_msi_state(struct pci_de
- static inline void pci_restore_msi_state(struct pci_dev *dev) {}
- #endif
+diff -puN drivers/usb/serial/funsoft.c~funsoft-fix-termios drivers/usb/serial/funsoft.c
+--- a/drivers/usb/serial/funsoft.c~funsoft-fix-termios
++++ a/drivers/usb/serial/funsoft.c
+@@ -24,26 +24,6 @@ static struct usb_device_id id_table [] 
+ };
+ MODULE_DEVICE_TABLE(usb, id_table);
  
-+#ifdef CONFIG_PCIEAER
-+void pci_no_aer(void);
-+#else
-+static inline void pci_no_aer(void) { }
-+#endif
-+
- static inline int pci_no_d1d2(struct pci_dev *dev)
- {
- 	unsigned int parent_dstates = 0;
-diff -puN drivers/pci/pcie/aer/aerdrv.c~pci-implement-pci=noaer drivers/pci/pcie/aer/aerdrv.c
---- a/drivers/pci/pcie/aer/aerdrv.c~pci-implement-pci=noaer
-+++ a/drivers/pci/pcie/aer/aerdrv.c
-@@ -81,6 +81,13 @@ static struct pcie_port_service_driver a
- 	.reset_link	= aer_root_reset,
+-static int funsoft_ioctl(struct usb_serial_port *port, struct file *file,
+-			 unsigned int cmd, unsigned long arg)
+-{
+-	struct ktermios t;
+-
+-	dbg("%s - port %d, cmd 0x%04x", __FUNCTION__, port->number, cmd);
+-
+-	if (cmd == TCSETSF) {
+-		if (user_termios_to_kernel_termios(&t, (struct termios __user *)arg))
+-			return -EFAULT;
+-
+-		dbg("%s - iflag:%x oflag:%x cflag:%x lflag:%x", __FUNCTION__,
+-		    t.c_iflag, t.c_oflag, t.c_cflag, t.c_lflag);
+-
+-		if (!(t.c_lflag & ICANON))
+-			return -EINVAL;
+-	}
+-	return -ENOIOCTLCMD;
+-}
+-
+ static struct usb_driver funsoft_driver = {
+ 	.name =		"funsoft",
+ 	.probe =	usb_serial_probe,
+@@ -63,7 +43,6 @@ static struct usb_serial_driver funsoft_
+ 	.num_bulk_in =		NUM_DONT_CARE,
+ 	.num_bulk_out =		NUM_DONT_CARE,
+ 	.num_ports =		1,
+-	.ioctl =		funsoft_ioctl,
  };
  
-+static int pcie_aer_disable;
-+
-+void pci_no_aer(void)
-+{
-+	pcie_aer_disable = 1;	/* has priority over 'forceload' */
-+}
-+
- /**
-  * aer_irq - Root Port's ISR
-  * @irq: IRQ assigned to Root Port
-@@ -327,6 +334,8 @@ static void aer_error_resume(struct pci_
-  **/
- static int __init aer_service_init(void)
- {
-+	if (pcie_aer_disable)
-+		return -ENXIO;
- 	return pcie_port_service_register(&aerdriver);
- }
- 
+ static int __init funsoft_init(void)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-git-mtd.patch
-git-net.patch
-git-nfsd.patch
+git-libata-all.patch
+introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+serial_txx9-cleanup-includes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+8250_pci-autodetect-mainpine-cards.patch
+8250_pci-autodetect-mainpine-cards-fix.patch
+wake-up-from-a-serial-port.patch
 git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-video-gfx-merge-kconfig-menus.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+initio-fix-conflict-when-loading-driver.patch
+geode-mfgpt-support-for-geode-class-machines.patch
+geode-mfgpt-clock-event-device-support.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+blackfin-enable-arbitary-speed-serial-setting.patch
+tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
