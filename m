@@ -1,104 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - menuconfig-distinguish-between-selected-by-another-options-and-comments.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:10:44 -0700
-Message-ID: <200710102110.l9ALAimd025952@imap1.linux-foundation.org>
+Subject: - kgdb-fix-help-text.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:11:06 -0700
+Message-ID: <200710102111.l9ALB6U2025998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54196 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56592 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756583AbXJJVWF (ORCPT
+	by vger.kernel.org with ESMTP id S1755942AbXJJVWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:22:05 -0400
+	Wed, 10 Oct 2007 17:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: strohel@gmail.com, randy.dunlap@oracle.com, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     menuconfig: distinguish between selected-by-another options and comments
+     kgdb: fix help text
 has been removed from the -mm tree.  Its filename was
-     menuconfig-distinguish-between-selected-by-another-options-and-comments.patch
+     kgdb-fix-help-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: menuconfig: distinguish between selected-by-another options and comments
-From: Matej Laitl <strohel@gmail.com>
+Subject: kgdb: fix help text
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-menuconfig currently represents options implied by another option ('select'
-directive in Kconfig) by prefixing them with '---'.  Unfortunately the same
-notation is used for comments.  If the implied option is module capable,
-user can still switch between Y and M, all without any feedback until she
-visits option's help.  (try saying M to MAC80211 and then toggling
-CFG80211)
+Fix kgdb help text typos, grammar, config symbol names, and indentation.
 
-This patch changes notation of selected-by-another items by introducing 2
-new representations for implied options: {*} or {M} for options selected by
-another modularized one, thus builtin or module capable, -*- or -M- for
-options that cannot be at the moment changed by user.
-
-The idea is to represent actual capability of the option by braces (dashes)
-around and to always report actual state by * or M inside.
-
-Signed-off-by: Matej Laitl <strohel@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/mconf.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ lib/Kconfig.kgdb |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments scripts/kconfig/mconf.c
---- a/scripts/kconfig/mconf.c~menuconfig-distinguish-between-selected-by-another-options-and-comments
-+++ a/scripts/kconfig/mconf.c
-@@ -35,9 +35,13 @@ static const char mconf_readme[] = N_(
- "kernel parameters which are not really features, but must be\n"
- "entered in as decimal or hexadecimal numbers or possibly text.\n"
- "\n"
--"Menu items beginning with [*], <M> or [ ] represent features\n"
--"configured to be built in, modularized or removed respectively.\n"
--"Pointed brackets <> represent module capable features.\n"
-+"Menu items beginning with following braces represent features that\n"
-+"  [ ] can be built in or removed\n"
-+"  < > can be built in, modularized or removed\n"
-+"  { } can be built in or modularized (selected by other feature)\n"
-+"  - - are selected by other feature,\n"
-+"while *, M or whitespace inside braces means to build in, build as\n"
-+"a module or to exclude the feature respectively.\n"
- "\n"
- "To change any of these features, highlight it with the cursor\n"
- "keys and press <Y> to build it in, <M> to make it a module or\n"
-@@ -569,7 +573,7 @@ static void build_conf(struct menu *menu
- 				if (sym_is_changable(sym))
- 					item_make("[%c]", val == no ? ' ' : '*');
- 				else
--					item_make("---");
-+					item_make("-%c-", val == no ? ' ' : '*');
- 				item_set_tag('t');
- 				item_set_data(menu);
- 				break;
-@@ -579,10 +583,13 @@ static void build_conf(struct menu *menu
- 				case mod: ch = 'M'; break;
- 				default:  ch = ' '; break;
- 				}
--				if (sym_is_changable(sym))
--					item_make("<%c>", ch);
--				else
--					item_make("---");
-+				if (sym_is_changable(sym)) {
-+					if (sym->rev_dep.tri == mod)
-+						item_make("{%c}", ch);
-+					else
-+						item_make("<%c>", ch);
-+				} else
-+					item_make("-%c-", ch);
- 				item_set_tag('t');
- 				item_set_data(menu);
- 				break;
+diff -puN lib/Kconfig.kgdb~kgdb-fix-help-text lib/Kconfig.kgdb
+--- a/lib/Kconfig.kgdb~kgdb-fix-help-text
++++ a/lib/Kconfig.kgdb
+@@ -27,15 +27,15 @@ config KGDB_ARCH_HAS_SHADOW_INFO
+ config KGDB_CONSOLE
+ 	bool "KGDB: Console messages through gdb"
+ 	depends on KGDB
+-	  help
+-	    If you say Y here, console messages will appear through gdb.
+-	    Other consoles such as tty or ttyS will continue to work as usual.
+-	    Note, that if you use this in conjunction with KGDB_ETH, if the
+-	    ethernet driver runs into an error condition during use with KGDB
+-	    it is possible to hit an infinite recusrion, causing the kernel
+-	    to crash, and typically reboot.  For this reason, it is preferable
+-	    to use NETCONSOLE in conjunction with KGDB_ETH instead of
+-	    KGDB_CONSOLE.
++	help
++	  If you say Y here, console messages will appear through gdb.
++	  Other consoles such as tty or ttyS will continue to work as usual.
++	  Note that if you use this in conjunction with KGDBOE, if the
++	  ethernet driver runs into an error condition during use with KGDB,
++	  it is possible to hit an infinite recursion, causing the kernel
++	  to crash, and typically reboot.  For this reason, it is preferable
++	  to use NETCONSOLE in conjunction with KGDBOE instead of
++	  KGDB_CONSOLE.
+ 
+ choice
+ 	prompt "Method for KGDB communication"
+@@ -106,7 +106,7 @@ config KGDB_TXX9
+ 	bool "KGDB: On TX49xx serial port"
+ 	depends on MIPS && CPU_TX49XX
+ 	help
+-	  Uses TX49xx serial port to communicate with the host KGDB.
++	  Uses TX49xx serial port to communicate with the host GDB.
+ 
+ config KGDB_SH_SCI
+ 	bool "KGDB: On SH SCI(F) serial port"
+@@ -251,20 +251,18 @@ config KGDB_8250_CONF_STRING
+ 	depends on KGDB_8250_NOMODULE && !KGDB_SIMPLE_SERIAL
+ 	default "io,2f8,115200,3" if X86
+ 	help
+-	  The format of this string should be <io or
+-	  mmio>,<address>,<baud rate>,<irq>.  For example, to use the
+-	  serial port on an i386 box located at 0x2f8 and 115200 baud
+-	  on IRQ 3 at use:
+-	  io,2f8,115200,3
++	  The format of this string should be <io or mmio>,
++	  <address>,<baud rate>,<irq>.  For example, on an i386 box,
++	  to use the serial port located at 0x2f8, IRQ 3, at 115200 baud
++	  use:  io,2f8,115200,3
+ 
+ config KGDB_ATTACH_WAIT
+ 	bool "KGDB: Wait for debugger to attach on an unknown exception"
+ 	default y if KGDB_8250_NOMODULE
+ 	default n if !KGDB_8250_NOMODULE
+-	  help
+-	    If a panic occurs, or any kind of exception the kgdb will
+-	    stop and wait for a debugger to attach.  This sets the
+-	    default behavior for waiting for the debugger to attach.  This
+-	    value can also be changed at runtime through
+-	    /sys/module/kgdb/paramaters/attachwait
+-
++	help
++	  If a panic occurs, or any kind of exception, the kgdb will
++	  stop and wait for a debugger to attach.  This sets the
++	  default behavior for waiting for the debugger to attach.  This
++	  value can also be changed at runtime through
++	  /sys/module/kgdb/parameters/attachwait
 _
 
-Patches currently in -mm which might be from strohel@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
 git-kbuild.patch
+git-mtd.patch
+git-net.patch
+git-nfsd.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+dontdiff-update-based-on-gitignore-updates.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
