@@ -1,140 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - kgdb-fix-help-text.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:11:06 -0700
-Message-ID: <200710102111.l9ALB6U2025998@imap1.linux-foundation.org>
+Subject: - tristate-choices-with-mixed-tristate-and-boolean.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:10:41 -0700
+Message-ID: <200710102110.l9ALAfQK025949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755942AbXJJVWG (ORCPT
+	by vger.kernel.org with ESMTP id S1756628AbXJJVWk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:22:06 -0400
+	Wed, 10 Oct 2007 17:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kgdb: fix help text
+     tristate choices with mixed tristate and boolean values
 has been removed from the -mm tree.  Its filename was
-     kgdb-fix-help-text.patch
+     tristate-choices-with-mixed-tristate-and-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kgdb: fix help text
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: tristate choices with mixed tristate and boolean values
+From: "Jan Beulich" <jbeulich@novell.com>
 
-Fix kgdb help text typos, grammar, config symbol names, and indentation.
+Change kconfig behavior so that mixing bool and tristate config settings in
+a choice is possible and has the desired effect of offering just the
+tristate options individually if the choice gets set to M, and a normal
+boolean selection if the choice gets set to Y.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kgdb |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ scripts/kconfig/menu.c |   35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN lib/Kconfig.kgdb~kgdb-fix-help-text lib/Kconfig.kgdb
---- a/lib/Kconfig.kgdb~kgdb-fix-help-text
-+++ a/lib/Kconfig.kgdb
-@@ -27,15 +27,15 @@ config KGDB_ARCH_HAS_SHADOW_INFO
- config KGDB_CONSOLE
- 	bool "KGDB: Console messages through gdb"
- 	depends on KGDB
--	  help
--	    If you say Y here, console messages will appear through gdb.
--	    Other consoles such as tty or ttyS will continue to work as usual.
--	    Note, that if you use this in conjunction with KGDB_ETH, if the
--	    ethernet driver runs into an error condition during use with KGDB
--	    it is possible to hit an infinite recusrion, causing the kernel
--	    to crash, and typically reboot.  For this reason, it is preferable
--	    to use NETCONSOLE in conjunction with KGDB_ETH instead of
--	    KGDB_CONSOLE.
-+	help
-+	  If you say Y here, console messages will appear through gdb.
-+	  Other consoles such as tty or ttyS will continue to work as usual.
-+	  Note that if you use this in conjunction with KGDBOE, if the
-+	  ethernet driver runs into an error condition during use with KGDB,
-+	  it is possible to hit an infinite recursion, causing the kernel
-+	  to crash, and typically reboot.  For this reason, it is preferable
-+	  to use NETCONSOLE in conjunction with KGDBOE instead of
-+	  KGDB_CONSOLE.
+diff -puN scripts/kconfig/menu.c~tristate-choices-with-mixed-tristate-and-boolean scripts/kconfig/menu.c
+--- a/scripts/kconfig/menu.c~tristate-choices-with-mixed-tristate-and-boolean
++++ a/scripts/kconfig/menu.c
+@@ -235,16 +235,23 @@ void menu_finalize(struct menu *parent)
+ 	sym = parent->sym;
+ 	if (parent->list) {
+ 		if (sym && sym_is_choice(sym)) {
+-			/* find the first choice value and find out choice type */
++			/* find out choice type */
++			enum symbol_type type = S_UNKNOWN;
++
+ 			for (menu = parent->list; menu; menu = menu->next) {
+-				if (menu->sym) {
+-					current_entry = parent;
+-					menu_set_type(menu->sym->type);
+-					current_entry = menu;
+-					menu_set_type(sym->type);
+-					break;
++				if (menu->sym && menu->sym->type != S_UNKNOWN) {
++					if (type == S_UNKNOWN)
++						type = menu->sym->type;
++					if (type != S_BOOLEAN)
++						break;
++					if (menu->sym->type == S_TRISTATE) {
++						type = S_TRISTATE;
++						break;
++					}
+ 				}
+ 			}
++			current_entry = parent;
++			menu_set_type(type);
+ 			parentdep = expr_alloc_symbol(sym);
+ 		} else if (parent->prompt)
+ 			parentdep = parent->prompt->visible.expr;
+@@ -253,7 +260,16 @@ void menu_finalize(struct menu *parent)
  
- choice
- 	prompt "Method for KGDB communication"
-@@ -106,7 +106,7 @@ config KGDB_TXX9
- 	bool "KGDB: On TX49xx serial port"
- 	depends on MIPS && CPU_TX49XX
- 	help
--	  Uses TX49xx serial port to communicate with the host KGDB.
-+	  Uses TX49xx serial port to communicate with the host GDB.
- 
- config KGDB_SH_SCI
- 	bool "KGDB: On SH SCI(F) serial port"
-@@ -251,20 +251,18 @@ config KGDB_8250_CONF_STRING
- 	depends on KGDB_8250_NOMODULE && !KGDB_SIMPLE_SERIAL
- 	default "io,2f8,115200,3" if X86
- 	help
--	  The format of this string should be <io or
--	  mmio>,<address>,<baud rate>,<irq>.  For example, to use the
--	  serial port on an i386 box located at 0x2f8 and 115200 baud
--	  on IRQ 3 at use:
--	  io,2f8,115200,3
-+	  The format of this string should be <io or mmio>,
-+	  <address>,<baud rate>,<irq>.  For example, on an i386 box,
-+	  to use the serial port located at 0x2f8, IRQ 3, at 115200 baud
-+	  use:  io,2f8,115200,3
- 
- config KGDB_ATTACH_WAIT
- 	bool "KGDB: Wait for debugger to attach on an unknown exception"
- 	default y if KGDB_8250_NOMODULE
- 	default n if !KGDB_8250_NOMODULE
--	  help
--	    If a panic occurs, or any kind of exception the kgdb will
--	    stop and wait for a debugger to attach.  This sets the
--	    default behavior for waiting for the debugger to attach.  This
--	    value can also be changed at runtime through
--	    /sys/module/kgdb/paramaters/attachwait
--
-+	help
-+	  If a panic occurs, or any kind of exception, the kgdb will
-+	  stop and wait for a debugger to attach.  This sets the
-+	  default behavior for waiting for the debugger to attach.  This
-+	  value can also be changed at runtime through
-+	  /sys/module/kgdb/parameters/attachwait
+ 		for (menu = parent->list; menu; menu = menu->next) {
+ 			basedep = expr_transform(menu->dep);
+-			basedep = expr_alloc_and(expr_copy(parentdep), basedep);
++			dep = parentdep;
++			if (sym && sym_is_choice(sym) && menu->sym) {
++				enum symbol_type type = menu->sym->type;
++
++				if (type == S_UNKNOWN)
++					type = sym->type;
++			     if (type != S_TRISTATE)
++					dep = expr_alloc_comp(E_EQUAL, sym, &symbol_yes);
++			}
++			basedep = expr_alloc_and(expr_copy(dep), basedep);
+ 			basedep = expr_eliminate_dups(basedep);
+ 			menu->dep = basedep;
+ 			if (menu->sym)
+@@ -326,7 +342,8 @@ void menu_finalize(struct menu *parent)
+ 					    "values not supported");
+ 			}
+ 			current_entry = menu;
+-			menu_set_type(sym->type);
++			if (menu->sym->type == S_UNKNOWN)
++				menu_set_type(sym->type);
+ 			menu_add_symbol(P_CHOICE, sym, NULL);
+ 			prop = sym_get_choice_prop(sym);
+ 			for (ep = &prop->expr; *ep; ep = &(*ep)->left.expr)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
 git-kbuild.patch
-git-mtd.patch
-git-net.patch
-git-nfsd.patch
-git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-video-gfx-merge-kconfig-menus.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+revert-x86_64-mm-cpa-einval.patch
+floppy-tolerate-dma-channel-unavailability.patch
+cleanup-floppyh.patch
+handle-recursive-calls-to-bust_spinlocks.patch
+store-__setup_str_-in-a-more-compact-way.patch
+constify-string-array-kparam-tracking-structures.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+pnp-dont-fail-device-init-if-no-dma-channel.patch
