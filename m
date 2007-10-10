@@ -1,78 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch removed from -mm tree
-Date: Wed, 10 Oct 2007 14:10:56 -0700
-Message-ID: <200710102110.l9ALAuum025974@imap1.linux-foundation.org>
+Subject: - remove-dead-references-to-module_parm-macro.patch removed from -mm tree
+Date: Wed, 10 Oct 2007 14:10:54 -0700
+Message-ID: <200710102110.l9ALAsqT025971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55637 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34564 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752439AbXJJVVI (ORCPT
+	by vger.kernel.org with ESMTP id S1752988AbXJJVVJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 17:21:08 -0400
+	Wed, 10 Oct 2007 17:21:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nix.or.die@googlemail.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
+     Remove dead references to MODULE_PARM macro
 has been removed from the -mm tree.  Its filename was
-     fix-drivers-scsi-fdomainc-config_pci=n-warnings.patch
+     remove-dead-references-to-module_parm-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix drivers/scsi/fdomain.c CONFIG_PCI=n warnings
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: Remove dead references to MODULE_PARM macro
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-I get this warnings on current git when CONFIG_PCI is not set :
+Remove the useless references to the obsolete MODULE_PARM macro.
 
-drivers/scsi/fdomain.c:390: warning: 'PCI_dev' defined but not used
-drivers/scsi/fdomain.c:1768: warning: 'fdomain_pci_tbl' defined but not used
-
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fdomain.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/scsi/ibmmca.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings drivers/scsi/fdomain.c
---- a/drivers/scsi/fdomain.c~fix-drivers-scsi-fdomainc-config_pci=n-warnings
-+++ a/drivers/scsi/fdomain.c
-@@ -387,7 +387,9 @@ static void __iomem *    bios_mem;
- static int               bios_major;
- static int               bios_minor;
- static int               PCI_bus;
-+#ifdef CONFIG_PCI
- static struct pci_dev	*PCI_dev;
-+#endif
- static int               Quantum;	/* Quantum board variant */
- static int               interrupt_level;
- static volatile int      in_command;
-@@ -1764,6 +1766,7 @@ struct scsi_host_template fdomain_driver
- };
+diff -puN drivers/scsi/ibmmca.c~remove-dead-references-to-module_parm-macro drivers/scsi/ibmmca.c
+--- a/drivers/scsi/ibmmca.c~remove-dead-references-to-module_parm-macro
++++ a/drivers/scsi/ibmmca.c
+@@ -460,13 +460,6 @@ module_param(boot_options, charp, 0);
+ module_param_array(io_port, int, NULL, 0);
+ module_param_array(scsi_id, int, NULL, 0);
  
- #ifndef PCMCIA
-+#ifdef CONFIG_PCI
- 
- static struct pci_device_id fdomain_pci_tbl[] __devinitdata = {
- 	{ PCI_VENDOR_ID_FD, PCI_DEVICE_ID_FD_36C70,
-@@ -1771,7 +1774,7 @@ static struct pci_device_id fdomain_pci_
- 	{ }
- };
- MODULE_DEVICE_TABLE(pci, fdomain_pci_tbl);
+-#if 0 /* FIXME: No longer exist? --RR */
+-MODULE_PARM(display, "1i");
+-MODULE_PARM(adisplay, "1i");
+-MODULE_PARM(normal, "1i");
+-MODULE_PARM(ansi, "1i");
+-#endif
 -
-+#endif
- #define driver_template fdomain_driver_template
- #include "scsi_module.c"
- 
+ MODULE_LICENSE("GPL");
+ #endif
+ /*counter of concurrent disk read/writes, to turn on/off disk led */
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
+git-avr32.patch
 git-powerpc.patch
-git-kbuild.patch
+git-dvb.patch
 git-kvm.patch
+git-mtd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-s390.patch
+git-sh64.patch
 git-scsi-misc.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+m68knommu-remove-unused-config-symbol-config_disktel.patch
+m32r-serial-remove-m32r_sio_share_irqs.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+remove-valueless-definition-of-hard-selected-ramfs-option.patch
+remove-final-traces-of-long-deprecated-ramdisk-kernel.patch
+add-a-rounddown_pow_of_two-routine-to-log2h.patch
+add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
+ipc-namespace-remove-config-ipc-ns-fix.patch
+delete-gcc-295-compatible-structure-definition.patch
+documentation-delete-unreferenced-xterm-linuxxpm-file.patch
