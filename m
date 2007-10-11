@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-mtd-fixup.patch added to -mm tree
-Date: Wed, 10 Oct 2007 22:39:12 -0700
-Message-ID: <200710110545.l9B5jQD2013062@imap1.linux-foundation.org>
+Subject: + pnp-use-dev_info-dev_err-etc-in-core-fix.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:42:22 -0700
+Message-ID: <200710110548.l9B5madH013200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43589 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751958AbXJKFp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753430AbXJKFsy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 01:45:29 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9B5jQKG013617
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2007 22:45:27 -0700
+	Thu, 11 Oct 2007 01:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, lenb@kernel.org
 
 
 The patch titled
-     git-mtd-fixup
+     pnp-use-dev_info-dev_err-etc-in-core-fix
 has been added to the -mm tree.  Its filename is
-     git-mtd-fixup.patch
+     pnp-use-dev_info-dev_err-etc-in-core-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,32 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd-fixup
+Subject: pnp-use-dev_info-dev_err-etc-in-core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+In file included from include/linux/isapnp.h:26,
+                 from drivers/pcmcia/i82365.c:58:
+include/linux/pnp.h:12:1: warning: "DEBUG" redefined
+<command line>:1:1: warning: this is the location of the previous definition
+
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/cafe_nand.c |    5 -----
- 1 file changed, 5 deletions(-)
+ include/linux/pnp.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/mtd/nand/cafe_nand.c~git-mtd-fixup drivers/mtd/nand/cafe_nand.c
---- a/drivers/mtd/nand/cafe_nand.c~git-mtd-fixup
-+++ a/drivers/mtd/nand/cafe_nand.c
-@@ -821,13 +821,8 @@ static void __devexit cafe_nand_remove(s
- }
+diff -puN drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/card.c
+diff -puN drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/driver.c
+diff -puN drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/interface.c
+diff -puN drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/manager.c
+diff -puN drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/quirks.c
+diff -puN drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/resource.c
+diff -puN include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix
++++ a/include/linux/pnp.h
+@@ -8,10 +8,6 @@
  
- static struct pci_device_id cafe_nand_tbl[] = {
--<<<<<<< HEAD/drivers/mtd/nand/cafe_nand.c
--	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_MEMORY_FLASH << 8, 0xFFFF0 },
--	{ 0, }
--=======
- 	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID },
- 	{ }
-->>>>>>> /drivers/mtd/nand/cafe_nand.c
- };
+ #ifdef __KERNEL__
  
- MODULE_DEVICE_TABLE(pci, cafe_nand_tbl);
+-#ifdef CONFIG_PNP_DEBUG
+-#define DEBUG
+-#endif
+-
+ #include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -276,3 +283,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
