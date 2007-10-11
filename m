@@ -1,57 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + writeback-dont-propagate-aop_writepage_activate.patch added to -mm tree
-Date: Thu, 11 Oct 2007 14:48:24 -0700
-Message-ID: <200710112148.l9BLmOZi017128@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Thu, 11 Oct 2007 15:13:56 -0700
+Message-ID: <200710112220.l9BMKEX5018395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754893AbXJKVss (ORCPT
+	by vger.kernel.org with ESMTP id S1752552AbXJKWUY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 17:48:48 -0400
+	Thu, 11 Oct 2007 18:20:24 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9BMKKhQ018860
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2007 15:20:23 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, stable@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
-has been added to the -mm tree.  Its filename is
-     writeback-dont-propagate-aop_writepage_activate.patch
+     git-mips-fixup
+has been removed from the -mm tree.  Its filename was
+     git-mips-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This is a writeback-internal marker but we're propagating it all the way back
-to userspace!.
-
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ arch/mips/Makefile               |   20 ++++++++++++++++++++
+ arch/mips/lemote/lm2e/Makefile   |    1 -
+ arch/mips/sibyte/common/Makefile |    1 -
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate
-+++ a/mm/page-writeback.c
-@@ -850,8 +850,10 @@ retry:
+diff -puN arch/mips/Makefile~git-mips-fixup arch/mips/Makefile
+--- a/arch/mips/Makefile~git-mips-fixup
++++ a/arch/mips/Makefile
+@@ -588,6 +588,26 @@ else
+ JIFFIES			= jiffies_64
+ endif
  
- 			ret = (*writepage)(page, wbc, data);
++#
++# Automatically detect the build format. By default we choose
++# the elf format according to the load address.
++# We can always force a build with a 64-bits symbol format by
++# passing 'KBUILD_SYM32=no' option to the make's command line.
++#
++ifdef CONFIG_64BIT
++  ifndef KBUILD_SYM32
++    ifeq ($(shell expr $(load-y) \< 0xffffffff80000000), 0)
++      KBUILD_SYM32 = y
++    endif
++  endif
++
++  ifeq ($(KBUILD_SYM32), y)
++    ifeq ($(call cc-option-yn,-msym32), y)
++      cflags-y += -msym32 -DKBUILD_64BIT_SYM32
++    endif
++  endif
++endif
++
+ KBUILD_AFLAGS	+= $(cflags-y)
+ KBUILD_CFLAGS	+= $(cflags-y) \
+ 			-D"VMLINUX_LOAD_ADDRESS=$(load-y)"
+diff -puN arch/mips/lemote/lm2e/Makefile~git-mips-fixup arch/mips/lemote/lm2e/Makefile
+--- a/arch/mips/lemote/lm2e/Makefile~git-mips-fixup
++++ a/arch/mips/lemote/lm2e/Makefile
+@@ -4,5 +4,4 @@
  
--			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
-+			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE)) {
- 				unlock_page(page);
-+				ret = 0;
-+			}
- 			if (ret || (--(wbc->nr_to_write) <= 0))
- 				done = 1;
- 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
+ obj-y += setup.o prom.o reset.o irq.o pci.o bonito-irq.o dbg_io.o mem.o
+ 
+-EXTRA_AFLAGS := $(KBUILD_CFLAGS)
+ EXTRA_CFLAGS += -Werror
+diff -puN arch/mips/sibyte/common/Makefile~git-mips-fixup arch/mips/sibyte/common/Makefile
+--- a/arch/mips/sibyte/common/Makefile~git-mips-fixup
++++ a/arch/mips/sibyte/common/Makefile
+@@ -2,5 +2,4 @@ obj-y :=
+ 
+ obj-$(CONFIG_SIBYTE_TBPROF)		+= sb_tbprof.o
+ 
+-EXTRA_AFLAGS := $(KBUILD_CFLAGS)
+ EXTRA_CFLAGS += -Werror
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +113,6 @@ first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
 git-jg-misc-powernow-fix.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
