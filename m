@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-qos-infrastructure-and-interface-fix.patch added to -mm tree
-Date: Wed, 10 Oct 2007 23:50:52 -0700
-Message-ID: <200710110657.l9B6v6kl015584@imap1.linux-foundation.org>
+Subject: + mtd-alaudac-warning-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 00:02:06 -0700
+Message-ID: <200710110708.l9B78K2n015948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34097 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754262AbXJKG52 (ORCPT
+	by vger.kernel.org with ESMTP id S1751641AbXJKHI5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 02:57:28 -0400
+	Thu, 11 Oct 2007 03:08:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     pm-qos-infrastructure-and-interface-fix
+     mtd: alauda.c warning fix
 has been added to the -mm tree.  Its filename is
-     pm-qos-infrastructure-and-interface-fix.patch
+     mtd-alaudac-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-qos-infrastructure-and-interface-fix
+Subject: mtd: alauda.c warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/pm_qos_params.c: In function 'pm_qos_power_open':
-kernel/pm_qos_params.c:355: warning: cast to pointer from integer of different size
-kernel/pm_qos_params.c: In function 'pm_qos_power_release':
-kernel/pm_qos_params.c:370: warning: cast from pointer to integer of different size
-kernel/pm_qos_params.c: In function 'pm_qos_power_write':
-kernel/pm_qos_params.c:383: warning: cast from pointer to integer of different size
+drivers/mtd/nand/alauda.c: In function 'alauda_bounce_read':
+drivers/mtd/nand/alauda.c:412: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Mark Gross <mgross@linux.intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pm_qos_params.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/mtd/nand/alauda.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-fix kernel/pm_qos_params.c
---- a/kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-fix
-+++ a/kernel/pm_qos_params.c
-@@ -348,11 +348,11 @@ static char name[PID_NAME_LEN];
- static int pm_qos_power_open(struct inode *inode, struct file *filp)
- {
- 	int ret;
--	int pm_qos_class;
-+	long pm_qos_class;
+diff -puN drivers/mtd/nand/alauda.c~mtd-alaudac-warning-fix drivers/mtd/nand/alauda.c
+--- a/drivers/mtd/nand/alauda.c~mtd-alaudac-warning-fix
++++ a/drivers/mtd/nand/alauda.c
+@@ -408,7 +408,7 @@ static int alauda_bounce_read(struct mtd
+ 	*retlen = len;
+ 	while (len) {
+ 		u8 oob[16];
+-		u32 byte = from & al->bytemask;
++		size_t byte = from & al->bytemask;
+ 		size_t cplen = min(len, mtd->writesize - byte);
  
- 	pm_qos_class = find_pm_qos_object_by_minor(iminor(inode));
- 	if (pm_qos_class >= 0) {
--		filp->private_data = (void *) pm_qos_class;
-+		filp->private_data = (void *)pm_qos_class;
- 		sprintf(name, "process_%d", current->pid);
- 		ret = pm_qos_add_requirement(pm_qos_class, name,
- 					PM_QOS_DEFAULT_VALUE);
-@@ -367,7 +367,7 @@ static int pm_qos_power_release(struct i
- {
- 	int pm_qos_class;
- 
--	pm_qos_class = (int) filp->private_data;
-+	pm_qos_class = (long)filp->private_data;
- 	sprintf(name, "process_%d", current->pid);
- 	pm_qos_remove_requirement(pm_qos_class, name);
- 
-@@ -380,7 +380,7 @@ static ssize_t pm_qos_power_write(struct
- 	s32 value;
- 	int pm_qos_class;
- 
--	pm_qos_class = (int) filp->private_data;
-+	pm_qos_class = (long)filp->private_data;
- 	if (count != sizeof(s32))
- 		return -EINVAL;
- 	if (copy_from_user(&value, buf, sizeof(s32)))
+ 		err = alauda_read_page(mtd, from, bounce_buf, oob,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +164,7 @@ security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
 uml-clocksource-support-fix.patch
@@ -304,4 +276,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-pm-qos-infrastructure-and-interface-fix.patch
