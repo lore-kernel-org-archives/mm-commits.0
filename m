@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-libata-ehc-fix-printk-warning.patch added to -mm tree
-Date: Thu, 11 Oct 2007 02:47:56 -0700
-Message-ID: <200710110954.l9B9sAKv023222@imap1.linux-foundation.org>
+Subject: + optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 02:53:20 -0700
+Message-ID: <200710110959.l9B9xY3B023405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52277 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33958 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753065AbXJKJyW (ORCPT
+	by vger.kernel.org with ESMTP id S1751371AbXJKKBD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 05:54:22 -0400
+	Thu, 11 Oct 2007 06:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, ak@suse.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, hch@lst.de, linux-arch@vger.kernel.org, prasanna@in.ibm.com
 
 
 The patch titled
-     drivers/ata/libata-eh.c: fix printk warning
+     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
 has been added to the -mm tree.  Its filename is
-     drivers-ata-libata-ehc-fix-printk-warning.patch
+     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/ata/libata-eh.c: fix printk warning
+Subject: optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-eh.c: In function `ata_port_pbar_desc':
-drivers/ata/libata-eh.c:215: warning: long long unsigned int format, long unsigned int arg (arg 4)
+In file included from include/linux/kdebug.h:4,
+                 from kernel/notifier.c:1:
+include/asm/kdebug.h:4: warning: "struct pt_regs" declared inside parameter list
+include/asm/kdebug.h:4: warning: its scope is only this definition or declaration, which is probably not what you want
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-eh.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-sparc64/kdebug.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning drivers/ata/libata-eh.c
---- a/drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning
-+++ a/drivers/ata/libata-eh.c
-@@ -212,7 +212,7 @@ void ata_port_pbar_desc(struct ata_port 
- 	if (offset < 0)
- 		ata_port_desc(ap, "%s %s%llu@0x%llx", name, type, len, start);
- 	else
--		ata_port_desc(ap, "%s 0x%llx", name, start + offset);
-+		ata_port_desc(ap, "%s 0x%zx", name, start + offset);
- }
+diff -puN include/asm-sparc64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix include/asm-sparc64/kdebug.h
+--- a/include/asm-sparc64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
++++ a/include/asm-sparc64/kdebug.h
+@@ -1,6 +1,8 @@
+ #ifndef _SPARC64_KDEBUG_H
+ #define _SPARC64_KDEBUG_H
  
- #endif /* CONFIG_PCI */
++struct pt_regs;
++
+ extern void bad_trap(struct pt_regs *, long);
+ 
+ /* Grossly misnamed. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,6 +140,7 @@ x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
 convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
 git-xfs.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
 git-kgdb-fixup.patch
 git-kgdb-be-modern.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
