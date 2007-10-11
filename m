@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-use-dev_info-dev_err-etc-in-core-fix.patch added to -mm tree
-Date: Wed, 10 Oct 2007 22:42:22 -0700
-Message-ID: <200710110548.l9B5madH013200@imap1.linux-foundation.org>
+Subject: + pm-qos-infrastructure-and-interface-vs-git-acpi.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:48:14 -0700
+Message-ID: <200710110554.l9B5sTSM013390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43589 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60479 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753430AbXJKFsy (ORCPT
+	by vger.kernel.org with ESMTP id S1753976AbXJKFz0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 01:48:54 -0400
+	Thu, 11 Oct 2007 01:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, lenb@kernel.org
+Cc: akpm@linux-foundation.org, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     pnp-use-dev_info-dev_err-etc-in-core-fix
+     pm-qos-infrastructure-and-interface-vs-git-acpi
 has been added to the -mm tree.  Its filename is
-     pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+     pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pnp-use-dev_info-dev_err-etc-in-core-fix
+Subject: pm-qos-infrastructure-and-interface-vs-git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/isapnp.h:26,
-                 from drivers/pcmcia/i82365.c:58:
-include/linux/pnp.h:12:1: warning: "DEBUG" redefined
-<command line>:1:1: warning: this is the location of the previous definition
+drivers/cpuidle/cpuidle.c:15:27: error: linux/latency.h: No such file or directory
+drivers/cpuidle/cpuidle.c: In function 'cpuidle_init':
+drivers/cpuidle/cpuidle.c:290: error: implicit declaration of function 'register_latency_notifier'
 
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: mark gross <mgross@linux.intel.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pnp.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/cpuidle/cpuidle.c     |    7 +++++--
+ include/linux/pm_qos_params.h |    3 ++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/card.c
-diff -puN drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/driver.c
-diff -puN drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/interface.c
-diff -puN drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/manager.c
-diff -puN drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/quirks.c
-diff -puN drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core-fix drivers/pnp/resource.c
-diff -puN include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix
-+++ a/include/linux/pnp.h
-@@ -8,10 +8,6 @@
+diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi
++++ a/drivers/cpuidle/cpuidle.c
+@@ -12,7 +12,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
+ #include <linux/notifier.h>
+-#include <linux/latency.h>
++#include <linux/pm_qos_params.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuidle.h>
  
- #ifdef __KERNEL__
+@@ -266,7 +266,10 @@ static struct notifier_block cpuidle_lat
+ 	.notifier_call = cpuidle_latency_notify,
+ };
  
--#ifdef CONFIG_PNP_DEBUG
--#define DEBUG
--#endif
--
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/errno.h>
+-#define latency_notifier_init(x) do { register_latency_notifier(x); } while (0)
++static inline void latency_notifier_init(struct notifier_block *n)
++{
++        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
++}
+ 
+ #else /* CONFIG_SMP */
+ 
+diff -puN include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-vs-git-acpi include/linux/pm_qos_params.h
+--- a/include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-vs-git-acpi
++++ a/include/linux/pm_qos_params.h
+@@ -20,8 +20,9 @@ struct requirement_list {
+ #define PM_QOS_CPU_DMA_LATENCY 1
+ #define PM_QOS_NETWORK_LATENCY 2
+ #define PM_QOS_NETWORK_THROUGHPUT 3
++define PM_QOS_CPUIDLE 4
+ 
+-#define PM_QOS_NUM_CLASSES 4
++#define PM_QOS_NUM_CLASSES 5
+ #define PM_QOS_DEFAULT_VALUE -1
+ 
+ int pm_qos_add_requirement(int qos, char *name, s32 value);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -237,6 +257,7 @@ intel-iommu-iommu-floppy-workaround.patch
 jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
 peterz-vs-ext4-mballoc-core.patch
 64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
@@ -283,4 +304,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
