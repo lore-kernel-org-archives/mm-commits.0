@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-mtd-borkage.patch added to -mm tree
-Date: Wed, 10 Oct 2007 22:38:00 -0700
-Message-ID: <200710110544.l9B5iEeq013053@imap1.linux-foundation.org>
+Subject: + git-mtd-fixup.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:39:12 -0700
+Message-ID: <200710110545.l9B5jQD2013062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753537AbXJKFoY (ORCPT
+	by vger.kernel.org with ESMTP id S1751958AbXJKFp3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 01:44:24 -0400
+	Thu, 11 Oct 2007 01:45:29 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9B5jQKG013617
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2007 22:45:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-mtd-borkage
+     git-mtd-fixup
 has been added to the -mm tree.  Its filename is
-     git-mtd-borkage.patch
+     git-mtd-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +30,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd-borkage
+Subject: git-mtd-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/onenand/onenand_base.c: In function 'do_otp_write':
-drivers/mtd/onenand/onenand_base.c:2068: error: 'struct mtd_oob_ops' has no member named 'databuf'
-
-Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_base.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mtd/nand/cafe_nand.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/mtd/onenand/onenand_base.c~git-mtd-borkage drivers/mtd/onenand/onenand_base.c
---- a/drivers/mtd/onenand/onenand_base.c~git-mtd-borkage
-+++ a/drivers/mtd/onenand/onenand_base.c
-@@ -2065,7 +2065,6 @@ static int do_otp_write(struct mtd_info 
+diff -puN drivers/mtd/nand/cafe_nand.c~git-mtd-fixup drivers/mtd/nand/cafe_nand.c
+--- a/drivers/mtd/nand/cafe_nand.c~git-mtd-fixup
++++ a/drivers/mtd/nand/cafe_nand.c
+@@ -821,13 +821,8 @@ static void __devexit cafe_nand_remove(s
+ }
  
- 	ops.len = len;
- 	ops.ooblen = 0;
--	ops.databuf = pbuf;
- 	ops.oobbuf = NULL;
- 	ret = onenand_write_ops_nolock(mtd, to, &ops);
- 	*retlen = ops.retlen;
+ static struct pci_device_id cafe_nand_tbl[] = {
+-<<<<<<< HEAD/drivers/mtd/nand/cafe_nand.c
+-	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_MEMORY_FLASH << 8, 0xFFFF0 },
+-	{ 0, }
+-=======
+ 	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID },
+ 	{ }
+->>>>>>> /drivers/mtd/nand/cafe_nand.c
+ };
+ 
+ MODULE_DEVICE_TABLE(pci, cafe_nand_tbl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +93,8 @@ git-mmc-fixup2.patch
 mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
+git-mtd-fixup.patch
+git-mtd-borkage.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
@@ -159,6 +167,7 @@ file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
 uml-clocksource-support-fix.patch
 uml-tickless-support-fix.patch
 uml-fix-stub-address-calculations-checkpatch-fixes.patch
@@ -267,5 +276,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-git-mtd-borkage.patch
