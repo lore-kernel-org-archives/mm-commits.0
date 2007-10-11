@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-qos-infrastructure-and-interface-vs-git-acpi.patch added to -mm tree
-Date: Wed, 10 Oct 2007 22:13:53 -0700
-Message-ID: <200710110520.l9B5K854012226@imap1.linux-foundation.org>
+Subject: + git-block-borkages.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:18:02 -0700
+Message-ID: <200710110524.l9B5OHm2012375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33417 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356AbXJKFUh (ORCPT
+	by vger.kernel.org with ESMTP id S1752712AbXJKFYa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 01:20:37 -0400
+	Thu, 11 Oct 2007 01:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     pm-qos-infrastructure-and-interface-vs-git-acpi
+     git-block-borkages
 has been added to the -mm tree.  Its filename is
-     pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+     git-block-borkages.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,127 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-qos-infrastructure-and-interface-vs-git-acpi
+Subject: git-block-borkages
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/cpuidle/cpuidle.c:15:27: error: linux/latency.h: No such file or directory
-drivers/cpuidle/cpuidle.c: In function 'cpuidle_init':
-drivers/cpuidle/cpuidle.c:290: error: implicit declaration of function 'register_latency_notifier'
+fs/jfs/jfs_metapage.c: In function 'metapage_read_end_io':
+fs/jfs/jfs_metapage.c:295: warning: 'return' with a value, in function returning void
+fs/jfs/jfs_metapage.c: In function 'metapage_write_end_io':
+fs/jfs/jfs_metapage.c:352: warning: 'return' with a value, in function returning void
+fs/jfs/jfs_logmgr.c: In function 'lbmStartIO':
+fs/jfs/jfs_logmgr.c:2163: error: too many arguments to function 'lbmIODone'
+fs/jfs/jfs_logmgr.c: In function 'lbmIODone':
+fs/jfs/jfs_logmgr.c:2236: warning: 'return' with a value, in function returning void
+fs/jfs/jfs_logmgr.c:2261: warning: 'return' with a value, in function returning void
+fs/jfs/jfs_logmgr.c:2341: warning: 'return' with a value, in function returning void
+make[1]: *** [fs/jfs/jfs_logmgr.o] Error 1
+make: *** [fs/jfs/jfs_logmgr.o] Error 2
+make: *** Waiting for unfinished jobs....
+fs/gfs2/super.c: In function 'end_bio_io_page':
+fs/gfs2/super.c:171: warning: 'return' with a value, in function returning void
+fs/ocfs2/cluster/heartbeat.c: In function 'o2hb_setup_one_bio':
+fs/ocfs2/cluster/heartbeat.c:264: warning: assignment from incompatible pointer type
 
-Cc: mark gross <mgross@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/gfs2/super.c              |    1 -
+ fs/jfs/jfs_logmgr.c          |    7 +------
+ fs/jfs/jfs_metapage.c        |    3 ---
+ fs/ocfs2/cluster/heartbeat.c |    4 +---
+ 4 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -12,7 +12,7 @@
- #include <linux/mutex.h>
- #include <linux/sched.h>
- #include <linux/notifier.h>
--#include <linux/latency.h>
-+#include <linux/pm_qos_params.h>
- #include <linux/cpu.h>
- #include <linux/cpuidle.h>
+diff -puN fs/jfs/jfs_metapage.c~git-block-borkages fs/jfs/jfs_metapage.c
+--- a/fs/jfs/jfs_metapage.c~git-block-borkages
++++ a/fs/jfs/jfs_metapage.c
+@@ -291,8 +291,6 @@ static void metapage_read_end_io(struct 
  
-@@ -266,7 +266,10 @@ static struct notifier_block cpuidle_lat
- 	.notifier_call = cpuidle_latency_notify,
- };
+ 	dec_io(page, last_read_complete);
+ 	bio_put(bio);
+-
+-	return 0;
+ }
  
--#define latency_notifier_init(x) do { register_latency_notifier(x); } while (0)
-+static inline void latency_notifier_init(struct notifier_block *n)
-+{
-+        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
-+}
+ static void remove_from_logsync(struct metapage *mp)
+@@ -349,7 +347,6 @@ static void metapage_write_end_io(struct
+ 	}
+ 	dec_io(page, last_write_complete);
+ 	bio_put(bio);
+-	return 0;
+ }
  
- #else /* CONFIG_SMP */
+ static int metapage_writepage(struct page *page, struct writeback_control *wbc)
+diff -puN fs/jfs/jfs_logmgr.c~git-block-borkages fs/jfs/jfs_logmgr.c
+--- a/fs/jfs/jfs_logmgr.c~git-block-borkages
++++ a/fs/jfs/jfs_logmgr.c
+@@ -2160,7 +2160,7 @@ static void lbmStartIO(struct lbuf * bp)
+ 	/* check if journaling to disk has been disabled */
+ 	if (log->no_integrity) {
+ 		bio->bi_size = 0;
+-		lbmIODone(bio, 0, 0);
++		lbmIODone(bio, 0);
+ 	} else {
+ 		submit_bio(WRITE_SYNC, bio);
+ 		INCREMENT(lmStat.submitted);
+@@ -2232,8 +2232,6 @@ static void lbmIODone(struct bio *bio, i
  
+ 		/* wakeup I/O initiator */
+ 		LCACHE_WAKEUP(&bp->l_ioevent);
+-
+-		return 0;
+ 	}
+ 
+ 	/*
+@@ -2258,7 +2256,6 @@ static void lbmIODone(struct bio *bio, i
+ 	if (bp->l_flag & lbmDIRECT) {
+ 		LCACHE_WAKEUP(&bp->l_ioevent);
+ 		LCACHE_UNLOCK(flags);
+-		return 0;
+ 	}
+ 
+ 	tail = log->wqueue;
+@@ -2337,8 +2334,6 @@ static void lbmIODone(struct bio *bio, i
+ 
+ 		LCACHE_UNLOCK(flags);	/* unlock+enable */
+ 	}
+-
+-	return 0;
+ }
+ 
+ int jfsIOWait(void *arg)
+diff -puN fs/gfs2/super.c~git-block-borkages fs/gfs2/super.c
+--- a/fs/gfs2/super.c~git-block-borkages
++++ a/fs/gfs2/super.c
+@@ -168,7 +168,6 @@ static void end_bio_io_page(struct bio *
+ 	else
+ 		printk(KERN_WARNING "gfs2: error %d reading superblock\n", error);
+ 	unlock_page(page);
+-	return 0;
+ }
+ 
+ static void gfs2_sb_in(struct gfs2_sb_host *sb, const void *buf)
+diff -puN fs/ocfs2/cluster/heartbeat.c~git-block-borkages fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~git-block-borkages
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -216,8 +216,7 @@ static void o2hb_wait_on_io(struct o2hb_
+ 	wait_for_completion(&wc->wc_io_complete);
+ }
+ 
+-static int o2hb_bio_end_io(struct bio *bio,
+-			   int error)
++static void o2hb_bio_end_io(struct bio *bio, int error)
+ {
+ 	struct o2hb_bio_wait_ctxt *wc = bio->bi_private;
+ 
+@@ -228,7 +227,6 @@ static int o2hb_bio_end_io(struct bio *b
+ 
+ 	o2hb_bio_wait_dec(wc, 1);
+ 	bio_put(bio);
+-	return 0;
+ }
+ 
+ /* Setup a Bio to cover I/O against num_slots slots starting at
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,6 +254,7 @@ security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 uml-clocksource-support-fix.patch
 uml-tickless-support-fix.patch
 uml-fix-stub-address-calculations-checkpatch-fixes.patch
@@ -283,4 +363,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+git-block-borkages.patch
