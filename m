@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-rename-videobuf_qtype_opscopy_to_user.patch added to -mm tree
-Date: Thu, 11 Oct 2007 00:47:18 -0700
-Message-ID: <200710110753.l9B7rXjB017513@imap1.linux-foundation.org>
+Subject: + i386-and-x86_64-randomize-brk-2-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 01:11:13 -0700
+Message-ID: <200710110817.l9B8HRxa018301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49198 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35941 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754208AbXJKHyN (ORCPT
+	by vger.kernel.org with ESMTP id S1755582AbXJKIS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 03:54:13 -0400
+	Thu, 11 Oct 2007 04:18:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, apw@shadowen.org, arjan@infradead.org, jkosina@suse.cz, kamalesh@linux.vnet.ibm.com, vagabon.xyz@gmail.com
 
 
 The patch titled
-     git-dvb: rename videobuf_qtype_ops.copy_to_user()
+     i386-and-x86_64-randomize-brk-2-fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
+     i386-and-x86_64-randomize-brk-2-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb: rename videobuf_qtype_ops.copy_to_user()
+Subject: i386-and-x86_64-randomize-brk-2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Franck Bui-Huu <vagabon.xyz@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-core.c    |    2 +-
- drivers/media/video/videobuf-dma-sg.c  |    2 +-
- drivers/media/video/videobuf-vmalloc.c |    2 +-
- include/media/videobuf-core.h          |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/asm-ia64/elf.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user include/media/videobuf-core.h
---- a/include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/include/media/videobuf-core.h
-@@ -133,7 +133,7 @@ struct videobuf_qtype_ops {
- 				 enum v4l2_memory memory);
- 	int (*sync)		(struct videobuf_queue* q,
- 				 struct videobuf_buffer *buf);
--	int (*copy_to_user)	(struct videobuf_queue *q,
-+	int (*copy_user)	(struct videobuf_queue *q,
- 				 char __user *data,
- 				 size_t count,
- 				 int nonblocking);
-diff -puN drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-core.c
---- a/drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-core.c
-@@ -677,7 +677,7 @@ ssize_t videobuf_read_one(struct videobu
- 	}
+diff -puN include/asm-ia64/elf.h~i386-and-x86_64-randomize-brk-2-fix include/asm-ia64/elf.h
+--- a/include/asm-ia64/elf.h~i386-and-x86_64-randomize-brk-2-fix
++++ a/include/asm-ia64/elf.h
+@@ -249,8 +249,10 @@ do {									\
  
- 	/* Copy to userspace */
--	retval=CALL(q,copy_to_user,q,data,count,nonblocking);
-+	retval=CALL(q,copy_user,q,data,count,nonblocking);
- 	if (retval<0)
- 		goto done;
+ #endif /* __KERNEL__ */
  
-diff -puN drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-dma-sg.c
---- a/drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -670,7 +670,7 @@ static struct videobuf_qtype_ops pci_ops
- 	.sync         = __videobuf_sync,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
--	.copy_to_user = __videobuf_copy_to_user,
-+	.copy_user    = __videobuf_copy_to_user,
- 	.copy_stream  = __videobuf_copy_stream,
- };
- 
-diff -puN drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-vmalloc.c
---- a/drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-vmalloc.c
-@@ -320,7 +320,7 @@ static struct videobuf_qtype_ops qops = 
- 	.sync         = __videobuf_sync,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
--	.copy_to_user = __videobuf_copy_to_user,
-+	.copy_user    = __videobuf_copy_to_user,
- 	.copy_stream  = __videobuf_copy_stream,
- };
- 
++#endif /* _ASM_IA64_ELF_H */
++
++#ifndef IA64_IS_WEIRD
+ static inline void arch_randomize_brk(void)
+ {
+ }
+-
+-#endif /* _ASM_IA64_ELF_H */
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +97,7 @@ gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fixup.patch
 git-mtd-borkage.patch
+mtd-alaudac-warning-fix.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
@@ -222,6 +192,7 @@ printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 pie-executable-randomization-fix-2.patch
+i386-and-x86_64-randomize-brk-2-fix.patch
 binfmt_flat-warning-fixes.patch
 console-events-and-accessibility-fix.patch
 send-quota-messages-via-netlink-fix-fix.patch
