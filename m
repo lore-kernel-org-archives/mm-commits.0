@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 10 Oct 2007 19:33:26 -0700
-Message-ID: <200710110233.l9B2XQFl006640@imap1.linux-foundation.org>
+Subject: + pm-qos-infrastructure-and-interface-vs-git-acpi.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:13:53 -0700
+Message-ID: <200710110520.l9B5K854012226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755926AbXJKCeB (ORCPT
+	by vger.kernel.org with ESMTP id S1752356AbXJKFUh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 22:34:01 -0400
+	Thu, 11 Oct 2007 01:20:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, pj@sgi.com
+Cc: akpm@linux-foundation.org, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+     pm-qos-infrastructure-and-interface-vs-git-acpi
 has been added to the -mm tree.  Its filename is
-     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+     pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+Subject: pm-qos-infrastructure-and-interface-vs-git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#30: FILE: kernel/cpuset.c:494:
-+^I    ^I$
+drivers/cpuidle/cpuidle.c:15:27: error: linux/latency.h: No such file or directory
+drivers/cpuidle/cpuidle.c: In function 'cpuidle_init':
+drivers/cpuidle/cpuidle.c:290: error: implicit declaration of function 'register_latency_notifier'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Jackson <pj@sgi.com>
+Cc: mark gross <mgross@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cpuidle/cpuidle.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
-+++ a/kernel/cpuset.c
-@@ -491,7 +491,7 @@ static int validate_change(const struct 
- 	/* Cpusets with tasks can't have empty cpus_allowed or mems_allowed */
- 	if (cgroup_task_count(cur->css.cgroup)) {
- 		if (cpus_empty(trial->cpus_allowed) ||
--	    	    nodes_empty(trial->mems_allowed)) {
-+		    nodes_empty(trial->mems_allowed)) {
- 			return -ENOSPC;
- 		}
- 	}
+diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi
++++ a/drivers/cpuidle/cpuidle.c
+@@ -12,7 +12,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
+ #include <linux/notifier.h>
+-#include <linux/latency.h>
++#include <linux/pm_qos_params.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuidle.h>
+ 
+@@ -266,7 +266,10 @@ static struct notifier_block cpuidle_lat
+ 	.notifier_call = cpuidle_latency_notify,
+ };
+ 
+-#define latency_notifier_init(x) do { register_latency_notifier(x); } while (0)
++static inline void latency_notifier_init(struct notifier_block *n)
++{
++        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
++}
+ 
+ #else /* CONFIG_SMP */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -268,3 +283,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
