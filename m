@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + i386-and-x86_64-randomize-brk-2-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 01:11:13 -0700
-Message-ID: <200710110817.l9B8HRxa018301@imap1.linux-foundation.org>
+Subject: - i386-and-x86_64-randomize-brk-2-fix.patch removed from -mm tree
+Date: Thu, 11 Oct 2007 01:51:09 -0700
+Message-ID: <200710110857.l9B8vOjK021242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35941 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755582AbXJKIS3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753256AbXJKI6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 04:18:29 -0400
+	Thu, 11 Oct 2007 04:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@shadowen.org, arjan@infradead.org, jkosina@suse.cz, kamalesh@linux.vnet.ibm.com, vagabon.xyz@gmail.com
+To: akpm@linux-foundation.org, apw@shadowen.org, arjan@infradead.org, jkosina@suse.cz, kamalesh@linux.vnet.ibm.com, vagabon.xyz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      i386-and-x86_64-randomize-brk-2-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      i386-and-x86_64-randomize-brk-2-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 Subject: i386-and-x86_64-randomize-brk-2-fix
@@ -37,19 +33,20 @@ Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/elf.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/asm-ia64/elf.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff -puN include/asm-ia64/elf.h~i386-and-x86_64-randomize-brk-2-fix include/asm-ia64/elf.h
 --- a/include/asm-ia64/elf.h~i386-and-x86_64-randomize-brk-2-fix
 +++ a/include/asm-ia64/elf.h
-@@ -249,8 +249,10 @@ do {									\
+@@ -249,8 +249,11 @@ do {									\
  
  #endif /* __KERNEL__ */
  
 +#endif /* _ASM_IA64_ELF_H */
 +
 +#ifndef IA64_IS_WEIRD
++#define IA64_IS_WEIRD
  static inline void arch_randomize_brk(void)
  {
  }
