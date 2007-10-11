@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-kgdb-be-modern.patch added to -mm tree
-Date: Thu, 11 Oct 2007 00:10:42 -0700
-Message-ID: <200710110716.l9B7Guai016213@imap1.linux-foundation.org>
+Subject: + git-dvb-rename-videobuf_qtype_opscopy_to_user.patch added to -mm tree
+Date: Thu, 11 Oct 2007 00:39:03 -0700
+Message-ID: <200710110745.l9B7jH8C017228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44697 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754876AbXJKHQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755180AbXJKHpr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 03:16:59 -0400
+	Thu, 11 Oct 2007 03:45:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9B7jHsI019644
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2007 00:45:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-kgdb: be modern
+     git-dvb-rename-videobuf_qtype_opscopy_to_user
 has been added to the -mm tree.  Its filename is
-     git-kgdb-be-modern.patch
+     git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +30,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kgdb: be modern
+Subject: git-dvb-rename-videobuf_qtype_opscopy_to_user
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/serial/amba-pl011.c: In function `pl011_startup':
-drivers/serial/amba-pl011.c:335: warning: `deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:64)
-
-Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/amba-pl011.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/videobuf-dma-sg.c  |    2 +-
+ drivers/media/video/videobuf-vmalloc.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/amba-pl011.c~git-kgdb-be-modern drivers/serial/amba-pl011.c
---- a/drivers/serial/amba-pl011.c~git-kgdb-be-modern
-+++ a/drivers/serial/amba-pl011.c
-@@ -332,7 +332,7 @@ static int pl011_startup(struct uart_por
- 	/*
- 	 * Allocate the IRQ
- 	 */
--	retval = request_irq(uap->port.irq, pl011_int, SA_SHIRQ,
-+	retval = request_irq(uap->port.irq, pl011_int, IRQF_SHARED,
- 			 "uart-pl011", uap);
- 	if (retval)
- 		goto clk_dis;
+diff -puN drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-dma-sg.c
+--- a/drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
++++ a/drivers/media/video/videobuf-dma-sg.c
+@@ -670,7 +670,7 @@ static struct videobuf_qtype_ops pci_ops
+ 	.sync         = __videobuf_sync,
+ 	.mmap_free    = __videobuf_mmap_free,
+ 	.mmap_mapper  = __videobuf_mmap_mapper,
+-	.copy_to_user = __videobuf_copy_to_user,
++	.copy_user    = __videobuf_copy_to_user,
+ 	.copy_stream  = __videobuf_copy_stream,
+ };
+ 
+diff -puN drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-vmalloc.c
+--- a/drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
++++ a/drivers/media/video/videobuf-vmalloc.c
+@@ -320,7 +320,7 @@ static struct videobuf_qtype_ops qops = 
+ 	.sync         = __videobuf_sync,
+ 	.mmap_free    = __videobuf_mmap_free,
+ 	.mmap_mapper  = __videobuf_mmap_mapper,
+-	.copy_to_user = __videobuf_copy_to_user,
++	.copy_user    = __videobuf_copy_to_user,
+ 	.copy_stream  = __videobuf_copy_stream,
+ };
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,6 +142,7 @@ convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
 git-xfs.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 git-kgdb-fixup.patch
+git-kgdb-be-modern.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
@@ -276,4 +290,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-kgdb-be-modern.patch
+a.patch
