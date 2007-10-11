@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-qeth_main.patch added to -mm tree
-Date: Thu, 11 Oct 2007 02:03:27 -0700
-Message-ID: <200710110909.l9B99fEM021646@imap1.linux-foundation.org>
+Subject: + git-block-s390-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 02:05:01 -0700
+Message-ID: <200710110911.l9B9BFKP021684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52070 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753256AbXJKJKm (ORCPT
+	by vger.kernel.org with ESMTP id S1754072AbXJKJMB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 05:10:42 -0400
+	Thu, 11 Oct 2007 05:12:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-net: fix qeth_main.c
+     git-block-s390-fix
 has been added to the -mm tree.  Its filename is
-     git-net-fix-qeth_main.patch
+     git-block-s390-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix qeth_main.c
+Subject: git-block-s390-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/s390/net/qeth_main.c: In function 'qeth_hard_header_parse':
-drivers/s390/net/qeth_main.c:6584: error: 'dev' undeclared (first use in this function)
-drivers/s390/net/qeth_main.c:6584: error: (Each undeclared identifier is reported only once
-drivers/s390/net/qeth_main.c:6584: error: for each function it appears in.)
-
-"David S. Miller" <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/qeth_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/s390/block/xpram.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/net/qeth_main.c~git-net-fix-qeth_main drivers/s390/net/qeth_main.c
---- a/drivers/s390/net/qeth_main.c~git-net-fix-qeth_main
-+++ a/drivers/s390/net/qeth_main.c
-@@ -6580,11 +6580,12 @@ qeth_hard_header_parse(const struct sk_b
- {
- 	const struct qeth_card *card;
- 	const struct ethhdr *eth;
-+	struct net_device *dev = skb->dev;
- 
- 	if (dev->type != ARPHRD_IEEE802_TR)
- 		return 0;
- 
--	card = qeth_get_card_from_dev(skb->dev);
-+	card = qeth_get_card_from_dev(dev);
- 	if (card->options.layer2)
- 		goto haveheader;
- #ifdef CONFIG_QETH_IPV6
+diff -puN drivers/s390/block/xpram.c~git-block-s390-fix drivers/s390/block/xpram.c
+--- a/drivers/s390/block/xpram.c~git-block-s390-fix
++++ a/drivers/s390/block/xpram.c
+@@ -230,7 +230,7 @@ static int xpram_make_request(struct req
+ 		}
+ 	}
+ 	set_bit(BIO_UPTODATE, &bio->bi_flags);
+-	bio_end_io(bio, 0);
++	bio->bi_end_io(bio, 0);
+ 	return 0;
+ fail:
+ 	bio_io_error(bio);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +93,7 @@ mtd-alaudac-warning-fix.patch
 git-mtd-vs-powerpc.patch
 git-net.patch
 git-net-fixup.patch
+git-net-fix-qeth_main.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 git-backlight.patch
 git-net-vs-git-nfs.patch
@@ -288,4 +277,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-net-fix-qeth_main.patch
+git-block-s390-fix.patch
