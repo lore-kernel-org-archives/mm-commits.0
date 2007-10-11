@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-alaudac-warning-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 00:02:06 -0700
-Message-ID: <200710110708.l9B78K2n015948@imap1.linux-foundation.org>
+Subject: + git-kgdb-be-modern.patch added to -mm tree
+Date: Thu, 11 Oct 2007 00:10:42 -0700
+Message-ID: <200710110716.l9B7Guai016213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57383 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751641AbXJKHI5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754876AbXJKHQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 03:08:57 -0400
+	Thu, 11 Oct 2007 03:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, jason.wessel@windriver.com
 
 
 The patch titled
-     mtd: alauda.c warning fix
+     git-kgdb: be modern
 has been added to the -mm tree.  Its filename is
-     mtd-alaudac-warning-fix.patch
+     git-kgdb-be-modern.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mtd: alauda.c warning fix
+Subject: git-kgdb: be modern
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/nand/alauda.c: In function 'alauda_bounce_read':
-drivers/mtd/nand/alauda.c:412: warning: comparison of distinct pointer types lacks a cast
+drivers/serial/amba-pl011.c: In function `pl011_startup':
+drivers/serial/amba-pl011.c:335: warning: `deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:64)
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/alauda.c |    2 +-
+ drivers/serial/amba-pl011.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/alauda.c~mtd-alaudac-warning-fix drivers/mtd/nand/alauda.c
---- a/drivers/mtd/nand/alauda.c~mtd-alaudac-warning-fix
-+++ a/drivers/mtd/nand/alauda.c
-@@ -408,7 +408,7 @@ static int alauda_bounce_read(struct mtd
- 	*retlen = len;
- 	while (len) {
- 		u8 oob[16];
--		u32 byte = from & al->bytemask;
-+		size_t byte = from & al->bytemask;
- 		size_t cplen = min(len, mtd->writesize - byte);
- 
- 		err = alauda_read_page(mtd, from, bounce_buf, oob,
+diff -puN drivers/serial/amba-pl011.c~git-kgdb-be-modern drivers/serial/amba-pl011.c
+--- a/drivers/serial/amba-pl011.c~git-kgdb-be-modern
++++ a/drivers/serial/amba-pl011.c
+@@ -332,7 +332,7 @@ static int pl011_startup(struct uart_por
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
+-	retval = request_irq(uap->port.irq, pl011_int, SA_SHIRQ,
++	retval = request_irq(uap->port.irq, pl011_int, IRQF_SHARED,
+ 			 "uart-pl011", uap);
+ 	if (retval)
+ 		goto clk_dis;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -276,3 +276,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-kgdb-be-modern.patch
