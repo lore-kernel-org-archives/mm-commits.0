@@ -1,26 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + git-dvb-rename-videobuf_qtype_opscopy_to_user.patch added to -mm tree
-Date: Thu, 11 Oct 2007 00:39:03 -0700
-Message-ID: <200710110745.l9B7jH8C017228@imap1.linux-foundation.org>
+Date: Thu, 11 Oct 2007 00:47:18 -0700
+Message-ID: <200710110753.l9B7rXjB017513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49198 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755180AbXJKHpr (ORCPT
+	by vger.kernel.org with ESMTP id S1754208AbXJKHyN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 03:45:47 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9B7jHsI019644
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2007 00:45:19 -0700
+	Thu, 11 Oct 2007 03:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     git-dvb-rename-videobuf_qtype_opscopy_to_user
+     git-dvb: rename videobuf_qtype_ops.copy_to_user()
 has been added to the -mm tree.  Its filename is
      git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
 
@@ -30,16 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-rename-videobuf_qtype_opscopy_to_user
+Subject: git-dvb: rename videobuf_qtype_ops.copy_to_user()
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/media/video/videobuf-core.c    |    2 +-
  drivers/media/video/videobuf-dma-sg.c  |    2 +-
  drivers/media/video/videobuf-vmalloc.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/media/videobuf-core.h          |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
+diff -puN include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user include/media/videobuf-core.h
+--- a/include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user
++++ a/include/media/videobuf-core.h
+@@ -133,7 +133,7 @@ struct videobuf_qtype_ops {
+ 				 enum v4l2_memory memory);
+ 	int (*sync)		(struct videobuf_queue* q,
+ 				 struct videobuf_buffer *buf);
+-	int (*copy_to_user)	(struct videobuf_queue *q,
++	int (*copy_user)	(struct videobuf_queue *q,
+ 				 char __user *data,
+ 				 size_t count,
+ 				 int nonblocking);
+diff -puN drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-core.c
+--- a/drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
++++ a/drivers/media/video/videobuf-core.c
+@@ -677,7 +677,7 @@ ssize_t videobuf_read_one(struct videobu
+ 	}
+ 
+ 	/* Copy to userspace */
+-	retval=CALL(q,copy_to_user,q,data,count,nonblocking);
++	retval=CALL(q,copy_user,q,data,count,nonblocking);
+ 	if (retval<0)
+ 		goto done;
+ 
 diff -puN drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-dma-sg.c
 --- a/drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
 +++ a/drivers/media/video/videobuf-dma-sg.c
@@ -79,6 +102,7 @@ git-cpufreq.patch
 git-powerpc.patch
 git-dvb.patch
 git-dvb-fixup.patch
+git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
 git-dvb-vs-i2c-tree.patch
 git-hwmon-fixup.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
@@ -290,4 +314,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-a.patch
