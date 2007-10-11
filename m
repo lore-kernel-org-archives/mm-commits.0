@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-ath5k-broke.patch added to -mm tree
-Date: Wed, 10 Oct 2007 23:16:52 -0700
-Message-ID: <200710110623.l9B6N6mp014375@imap1.linux-foundation.org>
+Subject: + pm-qos-infrastructure-and-interface-fix.patch added to -mm tree
+Date: Wed, 10 Oct 2007 23:50:52 -0700
+Message-ID: <200710110657.l9B6v6kl015584@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60244 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34097 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756893AbXJKGXw (ORCPT
+	by vger.kernel.org with ESMTP id S1754262AbXJKG52 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 02:23:52 -0400
+	Thu, 11 Oct 2007 02:57:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
+Cc: akpm@linux-foundation.org, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com
 
 
 The patch titled
-     git-wireless-ath5k-broke
+     pm-qos-infrastructure-and-interface-fix
 has been added to the -mm tree.  Its filename is
-     git-wireless-ath5k-broke.patch
+     pm-qos-infrastructure-and-interface-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-ath5k-broke
+Subject: pm-qos-infrastructure-and-interface-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make[3]: *** No rule to make target `drivers/net/wireless/ath5k_base.o', needed by `drivers/net/wireless/arlan.o'.  Stop.
+kernel/pm_qos_params.c: In function 'pm_qos_power_open':
+kernel/pm_qos_params.c:355: warning: cast to pointer from integer of different size
+kernel/pm_qos_params.c: In function 'pm_qos_power_release':
+kernel/pm_qos_params.c:370: warning: cast from pointer to integer of different size
+kernel/pm_qos_params.c: In function 'pm_qos_power_write':
+kernel/pm_qos_params.c:383: warning: cast from pointer to integer of different size
 
-probably just a mismerge, but I've had it with this stuff.
-
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Mark Gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/pm_qos_params.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~git-wireless-ath5k-broke drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-wireless-ath5k-broke
-+++ a/drivers/net/wireless/Kconfig
-@@ -601,6 +601,7 @@ config P54_PCI
- config ATH5K
- 	tristate "Atheros 5xxx wireless cards support"
- 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
-+	depends on BROKEN
- 	default m
- 	---help---
- 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
+diff -puN kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-fix kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-fix
++++ a/kernel/pm_qos_params.c
+@@ -348,11 +348,11 @@ static char name[PID_NAME_LEN];
+ static int pm_qos_power_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret;
+-	int pm_qos_class;
++	long pm_qos_class;
+ 
+ 	pm_qos_class = find_pm_qos_object_by_minor(iminor(inode));
+ 	if (pm_qos_class >= 0) {
+-		filp->private_data = (void *) pm_qos_class;
++		filp->private_data = (void *)pm_qos_class;
+ 		sprintf(name, "process_%d", current->pid);
+ 		ret = pm_qos_add_requirement(pm_qos_class, name,
+ 					PM_QOS_DEFAULT_VALUE);
+@@ -367,7 +367,7 @@ static int pm_qos_power_release(struct i
+ {
+ 	int pm_qos_class;
+ 
+-	pm_qos_class = (int) filp->private_data;
++	pm_qos_class = (long)filp->private_data;
+ 	sprintf(name, "process_%d", current->pid);
+ 	pm_qos_remove_requirement(pm_qos_class, name);
+ 
+@@ -380,7 +380,7 @@ static ssize_t pm_qos_power_write(struct
+ 	s32 value;
+ 	int pm_qos_class;
+ 
+-	pm_qos_class = (int) filp->private_data;
++	pm_qos_class = (long)filp->private_data;
+ 	if (count != sizeof(s32))
+ 		return -EINVAL;
+ 	if (copy_from_user(&value, buf, sizeof(s32)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +136,7 @@ git-sh.patch
 git-sh64.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
+qla2xxx-printk-fixes.patch
 git-block.patch
 git-block-fixup.patch
 git-block-fixup-fix.patch
@@ -115,6 +144,7 @@ git-block-borkages.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
+git-wireless-ath5k-broke.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
@@ -274,5 +304,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-qla2xxx-printk-fixes.patch
-git-wireless-ath5k-broke.patch
+pm-qos-infrastructure-and-interface-fix.patch
