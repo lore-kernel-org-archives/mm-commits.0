@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-jg-misc-powernow-fix.patch added to -mm tree
-Date: Wed, 10 Oct 2007 16:53:58 -0700
-Message-ID: <200710110000.l9B00CtP032375@imap1.linux-foundation.org>
+Subject: + cpuset-sched_load_balance-flag-fix.patch added to -mm tree
+Date: Wed, 10 Oct 2007 19:28:40 -0700
+Message-ID: <200710110228.l9B2SeNC006483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54541 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754296AbXJKAA5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751338AbXJKC3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 20:00:57 -0400
+	Wed, 10 Oct 2007 22:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, pj@sgi.com
 
 
 The patch titled
-     git-jg-misc-powernow-fix
+     cpuset-sched_load_balance-flag-fix
 has been added to the -mm tree.  Its filename is
-     git-jg-misc-powernow-fix.patch
+     cpuset-sched_load_balance-flag-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-jg-misc-powernow-fix
+Subject: cpuset-sched_load_balance-flag-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
+don't be weird
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/cpufreq/powernow-k7.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k7.c~git-jg-misc-powernow-fix arch/i386/kernel/cpu/cpufreq/powernow-k7.c
---- a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c~git-jg-misc-powernow-fix
-+++ a/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
-@@ -565,7 +565,7 @@ static unsigned int powernow_get(unsigne
- }
+diff -puN kernel/sched.c~cpuset-sched_load_balance-flag-fix kernel/sched.c
+--- a/kernel/sched.c~cpuset-sched_load_balance-flag-fix
++++ a/kernel/sched.c
+@@ -6271,7 +6271,8 @@ void partition_sched_domains(int ndoms_n
+ 		}
+ 		/* no match - a current sched domain not in new doms_new[] */
+ 		detach_destroy_domains(doms_cur + i);
+-match1:;
++match1:
++		;
+ 	}
  
+ 	/* Build new domains */
+@@ -6282,7 +6283,8 @@ match1:;
+ 		}
+ 		/* no match - add a new doms_new */
+ 		build_sched_domains(doms_new + i);
+-match2:;
++match2:
++		;
+ 	}
  
--static int __init acer_cpufreq_pst(struct dmi_system_id *d)
-+static int __init acer_cpufreq_pst(const struct dmi_system_id *d)
- {
- 	printk(KERN_WARNING "%s laptop with broken PST tables in BIOS detected.\n", d->ident);
- 	printk(KERN_WARNING "You need to downgrade to 3A21 (09/09/2002), or try a newer BIOS than 3A71 (01/20/2003)\n");
+ 	/* Remember the new sched domains */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +86,7 @@ adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
 git-kbuild.patch
 git-kbuild-fixup.patch
 git-kvm.patch
@@ -233,6 +248,7 @@ pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-pl
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
 memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
 memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
@@ -260,4 +276,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-jg-misc-powernow-fix.patch
