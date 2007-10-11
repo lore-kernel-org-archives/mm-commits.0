@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + qla2xxx-printk-fixes.patch added to -mm tree
-Date: Wed, 10 Oct 2007 23:11:30 -0700
-Message-ID: <200710110617.l9B6HiJS014179@imap1.linux-foundation.org>
+Subject: + git-wireless-ath5k-broke.patch added to -mm tree
+Date: Wed, 10 Oct 2007 23:16:52 -0700
+Message-ID: <200710110623.l9B6N6mp014375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60244 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754022AbXJKGRx (ORCPT
+	by vger.kernel.org with ESMTP id S1756893AbXJKGXw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 02:17:53 -0400
+	Thu, 11 Oct 2007 02:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
+Cc: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     qla2xxx printk fixes
+     git-wireless-ath5k-broke
 has been added to the -mm tree.  Its filename is
-     qla2xxx-printk-fixes.patch
+     git-wireless-ath5k-broke.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: qla2xxx printk fixes
+Subject: git-wireless-ath5k-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/qla2xxx/qla_sup.c: In function 'qla24xx_write_flash_data':
-drivers/scsi/qla2xxx/qla_sup.c:655: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'dma_addr_t'
-drivers/scsi/qla2xxx/qla_sup.c: In function 'qla25xx_read_optrom_data':
-drivers/scsi/qla2xxx/qla_sup.c:1853: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'dma_addr_t'
+make[3]: *** No rule to make target `drivers/net/wireless/ath5k_base.o', needed by `drivers/net/wireless/arlan.o'.  Stop.
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+probably just a mismerge, but I've had it with this stuff.
+
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_sup.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/wireless/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/qla2xxx/qla_sup.c~qla2xxx-printk-fixes drivers/scsi/qla2xxx/qla_sup.c
---- a/drivers/scsi/qla2xxx/qla_sup.c~qla2xxx-printk-fixes
-+++ a/drivers/scsi/qla2xxx/qla_sup.c
-@@ -656,7 +656,7 @@ qla24xx_write_flash_data(scsi_qla_host_t
- 				    "Unable to burst-write optrom segment "
- 				    "(%x/%x/%llx).\n", ret,
- 				    flash_data_to_access_addr(faddr),
--				    optrom_dma);
-+				    (unsigned long long)optrom_dma);
- 				qla_printk(KERN_WARNING, ha,
- 				    "Reverting to slow-write.\n");
- 
-@@ -1853,7 +1853,8 @@ qla25xx_read_optrom_data(struct scsi_qla
- 			qla_printk(KERN_WARNING, ha,
- 			    "Unable to burst-read optrom segment "
- 			    "(%x/%x/%llx).\n", rval,
--			    flash_data_to_access_addr(faddr), optrom_dma);
-+			    flash_data_to_access_addr(faddr),
-+			    (unsigned long long)optrom_dma);
- 			qla_printk(KERN_WARNING, ha,
- 			    "Reverting to slow-read.\n");
- 
+diff -puN drivers/net/wireless/Kconfig~git-wireless-ath5k-broke drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-ath5k-broke
++++ a/drivers/net/wireless/Kconfig
+@@ -601,6 +601,7 @@ config P54_PCI
+ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
+ 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
++	depends on BROKEN
+ 	default m
+ 	---help---
+ 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -286,3 +275,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 qla2xxx-printk-fixes.patch
+git-wireless-ath5k-broke.patch
