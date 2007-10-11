@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-vs-i2c-tree.patch added to -mm tree
-Date: Wed, 10 Oct 2007 23:09:30 -0700
-Message-ID: <200710110615.l9B6FiQQ014063@imap1.linux-foundation.org>
+Subject: + qla2xxx-printk-fixes.patch added to -mm tree
+Date: Wed, 10 Oct 2007 23:11:30 -0700
+Message-ID: <200710110617.l9B6HiJS014179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753282AbXJKGQI (ORCPT
+	by vger.kernel.org with ESMTP id S1754022AbXJKGRx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 02:16:08 -0400
+	Thu, 11 Oct 2007 02:17:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, khali@linux-fr.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com
 
 
 The patch titled
-     git-dvb-vs-i2c-tree
+     qla2xxx printk fixes
 has been added to the -mm tree.  Its filename is
-     git-dvb-vs-i2c-tree.patch
+     qla2xxx-printk-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-dvb-vs-i2c-tree
+Subject: qla2xxx printk fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/media/video/cx23885/cx23885-i2c.c:288: error: unknown field 'algo_control' specified in initializer
-drivers/media/video/cx23885/cx23885-i2c.c:288: warning: initialization from incompatible pointer type
+drivers/scsi/qla2xxx/qla_sup.c: In function 'qla24xx_write_flash_data':
+drivers/scsi/qla2xxx/qla_sup.c:655: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'dma_addr_t'
+drivers/scsi/qla2xxx/qla_sup.c: In function 'qla25xx_read_optrom_data':
+drivers/scsi/qla2xxx/qla_sup.c:1853: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'dma_addr_t'
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx23885/cx23885-i2c.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/qla2xxx/qla_sup.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/media/video/cx23885/cx23885-i2c.c~git-dvb-vs-i2c-tree drivers/media/video/cx23885/cx23885-i2c.c
---- a/drivers/media/video/cx23885/cx23885-i2c.c~git-dvb-vs-i2c-tree
-+++ a/drivers/media/video/cx23885/cx23885-i2c.c
-@@ -285,7 +285,6 @@ static u32 cx23885_functionality(struct 
+diff -puN drivers/scsi/qla2xxx/qla_sup.c~qla2xxx-printk-fixes drivers/scsi/qla2xxx/qla_sup.c
+--- a/drivers/scsi/qla2xxx/qla_sup.c~qla2xxx-printk-fixes
++++ a/drivers/scsi/qla2xxx/qla_sup.c
+@@ -656,7 +656,7 @@ qla24xx_write_flash_data(scsi_qla_host_t
+ 				    "Unable to burst-write optrom segment "
+ 				    "(%x/%x/%llx).\n", ret,
+ 				    flash_data_to_access_addr(faddr),
+-				    optrom_dma);
++				    (unsigned long long)optrom_dma);
+ 				qla_printk(KERN_WARNING, ha,
+ 				    "Reverting to slow-write.\n");
  
- static struct i2c_algorithm cx23885_i2c_algo_template = {
- 	.master_xfer	= i2c_xfer,
--	.algo_control	= cx23885_algo_control,
- 	.functionality	= cx23885_functionality,
- };
+@@ -1853,7 +1853,8 @@ qla25xx_read_optrom_data(struct scsi_qla
+ 			qla_printk(KERN_WARNING, ha,
+ 			    "Unable to burst-read optrom segment "
+ 			    "(%x/%x/%llx).\n", rval,
+-			    flash_data_to_access_addr(faddr), optrom_dma);
++			    flash_data_to_access_addr(faddr),
++			    (unsigned long long)optrom_dma);
+ 			qla_printk(KERN_WARNING, ha,
+ 			    "Reverting to slow-read.\n");
  
 _
 
@@ -66,6 +78,7 @@ git-cpufreq.patch
 git-powerpc.patch
 git-dvb.patch
 git-dvb-fixup.patch
+git-dvb-vs-i2c-tree.patch
 git-hwmon-fixup.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
 git-infiniband.patch
@@ -272,4 +285,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-dvb-vs-i2c-tree.patch
+qla2xxx-printk-fixes.patch
