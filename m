@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-decrustify-cpuset-mask-update-code.patch added to -mm tree
-Date: Wed, 10 Oct 2007 19:28:42 -0700
-Message-ID: <200710110228.l9B2SgXr006486@imap1.linux-foundation.org>
+Subject: + cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 10 Oct 2007 19:33:26 -0700
+Message-ID: <200710110233.l9B2XQFl006640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52581 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751358AbXJKC31 (ORCPT
+	by vger.kernel.org with ESMTP id S1755926AbXJKCeB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Oct 2007 22:29:27 -0400
+	Wed, 10 Oct 2007 22:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com, menage@google.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, pj@sgi.com
 
 
 The patch titled
-     cpusets: decrustify cpuset mask update code
+     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cpusets-decrustify-cpuset-mask-update-code.patch
+     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,245 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpusets: decrustify cpuset mask update code
-From: Paul Jackson <pj@sgi.com>
+Subject: cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Decrustify the kernel/cpuset.c 'cpus' and 'mems' updating code.
+ERROR: use tabs not spaces
+#30: FILE: kernel/cpuset.c:494:
++^I    ^I$
 
-Other than subtle improvements in the consistency of identifying
-white space at the beginning and end of passed in masks, this
-doesn't make any visible difference in behaviour.  But it's
-one or two hundred kernel text bytes smaller, and easier to
-understand.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Reviewed-by: Paul Menage <menage@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   50 ++++++++++++++++++----------------------------
- 1 file changed, 20 insertions(+), 30 deletions(-)
+ kernel/cpuset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code
+diff -puN kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
 +++ a/kernel/cpuset.c
-@@ -488,6 +488,14 @@ static int validate_change(const struct 
- 			return -EINVAL;
+@@ -491,7 +491,7 @@ static int validate_change(const struct 
+ 	/* Cpusets with tasks can't have empty cpus_allowed or mems_allowed */
+ 	if (cgroup_task_count(cur->css.cgroup)) {
+ 		if (cpus_empty(trial->cpus_allowed) ||
+-	    	    nodes_empty(trial->mems_allowed)) {
++		    nodes_empty(trial->mems_allowed)) {
+ 			return -ENOSPC;
+ 		}
  	}
- 
-+	/* Cpusets with tasks can't have empty cpus_allowed or mems_allowed */
-+	if (cgroup_task_count(cur->css.cgroup)) {
-+		if (cpus_empty(trial->cpus_allowed) ||
-+	    	    nodes_empty(trial->mems_allowed)) {
-+			return -ENOSPC;
-+		}
-+	}
-+
- 	return 0;
- }
- 
-@@ -693,11 +701,13 @@ static int update_cpumask(struct cpuset 
- 	trialcs = *cs;
- 
- 	/*
--	 * We allow a cpuset's cpus_allowed to be empty; if it has attached
--	 * tasks, we'll catch it later when we validate the change and return
--	 * -ENOSPC.
-+	 * An empty cpus_allowed is ok iff there are no tasks in the cpuset.
-+	 * Since cpulist_parse() fails on an empty mask, we special case
-+	 * that parsing.  The validate_change() call ensures that cpusets
-+	 * with tasks have cpus.
- 	 */
--	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
-+	buf = strstrip(buf);
-+	if (!*buf) {
- 		cpus_clear(trialcs.cpus_allowed);
- 	} else {
- 		retval = cpulist_parse(buf, trialcs.cpus_allowed);
-@@ -705,10 +715,6 @@ static int update_cpumask(struct cpuset 
- 			return retval;
- 	}
- 	cpus_and(trialcs.cpus_allowed, trialcs.cpus_allowed, cpu_online_map);
--	/* cpus_allowed cannot be empty for a cpuset with attached tasks. */
--	if (cgroup_task_count(cs->css.cgroup) &&
--	    cpus_empty(trialcs.cpus_allowed))
--		return -ENOSPC;
- 	retval = validate_change(cs, &trialcs);
- 	if (retval < 0)
- 		return retval;
-@@ -813,29 +819,19 @@ static int update_nodemask(struct cpuset
- 	trialcs = *cs;
- 
- 	/*
--	 * We allow a cpuset's mems_allowed to be empty; if it has attached
--	 * tasks, we'll catch it later when we validate the change and return
--	 * -ENOSPC.
-+	 * An empty mems_allowed is ok iff there are no tasks in the cpuset.
-+	 * Since nodelist_parse() fails on an empty mask, we special case
-+	 * that parsing.  The validate_change() call ensures that cpusets
-+	 * with tasks have memory.
- 	 */
--	if (!buf[0] || (buf[0] == '\n' && !buf[1])) {
-+	buf = strstrip(buf);
-+	if (!*buf) {
- 		nodes_clear(trialcs.mems_allowed);
- 	} else {
- 		retval = nodelist_parse(buf, trialcs.mems_allowed);
- 		if (retval < 0)
- 			goto done;
--		if (!nodes_intersects(trialcs.mems_allowed,
--						node_states[N_HIGH_MEMORY])) {
--			/*
--			 * error if only memoryless nodes specified.
--			 */
--			retval = -ENOSPC;
--			goto done;
--		}
- 	}
--	/*
--	 * Exclude memoryless nodes.  We know that trialcs.mems_allowed
--	 * contains at least one node with memory.
--	 */
- 	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed,
- 						node_states[N_HIGH_MEMORY]);
- 	oldmem = cs->mems_allowed;
-@@ -843,12 +839,6 @@ static int update_nodemask(struct cpuset
- 		retval = 0;		/* Too easy - nothing to do */
- 		goto done;
- 	}
--	/* mems_allowed cannot be empty for a cpuset with attached tasks. */
--	if (cgroup_task_count(cs->css.cgroup) &&
--	    nodes_empty(trialcs.mems_allowed)) {
--		retval = -ENOSPC;
--		goto done;
--	}
- 	retval = validate_change(cs, &trialcs);
- 	if (retval < 0)
- 		goto done;
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-task-containers-enable-containers-by-default-in-some-configs.patch
-whitespace-fixes-cpuset.patch
-cpuset-sched_load_balance-flag.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-cifs.patch
+git-cpufreq.patch
+git-powerpc.patch
+git-dvb.patch
+git-dvb-fixup.patch
+git-hwmon-fixup.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+git-infiniband.patch
+git-input.patch
+git-input-fixup.patch
+adbhid-produce-all-capslock-key-events.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kbuild.patch
+git-kbuild-fixup.patch
+git-kvm.patch
+git-libata-all.patch
+ide-arm-hack.patch
+git-mips.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+git-mtd.patch
+git-mtd-vs-powerpc.patch
+git-net.patch
+git-net-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-backlight.patch
+git-net-vs-git-nfs.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-ocfs2.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+git-sh64.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+git-block.patch
+git-block-fixup.patch
+git-block-fixup-fix.patch
+git-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+x86_64-cleanup-apic-c.patch
+ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+git-kgdb-fixup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
