@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-s390-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 02:05:01 -0700
-Message-ID: <200710110911.l9B9BFKP021684@imap1.linux-foundation.org>
+Subject: + drivers-ata-libata-ehc-fix-printk-warning.patch added to -mm tree
+Date: Thu, 11 Oct 2007 02:47:56 -0700
+Message-ID: <200710110954.l9B9sAKv023222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52277 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754072AbXJKJMB (ORCPT
+	by vger.kernel.org with ESMTP id S1753065AbXJKJyW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 05:12:01 -0400
+	Thu, 11 Oct 2007 05:54:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     git-block-s390-fix
+     drivers/ata/libata-eh.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     git-block-s390-fix.patch
+     drivers-ata-libata-ehc-fix-printk-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-s390-fix
+Subject: drivers/ata/libata-eh.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+drivers/ata/libata-eh.c: In function `ata_port_pbar_desc':
+drivers/ata/libata-eh.c:215: warning: long long unsigned int format, long unsigned int arg (arg 4)
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/block/xpram.c |    2 +-
+ drivers/ata/libata-eh.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/s390/block/xpram.c~git-block-s390-fix drivers/s390/block/xpram.c
---- a/drivers/s390/block/xpram.c~git-block-s390-fix
-+++ a/drivers/s390/block/xpram.c
-@@ -230,7 +230,7 @@ static int xpram_make_request(struct req
- 		}
- 	}
- 	set_bit(BIO_UPTODATE, &bio->bi_flags);
--	bio_end_io(bio, 0);
-+	bio->bi_end_io(bio, 0);
- 	return 0;
- fail:
- 	bio_io_error(bio);
+diff -puN drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning drivers/ata/libata-eh.c
+--- a/drivers/ata/libata-eh.c~drivers-ata-libata-ehc-fix-printk-warning
++++ a/drivers/ata/libata-eh.c
+@@ -212,7 +212,7 @@ void ata_port_pbar_desc(struct ata_port 
+ 	if (offset < 0)
+ 		ata_port_desc(ap, "%s %s%llu@0x%llx", name, type, len, start);
+ 	else
+-		ata_port_desc(ap, "%s 0x%llx", name, start + offset);
++		ata_port_desc(ap, "%s 0x%zx", name, start + offset);
+ }
+ 
+ #endif /* CONFIG_PCI */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +82,7 @@ git-kbuild.patch
 git-kbuild-fixup.patch
 git-kvm.patch
 git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
 git-mips.patch
 git-mips-fixup.patch
@@ -112,6 +116,7 @@ git-block.patch
 git-block-fixup.patch
 git-block-fixup-fix.patch
 git-block-borkages.patch
+git-block-s390-fix.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
@@ -277,4 +282,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-block-s390-fix.patch
