@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-add-debug-message-for-adding-new-device-fix-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 14:24:06 -0700
-Message-ID: <200710112124.l9BLO6li016216@imap1.linux-foundation.org>
+Subject: + writeback-dont-propagate-aop_writepage_activate.patch added to -mm tree
+Date: Thu, 11 Oct 2007 14:48:24 -0700
+Message-ID: <200710112148.l9BLmOZi017128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754730AbXJKVYK (ORCPT
+	by vger.kernel.org with ESMTP id S1754893AbXJKVss (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 17:24:10 -0400
+	Thu, 11 Oct 2007 17:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com
+Cc: akpm@linux-foundation.org, stable@kernel.org
 
 
 The patch titled
-     pnp-add-debug-message-for-adding-new-device-fix-fix
+     writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
 has been added to the -mm tree.  Its filename is
-     pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+     writeback-dont-propagate-aop_writepage_activate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pnp-add-debug-message-for-adding-new-device-fix-fix
+Subject: writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-nicer?
+This is a writeback-internal marker but we're propagating it all the way back
+to userspace!.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device-fix-fix drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device-fix-fix
-+++ a/drivers/pnp/core.c
-@@ -141,9 +141,6 @@ int __pnp_add_device(struct pnp_dev *dev
- int pnp_add_device(struct pnp_dev *dev)
- {
- 	int ret;
--#ifdef CONFIG_PNP_DEBUG
--	struct pnp_id *id;
--#endif
+diff -puN mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate
++++ a/mm/page-writeback.c
+@@ -850,8 +850,10 @@ retry:
  
- 	if (dev->card)
- 		return -EINVAL;
-@@ -156,11 +153,15 @@ int pnp_add_device(struct pnp_dev *dev)
- 		return ret;
+ 			ret = (*writepage)(page, wbc, data);
  
- #ifdef CONFIG_PNP_DEBUG
--	dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
--		dev->protocol->name);
--	for (id = dev->id; id; id = id->next)
--		printk(" %s", id->id);
--	printk(" (%s)\n", dev->active ? "active" : "disabled");
-+	{
-+		struct pnp_id *id;
-+
-+		dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
-+			dev->protocol->name);
-+		for (id = dev->id; id; id = id->next)
-+			printk(" %s", id->id);
-+		printk(" (%s)\n", dev->active ? "active" : "disabled");
-+	}
- #endif
- 	return 0;
- }
+-			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
++			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE)) {
+ 				unlock_page(page);
++				ret = 0;
++			}
+ 			if (ret || (--(wbc->nr_to_write) <= 0))
+ 				done = 1;
+ 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -182,6 +164,7 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
 oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
 security-convert-lsm-into-a-static-interface-fix.patch
 security-convert-lsm-into-a-static-interface-fix-2.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
