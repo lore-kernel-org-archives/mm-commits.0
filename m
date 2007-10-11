@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch added to -mm tree
-Date: Wed, 10 Oct 2007 22:32:29 -0700
-Message-ID: <200710110538.l9B5cilT012867@imap1.linux-foundation.org>
+Subject: + git-mtd-borkage.patch added to -mm tree
+Date: Wed, 10 Oct 2007 22:38:00 -0700
+Message-ID: <200710110544.l9B5iEeq013053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753329AbXJKFjf (ORCPT
+	by vger.kernel.org with ESMTP id S1753537AbXJKFoY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 01:39:35 -0400
+	Thu, 11 Oct 2007 01:44:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     pm-qos-infrastructure-and-interface-vs-git-acpi-2
+     git-mtd-borkage
 has been added to the -mm tree.  Its filename is
-     pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+     git-mtd-borkage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-qos-infrastructure-and-interface-vs-git-acpi-2
+Subject: git-mtd-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/cpuidle/governors/menu.c:11:27: error: linux/latency.h: No such file or directory
-drivers/cpuidle/governors/menu.c: In function 'menu_select':
-drivers/cpuidle/governors/menu.c:51: error: implicit declaration of function 'system_latency_constraint'
-drivers/cpuidle/governors/ladder.c:17:27: error: linux/latency.h: No such file or directory
-make[3]: *** [drivers/cpuidle/governors/menu.o] Error 1
-make[3]: *** Waiting for unfinished jobs....
-drivers/cpuidle/governors/ladder.c: In function 'ladder_select_state':
-drivers/cpuidle/governors/ladder.c:84: error: implicit declaration of function 'system_latency_constraint'
+drivers/mtd/onenand/onenand_base.c: In function 'do_otp_write':
+drivers/mtd/onenand/onenand_base.c:2068: error: 'struct mtd_oob_ops' has no member named 'databuf'
 
-Cc: mark gross <mgross@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/ladder.c |    5 +++--
- drivers/cpuidle/governors/menu.c   |    4 ++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/mtd/onenand/onenand_base.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2 drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -8,7 +8,7 @@
+diff -puN drivers/mtd/onenand/onenand_base.c~git-mtd-borkage drivers/mtd/onenand/onenand_base.c
+--- a/drivers/mtd/onenand/onenand_base.c~git-mtd-borkage
++++ a/drivers/mtd/onenand/onenand_base.c
+@@ -2065,7 +2065,6 @@ static int do_otp_write(struct mtd_info 
  
- #include <linux/kernel.h>
- #include <linux/cpuidle.h>
--#include <linux/latency.h>
-+#include <linux/pm_qos_params.h>
- #include <linux/time.h>
- #include <linux/ktime.h>
- #include <linux/hrtimer.h>
-@@ -48,7 +48,7 @@ static int menu_select(struct cpuidle_de
- 			break;
- 		if (s->target_residency > data->predicted_us)
- 			break;
--		if (s->exit_latency > system_latency_constraint())
-+		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPUIDLE))
- 			break;
- 	}
- 
-diff -puN drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2 drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -14,7 +14,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/cpuidle.h>
--#include <linux/latency.h>
-+#include <linux/pm_qos_params.h>
- #include <linux/moduleparam.h>
- #include <linux/jiffies.h>
- 
-@@ -81,7 +81,8 @@ static int ladder_select_state(struct cp
- 	/* consider promotion */
- 	if (last_idx < dev->state_count - 1 &&
- 	    last_residency > last_state->threshold.promotion_time &&
--	    dev->states[last_idx + 1].exit_latency <= system_latency_constraint()) {
-+	    dev->states[last_idx + 1].exit_latency <=
-+			pm_qos_requirement(PM_QOS_CPUIDLE)) {
- 		last_state->stats.promotion_count++;
- 		last_state->stats.demotion_count = 0;
- 		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
+ 	ops.len = len;
+ 	ops.ooblen = 0;
+-	ops.databuf = pbuf;
+ 	ops.oobbuf = NULL;
+ 	ret = onenand_write_ops_nolock(mtd, to, &ops);
+ 	*retlen = ops.retlen;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -311,3 +268,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+git-mtd-borkage.patch
