@@ -1,115 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - cifs-warning-fixes.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:36:20 -0700
-Message-ID: <200710122036.l9CKaKrY002318@imap1.linux-foundation.org>
+Subject: - git-dvb-fixup.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 13:39:42 -0700
+Message-ID: <200710122039.l9CKdgl0002475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757150AbXJLUhC (ORCPT
+	by vger.kernel.org with ESMTP id S1756919AbXJLUkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:37:02 -0400
+	Fri, 12 Oct 2007 16:40:15 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKdhDS030379
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:39:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cifs warning fixes
+     git-dvb-fixup
 has been removed from the -mm tree.  Its filename was
-     cifs-warning-fixes.patch
+     git-dvb-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: cifs warning fixes
+Subject: git-dvb-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/cifs/cifsacl.c: In function 'parse_ace':
-fs/cifs/cifsacl.c:40: warning: unused variable 'i'
-fs/cifs/cifsacl.c: In function 'parse_sid':
-fs/cifs/cifsacl.c:158: warning: unused variable 'i'
-
-Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsacl.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    2 +-
+ include/linux/i2c-id.h                      |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifsacl.c~cifs-warning-fixes fs/cifs/cifsacl.c
---- a/fs/cifs/cifsacl.c~cifs-warning-fixes
-+++ a/fs/cifs/cifsacl.c
-@@ -37,9 +37,7 @@ static const struct cifs_sid sid_user =
- 
- static void parse_ace(struct cifs_ace *pace, char *end_of_acl)
- {
--	int i;
- 	int num_subauth;
--	 __u32 *psub_auth;
- 
- 	/* validate that we do not go past end of acl */
- 	if (end_of_acl < (char *)pace + sizeof(struct cifs_ace)) {
-@@ -48,9 +46,11 @@ static void parse_ace(struct cifs_ace *p
- 	}
- 
- 	num_subauth = cpu_to_le32(pace->num_subauth);
--	if (num_subauth) {
--		psub_auth = (__u32 *)((char *)pace + sizeof(struct cifs_ace));
- #ifdef CONFIG_CIFS_DEBUG2
-+	if (num_subauth) {
-+		__u32 *psub_auth = (__u32 *)((char *)pace +
-+					sizeof(struct cifs_ace));
-+		int i;
- 		cFYI(1, ("ACE revision %d num_subauth %d",
- 			pace->revision, pace->num_subauth));
- 		for (i = 0; i < num_subauth; ++i) {
-@@ -62,9 +62,8 @@ static void parse_ace(struct cifs_ace *p
- 			num auths and therefore go off the end */
- 
- 		cFYI(1, ("RID %d", le32_to_cpu(psub_auth[num_subauth-1])));
--#endif
- 	}
--
-+#endif
- 	return;
+diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup
++++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -905,7 +905,7 @@ struct pvr2_sysfs *pvr2_sysfs_create(str
  }
  
-@@ -155,9 +154,7 @@ static void parse_dacl(struct cifs_acl *
  
- static int parse_sid(struct cifs_sid *psid, char *end_of_acl)
+-static int pvr2_sysfs_hotplug(struct class_device *cd,
++static int pvr2_sysfs_hotplug(struct device *device,
+ 			      struct kobj_uevent_env *env)
  {
--	int i;
- 	int num_subauth;
--	__u32 *psub_auth;
+ 	/* Even though we don't do anything here, we still need this function
+diff -puN include/linux/i2c-id.h~git-dvb-fixup include/linux/i2c-id.h
+--- a/include/linux/i2c-id.h~git-dvb-fixup
++++ a/include/linux/i2c-id.h
+@@ -120,6 +120,7 @@
+ #define I2C_DRIVERID_WM8753	91	/* Wolfson WM8753 audio codec */
+ #define I2C_DRIVERID_LM4857 	92 	/* LM4857 Audio Amplifier */
+ #define I2C_DRIVERID_CS4270	93	/* Cirrus Logic 4270 audio codec */
++#define I2C_DRIVERID_VP27SMPX	94	/* Panasonic VP27s tuner internal MPX */
  
- 	/* BB need to add parm so we can store the SID BB */
- 
-@@ -168,9 +165,11 @@ static int parse_sid(struct cifs_sid *ps
- 	}
- 
- 	num_subauth = cpu_to_le32(psid->num_subauth);
--	if (num_subauth) {
--		psub_auth = (__u32 *)((char *)psid + sizeof(struct cifs_sid));
- #ifdef CONFIG_CIFS_DEBUG2
-+	if (num_subauth) {
-+		__u32 *psub_auth = (__u32 *)((char *)psid +
-+					sizeof(struct cifs_sid));
-+		int i;
- 		cFYI(1, ("SID revision %d num_auth %d First subauth 0x%x",
- 			psid->revision, psid->num_subauth, psid->sub_auth[0]));
- 
-@@ -183,9 +182,8 @@ static int parse_sid(struct cifs_sid *ps
- 			num auths and therefore go off the end */
- 		cFYI(1, ("RID 0x%x",
- 			le32_to_cpu(psid->sub_auth[psid->num_subauth])));
--#endif
- 	}
--
-+#endif
- 	return 0;
- }
- 
+ #define I2C_DRIVERID_I2CDEV	900
+ #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,7 +72,6 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-cifs.patch
 cifs-build-fix.patch
-cifs-warning-fixes.patch
 git-cpufreq.patch
 git-dvb.patch
 git-dvb-fixup.patch
