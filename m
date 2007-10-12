@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 15:24:59 -0700
-Message-ID: <200710122225.l9CMOxF7006526@imap1.linux-foundation.org>
+Subject: - git-kgdb-be-modern.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:25:30 -0700
+Message-ID: <200710122225.l9CMPUH7006561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932790AbXJLWZF (ORCPT
+	by vger.kernel.org with ESMTP id S932927AbXJLWZg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:25:05 -0400
+	Fri, 12 Oct 2007 18:25:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     git-kgdb: be modern
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     git-kgdb-be-modern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+Subject: git-kgdb: be modern
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mmc/core/bus.c: In function 'mmc_bus_uevent':
-drivers/mmc/core/bus.c:77: warning: unused variable 'length'
-drivers/mmc/core/bus.c:77: warning: unused variable 'i'
+drivers/serial/amba-pl011.c: In function `pl011_startup':
+drivers/serial/amba-pl011.c:335: warning: `deprecated_irq_flag' is deprecated (declared at include/linux/interrupt.h:64)
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/bus.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/serial/amba-pl011.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/mmc/core/bus.c
-@@ -74,7 +74,6 @@ mmc_bus_uevent(struct device *dev, struc
- {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
- 	const char *type;
--	int i = 0, length = 0;
- 
- 	switch (card->type) {
- 	case MMC_TYPE_MMC:
+diff -puN drivers/serial/amba-pl011.c~git-kgdb-be-modern drivers/serial/amba-pl011.c
+--- a/drivers/serial/amba-pl011.c~git-kgdb-be-modern
++++ a/drivers/serial/amba-pl011.c
+@@ -332,7 +332,7 @@ static int pl011_startup(struct uart_por
+ 	/*
+ 	 * Allocate the IRQ
+ 	 */
+-	retval = request_irq(uap->port.irq, pl011_int, SA_SHIRQ,
++	retval = request_irq(uap->port.irq, pl011_int, IRQF_SHARED,
+ 			 "uart-pl011", uap);
+ 	if (retval)
+ 		goto clk_dis;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
