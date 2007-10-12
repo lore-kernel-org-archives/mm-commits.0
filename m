@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ata-printk-warning-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 20:13:30 -0700
-Message-ID: <200710120313.l9C3DUfN029443@imap1.linux-foundation.org>
+Subject: - ata-printk-warning-fix.patch removed from -mm tree
+Date: Thu, 11 Oct 2007 20:15:16 -0700
+Message-ID: <200710120315.l9C3FGOt029534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33355 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758039AbXJLDNi (ORCPT
+	by vger.kernel.org with ESMTP id S1755794AbXJLDPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 23:13:38 -0400
+	Thu, 11 Oct 2007 23:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      ata printk warning fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ata-printk-warning-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into drivers-ata-libata-ehc-fix-printk-warning.patch
 
 ------------------------------------------------------
 Subject: ata printk warning fix
@@ -84,6 +80,7 @@ git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
+ata-printk-warning-fix.patch
 ide-arm-hack.patch
 git-mips.patch
 git-mmc.patch
@@ -285,4 +282,3 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-ata-printk-warning-fix.patch
