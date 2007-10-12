@@ -1,55 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - git-mtd-vs-powerpc.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 15:25:04 -0700
-Message-ID: <200710122225.l9CMP4Ym006538@imap1.linux-foundation.org>
+Subject: - mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:24:59 -0700
+Message-ID: <200710122225.l9CMOxF7006526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32963 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932790AbXJLWZJ (ORCPT
+	by vger.kernel.org with ESMTP id S932790AbXJLWZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:25:09 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CMP6WO002399
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:25:07 -0700
+	Fri, 12 Oct 2007 18:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mtd-vs-powerpc
+     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been removed from the -mm tree.  Its filename was
-     git-mtd-vs-powerpc.patch
+     mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mtd-vs-powerpc
+Subject: mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/mmc/core/bus.c: In function 'mmc_bus_uevent':
+drivers/mmc/core/bus.c:77: warning: unused variable 'length'
+drivers/mmc/core/bus.c:77: warning: unused variable 'i'
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/physmap_of.c |    1 -
- mtd/nand/Kconfig              |    0 
- 2 files changed, 1 deletion(-)
+ drivers/mmc/core/bus.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/mtd/maps/Kconfig~git-mtd-vs-powerpc drivers/mtd/maps/Kconfig
-diff -puN drivers/mtd/maps/Makefile~git-mtd-vs-powerpc drivers/mtd/maps/Makefile
-diff -puN drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc drivers/mtd/maps/physmap_of.c
---- a/drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc
-+++ a/drivers/mtd/maps/physmap_of.c
-@@ -232,7 +232,6 @@ static int __devinit of_flash_probe(stru
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info)
- 		goto err_out;
--	memset(info, 0, sizeof(*info));
+diff -puN drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/mmc/core/bus.c
+@@ -74,7 +74,6 @@ mmc_bus_uevent(struct device *dev, struc
+ {
+ 	struct mmc_card *card = dev_to_mmc_card(dev);
+ 	const char *type;
+-	int i = 0, length = 0;
  
- 	dev_set_drvdata(&dev->dev, info);
- 
-diff -puN drivers/mtd/nand/Kconfig~git-mtd-vs-powerpc drivers/mtd/nand/Kconfig
+ 	switch (card->type) {
+ 	case MMC_TYPE_MMC:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
