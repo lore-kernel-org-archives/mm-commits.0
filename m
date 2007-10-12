@@ -1,64 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-fixup.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:39:42 -0700
-Message-ID: <200710122039.l9CKdgl0002475@imap1.linux-foundation.org>
+Subject: - git-net-fixup.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 13:42:03 -0700
+Message-ID: <200710122042.l9CKg3rs002638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44849 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756919AbXJLUkP (ORCPT
+	by vger.kernel.org with ESMTP id S1757091AbXJLUmf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:40:15 -0400
+	Fri, 12 Oct 2007 16:42:35 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKdhDS030379
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKg4Ww030519
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:39:44 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:42:05 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-fixup
+     git-net-fixup
 has been removed from the -mm tree.  Its filename was
-     git-dvb-fixup.patch
+     git-net-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-dvb-fixup
+Subject: git-net-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    2 +-
- include/linux/i2c-id.h                      |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/mv643xx_eth.c |    3 ---
+ net/jazzsonic.c           |    0 
+ scripts/mod/file2alias.c  |    4 ++++
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup drivers/media/video/pvrusb2/pvrusb2-sysfs.c
---- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~git-dvb-fixup
-+++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-@@ -905,7 +905,7 @@ struct pvr2_sysfs *pvr2_sysfs_create(str
+diff -puN drivers/net/mv643xx_eth.c~git-net-fixup drivers/net/mv643xx_eth.c
+--- a/drivers/net/mv643xx_eth.c~git-net-fixup
++++ a/drivers/net/mv643xx_eth.c
+@@ -1413,9 +1413,6 @@ static int mv643xx_eth_probe(struct plat
+ 		goto out;
+ 
+ 	p = dev->dev_addr;
+-	printk(KERN_NOTICE
+-		"%s: port %d with MAC address %s\n",
+-		dev->name, port_num, print_mac(mac, p));
+ 
+ 	if (dev->features & NETIF_F_SG)
+ 		printk(KERN_NOTICE "%s: Scatter Gather Enabled\n", dev->name);
+diff -puN scripts/mod/file2alias.c~git-net-fixup scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~git-net-fixup
++++ a/scripts/mod/file2alias.c
+@@ -648,6 +648,10 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct sdio_device_id), "sdio",
+ 			 do_sdio_entry, mod);
++	else if (sym_is(symname, "__mod_ssb_device_table"))
++		do_table(symval, sym->st_size,
++			 sizeof(struct ssb_device_id), "ssb",
++			 do_ssb_entry, mod);
+ 	free(zeros);
  }
  
- 
--static int pvr2_sysfs_hotplug(struct class_device *cd,
-+static int pvr2_sysfs_hotplug(struct device *device,
- 			      struct kobj_uevent_env *env)
- {
- 	/* Even though we don't do anything here, we still need this function
-diff -puN include/linux/i2c-id.h~git-dvb-fixup include/linux/i2c-id.h
---- a/include/linux/i2c-id.h~git-dvb-fixup
-+++ a/include/linux/i2c-id.h
-@@ -120,6 +120,7 @@
- #define I2C_DRIVERID_WM8753	91	/* Wolfson WM8753 audio codec */
- #define I2C_DRIVERID_LM4857 	92 	/* LM4857 Audio Amplifier */
- #define I2C_DRIVERID_CS4270	93	/* Cirrus Logic 4270 audio codec */
-+#define I2C_DRIVERID_VP27SMPX	94	/* Panasonic VP27s tuner internal MPX */
- 
- #define I2C_DRIVERID_I2CDEV	900
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
+diff -puN drivers/net/smc91x.c~git-net-fixup drivers/net/smc91x.c
+diff -puN drivers/net/jazzsonic.c~git-net-fixup drivers/net/jazzsonic.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,14 +81,10 @@ git-cifs.patch
 cifs-build-fix.patch
 git-cpufreq.patch
 git-dvb.patch
-git-dvb-fixup.patch
-git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
-git-dvb-vs-i2c-tree.patch
 git-hwmon-fixup.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
 git-input.patch
 git-input-fixup.patch
-adbhid-produce-all-capslock-key-events.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
@@ -92,14 +95,11 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
 git-mips.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
-git-mtd-vs-powerpc.patch
 git-net-fixup.patch
 git-net-fix-qeth_main.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
