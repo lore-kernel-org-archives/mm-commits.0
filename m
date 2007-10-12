@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-nfs-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 15:02:20 -0700
-Message-ID: <200710122202.l9CM2KZT005564@imap1.linux-foundation.org>
+Subject: + git-wireless-fixup.patch added to -mm tree
+Date: Fri, 12 Oct 2007 15:05:26 -0700
+Message-ID: <200710122205.l9CM5QVA005624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56726 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758134AbXJLWCx (ORCPT
+	by vger.kernel.org with ESMTP id S1758181AbXJLWF7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:02:53 -0400
+	Fri, 12 Oct 2007 18:05:59 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CM2LvZ001509
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CM5Qa7001619
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:02:22 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:05:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-nfs-fixup
+     git-wireless-fixup
 has been added to the -mm tree.  Its filename is
-     git-nfs-fixup.patch
+     git-wireless-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,39 +30,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfs-fixup
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtsock.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/net/wireless/Kconfig  |   10 ----------
+ drivers/net/wireless/Makefile |    3 ---
+ 2 files changed, 13 deletions(-)
 
-diff -puN net/sunrpc/xprtsock.c~git-nfs-fixup net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-nfs-fixup
-+++ a/net/sunrpc/xprtsock.c
-@@ -1349,20 +1349,10 @@ static struct lock_class_key xs_slock_ke
- static inline void xs_reclassify_socket4(struct socket *sock)
- {
- 	struct sock *sk = sock->sk;
--<<<<<<< HEAD/net/sunrpc/xprtsock.c
--	BUG_ON(sock_owned_by_user(sk));
--	switch (sk->sk_family) {
--	case AF_INET:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
--			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
--		break;
+diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-fixup
++++ a/drivers/net/wireless/Kconfig
+@@ -381,8 +381,6 @@ config PCI_HERMES
+ 	  common.  Some of the built-in wireless adaptors in laptops are of
+ 	  this variety.
+ 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+-=======
+ config ATMEL
+       tristate "Atmel at76c50x chipset  802.11b support"
+       depends on (PCI || PCMCIA) && WLAN_80211
+@@ -415,7 +413,6 @@ config USB_ATMEL
+ 	  Enable support for USB Wireless devices using Atmel at76c503,
+ 	  at76c505 or at76c505a chips.
+ 
+->>>>>>> /drivers/net/wireless/Kconfig
+ config PCMCIA_HERMES
+ 	tristate "Hermes PCMCIA card support"
+ 	depends on PCMCIA && HERMES
+@@ -585,7 +582,6 @@ config RTL8187
+ 
+ 	  Thanks to Realtek for their support!
+ 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+ config ADM8211
+ 	tristate "ADMtek ADM8211 support"
+ 	depends on MAC80211 && PCI && WLAN_80211 && EXPERIMENTAL
+@@ -626,8 +622,6 @@ config P54_PCI
+ 	tristate "Prism54 PCI support"
+ 	depends on P54_COMMON && PCI
+ 
+-source "drivers/net/wireless/iwlwifi/Kconfig"
+-=======
+ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
+ 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
+@@ -641,16 +635,12 @@ config ATH5K
+ 	  If you choose to build a module, it'll be called ath5k. Say M if
+ 	  unsure.
+ 
+->>>>>>> /drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/bcm43xx/Kconfig"
+ source "drivers/net/wireless/b43/Kconfig"
+ source "drivers/net/wireless/b43legacy/Kconfig"
+ source "drivers/net/wireless/zd1211rw/Kconfig"
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/rt2x00/Kconfig"
+-=======
+ source "drivers/net/wireless/zd1211rw-mac80211/Kconfig"
+->>>>>>> /drivers/net/wireless/Kconfig
+ 
+ endmenu
+diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
+--- a/drivers/net/wireless/Makefile~git-wireless-fixup
++++ a/drivers/net/wireless/Makefile
+@@ -52,7 +52,6 @@ obj-$(CONFIG_LIBERTAS)		+= libertas/
+ 
+ rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
+ obj-$(CONFIG_RTL8187)	+= rtl8187.o
+-<<<<<<< HEAD/drivers/net/wireless/Makefile
+ 
+ obj-$(CONFIG_ADM8211)	+= adm8211.o
+ 
+@@ -62,7 +61,5 @@ obj-$(CONFIG_RT2X00)	+= rt2x00/
+ obj-$(CONFIG_P54_COMMON)	+= p54common.o
+ obj-$(CONFIG_P54_USB)		+= p54usb.o
+ obj-$(CONFIG_P54_PCI)		+= p54pci.o
 -=======
  
--	BUG_ON(sk->sk_lock.owner != NULL);
- 	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
- 		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
- }
-->>>>>>> /net/sunrpc/xprtsock.c
- 
- static inline void xs_reclassify_socket6(struct socket *sock)
- {
+ obj-$(CONFIG_ATH5K)	+= ath5k/
+->>>>>>> /drivers/net/wireless/Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +172,7 @@ git-unionfs.patch
 git-v9fs-fixup.patch
 git-watchdog-fixup.patch
 git-wireless.patch
+git-wireless-fixup.patch
 git-wireless-ath5k-broke.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 revert-x86_64-mm-cpa-einval.patch
