@@ -1,71 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fixup.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:42:03 -0700
-Message-ID: <200710122042.l9CKg3rs002638@imap1.linux-foundation.org>
+Subject: - git-mmc-fixup2.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 13:40:51 -0700
+Message-ID: <200710122040.l9CKepY7002512@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44849 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40124 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757091AbXJLUmf (ORCPT
+	by vger.kernel.org with ESMTP id S1760238AbXJLUlX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:42:35 -0400
+	Fri, 12 Oct 2007 16:41:23 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKg4Ww030519
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKeqns030458
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:42:05 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:40:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-fixup
+     git-mmc-fixup
 has been removed from the -mm tree.  Its filename was
-     git-net-fixup.patch
+     git-mmc-fixup2.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-fixup
+Subject: git-mmc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mv643xx_eth.c |    3 ---
- net/jazzsonic.c           |    0 
- scripts/mod/file2alias.c  |    4 ++++
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/mmc/core/bus.c   |   26 +++++++++++++++-----------
+ include/linux/mmc/sdio.h |    8 --------
+ scripts/mod/file2alias.c |    4 ++++
+ 3 files changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN drivers/net/mv643xx_eth.c~git-net-fixup drivers/net/mv643xx_eth.c
---- a/drivers/net/mv643xx_eth.c~git-net-fixup
-+++ a/drivers/net/mv643xx_eth.c
-@@ -1413,9 +1413,6 @@ static int mv643xx_eth_probe(struct plat
- 		goto out;
+diff -puN include/linux/mmc/sdio.h~git-mmc-fixup2 include/linux/mmc/sdio.h
+--- a/include/linux/mmc/sdio.h~git-mmc-fixup2
++++ a/include/linux/mmc/sdio.h
+@@ -41,21 +41,13 @@
+ /*
+   SDIO status in R5
+   Type
+-<<<<<<< HEAD:include/linux/mmc/sdio.h
+-	e : error bit
+-=======
+   	e : error bit
+->>>>>>> c4ef1f58940c5b1a2ab03ed9f11cb98a97438309:include/linux/mmc/sdio.h
+ 	s : status bit
+ 	r : detected and set for the actual command response
+ 	x : detected and set during command execution. the host must poll
+             the card by sending status command in order to read these bits.
+   Clear condition
+-<<<<<<< HEAD:include/linux/mmc/sdio.h
+-	a : according to the card state
+-=======
+   	a : according to the card state
+->>>>>>> c4ef1f58940c5b1a2ab03ed9f11cb98a97438309:include/linux/mmc/sdio.h
+ 	b : always related to the previous command. Reception of
+             a valid command will clear it (with a delay of one command)
+ 	c : clear by read
+diff -puN drivers/mmc/core/bus.c~git-mmc-fixup2 drivers/mmc/core/bus.c
+--- a/drivers/mmc/core/bus.c~git-mmc-fixup2
++++ a/drivers/mmc/core/bus.c
+@@ -73,26 +73,30 @@ static int
+ mmc_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct mmc_card *card = dev_to_mmc_card(dev);
+-	int retval = 0;
+-
+-#define add_env(fmt,val) do {					\
+-	retval = add_uevent_var(env, fmt, val);			\
+-	if (retval)						\
+-		return retval;					\
+-} while (0);
++	const char *type;
++	int i = 0, length = 0;
  
- 	p = dev->dev_addr;
--	printk(KERN_NOTICE
--		"%s: port %d with MAC address %s\n",
--		dev->name, port_num, print_mac(mac, p));
+ 	switch (card->type) {
+ 	case MMC_TYPE_MMC:
+-		add_env("MMC_TYPE=%s", "MMC");
++		type = "MMC";
+ 		break;
+ 	case MMC_TYPE_SD:
+-		add_env("MMC_TYPE=%s", "SD");
++		type = "SD";
+ 		break;
++	case MMC_TYPE_SDIO:
++		type = "SDIO";
++		break;
++	default:
++		type = NULL;
+ 	}
  
- 	if (dev->features & NETIF_F_SG)
- 		printk(KERN_NOTICE "%s: Scatter Gather Enabled\n", dev->name);
-diff -puN scripts/mod/file2alias.c~git-net-fixup scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~git-net-fixup
+-	add_env("MMC_NAME=%s", mmc_card_name(card));
++	if (type) {
++		if (add_uevent_var(env, "MMC_TYPE=%s", type))
++			return -ENOMEM;
++	}
+ 
+-#undef add_env
++	if (add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card)))
++		return -ENOMEM;
+ 
+ 	return 0;
+ }
+diff -puN scripts/mod/file2alias.c~git-mmc-fixup2 scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~git-mmc-fixup2
 +++ a/scripts/mod/file2alias.c
-@@ -648,6 +648,10 @@ void handle_moddevtable(struct module *m
+@@ -629,6 +629,10 @@ void handle_moddevtable(struct module *m
  		do_table(symval, sym->st_size,
- 			 sizeof(struct sdio_device_id), "sdio",
- 			 do_sdio_entry, mod);
-+	else if (sym_is(symname, "__mod_ssb_device_table"))
+ 			 sizeof(struct parisc_device_id), "parisc",
+ 			 do_parisc_entry, mod);
++	else if (sym_is(symname, "__mod_sdio_device_table"))
 +		do_table(symval, sym->st_size,
-+			 sizeof(struct ssb_device_id), "ssb",
-+			 do_ssb_entry, mod);
++			 sizeof(struct sdio_device_id), "sdio",
++			 do_sdio_entry, mod);
  	free(zeros);
  }
  
-diff -puN drivers/net/smc91x.c~git-net-fixup drivers/net/smc91x.c
-diff -puN drivers/net/jazzsonic.c~git-net-fixup drivers/net/jazzsonic.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,11 +150,14 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
 git-mips.patch
+git-mmc-fixup2.patch
+mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
+git-mtd-vs-powerpc.patch
 git-net-fixup.patch
 git-net-fix-qeth_main.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
