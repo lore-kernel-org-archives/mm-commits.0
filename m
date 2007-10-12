@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 14:46:31 -0700
-Message-ID: <200710122146.l9CLkVR9004916@imap1.linux-foundation.org>
+Subject: + git-arm-fixup.patch added to -mm tree
+Date: Fri, 12 Oct 2007 14:48:00 -0700
+Message-ID: <200710122148.l9CLm0O7005026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32926 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56111 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760704AbXJLVrE (ORCPT
+	by vger.kernel.org with ESMTP id S1760991AbXJLVsa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 17:47:04 -0400
+	Fri, 12 Oct 2007 17:48:30 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLkVhp000910
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLm0O5000971
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:46:32 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:48:01 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-alsa-fixup
+     git-arm-fixup
 has been added to the -mm tree.  Its filename is
-     git-alsa-fixup.patch
+     git-arm-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,31 +30,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: git-arm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/i2c-id.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/net/smc91x.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/i2c-id.h~git-alsa-fixup include/linux/i2c-id.h
---- a/include/linux/i2c-id.h~git-alsa-fixup
-+++ a/include/linux/i2c-id.h
-@@ -119,11 +119,8 @@
- #define I2C_DRIVERID_WM8750	90	/* Wolfson WM8750 audio codec */
- #define I2C_DRIVERID_WM8753	91	/* Wolfson WM8753 audio codec */
- #define I2C_DRIVERID_LM4857 	92 	/* LM4857 Audio Amplifier */
--<<<<<<< HEAD/include/linux/i2c-id.h
- #define I2C_DRIVERID_VP27SMPX	93	/* Panasonic VP27s tuner internal MPX */
--=======
--#define I2C_DRIVERID_CS4270	93	/* Cirrus Logic 4270 audio codec */
-->>>>>>> /include/linux/i2c-id.h
-+#define I2C_DRIVERID_CS4270	94	/* Cirrus Logic 4270 audio codec */
+diff -puN drivers/net/smc91x.c~git-arm-fixup drivers/net/smc91x.c
+--- a/drivers/net/smc91x.c~git-arm-fixup
++++ a/drivers/net/smc91x.c
+@@ -173,7 +173,6 @@ MODULE_LICENSE("GPL");
+  */
+ #define MII_DELAY		1
  
- #define I2C_DRIVERID_I2CDEV	900
- #define I2C_DRIVERID_ARP        902    /* SMBus ARP Client              */
+-<<<<<<< HEAD/drivers/net/smc91x.c
+ /* store this information for the driver.. */
+ struct smc_local {
+ 	/*
+@@ -217,8 +216,6 @@ struct smc_local {
+ 	void __iomem *datacs;
+ };
+ 
+-=======
+->>>>>>> /drivers/net/smc91x.c
+ #if SMC_DEBUG > 0
+ #define DBG(n, args...)					\
+ 	do {						\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +68,7 @@ slow-down-printk-during-boot.patch
 git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
+git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-cifs.patch
@@ -270,4 +275,4 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 tmp-fix.patch
-git-alsa-fixup.patch
+git-arm-fixup.patch
