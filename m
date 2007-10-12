@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-v9fs-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 15:01:12 -0700
-Message-ID: <200710122201.l9CM1CPc005460@imap1.linux-foundation.org>
+Subject: + git-nfs-fixup.patch added to -mm tree
+Date: Fri, 12 Oct 2007 15:02:20 -0700
+Message-ID: <200710122202.l9CM2KZT005564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54085 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757864AbXJLWBn (ORCPT
+	by vger.kernel.org with ESMTP id S1758134AbXJLWCx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:01:43 -0400
+	Fri, 12 Oct 2007 18:02:53 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CM1C8f001447
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CM2LvZ001509
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:01:13 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:02:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-v9fs-fixup
+     git-nfs-fixup
 has been added to the -mm tree.  Its filename is
-     git-v9fs-fixup.patch
+     git-nfs-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,33 +30,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-v9fs-fixup
+Subject: git-nfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/9p/9p.h |    3 ---
- 1 file changed, 3 deletions(-)
+ net/sunrpc/xprtsock.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN include/net/9p/9p.h~git-v9fs-fixup include/net/9p/9p.h
---- a/include/net/9p/9p.h~git-v9fs-fixup
-+++ a/include/net/9p/9p.h
-@@ -415,7 +415,6 @@ int p9_idpool_check(int id, struct p9_id
- 
- int p9_error_init(void);
- int p9_errstr2errno(char *, int);
--<<<<<<< HEAD/include/net/9p/9p.h
- 
- #ifdef CONFIG_SYSCTL
- int __init p9_sysctl_register(void);
-@@ -430,6 +429,4 @@ static inline void p9_sysctl_unregister(
- }
- #endif
- 
+diff -puN net/sunrpc/xprtsock.c~git-nfs-fixup net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-nfs-fixup
++++ a/net/sunrpc/xprtsock.c
+@@ -1349,20 +1349,10 @@ static struct lock_class_key xs_slock_ke
+ static inline void xs_reclassify_socket4(struct socket *sock)
+ {
+ 	struct sock *sk = sock->sk;
+-<<<<<<< HEAD/net/sunrpc/xprtsock.c
+-	BUG_ON(sock_owned_by_user(sk));
+-	switch (sk->sk_family) {
+-	case AF_INET:
+-		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
+-			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
+-		break;
 -=======
-->>>>>>> /include/net/9p/9p.h
- #endif /* NET_9P_H */
+ 
+-	BUG_ON(sk->sk_lock.owner != NULL);
+ 	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
+ 		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
+ }
+->>>>>>> /net/sunrpc/xprtsock.c
+ 
+ static inline void xs_reclassify_socket6(struct socket *sock)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +103,7 @@ git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-nfs-fixup.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-nfsd-fixup.patch
