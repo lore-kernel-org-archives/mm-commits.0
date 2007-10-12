@@ -1,134 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-vs-git-nfs.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:42:25 -0700
-Message-ID: <200710122042.l9CKgPgP002643@imap1.linux-foundation.org>
+Subject: - git-wireless-fixup.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 13:45:44 -0700
+Message-ID: <200710122045.l9CKjigY002691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45284 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38849 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757399AbXJLUm4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754741AbXJLUqR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:42:56 -0400
+	Fri, 12 Oct 2007 16:46:17 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKgPrR030532
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKjjMa030650
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:42:26 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:45:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-vs-git-nfs
+     git-wireless-fixup
 has been removed from the -mm tree.  Its filename was
-     git-net-vs-git-nfs.patch
+     git-wireless-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-net-vs-git-nfs
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtsock.c |   67 +++++++++++++++++++++++++++++-----------
- 1 file changed, 49 insertions(+), 18 deletions(-)
+ drivers/net/wireless/Kconfig  |   13 +++++++++++++
+ drivers/net/wireless/Makefile |    3 +++
+ include/net/mac80211.h        |    4 ++++
+ 3 files changed, 20 insertions(+)
 
-diff -puN net/sunrpc/xprtsock.c~git-net-vs-git-nfs net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-net-vs-git-nfs
-+++ a/net/sunrpc/xprtsock.c
-@@ -1346,41 +1346,72 @@ static int xs_bind6(struct sock_xprt *tr
- static struct lock_class_key xs_key[2];
- static struct lock_class_key xs_slock_key[2];
+diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
+--- a/drivers/net/wireless/Makefile~git-wireless-fixup
++++ a/drivers/net/wireless/Makefile
+@@ -50,6 +50,9 @@ obj-$(CONFIG_LIBERTAS)		+= libertas/
+ rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
+ obj-$(CONFIG_RTL8187)	+= rtl8187.o
  
--static inline void xs_reclassify_socket(struct socket *sock)
-+static inline void xs_reclassify_socket4(struct socket *sock)
- {
- 	struct sock *sk = sock->sk;
++obj-$(CONFIG_ATH5K)	+= ath5k.o
++ath5k-objs		= ath5k_base.o ath5k_hw.o ath5k_regdom.o
 +
- 	BUG_ON(sock_owned_by_user(sk));
--	switch (sk->sk_family) {
--	case AF_INET:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
--			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
--		break;
-+	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
-+		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
-+}
+ obj-$(CONFIG_ADM8211)	+= adm8211.o
  
--	case AF_INET6:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
--			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
--		break;
-+static inline void xs_reclassify_socket6(struct socket *sock)
-+{
-+	struct sock *sk = sock->sk;
+ obj-$(CONFIG_IWLWIFI)	+= iwlwifi/
+diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-fixup
++++ a/drivers/net/wireless/Kconfig
+@@ -598,6 +598,19 @@ config P54_PCI
+ 	tristate "Prism54 PCI support"
+ 	depends on P54_COMMON && PCI
  
--	default:
--		BUG();
--	}
-+	BUG_ON(sock_owned_by_user(sk));
-+	sock_lock_init_class_and_name(sk, "slock-AF_INET6-RPC",
-+		&xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
- }
- #else
--static inline void xs_reclassify_socket(struct socket *sock)
-+static inline void xs_reclassify_socket4(struct socket *sock)
-+{
-+}
++config ATH5K
++	tristate "Atheros 5xxx wireless cards support"
++	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
++	default m
++	---help---
++	  This module adds support for atheros 5xxx (e.g. 5212) wireless
++	  cards. If you have this card in your PC, select this to be build.
 +
-+static inline void xs_reclassify_socket6(struct socket *sock)
- {
- }
- #endif
- 
-+static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
-+{
-+	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
++	  This driver uses the kernel's mac80211 subsystem.
 +
-+	if (!transport->inet) {
-+		struct sock *sk = sock->sk;
++	  If you choose to build a module, it'll be called ath5k. Say M if
++	  unsure.
 +
-+		write_lock_bh(&sk->sk_callback_lock);
+ source "drivers/net/wireless/iwlwifi/Kconfig"
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/bcm43xx/Kconfig"
+diff -puN include/net/mac80211.h~git-wireless-fixup include/net/mac80211.h
+--- a/include/net/mac80211.h~git-wireless-fixup
++++ a/include/net/mac80211.h
+@@ -1053,6 +1053,10 @@ struct ieee80211_ops {
+ 	int (*get_tx_stats)(struct ieee80211_hw *hw,
+ 			    struct ieee80211_tx_queue_stats *stats);
+ 	u64 (*get_tsf)(struct ieee80211_hw *hw);
++	/* Call low level driver with 11n Block Ack action */
++	int (*handle_ba_action)(struct ieee80211_hw *hw,
++				struct ieee80211_mgmt *mgmt);
 +
-+		sk->sk_user_data = xprt;
-+		transport->old_data_ready = sk->sk_data_ready;
-+		transport->old_state_change = sk->sk_state_change;
-+		transport->old_write_space = sk->sk_write_space;
-+		sk->sk_data_ready = xs_udp_data_ready;
-+		sk->sk_write_space = xs_udp_write_space;
-+		sk->sk_no_check = UDP_CSUM_NORCV;
-+		sk->sk_allocation = GFP_ATOMIC;
-+
-+		xprt_set_connected(xprt);
-+
-+		/* Reset to new socket */
-+		transport->sock = sock;
-+		transport->inet = sk;
-+
-+		write_unlock_bh(&sk->sk_callback_lock);
-+	}
-+	xs_udp_do_set_buffer_size(xprt);
-+}
-+
- /**
-- * xs_udp_connect_worker - set up a UDP socket
-+ * xs_udp_connect_worker4 - set up a UDP socket
-  * @work: RPC transport to connect
-  *
-  * Invoked by a work queue tasklet.
-  */
--static void xs_udp_connect_worker(struct work_struct *work)
-+static void xs_udp_connect_worker4(struct work_struct *work)
- {
--	struct sock_xprt *transport =
--		container_of(work, struct sock_xprt, connect_worker.work);
-+  	struct sock_xprt *transport =
-+  		container_of(work, struct sock_xprt, connect_worker.work);
- 	struct rpc_xprt *xprt = &transport->xprt;
- 	struct socket *sock = transport->sock;
- 	int err, status = -EIO;
+ 	void (*reset_tsf)(struct ieee80211_hw *hw);
+ 	int (*beacon_update)(struct ieee80211_hw *hw,
+ 			     struct sk_buff *skb,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,7 +122,6 @@ git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-nfsd-fixup.patch
@@ -179,9 +136,6 @@ git-scsi-misc-fixup.patch
 qla2xxx-printk-fixes.patch
 git-block.patch
 git-block-fixup.patch
-git-block-fixup-fix.patch
-git-block-borkages.patch
-git-block-s390-fix.patch
 git-unionfs.patch
 git-wireless.patch
 git-wireless-fixup.patch
