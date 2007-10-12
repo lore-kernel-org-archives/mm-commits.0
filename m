@@ -1,88 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-rename-videobuf_qtype_opscopy_to_user.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 15:23:49 -0700
-Message-ID: <200710122223.l9CMNn2X006484@imap1.linux-foundation.org>
+Subject: - git-mtd-vs-powerpc.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:25:04 -0700
+Message-ID: <200710122225.l9CMP4Ym006538@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932744AbXJLWYE (ORCPT
+	by vger.kernel.org with ESMTP id S932790AbXJLWZJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:24:04 -0400
+	Fri, 12 Oct 2007 18:25:09 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CMP6WO002399
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:25:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: rename videobuf_qtype_ops.copy_to_user()
+     git-mtd-vs-powerpc
 has been removed from the -mm tree.  Its filename was
-     git-dvb-rename-videobuf_qtype_opscopy_to_user.patch
+     git-mtd-vs-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-dvb: rename videobuf_qtype_ops.copy_to_user()
+Subject: git-mtd-vs-powerpc
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/videobuf-core.c    |    2 +-
- drivers/media/video/videobuf-dma-sg.c  |    2 +-
- drivers/media/video/videobuf-vmalloc.c |    2 +-
- include/media/videobuf-core.h          |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/mtd/maps/physmap_of.c |    1 -
+ mtd/nand/Kconfig              |    0 
+ 2 files changed, 1 deletion(-)
 
-diff -puN include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user include/media/videobuf-core.h
---- a/include/media/videobuf-core.h~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/include/media/videobuf-core.h
-@@ -133,7 +133,7 @@ struct videobuf_qtype_ops {
- 				 enum v4l2_memory memory);
- 	int (*sync)		(struct videobuf_queue* q,
- 				 struct videobuf_buffer *buf);
--	int (*copy_to_user)	(struct videobuf_queue *q,
-+	int (*copy_user)	(struct videobuf_queue *q,
- 				 char __user *data,
- 				 size_t count,
- 				 int nonblocking);
-diff -puN drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-core.c
---- a/drivers/media/video/videobuf-core.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-core.c
-@@ -677,7 +677,7 @@ ssize_t videobuf_read_one(struct videobu
- 	}
+diff -puN drivers/mtd/maps/Kconfig~git-mtd-vs-powerpc drivers/mtd/maps/Kconfig
+diff -puN drivers/mtd/maps/Makefile~git-mtd-vs-powerpc drivers/mtd/maps/Makefile
+diff -puN drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc drivers/mtd/maps/physmap_of.c
+--- a/drivers/mtd/maps/physmap_of.c~git-mtd-vs-powerpc
++++ a/drivers/mtd/maps/physmap_of.c
+@@ -232,7 +232,6 @@ static int __devinit of_flash_probe(stru
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info)
+ 		goto err_out;
+-	memset(info, 0, sizeof(*info));
  
- 	/* Copy to userspace */
--	retval=CALL(q,copy_to_user,q,data,count,nonblocking);
-+	retval=CALL(q,copy_user,q,data,count,nonblocking);
- 	if (retval<0)
- 		goto done;
+ 	dev_set_drvdata(&dev->dev, info);
  
-diff -puN drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-dma-sg.c
---- a/drivers/media/video/videobuf-dma-sg.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-dma-sg.c
-@@ -670,7 +670,7 @@ static struct videobuf_qtype_ops pci_ops
- 	.sync         = __videobuf_sync,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
--	.copy_to_user = __videobuf_copy_to_user,
-+	.copy_user    = __videobuf_copy_to_user,
- 	.copy_stream  = __videobuf_copy_stream,
- };
- 
-diff -puN drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user drivers/media/video/videobuf-vmalloc.c
---- a/drivers/media/video/videobuf-vmalloc.c~git-dvb-rename-videobuf_qtype_opscopy_to_user
-+++ a/drivers/media/video/videobuf-vmalloc.c
-@@ -320,7 +320,7 @@ static struct videobuf_qtype_ops qops = 
- 	.sync         = __videobuf_sync,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
--	.copy_to_user = __videobuf_copy_to_user,
-+	.copy_user    = __videobuf_copy_to_user,
- 	.copy_stream  = __videobuf_copy_stream,
- };
- 
+diff -puN drivers/mtd/nand/Kconfig~git-mtd-vs-powerpc drivers/mtd/nand/Kconfig
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
