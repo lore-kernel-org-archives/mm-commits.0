@@ -1,61 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-qeth_main.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 15:25:08 -0700
-Message-ID: <200710122225.l9CMP8MJ006543@imap1.linux-foundation.org>
+Subject: - git-dvb-vs-i2c-tree.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:23:54 -0700
+Message-ID: <200710122223.l9CMNs5X006489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932769AbXJLWZR (ORCPT
+	by vger.kernel.org with ESMTP id S932875AbXJLWYS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:25:17 -0400
+	Fri, 12 Oct 2007 18:24:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: fix qeth_main.c
+     git-dvb-vs-i2c-tree
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-qeth_main.patch
+     git-dvb-vs-i2c-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-net: fix qeth_main.c
+Subject: git-dvb-vs-i2c-tree
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/s390/net/qeth_main.c: In function 'qeth_hard_header_parse':
-drivers/s390/net/qeth_main.c:6584: error: 'dev' undeclared (first use in this function)
-drivers/s390/net/qeth_main.c:6584: error: (Each undeclared identifier is reported only once
-drivers/s390/net/qeth_main.c:6584: error: for each function it appears in.)
+drivers/media/video/cx23885/cx23885-i2c.c:288: error: unknown field 'algo_control' specified in initializer
+drivers/media/video/cx23885/cx23885-i2c.c:288: warning: initialization from incompatible pointer type
 
-"David S. Miller" <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/qeth_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/video/cx23885/cx23885-i2c.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/s390/net/qeth_main.c~git-net-fix-qeth_main drivers/s390/net/qeth_main.c
---- a/drivers/s390/net/qeth_main.c~git-net-fix-qeth_main
-+++ a/drivers/s390/net/qeth_main.c
-@@ -6580,11 +6580,12 @@ qeth_hard_header_parse(const struct sk_b
- {
- 	const struct qeth_card *card;
- 	const struct ethhdr *eth;
-+	struct net_device *dev = skb->dev;
+diff -puN drivers/media/video/cx23885/cx23885-i2c.c~git-dvb-vs-i2c-tree drivers/media/video/cx23885/cx23885-i2c.c
+--- a/drivers/media/video/cx23885/cx23885-i2c.c~git-dvb-vs-i2c-tree
++++ a/drivers/media/video/cx23885/cx23885-i2c.c
+@@ -285,7 +285,6 @@ static u32 cx23885_functionality(struct 
  
- 	if (dev->type != ARPHRD_IEEE802_TR)
- 		return 0;
+ static struct i2c_algorithm cx23885_i2c_algo_template = {
+ 	.master_xfer	= i2c_xfer,
+-	.algo_control	= cx23885_algo_control,
+ 	.functionality	= cx23885_functionality,
+ };
  
--	card = qeth_get_card_from_dev(skb->dev);
-+	card = qeth_get_card_from_dev(dev);
- 	if (card->options.layer2)
- 		goto haveheader;
- #ifdef CONFIG_QETH_IPV6
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
