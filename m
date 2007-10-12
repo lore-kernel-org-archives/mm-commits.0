@@ -1,126 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - git-mmc-fixup2.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:40:51 -0700
-Message-ID: <200710122040.l9CKepY7002512@imap1.linux-foundation.org>
+Subject: - git-net-vs-git-nfs.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 13:42:25 -0700
+Message-ID: <200710122042.l9CKgPgP002643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45284 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760238AbXJLUlX (ORCPT
+	by vger.kernel.org with ESMTP id S1757399AbXJLUm4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:41:23 -0400
+	Fri, 12 Oct 2007 16:42:56 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKeqns030458
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKgPrR030532
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:40:53 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:42:26 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mmc-fixup
+     git-net-vs-git-nfs
 has been removed from the -mm tree.  Its filename was
-     git-mmc-fixup2.patch
+     git-net-vs-git-nfs.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mmc-fixup
+Subject: git-net-vs-git-nfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/bus.c   |   26 +++++++++++++++-----------
- include/linux/mmc/sdio.h |    8 --------
- scripts/mod/file2alias.c |    4 ++++
- 3 files changed, 19 insertions(+), 19 deletions(-)
+ net/sunrpc/xprtsock.c |   67 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 49 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/mmc/sdio.h~git-mmc-fixup2 include/linux/mmc/sdio.h
---- a/include/linux/mmc/sdio.h~git-mmc-fixup2
-+++ a/include/linux/mmc/sdio.h
-@@ -41,21 +41,13 @@
- /*
-   SDIO status in R5
-   Type
--<<<<<<< HEAD:include/linux/mmc/sdio.h
--	e : error bit
--=======
-   	e : error bit
-->>>>>>> c4ef1f58940c5b1a2ab03ed9f11cb98a97438309:include/linux/mmc/sdio.h
- 	s : status bit
- 	r : detected and set for the actual command response
- 	x : detected and set during command execution. the host must poll
-             the card by sending status command in order to read these bits.
-   Clear condition
--<<<<<<< HEAD:include/linux/mmc/sdio.h
--	a : according to the card state
--=======
-   	a : according to the card state
-->>>>>>> c4ef1f58940c5b1a2ab03ed9f11cb98a97438309:include/linux/mmc/sdio.h
- 	b : always related to the previous command. Reception of
-             a valid command will clear it (with a delay of one command)
- 	c : clear by read
-diff -puN drivers/mmc/core/bus.c~git-mmc-fixup2 drivers/mmc/core/bus.c
---- a/drivers/mmc/core/bus.c~git-mmc-fixup2
-+++ a/drivers/mmc/core/bus.c
-@@ -73,26 +73,30 @@ static int
- mmc_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+diff -puN net/sunrpc/xprtsock.c~git-net-vs-git-nfs net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~git-net-vs-git-nfs
++++ a/net/sunrpc/xprtsock.c
+@@ -1346,41 +1346,72 @@ static int xs_bind6(struct sock_xprt *tr
+ static struct lock_class_key xs_key[2];
+ static struct lock_class_key xs_slock_key[2];
+ 
+-static inline void xs_reclassify_socket(struct socket *sock)
++static inline void xs_reclassify_socket4(struct socket *sock)
  {
- 	struct mmc_card *card = dev_to_mmc_card(dev);
--	int retval = 0;
--
--#define add_env(fmt,val) do {					\
--	retval = add_uevent_var(env, fmt, val);			\
--	if (retval)						\
--		return retval;					\
--} while (0);
-+	const char *type;
-+	int i = 0, length = 0;
+ 	struct sock *sk = sock->sk;
++
+ 	BUG_ON(sock_owned_by_user(sk));
+-	switch (sk->sk_family) {
+-	case AF_INET:
+-		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
+-			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
+-		break;
++	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
++		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
++}
  
- 	switch (card->type) {
- 	case MMC_TYPE_MMC:
--		add_env("MMC_TYPE=%s", "MMC");
-+		type = "MMC";
- 		break;
- 	case MMC_TYPE_SD:
--		add_env("MMC_TYPE=%s", "SD");
-+		type = "SD";
- 		break;
-+	case MMC_TYPE_SDIO:
-+		type = "SDIO";
-+		break;
-+	default:
-+		type = NULL;
- 	}
+-	case AF_INET6:
+-		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFS",
+-			&xs_slock_key[1], "sk_lock-AF_INET6-NFS", &xs_key[1]);
+-		break;
++static inline void xs_reclassify_socket6(struct socket *sock)
++{
++	struct sock *sk = sock->sk;
  
--	add_env("MMC_NAME=%s", mmc_card_name(card));
-+	if (type) {
-+		if (add_uevent_var(env, "MMC_TYPE=%s", type))
-+			return -ENOMEM;
+-	default:
+-		BUG();
+-	}
++	BUG_ON(sock_owned_by_user(sk));
++	sock_lock_init_class_and_name(sk, "slock-AF_INET6-RPC",
++		&xs_slock_key[1], "sk_lock-AF_INET6-RPC", &xs_key[1]);
+ }
+ #else
+-static inline void xs_reclassify_socket(struct socket *sock)
++static inline void xs_reclassify_socket4(struct socket *sock)
++{
++}
++
++static inline void xs_reclassify_socket6(struct socket *sock)
+ {
+ }
+ #endif
+ 
++static void xs_udp_finish_connecting(struct rpc_xprt *xprt, struct socket *sock)
++{
++	struct sock_xprt *transport = container_of(xprt, struct sock_xprt, xprt);
++
++	if (!transport->inet) {
++		struct sock *sk = sock->sk;
++
++		write_lock_bh(&sk->sk_callback_lock);
++
++		sk->sk_user_data = xprt;
++		transport->old_data_ready = sk->sk_data_ready;
++		transport->old_state_change = sk->sk_state_change;
++		transport->old_write_space = sk->sk_write_space;
++		sk->sk_data_ready = xs_udp_data_ready;
++		sk->sk_write_space = xs_udp_write_space;
++		sk->sk_no_check = UDP_CSUM_NORCV;
++		sk->sk_allocation = GFP_ATOMIC;
++
++		xprt_set_connected(xprt);
++
++		/* Reset to new socket */
++		transport->sock = sock;
++		transport->inet = sk;
++
++		write_unlock_bh(&sk->sk_callback_lock);
 +	}
- 
--#undef add_env
-+	if (add_uevent_var(env, "MMC_NAME=%s", mmc_card_name(card)))
-+		return -ENOMEM;
- 
- 	return 0;
- }
-diff -puN scripts/mod/file2alias.c~git-mmc-fixup2 scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~git-mmc-fixup2
-+++ a/scripts/mod/file2alias.c
-@@ -629,6 +629,10 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct parisc_device_id), "parisc",
- 			 do_parisc_entry, mod);
-+	else if (sym_is(symname, "__mod_sdio_device_table"))
-+		do_table(symval, sym->st_size,
-+			 sizeof(struct sdio_device_id), "sdio",
-+			 do_sdio_entry, mod);
- 	free(zeros);
- }
- 
++	xs_udp_do_set_buffer_size(xprt);
++}
++
+ /**
+- * xs_udp_connect_worker - set up a UDP socket
++ * xs_udp_connect_worker4 - set up a UDP socket
+  * @work: RPC transport to connect
+  *
+  * Invoked by a work queue tasklet.
+  */
+-static void xs_udp_connect_worker(struct work_struct *work)
++static void xs_udp_connect_worker4(struct work_struct *work)
+ {
+-	struct sock_xprt *transport =
+-		container_of(work, struct sock_xprt, connect_worker.work);
++  	struct sock_xprt *transport =
++  		container_of(work, struct sock_xprt, connect_worker.work);
+ 	struct rpc_xprt *xprt = &transport->xprt;
+ 	struct socket *sock = transport->sock;
+ 	int err, status = -EIO;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,16 +158,11 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
 git-mips.patch
-git-mmc-fixup2.patch
-mmc-fix-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
-git-mtd-vs-powerpc.patch
-git-net-fixup.patch
-git-net-fix-qeth_main.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 git-net-vs-git-nfs.patch
 git-nfs-vs-git-unionfs.patch
