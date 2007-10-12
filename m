@@ -1,92 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-fixup.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 13:45:44 -0700
-Message-ID: <200710122045.l9CKjigY002691@imap1.linux-foundation.org>
+Subject: - keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 14:25:37 -0700
+Message-ID: <200710122125.l9CLPbSK004119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38849 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41631 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754741AbXJLUqR (ORCPT
+	by vger.kernel.org with ESMTP id S1756947AbXJLV0e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 16:46:17 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CKjjMa030650
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 13:45:46 -0700
+	Fri, 12 Oct 2007 17:26:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, drzeus@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless-fixup
+     keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
 has been removed from the -mm tree.  Its filename was
-     git-wireless-fixup.patch
+     keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-wireless-fixup
+Subject: keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/mmc/core/lock.c: In function 'mmc_key_instantiate':
+drivers/mmc/core/lock.c:41: error: implicit declaration of function 'key_payload_reserve'
+drivers/mmc/core/lock.c: At top level:
+drivers/mmc/core/lock.c:80: error: variable 'mmc_key_type' has initializer but incomplete type
+drivers/mmc/core/lock.c:81: error: unknown field 'name' specified in initializer
+drivers/mmc/core/lock.c:81: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:81: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:82: error: unknown field 'def_datalen' specified in initializer
+drivers/mmc/core/lock.c:82: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:82: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:83: error: unknown field 'instantiate' specified in initializer
+drivers/mmc/core/lock.c:83: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:83: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:84: error: unknown field 'match' specified in initializer
+drivers/mmc/core/lock.c:84: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:84: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c:85: error: unknown field 'destroy' specified in initializer
+drivers/mmc/core/lock.c:85: warning: excess elements in struct initializer
+drivers/mmc/core/lock.c:85: warning: (near initialization for 'mmc_key_type')
+drivers/mmc/core/lock.c: In function 'mmc_register_key_type':
+drivers/mmc/core/lock.c:90: error: implicit declaration of function 'register_key_type'
+drivers/mmc/core/lock.c: In function 'mmc_unregister_key_type':
+drivers/mmc/core/lock.c:95: error: implicit declaration of function 'unregister_key_type'
+
+Whoever merges second needs this.
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig  |   13 +++++++++++++
- drivers/net/wireless/Makefile |    3 +++
- include/net/mac80211.h        |    4 ++++
- 3 files changed, 20 insertions(+)
+ drivers/mmc/core/lock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
---- a/drivers/net/wireless/Makefile~git-wireless-fixup
-+++ a/drivers/net/wireless/Makefile
-@@ -50,6 +50,9 @@ obj-$(CONFIG_LIBERTAS)		+= libertas/
- rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
- obj-$(CONFIG_RTL8187)	+= rtl8187.o
+diff -puN drivers/mmc/core/lock.c~keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc drivers/mmc/core/lock.c
+--- a/drivers/mmc/core/lock.c~keys-make-request_key-and-co-fundamentally-asynchronous-vs-git-mmc
++++ a/drivers/mmc/core/lock.c
+@@ -13,6 +13,7 @@
  
-+obj-$(CONFIG_ATH5K)	+= ath5k.o
-+ath5k-objs		= ath5k_base.o ath5k_hw.o ath5k_regdom.o
-+
- obj-$(CONFIG_ADM8211)	+= adm8211.o
+ #include <linux/device.h>
+ #include <linux/key.h>
++#include <linux/key-type.h>
+ #include <linux/err.h>
  
- obj-$(CONFIG_IWLWIFI)	+= iwlwifi/
-diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-wireless-fixup
-+++ a/drivers/net/wireless/Kconfig
-@@ -598,6 +598,19 @@ config P54_PCI
- 	tristate "Prism54 PCI support"
- 	depends on P54_COMMON && PCI
- 
-+config ATH5K
-+	tristate "Atheros 5xxx wireless cards support"
-+	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
-+	default m
-+	---help---
-+	  This module adds support for atheros 5xxx (e.g. 5212) wireless
-+	  cards. If you have this card in your PC, select this to be build.
-+
-+	  This driver uses the kernel's mac80211 subsystem.
-+
-+	  If you choose to build a module, it'll be called ath5k. Say M if
-+	  unsure.
-+
- source "drivers/net/wireless/iwlwifi/Kconfig"
- source "drivers/net/wireless/hostap/Kconfig"
- source "drivers/net/wireless/bcm43xx/Kconfig"
-diff -puN include/net/mac80211.h~git-wireless-fixup include/net/mac80211.h
---- a/include/net/mac80211.h~git-wireless-fixup
-+++ a/include/net/mac80211.h
-@@ -1053,6 +1053,10 @@ struct ieee80211_ops {
- 	int (*get_tx_stats)(struct ieee80211_hw *hw,
- 			    struct ieee80211_tx_queue_stats *stats);
- 	u64 (*get_tsf)(struct ieee80211_hw *hw);
-+	/* Call low level driver with 11n Block Ack action */
-+	int (*handle_ba_action)(struct ieee80211_hw *hw,
-+				struct ieee80211_mgmt *mgmt);
-+
- 	void (*reset_tsf)(struct ieee80211_hw *hw);
- 	int (*beacon_update)(struct ieee80211_hw *hw,
- 			     struct sk_buff *skb,
+ #include <linux/mmc/card.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,7 +121,6 @@ git-block.patch
 git-block-fixup.patch
 git-unionfs.patch
 git-wireless.patch
-git-wireless-fixup.patch
 git-wireless-ath5k-broke.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 revert-x86_64-mm-cpa-einval.patch
@@ -154,7 +136,6 @@ git-xfs.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
 git-kgdb-fixup.patch
-git-kgdb-be-modern.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
