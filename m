@@ -1,61 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 15:00:20 -0700
-Message-ID: <200710122200.l9CM0KSl005447@imap1.linux-foundation.org>
+Subject: - git-block-fixup-fix.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:25:13 -0700
+Message-ID: <200710122225.l9CMPDfQ006547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757864AbXJLWAt (ORCPT
+	by vger.kernel.org with ESMTP id S932552AbXJLW0F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:00:49 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CM0LOW001432
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 15:00:22 -0700
+	Fri, 12 Oct 2007 18:26:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog-fixup
-has been added to the -mm tree.  Its filename is
-     git-watchdog-fixup.patch
+     git-block-fixup-fix
+has been removed from the -mm tree.  Its filename was
+     git-block-fixup-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-block-fixup-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git-rejects between git-scsi-misc and git-block.
+
+Note that local variable bulkdata goes away - this is more than a simple
+reject fixup.
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/scsi/megaraid.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -58,13 +58,10 @@ source "drivers/power/Kconfig"
+diff -puN drivers/scsi/megaraid.c~git-block-fixup-fix drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~git-block-fixup-fix
++++ a/drivers/scsi/megaraid.c
+@@ -1737,12 +1737,9 @@ mega_build_sglist(adapter_t *adapter, sc
+ 	Scsi_Cmnd	*cmd;
+ 	int	sgcnt;
+ 	int	idx;
+-	int	bulkdata;
  
- source "drivers/hwmon/Kconfig"
+ 	cmd = scb->cmd;
  
--<<<<<<< HEAD/drivers/Kconfig
- source "drivers/ssb/Kconfig"
+-	bulkdata = (scsi_sg_count(cmd) == 1) ? 1 : 0;
+-
+ 	/*
+ 	 * Copy Scatter-Gather list info into controller structure.
+ 	 *
+@@ -1756,7 +1753,6 @@ mega_build_sglist(adapter_t *adapter, sc
+ 
+ 	*len = 0;
+ 
+-<<<<<<< HEAD/drivers/scsi/megaraid.c
+ 	if (scsi_sg_count(cmd) == 1 && !adapter->has_64bit_addr) {
+ 		sg = scsi_sglist(cmd);
+ 		scb->dma_h_bulkdata = sg_dma_address(sg);
+@@ -1765,16 +1761,6 @@ mega_build_sglist(adapter_t *adapter, sc
+ 		return 0;
+ 	}
  
 -=======
- source "drivers/watchdog/Kconfig"
- 
-->>>>>>> /drivers/Kconfig
- source "drivers/mfd/Kconfig"
- 
- source "drivers/media/Kconfig"
+-	if (bulkdata && !adapter->has_64bit_addr) {
+-		sg = scsi_sglist(cmd);
+-		scb->dma_h_bulkdata = sg_dma_address(sg);
+-		*buf = (u32)scb->dma_h_bulkdata;
+-		*len = sg_dma_len(sg);
+-		return 0;
+-	}
+-
+->>>>>>> /drivers/scsi/megaraid.c
+ 	scsi_for_each_sg(cmd, sg, sgcnt, idx) {
+ 		if (adapter->has_64bit_addr) {
+ 			scb->sgl64[idx].address = sg_dma_address(sg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +119,7 @@ git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-nfs-fixup.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-nfsd-fixup.patch
@@ -111,8 +135,10 @@ qla2xxx-printk-fixes.patch
 git-block.patch
 git-block-fixup.patch
 git-unionfs.patch
+git-v9fs-fixup.patch
 git-watchdog-fixup.patch
 git-wireless.patch
+git-wireless-fixup.patch
 git-wireless-ath5k-broke.patch
 git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 revert-x86_64-mm-cpa-einval.patch
