@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-md-accel-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 14:52:23 -0700
-Message-ID: <200710122152.l9CLqNKP005214@imap1.linux-foundation.org>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Fri, 12 Oct 2007 14:56:27 -0700
+Message-ID: <200710122156.l9CLuRXm005298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758181AbXJLVwx (ORCPT
+	by vger.kernel.org with ESMTP id S1756985AbXJLV4c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 17:52:53 -0400
+	Fri, 12 Oct 2007 17:56:32 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLqNsi001118
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLuRTR001262
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:52:24 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:56:29 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-md-accel-fixup
+     git-mips-fixup
 has been added to the -mm tree.  Its filename is
-     git-md-accel-fixup.patch
+     git-mips-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,33 +30,292 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-md-accel-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/mips/kernel/smp.c                |   34 ----------------
+ arch/mips/mips-boards/generic/time.c  |    6 --
+ arch/mips/mm/c-r4k.c                  |    4 -
+ arch/mips/mm/pg-r4k.c                 |   12 -----
+ arch/mips/mm/tlbex.c                  |   51 ------------------------
+ arch/mips/pmc-sierra/yosemite/setup.c |    9 ----
+ arch/mips/sgi-ip22/ip22-time.c        |    7 ---
+ drivers/net/jazzsonic.c               |    7 ---
+ 8 files changed, 130 deletions(-)
 
-diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-md-accel-fixup
-+++ a/drivers/md/raid5.c
-@@ -3888,13 +3888,8 @@ static void raid5_align_endio(struct bio
- 	if (!error && uptodate) {
- 		bio_endio(raid_bi, 0);
- 		if (atomic_dec_and_test(&conf->active_aligned_reads))
--<<<<<<< HEAD/drivers/md/raid5.c
--			wake_up(&conf->wait_for_stripe);
--		return;
+diff -puN arch/mips/kernel/smp.c~git-mips-fixup arch/mips/kernel/smp.c
+--- a/arch/mips/kernel/smp.c~git-mips-fixup
++++ a/arch/mips/kernel/smp.c
+@@ -375,21 +375,11 @@ void flush_tlb_mm(struct mm_struct *mm)
+ 	if ((atomic_read(&mm->mm_users) != 1) || (current->mm != mm)) {
+ 		smp_on_other_tlbs(flush_tlb_mm_ipi, mm);
+ 	} else {
+-<<<<<<< HEAD/arch/mips/kernel/smp.c
+-		cpumask_t mask = cpu_online_map;
+-		unsigned int cpu;
+-
+-		cpu_clear(smp_processor_id(), mask);
+-		for_each_online_cpu(cpu)
+-			if (cpu_context(cpu, mm))
+-				cpu_context(cpu, mm) = 0;
 -=======
- 			wake_up(&conf->wait_for_queue);
--		return 0;
-->>>>>>> /drivers/md/raid5.c
-+		return;
+ 		int i;
+ 
+ 		for_each_online_cpu(i)
+ 			if (smp_processor_id() != i)
+ 				cpu_context(i, mm) = 0;
+->>>>>>> /arch/mips/kernel/smp.c
  	}
+ 	local_flush_tlb_mm(mm);
  
+@@ -423,21 +413,11 @@ void flush_tlb_range(struct vm_area_stru
  
+ 		smp_on_other_tlbs(flush_tlb_range_ipi, &fd);
+ 	} else {
+-<<<<<<< HEAD/arch/mips/kernel/smp.c
+-		cpumask_t mask = cpu_online_map;
+-		unsigned int cpu;
+-
+-		cpu_clear(smp_processor_id(), mask);
+-		for_each_online_cpu(cpu)
+-			if (cpu_context(cpu, mm))
+-				cpu_context(cpu, mm) = 0;
+-=======
+ 		int i;
+ 
+ 		for_each_online_cpu(i)
+ 			if (smp_processor_id() != i)
+ 				cpu_context(i, mm) = 0;
+->>>>>>> /arch/mips/kernel/smp.c
+ 	}
+ 	local_flush_tlb_range(vma, start, end);
+ 	preempt_enable();
+@@ -457,11 +437,7 @@ void flush_tlb_kernel_range(unsigned lon
+ 		.addr2 = end,
+ 	};
+ 
+-<<<<<<< HEAD/arch/mips/kernel/smp.c
+-	on_each_cpu(flush_tlb_kernel_range_ipi, &fd, 1, 1);
+-=======
+ 	on_each_cpu(flush_tlb_kernel_range_ipi, (void *)&fd, 1, 1);
+->>>>>>> /arch/mips/kernel/smp.c
+ }
+ 
+ static void flush_tlb_page_ipi(void *info)
+@@ -482,22 +458,12 @@ void flush_tlb_page(struct vm_area_struc
+ 
+ 		smp_on_other_tlbs(flush_tlb_page_ipi, &fd);
+ 	} else {
+-<<<<<<< HEAD/arch/mips/kernel/smp.c
+-		cpumask_t mask = cpu_online_map;
+-		unsigned int cpu;
+-
+-		cpu_clear(smp_processor_id(), mask);
+-		for_each_online_cpu(cpu)
+-			if (cpu_context(cpu, vma->vm_mm))
+-				cpu_context(cpu, vma->vm_mm) = 0;
+-=======
+ 		unsigned int cpu = smp_processor_id();
+ 		cpumask_t mask = cpu_online_map;
+ 
+ 		cpu_clear(cpu, map);
+ 		for_each_online_cpu(i)
+ 			cpu_context(i, vma->vm_mm) = 0;
+->>>>>>> /arch/mips/kernel/smp.c
+ 	}
+ 	local_flush_tlb_page(vma, page);
+ 	preempt_enable();
+diff -puN arch/mips/mips-boards/generic/time.c~git-mips-fixup arch/mips/mips-boards/generic/time.c
+--- a/arch/mips/mips-boards/generic/time.c~git-mips-fixup
++++ a/arch/mips/mips-boards/generic/time.c
+@@ -142,13 +142,7 @@ void __init plat_time_init(void)
+         cpu_khz = est_freq / 1000;
+ 
+ 	mips_scroll_message();
+-<<<<<<< HEAD/arch/mips/mips-boards/generic/time.c
+-#ifdef CONFIG_I8253		/* Only Malta has a PIT */
+ 	setup_pit_timer();
+-#endif
+-=======
+-	setup_pit_timer();
+->>>>>>> /arch/mips/mips-boards/generic/time.c
+ }
+ 
+ //static irqreturn_t mips_perf_interrupt(int irq, void *dev_id)
+diff -puN arch/mips/mm/c-r4k.c~git-mips-fixup arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~git-mips-fixup
++++ a/arch/mips/mm/c-r4k.c
+@@ -456,11 +456,7 @@ static inline void local_r4k_flush_cache
+ 			r4k_blast_scache_page(addr);
+ 	}
+ 	if (exec) {
+-<<<<<<< HEAD/arch/mips/mm/c-r4k.c
+-		if (vaddr && cpu_has_vtag_icache && mm == current->active_mm) {
+-=======
+ 		if (vaddr && cpu_has_vtag_icache) {
+->>>>>>> /arch/mips/mm/c-r4k.c
+ 			int cpu = smp_processor_id();
+ 
+ 			if (cpu_context(cpu, mm) != 0)
+diff -puN arch/mips/mm/pg-r4k.c~git-mips-fixup arch/mips/mm/pg-r4k.c
+--- a/arch/mips/mm/pg-r4k.c~git-mips-fixup
++++ a/arch/mips/mm/pg-r4k.c
+@@ -527,17 +527,6 @@ dest = label();
+ 	build_jr_ra();
+ 
+ 	BUG_ON(epc > copy_page_array + ARRAY_SIZE(copy_page_array));
+-<<<<<<< HEAD/arch/mips/mm/pg-r4k.c
+-
+-	pr_info("Synthesized copy page handler (%u instructions).\n",
+-		(unsigned int)(epc - copy_page_array));
+-
+-	pr_debug("\t.set push\n");
+-	pr_debug("\t.set noreorder\n");
+-	for (i = 0; i < (epc - copy_page_array); i++)
+-		pr_debug("\t.word 0x%08x\n", copy_page_array[i]);
+-	pr_debug("\t.set pop\n");
+-=======
+ 
+ 	pr_info("Synthesized copy page handler (%u instructions).\n",
+ 		(unsigned int)(epc - copy_page_array));
+@@ -576,5 +565,4 @@ struct page * ____alloc_zeroed_user_high
+ 	smp_wmb();
+ 
+ 	return page;
+->>>>>>> /arch/mips/mm/pg-r4k.c
+ }
+diff -puN arch/mips/mm/tlbex.c~git-mips-fixup arch/mips/mm/tlbex.c
+--- a/arch/mips/mm/tlbex.c~git-mips-fixup
++++ a/arch/mips/mm/tlbex.c
+@@ -140,56 +140,6 @@ struct insn {
+ 	 | (e) << RE_SH						\
+ 	 | (f) << FUNC_SH)
+ 
+-<<<<<<< HEAD/arch/mips/mm/tlbex.c
+-static struct insn insn_table[] __initdata = {
+-	{ insn_addiu, M(addiu_op, 0, 0, 0, 0, 0), RS | RT | SIMM },
+-	{ insn_addu, M(spec_op, 0, 0, 0, 0, addu_op), RS | RT | RD },
+-	{ insn_and, M(spec_op, 0, 0, 0, 0, and_op), RS | RT | RD },
+-	{ insn_andi, M(andi_op, 0, 0, 0, 0, 0), RS | RT | UIMM },
+-	{ insn_beq, M(beq_op, 0, 0, 0, 0, 0), RS | RT | BIMM },
+-	{ insn_beql, M(beql_op, 0, 0, 0, 0, 0), RS | RT | BIMM },
+-	{ insn_bgez, M(bcond_op, 0, bgez_op, 0, 0, 0), RS | BIMM },
+-	{ insn_bgezl, M(bcond_op, 0, bgezl_op, 0, 0, 0), RS | BIMM },
+-	{ insn_bltz, M(bcond_op, 0, bltz_op, 0, 0, 0), RS | BIMM },
+-	{ insn_bltzl, M(bcond_op, 0, bltzl_op, 0, 0, 0), RS | BIMM },
+-	{ insn_bne, M(bne_op, 0, 0, 0, 0, 0), RS | RT | BIMM },
+-	{ insn_daddiu, M(daddiu_op, 0, 0, 0, 0, 0), RS | RT | SIMM },
+-	{ insn_daddu, M(spec_op, 0, 0, 0, 0, daddu_op), RS | RT | RD },
+-	{ insn_dmfc0, M(cop0_op, dmfc_op, 0, 0, 0, 0), RT | RD | SET},
+-	{ insn_dmtc0, M(cop0_op, dmtc_op, 0, 0, 0, 0), RT | RD | SET},
+-	{ insn_dsll, M(spec_op, 0, 0, 0, 0, dsll_op), RT | RD | RE },
+-	{ insn_dsll32, M(spec_op, 0, 0, 0, 0, dsll32_op), RT | RD | RE },
+-	{ insn_dsra, M(spec_op, 0, 0, 0, 0, dsra_op), RT | RD | RE },
+-	{ insn_dsrl, M(spec_op, 0, 0, 0, 0, dsrl_op), RT | RD | RE },
+-	{ insn_dsrl32, M(spec_op, 0, 0, 0, 0, dsrl32_op), RT | RD | RE },
+-	{ insn_dsubu, M(spec_op, 0, 0, 0, 0, dsubu_op), RS | RT | RD },
+-	{ insn_eret,  M(cop0_op, cop_op, 0, 0, 0, eret_op),  0 },
+-	{ insn_j,  M(j_op, 0, 0, 0, 0, 0),  JIMM },
+-	{ insn_jal,  M(jal_op, 0, 0, 0, 0, 0),  JIMM },
+-	{ insn_jr,  M(spec_op, 0, 0, 0, 0, jr_op),  RS },
+-	{ insn_ld,  M(ld_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_ll,  M(ll_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_lld,  M(lld_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_lui,  M(lui_op, 0, 0, 0, 0, 0),  RT | SIMM },
+-	{ insn_lw,  M(lw_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_mfc0,  M(cop0_op, mfc_op, 0, 0, 0, 0),  RT | RD | SET},
+-	{ insn_mtc0,  M(cop0_op, mtc_op, 0, 0, 0, 0),  RT | RD | SET},
+-	{ insn_ori,  M(ori_op, 0, 0, 0, 0, 0),  RS | RT | UIMM },
+-	{ insn_rfe,  M(cop0_op, cop_op, 0, 0, 0, rfe_op),  0 },
+-	{ insn_sc,  M(sc_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_scd,  M(scd_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_sd,  M(sd_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_sll,  M(spec_op, 0, 0, 0, 0, sll_op),  RT | RD | RE },
+-	{ insn_sra,  M(spec_op, 0, 0, 0, 0, sra_op),  RT | RD | RE },
+-	{ insn_srl,  M(spec_op, 0, 0, 0, 0, srl_op),  RT | RD | RE },
+-	{ insn_subu,  M(spec_op, 0, 0, 0, 0, subu_op),  RS | RT | RD },
+-	{ insn_sw,  M(sw_op, 0, 0, 0, 0, 0),  RS | RT | SIMM },
+-	{ insn_tlbp,  M(cop0_op, cop_op, 0, 0, 0, tlbp_op),  0 },
+-	{ insn_tlbwi,  M(cop0_op, cop_op, 0, 0, 0, tlbwi_op),  0 },
+-	{ insn_tlbwr,  M(cop0_op, cop_op, 0, 0, 0, tlbwr_op),  0 },
+-	{ insn_xor,  M(spec_op, 0, 0, 0, 0, xor_op),  RS | RT | RD },
+-	{ insn_xori,  M(xori_op, 0, 0, 0, 0, 0),  RS | RT | UIMM },
+-=======
+ static __initdata struct insn insn_table[] = {
+ 	{ insn_addiu, M(addiu_op, 0, 0, 0, 0, 0), RS | RT | SIMM },
+ 	{ insn_addu, M(spec_op, 0, 0, 0, 0, addu_op), RS | RT | RD },
+@@ -238,7 +188,6 @@ static __initdata struct insn insn_table
+ 	{ insn_tlbwr,  M(cop0_op, cop_op, 0, 0, 0, tlbwr_op),  0 },
+ 	{ insn_xor,  M(spec_op, 0, 0, 0, 0, xor_op),  RS | RT | RD },
+ 	{ insn_xori,  M(xori_op, 0, 0, 0, 0, 0),  RS | RT | UIMM },
+->>>>>>> /arch/mips/mm/tlbex.c
+ 	{ insn_invalid, 0, 0 }
+ };
+ 
+diff -puN arch/mips/pmc-sierra/yosemite/setup.c~git-mips-fixup arch/mips/pmc-sierra/yosemite/setup.c
+--- a/arch/mips/pmc-sierra/yosemite/setup.c~git-mips-fixup
++++ a/arch/mips/pmc-sierra/yosemite/setup.c
+@@ -100,21 +100,12 @@ int rtc_mips_set_time(unsigned long tim)
+ 	struct rtc_time tm;
+ 	unsigned long flags;
+ 
+-<<<<<<< HEAD/arch/mips/pmc-sierra/yosemite/setup.c
+-	/*
+-	 * Convert to a more useful format -- note months count from 0
+-	 * and years from 1900
+-	 */
+-	rtc_time_to_tm(tim, &tm);
+-	tm.tm_year += 1900;
+-=======
+ 	/*
+ 	 * Convert to a more useful format -- note months count from 0
+ 	 * and years from 1900
+ 	 */
+ 	rtc_time_to_tm(sec, &tm);
+ 	tm.tm_year += 1900;
+->>>>>>> /arch/mips/pmc-sierra/yosemite/setup.c
+ 	tm.tm_mon += 1;
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+diff -puN arch/mips/sgi-ip22/ip22-time.c~git-mips-fixup arch/mips/sgi-ip22/ip22-time.c
+--- a/arch/mips/sgi-ip22/ip22-time.c~git-mips-fixup
++++ a/arch/mips/sgi-ip22/ip22-time.c
+@@ -173,15 +173,8 @@ __init void plat_time_init(void)
+ 		(int) (r4k_tick % (500000 / HZ)));
+ 
+ 	mips_hpt_frequency = r4k_tick * HZ;
+-<<<<<<< HEAD/arch/mips/sgi-ip22/ip22-time.c
+-
+-	if (ip22_is_fullhouse())
+-		setup_pit_timer();
+-=======
+-
+ 	if (ip22_is_fullhouse)
+ 		setup_pit_timer();
+->>>>>>> /arch/mips/sgi-ip22/ip22-time.c
+ }
+ 
+ /* Generic SGI handler for (spurious) 8254 interrupts */
+diff -puN drivers/net/jazzsonic.c~git-mips-fixup drivers/net/jazzsonic.c
+--- a/drivers/net/jazzsonic.c~git-mips-fixup
++++ a/drivers/net/jazzsonic.c
+@@ -211,13 +211,6 @@ static int __init jazz_sonic_probe(struc
+ 	int i;
+ 	DECLARE_MAC_BUF(mac);
+ 
+-<<<<<<< HEAD/drivers/net/jazzsonic.c
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+-=======
+->>>>>>> /drivers/net/jazzsonic.c
+ 	dev = alloc_etherdev(sizeof(struct sonic_local));
+ 	if (!dev)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,12 +342,14 @@ first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
 git-jg-misc-powernow-fix.patch
 git-kbuild.patch
+git-kbuild-fixup.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
 git-md-accel-fixup.patch
 git-mips.patch
+git-mips-fixup.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
 git-mtd-fixup.patch
