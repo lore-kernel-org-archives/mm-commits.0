@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-build-fix.patch added to -mm tree
-Date: Thu, 11 Oct 2007 20:08:55 -0700
-Message-ID: <200710120308.l9C38tqC029280@imap1.linux-foundation.org>
+Subject: + ata-printk-warning-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 20:13:30 -0700
+Message-ID: <200710120313.l9C3DUfN029443@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51456 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33355 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756776AbXJLDJA (ORCPT
+	by vger.kernel.org with ESMTP id S1758039AbXJLDNi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 23:09:00 -0400
+	Thu, 11 Oct 2007 23:13:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     cifs-build-fix
+     ata printk warning fix
 has been added to the -mm tree.  Its filename is
-     cifs-build-fix.patch
+     ata-printk-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cifs-build-fix
+Subject: ata printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/cifs/cifssmb.c: In function 'CIFSSMBNegotiate':
-fs/cifs/cifssmb.c:444: error: 'CIFSSEC_MAY_LANMAN' undeclared (first use in this function)
-fs/cifs/cifssmb.c:444: error: (Each undeclared identifier is reported only once
-fs/cifs/cifssmb.c:444: error: for each function it appears in.)
-fs/cifs/cifssmb.c:444: error: 'CIFSSEC_MAY_PLNTXT' undeclared (first use in this function)
+drivers/ata/libata-eh.c: In function 'ata_port_pbar_desc':
+drivers/ata/libata-eh.c:215: warning: format '%zx' expects type 'size_t', but argument 4 has type 'long long unsigned int'
 
-With http://userweb.kernel.org/~akpm/config-sony.txt
-
-Cc: Steven French <sfrench@us.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsglob.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ata/libata-eh.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifsglob.h~cifs-build-fix fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~cifs-build-fix
-+++ a/fs/cifs/cifsglob.h
-@@ -479,6 +479,9 @@ struct dir_notify_req {
- #ifdef CONFIG_CIFS_WEAK_PW_HASH
- #define   CIFSSEC_MAY_LANMAN	0x00010
- #define   CIFSSEC_MAY_PLNTXT	0x00020
-+#else
-+#define   CIFSSEC_MAY_LANMAN	0
-+#define   CIFSSEC_MAY_PLNTXT	0
- #endif /* weak passwords */
- #define   CIFSSEC_MAY_SEAL	0x00040 /* not supported yet */
+diff -puN drivers/ata/libata-eh.c~ata-printk-warning-fix drivers/ata/libata-eh.c
+--- a/drivers/ata/libata-eh.c~ata-printk-warning-fix
++++ a/drivers/ata/libata-eh.c
+@@ -212,7 +212,8 @@ void ata_port_pbar_desc(struct ata_port 
+ 	if (offset < 0)
+ 		ata_port_desc(ap, "%s %s%llu@0x%llx", name, type, len, start);
+ 	else
+-		ata_port_desc(ap, "%s 0x%zx", name, start + offset);
++		ata_port_desc(ap, "%s 0x%llx", name,
++				start + (unsigned long long)offset);
+ }
  
+ #endif /* CONFIG_PCI */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,6 +63,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-cifs.patch
+cifs-build-fix.patch
 git-cpufreq.patch
 git-powerpc.patch
 git-dvb.patch
@@ -289,4 +285,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-cifs-build-fix.patch
+ata-printk-warning-fix.patch
