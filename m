@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-qeth_main.patch added to -mm tree
-Date: Thu, 11 Oct 2007 20:01:45 -0700
-Message-ID: <200710120301.l9C31jFH029016@imap1.linux-foundation.org>
+Subject: + cifs-build-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2007 20:08:55 -0700
+Message-ID: <200710120308.l9C38tqC029280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60516 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755309AbXJLDBz (ORCPT
+	by vger.kernel.org with ESMTP id S1756776AbXJLDJA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 23:01:55 -0400
+	Thu, 11 Oct 2007 23:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     git-net: fix qeth_main.c
+     cifs-build-fix
 has been added to the -mm tree.  Its filename is
-     git-net-fix-qeth_main.patch
+     cifs-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-net: fix qeth_main.c
+Subject: cifs-build-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/s390/net/qeth_main.c: In function 'qeth_hard_header_parse':
-drivers/s390/net/qeth_main.c:6584: error: 'dev' undeclared (first use in this function)
-drivers/s390/net/qeth_main.c:6584: error: (Each undeclared identifier is reported only once
-drivers/s390/net/qeth_main.c:6584: error: for each function it appears in.)
+fs/cifs/cifssmb.c: In function 'CIFSSMBNegotiate':
+fs/cifs/cifssmb.c:444: error: 'CIFSSEC_MAY_LANMAN' undeclared (first use in this function)
+fs/cifs/cifssmb.c:444: error: (Each undeclared identifier is reported only once
+fs/cifs/cifssmb.c:444: error: for each function it appears in.)
+fs/cifs/cifssmb.c:444: error: 'CIFSSEC_MAY_PLNTXT' undeclared (first use in this function)
 
-"David S. Miller" <davem@davemloft.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+With http://userweb.kernel.org/~akpm/config-sony.txt
+
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/net/qeth_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/cifs/cifsglob.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/s390/net/qeth_main.c~git-net-fix-qeth_main drivers/s390/net/qeth_main.c
---- a/drivers/s390/net/qeth_main.c~git-net-fix-qeth_main
-+++ a/drivers/s390/net/qeth_main.c
-@@ -6580,11 +6580,12 @@ qeth_hard_header_parse(const struct sk_b
- {
- 	const struct qeth_card *card;
- 	const struct ethhdr *eth;
-+	struct net_device *dev = skb->dev;
+diff -puN fs/cifs/cifsglob.h~cifs-build-fix fs/cifs/cifsglob.h
+--- a/fs/cifs/cifsglob.h~cifs-build-fix
++++ a/fs/cifs/cifsglob.h
+@@ -479,6 +479,9 @@ struct dir_notify_req {
+ #ifdef CONFIG_CIFS_WEAK_PW_HASH
+ #define   CIFSSEC_MAY_LANMAN	0x00010
+ #define   CIFSSEC_MAY_PLNTXT	0x00020
++#else
++#define   CIFSSEC_MAY_LANMAN	0
++#define   CIFSSEC_MAY_PLNTXT	0
+ #endif /* weak passwords */
+ #define   CIFSSEC_MAY_SEAL	0x00040 /* not supported yet */
  
- 	if (dev->type != ARPHRD_IEEE802_TR)
- 		return 0;
- 
--	card = qeth_get_card_from_dev(skb->dev);
-+	card = qeth_get_card_from_dev(dev);
- 	if (card->options.layer2)
- 		goto haveheader;
- #ifdef CONFIG_QETH_IPV6
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -292,3 +289,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+cifs-build-fix.patch
