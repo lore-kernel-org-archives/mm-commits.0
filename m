@@ -1,140 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - adbhid-produce-all-capslock-key-events.patch removed from -mm tree
-Date: Fri, 12 Oct 2007 15:23:59 -0700
-Message-ID: <200710122224.l9CMNxH1006494@imap1.linux-foundation.org>
+Subject: - build-failure-on-axonram.patch removed from -mm tree
+Date: Fri, 12 Oct 2007 15:25:45 -0700
+Message-ID: <200710122225.l9CMPjW2006571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932878AbXJLWYT (ORCPT
+	by vger.kernel.org with ESMTP id S933455AbXJLWbA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 18:24:19 -0400
+	Fri, 12 Oct 2007 18:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amcnabb@mcnabbs.org, benh@kernel.crashing.org, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: kamalesh@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adbhid: produce all capslock key events
+     build failure on axonram
 has been removed from the -mm tree.  Its filename was
-     adbhid-produce-all-capslock-key-events.patch
+     build-failure-on-axonram.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: adbhid: produce all capslock key events
-From: Andrew McNabb <amcnabb@mcnabbs.org>
+Subject: build failure on axonram
+=46rom: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-The ADB keyboard, which is used for Apple PowerBooks, has strange behavior
-with regard to the capslock key.  It keeps track of capslock state
-internally, and it sends a keycode when capslock is engaged and a keycode
-when capslock is disengaged.
+Hi Andrew,
 
-When the current adbhid driver sees that the capslock key is pressed or
-released, it creates both a keypress event and a keyrelease event
-simultaneously.  This results in normal capslock behavior.
+The build fails with the following error message.
 
-While this works, it makes it impossible to remap the capslock key to be a
-control key.  However, by translating the 0xff keycode into capslock
-keycodes, we can restore the missing capslock events and make it possible
-to remap the capslock key.
+  CC      arch/powerpc/sysdev/axonram.o
+arch/powerpc/sysdev/axonram.c:120:34: error: macro "bio_io_error" passe=
+d 2 arguments, but takes just 1
+arch/powerpc/sysdev/axonram.c: In function =E2=80=98axon_ram_make_reque=
+st=E2=80=99:
+arch/powerpc/sysdev/axonram.c:120: error: =E2=80=98bio_io_error=E2=80=99=
+ undeclared (first use in this function)
+arch/powerpc/sysdev/axonram.c:120: error: (Each undeclared identifier i=
+s reported only once
+arch/powerpc/sysdev/axonram.c:120: error: for each function it appears =
+in.)
+arch/powerpc/sysdev/axonram.c:134: error: too many arguments to functio=
+n =E2=80=98bio_endio=E2=80=99
+make[1]: *** [arch/powerpc/sysdev/axonram.o] Error 1
+make: *** [arch/powerpc/sysdev] Error 2
 
-With this patch, the adbhid driver will translate these 0xff keycodes into
-capslock keypresses and keyreleases if
-/sys/module/adbhid/parameters/restore_capslock_events is set to 1. 
-Otherwise it will retain the current behavior.  This option is off by
-default because occasionally the 0xff keycode is not a capslock event, and
-a mistake may require the user to tap the capslock key.
+The patch fixes the build failure.
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Andrew McNabb <amcnabb@mcnabbs.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by : Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/adbhid.c |   46 +++++++++++++++++++++++++++++++----
- 1 file changed, 42 insertions(+), 4 deletions(-)
+ arch/powerpc/sysdev/axonram.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/macintosh/adbhid.c~adbhid-produce-all-capslock-key-events drivers/macintosh/adbhid.c
---- a/drivers/macintosh/adbhid.c~adbhid-produce-all-capslock-key-events
-+++ a/drivers/macintosh/adbhid.c
-@@ -52,6 +52,11 @@
- 
- MODULE_AUTHOR("Franz Sirl <Franz.Sirl-kernel@lauterbach.com>");
- 
-+static int restore_capslock_events;
-+module_param(restore_capslock_events, int, 0644);
-+MODULE_PARM_DESC(restore_capslock_events,
-+	"Produce keypress events for capslock on both keyup and keydown.");
-+
- #define KEYB_KEYREG	0	/* register # for key up/down data */
- #define KEYB_LEDREG	2	/* register # for leds on ADB keyboard */
- #define MOUSE_DATAREG	0	/* reg# for movement/button codes from mouse */
-@@ -217,6 +222,8 @@ struct adbhid {
- #define FLAG_FN_KEY_PRESSED	0x00000001
- #define FLAG_POWER_FROM_FN	0x00000002
- #define FLAG_EMU_FWDEL_DOWN	0x00000004
-+#define FLAG_CAPSLOCK_TRANSLATE	0x00000008
-+#define FLAG_CAPSLOCK_DOWN	0x00000010
- 
- static struct adbhid *adbhid[16];
- 
-@@ -272,16 +279,47 @@ adbhid_keyboard_input(unsigned char *dat
+diff -puN arch/powerpc/sysdev/axonram.c~build-failure-on-axonram arch/p=
+owerpc/sysdev/axonram.c
+--- a/arch/powerpc/sysdev/axonram.c~build-failure-on-axonram
++++ a/arch/powerpc/sysdev/axonram.c
+@@ -117,7 +117,7 @@ axon_ram_make_request(struct request_que
+ 	transfered =3D 0;
+ 	bio_for_each_segment(vec, bio, idx) {
+ 		if (unlikely(phys_mem + vec->bv_len > phys_end)) {
+-			bio_io_error(bio, bio->bi_size);
++			bio_io_error(bio);
+ 			rc =3D -ERANGE;
+ 			break;
+ 		}
+@@ -131,7 +131,7 @@ axon_ram_make_request(struct request_que
+ 		phys_mem +=3D vec->bv_len;
+ 		transfered +=3D vec->bv_len;
+ 	}
+-	bio_endio(bio, transfered, 0);
++	bio_endio(bio, 0);
+=20
+ 	return rc;
  }
- 
- static void
--adbhid_input_keycode(int id, int keycode, int repeat)
-+adbhid_input_keycode(int id, int scancode, int repeat)
- {
- 	struct adbhid *ahid = adbhid[id];
- 	int up_flag, key;
-+	int keycode;
- 
--	up_flag = (keycode & 0x80);
--	keycode &= 0x7f;
-+	keycode = scancode & 0x7f;
-+	up_flag = scancode & 0x80;
- 
-+	if (restore_capslock_events) {
-+		if ((keycode == ADB_KEY_CAPSLOCK) && !up_flag) {
-+			/* Key pressed, turning on the CapsLock LED.
-+			 * The next 0xff will be interpreted as a release. */
-+			ahid->flags |= FLAG_CAPSLOCK_TRANSLATE
-+					| FLAG_CAPSLOCK_DOWN;
-+		} else if (scancode == 0xff) {
-+			/* Scancode 0xff usually signifies that the capslock
-+			 * key was either pressed or released. */
-+			if (ahid->flags & FLAG_CAPSLOCK_TRANSLATE) {
-+				keycode = ADB_KEY_CAPSLOCK;
-+				if (ahid->flags & FLAG_CAPSLOCK_DOWN) {
-+					/* Key released */
-+					up_flag = 1;
-+					ahid->flags &= ~FLAG_CAPSLOCK_DOWN;
-+				} else {
-+					/* Key pressed */
-+					up_flag = 0;
-+					ahid->flags &= ~FLAG_CAPSLOCK_TRANSLATE;
-+				}
-+			} else {
-+				printk(KERN_INFO "Spurious caps lock event "
-+						"(scancode 0xff).");
-+			}
-+		}
-+	}
-+  
- 	switch (keycode) {
--	case ADB_KEY_CAPSLOCK: /* Generate down/up events for CapsLock everytime. */
-+	case ADB_KEY_CAPSLOCK:
-+		if (restore_capslock_events)
-+			break;
-+		/* Generate down/up events for CapsLock everytime. */
- 		input_report_key(ahid->input, KEY_CAPSLOCK, 1);
- 		input_report_key(ahid->input, KEY_CAPSLOCK, 0);
- 		input_sync(ahid->input);
 _
 
-Patches currently in -mm which might be from amcnabb@mcnabbs.org are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.co=
+m are
 
-git-input.patch
+git-nfsd.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patc=
+h
+use-extended-crashkernel-command-line-on-ia64-fix.patch
