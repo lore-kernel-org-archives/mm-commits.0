@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cifs-warning-fixes.patch added to -mm tree
-Date: Thu, 11 Oct 2007 20:31:58 -0700
-Message-ID: <200710120331.l9C3VwfF030064@imap1.linux-foundation.org>
+Subject: + git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems.patch added to -mm tree
+Date: Thu, 11 Oct 2007 20:46:47 -0700
+Message-ID: <200710120346.l9C3kluD030510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757021AbXJLDcL (ORCPT
+	by vger.kernel.org with ESMTP id S1759374AbXJLDq4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 23:32:11 -0400
+	Thu, 11 Oct 2007 23:46:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     cifs warning fixes
+     git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems
 has been added to the -mm tree.  Its filename is
-     cifs-warning-fixes.patch
+     git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,94 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cifs warning fixes
+Subject: git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/cifs/cifsacl.c: In function 'parse_ace':
-fs/cifs/cifsacl.c:40: warning: unused variable 'i'
-fs/cifs/cifsacl.c: In function 'parse_sid':
-fs/cifs/cifsacl.c:158: warning: unused variable 'i'
+arch/x86_64/pci/../../i386/pci/acpi.c:22: warning: initialization from incompatible pointer type
+arch/x86_64/pci/../../i386/pci/acpi.c:30: warning: initialization from incompatible pointer type
+arch/x86_64/pci/../../i386/pci/acpi.c:38: warning: initialization from incompatible pointer type
 
-Cc: Steven French <sfrench@us.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cifs/cifsacl.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ arch/i386/pci/acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/cifs/cifsacl.c~cifs-warning-fixes fs/cifs/cifsacl.c
---- a/fs/cifs/cifsacl.c~cifs-warning-fixes
-+++ a/fs/cifs/cifsacl.c
-@@ -37,9 +37,7 @@ static const struct cifs_sid sid_user =
+diff -puN arch/i386/pci/acpi.c~git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems arch/i386/pci/acpi.c
+--- a/arch/i386/pci/acpi.c~git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems
++++ a/arch/i386/pci/acpi.c
+@@ -6,7 +6,7 @@
+ #include <asm/numa.h>
+ #include "pci.h"
  
- static void parse_ace(struct cifs_ace *pace, char *end_of_acl)
+-static int __devinit can_skip_ioresource_align(struct dmi_system_id *d)
++static int __devinit can_skip_ioresource_align(const struct dmi_system_id *d)
  {
--	int i;
- 	int num_subauth;
--	 __u32 *psub_auth;
- 
- 	/* validate that we do not go past end of acl */
- 	if (end_of_acl < (char *)pace + sizeof(struct cifs_ace)) {
-@@ -48,9 +46,11 @@ static void parse_ace(struct cifs_ace *p
- 	}
- 
- 	num_subauth = cpu_to_le32(pace->num_subauth);
--	if (num_subauth) {
--		psub_auth = (__u32 *)((char *)pace + sizeof(struct cifs_ace));
- #ifdef CONFIG_CIFS_DEBUG2
-+	if (num_subauth) {
-+		__u32 *psub_auth = (__u32 *)((char *)pace +
-+					sizeof(struct cifs_ace));
-+		int i;
- 		cFYI(1, ("ACE revision %d num_subauth %d",
- 			pace->revision, pace->num_subauth));
- 		for (i = 0; i < num_subauth; ++i) {
-@@ -62,9 +62,8 @@ static void parse_ace(struct cifs_ace *p
- 			num auths and therefore go off the end */
- 
- 		cFYI(1, ("RID %d", le32_to_cpu(psub_auth[num_subauth-1])));
--#endif
- 	}
--
-+#endif
- 	return;
- }
- 
-@@ -155,9 +154,7 @@ static void parse_dacl(struct cifs_acl *
- 
- static int parse_sid(struct cifs_sid *psid, char *end_of_acl)
- {
--	int i;
- 	int num_subauth;
--	__u32 *psub_auth;
- 
- 	/* BB need to add parm so we can store the SID BB */
- 
-@@ -168,9 +165,11 @@ static int parse_sid(struct cifs_sid *ps
- 	}
- 
- 	num_subauth = cpu_to_le32(psid->num_subauth);
--	if (num_subauth) {
--		psub_auth = (__u32 *)((char *)psid + sizeof(struct cifs_sid));
- #ifdef CONFIG_CIFS_DEBUG2
-+	if (num_subauth) {
-+		__u32 *psub_auth = (__u32 *)((char *)psid +
-+					sizeof(struct cifs_sid));
-+		int i;
- 		cFYI(1, ("SID revision %d num_auth %d First subauth 0x%x",
- 			psid->revision, psid->num_subauth, psid->sub_auth[0]));
- 
-@@ -183,9 +182,8 @@ static int parse_sid(struct cifs_sid *ps
- 			num auths and therefore go off the end */
- 		cFYI(1, ("RID 0x%x",
- 			le32_to_cpu(psid->sub_auth[psid->num_subauth])));
--#endif
- 	}
--
-+#endif
- 	return 0;
- }
- 
+ 	pci_probe |= PCI_CAN_SKIP_ISA_ALIGN;
+ 	printk(KERN_INFO "PCI: %s detected, can skip ISA alignment\n", d->ident);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +65,7 @@ working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-cifs.patch
 cifs-build-fix.patch
+cifs-warning-fixes.patch
 git-cpufreq.patch
 git-powerpc.patch
 git-dvb.patch
@@ -347,4 +287,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-cifs-warning-fixes.patch
+git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems.patch
