@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + build-failure-on-axonram.patch added to -mm tree
-Date: Fri, 12 Oct 2007 01:03:20 -0700
-Message-ID: <200710120803.l9C83K59006747@imap1.linux-foundation.org>
+Subject: + gdth-build-fix.patch added to -mm tree
+Date: Fri, 12 Oct 2007 11:02:38 -0700
+Message-ID: <200710121802.l9CI2cGq029536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35431 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33931 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752872AbXJLIET (ORCPT
+	by vger.kernel.org with ESMTP id S1757643AbXJLSDZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 04:04:19 -0400
+	Fri, 12 Oct 2007 14:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com
+Cc: dhaval@linux.vnet.ibm.com, James.Bottomley@steeleye.com
 
 
 The patch titled
-     build failure on axonram
+     gdth build fix
 has been added to the -mm tree.  Its filename is
-     build-failure-on-axonram.patch
+     gdth-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your cod=
 e ***
@@ -31,69 +31,65 @@ find
 out what to do about this
 
 ------------------------------------------------------
-Subject: build failure on axonram
-=46rom: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: gdth build fix
+=46rom: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-Hi Andrew,
+drivers/scsi/gdth.c: In function =E2=80=98gdth_search_dev=E2=80=99:
+drivers/scsi/gdth.c:646: warning: =E2=80=98pci_find_device=E2=80=99 is =
+deprecated
+(declared at include/linux/pci.h:482)
+drivers/scsi/gdth.c: In function =E2=80=98gdth_init_isa=E2=80=99:
+drivers/scsi/gdth.c:857: error: =E2=80=98gdth_irq_tab=E2=80=99 undeclar=
+ed (first use in
+this function)
+drivers/scsi/gdth.c:857: error: (Each undeclared identifier is reported
+only once
+drivers/scsi/gdth.c:857: error: for each function it appears in.)
+drivers/scsi/gdth.c: In function =E2=80=98gdth_copy_internal_data=E2=80=
+=99:
+drivers/scsi/gdth.c:2362: warning: unused variable =E2=80=98sg=E2=80=99
+make[2]: *** [drivers/scsi/gdth.o] Error 1
+make[1]: *** [drivers/scsi] Error 2
+make: *** [drivers] Error 2
+[dhaval@gondor linux-2.6.23]$
 
-The build fails with the following error message.
+Looking into the code I notice that gdth_irq_tab is not declared with
+CONFIG_ISA=3Dy and !CONFIG_EISA.
 
-  CC      arch/powerpc/sysdev/axonram.o
-arch/powerpc/sysdev/axonram.c:120:34: error: macro "bio_io_error" passe=
-d 2 arguments, but takes just 1
-arch/powerpc/sysdev/axonram.c: In function =E2=80=98axon_ram_make_reque=
-st=E2=80=99:
-arch/powerpc/sysdev/axonram.c:120: error: =E2=80=98bio_io_error=E2=80=99=
- undeclared (first use in this function)
-arch/powerpc/sysdev/axonram.c:120: error: (Each undeclared identifier i=
-s reported only once
-arch/powerpc/sysdev/axonram.c:120: error: for each function it appears =
-in.)
-arch/powerpc/sysdev/axonram.c:134: error: too many arguments to functio=
-n =E2=80=98bio_endio=E2=80=99
-make[1]: *** [arch/powerpc/sysdev/axonram.o] Error 1
-make: *** [arch/powerpc/sysdev] Error 2
+The values seem to be same in 2.6.23 (I am not sure why it has been put
+with #ifdefs in -mm) so I have just modified the #ifdef to take care of
+CONFIG_ISA as well.
 
-The patch fixes the build failure.
-
-Signed-off-by : Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/axonram.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/sysdev/axonram.c~build-failure-on-axonram arch/p=
-owerpc/sysdev/axonram.c
---- a/arch/powerpc/sysdev/axonram.c~build-failure-on-axonram
-+++ a/arch/powerpc/sysdev/axonram.c
-@@ -117,7 +117,7 @@ axon_ram_make_request(struct request_que
- 	transfered =3D 0;
- 	bio_for_each_segment(vec, bio, idx) {
- 		if (unlikely(phys_mem + vec->bv_len > phys_end)) {
--			bio_io_error(bio, bio->bi_size);
-+			bio_io_error(bio);
- 			rc =3D -ERANGE;
- 			break;
- 		}
-@@ -131,7 +131,7 @@ axon_ram_make_request(struct request_que
- 		phys_mem +=3D vec->bv_len;
- 		transfered +=3D vec->bv_len;
- 	}
--	bio_endio(bio, transfered, 0);
-+	bio_endio(bio, 0);
-=20
- 	return rc;
- }
+diff -puN drivers/scsi/gdth.c~gdth-build-fix drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~gdth-build-fix
++++ a/drivers/scsi/gdth.c
+@@ -288,7 +288,7 @@ static struct timer_list gdth_timer;
+ #ifdef CONFIG_ISA
+ static unchar   gdth_drq_tab[4] =3D {5,6,7,7};            /* DRQ table=
+ */
+ #endif
+-#ifdef CONFIG_EISA
++#if defined(CONFIG_EISA) || defined(CONFIG_ISA)
+ static unchar   gdth_irq_tab[6] =3D {0,10,11,12,14,0};    /* IRQ table=
+ */
+ #endif
+ static unchar   gdth_polling;                           /* polling if =
+TRUE */
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.co=
-m are
+Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com =
+are
 
-git-nfsd.patch
-disable-kgdb-on-ppc.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patc=
-h
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-build-failure-on-axonram.patch
+git-sched.patch
+gdth-build-fix.patch
+git-block.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
