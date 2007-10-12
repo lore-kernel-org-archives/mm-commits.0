@@ -1,53 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - ata-printk-warning-fix.patch removed from -mm tree
-Date: Thu, 11 Oct 2007 20:15:16 -0700
-Message-ID: <200710120315.l9C3FGOt029534@imap1.linux-foundation.org>
+Subject: + cifs-warning-fixes.patch added to -mm tree
+Date: Thu, 11 Oct 2007 20:31:58 -0700
+Message-ID: <200710120331.l9C3VwfF030064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755794AbXJLDPX (ORCPT
+	by vger.kernel.org with ESMTP id S1757021AbXJLDcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Oct 2007 23:15:23 -0400
+	Thu, 11 Oct 2007 23:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, sfrench@us.ibm.com
 
 
 The patch titled
-     ata printk warning fix
-has been removed from the -mm tree.  Its filename was
-     ata-printk-warning-fix.patch
+     cifs warning fixes
+has been added to the -mm tree.  Its filename is
+     cifs-warning-fixes.patch
 
-This patch was dropped because it was folded into drivers-ata-libata-ehc-fix-printk-warning.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ata printk warning fix
+Subject: cifs warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/libata-eh.c: In function 'ata_port_pbar_desc':
-drivers/ata/libata-eh.c:215: warning: format '%zx' expects type 'size_t', but argument 4 has type 'long long unsigned int'
+fs/cifs/cifsacl.c: In function 'parse_ace':
+fs/cifs/cifsacl.c:40: warning: unused variable 'i'
+fs/cifs/cifsacl.c: In function 'parse_sid':
+fs/cifs/cifsacl.c:158: warning: unused variable 'i'
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-eh.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/cifs/cifsacl.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN drivers/ata/libata-eh.c~ata-printk-warning-fix drivers/ata/libata-eh.c
---- a/drivers/ata/libata-eh.c~ata-printk-warning-fix
-+++ a/drivers/ata/libata-eh.c
-@@ -212,7 +212,8 @@ void ata_port_pbar_desc(struct ata_port 
- 	if (offset < 0)
- 		ata_port_desc(ap, "%s %s%llu@0x%llx", name, type, len, start);
- 	else
--		ata_port_desc(ap, "%s 0x%zx", name, start + offset);
-+		ata_port_desc(ap, "%s 0x%llx", name,
-+				start + (unsigned long long)offset);
+diff -puN fs/cifs/cifsacl.c~cifs-warning-fixes fs/cifs/cifsacl.c
+--- a/fs/cifs/cifsacl.c~cifs-warning-fixes
++++ a/fs/cifs/cifsacl.c
+@@ -37,9 +37,7 @@ static const struct cifs_sid sid_user =
+ 
+ static void parse_ace(struct cifs_ace *pace, char *end_of_acl)
+ {
+-	int i;
+ 	int num_subauth;
+-	 __u32 *psub_auth;
+ 
+ 	/* validate that we do not go past end of acl */
+ 	if (end_of_acl < (char *)pace + sizeof(struct cifs_ace)) {
+@@ -48,9 +46,11 @@ static void parse_ace(struct cifs_ace *p
+ 	}
+ 
+ 	num_subauth = cpu_to_le32(pace->num_subauth);
+-	if (num_subauth) {
+-		psub_auth = (__u32 *)((char *)pace + sizeof(struct cifs_ace));
+ #ifdef CONFIG_CIFS_DEBUG2
++	if (num_subauth) {
++		__u32 *psub_auth = (__u32 *)((char *)pace +
++					sizeof(struct cifs_ace));
++		int i;
+ 		cFYI(1, ("ACE revision %d num_subauth %d",
+ 			pace->revision, pace->num_subauth));
+ 		for (i = 0; i < num_subauth; ++i) {
+@@ -62,9 +62,8 @@ static void parse_ace(struct cifs_ace *p
+ 			num auths and therefore go off the end */
+ 
+ 		cFYI(1, ("RID %d", le32_to_cpu(psub_auth[num_subauth-1])));
+-#endif
+ 	}
+-
++#endif
+ 	return;
  }
  
- #endif /* CONFIG_PCI */
+@@ -155,9 +154,7 @@ static void parse_dacl(struct cifs_acl *
+ 
+ static int parse_sid(struct cifs_sid *psid, char *end_of_acl)
+ {
+-	int i;
+ 	int num_subauth;
+-	__u32 *psub_auth;
+ 
+ 	/* BB need to add parm so we can store the SID BB */
+ 
+@@ -168,9 +165,11 @@ static int parse_sid(struct cifs_sid *ps
+ 	}
+ 
+ 	num_subauth = cpu_to_le32(psid->num_subauth);
+-	if (num_subauth) {
+-		psub_auth = (__u32 *)((char *)psid + sizeof(struct cifs_sid));
+ #ifdef CONFIG_CIFS_DEBUG2
++	if (num_subauth) {
++		__u32 *psub_auth = (__u32 *)((char *)psid +
++					sizeof(struct cifs_sid));
++		int i;
+ 		cFYI(1, ("SID revision %d num_auth %d First subauth 0x%x",
+ 			psid->revision, psid->num_subauth, psid->sub_auth[0]));
+ 
+@@ -183,9 +182,8 @@ static int parse_sid(struct cifs_sid *ps
+ 			num auths and therefore go off the end */
+ 		cFYI(1, ("RID 0x%x",
+ 			le32_to_cpu(psid->sub_auth[psid->num_subauth])));
+-#endif
+ 	}
+-
++#endif
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +146,6 @@ git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-ata-printk-warning-fix.patch
 ide-arm-hack.patch
 git-mips.patch
 git-mmc.patch
@@ -282,3 +347,4 @@ slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+cifs-warning-fixes.patch
