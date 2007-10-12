@@ -1,84 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + add-missing-parenthesis-in-cfe_writeblk-macro.patch added to -mm tree
-Date: Fri, 12 Oct 2007 00:17:28 -0700
-Message-ID: <200710120717.l9C7HSnl005178@imap1.linux-foundation.org>
+Subject: + build-failure-on-axonram.patch added to -mm tree
+Date: Fri, 12 Oct 2007 01:03:20 -0700
+Message-ID: <200710120803.l9C83K59006747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53901 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35431 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755659AbXJLHRs (ORCPT
+	by vger.kernel.org with ESMTP id S1752872AbXJLIET (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 03:17:48 -0400
+	Fri, 12 Oct 2007 04:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, ralf@linux-mips.org
+Cc: kamalesh@linux.vnet.ibm.com
 
 
 The patch titled
-     add missing parenthesis in cfe_writeblk() macro
+     build failure on axonram
 has been added to the -mm tree.  Its filename is
-     add-missing-parenthesis-in-cfe_writeblk-macro.patch
+     build-failure-on-axonram.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add missing parenthesis in cfe_writeblk() macro
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: build failure on axonram
+=46rom: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-Add missing parenthesis in cfe_writeblk() macro.
+Hi Andrew,
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+The build fails with the following error message.
+
+  CC      arch/powerpc/sysdev/axonram.o
+arch/powerpc/sysdev/axonram.c:120:34: error: macro "bio_io_error" passe=
+d 2 arguments, but takes just 1
+arch/powerpc/sysdev/axonram.c: In function =E2=80=98axon_ram_make_reque=
+st=E2=80=99:
+arch/powerpc/sysdev/axonram.c:120: error: =E2=80=98bio_io_error=E2=80=99=
+ undeclared (first use in this function)
+arch/powerpc/sysdev/axonram.c:120: error: (Each undeclared identifier i=
+s reported only once
+arch/powerpc/sysdev/axonram.c:120: error: for each function it appears =
+in.)
+arch/powerpc/sysdev/axonram.c:134: error: too many arguments to functio=
+n =E2=80=98bio_endio=E2=80=99
+make[1]: *** [arch/powerpc/sysdev/axonram.o] Error 1
+make: *** [arch/powerpc/sysdev] Error 2
+
+The patch fixes the build failure.
+
+Signed-off-by : Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/fw/cfe/cfe_api.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/sysdev/axonram.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-mips/fw/cfe/cfe_api.h~add-missing-parenthesis-in-cfe_writeblk-macro include/asm-mips/fw/cfe/cfe_api.h
---- a/include/asm-mips/fw/cfe/cfe_api.h~add-missing-parenthesis-in-cfe_writeblk-macro
-+++ a/include/asm-mips/fw/cfe/cfe_api.h
-@@ -154,7 +154,7 @@ int64_t cfe_getticks(void);
- #define cfe_readblk(a, b, c, d)		__cfe_readblk(a, b, c, d)
- #define cfe_setenv(a, b)		__cfe_setenv(a, b)
- #define cfe_write(a, b, c)		__cfe_write(a, b, c)
--#define cfe_writeblk(a, b, c, d		__cfe_writeblk(a, b, c, d)
-+#define cfe_writeblk(a, b, c, d)	__cfe_writeblk(a, b, c, d)
- #endif				/* CFE_API_IMPL_NAMESPACE */
- 
- int cfe_close(int handle);
+diff -puN arch/powerpc/sysdev/axonram.c~build-failure-on-axonram arch/p=
+owerpc/sysdev/axonram.c
+--- a/arch/powerpc/sysdev/axonram.c~build-failure-on-axonram
++++ a/arch/powerpc/sysdev/axonram.c
+@@ -117,7 +117,7 @@ axon_ram_make_request(struct request_que
+ 	transfered =3D 0;
+ 	bio_for_each_segment(vec, bio, idx) {
+ 		if (unlikely(phys_mem + vec->bv_len > phys_end)) {
+-			bio_io_error(bio, bio->bi_size);
++			bio_io_error(bio);
+ 			rc =3D -ERANGE;
+ 			break;
+ 		}
+@@ -131,7 +131,7 @@ axon_ram_make_request(struct request_que
+ 		phys_mem +=3D vec->bv_len;
+ 		transfered +=3D vec->bv_len;
+ 	}
+-	bio_endio(bio, transfered, 0);
++	bio_endio(bio, 0);
+=20
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.co=
+m are
 
-git-alsa.patch
-git-arm.patch
-git-cifs.patch
-git-powerpc.patch
-git-dvb.patch
-git-hid.patch
-git-mmc.patch
-git-mtd.patch
-git-net.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-git-scsi-misc.patch
-include-asm-frv-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-include-asm-m32r-thread_infoh-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
-doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
-drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
-add-a-rounddown_pow_of_two-routine-to-log2hpatch-fix.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
-add-missing-parenthesis-in-cfe_writeblk-macro.patch
+git-nfsd.patch
+disable-kgdb-on-ppc.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patc=
+h
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+build-failure-on-axonram.patch
