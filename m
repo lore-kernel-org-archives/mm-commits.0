@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-arm-fixup.patch added to -mm tree
-Date: Fri, 12 Oct 2007 14:48:00 -0700
-Message-ID: <200710122148.l9CLm0O7005026@imap1.linux-foundation.org>
+Subject: + git-md-accel-fixup.patch added to -mm tree
+Date: Fri, 12 Oct 2007 14:52:23 -0700
+Message-ID: <200710122152.l9CLqNKP005214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56111 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760991AbXJLVsa (ORCPT
+	by vger.kernel.org with ESMTP id S1758181AbXJLVwx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Oct 2007 17:48:30 -0400
+	Fri, 12 Oct 2007 17:52:53 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLm0O5000971
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9CLqNsi001118
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:48:01 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 12 Oct 2007 14:52:24 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-arm-fixup
+     git-md-accel-fixup
 has been added to the -mm tree.  Its filename is
-     git-arm-fixup.patch
+     git-md-accel-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,35 +30,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-arm-fixup
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/md/raid5.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/net/smc91x.c~git-arm-fixup drivers/net/smc91x.c
---- a/drivers/net/smc91x.c~git-arm-fixup
-+++ a/drivers/net/smc91x.c
-@@ -173,7 +173,6 @@ MODULE_LICENSE("GPL");
-  */
- #define MII_DELAY		1
- 
--<<<<<<< HEAD/drivers/net/smc91x.c
- /* store this information for the driver.. */
- struct smc_local {
- 	/*
-@@ -217,8 +216,6 @@ struct smc_local {
- 	void __iomem *datacs;
- };
- 
+diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fixup
++++ a/drivers/md/raid5.c
+@@ -3888,13 +3888,8 @@ static void raid5_align_endio(struct bio
+ 	if (!error && uptodate) {
+ 		bio_endio(raid_bi, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+-<<<<<<< HEAD/drivers/md/raid5.c
+-			wake_up(&conf->wait_for_stripe);
+-		return;
 -=======
-->>>>>>> /drivers/net/smc91x.c
- #if SMC_DEBUG > 0
- #define DBG(n, args...)					\
- 	do {						\
+ 			wake_up(&conf->wait_for_queue);
+-		return 0;
+->>>>>>> /drivers/md/raid5.c
++		return;
+ 	}
+ 
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +69,7 @@ git-alsa.patch
 git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
+git-arm-fixup.patch
 git-cifs.patch
 cifs-build-fix.patch
 git-cpufreq.patch
@@ -88,6 +87,7 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
+git-md-accel-fixup.patch
 git-mips.patch
 gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd.patch
@@ -275,4 +275,3 @@ page-owner-tracking-leak-detector.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 tmp-fix.patch
-git-arm-fixup.patch
