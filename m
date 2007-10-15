@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch added to -mm tree
-Date: Sun, 14 Oct 2007 22:00:55 -0700
-Message-ID: <200710150500.l9F50tC1018233@imap1.linux-foundation.org>
+Subject: + md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1.patch added to -mm tree
+Date: Sun, 14 Oct 2007 22:00:58 -0700
+Message-ID: <200710150500.l9F50wYk018239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33545 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751274AbXJOFA7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751561AbXJOFBD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 01:00:59 -0400
+	Mon, 15 Oct 2007 01:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: neilb@suse.de
 
 
 The patch titled
-     md: 'sync_action' in sysfs returns wrong value for readonly arrays
+     md: make sure read errors are auto-corrected during a 'check' resync in raid1
 has been added to the -mm tree.  Its filename is
-     md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch
+     md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: md: 'sync_action' in sysfs returns wrong value for readonly arrays
+Subject: md: make sure read errors are auto-corrected during a 'check' resync in raid1
 From: NeilBrown <neilb@suse.de>
 
-When an array is started read-only, MD_RECOVERY_NEEDED can be set but no
-recovery will be running.  This causes 'sync_action' to report the wrong
-value.
+Whenever a read error is found, we should attempt to overwrite with correct
+data to 'fix' it.
 
-We could remove the test for MD_RECOVERY_NEEDED, but doing so would leave a
-small gap after requesting a sync action, where 'sync_action' would still
-report the old value.
-
-So make sure that for a read-only array, 'sync_action' always returns 'idle'.
+However when do a 'check' pass (which compares data blocks that are
+successfully read, but doesn't normally overwrite) we don't do that.  We
+should.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid1.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays drivers/md/md.c
---- a/drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays
-+++ a/drivers/md/md.c
-@@ -2714,7 +2714,7 @@ action_show(mddev_t *mddev, char *page)
- {
- 	char *type = "idle";
- 	if (test_bit(MD_RECOVERY_RUNNING, &mddev->recovery) ||
--	    test_bit(MD_RECOVERY_NEEDED, &mddev->recovery)) {
-+	    (!mddev->ro && test_bit(MD_RECOVERY_NEEDED, &mddev->recovery))) {
- 		if (test_bit(MD_RECOVERY_RESHAPE, &mddev->recovery))
- 			type = "reshape";
- 		else if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
+diff -puN drivers/md/raid1.c~md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1 drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1
++++ a/drivers/md/raid1.c
+@@ -1214,7 +1214,8 @@ static void sync_request_write(mddev_t *
+ 					j = 0;
+ 				if (j >= 0)
+ 					mddev->resync_mismatches += r1_bio->sectors;
+-				if (j < 0 || test_bit(MD_RECOVERY_CHECK, &mddev->recovery)) {
++				if (j < 0 || (test_bit(MD_RECOVERY_CHECK, &mddev->recovery)
++					      && test_bit(BIO_UPTODATE, &sbio->bi_flags))) {
+ 					sbio->bi_end_io = NULL;
+ 					rdev_dec_pending(conf->mirrors[i].rdev, mddev);
+ 				} else {
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
