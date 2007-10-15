@@ -1,94 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - i386-hpet-sharing-optimize.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:33 -0700
-Message-ID: <200710150918.l9F9IXA6027413@imap1.linux-foundation.org>
+Subject: - x86_64-apic-remove-bogus-pit-synchronization.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:03 -0700
+Message-ID: <200710150918.l9F9I3ZG027355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58755 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756947AbXJOJY3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755290AbXJOJYT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:29 -0400
+	Mon, 15 Oct 2007 05:24:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386/x86_64: cleanup the shared hpet code
+     x86_64: remove pit synchronization
 has been removed from the -mm tree.  Its filename was
-     i386-hpet-sharing-optimize.patch
+     x86_64-apic-remove-bogus-pit-synchronization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386/x86_64: cleanup the shared hpet code
+Subject: x86_64: remove pit synchronization
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Remove hpet_readl/writel from vsyscall.h, where it does not belong anyway. 
-Use the hpet code itself.
+The APIC timer setup code synchronizes the local APIC timer to the PIT/HPET. 
+This is pointless as the PIT and the local APIC timer frequency are not
+correlated and the APIC timer calibration can never be accurate enough to
+avoid that the local APIC timer and the PIT/HPET drift apart.
 
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Simply remove it.
+
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/hpet.c       |    6 +-----
- include/asm-i386/hpet.h       |    2 ++
- include/asm-x86_64/vsyscall.h |    3 ---
- 3 files changed, 3 insertions(+), 8 deletions(-)
+ arch/x86_64/kernel/apic.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff -puN arch/i386/kernel/hpet.c~i386-hpet-sharing-optimize arch/i386/kernel/hpet.c
---- a/arch/x86/kernel/hpet_32.c~i386-hpet-sharing-optimize
-+++ a/arch/x86/kernel/hpet_32.c
-@@ -25,11 +25,7 @@
- unsigned long hpet_address;
- static void __iomem *hpet_virt_address;
+diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-remove-bogus-pit-synchronization arch/x86_64/kernel/apic.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-apic-remove-bogus-pit-synchronization
++++ a/arch/x86/kernel/apic_64.c
+@@ -770,24 +770,6 @@ static void setup_APIC_timer(unsigned in
  
--/* Temporary hack. Cleanup after x86_64 clock events conversion */
--#undef hpet_readl
--#undef hpet_writel
+ 	local_irq_save(flags);
+ 
+-	/* wait for irq slice */
+-	if (hpet_address && hpet_use_timer) {
+-		u32 trigger = hpet_readl(HPET_T0_CMP);
+-		while (hpet_readl(HPET_T0_CMP) == trigger)
+-			/* do nothing */ ;
+-	} else {
+-		int c1, c2;
+-		outb_p(0x00, 0x43);
+-		c2 = inb_p(0x40);
+-		c2 |= inb_p(0x40) << 8;
+-		do {
+-			c1 = c2;
+-			outb_p(0x00, 0x43);
+-			c2 = inb_p(0x40);
+-			c2 |= inb_p(0x40) << 8;
+-		} while (c2 - c1 < 300);
+-	}
 -
--static inline unsigned long hpet_readl(unsigned long a)
-+unsigned long hpet_readl(unsigned long a)
- {
- 	return readl(hpet_virt_address + a);
- }
-diff -puN include/asm-i386/hpet.h~i386-hpet-sharing-optimize include/asm-i386/hpet.h
---- a/include/asm-x86/hpet_32.h~i386-hpet-sharing-optimize
-+++ a/include/asm-x86/hpet_32.h
-@@ -66,6 +66,7 @@
- extern unsigned long hpet_address;
- extern int is_hpet_enabled(void);
- extern int hpet_enable(void);
-+extern unsigned long hpet_readl(unsigned long a);
- 
- #ifdef CONFIG_HPET_EMULATE_RTC
- 
-@@ -85,6 +86,7 @@ extern irqreturn_t hpet_rtc_interrupt(in
- #else
- 
- static inline int hpet_enable(void) { return 0; }
-+static inline unsigned long hpet_readl(unsigned long a) { return 0; }
- 
- #endif /* CONFIG_HPET_TIMER */
- #endif /* _I386_HPET_H */
-diff -puN include/asm-x86_64/vsyscall.h~i386-hpet-sharing-optimize include/asm-x86_64/vsyscall.h
---- a/include/asm-x86/vsyscall.h~i386-hpet-sharing-optimize
-+++ a/include/asm-x86/vsyscall.h
-@@ -29,9 +29,6 @@ enum vsyscall_num {
- #define VGETCPU_RDTSCP	1
- #define VGETCPU_LSL	2
- 
--#define hpet_readl(a)           readl((const void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
--#define hpet_writel(d,a)        writel(d, (void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
--
- extern int __vgetcpu_mode;
- extern volatile unsigned long __jiffies;
- 
+ 	irqen = ! cpu_isset(smp_processor_id(),
+ 			    timer_interrupt_broadcast_ipi_mask);
+ 	__setup_APIC_LVTT(clocks, 0, irqen);
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
