@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-apic-calibration-remove-divisor.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:07 -0700
-Message-ID: <200710150918.l9F9I7Y4027365@imap1.linux-foundation.org>
+Subject: - x86_64-apic-shuffle-calibration-around.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:05 -0700
+Message-ID: <200710150918.l9F9I5pZ027359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49815 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757199AbXJOJYP (ORCPT
+	by vger.kernel.org with ESMTP id S1757389AbXJOJYc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:15 -0400
+	Mon, 15 Oct 2007 05:24:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Remove APIC_DIVISOR
+     x86_64: Move apic calibration code around
 has been removed from the -mm tree.  Its filename was
-     x86_64-apic-calibration-remove-divisor.patch
+     x86_64-apic-shuffle-calibration-around.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Remove APIC_DIVISOR
+Subject: x86_64: Move apic calibration code around
 From: Thomas Gleixner <tglx@linutronix.de>
 
-APIC_DIVISOR is rather useless.  It makes the calibration result more accurate
-in the first place, but we discard this later when we write the value to the
-APIC timer by dividing the calibration value by APIC_DIVISOR.
+Let the calibration code fill in calibration_result directly and
+move the variable on top of the file.
+
+Fixup a printk w/o log level while at it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -37,48 +38,68 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/x86_64/kernel/apic.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-calibration-remove-divisor arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-apic-calibration-remove-divisor
+diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-shuffle-calibration-around arch/x86_64/kernel/apic.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-apic-shuffle-calibration-around
 +++ a/arch/x86/kernel/apic_64.c
-@@ -739,8 +739,6 @@ void __init init_apic_mappings(void)
-  * P5 APIC double write bug.
-  */
+@@ -55,6 +55,8 @@ static struct resource lapic_resource = 
+ 	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
+ };
  
--#define APIC_DIVISOR 16
--
- static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
++static unsigned int calibration_result;
++
+ /*
+  * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
+  * IPIs in place of local APIC timers
+@@ -801,7 +803,7 @@ static void setup_APIC_timer(unsigned in
+ 
+ #define TICK_COUNT 100000000
+ 
+-static int __init calibrate_APIC_clock(void)
++static void __init calibrate_APIC_clock(void)
  {
- 	unsigned int lvtt_value, tmp_value;
-@@ -762,7 +760,7 @@ static void __setup_APIC_LVTT(unsigned i
- 				| APIC_TDR_DIV_16);
+ 	unsigned apic, apic_start;
+ 	unsigned long tsc, tsc_start;
+@@ -835,17 +837,14 @@ static int __init calibrate_APIC_clock(v
+ 		result = (apic_start - apic) * 1000L * tsc_khz /
+ 					(tsc - tsc_start);
+ 	}
+-	printk("result %d\n", result);
+-
++	printk(KERN_DEBUG "APIC timer calibration result %d\n", result);
  
- 	if (!oneshot)
--		apic_write(APIC_TMICT, clocks/APIC_DIVISOR);
-+		apic_write(APIC_TMICT, clocks);
- }
- 
- static void setup_APIC_timer(unsigned int clocks)
-@@ -815,7 +813,7 @@ static void __init calibrate_APIC_clock(
- 	 *
- 	 * No interrupt enable !
- 	 */
--	__setup_APIC_LVTT(4000000000, 0, 0);
-+	__setup_APIC_LVTT(250000000, 0, 0);
- 
- 	apic_start = apic_read(APIC_TMCCT);
- #ifdef CONFIG_X86_PM_TIMER
-@@ -842,7 +840,7 @@ static void __init calibrate_APIC_clock(
  	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
  		result / 1000 / 1000, result / 1000 % 1000);
  
--	calibration_result = result * APIC_DIVISOR / HZ;
-+	calibration_result = result / HZ;
+-	return result * APIC_DIVISOR / HZ;
++	calibration_result = result * APIC_DIVISOR / HZ;
  }
  
+-static unsigned int calibration_result;
+-
  void __init setup_boot_APIC_clock (void)
+ {
+ 	if (disable_apic_timer) {
+@@ -858,7 +857,7 @@ void __init setup_boot_APIC_clock (void)
+ 
+ 	local_irq_disable();
+ 
+-	calibration_result = calibrate_APIC_clock();
++	calibrate_APIC_clock();
+ 	/*
+ 	 * Now set up the timer for real.
+ 	 */
+@@ -965,8 +964,6 @@ void setup_APIC_extended_lvt(unsigned ch
+ 	apic_write(reg, v);
+ }
+ 
+-#undef APIC_DIVISOR
+-
+ /*
+  * Local timer interrupt handler. It does both profiling and
+  * process statistics/rescheduling.
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
