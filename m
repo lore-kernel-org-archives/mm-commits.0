@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:45 -0700
-Message-ID: <200710150918.l9F9Ij66027439@imap1.linux-foundation.org>
+Subject: - ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:46 -0700
+Message-ID: <200710150918.l9F9IkHC027442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57570 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757471AbXJOJZG (ORCPT
+	by vger.kernel.org with ESMTP id S1757452AbXJOJZE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:25:06 -0400
+	Mon, 15 Oct 2007 05:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ich force hpet: ich5 fix a bug with suspend resume
+     ich force hpet: add ich7_0 pciid to quirk list
 has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+     ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ich force hpet: ich5 fix a bug with suspend resume
+Subject: ich force hpet: add ich7_0 pciid to quirk list
 From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-A bugfix in ich5 hpet force detect which caused resumes to fail.  Thanks to
-Udo A Steinberg for reporting the problem.
+Add another PCI ID for ICH7 force hpet.
 
 Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -37,28 +36,21 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/i386/kernel/quirks.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich5-fix-a-bug-with-suspend-resume arch/i386/kernel/quirks.c
---- a/arch/x86/kernel/quirks.c~ich-force-hpet-ich5-fix-a-bug-with-suspend-resume
+diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-add-ich7_0-pciid-to-quirk-list arch/i386/kernel/quirks.c
+--- a/arch/x86/kernel/quirks.c~ich-force-hpet-add-ich7_0-pciid-to-quirk-list
 +++ a/arch/x86/kernel/quirks.c
-@@ -201,7 +201,6 @@ static void old_ich_force_enable_hpet(st
- 		force_hpet_address = 0xFED00000 | (val << 12);
- 		printk(KERN_DEBUG "HPET at base address 0x%lx\n",
- 			       force_hpet_address);
--		cached_dev = dev;
- 		return;
- 	}
- 
-@@ -223,6 +222,7 @@ static void old_ich_force_enable_hpet(st
- 		force_hpet_address = 0xFED00000 | (val << 12);
- 		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
- 			       force_hpet_address);
-+		cached_dev = dev;
- 		force_hpet_resume_type = OLD_ICH_FORCE_HPET_RESUME;
- 		return;
- 	}
+@@ -149,6 +149,8 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_I
+                          ich_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
+                          ich_force_enable_hpet);
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_0,
++                         ich_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_1,
+                          ich_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_31,
 _
 
 Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
