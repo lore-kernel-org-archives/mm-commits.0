@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch added to -mm tree
-Date: Mon, 15 Oct 2007 13:13:41 -0700
-Message-ID: <200710152013.l9FKDfD3022921@imap1.linux-foundation.org>
+Subject: + slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch added to -mm tree
+Date: Mon, 15 Oct 2007 12:54:52 -0700
+Message-ID: <200710151954.l9FJsqia022020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55503 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934490AbXJOUOV (ORCPT
+	by vger.kernel.org with ESMTP id S933344AbXJOTzI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 16:14:21 -0400
+	Mon, 15 Oct 2007 15:55:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Pierre.Peiffer@bull.net, Nadia.Derbey@bull.net, pierre.peiffer@bull.net
+Cc: akinobu.mita@gmail.com, clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     IPC: fix error case when idr-cache is empty in ipcget()
+     slub: fix cpu hotplug offline/online path
 has been added to the -mm tree.  Its filename is
-     ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
+     slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,108 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPC: fix error case when idr-cache is empty in ipcget()
-From: Pierre Peiffer <Pierre.Peiffer@bull.net>
+Subject: slub: fix cpu hotplug offline/online path
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-With the use of idr to store the ipc, the case where the idr cache is
-empty, when idr_get_new is called (this may happen even if we call
-idr_pre_get() before), is not well handled: it lets
-semget()/shmget()/msgget() return ENOSPC when this cache is empty, what 1. 
-does not reflect the facts and 2.  does not conform to the man(s).
+On Wed, Oct 10, 2007 at 10:39:32AM -0700, Christoph Lameter wrote:
+> On Wed, 10 Oct 2007, Akinobu Mita wrote:
+>
+> > I couldn't use get_cpu_slab() for that check. But I reviced the patch to do
+> > what you said.
+>
+> Why would get_cpu_slab not work?
 
-This patch fixes this by retrying the whole process of allocation in this case.
+        case CPU_DEAD:
+        case CPU_DEAD_FROZEN:
+                down_read(&slub_lock);
+                list_for_each_entry(s, &slab_caches, list) {
+                        struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
 
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+                        local_irq_save(flags);
+                        __flush_cpu_slab(s, cpu);
+                        local_irq_restore(flags);
+                        free_kmem_cache_cpu(c, cpu);
+                        s->cpu_slab[cpu] = NULL; <----------------------
+                }
+                up_read(&slub_lock);
+                break;
+
+When CPU is offlined, cpu-hotplug notifier sets s->cpu_slab[cpu] = NULL.
+This means get_cpu_slab() always return NULL when CPU is being onlined.
+So I can't use get_cpu_slab to check whether kmem_cache_cpu_free
+initalization for the CPU has already been done or not.
+
+>
+> > +	if (per_cpu(kmem_cache_cpu_free, cpu)) {
+> > +		/* Already initialized once */
+> > +		return;
+> > +	}
+> > +
+>
+> kmem_cache_cpu_free is not only NULL if the cpu is not up yet but it is
+> also NULL if the per cpu pool of kmem_cache_cpu structures was
+> exhausted.
+
+cpu-hotplug notifier by CPU_DEAD event frees kmem_cache_cpu structures
+for the CPU being offlined. So we have 100 kmem_cache cpu structures
+when the CPU will be onlined again.
+
+But I agree that it is not so trivial. It is why I added the comment
+/* Already initialized once */ in previous patch.
+
+This is another approach for the fix.
+Use cpumask to check whether kmem_cache_cpu_free initalization for
+the CPU has already been done or not.
+
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    4 ++--
- ipc/sem.c  |    4 ++--
- ipc/shm.c  |    5 +++--
- ipc/util.c |   16 +++++++++++-----
- 4 files changed, 18 insertions(+), 11 deletions(-)
+ mm/slub.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/msg.c
---- a/ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/msg.c
-@@ -203,10 +203,10 @@ static int newque(struct ipc_namespace *
- 	 * ipc_addid() locks msq
- 	 */
- 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
--	if (id == -1) {
-+	if (id < 0) {
- 		security_msg_queue_free(msq);
- 		ipc_rcu_putref(msq);
--		return -ENOSPC;
-+		return id;
- 	}
+diff -puN mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix mm/slub.c
+--- a/mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix
++++ a/mm/slub.c
+@@ -1895,6 +1895,7 @@ static DEFINE_PER_CPU(struct kmem_cache_
+ 				kmem_cache_cpu)[NR_KMEM_CACHE_CPU];
  
- 	msq->q_perm.id = msg_buildid(id, msq->q_perm.seq);
-diff -puN ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/sem.c
---- a/ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/sem.c
-@@ -283,10 +283,10 @@ static int newary(struct ipc_namespace *
- 	}
+ static DEFINE_PER_CPU(struct kmem_cache_cpu *, kmem_cache_cpu_free);
++static cpumask_t kmem_cach_cpu_free_init_once = CPU_MASK_NONE;
  
- 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
--	if(id == -1) {
-+	if (id < 0) {
- 		security_sem_free(sma);
- 		ipc_rcu_putref(sma);
--		return -ENOSPC;
-+		return id;
- 	}
- 	ns->used_sems += nsems;
- 
-diff -puN ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/shm.c
---- a/ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/shm.c
-@@ -433,10 +433,11 @@ static int newseg(struct ipc_namespace *
- 	if (IS_ERR(file))
- 		goto no_file;
- 
--	error = -ENOSPC;
- 	id = shm_addid(ns, shp);
--	if(id == -1) 
-+	if (id < 0) {
-+		error = id;
- 		goto no_id;
-+	}
- 
- 	shp->shm_cprid = task_tgid_vnr(current);
- 	shp->shm_lprid = 0;
-diff -puN ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/util.c
---- a/ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/util.c
-@@ -262,7 +262,7 @@ int ipc_get_maxid(struct ipc_ids *ids)
-  *	Add an entry 'new' to the IPC ids idr. The permissions object is
-  *	initialised and the first free entry is set up and the id assigned
-  *	is returned. The 'new' entry is returned in a locked state on success.
-- *	On failure the entry is not locked and -1 is returned.
-+ *	On failure the entry is not locked and a negative err-code is returned.
-  *
-  *	Called with ipc_ids.rw_mutex held as a writer.
-  */
-@@ -275,11 +275,11 @@ int ipc_addid(struct ipc_ids* ids, struc
- 		size = IPCMNI;
- 
- 	if (ids->in_use >= size)
--		return -1;
-+		return -ENOSPC;
- 
- 	err = idr_get_new(&ids->ipcs_idr, new, &id);
- 	if (err)
--		return -1;
-+		return err;
- 
- 	ids->in_use++;
- 
-@@ -311,7 +311,7 @@ int ipcget_new(struct ipc_namespace *ns,
- 		struct ipc_ops *ops, struct ipc_params *params)
+ static struct kmem_cache_cpu *alloc_kmem_cache_cpu(struct kmem_cache *s,
+ 							int cpu, gfp_t flags)
+@@ -1969,8 +1970,13 @@ static void init_alloc_cpu_cpu(int cpu)
  {
- 	int err;
--
-+retry:
- 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+ 	int i;
  
- 	if (!err)
-@@ -321,6 +321,9 @@ int ipcget_new(struct ipc_namespace *ns,
- 	err = ops->getnew(ns, params);
- 	up_write(&ids->rw_mutex);
- 
-+	if (err == -EAGAIN)
-+		goto retry;
++	if (cpu_isset(cpu, kmem_cach_cpu_free_init_once))
++		return;
 +
- 	return err;
+ 	for (i = NR_KMEM_CACHE_CPU - 1; i >= 0; i--)
+ 		free_kmem_cache_cpu(&per_cpu(kmem_cache_cpu, cpu)[i], cpu);
++
++	cpu_set(cpu, kmem_cach_cpu_free_init_once);
  }
  
-@@ -374,7 +377,7 @@ int ipcget_public(struct ipc_namespace *
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
- 	int err;
--
-+retry:
- 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
- 
- 	/*
-@@ -411,6 +414,9 @@ int ipcget_public(struct ipc_namespace *
- 	}
- 	up_write(&ids->rw_mutex);
- 
-+	if (err == -EAGAIN)
-+		goto retry;
-+
- 	return err;
- }
- 
+ static void __init init_alloc_cpu(void)
 _
 
-Patches currently in -mm which might be from Pierre.Peiffer@bull.net are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
+origin.patch
+slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch
+module-return-error-when-mod_sysfs_init-failed.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
