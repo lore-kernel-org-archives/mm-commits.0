@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hptiop-avoid-buffer-overflow-when-returning-sense-data.patch added to -mm tree
-Date: Mon, 15 Oct 2007 00:42:31 -0700
-Message-ID: <200710150742.l9F7gVvr023636@imap1.linux-foundation.org>
+Subject: + ramdisk-fix-zeroed-ramdisk-pages-on-memory-pressure.patch added to -mm tree
+Date: Mon, 15 Oct 2007 01:40:15 -0700
+Message-ID: <200710150840.l9F8eFQj025622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41542 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751975AbXJOHmu (ORCPT
+	by vger.kernel.org with ESMTP id S1754529AbXJOIkW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 03:42:50 -0400
+	Mon, 15 Oct 2007 04:40:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@highpoint-tech.com, James.Bottomley@steeleye.com, stable@kernel.org
+Cc: borntraeger@de.ibm.com
 
 
 The patch titled
-     hptiop: avoid buffer overflow when returning sense data
+     ramdisk: fix zeroed ramdisk pages on memory pressure
 has been added to the -mm tree.  Its filename is
-     hptiop-avoid-buffer-overflow-when-returning-sense-data.patch
+     ramdisk-fix-zeroed-ramdisk-pages-on-memory-pressure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,77 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hptiop: avoid buffer overflow when returning sense data
-From: HighPoint Linux Team <linux@highpoint-tech.com>
+Subject: ramdisk: fix zeroed ramdisk pages on memory pressure
+From: Christian Borntraeger <borntraeger@de.ibm.com>
 
-avoid buffer overflow when returning sense data.
+We have seen ramdisk based install systems, where some pages of mapped
+libraries and programs were suddendly zeroed under memory pressure.  This
+should not happen, as the ramdisk avoids freeing its pages by keeping them
+dirty all the time.
 
-With current adapter firmware the driver is working but future firmware
-updates may return sense data larger than 96 bytes, causing overflow on
-scp->sense_buffer and a kernel crash.
+It turns out that there is a case, where the VM makes a ramdisk page clean,
+without telling the ramdisk driver.  On memory pressure shrink_zone runs
+and it starts to run shrink_active_list.  There is a check for
+buffer_heads_over_limit, and if true, pagevec_strip is called. 
+pagevec_strip calls try_to_release_page.  If the mapping has no releasepage
+callback, try_to_free_buffers is called.  try_to_free_buffers has now a
+special logic for some file systems to make a dirty page clean, if all
+buffers are clean.  Thats what happened in our test case.
 
-This fix should be backported to earlier kernels.
+The solution is to provide a noop-releasepage callback for the ramdisk
+driver.  This avoids try_to_free_buffers for ramdisk pages.
 
-Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: <stable@kernel.org>
+To trigger the problem, you have to make buffer_heads_over_limit true, which
+means:
+
+- lower max_buffer_heads
+or
+
+- have a system with lots of high memory
+
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hptiop.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/rd.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/scsi/hptiop.c~hptiop-avoid-buffer-overflow-when-returning-sense-data drivers/scsi/hptiop.c
---- a/drivers/scsi/hptiop.c~hptiop-avoid-buffer-overflow-when-returning-sense-data
-+++ a/drivers/scsi/hptiop.c
-@@ -375,8 +375,9 @@ static void hptiop_host_request_callback
- 		scp->result = SAM_STAT_CHECK_CONDITION;
- 		memset(&scp->sense_buffer,
- 				0, sizeof(scp->sense_buffer));
--		memcpy(&scp->sense_buffer,
--			&req->sg_list, le32_to_cpu(req->dataxfer_length));
-+		memcpy(&scp->sense_buffer, &req->sg_list,
-+				min(sizeof(scp->sense_buffer),
-+					le32_to_cpu(req->dataxfer_length)));
- 		break;
+diff -puN drivers/block/rd.c~ramdisk-fix-zeroed-ramdisk-pages-on-memory-pressure drivers/block/rd.c
+--- a/drivers/block/rd.c~ramdisk-fix-zeroed-ramdisk-pages-on-memory-pressure
++++ a/drivers/block/rd.c
+@@ -189,6 +189,18 @@ static int ramdisk_set_page_dirty(struct
+ 	return 0;
+ }
  
- 	default:
++/*
++ * releasepage is called by pagevec_strip/try_to_release_page if
++ * buffers_heads_over_limit is true. Without a releasepage function
++ * try_to_free_buffers is called instead. That can unset the dirty
++ * bit of our ram disk pages, which will be eventually freed, even
++ * if the page is still in use.
++ */
++static int ramdisk_releasepage(struct page *page, gfp_t dummy)
++{
++	return 0;
++}
++
+ static const struct address_space_operations ramdisk_aops = {
+ 	.readpage	= ramdisk_readpage,
+ 	.prepare_write	= ramdisk_prepare_write,
+@@ -196,6 +208,7 @@ static const struct address_space_operat
+ 	.writepage	= ramdisk_writepage,
+ 	.set_page_dirty	= ramdisk_set_page_dirty,
+ 	.writepages	= ramdisk_writepages,
++	.releasepage	= ramdisk_releasepage,
+ };
+ 
+ static int rd_blkdev_pagecache_IO(int rw, struct bio_vec *vec, sector_t sector,
 _
 
-Patches currently in -mm which might be from linux@highpoint-tech.com are
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
 
-git-scsi-misc.patch
-hptiop-avoid-buffer-overflow-when-returning-sense-data.patch
+origin.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+git-kvm.patch
+git-s390.patch
+ramdisk-fix-zeroed-ramdisk-pages-on-memory-pressure.patch
