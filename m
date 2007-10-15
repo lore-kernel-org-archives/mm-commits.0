@@ -1,65 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - git-hwmon-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:48:09 -0700
-Message-ID: <200710150848.l9F8m9mi025870@imap1.linux-foundation.org>
+Subject: - git-kbuild-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 01:48:25 -0700
+Message-ID: <200710150848.l9F8mQ5j025876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42815 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756149AbXJOIsM (ORCPT
+	by vger.kernel.org with ESMTP id S1756172AbXJOIs3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 04:48:12 -0400
+	Mon, 15 Oct 2007 04:48:29 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8m98T005791
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8mQ6G005801
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:48:10 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:48:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-hwmon-fixup
+     git-kbuild-fixup
 has been removed from the -mm tree.  Its filename was
-     git-hwmon-fixup.patch
+     git-kbuild-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-hwmon-fixup
+Subject: git-kbuild-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    2 +-
- drivers/misc/thinkpad_acpi.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Makefile                 |    4 ----
+ scripts/mod/file2alias.c |    3 ---
+ 2 files changed, 7 deletions(-)
 
-diff -puN drivers/misc/thinkpad_acpi.c~git-hwmon-fixup drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~git-hwmon-fixup
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -527,7 +527,7 @@ static char *next_cmd(char **cmds)
+diff -puN Makefile~git-kbuild-fixup Makefile
+--- a/Makefile~git-kbuild-fixup
++++ a/Makefile
+@@ -1196,12 +1196,8 @@ help:
+ 	@echo  'Static analysers'
+ 	@echo  '  checkstack      - Generate a list of stack hogs'
+ 	@echo  '  namespacecheck  - Name space analysis on compiled kernel'
+-<<<<<<< HEAD/Makefile
+-	@if [ -r $(srctree)/include/asm-$(SRCARCH)/Kbuild ]; then \
+-=======
+ 	@echo  '  export_report   - List the usages of all exported symbols'
+ 	@if [ -r $(srctree)/include/asm-$(ARCH)/Kbuild ]; then \
+->>>>>>> /Makefile
+ 	 echo  '  headers_check   - Sanity check on exported headers'; \
+ 	 fi
+ 	@echo  ''
+diff -puN scripts/mod/file2alias.c~git-kbuild-fixup scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~git-kbuild-fixup
++++ a/scripts/mod/file2alias.c
+@@ -643,7 +643,6 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct parisc_device_id), "parisc",
+ 			 do_parisc_entry, mod);
+-<<<<<<< HEAD/scripts/mod/file2alias.c
+ 	else if (sym_is(symname, "__mod_sdio_device_table"))
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct sdio_device_id), "sdio",
+@@ -652,9 +651,7 @@ void handle_moddevtable(struct module *m
+ 		do_table(symval, sym->st_size,
+ 			 sizeof(struct ssb_device_id), "ssb",
+ 			 do_ssb_entry, mod);
+-=======
+ 	free(zeros);
+->>>>>>> /scripts/mod/file2alias.c
+ }
  
- static struct platform_device *tpacpi_pdev;
- static struct platform_device *tpacpi_sensors_pdev;
--static struct class_device *tpacpi_hwmon;
-+static struct device *tpacpi_hwmon;
- static struct input_dev *tpacpi_inputdev;
- static struct mutex tpacpi_inputdev_send_mutex;
- 
-diff -puN drivers/misc/thinkpad_acpi.h~git-hwmon-fixup drivers/misc/thinkpad_acpi.h
---- a/drivers/misc/thinkpad_acpi.h~git-hwmon-fixup
-+++ a/drivers/misc/thinkpad_acpi.h
-@@ -173,7 +173,7 @@ static int parse_strtoul(const char *buf
- /* Device model */
- static struct platform_device *tpacpi_pdev;
- static struct platform_device *tpacpi_sensors_pdev;
--static struct class_device *tpacpi_hwmon;
-+static struct device *tpacpi_hwmon;
- static struct platform_driver tpacpi_pdriver;
- static struct input_dev *tpacpi_inputdev;
- static int tpacpi_create_driver_attributes(struct device_driver *drv);
+ /* Now add out buffered information to the generated C source */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,10 +90,8 @@ git-arm-fixup.patch
 git-cifs.patch
 git-drm.patch
 git-dvb.patch
-git-hwmon-fixup.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
 git-input.patch
-git-input-fixup.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
