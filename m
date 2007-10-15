@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch added to -mm tree
-Date: Mon, 15 Oct 2007 12:54:52 -0700
-Message-ID: <200710151954.l9FJsqia022020@imap1.linux-foundation.org>
+Subject: + powerpc-add-altivec-vmx-state-to-coredumps.patch added to -mm tree
+Date: Mon, 15 Oct 2007 13:19:46 -0700
+Message-ID: <200710152019.l9FKJkjr023191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39137 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933344AbXJOTzI (ORCPT
+	by vger.kernel.org with ESMTP id S1765465AbXJOUUq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 15:55:08 -0400
+	Mon, 15 Oct 2007 16:20:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: markn@au1.ibm.com, ak@suse.de, linux-arch@vger.kernel.org, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de
 
 
 The patch titled
-     slub: fix cpu hotplug offline/online path
+     powerpc: add Altivec/VMX state to coredumps
 has been added to the -mm tree.  Its filename is
-     slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch
+     powerpc-add-altivec-vmx-state-to-coredumps.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,108 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub: fix cpu hotplug offline/online path
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: powerpc: add Altivec/VMX state to coredumps
+From: Mark Nelson <markn@au1.ibm.com>
 
-On Wed, Oct 10, 2007 at 10:39:32AM -0700, Christoph Lameter wrote:
-> On Wed, 10 Oct 2007, Akinobu Mita wrote:
->
-> > I couldn't use get_cpu_slab() for that check. But I reviced the patch to do
-> > what you said.
->
-> Why would get_cpu_slab not work?
+Update dump_task_altivec() (which has so far never been put to use) so that
+it dumps the Altivec/VMX registers (VR[0] - VR[31], VSCR and VRSAVE) in the
+same format as the ptrace get_vrregs(), and add the appropriate glue
+typedef and #defines to make it work.
 
-        case CPU_DEAD:
-        case CPU_DEAD_FROZEN:
-                down_read(&slub_lock);
-                list_for_each_entry(s, &slab_caches, list) {
-                        struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
+A new note type of NT_PPC_VMX was chosen to be 0x100 (arbitrarily) because
+it allows the low range values to be used for more generic purposes and
+0x100 seems an adequate starting point for PowerPC extensions.
 
-                        local_irq_save(flags);
-                        __flush_cpu_slab(s, cpu);
-                        local_irq_restore(flags);
-                        free_kmem_cache_cpu(c, cpu);
-                        s->cpu_slab[cpu] = NULL; <----------------------
-                }
-                up_read(&slub_lock);
-                break;
-
-When CPU is offlined, cpu-hotplug notifier sets s->cpu_slab[cpu] = NULL.
-This means get_cpu_slab() always return NULL when CPU is being onlined.
-So I can't use get_cpu_slab to check whether kmem_cache_cpu_free
-initalization for the CPU has already been done or not.
-
->
-> > +	if (per_cpu(kmem_cache_cpu_free, cpu)) {
-> > +		/* Already initialized once */
-> > +		return;
-> > +	}
-> > +
->
-> kmem_cache_cpu_free is not only NULL if the cpu is not up yet but it is
-> also NULL if the per cpu pool of kmem_cache_cpu structures was
-> exhausted.
-
-cpu-hotplug notifier by CPU_DEAD event frees kmem_cache_cpu structures
-for the CPU being offlined. So we have 100 kmem_cache cpu structures
-when the CPU will be onlined again.
-
-But I agree that it is not so trivial. It is why I added the comment
-/* Already initialized once */ in previous patch.
-
-This is another approach for the fix.
-Use cpumask to check whether kmem_cache_cpu_free initalization for
-the CPU has already been done or not.
-
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
+Signed-off-by: Mark Nelson <markn@au1.ibm.com>
+Signed-off-by: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/powerpc/kernel/process.c |   28 +++++++++++++++++++++++++---
+ include/asm-powerpc/elf.h     |    8 ++++++++
+ include/linux/elf.h           |    1 +
+ 3 files changed, 34 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix mm/slub.c
---- a/mm/slub.c~slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix
-+++ a/mm/slub.c
-@@ -1895,6 +1895,7 @@ static DEFINE_PER_CPU(struct kmem_cache_
- 				kmem_cache_cpu)[NR_KMEM_CACHE_CPU];
- 
- static DEFINE_PER_CPU(struct kmem_cache_cpu *, kmem_cache_cpu_free);
-+static cpumask_t kmem_cach_cpu_free_init_once = CPU_MASK_NONE;
- 
- static struct kmem_cache_cpu *alloc_kmem_cache_cpu(struct kmem_cache *s,
- 							int cpu, gfp_t flags)
-@@ -1969,8 +1970,13 @@ static void init_alloc_cpu_cpu(int cpu)
- {
- 	int i;
- 
-+	if (cpu_isset(cpu, kmem_cach_cpu_free_init_once))
-+		return;
-+
- 	for (i = NR_KMEM_CACHE_CPU - 1; i >= 0; i--)
- 		free_kmem_cache_cpu(&per_cpu(kmem_cache_cpu, cpu)[i], cpu);
-+
-+	cpu_set(cpu, kmem_cach_cpu_free_init_once);
+diff -puN arch/powerpc/kernel/process.c~powerpc-add-altivec-vmx-state-to-coredumps arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~powerpc-add-altivec-vmx-state-to-coredumps
++++ a/arch/powerpc/kernel/process.c
+@@ -149,10 +149,32 @@ void flush_altivec_to_thread(struct task
+ 	}
  }
  
- static void __init init_alloc_cpu(void)
+-int dump_task_altivec(struct pt_regs *regs, elf_vrregset_t *vrregs)
++int dump_task_altivec(struct task_struct *tsk, elf_vrregset_t *vrregs)
+ {
+-	flush_altivec_to_thread(current);
+-	memcpy(vrregs, &current->thread.vr[0], sizeof(*vrregs));
++	/* ELF_NVRREG includes the VSCR and VRSAVE which we need to save
++	 * separately, see below */
++	const int nregs = ELF_NVRREG - 2;
++	elf_vrreg_t *reg;
++	u32 *dest;
++
++	if (tsk == current)
++		flush_altivec_to_thread(tsk);
++
++	reg = (elf_vrreg_t *)vrregs;
++
++	/* copy the 32 vr registers */
++	memcpy(reg, &tsk->thread.vr[0], nregs * sizeof(*reg));
++	reg += nregs;
++
++	/* copy the vscr */
++	memcpy(reg, &tsk->thread.vscr, sizeof(*reg));
++	reg++;
++
++	/* vrsave is stored in the high 32bit slot of the final 128bits */
++	memset(reg, 0, sizeof(*reg));
++	dest = (u32 *)reg;
++	*dest = tsk->thread.vrsave;
++
+ 	return 1;
+ }
+ #endif /* CONFIG_ALTIVEC */
+diff -puN include/asm-powerpc/elf.h~powerpc-add-altivec-vmx-state-to-coredumps include/asm-powerpc/elf.h
+--- a/include/asm-powerpc/elf.h~powerpc-add-altivec-vmx-state-to-coredumps
++++ a/include/asm-powerpc/elf.h
+@@ -212,6 +212,14 @@ static inline int dump_task_regs(struct 
+ extern int dump_task_fpu(struct task_struct *, elf_fpregset_t *); 
+ #define ELF_CORE_COPY_FPREGS(tsk, elf_fpregs) dump_task_fpu(tsk, elf_fpregs)
+ 
++typedef elf_vrregset_t elf_fpxregset_t;
++
++#ifdef CONFIG_ALTIVEC
++extern int dump_task_altivec(struct task_struct *, elf_vrregset_t *vrregs);
++#define ELF_CORE_COPY_XFPREGS(tsk, regs) dump_task_altivec(tsk, regs)
++#define ELF_CORE_XFPREG_TYPE NT_PPC_VMX
++#endif
++
+ #endif /* __KERNEL__ */
+ 
+ /* ELF_HWCAP yields a mask that user programs can use to figure out what
+diff -puN include/linux/elf.h~powerpc-add-altivec-vmx-state-to-coredumps include/linux/elf.h
+--- a/include/linux/elf.h~powerpc-add-altivec-vmx-state-to-coredumps
++++ a/include/linux/elf.h
+@@ -355,6 +355,7 @@ typedef struct elf64_shdr {
+ #define NT_TASKSTRUCT	4
+ #define NT_AUXV		6
+ #define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
++#define NT_PPC_VMX	0x100		/* PowerPC Altivec/VMX registers */
+ 
+ 
+ /* Note header in a PT_NOTE section */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from markn@au1.ibm.com are
 
 origin.patch
-slub-place-kmem_cache_cpu-structures-in-a-numa-aware-way-fix.patch
-module-return-error-when-mod_sysfs_init-failed.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-migration_callcpu_dead-use-spin_lock_irq-instead-of-task_rq_lock.patch
+replace-nt_prxfpreg-with-elf_core_xfpreg_type-define.patch
+powerpc-add-altivec-vmx-state-to-coredumps.patch
