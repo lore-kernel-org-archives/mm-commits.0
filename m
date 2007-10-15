@@ -1,151 +1,361 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-allow-build-without-runtime-use.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:17:49 -0700
-Message-ID: <200710150917.l9F9Hn7U027316@imap1.linux-foundation.org>
+Subject: - geode-mfgpt-support-for-geode-class-machines.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:17:44 -0700
+Message-ID: <200710150917.l9F9Hiho027306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759579AbXJOJS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754842AbXJOJTL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:18:56 -0400
+	Mon, 15 Oct 2007 05:19:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: dilinger@queued.net, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: Allow build w/o run-tine usage for migration purposes
+     GEODE: MFGPT support for Geode-class machines
 has been removed from the -mm tree.  Its filename was
-     clockevents-allow-build-without-runtime-use.patch
+     geode-mfgpt-support-for-geode-class-machines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: Allow build w/o run-tine usage for migration purposes
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: GEODE: MFGPT support for Geode-class machines
+From: Andres Salomon <dilinger@queued.net>
 
-Migration aid to allow preparatory patches which introduce not yet used parts
-of clock events code.
+This adds support for Multi-Function General Purpose Timers.  It detects the
+available timers during southbridge init, and provides an API for allocating
+and setting the timers.  They're higher resolution than the standard PIT, so
+the MFGPTs come in handy for quite a few things.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Note that we never clobber the timers that the BIOS might have opted to use;
+we just check for unused timers.
+
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Andi Kleen <ak@suse.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    8 ++++++--
- kernel/time/Kconfig        |    5 +++++
- kernel/time/Makefile       |    2 +-
- kernel/time/clockevents.c  |    3 ++-
- 4 files changed, 14 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    3 
+ arch/i386/kernel/Makefile           |    2 
+ arch/i386/kernel/geode.c            |    4 
+ arch/i386/kernel/mfgpt.c            |  199 ++++++++++++++++++++++++++
+ include/asm-i386/geode.h            |   50 ++++++
+ 5 files changed, 257 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/clockchips.h~clockevents-allow-build-without-runtime-use include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-allow-build-without-runtime-use
-+++ a/include/linux/clockchips.h
-@@ -8,7 +8,7 @@
- #ifndef _LINUX_CLOCKCHIPS_H
- #define _LINUX_CLOCKCHIPS_H
+diff -puN Documentation/kernel-parameters.txt~geode-mfgpt-support-for-geode-class-machines Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~geode-mfgpt-support-for-geode-class-machines
++++ a/Documentation/kernel-parameters.txt
+@@ -1169,6 +1169,9 @@ and is between 256 and 4096 characters. 
  
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS_BUILD
+ 	nomce		[X86-32] Machine Check Exception
  
- #include <linux/clocksource.h>
- #include <linux/cpumask.h>
-@@ -126,9 +126,13 @@ extern int clockevents_register_notifier
- extern int clockevents_program_event(struct clock_event_device *dev,
- 				     ktime_t expires, ktime_t now);
- 
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
- extern void clockevents_notify(unsigned long reason, void *arg);
--
- #else
-+# define clockevents_notify(reason, arg) do { } while (0)
-+#endif
++	nomfgpt		[X86-32] Disable Multi-Function General Purpose
++			Timer usage (for AMD Geode machines).
 +
-+#else /* CONFIG_GENERIC_CLOCKEVENTS_BUILD */
+ 	noreplace-paravirt	[X86-32,PV_OPS] Don't patch paravirt_ops
  
- #define clockevents_notify(reason, arg) do { } while (0)
+ 	noreplace-smp	[X86-32,SMP] Don't replace SMP instructions
+diff -puN arch/i386/kernel/Makefile~geode-mfgpt-support-for-geode-class-machines arch/i386/kernel/Makefile
+--- a/arch/x86/kernel/Makefile_32~geode-mfgpt-support-for-geode-class-machines
++++ a/arch/x86/kernel/Makefile_32
+@@ -41,7 +41,7 @@ obj-$(CONFIG_VM86)		+= vm86_32.o
+ obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
+ obj-$(CONFIG_HPET_TIMER) 	+= hpet_32.o
+ obj-$(CONFIG_K8_NB)		+= k8.o
+-obj-$(CONFIG_MGEODE_LX)		+= geode_32.o
++obj-$(CONFIG_MGEODE_LX)		+= geode_32.o mfgpt.o
  
-diff -puN kernel/time/Kconfig~clockevents-allow-build-without-runtime-use kernel/time/Kconfig
---- a/kernel/time/Kconfig~clockevents-allow-build-without-runtime-use
-+++ a/kernel/time/Kconfig
-@@ -23,3 +23,8 @@ config HIGH_RES_TIMERS
- 	  hardware is not capable then this option only increases
- 	  the size of the kernel image.
+ obj-$(CONFIG_VMI)		+= vmi_32.o vmiclock_32.o
+ obj-$(CONFIG_PARAVIRT)		+= paravirt_32.o
+diff -puN arch/x86/kernel/geode.c~geode-mfgpt-support-for-geode-class-machines arch/x86/kernel/geode.c
+--- a/arch/x86/kernel/geode_32.c~geode-mfgpt-support-for-geode-class-machines
++++ a/arch/x86/kernel/geode_32.c
+@@ -145,10 +145,14 @@ EXPORT_SYMBOL_GPL(geode_gpio_setup_event
  
-+config GENERIC_CLOCKEVENTS_BUILD
-+	bool
-+	default y
-+	depends on GENERIC_CLOCKEVENTS || GENERIC_CLOCKEVENTS_MIGR
+ static int __init geode_southbridge_init(void)
+ {
++	int timers;
 +
-diff -puN kernel/time/Makefile~clockevents-allow-build-without-runtime-use kernel/time/Makefile
---- a/kernel/time/Makefile~clockevents-allow-build-without-runtime-use
-+++ a/kernel/time/Makefile
-@@ -1,6 +1,6 @@
- obj-y += timekeeping.o ntp.o clocksource.o jiffies.o timer_list.o
+ 	if (!is_geode())
+ 		return -ENODEV;
  
--obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= clockevents.o
-+obj-$(CONFIG_GENERIC_CLOCKEVENTS_BUILD)		+= clockevents.o
- obj-$(CONFIG_GENERIC_CLOCKEVENTS)		+= tick-common.o
- obj-$(CONFIG_GENERIC_CLOCKEVENTS_BROADCAST)	+= tick-broadcast.o
- obj-$(CONFIG_TICK_ONESHOT)			+= tick-oneshot.o
-diff -puN kernel/time/clockevents.c~clockevents-allow-build-without-runtime-use kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~clockevents-allow-build-without-runtime-use
-+++ a/kernel/time/clockevents.c
-@@ -194,6 +194,7 @@ void clockevents_exchange_device(struct 
- 	local_irq_restore(flags);
+ 	init_lbars();
++	timers = geode_mfgpt_detect();
++	printk(KERN_INFO "geode:  %d MFGPT timers available.\n", timers);
+ 	return 0;
  }
  
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS
- /**
-  * clockevents_notify - notification about relevant events
-  */
-@@ -222,4 +223,4 @@ void clockevents_notify(unsigned long re
- 	spin_unlock(&clockevents_lock);
+diff -puN /dev/null arch/i386/kernel/mfgpt.c
+--- /dev/null
++++ a/arch/x86/kernel/mfgpt.c
+@@ -0,0 +1,199 @@
++/*
++ * Driver/API for AMD Geode Multi-Function General Purpose Timers (MFGPT)
++ *
++ * Copyright (C) 2006, Advanced Micro Devices, Inc.
++ * Copyright (C) 2007, Andres Salomon <dilinger@debian.org>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of version 2 of the GNU General Public License
++ * as published by the Free Software Foundation.
++ *
++ * The MFGPTs are documented in AMD Geode CS5536 Companion Device Data Book.
++ */
++
++/*
++ * We are using the 32Khz input clock - its the only one that has the
++ * ranges we find desirable.  The following table lists the suitable
++ * divisors and the associated hz, minimum interval
++ * and the maximum interval:
++ *
++ *  Divisor   Hz      Min Delta (S) Max Delta (S)
++ *   1        32000     .0005          2.048
++ *   2        16000      .001          4.096
++ *   4         8000      .002          8.192
++ *   8         4000      .004         16.384
++ *   16        2000      .008         32.768
++ *   32        1000      .016         65.536
++ *   64         500      .032        131.072
++ *  128         250      .064        262.144
++ *  256         125      .128        524.288
++ */
++
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <asm/geode.h>
++
++#define F_AVAIL    0x01
++
++static struct mfgpt_timer_t {
++	int flags;
++	struct module *owner;
++} mfgpt_timers[MFGPT_MAX_TIMERS];
++
++/* Selected from the table above */
++
++#define MFGPT_DIVISOR 16
++#define MFGPT_SCALE  4     /* divisor = 2^(scale) */
++#define MFGPT_HZ  (32000 / MFGPT_DIVISOR)
++#define MFGPT_PERIODIC (MFGPT_HZ / HZ)
++
++/* Allow for disabling of MFGPTs */
++static int disable;
++static int __init mfgpt_disable(char *s)
++{
++	disable = 1;
++	return 1;
++}
++__setup("nomfgpt", mfgpt_disable);
++
++/*
++ * Check whether any MFGPTs are available for the kernel to use.  In most
++ * cases, firmware that uses AMD's VSA code will claim all timers during
++ * bootup; we certainly don't want to take them if they're already in use.
++ * In other cases (such as with VSAless OpenFirmware), the system firmware
++ * leaves timers available for us to use.
++ */
++int __init geode_mfgpt_detect(void)
++{
++	int count = 0, i;
++	u16 val;
++
++	if (disable) {
++		printk(KERN_INFO "geode-mfgpt:  Skipping MFGPT setup\n");
++		return 0;
++	}
++
++	for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
++		val = geode_mfgpt_read(i, MFGPT_REG_SETUP);
++		if (!(val & MFGPT_SETUP_SETUP)) {
++			mfgpt_timers[i].flags = F_AVAIL;
++			count++;
++		}
++	}
++
++	return count;
++}
++
++int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable)
++{
++	u32 msr, mask, value, dummy;
++	int shift = (cmp == MFGPT_CMP1) ? 0 : 8;
++
++	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
++		return -EIO;
++
++	/*
++	 * The register maps for these are described in sections 6.17.1.x of
++	 * the AMD Geode CS5536 Companion Device Data Book.
++	 */
++	switch (event) {
++	case MFGPT_EVENT_RESET:
++		/*
++		 * XXX: According to the docs, we cannot reset timers above
++		 * 6; that is, resets for 7 and 8 will be ignored.  Is this
++		 * a problem?   -dilinger
++		 */
++		msr = MFGPT_NR_MSR;
++		mask = 1 << (timer + 24);
++		break;
++
++	case MFGPT_EVENT_NMI:
++		msr = MFGPT_NR_MSR;
++		mask = 1 << (timer + shift);
++		break;
++
++	case MFGPT_EVENT_IRQ:
++		msr = MFGPT_IRQ_MSR;
++		mask = 1 << (timer + shift);
++		break;
++
++	default:
++		return -EIO;
++	}
++
++	rdmsr(msr, value, dummy);
++
++	if (enable)
++		value |= mask;
++	else
++		value &= ~mask;
++
++	wrmsr(msr, value, dummy);
++	return 0;
++}
++EXPORT_SYMBOL(geode_mfgpt_toggle_event);
++
++int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable)
++{
++	u32 val, dummy;
++	int offset;
++
++	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
++		return -EIO;
++
++	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
++		return -EIO;
++
++	rdmsr(0x51400022, val, dummy);
++
++	offset = (timer % 4) * 4;
++
++	val &= ~((0xF << offset) | (0xF << (offset + 16)));
++
++	if (enable) {
++		val |= (irq & 0x0F) << (offset);
++		val |= (irq & 0x0F) << (offset + 16);
++	}
++
++	wrmsr(0x51400022, val, dummy);
++	return 0;
++}
++EXPORT_SYMBOL(geode_mfgpt_set_irq);
++
++static int mfgpt_get(int timer, struct module *owner)
++{
++	mfgpt_timers[timer].flags &= ~F_AVAIL;
++	mfgpt_timers[timer].owner = owner;
++	printk(KERN_INFO "geode-mfgpt:  Registered timer %d\n", timer);
++	return timer;
++}
++
++int geode_mfgpt_alloc_timer(int timer, int domain, struct module *owner)
++{
++	int i;
++
++	if (!geode_get_dev_base(GEODE_DEV_MFGPT))
++		return -ENODEV;
++	if (timer >= MFGPT_MAX_TIMERS)
++		return -EIO;
++
++	if (timer < 0) {
++		/* Try to find an available timer */
++		for (i = 0; i < MFGPT_MAX_TIMERS; i++) {
++			if (mfgpt_timers[i].flags & F_AVAIL)
++				return mfgpt_get(i, owner);
++
++			if (i == 5 && domain == MFGPT_DOMAIN_WORKING)
++				break;
++		}
++	} else {
++		/* If they requested a specific timer, try to honor that */
++		if (mfgpt_timers[timer].flags & F_AVAIL)
++			return mfgpt_get(timer, owner);
++	}
++
++	/* No timers available - too bad */
++	return -1;
++}
++EXPORT_SYMBOL(geode_mfgpt_alloc_timer);
+diff -puN include/asm-i386/geode.h~geode-mfgpt-support-for-geode-class-machines include/asm-i386/geode.h
+--- a/include/asm-x86/geode.h~geode-mfgpt-support-for-geode-class-machines
++++ a/include/asm-x86/geode.h
+@@ -156,4 +156,54 @@ static inline int is_geode(void)
+ 	return (is_geode_gx() || is_geode_lx());
  }
- EXPORT_SYMBOL_GPL(clockevents_notify);
--
-+#endif
+ 
++/* MFGPTs */
++
++#define MFGPT_MAX_TIMERS	8
++#define MFGPT_TIMER_ANY		-1
++
++#define MFGPT_DOMAIN_WORKING	1
++#define MFGPT_DOMAIN_STANDBY	2
++#define MFGPT_DOMAIN_ANY	(MFGPT_DOMAIN_WORKING | MFGPT_DOMAIN_STANDBY)
++
++#define MFGPT_CMP1		0
++#define MFGPT_CMP2		1
++
++#define MFGPT_EVENT_IRQ		0
++#define MFGPT_EVENT_NMI		1
++#define MFGPT_EVENT_RESET	3
++
++#define MFGPT_REG_CMP1		0
++#define MFGPT_REG_CMP2		2
++#define MFGPT_REG_COUNTER	4
++#define MFGPT_REG_SETUP		6
++
++#define MFGPT_SETUP_CNTEN	(1 << 15)
++#define MFGPT_SETUP_CMP2	(1 << 14)
++#define MFGPT_SETUP_CMP1	(1 << 13)
++#define MFGPT_SETUP_SETUP	(1 << 12)
++#define MFGPT_SETUP_STOPEN	(1 << 11)
++#define MFGPT_SETUP_EXTEN	(1 << 10)
++#define MFGPT_SETUP_REVEN	(1 << 5)
++#define MFGPT_SETUP_CLKSEL	(1 << 4)
++
++static inline void geode_mfgpt_write(int timer, u16 reg, u16 value)
++{
++	u32 base = geode_get_dev_base(GEODE_DEV_MFGPT);
++	outw(value, base + reg + (timer * 8));
++}
++
++static inline u16 geode_mfgpt_read(int timer, u16 reg)
++{
++	u32 base = geode_get_dev_base(GEODE_DEV_MFGPT);
++	return inw(base + reg + (timer * 8));
++}
++
++extern int __init geode_mfgpt_detect(void);
++extern int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable);
++extern int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable);
++extern int geode_mfgpt_alloc_timer(int timer, int domain, struct module *owner);
++
++#define geode_mfgpt_setup_irq(t, c, i) geode_mfgpt_set_irq((t), (c), (i), 1)
++#define geode_mfgpt_release_irq(t, c, i) geode_mfgpt_set_irq((t), (c), (i), 0)
++
+ #endif
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-git-acpi.patch
-git-arm.patch
-git-mips.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
-git-sched.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support.patch
-uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+kernel-printkc-concerns-about-the-console-handover.patch
