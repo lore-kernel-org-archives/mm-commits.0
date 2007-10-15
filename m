@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-include-fix.patch added to -mm tree
-Date: Mon, 15 Oct 2007 15:58:25 -0700
-Message-ID: <200710152258.l9FMwPjU029628@imap1.linux-foundation.org>
+Subject: + add-section-ids-to-documentation-docbook-filesystemstmpl.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:00:36 -0700
+Message-ID: <200710152300.l9FN0aMr029743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46966 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46254 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754374AbXJOW6c (ORCPT
+	by vger.kernel.org with ESMTP id S1754360AbXJOXAu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 18:58:32 -0400
+	Mon, 15 Oct 2007 19:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com, James.Bottomley@steeleye.com
+Cc: rob@landley.net, rdunlap@xenotime.net
 
 
 The patch titled
-     git scsi misc include fix
+     Add section IDs to Documentation/DocBook/filesystems.tmpl
 has been added to the -mm tree.  Its filename is
-     git-scsi-misc-include-fix.patch
+     add-section-ids-to-documentation-docbook-filesystemstmpl.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git scsi misc include fix
-From: Paul Jackson <pj@sgi.com>
+Subject: Add section IDs to Documentation/DocBook/filesystems.tmpl
+From: Rob Landley <rob@landley.net>
 
-The added line in scsi_eh.h:
-	struct scatterlist sense_sgl;
-fails to compile, with the error:
-	field 'sense_sgl' has incomplete type
-unless scatterlist.h happens to be included
-somehow already ... which it isn't always.
+Add recommended section IDs to Documentation/DocBook/filesystems.tmpl
 
-So include scatterlist.h in scsi_eh.h directly.
-
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/scsi/scsi_eh.h |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/DocBook/filesystems.tmpl |   36 +++++++++++------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN include/scsi/scsi_eh.h~git-scsi-misc-include-fix include/scsi/scsi_eh.h
---- a/include/scsi/scsi_eh.h~git-scsi-misc-include-fix
-+++ a/include/scsi/scsi_eh.h
-@@ -2,6 +2,7 @@
- #define _SCSI_SCSI_EH_H
+diff -puN Documentation/DocBook/filesystems.tmpl~add-section-ids-to-documentation-docbook-filesystemstmpl Documentation/DocBook/filesystems.tmpl
+--- a/Documentation/DocBook/filesystems.tmpl~add-section-ids-to-documentation-docbook-filesystemstmpl
++++ a/Documentation/DocBook/filesystems.tmpl
+@@ -40,25 +40,25 @@
  
- #include <scsi/scsi_cmnd.h>
-+#include <linux/scatterlist.h>
- struct scsi_device;
- struct Scsi_Host;
+   <chapter id="vfs">
+      <title>The Linux VFS</title>
+-     <sect1><title>The Filesystem types</title>
++     <sect1 id="the_filesystem_types"><title>The Filesystem types</title>
+ !Iinclude/linux/fs.h
+      </sect1>
+-     <sect1><title>The Directory Cache</title>
++     <sect1 id="the_directory_cache"><title>The Directory Cache</title>
+ !Efs/dcache.c
+ !Iinclude/linux/dcache.h
+      </sect1>
+-     <sect1><title>Inode Handling</title>
++     <sect1 id="inode_handling"><title>Inode Handling</title>
+ !Efs/inode.c
+ !Efs/bad_inode.c
+      </sect1>
+-     <sect1><title>Registration and Superblocks</title>
++     <sect1 id="registration_and_superblocks"><title>Registration and Superblocks</title>
+ !Efs/super.c
+      </sect1>
+-     <sect1><title>File Locks</title>
++     <sect1 id="file_locks"><title>File Locks</title>
+ !Efs/locks.c
+ !Ifs/locks.c
+      </sect1>
+-     <sect1><title>Other Functions</title>
++     <sect1 id="other_functions"><title>Other Functions</title>
+ !Efs/mpage.c
+ !Efs/namei.c
+ !Efs/buffer.c
+@@ -73,11 +73,11 @@
+   <chapter id="proc">
+      <title>The proc filesystem</title>
  
+-     <sect1><title>sysctl interface</title>
++     <sect1 id="sysctl_interface"><title>sysctl interface</title>
+ !Ekernel/sysctl.c
+      </sect1>
+ 
+-     <sect1><title>proc filesystem interface</title>
++     <sect1 id="proc_filesystem_interface"><title>proc filesystem interface</title>
+ !Ifs/proc/base.c
+      </sect1>
+   </chapter>
+@@ -92,7 +92,7 @@
+   <chapter id="debugfs">
+      <title>The debugfs filesystem</title>
+ 
+-     <sect1><title>debugfs interface</title>
++     <sect1 id="debugfs_interface"><title>debugfs interface</title>
+ !Efs/debugfs/inode.c
+ !Efs/debugfs/file.c
+      </sect1>
+@@ -134,9 +134,9 @@
+ 
+   <title>The Linux Journalling API</title>
+ 
+-    <sect1>
++    <sect1 id="journaling_overview">
+      <title>Overview</title>
+-    <sect2>
++    <sect2 id="journaling_details">
+      <title>Details</title>
+ <para>
+ The journalling layer is  easy to use. You need to
+@@ -307,7 +307,7 @@ particular inode.
+ 
+     </sect2>
+ 
+-    <sect2>
++    <sect2 id="jbd_summary">
+      <title>Summary</title>
+ <para>
+ Using the journal is a matter of wrapping the different context changes,
+@@ -349,7 +349,7 @@ an example.
+ 
+     </sect1>
+ 
+-    <sect1>
++    <sect1 id="data_types">
+      <title>Data Types</title>
+      <para>
+ 	The journalling layer uses typedefs to 'hide' the concrete definitions
+@@ -358,27 +358,27 @@ an example.
+ 
+ 	Obviously the hiding is not enforced as this is 'C'.
+      </para>
+-	<sect2><title>Structures</title>
++	<sect2 id="structures"><title>Structures</title>
+ !Iinclude/linux/jbd.h
+ 	</sect2>
+     </sect1>
+ 
+-    <sect1>
++    <sect1 id="functions">
+      <title>Functions</title>
+      <para>
+ 	The functions here are split into two groups those that
+ 	affect a journal as a whole, and those which are used to
+ 	manage transactions
+      </para>
+-	<sect2><title>Journal Level</title>
++	<sect2 id="journal_level"><title>Journal Level</title>
+ !Efs/jbd/journal.c
+ !Ifs/jbd/recovery.c
+ 	</sect2>
+-	<sect2><title>Transasction Level</title>
++	<sect2 id="transaction_level"><title>Transasction Level</title>
+ !Efs/jbd/transaction.c
+ 	</sect2>
+     </sect1>
+-    <sect1>
++    <sect1 id="see_also">
+      <title>See also</title>
+ 	<para>
+ 	  <citation>
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-git-scsi-misc-include-fix.patch
-cpuset-remove-sched-domain-hooks-from-cpusets.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-task-containers-enable-containers-by-default-in-some-configs.patch
-whitespace-fixes-cpuset.patch
-cpuset-sched_load_balance-flag.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+git-arm.patch
+git-scsi-misc.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+tweak-documentation-sm501txt.patch
+add-missing-entries-to-top-level-documentation-00-index.patch
+add-documentation-w1w1-masters-00-index.patch
+add-entries-to-documentation-powerpc.patch
+add-documentation-power-00-index.patch
+add-recommended-section-ids-to-deviceiobooktmpl.patch
+add-documentation-rcu-00-index.patch
+fix-make-htmldocs-build-break.patch
+add-section-ids-to-documentation-docbook-filesystemstmpl.patch
