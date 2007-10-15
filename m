@@ -1,113 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-opend-files-reiserfs-fix.patch added to -mm tree
-Date: Sun, 14 Oct 2007 18:04:33 -0700
-Message-ID: <200710150104.l9F14Xa7010671@imap1.linux-foundation.org>
+Subject: + md-fix-a-bug-in-some-never-used-code.patch added to -mm tree
+Date: Sun, 14 Oct 2007 22:00:53 -0700
+Message-ID: <200710150500.l9F50rO6018230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60240 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34797 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753263AbXJOBF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751538AbXJOFA6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 14 Oct 2007 21:05:26 -0400
+	Mon, 15 Oct 2007 01:00:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laurent.riffard@free.fr, haveblue@us.ibm.com
+Cc: neilb@suse.de
 
 
 The patch titled
-     fix BUG in reiserfs_delete_xattrs
+     md: fix a bug in some never-used code.
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-opend-files-reiserfs-fix.patch
+     md-fix-a-bug-in-some-never-used-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix BUG in reiserfs_delete_xattrs
-=46rom: Laurent Riffard <laurent.riffard@free.fr>
+Subject: md: fix a bug in some never-used code.
+From: NeilBrown <neilb@suse.de>
 
-Le 12.10.2007 06:31, Andrew Morton a =E9crit :
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.23/=
-2.6.23-mm1/
+http://bugzilla.kernel.org/show_bug.cgi?id=3277
 
-/home is mounted with the following options:
-   /dev/mapper/vglinux1-lvhome on /home type reiserfs (rw,noatime,nodir=
-atime,user_xattr)
+There is a seq_printf here that isn't being passed a 'seq'.  Howeve as the
+code is inside #ifdef MD_DEBUG, nobody noticed.
 
-I guess that beagled (the Beagle desktop search daemon) has populated u=
-ser
-xattrs on almost all files. Now, when I delete a file, two BUGs occur
-and the system hangs. Here is the stack for the first BUG (the second
-one is very similar):
+Also remove some extra spaces.
 
-[partially hand copied stack]
-_fput
-fput
-reiserfs_delete_xattrs
-reiserfs_delete_inode
-generic_delete_inode
-generic_drop_inode
-iput
-do_unlinkat
-sys_unlink
-sys_enter_past_esp
-
-I reported a similar BUG in 2.6.22-rc8-mm2 (see
-http://lkml.org/lkml/2007/9/27/235). Dave Hansen sent a patch for it, I
-tested it and it was OK for 2.6.22-rc8-mm2.
-
-I tried this patch on 2.6.23-mm1, and it fixed the BUGs here too.
-
-----
-
-The bug is caused by reiserfs creating a special 'struct file' with a
-NULL vfsmount.
-
-/* Opens a file pointer to the attribute associated with inode */
-static struct file *open_xa_file(const struct inode *inode, const char
-*name,
-                                 int flags)
-{
-=2E..
-        fp =3D dentry_open(xafile, NULL, O_RDWR);
-        /* dentry_open dputs the dentry if it fails */
-
-As Christoph just said, this is somewhat of a bandaid.  But, it
-shouldn't hurt anything.
-
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid0.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-fil=
-es-reiserfs-fix fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files-r=
-eiserfs-fix
-+++ a/fs/file_table.c
-@@ -236,7 +236,7 @@ void fastcall __fput(struct file *file)
- 	fops_put(file->f_op);
- 	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
--		if (!special_file(inode->i_mode))
-+		if (!special_file(inode->i_mode) && mnt)
- 			mnt_drop_write(mnt);
- 	}
- 	put_pid(file->f_owner.pid);
+diff -puN drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code drivers/md/raid0.c
+--- a/drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code
++++ a/drivers/md/raid0.c
+@@ -472,7 +472,7 @@ bad_map:
+ 	bio_io_error(bio);
+ 	return 0;
+ }
+-			   
++
+ static void raid0_status (struct seq_file *seq, mddev_t *mddev)
+ {
+ #undef MD_DEBUG
+@@ -480,18 +480,18 @@ static void raid0_status (struct seq_fil
+ 	int j, k, h;
+ 	char b[BDEVNAME_SIZE];
+ 	raid0_conf_t *conf = mddev_to_conf(mddev);
+-  
++
+ 	h = 0;
+ 	for (j = 0; j < conf->nr_strip_zones; j++) {
+ 		seq_printf(seq, "      z%d", j);
+ 		if (conf->hash_table[h] == conf->strip_zone+j)
+-			seq_printf("(h%d)", h++);
++			seq_printf(seq, "(h%d)", h++);
+ 		seq_printf(seq, "=[");
+ 		for (k = 0; k < conf->strip_zone[j].nb_dev; k++)
+-			seq_printf (seq, "%s/", bdevname(
++			seq_printf(seq, "%s/", bdevname(
+ 				conf->strip_zone[j].dev[k]->bdev,b));
+ 
+-		seq_printf (seq, "] zo=%d do=%d s=%d\n",
++		seq_printf(seq, "] zo=%d do=%d s=%d\n",
+ 				conf->strip_zone[j].zone_offset,
+ 				conf->strip_zone[j].dev_offset,
+ 				conf->strip_zone[j].size);
 _
 
-Patches currently in -mm which might be from laurent.riffard@free.fr ar=
-e
+Patches currently in -mm which might be from neilb@suse.de are
 
-git-block.patch
-r-o-bind-mounts-elevate-write-count-opend-files-reiserfs-fix.patch
+origin.patch
+git-nfsd.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+shrink_dcache_sb-speedup.patch
+menuconfig-transform-network-filesystems-menu.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+bitmaph-remove-dead-artifacts.patch
+md-fix-a-bug-in-some-never-used-code.patch
+md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch
+md-expose-the-degraded-status-of-an-assembled-array-through-sysfs.patch
+md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1.patch
+md-fix-type-that-is-stopping-raid5-grow-from-working.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+xfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
