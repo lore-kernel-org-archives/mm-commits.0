@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-rework-struct-platform_suspend_ops-fixup.patch added to -mm tree
-Date: Mon, 15 Oct 2007 14:16:38 -0700
-Message-ID: <200710152116.l9FLGce8025436@imap1.linux-foundation.org>
+Subject: + pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 15 Oct 2007 14:20:33 -0700
+Message-ID: <200710152120.l9FLKX1g025598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751677AbXJOVRq (ORCPT
+	by vger.kernel.org with ESMTP id S1751642AbXJOVVk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 17:17:46 -0400
+	Mon, 15 Oct 2007 17:21:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, domen.puncer@telargo.com, jfannin@gmail.com, lenb@kernel.org, paulus@samba.org, pavel@ucw.cz
+Cc: akpm@linux-foundation.org, domen.puncer@telargo.com, jfannin@gmail.com, lenb@kernel.org, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     PM: Rework struct platform_suspend_ops fixup
+     pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     pm-rework-struct-platform_suspend_ops-fixup.patch
+     pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,191 +26,252 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PM: Rework struct platform_suspend_ops fixup
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A recently merged powerpc update has overlapped with the changes introduced by
-the following patches:
-
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-
-As a result, mpc5200 and lite5200 need to be modified to follow the reworked
-suspend core.
-
-Thanks to Joseph Fannin <jfannin@gmail.com> for reporting the problem and
-helping to fix it.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Joseph Fannin <jfannin@gmail.com>
-Cc: Domen Puncer <domen.puncer@telargo.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/powerpc/platforms/52xx/lite5200_pm.c |   33 +++++++++++++-------
- arch/powerpc/platforms/52xx/mpc52xx_pm.c  |    4 +-
- include/asm-powerpc/mpc52xx.h             |    6 ++-
- 3 files changed, 28 insertions(+), 15 deletions(-)
-
-diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup arch/powerpc/platforms/52xx/lite5200_pm.c
---- a/arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
-@@ -1,5 +1,5 @@
- #include <linux/init.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <asm/io.h>
- #include <asm/time.h>
- #include <asm/mpc52xx.h>
-@@ -18,6 +18,8 @@ static void __iomem *sram;
- static const int sram_size = 0x4000;	/* 16 kBytes */
- static void __iomem *mbar;
- 
-+static suspend_state_t lite5200_pm_target_state;
-+
- static int lite5200_pm_valid(suspend_state_t state)
- {
- 	switch (state) {
-@@ -29,13 +31,22 @@ static int lite5200_pm_valid(suspend_sta
- 	}
- }
- 
--static int lite5200_pm_prepare(suspend_state_t state)
-+static int lite5200_pm_set_target(suspend_state_t state)
-+{
-+	if (lite5200_pm_valid(state)) {
-+		lite5200_pm_target_state = state;
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+
-+static int lite5200_pm_prepare(void)
- {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state == PM_SUSPEND_STANDBY)
--		return mpc52xx_pm_prepare(state);
-+	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
-+		return mpc52xx_pm_prepare();
- 
--	if (state != PM_SUSPEND_MEM)
-+	if (lite5200_pm_target_state != PM_SUSPEND_MEM)
- 		return -EINVAL;
- 
- 	/* map registers */
-@@ -190,17 +201,17 @@ static int lite5200_pm_enter(suspend_sta
- 	return 0;
- }
- 
--static int lite5200_pm_finish(suspend_state_t state)
-+static void lite5200_pm_finish(void)
- {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state == PM_SUSPEND_STANDBY) {
--		return mpc52xx_pm_finish(state);
+WARNING: braces {} are not necessary for single statement blocks
+#85: FILE: arch/powerpc/platforms/52xx/lite5200_pm.c:207:
 +	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY) {
 +		mpc52xx_pm_finish();
  	}
--	return 0;
- }
- 
--static struct pm_ops lite5200_pm_ops = {
-+static struct platform_suspend_ops lite5200_pm_ops = {
- 	.valid		= lite5200_pm_valid,
-+	.set_target	= lite5200_pm_set_target,
- 	.prepare	= lite5200_pm_prepare,
- 	.enter		= lite5200_pm_enter,
- 	.finish		= lite5200_pm_finish,
-@@ -208,6 +219,6 @@ static struct pm_ops lite5200_pm_ops = {
- 
- int __init lite5200_pm_init(void)
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: Domen Puncer <domen.puncer@telargo.com>
+Cc: Joseph Fannin <jfannin@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/powerpc/platforms/52xx/lite5200_pm.c |    3 +--
+ asm-powerpc/mpc52xx.h                     |    0 
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes arch/powerpc/platforms/52xx/lite5200_pm.c
+--- a/arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
++++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -204,9 +204,8 @@ static int lite5200_pm_enter(suspend_sta
+ static void lite5200_pm_finish(void)
  {
--	pm_set_ops(&lite5200_pm_ops);
-+	suspend_set_ops(&lite5200_pm_ops);
- 	return 0;
- }
-diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup arch/powerpc/platforms/52xx/mpc52xx_pm.c
---- a/arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/arch/powerpc/platforms/52xx/mpc52xx_pm.c
-@@ -57,7 +57,7 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 l
- 	return 0;
+ 	/* deep sleep? let mpc52xx code handle that */
+-	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY) {
++	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
+ 		mpc52xx_pm_finish();
+-	}
  }
  
--static int mpc52xx_pm_prepare(void)
-+int mpc52xx_pm_prepare(void)
- {
- 	/* map the whole register space */
- 	mbar = mpc52xx_find_and_map("mpc5200");
-@@ -163,7 +163,7 @@ int mpc52xx_pm_enter(suspend_state_t sta
- 	return 0;
- }
- 
--static void mpc52xx_pm_finish(void)
-+void mpc52xx_pm_finish(void)
- {
- 	/* call board resume code */
- 	if (mpc52xx_suspend.board_resume_finish)
-diff -puN include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup include/asm-powerpc/mpc52xx.h
---- a/include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/include/asm-powerpc/mpc52xx.h
-@@ -18,6 +18,8 @@
- #include <asm/prom.h>
- #endif /* __ASSEMBLY__ */
- 
-+#include <linux/suspend.h>
-+
- 
- /* ======================================================================== */
- /* Structures mapping of some unit register set                             */
-@@ -267,9 +269,9 @@ extern int mpc52xx_set_wakeup_gpio(u8 pi
- extern int __init lite5200_pm_init(void);
- 
- /* lite5200 calls mpc5200 suspend functions, so here they are */
--extern int mpc52xx_pm_prepare(suspend_state_t);
-+extern int mpc52xx_pm_prepare(void);
- extern int mpc52xx_pm_enter(suspend_state_t);
--extern int mpc52xx_pm_finish(suspend_state_t);
-+extern void mpc52xx_pm_finish(void);
- extern char saved_sram[0x4000]; /* reuse buffer from mpc52xx suspend */
- #endif
- #endif /* CONFIG_PM */
+ static struct platform_suspend_ops lite5200_pm_ops = {
+diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes arch/powerpc/platforms/52xx/mpc52xx_pm.c
+diff -puN include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes include/asm-powerpc/mpc52xx.h
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
 git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+git-input.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kbuild.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ata_piix-sata-2port-controller-port-map-fix-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+git-mips.patch
+git-mips-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+git-nfs-fixup.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-sched.patch
+git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+qla2xxx-printk-fixes.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-ath5k-broke.patch
 revert-x86_64-mm-cpa-einval.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-rework-struct-platform_suspend_ops-fixup.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+fs-restore-nobh-checkpatch-fixes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
-pnp-make-pnpacpi_suspend-handle-errors.patch
-shrink_slab-handle-bad-shrinkers.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
