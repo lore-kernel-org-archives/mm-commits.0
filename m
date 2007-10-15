@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ftd_sio-clean-ups-and-updates-for-new-termios-work.patch added to -mm tree
-Date: Mon, 15 Oct 2007 16:37:48 -0700
-Message-ID: <200710152337.l9FNbmHF031160@imap1.linux-foundation.org>
+Subject: + ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:39:02 -0700
+Message-ID: <200710152339.l9FNd3tc031258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44462 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755066AbXJOXiE (ORCPT
+	by vger.kernel.org with ESMTP id S1753305AbXJOXjI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 19:38:04 -0400
+	Mon, 15 Oct 2007 19:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     ftd_sio: cleanups and updates for new termios work
+     ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+     ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,196 +26,275 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ftd_sio: cleanups and updates for new termios work
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Remove can't happen tests
-- Rework speed validation in terms of baud rates not CBAUD bits
-- Report speed set (or chosen)
-- Minor termios correctness
+WARNING: line over 80 characters
+#23: FILE: drivers/usb/serial/ftdi_sio.c:297:
++	speed_t force_baud;	/* if non-zero, force the baud rate to this value */
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+ERROR: use tabs not spaces
+#31: FILE: drivers/usb/serial/ftdi_sio.c:881:
++^I$
+
+ERROR: use tabs not spaces
+#39: FILE: drivers/usb/serial/ftdi_sio.c:890:
++^I$
+
+WARNING: line over 80 characters
+#111: FILE: drivers/usb/serial/ftdi_sio.c:1956:
++		tty_encode_baud_rate(port->tty, priv->force_baud, priv->force_baud);
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ drivers/usb/serial/ftdi_sio.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftd_sio-clean-ups-and-updates-for-new-termios-work drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftd_sio-clean-ups-and-updates-for-new-termios-work
+diff -puN drivers/usb/serial/ftdi_sio.c~ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes drivers/usb/serial/ftdi_sio.c
+--- a/drivers/usb/serial/ftdi_sio.c~ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes
 +++ a/drivers/usb/serial/ftdi_sio.c
-@@ -294,7 +294,7 @@ struct ftdi_private {
- 
- 	__u16 interface;	/* FT2232C port interface (0 for FT232/245) */
- 
--	int force_baud;		/* if non-zero, force the baud rate to this value */
-+	speed_t force_baud;	/* if non-zero, force the baud rate to this value */
- 	int force_rtscts;	/* if non-zero, force RTS-CTS to always be enabled */
- 
- 	spinlock_t tx_lock;	/* spinlock for transmit state */
-@@ -878,6 +878,7 @@ static __u32 get_ftdi_divisor(struct usb
+@@ -878,7 +878,7 @@ static __u32 get_ftdi_divisor(struct usb
  		if (div_value == 0) {
  			dbg("%s - Baudrate (%d) requested is not supported", __FUNCTION__,  baud);
  			div_value = ftdi_sio_b9600;
-+	                baud = 9600;
+-	                baud = 9600;
++			baud = 9600;
  			div_okay = 0;
  		}
  		break;
-@@ -886,6 +887,7 @@ static __u32 get_ftdi_divisor(struct usb
+@@ -887,7 +887,7 @@ static __u32 get_ftdi_divisor(struct usb
  			div_value = ftdi_232am_baud_to_divisor(baud);
  		} else {
  	                dbg("%s - Baud rate too high!", __FUNCTION__);
-+	                baud = 9600;
+-	                baud = 9600;
++			baud = 9600;
  			div_value = ftdi_232am_baud_to_divisor(9600);
  			div_okay = 0;
  		}
-@@ -899,6 +901,7 @@ static __u32 get_ftdi_divisor(struct usb
- 	                dbg("%s - Baud rate too high!", __FUNCTION__);
- 			div_value = ftdi_232bm_baud_to_divisor(9600);
- 			div_okay = 0;
-+			baud = 9600;
- 		}
- 		break;
- 	} /* priv->chip_type */
-@@ -909,6 +912,7 @@ static __u32 get_ftdi_divisor(struct usb
- 			ftdi_chip_name[priv->chip_type]);
- 	}
- 
-+	tty_encode_baud_rate(port->tty, baud, baud);
- 	return(div_value);
- }
- 
-@@ -1263,7 +1267,7 @@ static void ftdi_USB_UIRT_setup (struct 
- 
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 77;
--	priv->force_baud = B38400;
-+	priv->force_baud = 38400;
- } /* ftdi_USB_UIRT_setup */
- 
- /* Setup for the HE-TIRA1 device, which requires hardwired
-@@ -1274,7 +1278,7 @@ static void ftdi_HE_TIRA1_setup (struct 
- 
- 	priv->flags |= ASYNC_SPD_CUST;
- 	priv->custom_divisor = 240;
--	priv->force_baud = B38400;
-+	priv->force_baud = 38400;
- 	priv->force_rtscts = 1;
- } /* ftdi_HE_TIRA1_setup */
- 
-@@ -1363,7 +1367,7 @@ static int  ftdi_open (struct usb_serial
- 
- 	/* ftdi_set_termios  will send usb control messages */
- 	if (port->tty)
--		ftdi_set_termios(port, NULL);
-+		ftdi_set_termios(port, port->tty->termios);
- 
- 	/* FIXME: Flow control might be enabled, so it should be checked -
- 	   we have no control of defaults! */
-@@ -1933,32 +1937,32 @@ static void ftdi_break_ctl( struct usb_s
- static void ftdi_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
- { /* ftdi_termios */
- 	struct usb_device *dev = port->serial->dev;
--	unsigned int cflag = port->tty->termios->c_cflag;
- 	struct ftdi_private *priv = usb_get_serial_port_data(port);
-+	struct ktermios *termios = port->tty->termios;
-+	unsigned int cflag = termios->c_cflag;
- 	__u16 urb_value; /* will hold the new flags */
- 	char buf[1]; /* Perhaps I should dynamically alloc this? */
- 
- 	// Added for xon/xoff support
--	unsigned int iflag = port->tty->termios->c_iflag;
-+	unsigned int iflag = termios->c_iflag;
- 	unsigned char vstop;
- 	unsigned char vstart;
- 
- 	dbg("%s", __FUNCTION__);
- 
+@@ -1953,7 +1953,8 @@ static void ftdi_set_termios (struct usb
  	/* Force baud rate if this device requires it, unless it is set to B0. */
--	if (priv->force_baud && ((port->tty->termios->c_cflag & CBAUD) != B0)) {
-+	if (priv->force_baud && ((termios->c_cflag & CBAUD) != B0)) {
+ 	if (priv->force_baud && ((termios->c_cflag & CBAUD) != B0)) {
  		dbg("%s: forcing baud rate for this device", __FUNCTION__);
--		port->tty->termios->c_cflag &= ~CBAUD;
--		port->tty->termios->c_cflag |= priv->force_baud;
-+		tty_encode_baud_rate(port->tty, priv->force_baud, priv->force_baud);
+-		tty_encode_baud_rate(port->tty, priv->force_baud, priv->force_baud);
++		tty_encode_baud_rate(port->tty, priv->force_baud,
++					priv->force_baud);
  	}
  
  	/* Force RTS-CTS if this device requires it. */
- 	if (priv->force_rtscts) {
- 		dbg("%s: forcing rtscts for this device", __FUNCTION__);
--		port->tty->termios->c_cflag |= CRTSCTS;
-+		termios->c_cflag |= CRTSCTS;
- 	}
- 
--	cflag = port->tty->termios->c_cflag;
-+	cflag = termios->c_cflag;
- 
- 	/* FIXME -For this cut I don't care if the line is really changing or
- 	   not  - so just do the change regardless  - should be able to
-@@ -1969,6 +1973,8 @@ static void ftdi_set_termios (struct usb
- 
- 	/* Set number of data bits, parity, stop bits */
- 
-+	termios->c_cflag &= ~CMSPAR;
-+
- 	urb_value = 0;
- 	urb_value |= (cflag & CSTOPB ? FTDI_SIO_SET_DATA_STOP_BITS_2 :
- 		      FTDI_SIO_SET_DATA_STOP_BITS_1);
-@@ -2048,8 +2054,8 @@ static void ftdi_set_termios (struct usb
- 			// Set the vstart and vstop -- could have been done up above where
- 			// a lot of other dereferencing is done but that would be very
- 			// inefficient as vstart and vstop are not always needed
--			vstart=port->tty->termios->c_cc[VSTART];
--			vstop=port->tty->termios->c_cc[VSTOP];
-+			vstart = termios->c_cc[VSTART];
-+			vstop = termios->c_cc[VSTOP];
- 			urb_value=(vstop << 8) | (vstart);
- 
- 			if (usb_control_msg(dev,
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+git-input.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kbuild.patch
 git-libata-all.patch
-introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
-pcmcia-use-dma_mask_none-for-the-default-for-all.patch
-serial_txx9-cleanup-includes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-8250_pci-autodetect-mainpine-cards.patch
-8250_pci-autodetect-mainpine-cards-fix.patch
-wake-up-from-a-serial-port.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ata_piix-sata-2port-controller-port-map-fix-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+git-mips.patch
+git-mips-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfs-fixup.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-sched.patch
 git-scsi-misc.patch
-initio-fix-conflict-when-loading-driver.patch
+git-scsi-misc-fixup.patch
+qla2xxx-printk-fixes.patch
+git-block.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-ath5k-broke.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+fs-restore-nobh-checkpatch-fixes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
