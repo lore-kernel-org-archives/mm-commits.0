@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-ip2-fix-used-uninitd-bug.patch added to -mm tree
-Date: Mon, 15 Oct 2007 15:53:00 -0700
-Message-ID: <200710152253.l9FMr099029424@imap1.linux-foundation.org>
+Subject: + drivers-block-cpqarraycciss-kill-unused-var.patch added to -mm tree
+Date: Mon, 15 Oct 2007 15:52:47 -0700
+Message-ID: <200710152252.l9FMqlTi029416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54541 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754606AbXJOWxT (ORCPT
+	by vger.kernel.org with ESMTP id S1753572AbXJOWxP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 18:53:19 -0400
+	Mon, 15 Oct 2007 18:53:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com
+Cc: jeff@garzik.org, jens.axboe@oracle.com, jgarzik@redhat.com
 
 
 The patch titled
-     drivers/char/ip2: fix used-uninit'd bug
+     drivers/block/cpqarray,cciss: kill unused var
 has been added to the -mm tree.  Its filename is
-     drivers-char-ip2-fix-used-uninitd-bug.patch
+     drivers-block-cpqarraycciss-kill-unused-var.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/char/ip2: fix used-uninit'd bug
+Subject: drivers/block/cpqarray,cciss: kill unused var
 From: Jeff Garzik <jeff@garzik.org>
 
-Fix bug flagged by a variable-used-uninitialized warning.
+The recent bio work and subsequent fixups created unused variables.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/block/cciss.c    |    1 -
+ drivers/block/cpqarray.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug
-+++ a/drivers/char/ip2/ip2main.c
-@@ -619,11 +619,7 @@ ip2_loadmain(int *iop, int *irqp, unsign
- 					ip2config.irq[i] = pci_dev_i->irq;
- 				} else {	// ann error
- 					ip2config.addr[i] = 0;
--					if (status == PCIBIOS_DEVICE_NOT_FOUND) {
--						printk( KERN_ERR "IP2: PCI board %d not found\n", i );
--					} else {
--						printk( KERN_ERR "IP2: PCI error 0x%x \n", status );
--					}
-+					printk( KERN_ERR "IP2: PCI board %d not found\n", i );
- 				} 
- 			}
- #else
+diff -puN drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cciss.c
+--- a/drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var
++++ a/drivers/block/cciss.c
+@@ -1191,7 +1191,6 @@ static inline void complete_buffers(stru
+ {
+ 	while (bio) {
+ 		struct bio *xbh = bio->bi_next;
+-		int nr_sectors = bio_sectors(bio);
+ 
+ 		bio->bi_next = NULL;
+ 		bio_endio(bio, status ? 0 : -EIO);
+diff -puN drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var
++++ a/drivers/block/cpqarray.c
+@@ -981,9 +981,8 @@ static void start_io(ctlr_info_t *h)
+ static inline void complete_buffers(struct bio *bio, int ok)
+ {
+ 	struct bio *xbh;
+-	while(bio) {
+-		int nr_sectors = bio_sectors(bio);
+ 
++	while (bio) {
+ 		xbh = bio->bi_next;
+ 		bio->bi_next = NULL;
+ 		
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
