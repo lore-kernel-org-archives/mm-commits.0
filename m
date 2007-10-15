@@ -1,97 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:17:03 -0700
-Message-ID: <200710150917.l9F9H3vt027240@imap1.linux-foundation.org>
+Subject: - mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:17:27 -0700
+Message-ID: <200710150917.l9F9HRMm027276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49975 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50167 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897AbXJOJR5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755222AbXJOJSM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:17:57 -0400
+	Mon, 15 Oct 2007 05:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: haokexin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: fix bogus next_event reset for oneshot broadcast devices
+     MTD: fix ctrl-alt-del can't reboot for intel flash bug
 has been removed from the -mm tree.  Its filename was
-     clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices.patch
+     mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: fix bogus next_event reset for oneshot broadcast devices
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: MTD: fix ctrl-alt-del can't reboot for intel flash bug
+From: "Kevin Hao" <haokexin@gmail.com>
 
-In periodic broadcast mode the next_event member of the broadcast device
-structure is set to KTIME_MAX in the interrupt handler. This is wrong,
-as we calculate the next periodic interrupt with this variable.
+When we press ctrl-alt-del,kernel_restart_prepare will revoke
+cfi_intelext_reboot which will set flash to read array mode,but later when
+device_shutdown is invoked which may put current work queue to sleep and
+other process may be sheduled to running and programming flash in not
+FL_READY mode again.So we cann't boot up if this flash is used for
+bootloader.
 
-Remove it.
-
-Noticed by Ralf. MIPS is the first user of this mode, it does not affect
-existing users.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-and-tested-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |    9 ++++++---
+ include/linux/mtd/flashchip.h       |    1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/tick-broadcast.c~clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~clockevents-fix-bogus-next_event-reset-for-oneshot-broadcast-devices
-+++ a/kernel/time/tick-broadcast.c
-@@ -176,8 +176,6 @@ static void tick_do_periodic_broadcast(v
-  */
- static void tick_handle_periodic_broadcast(struct clock_event_device *dev)
- {
--	dev->next_event.tv64 = KTIME_MAX;
--
- 	tick_do_periodic_broadcast();
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -653,7 +653,7 @@ static int get_chip(struct map_info *map
+  resettime:
+ 	timeo = jiffies + HZ;
+  retry:
+-	if (chip->priv && (mode == FL_WRITING || mode == FL_ERASING || mode == FL_OTP_WRITE)) {
++	if (chip->priv && (mode == FL_WRITING || mode == FL_ERASING || mode == FL_OTP_WRITE || mode == FL_SHUTDOWN)) {
+ 		/*
+ 		 * OK. We have possibility for contension on the write/erase
+ 		 * operations which are global to the real chip and not per
+@@ -798,6 +798,9 @@ static int get_chip(struct map_info *map
+ 		if (mode == FL_READY && chip->oldstate == FL_READY)
+ 			return 0;
  
- 	/*
++	case FL_SHUTDOWN:
++		/* The machine is rebooting now,so no one can get chip anymore */
++		return -EIO;
+ 	default:
+ 	sleep:
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
+@@ -2409,10 +2412,10 @@ static int cfi_intelext_reset(struct mtd
+ 		   and switch to array mode so any bootloader in
+ 		   flash is accessible for soft reboot. */
+ 		spin_lock(chip->mutex);
+-		ret = get_chip(map, chip, chip->start, FL_SYNCING);
++		ret = get_chip(map, chip, chip->start, FL_SHUTDOWN);
+ 		if (!ret) {
+ 			map_write(map, CMD(0xff), chip->start);
+-			chip->state = FL_READY;
++			chip->state = FL_SHUTDOWN;
+ 		}
+ 		spin_unlock(chip->mutex);
+ 	}
+diff -puN include/linux/mtd/flashchip.h~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug include/linux/mtd/flashchip.h
+--- a/include/linux/mtd/flashchip.h~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug
++++ a/include/linux/mtd/flashchip.h
+@@ -40,6 +40,7 @@ typedef enum {
+ 	FL_POINT,
+ 	FL_XIP_WHILE_ERASING,
+ 	FL_XIP_WHILE_WRITING,
++	FL_SHUTDOWN,
+ 	FL_UNKNOWN
+ } flstate_t;
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from haokexin@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-arm.patch
-git-mips.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
-git-sched.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support.patch
-uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
