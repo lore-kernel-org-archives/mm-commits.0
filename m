@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch added to -mm tree
-Date: Mon, 15 Oct 2007 15:38:02 -0700
-Message-ID: <200710152238.l9FMc2Sn028814@imap1.linux-foundation.org>
+Subject: + svgalib-mode-selection-updates.patch added to -mm tree
+Date: Mon, 15 Oct 2007 15:37:57 -0700
+Message-ID: <200710152237.l9FMbvml028797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750745AbXJOWnT (ORCPT
+	by vger.kernel.org with ESMTP id S1753300AbXJOWiN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 18:43:19 -0400
+	Mon, 15 Oct 2007 18:38:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pisa@cmp.felk.cvut.cz, adaplas@gmail.com
+Cc: santiago@crfreenet.org, adaplas@gmail.com
 
 
 The patch titled
-     fbdev: copyarea function taught to fully support swapped pixel order in byte
+     svgalib: mode selection updates
 has been added to the -mm tree.  Its filename is
-     fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch
+     svgalib-mode-selection-updates.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,290 +26,116 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fbdev: copyarea function taught to fully support swapped pixel order in byte
-From: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Subject: svgalib: mode selection updates
+From: Ondrej Zajicek <santiago@crfreenet.org>
 
-This correct case, when source and destination X coordinates difference is n
-multiple of pixels in byte.  This is probably rare case, but this case should
-supported for completeness.
+This patch changes mode selection matching algorithm.  It allows to choose
+mode with matching depth even when requested color lengths are greater than
+color lengths of every mode with requested color depth.
 
-Reorganization of FB_READL and FB_WRITEL calls results in code size decrease
-for normal build without swapping support and size with support enabled is
-reasonable too.
+It also fixes bug in s3fb - wrong error value returned when format is not
+supported by chip.
 
-[adaplas]
-Add missing fb_rev_pixels_in_long() prototype.
-
-Signed-off-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cfbcopyarea.c |   84 +++++++++++++++++++++++-----------
- drivers/video/fb_draw.h     |   26 ++++++++++
- 2 files changed, 85 insertions(+), 25 deletions(-)
+ drivers/video/s3fb.c    |    9 +++++--
+ drivers/video/svgalib.c |   47 +++++++++++++++++++++++++-------------
+ 2 files changed, 38 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/cfbcopyarea.c~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte drivers/video/cfbcopyarea.c
---- a/drivers/video/cfbcopyarea.c~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte
-+++ a/drivers/video/cfbcopyarea.c
-@@ -94,29 +94,34 @@ bitcpy(unsigned long __iomem *dst, int d
- 				FB_WRITEL( comp( FB_READL(src), FB_READL(dst), last), dst);
- 		}
- 	} else {
-+		// Different alignment for source and dest
- 		unsigned long d0, d1;
- 		int m;
--		// Different alignment for source and dest
+diff -puN drivers/video/s3fb.c~svgalib-mode-selection-updates drivers/video/s3fb.c
+--- a/drivers/video/s3fb.c~svgalib-mode-selection-updates
++++ a/drivers/video/s3fb.c
+@@ -403,8 +403,13 @@ static int s3fb_check_var(struct fb_var_
  
- 		right = shift & (bits - 1);
- 		left = -shift & (bits - 1);
-+		bswapmask &= shift;
- 
- 		if (dst_idx+n <= bits) {
- 			// Single destination word
- 			if (last)
- 				first &= last;
-+			d0 = FB_READL(src);
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
- 			if (shift > 0) {
- 				// Single source word
--				FB_WRITEL( comp( FB_READL(src) >> right, FB_READL(dst), first), dst);
-+				d0 >>= right;
- 			} else if (src_idx+n <= bits) {
- 				// Single source word
--				FB_WRITEL( comp(FB_READL(src) << left, FB_READL(dst), first), dst);
-+				d0 <<= left;;
- 			} else {
- 				// 2 source words
--				d0 = FB_READL(src++);
--				d1 = FB_READL(src);
--				FB_WRITEL( comp(d0<<left | d1>>right, FB_READL(dst), first), dst);
-+				d1 = FB_READL(src + 1);
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+				d0 = d0<<left | d1>>right;
- 			}
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
- 		} else {
- 			// Multiple destination words
- 			/** We must always remember the last value read, because in case
-@@ -125,25 +130,31 @@ bitcpy(unsigned long __iomem *dst, int d
- 			overlap with the current long from SRC. We store this value in
- 			'd0'. */
- 			d0 = FB_READL(src++);
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
- 			// Leading bits
- 			if (shift > 0) {
- 				// Single source word
--				FB_WRITEL( comp(d0 >> right, FB_READL(dst), first), dst);
-+				d1 = d0;
-+				d0 >>= right;
- 				dst++;
- 				n -= bits - dst_idx;
- 			} else {
- 				// 2 source words
- 				d1 = FB_READL(src++);
--				FB_WRITEL( comp(d0<<left | d1>>right, FB_READL(dst), first), dst);
--				d0 = d1;
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
+ 	/* Find appropriate format */
+ 	rv = svga_match_format (s3fb_formats, var, NULL);
+-	if ((rv < 0) || ((par->chip == CHIP_988_VIRGE_VX) ? (rv == 7) : (rv == 6)))
+-	{		/* 24bpp on VIRGE VX, 32bpp on others */
 +
-+				d0 = d0<<left | d1>>right;
- 				dst++;
- 				n -= bits - dst_idx;
- 			}
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
-+			d0 = d1;
- 
- 			// Main chunk
- 			m = n % bits;
- 			n /= bits;
--			while (n >= 4) {
-+			while ((n >= 4) && !bswapmask) {
- 				d1 = FB_READL(src++);
- 				FB_WRITEL(d0 << left | d1 >> right, dst++);
- 				d0 = d1;
-@@ -160,7 +171,10 @@ bitcpy(unsigned long __iomem *dst, int d
- 			}
- 			while (n--) {
- 				d1 = FB_READL(src++);
--				FB_WRITEL(d0 << left | d1 >> right, dst++);
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+				d0 = d0 << left | d1 >> right;
-+				d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+				FB_WRITEL(d0, dst++);
- 				d0 = d1;
- 			}
- 
-@@ -168,12 +182,15 @@ bitcpy(unsigned long __iomem *dst, int d
- 			if (last) {
- 				if (m <= right) {
- 					// Single source word
--					FB_WRITEL( comp(d0 << left, FB_READL(dst), last), dst);
-+					d0 <<= left;
- 				} else {
- 					// 2 source words
- 					d1 = FB_READL(src);
--					FB_WRITEL( comp(d0<<left | d1>>right, FB_READL(dst), last), dst);
-+					d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+					d0 = d0<<left | d1>>right;
- 				}
-+				d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
- 			}
- 		}
- 	}
-@@ -247,24 +264,32 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 		}
- 	} else {
- 		// Different alignment for source and dest
-+		unsigned long d0, d1;
-+		int m;
- 
- 		int const left = -shift & (bits-1);
- 		int const right = shift & (bits-1);
-+		bswapmask &= shift;
- 
- 		if ((unsigned long)dst_idx+1 >= n) {
- 			// Single destination word
- 			if (last)
- 				first &= last;
-+			d0 = FB_READL(src);
- 			if (shift < 0) {
- 				// Single source word
--				FB_WRITEL( comp( FB_READL(src)<<left, FB_READL(dst), first), dst);
-+				d0 <<= left;
- 			} else if (1+(unsigned long)src_idx >= n) {
- 				// Single source word
--				FB_WRITEL( comp( FB_READL(src)>>right, FB_READL(dst), first), dst);
-+				d0 >>= right;
- 			} else {
- 				// 2 source words
--				FB_WRITEL( comp( (FB_READL(src)>>right | FB_READL(src-1)<<left), FB_READL(dst), first), dst);
-+				d1 = FB_READL(src - 1);
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+				d0 = d0>>right | d1<<left;
- 			}
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
- 		} else {
- 			// Multiple destination words
- 			/** We must always remember the last value read, because in case
-@@ -272,27 +297,30 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 			1bpp), we always collect one full long for DST and that might
- 			overlap with the current long from SRC. We store this value in
- 			'd0'. */
--			unsigned long d0, d1;
--			int m;
- 
- 			d0 = FB_READL(src--);
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
- 			// Leading bits
- 			if (shift < 0) {
- 				// Single source word
--				FB_WRITEL( comp( (d0 << left), FB_READL(dst), first), dst);
-+				d1 = d0;
-+				d0 <<= left;
- 			} else {
- 				// 2 source words
- 				d1 = FB_READL(src--);
--				FB_WRITEL( comp( (d0>>right | d1<<left), FB_READL(dst), first), dst);
--				d0 = d1;
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+				d0 = d0>>right | d1<<left;
- 			}
-+			d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
-+			d0 = d1;
- 			dst--;
- 			n -= dst_idx+1;
- 
- 			// Main chunk
- 			m = n % bits;
- 			n /= bits;
--			while (n >= 4) {
-+			while ((n >= 4) && !bswapmask) {
- 				d1 = FB_READL(src--);
- 				FB_WRITEL(d0 >> right | d1 << left, dst--);
- 				d0 = d1;
-@@ -309,7 +337,10 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 			}
- 			while (n--) {
- 				d1 = FB_READL(src--);
--				FB_WRITEL(d0 >> right | d1 << left, dst--);
-+				d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+				d0 = d0 >> right | d1 << left;
-+				d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+				FB_WRITEL(d0, dst--);
- 				d0 = d1;
- 			}
- 
-@@ -317,12 +348,15 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 			if (last) {
- 				if (m <= left) {
- 					// Single source word
--					FB_WRITEL( comp(d0 >> right, FB_READL(dst), last), dst);
-+					d0 >>= right;
- 				} else {
- 					// 2 source words
- 					d1 = FB_READL(src);
--					FB_WRITEL( comp(d0>>right | d1<<left, FB_READL(dst), last), dst);
-+					d1 = fb_rev_pixels_in_long(d1, bswapmask);
-+					d0 = d0>>right | d1<<left;
- 				}
-+				d0 = fb_rev_pixels_in_long(d0, bswapmask);
-+				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
- 			}
- 		}
- 	}
-diff -puN drivers/video/fb_draw.h~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte drivers/video/fb_draw.h
---- a/drivers/video/fb_draw.h~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte
-+++ a/drivers/video/fb_draw.h
-@@ -72,6 +72,26 @@ pixel_to_pat( u32 bpp, u32 pixel)
- #endif
- 
- #ifdef CONFIG_FB_CFB_REV_PIXELS_IN_BYTE
-+#if BITS_PER_LONG == 64
-+#define REV_PIXELS_MASK1 0x5555555555555555ul
-+#define REV_PIXELS_MASK2 0x3333333333333333ul
-+#define REV_PIXELS_MASK4 0x0f0f0f0f0f0f0f0ful
-+#else
-+#define REV_PIXELS_MASK1 0x55555555ul
-+#define REV_PIXELS_MASK2 0x33333333ul
-+#define REV_PIXELS_MASK4 0x0f0f0f0ful
-+#endif
++	/* 32bpp mode is not supported on VIRGE VX,
++	   24bpp is not supported on others */
++	if ((par->chip == CHIP_988_VIRGE_VX) ? (rv == 7) : (rv == 6))
++		rv = -EINVAL;
 +
-+static inline unsigned long fb_rev_pixels_in_long(unsigned long val,
-+						  u32 bswapmask)
-+{
-+	if(bswapmask & 1)
-+		val = comp(val >> 1, val << 1, REV_PIXELS_MASK1);
-+	if(bswapmask & 2)
-+		val = comp(val >> 2, val << 2, REV_PIXELS_MASK2);
-+	if(bswapmask & 3)
-+		val = comp(val >> 4, val << 4, REV_PIXELS_MASK4);
-+}
++	if (rv < 0) {
+ 		printk(KERN_ERR "fb%d: unsupported mode requested\n", info->node);
+ 		return rv;
+ 	}
+diff -puN drivers/video/svgalib.c~svgalib-mode-selection-updates drivers/video/svgalib.c
+--- a/drivers/video/svgalib.c~svgalib-mode-selection-updates
++++ a/drivers/video/svgalib.c
+@@ -598,9 +598,11 @@ void svga_set_timings(const struct svga_
+ /* ------------------------------------------------------------------------- */
  
- static inline u32 fb_shifted_pixels_mask_u32(u32 index, u32 bswapmask)
+ 
+-int svga_match_format(const struct svga_fb_format *frm, struct fb_var_screeninfo *var, struct fb_fix_screeninfo *fix)
++static inline int match_format(const struct svga_fb_format *frm,
++			       struct fb_var_screeninfo *var)
  {
-@@ -131,6 +151,12 @@ static inline u32 fb_compute_bswapmask(s
+ 	int i = 0;
++	int stored = -EINVAL;
  
- #else /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
- 
-+static inline unsigned long fb_rev_pixels_in_long(unsigned long val,
-+						  u32 bswapmask)
-+{
-+	return val;
+ 	while (frm->bits_per_pixel != SVGA_FORMAT_END_VAL)
+ 	{
+@@ -609,25 +611,38 @@ int svga_match_format(const struct svga_
+ 		    (var->green.length   <= frm->green.length)   &&
+ 		    (var->blue.length    <= frm->blue.length)    &&
+ 		    (var->transp.length  <= frm->transp.length)  &&
+-		    (var->nonstd	 == frm->nonstd)) {
+-		    	var->bits_per_pixel = frm->bits_per_pixel;
+-			var->red            = frm->red;
+-			var->green          = frm->green;
+-			var->blue           = frm->blue;
+-			var->transp         = frm->transp;
+-			var->nonstd         = frm->nonstd;
+-			if (fix != NULL) {
+-				fix->type      = frm->type;
+-				fix->type_aux  = frm->type_aux;
+-				fix->visual    = frm->visual;
+-				fix->xpanstep  = frm->xpanstep;
+-			}
++		    (var->nonstd	 == frm->nonstd))
+ 			return i;
+-		}
++		if (var->bits_per_pixel == frm->bits_per_pixel)
++			stored = i;
+ 		i++;
+ 		frm++;
+ 	}
+-	return -EINVAL;
++	return stored;
 +}
 +
- #define fb_shifted_pixels_mask_u32(i, b) FB_SHIFT_HIGH(~(u32)0, (i))
- #define fb_shifted_pixels_mask_long(i, b) FB_SHIFT_HIGH(~0UL, (i))
- #define fb_compute_bswapmask(...) 0
++int svga_match_format(const struct svga_fb_format *frm,
++		      struct fb_var_screeninfo *var,
++		      struct fb_fix_screeninfo *fix)
++{
++	int i = match_format(frm, var);
++
++	if (i >= 0) {
++		var->bits_per_pixel = frm[i].bits_per_pixel;
++		var->red            = frm[i].red;
++		var->green          = frm[i].green;
++		var->blue           = frm[i].blue;
++		var->transp         = frm[i].transp;
++		var->nonstd         = frm[i].nonstd;
++		if (fix != NULL) {
++			fix->type      = frm[i].type;
++			fix->type_aux  = frm[i].type_aux;
++			fix->visual    = frm[i].visual;
++			fix->xpanstep  = frm[i].xpanstep;
++		}
++	}
++
++	return i;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from pisa@cmp.felk.cvut.cz are
+Patches currently in -mm which might be from santiago@crfreenet.org are
 
-origin.patch
-fbdev-support-for-byte-reversed-framebuffer-formats.patch
-imxfb-fast-read-flag-and-nonstandard-field-configurable.patch
-fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch
+svgalib-mode-selection-updates.patch
