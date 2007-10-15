@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-apic-change-setup-calling-convention.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:09 -0700
-Message-ID: <200710150918.l9F9I9LJ027368@imap1.linux-foundation.org>
+Subject: - x86_64-preparatory-apic-set-lvtt.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:01 -0700
+Message-ID: <200710150918.l9F9I1lv027344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37859 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755886AbXJOJYW (ORCPT
+	by vger.kernel.org with ESMTP id S1755660AbXJOJYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Oct 2007 05:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,18 +15,18 @@ To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mi
 
 
 The patch titled
-     x86_64: apic change setup_APIC_timer calling convention
+     x86_64: prepare apic code for clock events
 has been removed from the -mm tree.  Its filename was
-     x86_64-apic-change-setup-calling-convention.patch
+     x86_64-preparatory-apic-set-lvtt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: apic change setup_APIC_timer calling convention
+Subject: x86_64: prepare apic code for clock events
 From: Thomas Gleixner <tglx@linutronix.de>
 
-setup_APIC_timer takes the file global calibration result as an argument.
-Remove it.
+Change __setup_APIC_LVTT so it takes the arguments which are necessary for the
+later clock events switch.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -36,48 +36,72 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86_64/kernel/apic.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-change-setup-calling-convention arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-apic-change-setup-calling-convention
+diff -puN arch/x86_64/kernel/apic.c~x86_64-preparatory-apic-set-lvtt arch/x86_64/kernel/apic.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-preparatory-apic-set-lvtt
 +++ a/arch/x86/kernel/apic_64.c
-@@ -763,7 +763,7 @@ static void __setup_APIC_LVTT(unsigned i
- 		apic_write(APIC_TMICT, clocks);
+@@ -739,14 +739,14 @@ void __init init_apic_mappings(void)
+ 
+ #define APIC_DIVISOR 16
+ 
+-static void __setup_APIC_LVTT(unsigned int clocks)
++static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen)
+ {
+ 	unsigned int lvtt_value, tmp_value;
+-	int cpu = smp_processor_id();
+-
+-	lvtt_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
+ 
+-	if (cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask))
++	lvtt_value = LOCAL_TIMER_VECTOR;
++	if (!oneshot)
++		lvtt_value |= APIC_LVT_TIMER_PERIODIC;
++	if (!irqen)
+ 		lvtt_value |= APIC_LVT_MASKED;
+ 
+ 	apic_write(APIC_LVTT, lvtt_value);
+@@ -759,12 +759,14 @@ static void __setup_APIC_LVTT(unsigned i
+ 				& ~(APIC_TDR_DIV_1 | APIC_TDR_DIV_TMBASE))
+ 				| APIC_TDR_DIV_16);
+ 
+-	apic_write(APIC_TMICT, clocks/APIC_DIVISOR);
++	if (!oneshot)
++		apic_write(APIC_TMICT, clocks/APIC_DIVISOR);
  }
  
--static void setup_APIC_timer(unsigned int clocks)
-+static void setup_APIC_timer(void)
+ static void setup_APIC_timer(unsigned int clocks)
  {
  	unsigned long flags;
- 	int irqen;
-@@ -772,7 +772,7 @@ static void setup_APIC_timer(unsigned in
++	int irqen;
  
- 	irqen = ! cpu_isset(smp_processor_id(),
- 			    timer_interrupt_broadcast_ipi_mask);
--	__setup_APIC_LVTT(clocks, 0, irqen);
-+	__setup_APIC_LVTT(calibration_result, 0, irqen);
+ 	local_irq_save(flags);
+ 
+@@ -785,7 +787,10 @@ static void setup_APIC_timer(unsigned in
+ 			c2 |= inb_p(0x40) << 8;
+ 		} while (c2 - c1 < 300);
+ 	}
+-	__setup_APIC_LVTT(clocks);
++
++	irqen = ! cpu_isset(smp_processor_id(),
++			    timer_interrupt_broadcast_ipi_mask);
++	__setup_APIC_LVTT(clocks, 0, irqen);
  	/* Turn off PIT interrupt if we use APIC timer as main timer.
  	   Only works with the PM timer right now
  	   TBD fix it for HPET too. */
-@@ -859,7 +859,7 @@ void __init setup_boot_APIC_clock (void)
- 	/*
- 	 * Now set up the timer for real.
+@@ -823,8 +828,10 @@ static int __init calibrate_APIC_clock(v
+ 	 * Put whatever arbitrary (but long enough) timeout
+ 	 * value into the APIC clock, we just want to get the
+ 	 * counter running for calibration.
++	 *
++	 * No interrupt enable !
  	 */
--	setup_APIC_timer(calibration_result);
-+	setup_APIC_timer();
+-	__setup_APIC_LVTT(4000000000);
++	__setup_APIC_LVTT(4000000000, 0, 0);
  
- 	local_irq_enable();
- }
-@@ -867,7 +867,7 @@ void __init setup_boot_APIC_clock (void)
- void __cpuinit setup_secondary_APIC_clock(void)
- {
- 	local_irq_disable(); /* FIXME: Do we need this? --RR */
--	setup_APIC_timer(calibration_result);
-+	setup_APIC_timer();
- 	local_irq_enable();
- }
- 
+ 	apic_start = apic_read(APIC_TMCCT);
+ #ifdef CONFIG_X86_PM_TIMER
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
