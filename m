@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-remove-unused-code.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:19 -0700
-Message-ID: <200710150918.l9F9IJEk027388@imap1.linux-foundation.org>
+Subject: - x86_64-convert-to-clockevents.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:16 -0700
+Message-ID: <200710150918.l9F9IGLx027384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45907 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757570AbXJOJZL (ORCPT
+	by vger.kernel.org with ESMTP id S1757471AbXJOJZN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:25:11 -0400
+	Mon, 15 Oct 2007 05:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: remove now unused code
+     x86_64: convert to clock events
 has been removed from the -mm tree.  Its filename was
-     x86_64-remove-unused-code.patch
+     x86_64-convert-to-clockevents.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: remove now unused code
+Subject: x86_64: convert to clock events
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Remove the unused code after the switch to clock events.
+Finally switch to the clockevents code.  Share code with i386 for hpet and
+PIT.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -35,707 +36,465 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c  |  107 --------
- arch/x86_64/kernel/hpet.c  |  444 -----------------------------------
- arch/x86_64/kernel/time.c  |   42 ---
- include/asm-x86_64/apic.h  |    6 
- include/asm-x86_64/proto.h |    7 
- 5 files changed, 1 insertion(+), 605 deletions(-)
+ arch/x86/kernel/Makefile_64  |    4 -
+ arch/x86/kernel/apic_64.c    |   90 +++++++++++++++------------
+ arch/x86/kernel/i8259_64.c   |   46 --------------
+ arch/x86/kernel/smpboot_64.c |    4 -
+ arch/x86/kernel/time_64.c    |  107 ++++-----------------------------
+ arch/x86_64/Kconfig          |   10 ++-
+ include/asm-x86/hpet_64.h    |   17 -----
+ 7 files changed, 75 insertions(+), 203 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-remove-unused-code arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-remove-unused-code
+diff -puN arch/x86/kernel/Makefile_64~x86_64-convert-to-clockevents arch/x86/kernel/Makefile_64
+--- a/arch/x86/kernel/Makefile_64~x86_64-convert-to-clockevents
++++ a/arch/x86/kernel/Makefile_64
+@@ -9,7 +9,7 @@ obj-y	:= process_64.o signal_64.o entry_
+ 		x8664_ksyms_64.o i387_64.o syscall_64.o vsyscall_64.o \
+ 		setup64.o bootflag.o e820_64.o reboot_64.o quirks.o i8237.o \
+ 		pci-dma_64.o pci-nommu_64.o alternative.o hpet_64.o tsc_64.o bugs_64.o \
+-		perfctr-watchdog.o sched-clock.o
++		perfctr-watchdog.o sched-clock.o i8253.o
+ 
+ obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
+ obj-$(CONFIG_X86_MCE)		+= mce_64.o therm_throt.o
+@@ -48,6 +48,8 @@ obj-y				+= pcspeaker.o
+ 
+ CFLAGS_vsyscall_64.o		:= $(PROFILING) -g0
+ 
++i8253-y				+= ../../i386/kernel/i8253.o
++hpet-y				+= ../../i386/kernel/hpet.o
+ therm_throt-y                   += cpu/mcheck/therm_throt.o
+ intel_cacheinfo-y		+= cpu/intel_cacheinfo.o
+ addon_cpuid_features-y		+= cpu/addon_cpuid_features.o
+diff -puN arch/x86/kernel/apic_64.c~x86_64-convert-to-clockevents arch/x86/kernel/apic_64.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-convert-to-clockevents
 +++ a/arch/x86/kernel/apic_64.c
-@@ -41,9 +41,7 @@
- #include <asm/apic.h>
+@@ -837,25 +837,12 @@ static void __setup_APIC_LVTT(unsigned i
  
- int apic_verbosity;
--int apic_runs_main_timer;
- int apic_calibrate_pmtmr __initdata;
--
- int disable_apic_timer __initdata;
+ static void setup_APIC_timer(void)
+ {
+-	unsigned long flags;
+-	int irqen;
++	struct clock_event_device *levt = &__get_cpu_var(lapic_events);
  
- /* Local APIC timer works in C2? */
-@@ -129,15 +127,6 @@ static void lapic_timer_broadcast(cpumas
- #endif
+-	local_irq_save(flags);
++	memcpy(levt, &lapic_clockevent, sizeof(*levt));
++	levt->cpumask = cpumask_of_cpu(smp_processor_id());
+ 
+-	irqen = ! cpu_isset(smp_processor_id(),
+-			    timer_interrupt_broadcast_ipi_mask);
+-	__setup_APIC_LVTT(calibration_result, 0, irqen);
+-	/* Turn off PIT interrupt if we use APIC timer as main timer.
+-	   Only works with the PM timer right now
+-	   TBD fix it for HPET too. */
+-	if ((pmtmr_ioport != 0) &&
+-		smp_processor_id() == boot_cpu_id &&
+-		apic_runs_main_timer == 1 &&
+-		!cpu_isset(boot_cpu_id, timer_interrupt_broadcast_ipi_mask)) {
+-		stop_timer_interrupt();
+-		apic_runs_main_timer++;
+-	}
+-	local_irq_restore(flags);
++	clockevents_register_device(levt);
  }
  
--/*
-- * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-- * IPIs in place of local APIC timers
-- */
--static cpumask_t timer_interrupt_broadcast_ipi_mask;
--
--/* Using APIC to generate smp_local_timer_interrupt? */
--int using_apic_timer __read_mostly = 0;
--
- static void apic_pm_activate(void);
+ /*
+@@ -930,18 +917,34 @@ static void __init calibrate_APIC_clock(
  
- void apic_wait_icr_idle(void)
-@@ -953,84 +942,6 @@ void __cpuinit setup_secondary_APIC_cloc
+ void __init setup_boot_APIC_clock (void)
+ {
++	/*
++	 * The local apic timer can be disabled via the kernel commandline.
++	 * Register the lapic timer as a dummy clock event source on SMP
++	 * systems, so the broadcast mechanism is used. On UP systems simply
++	 * ignore it.
++	 */
+ 	if (disable_apic_timer) {
+ 		printk(KERN_INFO "Disabling APIC timer\n");
++		/* No broadcast on UP ! */
++		if (num_possible_cpus() > 1)
++			setup_APIC_timer();
+ 		return;
+ 	}
+ 
+ 	printk(KERN_INFO "Using local APIC timer interrupts.\n");
+-	using_apic_timer = 1;
+-
+ 	calibrate_APIC_clock();
++
+ 	/*
+-	 * Now set up the timer for real.
++	 * If nmi_watchdog is set to IO_APIC, we need the
++	 * PIT/HPET going.  Otherwise register lapic as a dummy
++	 * device.
+ 	 */
++	if (nmi_watchdog != NMI_IO_APIC)
++		lapic_clockevent.features &= ~CLOCK_EVT_FEAT_DUMMY;
++	else
++		printk(KERN_WARNING "APIC timer registered as dummy,"
++		       " due to nmi_watchdog=1!\n");
++
  	setup_APIC_timer();
  }
  
--void disable_APIC_timer(void)
--{
--	if (using_apic_timer) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		/*
--		 * When an illegal vector value (0-15) is written to an LVT
--		 * entry and delivery mode is Fixed, the APIC may signal an
--		 * illegal vector error, with out regard to whether the mask
--		 * bit is set or whether an interrupt is actually seen on input.
--		 *
--		 * Boot sequence might call this function when the LVTT has
--		 * '0' vector value. So make sure vector field is set to
--		 * valid value.
--		 */
--		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
--		apic_write(APIC_LVTT, v);
--	}
--}
--
--void enable_APIC_timer(void)
--{
--	int cpu = smp_processor_id();
--
--	if (using_apic_timer &&
--	    !cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
--		unsigned long v;
--
--		v = apic_read(APIC_LVTT);
--		apic_write(APIC_LVTT, v & ~APIC_LVT_MASKED);
--	}
--}
--
--void switch_APIC_timer_to_ipi(void *cpumask)
--{
--	cpumask_t mask = *(cpumask_t *)cpumask;
--	int cpu = smp_processor_id();
--
--	if (cpu_isset(cpu, mask) &&
--	    !cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
--		disable_APIC_timer();
--		cpu_set(cpu, timer_interrupt_broadcast_ipi_mask);
--	}
--}
--EXPORT_SYMBOL(switch_APIC_timer_to_ipi);
--
--void smp_send_timer_broadcast_ipi(void)
--{
--	int cpu = smp_processor_id();
--	cpumask_t mask;
--
--	cpus_and(mask, cpu_online_map, timer_interrupt_broadcast_ipi_mask);
--
--	if (cpu_isset(cpu, mask)) {
--		cpu_clear(cpu, mask);
--		add_pda(apic_timer_irqs, 1);
--		smp_local_timer_interrupt();
--	}
--
--	if (!cpus_empty(mask)) {
--		send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
--	}
--}
--
--void switch_ipi_to_APIC_timer(void *cpumask)
--{
--	cpumask_t mask = *(cpumask_t *)cpumask;
--	int cpu = smp_processor_id();
--
--	if (cpu_isset(cpu, mask) &&
--	    cpu_isset(cpu, timer_interrupt_broadcast_ipi_mask)) {
--		cpu_clear(cpu, timer_interrupt_broadcast_ipi_mask);
--		enable_APIC_timer();
--	}
--}
--EXPORT_SYMBOL(switch_ipi_to_APIC_timer);
--
- int setup_profiling_timer(unsigned int multiplier)
+@@ -1053,22 +1056,34 @@ void setup_APIC_extended_lvt(unsigned ch
+ 
+ void smp_local_timer_interrupt(void)
  {
- 	return -EINVAL;
-@@ -1287,21 +1198,7 @@ static __init int setup_noapictimer(char
- 	disable_apic_timer = 1;
+-	profile_tick(CPU_PROFILING);
+-#ifdef CONFIG_SMP
+-	update_process_times(user_mode(get_irq_regs()));
+-#endif
+-	if (apic_runs_main_timer > 1 && smp_processor_id() == boot_cpu_id)
+-		main_timer_handler();
++	int cpu = smp_processor_id();
++	struct clock_event_device *evt = &per_cpu(lapic_events, cpu);
++
+ 	/*
+-	 * We take the 'long' return path, and there every subsystem
+-	 * grabs the appropriate locks (kernel lock/ irq lock).
++	 * Normally we should not be here till LAPIC has been initialized but
++	 * in some cases like kdump, its possible that there is a pending LAPIC
++	 * timer interrupt from previous kernel's context and is delivered in
++	 * new kernel the moment interrupts are enabled.
+ 	 *
+-	 * We might want to decouple profiling from the 'long path',
+-	 * and do the profiling totally in assembly.
+-	 *
+-	 * Currently this isn't too much of an issue (performance wise),
+-	 * we can take more than 100K local irqs per second on a 100 MHz P5.
++	 * Interrupts are enabled early and LAPIC is setup much later, hence
++	 * its possible that when we get here evt->event_handler is NULL.
++	 * Check for event_handler being NULL and discard the interrupt as
++	 * spurious.
++	 */
++	if (!evt->event_handler) {
++		printk(KERN_WARNING
++		       "Spurious LAPIC timer interrupt on cpu %d\n", cpu);
++		/* Switch it off */
++		lapic_timer_setup(CLOCK_EVT_MODE_SHUTDOWN, evt);
++		return;
++	}
++
++	/*
++	 * the NMI deadlock-detector uses this.
+ 	 */
++	add_pda(apic_timer_irqs, 1);
++
++	evt->event_handler(evt);
+ }
+ 
+ /*
+@@ -1084,11 +1099,6 @@ void smp_apic_timer_interrupt(struct pt_
+ 	struct pt_regs *old_regs = set_irq_regs(regs);
+ 
+ 	/*
+-	 * the NMI deadlock-detector uses this.
+-	 */
+-	add_pda(apic_timer_irqs, 1);
+-
+-	/*
+ 	 * NOTE! We'd better ACK the irq immediately,
+ 	 * because timer handling can be slow.
+ 	 */
+@@ -1281,7 +1291,7 @@ static __init int setup_noapictimer(char
+ static __init int setup_apicmaintimer(char *str)
+ {
+ 	apic_runs_main_timer = 1;
+-	nohpet = 1;
++
  	return 1;
  }
--
--static __init int setup_apicmaintimer(char *str)
--{
--	apic_runs_main_timer = 1;
--
--	return 1;
--}
--__setup("apicmaintimer", setup_apicmaintimer);
--
--static __init int setup_noapicmaintimer(char *str)
--{
--	apic_runs_main_timer = -1;
--	return 1;
--}
--__setup("noapicmaintimer", setup_noapicmaintimer);
-+__setup("noapictimer", setup_noapictimer);
- 
- static __init int setup_apicpmtimer(char *s)
+ __setup("apicmaintimer", setup_apicmaintimer);
+@@ -1297,7 +1307,7 @@ static __init int setup_apicpmtimer(char
  {
-@@ -1311,5 +1208,3 @@ static __init int setup_apicpmtimer(char
+ 	apic_calibrate_pmtmr = 1;
+ 	notsc_setup(NULL);
+-	return setup_apicmaintimer(NULL);
++	return 0;
  }
  __setup("apicpmtimer", setup_apicpmtimer);
  
--__setup("noapictimer", setup_noapictimer);
--
-diff -puN arch/x86_64/kernel/hpet.c~x86_64-remove-unused-code /dev/null
---- a/arch/x86/kernel/hpet_64.c
-+++ /dev/null
-@@ -1,444 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/sched.h>
--#include <linux/init.h>
--#include <linux/mc146818rtc.h>
--#include <linux/time.h>
--#include <linux/clocksource.h>
--#include <linux/ioport.h>
--#include <linux/acpi.h>
--#include <linux/hpet.h>
--#include <asm/pgtable.h>
--#include <asm/vsyscall.h>
--#include <asm/timex.h>
--#include <asm/hpet.h>
--
--#define HPET_MASK	0xFFFFFFFF
--#define HPET_SHIFT	22
--
--/* FSEC = 10^-15 NSEC = 10^-9 */
--#define FSEC_PER_NSEC	1000000
--
--int nohpet __initdata;
--
--unsigned long hpet_address;
--unsigned long hpet_period;	/* fsecs / HPET clock */
--unsigned long hpet_tick;	/* HPET clocks / interrupt */
--
--int hpet_use_timer;		/* Use counter of hpet for time keeping,
--				 * otherwise PIT
--				 */
--
--#ifdef	CONFIG_HPET
--static __init int late_hpet_init(void)
--{
--	struct hpet_data	hd;
--	unsigned int 		ntimer;
--
--	if (!hpet_address)
--        	return 0;
--
--	memset(&hd, 0, sizeof(hd));
--
--	ntimer = hpet_readl(HPET_ID);
--	ntimer = (ntimer & HPET_ID_NUMBER) >> HPET_ID_NUMBER_SHIFT;
--	ntimer++;
--
--	/*
--	 * Register with driver.
--	 * Timer0 and Timer1 is used by platform.
--	 */
--	hd.hd_phys_address = hpet_address;
--	hd.hd_address = (void __iomem *)fix_to_virt(FIX_HPET_BASE);
--	hd.hd_nirqs = ntimer;
--	hd.hd_flags = HPET_DATA_PLATFORM;
--	hpet_reserve_timer(&hd, 0);
--#ifdef	CONFIG_HPET_EMULATE_RTC
--	hpet_reserve_timer(&hd, 1);
--#endif
--	hd.hd_irq[0] = HPET_LEGACY_8254;
--	hd.hd_irq[1] = HPET_LEGACY_RTC;
--	if (ntimer > 2) {
--		struct hpet		*hpet;
--		struct hpet_timer	*timer;
--		int			i;
--
--		hpet = (struct hpet *) fix_to_virt(FIX_HPET_BASE);
--		timer = &hpet->hpet_timers[2];
--		for (i = 2; i < ntimer; timer++, i++)
--			hd.hd_irq[i] = (timer->hpet_config &
--					Tn_INT_ROUTE_CNF_MASK) >>
--				Tn_INT_ROUTE_CNF_SHIFT;
--
--	}
--
--	hpet_alloc(&hd);
--	return 0;
--}
--fs_initcall(late_hpet_init);
--#endif
--
--int hpet_timer_stop_set_go(unsigned long tick)
--{
--	unsigned int cfg;
--
--/*
-- * Stop the timers and reset the main counter.
-- */
--
--	cfg = hpet_readl(HPET_CFG);
--	cfg &= ~(HPET_CFG_ENABLE | HPET_CFG_LEGACY);
--	hpet_writel(cfg, HPET_CFG);
--	hpet_writel(0, HPET_COUNTER);
--	hpet_writel(0, HPET_COUNTER + 4);
--
--/*
-- * Set up timer 0, as periodic with first interrupt to happen at hpet_tick,
-- * and period also hpet_tick.
-- */
--	if (hpet_use_timer) {
--		hpet_writel(HPET_TN_ENABLE | HPET_TN_PERIODIC | HPET_TN_SETVAL |
--		    HPET_TN_32BIT, HPET_T0_CFG);
--		hpet_writel(hpet_tick, HPET_T0_CMP); /* next interrupt */
--		hpet_writel(hpet_tick, HPET_T0_CMP); /* period */
--		cfg |= HPET_CFG_LEGACY;
--	}
--/*
-- * Go!
-- */
--
--	cfg |= HPET_CFG_ENABLE;
--	hpet_writel(cfg, HPET_CFG);
--
--	return 0;
--}
--
--static cycle_t read_hpet(void)
--{
--	return (cycle_t)hpet_readl(HPET_COUNTER);
--}
--
--static cycle_t __vsyscall_fn vread_hpet(void)
--{
--	return readl((void __iomem *)fix_to_virt(VSYSCALL_HPET) + 0xf0);
--}
--
--struct clocksource clocksource_hpet = {
--	.name		= "hpet",
--	.rating		= 250,
--	.read		= read_hpet,
--	.mask		= (cycle_t)HPET_MASK,
--	.mult		= 0, /* set below */
--	.shift		= HPET_SHIFT,
--	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
--	.vread		= vread_hpet,
--};
--
--int __init hpet_arch_init(void)
--{
--	unsigned int id;
--	u64 tmp;
--
--	if (!hpet_address)
--		return -1;
--	set_fixmap_nocache(FIX_HPET_BASE, hpet_address);
--	__set_fixmap(VSYSCALL_HPET, hpet_address, PAGE_KERNEL_VSYSCALL_NOCACHE);
--
--/*
-- * Read the period, compute tick and quotient.
-- */
--
--	id = hpet_readl(HPET_ID);
--
--	if (!(id & HPET_ID_VENDOR) || !(id & HPET_ID_NUMBER))
--		return -1;
--
--	hpet_period = hpet_readl(HPET_PERIOD);
--	if (hpet_period < 100000 || hpet_period > 100000000)
--		return -1;
--
--	hpet_tick = (FSEC_PER_TICK + hpet_period / 2) / hpet_period;
--
--	hpet_use_timer = (id & HPET_ID_LEGSUP);
--
--	/*
--	 * hpet period is in femto seconds per cycle
--	 * so we need to convert this to ns/cyc units
--	 * aproximated by mult/2^shift
--	 *
--	 *  fsec/cyc * 1nsec/1000000fsec = nsec/cyc = mult/2^shift
--	 *  fsec/cyc * 1ns/1000000fsec * 2^shift = mult
--	 *  fsec/cyc * 2^shift * 1nsec/1000000fsec = mult
--	 *  (fsec/cyc << shift)/1000000 = mult
--	 *  (hpet_period << shift)/FSEC_PER_NSEC = mult
--	 */
--	tmp = (u64)hpet_period << HPET_SHIFT;
--	do_div(tmp, FSEC_PER_NSEC);
--	clocksource_hpet.mult = (u32)tmp;
--	clocksource_register(&clocksource_hpet);
--
--	return hpet_timer_stop_set_go(hpet_tick);
--}
--
--int hpet_reenable(void)
--{
--	return hpet_timer_stop_set_go(hpet_tick);
--}
--
--#ifdef CONFIG_HPET_EMULATE_RTC
--/* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
-- * is enabled, we support RTC interrupt functionality in software.
-- * RTC has 3 kinds of interrupts:
-- * 1) Update Interrupt - generate an interrupt, every sec, when RTC clock
-- *    is updated
-- * 2) Alarm Interrupt - generate an interrupt at a specific time of day
-- * 3) Periodic Interrupt - generate periodic interrupt, with frequencies
-- *    2Hz-8192Hz (2Hz-64Hz for non-root user) (all freqs in powers of 2)
-- * (1) and (2) above are implemented using polling at a frequency of
-- * 64 Hz. The exact frequency is a tradeoff between accuracy and interrupt
-- * overhead. (DEFAULT_RTC_INT_FREQ)
-- * For (3), we use interrupts at 64Hz or user specified periodic
-- * frequency, whichever is higher.
-- */
--#include <linux/rtc.h>
--
--#define DEFAULT_RTC_INT_FREQ 	64
--#define RTC_NUM_INTS 		1
--
--static unsigned long UIE_on;
--static unsigned long prev_update_sec;
--
--static unsigned long AIE_on;
--static struct rtc_time alarm_time;
--
--static unsigned long PIE_on;
--static unsigned long PIE_freq = DEFAULT_RTC_INT_FREQ;
--static unsigned long PIE_count;
--
--static unsigned long hpet_rtc_int_freq; /* RTC interrupt frequency */
--static unsigned int hpet_t1_cmp; /* cached comparator register */
--
--int is_hpet_enabled(void)
--{
--	return hpet_address != 0;
--}
--
--/*
-- * Timer 1 for RTC, we do not use periodic interrupt feature,
-- * even if HPET supports periodic interrupts on Timer 1.
-- * The reason being, to set up a periodic interrupt in HPET, we need to
-- * stop the main counter. And if we do that everytime someone diables/enables
-- * RTC, we will have adverse effect on main kernel timer running on Timer 0.
-- * So, for the time being, simulate the periodic interrupt in software.
-- *
-- * hpet_rtc_timer_init() is called for the first time and during subsequent
-- * interuppts reinit happens through hpet_rtc_timer_reinit().
-- */
--int hpet_rtc_timer_init(void)
--{
--	unsigned int cfg, cnt;
--	unsigned long flags;
--
--	if (!is_hpet_enabled())
--		return 0;
--	/*
--	 * Set the counter 1 and enable the interrupts.
--	 */
--	if (PIE_on && (PIE_freq > DEFAULT_RTC_INT_FREQ))
--		hpet_rtc_int_freq = PIE_freq;
--	else
--		hpet_rtc_int_freq = DEFAULT_RTC_INT_FREQ;
--
--	local_irq_save(flags);
--
--	cnt = hpet_readl(HPET_COUNTER);
--	cnt += ((hpet_tick*HZ)/hpet_rtc_int_freq);
--	hpet_writel(cnt, HPET_T1_CMP);
--	hpet_t1_cmp = cnt;
--
--	cfg = hpet_readl(HPET_T1_CFG);
--	cfg &= ~HPET_TN_PERIODIC;
--	cfg |= HPET_TN_ENABLE | HPET_TN_32BIT;
--	hpet_writel(cfg, HPET_T1_CFG);
--
--	local_irq_restore(flags);
--
--	return 1;
--}
--
--static void hpet_rtc_timer_reinit(void)
--{
--	unsigned int cfg, cnt, ticks_per_int, lost_ints;
--
--	if (unlikely(!(PIE_on | AIE_on | UIE_on))) {
--		cfg = hpet_readl(HPET_T1_CFG);
--		cfg &= ~HPET_TN_ENABLE;
--		hpet_writel(cfg, HPET_T1_CFG);
--		return;
--	}
--
--	if (PIE_on && (PIE_freq > DEFAULT_RTC_INT_FREQ))
--		hpet_rtc_int_freq = PIE_freq;
--	else
--		hpet_rtc_int_freq = DEFAULT_RTC_INT_FREQ;
--
--	/* It is more accurate to use the comparator value than current count.*/
--	ticks_per_int = hpet_tick * HZ / hpet_rtc_int_freq;
--	hpet_t1_cmp += ticks_per_int;
--	hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
--
--	/*
--	 * If the interrupt handler was delayed too long, the write above tries
--	 * to schedule the next interrupt in the past and the hardware would
--	 * not interrupt until the counter had wrapped around.
--	 * So we have to check that the comparator wasn't set to a past time.
--	 */
--	cnt = hpet_readl(HPET_COUNTER);
--	if (unlikely((int)(cnt - hpet_t1_cmp) > 0)) {
--		lost_ints = (cnt - hpet_t1_cmp) / ticks_per_int + 1;
--		/* Make sure that, even with the time needed to execute
--		 * this code, the next scheduled interrupt has been moved
--		 * back to the future: */
--		lost_ints++;
--
--		hpet_t1_cmp += lost_ints * ticks_per_int;
--		hpet_writel(hpet_t1_cmp, HPET_T1_CMP);
--
--		if (PIE_on)
--			PIE_count += lost_ints;
--
--		if (printk_ratelimit())
--			printk(KERN_WARNING "rtc: lost some interrupts at %ldHz.\n",
--			       hpet_rtc_int_freq);
--	}
--}
--
--/*
-- * The functions below are called from rtc driver.
-- * Return 0 if HPET is not being used.
-- * Otherwise do the necessary changes and return 1.
-- */
--int hpet_mask_rtc_irq_bit(unsigned long bit_mask)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	if (bit_mask & RTC_UIE)
--		UIE_on = 0;
--	if (bit_mask & RTC_PIE)
--		PIE_on = 0;
--	if (bit_mask & RTC_AIE)
--		AIE_on = 0;
--
--	return 1;
--}
--
--int hpet_set_rtc_irq_bit(unsigned long bit_mask)
--{
--	int timer_init_reqd = 0;
--
--	if (!is_hpet_enabled())
--		return 0;
--
--	if (!(PIE_on | AIE_on | UIE_on))
--		timer_init_reqd = 1;
--
--	if (bit_mask & RTC_UIE) {
--		UIE_on = 1;
--	}
--	if (bit_mask & RTC_PIE) {
--		PIE_on = 1;
--		PIE_count = 0;
--	}
--	if (bit_mask & RTC_AIE) {
--		AIE_on = 1;
--	}
--
--	if (timer_init_reqd)
--		hpet_rtc_timer_init();
--
--	return 1;
--}
--
--int hpet_set_alarm_time(unsigned char hrs, unsigned char min, unsigned char sec)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	alarm_time.tm_hour = hrs;
--	alarm_time.tm_min = min;
--	alarm_time.tm_sec = sec;
--
--	return 1;
--}
--
--int hpet_set_periodic_freq(unsigned long freq)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	PIE_freq = freq;
--	PIE_count = 0;
--
--	return 1;
--}
--
--int hpet_rtc_dropped_irq(void)
--{
--	if (!is_hpet_enabled())
--		return 0;
--
--	return 1;
--}
--
--irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
--{
--	struct rtc_time curr_time;
--	unsigned long rtc_int_flag = 0;
--	int call_rtc_interrupt = 0;
--
--	hpet_rtc_timer_reinit();
--
--	if (UIE_on | AIE_on) {
--		rtc_get_rtc_time(&curr_time);
--	}
--	if (UIE_on) {
--		if (curr_time.tm_sec != prev_update_sec) {
--			/* Set update int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag = RTC_UF;
--			prev_update_sec = curr_time.tm_sec;
--		}
--	}
--	if (PIE_on) {
--		PIE_count++;
--		if (PIE_count >= hpet_rtc_int_freq/PIE_freq) {
--			/* Set periodic int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag |= RTC_PF;
--			PIE_count = 0;
--		}
--	}
--	if (AIE_on) {
--		if ((curr_time.tm_sec == alarm_time.tm_sec) &&
--		    (curr_time.tm_min == alarm_time.tm_min) &&
--		    (curr_time.tm_hour == alarm_time.tm_hour)) {
--			/* Set alarm int info, call real rtc int routine */
--			call_rtc_interrupt = 1;
--			rtc_int_flag |= RTC_AF;
--		}
--	}
--	if (call_rtc_interrupt) {
--		rtc_int_flag |= (RTC_IRQF | (RTC_NUM_INTS << 8));
--		rtc_interrupt(rtc_int_flag, dev_id);
--	}
--	return IRQ_HANDLED;
--}
--#endif
--
--static int __init nohpet_setup(char *s)
--{
--	nohpet = 1;
--	return 1;
--}
--
--__setup("nohpet", nohpet_setup);
-diff -puN arch/x86_64/kernel/time.c~x86_64-remove-unused-code arch/x86_64/kernel/time.c
---- a/arch/x86/kernel/time_64.c~x86_64-remove-unused-code
-+++ a/arch/x86/kernel/time_64.c
-@@ -150,48 +150,6 @@ int update_persistent_clock(struct times
- 	return set_rtc_mmss(now.tv_sec);
+diff -puN arch/x86/kernel/i8259_64.c~x86_64-convert-to-clockevents arch/x86/kernel/i8259_64.c
+--- a/arch/x86/kernel/i8259_64.c~x86_64-convert-to-clockevents
++++ a/arch/x86/kernel/i8259_64.c
+@@ -444,46 +444,6 @@ void __init init_ISA_irqs (void)
+ 	}
  }
  
--void main_timer_handler(void)
+-static void setup_timer_hardware(void)
 -{
--/*
-- * Here we are in the timer irq handler. We have irqs locally disabled (so we
-- * don't need spin_lock_irqsave()) but we don't know if the timer_bh is running
-- * on the other CPU, so we need a lock. We also need to lock the vsyscall
-- * variables, because both do_timer() and us change them -arca+vojtech
-- */
--
--	write_seqlock(&xtime_lock);
--
--/*
-- * Do the timer stuff.
-- */
--
--	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode(get_irq_regs()));
--#endif
--
--/*
-- * In the SMP case we use the local APIC timer interrupt to do the profiling,
-- * except when we simulate SMP mode on a uniprocessor system, in that case we
-- * have to call the local interrupt handler.
-- */
--
--	if (!using_apic_timer)
--		smp_local_timer_interrupt();
--
--	write_sequnlock(&xtime_lock);
+-	outb_p(0x34,0x43);		/* binary, mode 2, LSB/MSB, ch 0 */
+-	udelay(10);
+-	outb_p(LATCH & 0xff , 0x40);	/* LSB */
+-	udelay(10);
+-	outb(LATCH >> 8 , 0x40);	/* MSB */
 -}
 -
--static irqreturn_t timer_interrupt(int irq, void *dev_id)
+-static int timer_resume(struct sys_device *dev)
 -{
--	if (apic_runs_main_timer > 1)
--		return IRQ_HANDLED;
--	main_timer_handler();
--	if (using_apic_timer)
--		smp_send_timer_broadcast_ipi();
--	return IRQ_HANDLED;
+-	setup_timer_hardware();
+-	return 0;
 -}
 -
- static irqreturn_t timer_event_interrupt(int irq, void *dev_id)
+-void i8254_timer_resume(void)
+-{
+-	setup_timer_hardware();
+-}
+-
+-static struct sysdev_class timer_sysclass = {
+-	set_kset_name("timer_pit"),
+-	.resume		= timer_resume,
+-};
+-
+-static struct sys_device device_timer = {
+-	.id		= 0,
+-	.cls		= &timer_sysclass,
+-};
+-
+-static int __init init_timer_sysfs(void)
+-{
+-	int error = sysdev_class_register(&timer_sysclass);
+-	if (!error)
+-		error = sysdev_register(&device_timer);
+-	return error;
+-}
+-
+-device_initcall(init_timer_sysfs);
+-
+ void __init init_IRQ(void)
  {
- 	global_clock_event->event_handler(global_clock_event);
-diff -puN include/asm-x86_64/apic.h~x86_64-remove-unused-code include/asm-x86_64/apic.h
---- a/include/asm-x86/apic_64.h~x86_64-remove-unused-code
-+++ a/include/asm-x86/apic_64.h
-@@ -80,8 +80,6 @@ extern void smp_local_timer_interrupt (v
- extern void setup_boot_APIC_clock (void);
- extern void setup_secondary_APIC_clock (void);
- extern int APIC_init_uniprocessor (void);
--extern void disable_APIC_timer(void);
--extern void enable_APIC_timer(void);
- extern void setup_apic_routing(void);
+ 	int i;
+@@ -533,12 +493,6 @@ void __init init_IRQ(void)
+ 	set_intr_gate(SPURIOUS_APIC_VECTOR, spurious_interrupt);
+ 	set_intr_gate(ERROR_APIC_VECTOR, error_interrupt);
  
- extern void setup_APIC_extended_lvt(unsigned char lvt_off, unsigned char vector,
-@@ -96,10 +94,6 @@ extern int apic_is_clustered_box(void);
- #define K8_APIC_EXT_INT_MSG_EXT 0x7
- #define K8_APIC_EXT_LVT_ENTRY_THRESHOLD    0
- 
--void smp_send_timer_broadcast_ipi(void);
--void switch_APIC_timer_to_ipi(void *cpumask);
--void switch_ipi_to_APIC_timer(void *cpumask);
+-	/*
+-	 * Set the clock to HZ Hz, we already have a valid
+-	 * vector now:
+-	 */
+-	setup_timer_hardware();
 -
- #define ARCH_APICTIMER_STOPS_ON_C3	1
+ 	if (!acpi_ioapic)
+ 		setup_irq(2, &irq2);
+ }
+diff -puN arch/x86/kernel/smpboot_64.c~x86_64-convert-to-clockevents arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~x86_64-convert-to-clockevents
++++ a/arch/x86/kernel/smpboot_64.c
+@@ -224,8 +224,6 @@ void __cpuinit smp_callin(void)
+ 	local_irq_disable();
+ 	Dprintk("Stack at about %p\n",&cpuid);
  
- extern unsigned boot_cpu_id;
-diff -puN include/asm-x86_64/proto.h~x86_64-remove-unused-code include/asm-x86_64/proto.h
---- a/include/asm-x86/proto.h~x86_64-remove-unused-code
-+++ a/include/asm-x86/proto.h
-@@ -51,9 +51,6 @@ extern void reserve_bootmem_generic(unsi
- 
- extern void load_gs_index(unsigned gs);
- 
--extern void stop_timer_interrupt(void);
--extern void main_timer_handler(void);
+-	disable_APIC_timer();
 -
- extern unsigned long end_pfn_map; 
+ 	/*
+ 	 * Save our processor parameters
+ 	 */
+@@ -349,8 +347,6 @@ void __cpuinit start_secondary(void)
+ 		enable_8259A_irq(0);
+ 	}
  
- extern void show_trace(struct task_struct *, struct pt_regs *, unsigned long * rsp);
-@@ -88,14 +85,10 @@ extern int notsc_setup(char *);
- 
- extern int gsi_irq_sharing(int gsi);
- 
--extern void smp_local_timer_interrupt(void);
+-	enable_APIC_timer();
 -
- extern int force_mwait;
+ 	/*
+ 	 * The sibling maps must be set before turing the online map on for
+ 	 * this cpu
+diff -puN arch/x86/kernel/time_64.c~x86_64-convert-to-clockevents arch/x86/kernel/time_64.c
+--- a/arch/x86/kernel/time_64.c~x86_64-convert-to-clockevents
++++ a/arch/x86/kernel/time_64.c
+@@ -28,6 +28,8 @@
+ #include <linux/cpu.h>
+ #include <linux/kallsyms.h>
+ #include <linux/acpi.h>
++#include <linux/clockchips.h>
++
+ #ifdef CONFIG_ACPI
+ #include <acpi/achware.h>	/* for PM timer frequency */
+ #include <acpi/acpi_bus.h>
+@@ -46,12 +48,8 @@
+ #include <asm/nmi.h>
+ #include <asm/vgtod.h>
  
- long do_arch_prctl(struct task_struct *task, int code, unsigned long addr);
- 
--void i8254_timer_resume(void);
+-static char *timename = NULL;
 -
- #define round_up(x,y) (((x) + (y) - 1) & ~((y)-1))
- #define round_down(x,y) ((x) & ~((y)-1))
+ DEFINE_SPINLOCK(rtc_lock);
+ EXPORT_SYMBOL(rtc_lock);
+-DEFINE_SPINLOCK(i8253_lock);
+-EXPORT_SYMBOL(i8253_lock);
  
+ volatile unsigned long __jiffies __section_jiffies = INITIAL_JIFFIES;
+ 
+@@ -194,6 +192,13 @@ static irqreturn_t timer_interrupt(int i
+ 	return IRQ_HANDLED;
+ }
+ 
++static irqreturn_t timer_event_interrupt(int irq, void *dev_id)
++{
++	global_clock_event->event_handler(global_clock_event);
++
++	return IRQ_HANDLED;
++}
++
+ unsigned long read_persistent_clock(void)
+ {
+ 	unsigned int year, mon, day, hour, min, sec;
+@@ -291,42 +296,8 @@ static unsigned int __init tsc_calibrate
+ 	return pmc_now * tsc_khz / (tsc_now - tsc_start);
+ }
+ 
+-static void __pit_init(int val, u8 mode)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&i8253_lock, flags);
+-	outb_p(mode, PIT_MODE);
+-	outb_p(val & 0xff, PIT_CH0);	/* LSB */
+-	outb_p(val >> 8, PIT_CH0);	/* MSB */
+-	spin_unlock_irqrestore(&i8253_lock, flags);
+-}
+-
+-void __init pit_init(void)
+-{
+-	__pit_init(LATCH, 0x34); /* binary, mode 2, LSB/MSB, ch 0 */
+-}
+-
+-void pit_stop_interrupt(void)
+-{
+-	__pit_init(0, 0x30); /* mode 0 */
+-}
+-
+-void stop_timer_interrupt(void)
+-{
+-	char *name;
+-	if (hpet_address) {
+-		name = "HPET";
+-		hpet_timer_stop_set_go(0);
+-	} else {
+-		name = "PIT";
+-		pit_stop_interrupt();
+-	}
+-	printk(KERN_INFO "timer: %s interrupt stopped.\n", name);
+-}
+-
+ static struct irqaction irq0 = {
+-	.handler	= timer_interrupt,
++	.handler	= timer_event_interrupt,
+ 	.flags		= IRQF_DISABLED | IRQF_IRQPOLL | IRQF_NOBALANCING,
+ 	.mask		= CPU_MASK_NONE,
+ 	.name		= "timer"
+@@ -334,20 +305,10 @@ static struct irqaction irq0 = {
+ 
+ void __init time_init(void)
+ {
+-	if (nohpet)
+-		hpet_address = 0;
+-
+-	if (hpet_arch_init())
+-		hpet_address = 0;
++	if (!hpet_enable())
++		setup_pit_timer();
+ 
+-	if (hpet_use_timer) {
+-		/* set tick_nsec to use the proper rate for HPET */
+-		tick_nsec = TICK_NSEC_HPET;
+-		timename = "HPET";
+-	} else {
+-		pit_init();
+-		timename = "PIT";
+-	}
++	setup_irq(0, &irq0);
+ 
+ 	tsc_calibrate();
+ 
+@@ -368,46 +329,4 @@ void __init time_init(void)
+ 	printk(KERN_INFO "time.c: Detected %d.%03d MHz processor.\n",
+ 		cpu_khz / 1000, cpu_khz % 1000);
+ 	init_tsc_clocksource();
+-
+-	setup_irq(0, &irq0);
+-}
+-
+-/*
+- * sysfs support for the timer.
+- */
+-
+-static int timer_suspend(struct sys_device *dev, pm_message_t state)
+-{
+-	return 0;
+ }
+-
+-static int timer_resume(struct sys_device *dev)
+-{
+-	if (hpet_address)
+-		hpet_reenable();
+-	else
+-		i8254_timer_resume();
+-	return 0;
+-}
+-
+-static struct sysdev_class timer_sysclass = {
+-	.resume = timer_resume,
+-	.suspend = timer_suspend,
+-	set_kset_name("timer"),
+-};
+-
+-/* XXX this sysfs stuff should probably go elsewhere later -john */
+-static struct sys_device device_timer = {
+-	.id	= 0,
+-	.cls	= &timer_sysclass,
+-};
+-
+-static int time_init_device(void)
+-{
+-	int error = sysdev_class_register(&timer_sysclass);
+-	if (!error)
+-		error = sysdev_register(&device_timer);
+-	return error;
+-}
+-
+-device_initcall(time_init_device);
+diff -puN arch/x86_64/Kconfig~x86_64-convert-to-clockevents arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86_64-convert-to-clockevents
++++ a/arch/x86_64/Kconfig
+@@ -28,7 +28,15 @@ config GENERIC_TIME
+ 	bool
+ 	default y
+ 
+-config GENERIC_CLOCKEVENTS_MIGR
++config GENERIC_CLOCKEVENTS
++	bool
++	default y
++
++config GENERIC_CLOCKEVENTS_BROADCAST
++	bool
++	default y
++
++config NONIRQ_WAKEUP
+ 	bool
+ 	default y
+ 
+diff -puN include/asm-x86/hpet_64.h~x86_64-convert-to-clockevents include/asm-x86/hpet_64.h
+--- a/include/asm-x86/hpet_64.h~x86_64-convert-to-clockevents
++++ a/include/asm-x86/hpet_64.h
+@@ -1,18 +1 @@
+-#ifndef _ASM_X8664_HPET_H
+-#define _ASM_X8664_HPET_H 1
+-
+ #include <asm/hpet_32.h>
+-
+-#define HPET_TICK_RATE (HZ * 100000UL)
+-
+-extern int hpet_rtc_timer_init(void);
+-extern int hpet_arch_init(void);
+-extern int hpet_timer_stop_set_go(unsigned long tick);
+-extern int hpet_reenable(void);
+-extern unsigned int hpet_calibrate_tsc(void);
+-
+-extern int hpet_use_timer;
+-extern unsigned long hpet_period;
+-extern unsigned long hpet_tick;
+-
+-#endif
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
