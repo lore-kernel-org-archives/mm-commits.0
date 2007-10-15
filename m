@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-cpqarraycciss-kill-unused-var.patch added to -mm tree
-Date: Mon, 15 Oct 2007 15:52:47 -0700
-Message-ID: <200710152252.l9FMqlTi029416@imap1.linux-foundation.org>
+Subject: + fix-make-htmldocs-build-break.patch added to -mm tree
+Date: Mon, 15 Oct 2007 15:55:41 -0700
+Message-ID: <200710152255.l9FMtfWJ029560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54541 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48422 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753572AbXJOWxP (ORCPT
+	by vger.kernel.org with ESMTP id S1752667AbXJOW4A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 18:53:15 -0400
+	Mon, 15 Oct 2007 18:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jens.axboe@oracle.com, jgarzik@redhat.com
+Cc: rob@landley.net, rdunlap@xenotime.net
 
 
 The patch titled
-     drivers/block/cpqarray,cciss: kill unused var
+     Fix "make htmldocs" build break.
 has been added to the -mm tree.  Its filename is
-     drivers-block-cpqarraycciss-kill-unused-var.patch
+     fix-make-htmldocs-build-break.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/block/cpqarray,cciss: kill unused var
-From: Jeff Garzik <jeff@garzik.org>
+Subject: Fix "make htmldocs" build break.
+From: Rob Landley <rob@landley.net>
 
-The recent bio work and subsequent fixups created unused variables.
+Fix two htmldocs build breaks, introduced by moving include/linux/usb_gadget.h to
+include/linux/usb/gadget.h and combining resume.c and suspend.c into main.c in
+drivers/base/power.
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c    |    1 -
- drivers/block/cpqarray.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ Documentation/DocBook/gadget.tmpl     |    6 +++---
+ Documentation/DocBook/kernel-api.tmpl |    3 +--
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cciss.c
---- a/drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var
-+++ a/drivers/block/cciss.c
-@@ -1191,7 +1191,6 @@ static inline void complete_buffers(stru
- {
- 	while (bio) {
- 		struct bio *xbh = bio->bi_next;
--		int nr_sectors = bio_sectors(bio);
+diff -puN Documentation/DocBook/gadget.tmpl~fix-make-htmldocs-build-break Documentation/DocBook/gadget.tmpl
+--- a/Documentation/DocBook/gadget.tmpl~fix-make-htmldocs-build-break
++++ a/Documentation/DocBook/gadget.tmpl
+@@ -144,7 +144,7 @@ with the lowest level (which directly ha
+ 	<para>This is the lowest software level.
+ 	It is the only layer that talks to hardware,
+ 	through registers, fifos, dma, irqs, and the like.
+-	The <filename>&lt;linux/usb_gadget.h&gt;</filename> API abstracts
++	The <filename>&lt;linux/usb/gadget.h&gt;</filename> API abstracts
+ 	the peripheral controller endpoint hardware.
+ 	That hardware is exposed through endpoint objects, which accept
+ 	streams of IN/OUT buffers, and through callbacks that interact
+@@ -494,7 +494,7 @@ side drivers (and usbcore).
+ <sect1 id="core"><title>Core Objects and Methods</title>
  
- 		bio->bi_next = NULL;
- 		bio_endio(bio, status ? 0 : -EIO);
-diff -puN drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var
-+++ a/drivers/block/cpqarray.c
-@@ -981,9 +981,8 @@ static void start_io(ctlr_info_t *h)
- static inline void complete_buffers(struct bio *bio, int ok)
- {
- 	struct bio *xbh;
--	while(bio) {
--		int nr_sectors = bio_sectors(bio);
+ <para>These are declared in
+-<filename>&lt;linux/usb_gadget.h&gt;</filename>,
++<filename>&lt;linux/usb/gadget.h&gt;</filename>,
+ and are used by gadget drivers to interact with
+ USB peripheral controller drivers.
+ </para>
+@@ -509,7 +509,7 @@ USB peripheral controller drivers.
+ 	     unless the explanations are trivial.
+ 	  -->
  
-+	while (bio) {
- 		xbh = bio->bi_next;
- 		bio->bi_next = NULL;
- 		
+-!Iinclude/linux/usb_gadget.h
++!Iinclude/linux/usb/gadget.h
+ </sect1>
+ 
+ <sect1 id="utils"><title>Optional Utilities</title>
+diff -puN Documentation/DocBook/kernel-api.tmpl~fix-make-htmldocs-build-break Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~fix-make-htmldocs-build-break
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -386,8 +386,7 @@ X!Edrivers/base/interface.c
+ !Edrivers/base/bus.c
+      </sect1>
+      <sect1><title>Device Drivers Power Management</title>
+-!Edrivers/base/power/resume.c
+-!Edrivers/base/power/suspend.c
++!Edrivers/base/power/main.c
+      </sect1>
+      <sect1><title>Device Drivers ACPI Support</title>
+ <!-- Internal functions only
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from rob@landley.net are
 
-origin.patch
-git-jg-misc.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kbuild.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-scsi-expose-an-support-to-user-space.patch
-libata-expose-an-to-user-space.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-tokenring-3c359c-fixed-array-index-problem.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+git-arm.patch
 git-scsi-misc.patch
-scsi-use-notifier-chain-for-asynchronous-event.patch
-git-wireless.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-unify-dma_bit_mask-definitions-v31.patch
-intel-iommu-fix-for-iommu-early-crash-2.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
-s2io-rename-bit-macro.patch
-define-global-bit-macro.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-drivers-block-cpqarraycciss-kill-unused-var.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+tweak-documentation-sm501txt.patch
+add-missing-entries-to-top-level-documentation-00-index.patch
+add-documentation-w1w1-masters-00-index.patch
+add-entries-to-documentation-powerpc.patch
+add-documentation-power-00-index.patch
+add-recommended-section-ids-to-deviceiobooktmpl.patch
+add-documentation-rcu-00-index.patch
+fix-make-htmldocs-build-break.patch
