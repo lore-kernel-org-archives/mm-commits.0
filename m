@@ -1,200 +1,273 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:04:27 -0700
-Message-ID: <200710150904.l9F94RWL026418@imap1.linux-foundation.org>
+Subject: - geode-mfgpt-clock-event-device-support.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:04:09 -0700
+Message-ID: <200710150904.l9F94ABj026407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753564AbXJOJFF (ORCPT
+	by vger.kernel.org with ESMTP id S1751816AbXJOJF4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:05:05 -0400
+	Mon, 15 Oct 2007 05:05:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: dilinger@queued.net, ak@suse.de, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, johnstul@us.ibm.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: Disable local APIC timer use on AMD systems with C1E
+     GEODE: MFGPT clock event device support
 has been removed from the -mm tree.  Its filename was
-     x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
+     geode-mfgpt-clock-event-device-support.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: x86-64: Disable local APIC timer use on AMD systems with C1E
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: GEODE: MFGPT clock event device support
+From: Andres Salomon <dilinger@queued.net>
 
-commit 3556ddfa9284a86a59a9b78fe5894430f6ab4eef titled
+Add support for an MFGPT clock event device; this allows us to use MFGPTs as
+the basis for high-resolution timers.
 
- [PATCH] x86-64: Disable local APIC timer use on AMD systems with C1E
-
-solves a problem with AMD dual core laptops e.g. HP nx6325 (Turion 64
-X2) with C1E enabled:
-
-When both cores go into idle at the same time, then the system switches
-into C1E state, which is basically the same as C3. This stops the local
-apic timer.
-
-This was debugged right after the dyntick merge on i386 and despite the
-patch title it fixes only the 32 bit path.
-
-x86_64 is still missing this fix. It seems that mainline is not really
-affected by this issue, as the PIT is running and keeps jiffies
-incrementing, but that's just waiting for trouble.
-
--mm suffers from this problem due to the x86_64 high resolution timer
-patches.
-
-This is a quick and dirty port of the i386 code to x86_64.
-
-I spent quite a time with Rafael to debug the -mm / hrt wreckage until
-someone pointed us to this. I really had forgotten that we debugged this
-half a year ago already.
-
-Sigh, is it just me or is there something yelling arch/x86 into my ear?
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: john stultz <johnstul@us.ibm.com>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/setup.c |   34 ++++++++++++++++++++++++++++++++++
- include/asm-x86_64/apic.h  |    1 +
- 2 files changed, 35 insertions(+)
+ Documentation/kernel-parameters.txt |    4 
+ arch/i386/Kconfig                   |   10 +
+ arch/i386/kernel/mfgpt.c            |  165 ++++++++++++++++++++++++++
+ 3 files changed, 179 insertions(+)
 
-diff -puN arch/x86_64/kernel/setup.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e arch/x86_64/kernel/setup.c
---- a/arch/x86/kernel/setup_64.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
-+++ a/arch/x86/kernel/setup_64.c
-@@ -563,6 +563,37 @@ static void __cpuinit early_init_amd(str
- #endif
+diff -puN Documentation/kernel-parameters.txt~geode-mfgpt-clock-event-device-support Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~geode-mfgpt-clock-event-device-support
++++ a/Documentation/kernel-parameters.txt
+@@ -1019,6 +1019,10 @@ and is between 256 and 4096 characters. 
+ 	meye.*=		[HW] Set MotionEye Camera parameters
+ 			See Documentation/video4linux/meye.txt.
+ 
++	mfgpt_irq=	[IA-32] Specify the IRQ to use for the
++			Multi-Function General Purpose Timers on AMD Geode
++			platforms.
++
+ 	mga=		[HW,DRM]
+ 
+ 	mousedev.tap_time=
+diff -puN arch/i386/Kconfig~geode-mfgpt-clock-event-device-support arch/i386/Kconfig
+--- a/arch/i386/Kconfig~geode-mfgpt-clock-event-device-support
++++ a/arch/i386/Kconfig
+@@ -1217,6 +1217,16 @@ config SCx200HR_TIMER
+ 	  processor goes idle (as is done by the scheduler).  The
+ 	  other workaround is idle=poll boot option.
+ 
++config GEODE_MFGPT_TIMER
++	bool "Geode Multi-Function General Purpose Timer (MFGPT) events"
++	depends on MGEODE_LX && GENERIC_TIME && GENERIC_CLOCKEVENTS
++	default y
++	help
++	  This driver provides a clock event source based on the MFGPT
++	  timer(s) in the CS5535 and CS5536 companion chip for the geode.
++	  MFGPTs have a better resolution and max interval than the
++	  generic PIT, and are suitable for use as high-res timers.
++
+ config K8_NB
+ 	def_bool y
+ 	depends on AGP_AMD64
+diff -puN arch/i386/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support arch/i386/kernel/mfgpt.c
+--- a/arch/x86/kernel/mfgpt.c~geode-mfgpt-clock-event-device-support
++++ a/arch/x86/kernel/mfgpt.c
+@@ -48,6 +48,12 @@ static struct mfgpt_timer_t {
+ #define MFGPT_HZ  (32000 / MFGPT_DIVISOR)
+ #define MFGPT_PERIODIC (MFGPT_HZ / HZ)
+ 
++#ifdef CONFIG_GEODE_MFGPT_TIMER
++static int __init mfgpt_timer_setup(void);
++#else
++#define mfgpt_timer_setup() (0)
++#endif
++
+ /* Allow for disabling of MFGPTs */
+ static int disable;
+ static int __init mfgpt_disable(char *s)
+@@ -82,6 +88,9 @@ int __init geode_mfgpt_detect(void)
+ 		}
+ 	}
+ 
++	/* set up clock event device, if desired */
++	i = mfgpt_timer_setup();
++
+ 	return count;
  }
  
-+#define ENABLE_C1E_MASK		0x18000000
-+#define CPUID_PROCESSOR_SIGNATURE	1
-+#define CPUID_XFAM		0x0ff00000
-+#define CPUID_XFAM_K8		0x00000000
-+#define CPUID_XFAM_10H		0x00100000
-+#define CPUID_XFAM_11H		0x00200000
-+#define CPUID_XMOD		0x000f0000
-+#define CPUID_XMOD_REV_F	0x00040000
+@@ -197,3 +206,159 @@ int geode_mfgpt_alloc_timer(int timer, i
+ 	return -1;
+ }
+ EXPORT_SYMBOL(geode_mfgpt_alloc_timer);
 +
-+/* AMD systems with C1E don't have a working lAPIC timer. Check for that. */
-+static __cpuinit int amd_apic_timer_broken(void)
++#ifdef CONFIG_GEODE_MFGPT_TIMER
++
++/*
++ * The MFPGT timers on the CS5536 provide us with suitable timers to use
++ * as clock event sources - not as good as a HPET or APIC, but certainly
++ * better then the PIT.  This isn't a general purpose MFGPT driver, but
++ * a simplified one designed specifically to act as a clock event source.
++ * For full details about the MFGPT, please consult the CS5536 data sheet.
++ */
++
++#include <linux/clocksource.h>
++#include <linux/clockchips.h>
++
++static unsigned int mfgpt_tick_mode = CLOCK_EVT_MODE_SHUTDOWN;
++static u16 mfgpt_event_clock;
++
++static int irq = 7;
++static int __init mfgpt_setup(char *str)
 +{
-+	u32 lo, hi;
-+	u32 eax = cpuid_eax(CPUID_PROCESSOR_SIGNATURE);
-+	switch (eax & CPUID_XFAM) {
-+	case CPUID_XFAM_K8:
-+		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
-+			break;
-+	case CPUID_XFAM_10H:
-+	case CPUID_XFAM_11H:
-+		rdmsr(MSR_K8_ENABLE_C1E, lo, hi);
-+		if (lo & ENABLE_C1E_MASK)
-+			return 1;
-+		break;
-+	default:
-+		/* err on the side of caution */
-+		return 1;
-+	}
++	get_option(&str, &irq);
++	return 1;
++}
++__setup("mfgpt_irq=", mfgpt_setup);
++
++static inline void mfgpt_disable_timer(u16 clock)
++{
++	u16 val = geode_mfgpt_read(clock, MFGPT_REG_SETUP);
++	geode_mfgpt_write(clock, MFGPT_REG_SETUP, val & ~MFGPT_SETUP_CNTEN);
++}
++
++static int mfgpt_next_event(unsigned long, struct clock_event_device *);
++static void mfgpt_set_mode(enum clock_event_mode, struct clock_event_device *);
++
++static struct clock_event_device mfgpt_clockevent = {
++	.name = "mfgpt-timer",
++	.features = CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
++	.set_mode = mfgpt_set_mode,
++	.set_next_event = mfgpt_next_event,
++	.rating = 250,
++	.cpumask = CPU_MASK_ALL,
++	.shift = 32
++};
++
++static inline void mfgpt_start_timer(u16 clock, u16 delta)
++{
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_CMP2, (u16) delta);
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_COUNTER, 0);
++
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP,
++			  MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
++}
++
++static void mfgpt_set_mode(enum clock_event_mode mode,
++			   struct clock_event_device *evt)
++{
++	mfgpt_disable_timer(mfgpt_event_clock);
++
++	if (mode == CLOCK_EVT_MODE_PERIODIC)
++		mfgpt_start_timer(mfgpt_event_clock, MFGPT_PERIODIC);
++
++	mfgpt_tick_mode = mode;
++}
++
++static int mfgpt_next_event(unsigned long delta, struct clock_event_device *evt)
++{
++	mfgpt_start_timer(mfgpt_event_clock, delta);
 +	return 0;
 +}
 +
- static void __cpuinit init_amd(struct cpuinfo_x86 *c)
- {
- 	unsigned level, flags, dummy;
-@@ -635,6 +666,9 @@ static void __cpuinit init_amd(struct cp
- 	if (c->x86 == 0x10 && !force_mwait)
- 		clear_bit(X86_FEATURE_MWAIT, &c->x86_capability);
- 
-+	if (amd_apic_timer_broken())
-+		disable_apic_timer = 1;
++/* Assume (foolishly?), that this interrupt was due to our tick */
 +
- 	if (c->x86 >= 0xf && c->x86 <= 0x11 &&
- 	    !rdmsr_safe(MSR_VM_CR, &flags, &dummy) &&
- 	    (flags & 0x18))
-diff -puN include/asm-x86_64/apic.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e include/asm-x86_64/apic.h
---- a/include/asm-x86/apic_64.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
-+++ a/include/asm-x86/apic_64.h
-@@ -19,6 +19,7 @@
- extern int apic_verbosity;
- extern int apic_runs_main_timer;
- extern int ioapic_force;
-+extern int disable_apic_timer;
- 
- /*
-  * Define the default level of output to be very little
++static irqreturn_t mfgpt_tick(int irq, void *dev_id)
++{
++	if (mfgpt_tick_mode == CLOCK_EVT_MODE_SHUTDOWN)
++		return IRQ_HANDLED;
++
++	/* Turn off the clock */
++	mfgpt_disable_timer(mfgpt_event_clock);
++
++	/* Clear the counter */
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_COUNTER, 0);
++
++	/* Restart the clock in periodic mode */
++
++	if (mfgpt_tick_mode == CLOCK_EVT_MODE_PERIODIC) {
++		geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP,
++				  MFGPT_SETUP_CNTEN | MFGPT_SETUP_CMP2);
++	}
++
++	mfgpt_clockevent.event_handler(&mfgpt_clockevent);
++	return IRQ_HANDLED;
++}
++
++static struct irqaction mfgptirq  = {
++	.handler = mfgpt_tick,
++	.flags = IRQF_DISABLED | IRQF_NOBALANCING,
++	.mask = CPU_MASK_NONE,
++	.name = "mfgpt-timer"
++};
++
++static int __init mfgpt_timer_setup(void)
++{
++	int timer, ret;
++	u16 val;
++
++	timer = geode_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING,
++			THIS_MODULE);
++	if (timer < 0) {
++		printk(KERN_ERR "mfgpt-timer:  Could not allocate a MFPGT "
++				"timer\n");
++		return -ENODEV;
++	}
++
++	mfgpt_event_clock = timer;
++	/* Set the clock scale and enable the event mode for CMP2 */
++	val = MFGPT_SCALE | (3 << 8);
++
++	geode_mfgpt_write(mfgpt_event_clock, MFGPT_REG_SETUP, val);
++
++	/* Set up the IRQ on the MFGPT side */
++	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, irq)) {
++		printk(KERN_ERR "mfgpt-timer:  Could not set up IRQ %d\n", irq);
++		return -EIO;
++	}
++
++	/* And register it with the kernel */
++	ret = setup_irq(irq, &mfgptirq);
++
++	if (ret) {
++		printk(KERN_ERR "mfgpt-timer:  Unable to set up the "
++				"interrupt.\n");
++		goto err;
++	}
++
++	/* Set up the clock event */
++	mfgpt_clockevent.mult = div_sc(MFGPT_HZ, NSEC_PER_SEC, 32);
++	mfgpt_clockevent.min_delta_ns = clockevent_delta2ns(0xF,
++			&mfgpt_clockevent);
++	mfgpt_clockevent.max_delta_ns = clockevent_delta2ns(0xFFFE,
++			&mfgpt_clockevent);
++
++	printk(KERN_INFO "mfgpt-timer:  registering the MFGT timer as a "
++			"clock event.\n");
++	clockevents_register_device(&mfgpt_clockevent);
++
++	return 0;
++
++err:
++	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, irq);
++	printk(KERN_ERR "mfgpt-timer:  Unable to set up the MFGPT clock "
++			"source\n");
++	return -EIO;
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-git-acpi.patch
-git-arm.patch
-git-mips.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
-git-sched.patch
-x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
-clockevents-remove-unused-inline-function.patch
-clockevents-allow-build-without-runtime-use.patch
-x86_64-consolidate-tsc-calibration.patch
-i386-prepare-sharing-hpet-code.patch
-i386-hpet-add-x8664-hpet-bits.patch
-i386-prepare-sharing-pit-code.patch
-x86_64-use-i386-i8253-h.patch
-x86_64-preparatory-apic-set-lvtt.patch
-x86_64-apic-remove-bogus-pit-synchronization.patch
-x86_64-apic-shuffle-calibration-around.patch
-x86_64-apic-calibration-remove-divisor.patch
-x86_64-apic-change-setup-calling-convention.patch
-x86_64-apic-remove-nested-irq-disable.patch
-x86_64-prep-idle-loop-for-dynticks.patch
-x86_64-apic-add-clockevents-functions.patch
-x86_64-convert-to-clockevents.patch
-x86_64-remove-unused-code.patch
-x86_64-cleanup-apic-c.patch
-jiffies-remove-unused-macros.patch
-acpi-remove-the-useless-ifdef-code.patch
-i386-pit-remove-the-useless-ifdefs.patch
-i386-hpet-sharing-optimize.patch
-ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
-ich-force-hpet-restructure-hpet-generic-clock-code.patch
-ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
-ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
-ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
-ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support.patch
-uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+geode-mfgpt-clock-event-device-support.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+kernel-printkc-concerns-about-the-console-handover.patch
