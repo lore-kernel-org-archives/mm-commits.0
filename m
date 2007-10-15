@@ -1,29 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-apic-add-clockevents-functions.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:14 -0700
-Message-ID: <200710150918.l9F9IE56027379@imap1.linux-foundation.org>
+Subject: - i386-prepare-sharing-hpet-code.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:17:53 -0700
+Message-ID: <200710150917.l9F9Hrmn027323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43017 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58461 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757452AbXJOJYj (ORCPT
+	by vger.kernel.org with ESMTP id S1757341AbXJOJYd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:39 -0400
+	Mon, 15 Oct 2007 05:24:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Add (not yet used) clock event functions
+     i386: prepare sharing the hpet code with x86_64
 has been removed from the -mm tree.  Its filename was
-     x86_64-apic-add-clockevents-functions.patch
+     i386-prepare-sharing-hpet-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Add (not yet used) clock event functions
+Subject: i386: prepare sharing the hpet code with x86_64
 From: Thomas Gleixner <tglx@linutronix.de>
+
+The hpet implementations of i386 and x8664 has been mostly the same before the
+clock events conversion of i386.  The clock events conversion of i386 hpet is
+already done.  So it makes sense to share the code for the x86_64 clock events
+conversion.
+
+Abstract out the mapping functions.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -33,136 +40,84 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/Kconfig       |    6 ++
- arch/x86_64/kernel/apic.c |   79 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+)
+ arch/i386/kernel/hpet.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/Kconfig~x86_64-apic-add-clockevents-functions arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~x86_64-apic-add-clockevents-functions
-+++ a/arch/x86_64/Kconfig
-@@ -28,6 +28,10 @@ config GENERIC_TIME
- 	bool
- 	default y
+diff -puN arch/i386/kernel/hpet.c~i386-prepare-sharing-hpet-code arch/i386/kernel/hpet.c
+--- a/arch/x86/kernel/hpet_32.c~i386-prepare-sharing-hpet-code
++++ a/arch/x86/kernel/hpet_32.c
+@@ -8,10 +8,9 @@
+ #include <linux/delay.h>
  
-+config GENERIC_CLOCKEVENTS_MIGR
-+	bool
-+	default y
-+
- config GENERIC_TIME_VSYSCALL
- 	bool
- 	default y
-@@ -130,6 +134,8 @@ source "init/Kconfig"
+ #include <asm/hpet.h>
++#include <asm/i8253.h>
+ #include <asm/io.h>
  
- menu "Processor type and features"
+-extern struct clock_event_device *global_clock_event;
+-
+ #define HPET_MASK	CLOCKSOURCE_MASK(32)
+ #define HPET_SHIFT	22
  
-+source "kernel/time/Kconfig"
-+
- choice
- 	prompt "Subarchitecture Type"
- 	default X86_PC
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-add-clockevents-functions arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-apic-add-clockevents-functions
-+++ a/arch/x86/kernel/apic_64.c
-@@ -25,6 +25,7 @@
- #include <linux/sysdev.h>
- #include <linux/module.h>
- #include <linux/ioport.h>
-+#include <linux/clockchips.h>
+@@ -22,7 +21,7 @@ extern struct clock_event_device *global
+  * HPET address is set in acpi/boot.c, when an ACPI entry exists
+  */
+ unsigned long hpet_address;
+-static void __iomem * hpet_virt_address;
++static void __iomem *hpet_virt_address;
  
- #include <asm/atomic.h>
- #include <asm/smp.h>
-@@ -57,6 +58,77 @@ static struct resource lapic_resource = 
+ static inline unsigned long hpet_readl(unsigned long a)
+ {
+@@ -34,6 +33,17 @@ static inline void hpet_writel(unsigned 
+ 	writel(d, hpet_virt_address + a);
+ }
  
- static unsigned int calibration_result;
- 
-+static int lapic_next_event(unsigned long delta,
-+			    struct clock_event_device *evt);
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt);
-+
-+static void lapic_timer_broadcast(cpumask_t mask);
-+
-+static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen);
-+
-+static struct clock_event_device lapic_clockevent = {
-+	.name		= "lapic",
-+	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT
-+			| CLOCK_EVT_FEAT_C3STOP | CLOCK_EVT_FEAT_DUMMY,
-+	.shift		= 32,
-+	.set_mode	= lapic_timer_setup,
-+	.set_next_event	= lapic_next_event,
-+	.broadcast	= lapic_timer_broadcast,
-+	.rating		= 100,
-+	.irq		= -1,
-+};
-+static DEFINE_PER_CPU(struct clock_event_device, lapic_events);
-+
-+static int lapic_next_event(unsigned long delta,
-+			    struct clock_event_device *evt)
++static inline void hpet_set_mapping(void)
 +{
-+	apic_write(APIC_TMICT, delta);
-+	return 0;
++	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
 +}
 +
-+static void lapic_timer_setup(enum clock_event_mode mode,
-+			      struct clock_event_device *evt)
++static inline void hpet_clear_mapping(void)
 +{
-+	unsigned long flags;
-+	unsigned int v;
-+
-+	/* Lapic used as dummy for broadcast ? */
-+	if (evt->features & CLOCK_EVT_FEAT_DUMMY)
-+		return;
-+
-+	local_irq_save(flags);
-+
-+	switch (mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		__setup_APIC_LVTT(calibration_result,
-+				  mode != CLOCK_EVT_MODE_PERIODIC, 1);
-+		break;
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+		v = apic_read(APIC_LVTT);
-+		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
-+		apic_write(APIC_LVTT, v);
-+		break;
-+	case CLOCK_EVT_MODE_RESUME:
-+		/* Nothing to do here */
-+		break;
-+	}
-+
-+	local_irq_restore(flags);
-+}
-+
-+/*
-+ * Local APIC timer broadcast function
-+ */
-+static void lapic_timer_broadcast(cpumask_t mask)
-+{
-+#ifdef CONFIG_SMP
-+	send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
-+#endif
++	iounmap(hpet_virt_address);
++	hpet_virt_address = NULL;
 +}
 +
  /*
-  * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-  * IPIs in place of local APIC timers
-@@ -846,6 +918,13 @@ static void __init calibrate_APIC_clock(
- 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
- 		result / 1000 / 1000, result / 1000 % 1000);
+  * HPET command line enable / disable
+  */
+@@ -83,7 +93,7 @@ static void hpet_reserve_platform_timers
  
-+	/* Calculate the scaled math multiplication factor */
-+	lapic_clockevent.mult = div_sc(result, NSEC_PER_SEC, 32);
-+	lapic_clockevent.max_delta_ns =
-+		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
-+	lapic_clockevent.min_delta_ns =
-+		clockevent_delta2ns(0xF, &lapic_clockevent);
-+
- 	calibration_result = result / HZ;
+ 	memset(&hd, 0, sizeof (hd));
+ 	hd.hd_phys_address = hpet_address;
+-	hd.hd_address = hpet_virt_address;
++	hd.hd_address = hpet;
+ 	hd.hd_nirqs = nrtimers;
+ 	hd.hd_flags = HPET_DATA_PLATFORM;
+ 	hpet_reserve_timer(&hd, 0);
+@@ -238,7 +248,7 @@ int __init hpet_enable(void)
+ 	if (!is_hpet_capable())
+ 		return 0;
+ 
+-	hpet_virt_address = ioremap_nocache(hpet_address, HPET_MMAP_SIZE);
++	hpet_set_mapping();
+ 
+ 	/*
+ 	 * Read the period and check for a sane value:
+@@ -334,13 +344,11 @@ int __init hpet_enable(void)
+ 	return 0;
+ 
+ out_nohpet:
+-	iounmap(hpet_virt_address);
+-	hpet_virt_address = NULL;
++	hpet_clear_mapping();
+ 	boot_hpet_disable = 1;
+ 	return 0;
  }
  
+-
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
+ /* HPET in LegacyReplacement Mode eats up RTC interrupt line. When, HPET
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
