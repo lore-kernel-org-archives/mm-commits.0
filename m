@@ -1,86 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-remove-the-useless-ifdef-code.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:28 -0700
-Message-ID: <200710150918.l9F9ISud027405@imap1.linux-foundation.org>
+Subject: - i386-prepare-sharing-pit-code.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:17:57 -0700
+Message-ID: <200710150917.l9F9Hvnc027331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50032 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756846AbXJOJXR (ORCPT
+	by vger.kernel.org with ESMTP id S1755711AbXJOJXM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:23:17 -0400
+	Mon, 15 Oct 2007 05:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: remove the now unused ifdef code
+     i386: prepare sharing the PIT code
 has been removed from the -mm tree.  Its filename was
-     acpi-remove-the-useless-ifdef-code.patch
+     i386-prepare-sharing-pit-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ACPI: remove the now unused ifdef code
+Subject: i386: prepare sharing the PIT code
 From: Thomas Gleixner <tglx@linutronix.de>
 
-The conversion of x86-64 to clock events makes the
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
- n the timer broadcast functions useless. Remove it.
+PIT clock events work already and the PIT handling is the same for i386 and
+x86_64.  x86_64 does not support PIT as a clock source, so disable the PIT
+clocksource for x86_64.
+
+Prepare i8253.h to be shared with x8664
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ arch/i386/kernel/i8253.c |    4 +++-
+ include/asm-i386/i8253.h |    6 ++++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code
-+++ a/drivers/acpi/processor_idle.c
-@@ -295,21 +295,12 @@ static void acpi_timer_check_state(int s
+diff -puN arch/i386/kernel/i8253.c~i386-prepare-sharing-pit-code arch/i386/kernel/i8253.c
+--- a/arch/x86/kernel/i8253_32.c~i386-prepare-sharing-pit-code
++++ a/arch/x86/kernel/i8253_32.c
+@@ -13,7 +13,6 @@
+ #include <asm/delay.h>
+ #include <asm/i8253.h>
+ #include <asm/io.h>
+-#include <asm/timer.h>
  
- static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
- {
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
- 	unsigned long reason;
- 
- 	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
- 		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
- 
- 	clockevents_notify(reason, &pr->id);
--#else
--	cpumask_t mask = cpumask_of_cpu(pr->id);
--
--	if (pr->power.timer_broadcast_on_state < INT_MAX)
--		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
--	else
--		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
--#endif
+ DEFINE_SPINLOCK(i8253_lock);
+ EXPORT_SYMBOL(i8253_lock);
+@@ -120,6 +119,7 @@ void __init setup_pit_timer(void)
+ 	global_clock_event = &pit_clockevent;
  }
  
- /* Power(C) State timer broadcast control */
-@@ -317,8 +308,6 @@ static void acpi_state_timer_broadcast(s
- 				       struct acpi_processor_cx *cx,
- 				       int broadcast)
- {
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
--
- 	int state = cx - pr->power.states;
- 
- 	if (state >= pr->power.timer_broadcast_on_state) {
-@@ -328,7 +317,6 @@ static void acpi_state_timer_broadcast(s
- 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
- 		clockevents_notify(reason, &pr->id);
- 	}
--#endif
++#ifndef CONFIG_X86_64
+ /*
+  * Since the PIT overflows every tick, its not very useful
+  * to just read by itself. So use jiffies to emulate a free
+@@ -204,3 +204,5 @@ static int __init init_pit_clocksource(v
+ 	return clocksource_register(&clocksource_pit);
  }
+ arch_initcall(init_pit_clocksource);
++
++#endif
+diff -puN include/asm-i386/i8253.h~i386-prepare-sharing-pit-code include/asm-i386/i8253.h
+--- a/include/asm-x86/i8253_32.h~i386-prepare-sharing-pit-code
++++ a/include/asm-x86/i8253_32.h
+@@ -1,8 +1,6 @@
+ #ifndef __ASM_I8253_H__
+ #define __ASM_I8253_H__
  
- #else
+-#include <linux/clockchips.h>
+-
+ /* i8253A PIT registers */
+ #define PIT_MODE		0x43
+ #define PIT_CH0			0x40
+@@ -10,8 +8,12 @@
+ 
+ extern spinlock_t i8253_lock;
+ 
++#ifdef CONFIG_GENERIC_CLOCKEVENTS
++
+ extern struct clock_event_device *global_clock_event;
+ 
+ extern void setup_pit_timer(void);
+ 
++#endif
++
+ #endif	/* __ASM_I8253_H__ */
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
