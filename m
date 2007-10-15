@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tty-kill-tty_flipbuf_size.patch added to -mm tree
-Date: Mon, 15 Oct 2007 16:40:10 -0700
-Message-ID: <200710152340.l9FNeAin031307@imap1.linux-foundation.org>
+Subject: + io_edgeport-cleanups-and-tty-speed-reporting.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:39:06 -0700
+Message-ID: <200710152339.l9FNd6mE031262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36436 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753572AbXJOXkZ (ORCPT
+	by vger.kernel.org with ESMTP id S1763428AbXJOXjV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 19:40:25 -0400
+	Mon, 15 Oct 2007 19:39:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     tty: Kill TTY_FLIPBUF_SIZE
+     io_edgeport: cleanups, and tty speed reporting
 has been added to the -mm tree.  Its filename is
-     tty-kill-tty_flipbuf_size.patch
+     io_edgeport-cleanups-and-tty-speed-reporting.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: Kill TTY_FLIPBUF_SIZE
+Subject: io_edgeport: cleanups, and tty speed reporting
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-This legacy define from the old buffer code is now only used in a single
-power pc driver than doesn't compile anyway.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tty.h |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/usb/serial/io_edgeport.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/tty.h~tty-kill-tty_flipbuf_size include/linux/tty.h
---- a/include/linux/tty.h~tty-kill-tty_flipbuf_size
-+++ a/include/linux/tty.h
-@@ -52,13 +52,6 @@
-  */
- #define __DISABLED_CHAR '\0'
+diff -puN drivers/usb/serial/io_edgeport.c~io_edgeport-cleanups-and-tty-speed-reporting drivers/usb/serial/io_edgeport.c
+--- a/drivers/usb/serial/io_edgeport.c~io_edgeport-cleanups-and-tty-speed-reporting
++++ a/drivers/usb/serial/io_edgeport.c
+@@ -1503,22 +1503,16 @@ static void edge_unthrottle (struct usb_
+  *****************************************************************************/
+ static void edge_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
+ {
++	/* FIXME: This function appears unused ?? */
+ 	struct edgeport_port *edge_port = usb_get_serial_port_data(port);
+ 	struct tty_struct *tty = port->tty;
+ 	unsigned int cflag;
  
--/*
-- * This is the flip buffer used for the tty driver.  The buffer is
-- * located in the tty structure, and is used as a high speed interface
-- * between the tty driver and the tty line discipline.
-- */
--#define TTY_FLIPBUF_SIZE 512
+-	if (!port->tty || !port->tty->termios) {
+-		dbg ("%s - no tty or termios", __FUNCTION__);
+-		return;
+-	}
 -
- struct tty_buffer {
- 	struct tty_buffer *next;
- 	char *char_buf_ptr;
+ 	cflag = tty->termios->c_cflag;
+ 	dbg("%s - clfag %08x iflag %08x", __FUNCTION__, 
+ 	    tty->termios->c_cflag, tty->termios->c_iflag);
+-	if (old_termios) {
+-		dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
+-		    old_termios->c_cflag, old_termios->c_iflag);
+-	}
++	dbg("%s - old clfag %08x old iflag %08x", __FUNCTION__,
++	    old_termios->c_cflag, old_termios->c_iflag);
+ 
+ 	dbg("%s - port %d", __FUNCTION__, port->number);
+ 
+@@ -2653,7 +2647,11 @@ static void change_port_settings (struct
+ 
+ 	dbg("%s - baud rate = %d", __FUNCTION__, baud);
+ 	status = send_cmd_write_baud_rate (edge_port, baud);
+-
++	if (status == -1) {
++		/* Speed change was not possible - put back the old speed */
++		baud = tty_termios_baud_rate(old_termios);
++		tty_encode_baud_rate(tty, baud, baud);
++	}
+ 	return;
+ }
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
