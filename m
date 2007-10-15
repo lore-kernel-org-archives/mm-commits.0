@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-add-09-support.patch added to -mm tree
-Date: Mon, 15 Oct 2007 14:54:15 -0700
-Message-ID: <200710152154.l9FLsFA4026997@imap1.linux-foundation.org>
+Subject: + ps3fb-use-fb_infopar-properly.patch added to -mm tree
+Date: Mon, 15 Oct 2007 14:36:17 -0700
+Message-ID: <200710152136.l9FLaH6m026144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40639 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38673 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760144AbXJOVyo (ORCPT
+	by vger.kernel.org with ESMTP id S1755985AbXJOVgV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 17:54:44 -0400
+	Mon, 15 Oct 2007 17:36:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cminyard@mvista.com, liste@jordet.net
+Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net
 
 
 The patch titled
-     IPMI: add 0.9 support
+     ps3fb: use fb_info.par properly
 has been added to the -mm tree.  Its filename is
-     ipmi-add-09-support.patch
+     ps3fb-use-fb_infopar-properly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,112 +26,319 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPMI: add 0.9 support
-From: Corey Minyard <cminyard@mvista.com>
+Subject: ps3fb: use fb_info.par properly
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Add support for IPMI 0.9 systems to the IPMI driver.  Just handle a shorter
-get device ID command with less information.
+ps3fb: Use fb_info.par properly:
+  o Move mode-specific fields into struct ps3fb_par
+  o Allocate struct ps3fb_par using framebuffer_alloc()
+  o Protect access to ps3fb_par in ps3fb_sync() using the console semaphore
+    (this semaphore is already held when ps3fb_set_par() is called)
+  o Avoid calling ps3av_set_video_mode() if the actual video mode hasn't
+    changed
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Stian Jordet <liste@jordet.net>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |   15 +-----------
- include/linux/ipmi_smi.h         |   36 ++++++++++++++++++++++-------
- 2 files changed, 30 insertions(+), 21 deletions(-)
+ drivers/video/ps3fb.c |   92 ++++++++++++++++++++++++----------------
+ 1 file changed, 57 insertions(+), 35 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-09-support drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-09-support
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2380,20 +2380,9 @@ static int try_get_dev_id(struct smi_inf
- 	/* Otherwise, we got some data. */
- 	resp_len = smi_info->handlers->get_result(smi_info->si_sm,
- 						  resp, IPMI_MAX_MSG_LENGTH);
--	if (resp_len < 14) {
--		/* That's odd, it should be longer. */
--		rv = -EINVAL;
--		goto out;
--	}
+diff -puN drivers/video/ps3fb.c~ps3fb-use-fb_infopar-properly drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-use-fb_infopar-properly
++++ a/drivers/video/ps3fb.c
+@@ -119,12 +119,10 @@ struct ps3fb_priv {
+ 	void *xdr_ea;
+ 	size_t xdr_size;
+ 	struct gpu_driver_info *dinfo;
+-	u32 res_index;
+ 
+ 	u64 vblank_count;	/* frame count */
+ 	wait_queue_head_t wait_vsync;
+ 
+-	u32 num_frames;		/* num of frame buffers */
+ 	atomic_t ext_flip;	/* on/off flip with vsync */
+ 	atomic_t f_count;	/* fb_open count */
+ 	int is_blanked;
+@@ -133,6 +131,13 @@ struct ps3fb_priv {
+ };
+ static struct ps3fb_priv ps3fb;
+ 
++struct ps3fb_par {
++	u32 pseudo_palette[16];
++	int mode_id, new_mode_id;
++	int res_index;
++	unsigned int num_frames;	/* num of frame buffers */
++};
++
+ struct ps3fb_res_table {
+ 	u32 xres;
+ 	u32 yres;
+@@ -361,18 +366,17 @@ static unsigned int ps3fb_find_mode(cons
+ 
+ 	pr_debug("ps3fb_find_mode: mode not found\n");
+ 	return 0;
 -
--	if ((resp[1] != IPMI_GET_DEVICE_ID_CMD) || (resp[2] != 0)) {
--		/* That's odd, it shouldn't be able to fail. */
--		rv = -EINVAL;
--		goto out;
--	}
- 
--	/* Record info from the get device id, in case we need it. */
--	ipmi_demangle_device_id(resp+3, resp_len-3, &smi_info->device_id);
-+	/* Check and record info from the get device id, in case we need it. */
-+	rv = ipmi_demangle_device_id(resp, resp_len, &smi_info->device_id);
- 
-  out:
- 	kfree(resp);
-diff -puN include/linux/ipmi_smi.h~ipmi-add-09-support include/linux/ipmi_smi.h
---- a/include/linux/ipmi_smi.h~ipmi-add-09-support
-+++ a/include/linux/ipmi_smi.h
-@@ -148,26 +148,46 @@ struct ipmi_device_id {
- 
- /* Take a pointer to a raw data buffer and a length and extract device
-    id information from it.  The first byte of data must point to the
--   byte from the get device id response after the completion code.
--   The caller is responsible for making sure the length is at least
--   11 and the command completed without error. */
--static inline void ipmi_demangle_device_id(unsigned char *data,
--					   unsigned int  data_len,
--					   struct ipmi_device_id *id)
-+   netfn << 2, the data should be of the format:
-+      netfn << 2, cmd, completion code, data
-+   as normally comes from a device interface. */
-+static inline int ipmi_demangle_device_id(const unsigned char *data,
-+					  unsigned int data_len,
-+					  struct ipmi_device_id *id)
- {
-+	if (data_len < 9)
-+		return -EINVAL;
-+	if (data[0] != IPMI_NETFN_APP_RESPONSE << 2 ||
-+	    data[1] != IPMI_GET_DEVICE_ID_CMD)
-+		/* Strange, didn't get the response we expected. */
-+		return -EINVAL;
-+	if (data[2] != 0)
-+		/* That's odd, it shouldn't be able to fail. */
-+		return -EINVAL;
-+
-+	data += 3;
-+	data_len -= 3;
- 	id->device_id = data[0];
- 	id->device_revision = data[1];
- 	id->firmware_revision_1 = data[2];
- 	id->firmware_revision_2 = data[3];
- 	id->ipmi_version = data[4];
- 	id->additional_device_support = data[5];
--	id->manufacturer_id = data[6] | (data[7] << 8) | (data[8] << 16);
--	id->product_id = data[9] | (data[10] << 8);
-+	if (data_len >= 6) {
-+		id->manufacturer_id = (data[6] | (data[7] << 8) |
-+				       (data[8] << 16));
-+		id->product_id = data[9] | (data[10] << 8);
-+	} else {
-+		id->manufacturer_id = 0;
-+		id->product_id = 0;
-+	}
- 	if (data_len >= 15) {
- 		memcpy(id->aux_firmware_revision, data+11, 4);
- 		id->aux_firmware_revision_set = 1;
- 	} else
- 		id->aux_firmware_revision_set = 0;
-+
-+	return 0;
  }
  
- /* Add a low-level interface to the IPMI driver.  Note that if the
+-static const struct fb_videomode *ps3fb_default_mode(void)
++static const struct fb_videomode *ps3fb_default_mode(int id)
+ {
+-	u32 mode = ps3fb_mode & PS3AV_MODE_MASK;
++	u32 mode = id & PS3AV_MODE_MASK;
+ 	u32 flags;
+ 
+ 	if (mode < 1 || mode > 13)
+ 		return NULL;
+ 
+-	flags = ps3fb_mode & ~PS3AV_MODE_MASK;
++	flags = id & ~PS3AV_MODE_MASK;
+ 
+ 	if (mode <= 10 && flags & PS3FB_FULL_MODE_BIT) {
+ 		/* Full broadcast mode */
+@@ -384,18 +388,22 @@ static const struct fb_videomode *ps3fb_
+ 
+ static int ps3fb_sync(struct fb_info *info, u32 frame)
+ {
+-	int i, status;
++	struct ps3fb_par *par = info->par;
++	int i, status, error = 0;
+ 	u32 xres, yres;
+ 	u64 fb_ioif, offset;
+ 
+-	i = ps3fb.res_index;
++	acquire_console_sem();
++
++	i = par->res_index;
+ 	xres = ps3fb_res[i].xres;
+ 	yres = ps3fb_res[i].yres;
+ 
+-	if (frame > ps3fb.num_frames - 1) {
++	if (frame > par->num_frames - 1) {
+ 		dev_dbg(info->device, "%s: invalid frame number (%u)\n",
+ 			__func__, frame);
+-		return -EINVAL;
++		error = -EINVAL;
++		goto out;
+ 	}
+ 	offset = xres * yres * BPP * frame;
+ 
+@@ -428,7 +436,10 @@ static int ps3fb_sync(struct fb_info *in
+ 			"%s: lv1_gpu_context_attribute FLIP failed: %d\n",
+ 			__func__, status);
+ #endif
+-	return 0;
++
++out:
++	release_console_sem();
++	return error;
+ }
+ 
+ 
+@@ -547,6 +558,7 @@ static int ps3fb_check_var(struct fb_var
+ 
+ static int ps3fb_set_par(struct fb_info *info)
+ {
++	struct ps3fb_par *par = info->par;
+ 	unsigned int mode;
+ 	int i;
+ 	unsigned long offset;
+@@ -560,7 +572,7 @@ static int ps3fb_set_par(struct fb_info 
+ 		return -EINVAL;
+ 
+ 	i = ps3fb_get_res_table(info->var.xres, info->var.yres, mode);
+-	ps3fb.res_index = i;
++	par->res_index = i;
+ 
+ 	offset = VFB_OFF(i);
+ 	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
+@@ -568,14 +580,19 @@ static int ps3fb_set_par(struct fb_info 
+ 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
+ 	memset(ps3fb.xdr_ea, 0, ps3fb.xdr_size);
+ 
+-	ps3fb.num_frames = info->fix.smem_len/
+-			   (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
++	par->num_frames = info->fix.smem_len/
++			  (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
+ 
+ 	/* Keep the special bits we cannot set using fb_var_screeninfo */
+-	ps3fb_mode = (ps3fb_mode & ~PS3AV_MODE_MASK) | mode;
++	par->new_mode_id = (par->new_mode_id & ~PS3AV_MODE_MASK) | mode;
+ 
+-	if (ps3av_set_video_mode(ps3fb_mode))
+-		return -EINVAL;
++	if (par->new_mode_id != par->mode_id) {
++		if (ps3av_set_video_mode(par->new_mode_id)) {
++			par->new_mode_id = par->mode_id;
++			return -EINVAL;
++		}
++		par->mode_id = par->new_mode_id;
++	}
+ 
+ 	return 0;
+ }
+@@ -694,7 +711,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 		       unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
+-	u32 val, old_mode;
++	u32 val;
+ 	int retval = -EFAULT;
+ 
+ 	switch (cmd) {
+@@ -724,6 +741,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 
+ 	case PS3FB_IOCTL_SETMODE:
+ 		{
++			struct ps3fb_par *par = info->par;
+ 			const struct fb_videomode *mode;
+ 			struct fb_var_screeninfo var;
+ 
+@@ -737,9 +755,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 			}
+ 			dev_dbg(info->device, "PS3FB_IOCTL_SETMODE:%x\n", val);
+ 			retval = -EINVAL;
+-			old_mode = ps3fb_mode;
+-			ps3fb_mode = val;
+-			mode = ps3fb_default_mode();
++			mode = ps3fb_default_mode(val);
+ 			if (mode) {
+ 				var = info->var;
+ 				fb_videomode_to_var(&var, mode);
+@@ -747,12 +763,11 @@ static int ps3fb_ioctl(struct fb_info *i
+ 				info->flags |= FBINFO_MISC_USEREVENT;
+ 				/* Force, in case only special bits changed */
+ 				var.activate |= FB_ACTIVATE_FORCE;
++				par->new_mode_id = val;
+ 				retval = fb_set_var(info, &var);
+ 				info->flags &= ~FBINFO_MISC_USEREVENT;
+ 				release_console_sem();
+ 			}
+-			if (retval)
+-				ps3fb_mode = old_mode;
+ 			break;
+ 		}
+ 
+@@ -765,14 +780,15 @@ static int ps3fb_ioctl(struct fb_info *i
+ 
+ 	case PS3FB_IOCTL_SCREENINFO:
+ 		{
++			struct ps3fb_par *par = info->par;
+ 			struct ps3fb_ioctl_res res;
+-			int i = ps3fb.res_index;
++			int i = par->res_index;
+ 			dev_dbg(info->device, "PS3FB_IOCTL_SCREENINFO:\n");
+ 			res.xres = ps3fb_res[i].xres;
+ 			res.yres = ps3fb_res[i].yres;
+ 			res.xoff = ps3fb_res[i].xoff;
+ 			res.yoff = ps3fb_res[i].yoff;
+-			res.num_frames = ps3fb.num_frames;
++			res.num_frames = par->num_frames;
+ 			if (!copy_to_user(argp, &res, sizeof(res)))
+ 				retval = 0;
+ 			break;
+@@ -979,6 +995,7 @@ static int ps3fb_set_sync(struct device 
+ static int __devinit ps3fb_probe(struct ps3_system_bus_device *dev)
+ {
+ 	struct fb_info *info;
++	struct ps3fb_par *par;
+ 	int retval = -ENOMEM;
+ 	u32 xres, yres;
+ 	u64 ddr_lpar = 0;
+@@ -987,7 +1004,7 @@ static int __devinit ps3fb_probe(struct 
+ 	u64 lpar_reports = 0;
+ 	u64 lpar_reports_size = 0;
+ 	u64 xdr_lpar;
+-	int status;
++	int status, res_index;
+ 	unsigned long offset;
+ 	struct task_struct *task;
+ 
+@@ -1004,15 +1021,14 @@ static int __devinit ps3fb_probe(struct 
+ 
+ 	if (ps3fb_mode > 0 &&
+ 	    !ps3av_video_mode2res(ps3fb_mode, &xres, &yres)) {
+-		ps3fb.res_index = ps3fb_get_res_table(xres, yres, ps3fb_mode);
+-		dev_dbg(&dev->core, "res_index:%d\n", ps3fb.res_index);
++		res_index = ps3fb_get_res_table(xres, yres, ps3fb_mode);
++		dev_dbg(&dev->core, "res_index:%d\n", res_index);
+ 	} else
+-		ps3fb.res_index = GPU_RES_INDEX;
++		res_index = GPU_RES_INDEX;
+ 
+ 	atomic_set(&ps3fb.f_count, -1);	/* fbcon opens ps3fb */
+ 	atomic_set(&ps3fb.ext_flip, 0);	/* for flip with vsync */
+ 	init_waitqueue_head(&ps3fb.wait_vsync);
+-	ps3fb.num_frames = 1;
+ 
+ 	ps3fb_set_sync(&dev->core);
+ 
+@@ -1062,19 +1078,24 @@ static int __devinit ps3fb_probe(struct 
+ 	if (retval)
+ 		goto err_free_irq;
+ 
+-	info = framebuffer_alloc(sizeof(u32) * 16, &dev->core);
++	info = framebuffer_alloc(sizeof(struct ps3fb_par), &dev->core);
+ 	if (!info)
+ 		goto err_free_irq;
+ 
+-	offset = VFB_OFF(ps3fb.res_index);
++	par = info->par;
++	par->mode_id = ~ps3fb_mode;	/* != ps3fb_mode, to trigger change */
++	par->new_mode_id = ps3fb_mode;
++	par->res_index = res_index;
++	par->num_frames = 1;
++
++	offset = VFB_OFF(res_index);
+ 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
+ 	info->fbops = &ps3fb_ops;
+ 
+ 	info->fix = ps3fb_fix;
+ 	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
+ 	info->fix.smem_len = ps3fb.xdr_size - offset;
+-	info->pseudo_palette = info->par;
+-	info->par = NULL;
++	info->pseudo_palette = par->pseudo_palette;
+ 	info->flags = FBINFO_DEFAULT | FBINFO_READS_FAST;
+ 
+ 	retval = fb_alloc_cmap(&info->cmap, 256, 0);
+@@ -1082,7 +1103,8 @@ static int __devinit ps3fb_probe(struct 
+ 		goto err_framebuffer_release;
+ 
+ 	if (!fb_find_mode(&info->var, info, mode_option, ps3fb_modedb,
+-			  ARRAY_SIZE(ps3fb_modedb), ps3fb_default_mode(), 32)) {
++			  ARRAY_SIZE(ps3fb_modedb),
++			  ps3fb_default_mode(par->new_mode_id), 32)) {
+ 		retval = -EINVAL;
+ 		goto err_fb_dealloc;
+ 	}
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-ipmi-dont-init-irq-until-ready.patch
-ipmi-remove-bogus-semaphore-from-watchdog.patch
-ipmi-documentation-fixes.patch
-ipmi-add-polled-interface.patch
-ipmi-fix-hotmod-remove-lock.patch
-ipmi-add-09-support.patch
+origin.patch
+git-scsi-misc.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+ps3-fix-black-and-white-stripes.patch
+ps3fb-fix-spurious-mode-change-failures.patch
+ps3av-eliminate-unneeded-temporary-variables.patch
+ps3av-eliminate-ps3av_debug.patch
+ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch
+ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
+ps3av-add-autodetection-for-vesa-modes.patch
+ps3av-add-quirk-database-for-broken-monitors.patch
+ps3av-remove-unused-ps3av_set_mode.patch
+ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
+ps3fb-convert-from-printk-dprintk-to-dev_-pr_.patch
+ps3fb-do-not-print-warnings-on-invalid-frame-numbers.patch
+ps3fb-clean-up-includes.patch
+ps3fb-make-ps3fb_wait_for_vsync-and-ps3fb_flip_ctl-static.patch
+ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer.patch
+ps3fb-use-fb_infopar-properly.patch
+ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory.patch
+ps3fb-add-virtual-screen-and-panning-support.patch
+ps3fb-enhance-horizontal-panning-on-firmware-190-and-up.patch
+fb-move-and-rename-extern-declaration-for-global_mode_option.patch
+ps3fb-default-to-480p-on-dvi-d-hdmi-if-video=safe.patch
