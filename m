@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - git-input-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:48:14 -0700
-Message-ID: <200710150848.l9F8mEPo025873@imap1.linux-foundation.org>
+Subject: - git-hwmon-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 01:48:09 -0700
+Message-ID: <200710150848.l9F8m9mi025870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57212 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756058AbXJOIsR (ORCPT
+	by vger.kernel.org with ESMTP id S1756149AbXJOIsM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 04:48:17 -0400
+	Mon, 15 Oct 2007 04:48:12 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8mElE005796
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8m98T005791
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:48:15 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:48:10 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-input-fixup
+     git-hwmon-fixup
 has been removed from the -mm tree.  Its filename was
-     git-input-fixup.patch
+     git-hwmon-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-input-fixup
+Subject: git-hwmon-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c   |    3 +--
- drivers/macintosh/adbhid.c |    4 ----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    2 +-
+ drivers/misc/thinkpad_acpi.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~git-input-fixup drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~git-input-fixup
-+++ a/drivers/hwmon/applesmc.c
-@@ -131,8 +131,7 @@ static const int debug;
- static struct platform_device *pdev;
- static s16 rest_x;
- static s16 rest_y;
--static struct timer_list applesmc_timer;
--static struct input_dev *applesmc_idev;
-+static struct input_polled_dev *applesmc_idev;
- static struct device *hwmon_dev;
+diff -puN drivers/misc/thinkpad_acpi.c~git-hwmon-fixup drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~git-hwmon-fixup
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -527,7 +527,7 @@ static char *next_cmd(char **cmds)
  
- /* Indicates whether this computer has an accelerometer. */
-diff -puN drivers/macintosh/adbhid.c~git-input-fixup drivers/macintosh/adbhid.c
---- a/drivers/macintosh/adbhid.c~git-input-fixup
-+++ a/drivers/macintosh/adbhid.c
-@@ -282,11 +282,7 @@ static void
- adbhid_input_keycode(int id, int scancode, int repeat)
- {
- 	struct adbhid *ahid = adbhid[id];
--<<<<<<< HEAD/drivers/macintosh/adbhid.c
--	int up_flag, key;
--=======
- 	int keycode, up_flag;
-->>>>>>> /drivers/macintosh/adbhid.c
+ static struct platform_device *tpacpi_pdev;
+ static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
++static struct device *tpacpi_hwmon;
+ static struct input_dev *tpacpi_inputdev;
+ static struct mutex tpacpi_inputdev_send_mutex;
  
- 	keycode = scancode & 0x7f;
- 	up_flag = scancode & 0x80;
+diff -puN drivers/misc/thinkpad_acpi.h~git-hwmon-fixup drivers/misc/thinkpad_acpi.h
+--- a/drivers/misc/thinkpad_acpi.h~git-hwmon-fixup
++++ a/drivers/misc/thinkpad_acpi.h
+@@ -173,7 +173,7 @@ static int parse_strtoul(const char *buf
+ /* Device model */
+ static struct platform_device *tpacpi_pdev;
+ static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
++static struct device *tpacpi_hwmon;
+ static struct platform_driver tpacpi_pdriver;
+ static struct input_dev *tpacpi_inputdev;
+ static int tpacpi_create_driver_attributes(struct device_driver *drv);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +77,7 @@ git-arm-fixup.patch
 git-cifs.patch
 git-drm.patch
 git-dvb.patch
+git-hwmon-fixup.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
 git-input.patch
 git-input-fixup.patch
