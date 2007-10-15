@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch added to -mm tree
-Date: Mon, 15 Oct 2007 12:59:35 -0700
-Message-ID: <200710151959.l9FJxZrT022256@imap1.linux-foundation.org>
+Subject: + add-assembler-equivalents-to-__initdate_refok.patch added to -mm tree
+Date: Mon, 15 Oct 2007 13:03:48 -0700
+Message-ID: <200710152003.l9FK3mIg022480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41592 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764703AbXJOUAA (ORCPT
+	by vger.kernel.org with ESMTP id S1755357AbXJOUED (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 16:00:00 -0400
+	Mon, 15 Oct 2007 16:04:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, yanmin.zhang@intel.com
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     x86_64, vsyscall: fix the oops crash with __pa_vsymbol()
+     Add assembler equivalents to __init{,date}_refok
 has been added to the -mm tree.  Its filename is
-     x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch
+     add-assembler-equivalents-to-__initdate_refok.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64, vsyscall: fix the oops crash with __pa_vsymbol()
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: Add assembler equivalents to __init{,date}_refok
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Fix an oops with __pa_vsymbol().  VSYSCALL_FIRST_PAGE is a fixmap index. 
-We want the starting virtual address of the vsyscall page and not the
-index.
+I need __INIT_REFOK to fix a MODPOST warning for a few MIPS configs which
+have to call init code from .text very early in the game due to bootloader
+issues.  __INITDATA_REFOK is just for consistency.
 
-Reported-by: Yanmin Zhang <yanmin.zhang@intel.com>
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vsyscall_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/init.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN /dev/null /dev/null
-diff -puN arch/x86/kernel/vsyscall_64.c~x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol arch/x86/kernel/vsyscall_64.c
---- a/arch/x86/kernel/vsyscall_64.c~x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol
-+++ a/arch/x86/kernel/vsyscall_64.c
-@@ -48,7 +48,7 @@
- 	({unsigned long v;  		\
- 	extern char __vsyscall_0; 	\
- 	  asm("" : "=r" (v) : "0" (x)); \
--	  ((v - VSYSCALL_FIRST_PAGE) + __pa_symbol(&__vsyscall_0)); })
-+	  ((v - VSYSCALL_START) + __pa_symbol(&__vsyscall_0)); })
+diff -puN include/linux/init.h~add-assembler-equivalents-to-__initdate_refok include/linux/init.h
+--- a/include/linux/init.h~add-assembler-equivalents-to-__initdate_refok
++++ a/include/linux/init.h
+@@ -67,8 +67,10 @@
  
+ /* For assembly routines */
+ #define __INIT		.section	".init.text","ax"
++#define __INIT_REFOK	.section	".text.init.refok","ax"
+ #define __FINIT		.previous
+ #define __INITDATA	.section	".init.data","aw"
++#define __INITDATA_REFOK .section	".data.init.refok","aw"
+ 
+ #ifndef __ASSEMBLY__
  /*
-  * vsyscall_gtod_data contains data that is :
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch
-x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
-convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+origin.patch
+add-assembler-equivalents-to-__initdate_refok.patch
+git-mips.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+move-a-few-definitions-to-au1000_xxs1500c-fix.patch
+serial_txx9-cleanup-includes.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+spelling-fix-weired-weird.patch
+remove-dma_cache_wbackinvwback_inv-functions.patch
+lk201-remove-obsolete-driver.patch
+fix-wrong-filename-reference-in-drivers-testingtxt.patch
+completely-remove-deprecated-irq-flags-sa_.patch
+compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
+break-elf_platform-and-stack-pointer-randomization-dependency.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+replace-__attribute_pure__-with-__pure.patch
