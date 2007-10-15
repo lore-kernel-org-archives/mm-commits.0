@@ -1,277 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:59:07 -0700
-Message-ID: <200710150859.l9F8x7u2026225@imap1.linux-foundation.org>
+Subject: - x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:04:27 -0700
+Message-ID: <200710150904.l9F94RWL026418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59958 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753267AbXJOJA2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753564AbXJOJFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:00:28 -0400
+	Mon, 15 Oct 2007 05:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@suse.de, kay.sievers@vrfy.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, ak@suse.de, mingo@elte.hu, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
+     x86-64: Disable local APIC timer use on AMD systems with C1E
 has been removed from the -mm tree.  Its filename was
-     git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
+     x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-64: Disable local APIC timer use on AMD systems with C1E
+From: Thomas Gleixner <tglx@linutronix.de>
 
-my life sucks
+commit 3556ddfa9284a86a59a9b78fe5894430f6ab4eef titled
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+ [PATCH] x86-64: Disable local APIC timer use on AMD systems with C1E
+
+solves a problem with AMD dual core laptops e.g. HP nx6325 (Turion 64
+X2) with C1E enabled:
+
+When both cores go into idle at the same time, then the system switches
+into C1E state, which is basically the same as C3. This stops the local
+apic timer.
+
+This was debugged right after the dyntick merge on i386 and despite the
+patch title it fixes only the 32 bit path.
+
+x86_64 is still missing this fix. It seems that mainline is not really
+affected by this issue, as the PIT is running and keeps jiffies
+incrementing, but that's just waiting for trouble.
+
+-mm suffers from this problem due to the x86_64 high resolution timer
+patches.
+
+This is a quick and dirty port of the i386 code to x86_64.
+
+I spent quite a time with Rafael to debug the -mm / hrt wreckage until
+someone pointed us to this. I really had forgotten that we debugged this
+half a year ago already.
+
+Sigh, is it just me or is there something yelling arch/x86 into my ear?
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ssb/main.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ arch/x86_64/kernel/setup.c |   34 ++++++++++++++++++++++++++++++++++
+ include/asm-x86_64/apic.h  |    1 +
+ 2 files changed, 35 insertions(+)
 
-diff -puN drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/ssb/main.c
---- a/drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
-+++ a/drivers/ssb/main.c
-@@ -320,22 +320,17 @@ static int ssb_bus_match(struct device *
- 	return 0;
+diff -puN arch/x86_64/kernel/setup.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e arch/x86_64/kernel/setup.c
+--- a/arch/x86/kernel/setup_64.c~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
++++ a/arch/x86/kernel/setup_64.c
+@@ -563,6 +563,37 @@ static void __cpuinit early_init_amd(str
+ #endif
  }
  
--static int ssb_device_uevent(struct device *dev, char **envp, int num_envp,
--			     char *buffer, int buffer_size)
-+static int ssb_device_uevent(struct device *dev, struct kobj_uevent_env *env)
++#define ENABLE_C1E_MASK		0x18000000
++#define CPUID_PROCESSOR_SIGNATURE	1
++#define CPUID_XFAM		0x0ff00000
++#define CPUID_XFAM_K8		0x00000000
++#define CPUID_XFAM_10H		0x00100000
++#define CPUID_XFAM_11H		0x00200000
++#define CPUID_XMOD		0x000f0000
++#define CPUID_XMOD_REV_F	0x00040000
++
++/* AMD systems with C1E don't have a working lAPIC timer. Check for that. */
++static __cpuinit int amd_apic_timer_broken(void)
++{
++	u32 lo, hi;
++	u32 eax = cpuid_eax(CPUID_PROCESSOR_SIGNATURE);
++	switch (eax & CPUID_XFAM) {
++	case CPUID_XFAM_K8:
++		if ((eax & CPUID_XMOD) < CPUID_XMOD_REV_F)
++			break;
++	case CPUID_XFAM_10H:
++	case CPUID_XFAM_11H:
++		rdmsr(MSR_K8_ENABLE_C1E, lo, hi);
++		if (lo & ENABLE_C1E_MASK)
++			return 1;
++		break;
++	default:
++		/* err on the side of caution */
++		return 1;
++	}
++	return 0;
++}
++
+ static void __cpuinit init_amd(struct cpuinfo_x86 *c)
  {
- 	struct ssb_device *ssb_dev = dev_to_ssb_dev(dev);
--	int ret, i = 0, length = 0;
-+	int ret;
+ 	unsigned level, flags, dummy;
+@@ -635,6 +666,9 @@ static void __cpuinit init_amd(struct cp
+ 	if (c->x86 == 0x10 && !force_mwait)
+ 		clear_bit(X86_FEATURE_MWAIT, &c->x86_capability);
  
- 	if (!dev)
- 		return -ENODEV;
++	if (amd_apic_timer_broken())
++		disable_apic_timer = 1;
++
+ 	if (c->x86 >= 0xf && c->x86 <= 0x11 &&
+ 	    !rdmsr_safe(MSR_VM_CR, &flags, &dummy) &&
+ 	    (flags & 0x18))
+diff -puN include/asm-x86_64/apic.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e include/asm-x86_64/apic.h
+--- a/include/asm-x86/apic_64.h~x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e
++++ a/include/asm-x86/apic_64.h
+@@ -19,6 +19,7 @@
+ extern int apic_verbosity;
+ extern int apic_runs_main_timer;
+ extern int ioapic_force;
++extern int disable_apic_timer;
  
--	ret = add_uevent_var(envp, num_envp, &i,
--			     buffer, buffer_size, &length,
--			     "MODALIAS=ssb:v%04Xid%04Xrev%02X",
-+	ret = add_uevent_var(env, "MODALIAS=ssb:v%04Xid%04Xrev%02X",
- 			     ssb_dev->id.vendor, ssb_dev->id.coreid,
- 			     ssb_dev->id.revision);
--	envp[i] = NULL;
--
- 	return ret;
- }
- 
+ /*
+  * Define the default level of output to be very little
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-slow-down-printk-during-boot.patch
 git-acpi.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-git-agpgart.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
-git-arm-fixup.patch
-git-cifs.patch
-git-drm.patch
-git-dvb.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-git-input.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kbuild.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-git-md-accel-fixup.patch
 git-mips.patch
-git-mips-fixup.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-git-nfs-fixup.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd.patch
-git-nfsd-fixup.patch
+provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
 git-sched.patch
-git-scsi-misc.patch
-git-scsi-misc-fixup.patch
-qla2xxx-printk-fixes.patch
-git-block.patch
-git-block-fixup.patch
-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-wireless-ath5k-broke.patch
-git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
+x86-64-disable-local-apic-timer-use-on-amd-systems-with-c1e.patch
+clockevents-remove-unused-inline-function.patch
+clockevents-allow-build-without-runtime-use.patch
+x86_64-consolidate-tsc-calibration.patch
+i386-prepare-sharing-hpet-code.patch
+i386-hpet-add-x8664-hpet-bits.patch
+i386-prepare-sharing-pit-code.patch
+x86_64-use-i386-i8253-h.patch
+x86_64-preparatory-apic-set-lvtt.patch
+x86_64-apic-remove-bogus-pit-synchronization.patch
+x86_64-apic-shuffle-calibration-around.patch
+x86_64-apic-calibration-remove-divisor.patch
+x86_64-apic-change-setup-calling-convention.patch
+x86_64-apic-remove-nested-irq-disable.patch
+x86_64-prep-idle-loop-for-dynticks.patch
+x86_64-apic-add-clockevents-functions.patch
+x86_64-convert-to-clockevents.patch
+x86_64-remove-unused-code.patch
 x86_64-cleanup-apic-c.patch
+jiffies-remove-unused-macros.patch
+acpi-remove-the-useless-ifdef-code.patch
+i386-pit-remove-the-useless-ifdefs.patch
+i386-hpet-sharing-optimize.patch
+ich-force-hpet-make-generic-time-capable-of-switching-broadcast-timer.patch
+ich-force-hpet-restructure-hpet-generic-clock-code.patch
 ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+ich-force-hpet-late-initialization-of-hpet-after-quirk.patch
 ich-force-hpet-ich5-quirk-to-force-detect-enable.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
-git-xfs.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
-categorize-gfp-flags-fix.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support-fix.patch
-mm-mempolicyc-cleanups-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+ich-force-hpet-ich5-fix-a-bug-with-suspend-resume.patch
+ich-force-hpet-add-ich7_0-pciid-to-quirk-list.patch
+i386-cleanup-struct-irqaction-initializers.patch
+x86_64-cleanup-struct-irqaction-initializers.patch
+hpet-force-enable-on-vt8235-37-chipsets.patch
+frv-cleanup-struct-irqaction-initializers.patch
+m32r-cleanup-struct-irqaction-initializers.patch
+cris-cleanup-struct-irqaction-initializers.patch
+uml-eliminate-hz.patch
+uml-fix-timer-switching.patch
+uml-simplify-interval-setting.patch
+uml-separate-timer-initialization.patch
+uml-generic_time-support.patch
+uml-generic_clockevents-support.patch
+uml-clocksource-support.patch
 uml-clocksource-support-fix.patch
+uml-tickless-support.patch
 uml-tickless-support-fix.patch
-uml-fix-stub-address-calculations-checkpatch-fixes.patch
-uml-arch-um-drivers-formatting-checkpatch-fixes.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-lockdep-annotate-kprobes-irq-fiddling-fix.patch
-ecryptfs-printk-warning-fixes.patch
-rtc-cmos-probe-cleanup-checkpatch-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
-tmp-fix.patch
+uml-eliminate-interrupts-in-the-idle-loop.patch
+uml-eliminate-sigalrm.patch
+uml-use-sec_per_sec-constants.patch
+v850-cleanup-struct-irqaction-initializers.patch
+time-simplify-smp_call_function_single-call-sequence.patch
+kernel-rtmutex-debugc-cleanups.patch
+kernel-time-timekeepingc-cleanups.patch
+use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
+spin_lock_unlocked-cleanups.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+whitespace-fixes-time-syscalls.patch
+whitespace-fixes-interval-timers.patch
+whitespace-fixes-system-timers.patch
