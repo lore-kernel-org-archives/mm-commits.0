@@ -1,36 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-i386-i8253-h.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:17:59 -0700
-Message-ID: <200710150917.l9F9Hx4V027340@imap1.linux-foundation.org>
+Subject: - x86_64-apic-change-setup-calling-convention.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:09 -0700
+Message-ID: <200710150918.l9F9I9LJ027368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55857 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48180 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757163AbXJOJYN (ORCPT
+	by vger.kernel.org with ESMTP id S1755886AbXJOJYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:13 -0400
+	Mon, 15 Oct 2007 05:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: prepare sharing the PIT code
+     x86_64: apic change setup_APIC_timer calling convention
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-i386-i8253-h.patch
+     x86_64-apic-change-setup-calling-convention.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: prepare sharing the PIT code
+Subject: x86_64: apic change setup_APIC_timer calling convention
 From: Thomas Gleixner <tglx@linutronix.de>
 
-PIT clock events work already and the PIT handling is the same for i386 and
-x86_64.  x86_64 does not support PIT as a clock source, so disable the PIT
-clocksource for x86_64.
-
-Use the i386 i8253.h include file for x86_64 as well to share the
-exports and the PIT constants.
+setup_APIC_timer takes the file global calibration result as an argument.
+Remove it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -40,43 +36,48 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/time.c  |    4 ----
- include/asm-x86_64/i8253.h |    8 ++------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ arch/x86_64/kernel/apic.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86_64/kernel/time.c~x86_64-use-i386-i8253-h arch/x86_64/kernel/time.c
---- a/arch/x86/kernel/time_64.c~x86_64-use-i386-i8253-h
-+++ a/arch/x86/kernel/time_64.c
-@@ -32,7 +32,6 @@
- #include <acpi/achware.h>	/* for PM timer frequency */
- #include <acpi/acpi_bus.h>
- #endif
--#include <asm/8253pit.h>
- #include <asm/i8253.h>
- #include <asm/pgtable.h>
- #include <asm/vsyscall.h>
-@@ -292,9 +291,6 @@ static unsigned int __init tsc_calibrate
- 	return pmc_now * tsc_khz / (tsc_now - tsc_start);
+diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-change-setup-calling-convention arch/x86_64/kernel/apic.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-apic-change-setup-calling-convention
++++ a/arch/x86/kernel/apic_64.c
+@@ -763,7 +763,7 @@ static void __setup_APIC_LVTT(unsigned i
+ 		apic_write(APIC_TMICT, clocks);
  }
  
--#define PIT_MODE 0x43
--#define PIT_CH0  0x40
--
- static void __pit_init(int val, u8 mode)
+-static void setup_APIC_timer(unsigned int clocks)
++static void setup_APIC_timer(void)
  {
  	unsigned long flags;
-diff -puN include/asm-x86_64/i8253.h~x86_64-use-i386-i8253-h include/asm-x86_64/i8253.h
---- a/include/asm-x86/i8253_64.h~x86_64-use-i386-i8253-h
-+++ a/include/asm-x86/i8253_64.h
-@@ -1,6 +1,2 @@
--#ifndef __ASM_I8253_H__
--#define __ASM_I8253_H__
--
--extern spinlock_t i8253_lock;
--
--#endif	/* __ASM_I8253_H__ */
-+#include <asm-i386/i8253.h>
-+#include <asm/8253pit.h>
+ 	int irqen;
+@@ -772,7 +772,7 @@ static void setup_APIC_timer(unsigned in
+ 
+ 	irqen = ! cpu_isset(smp_processor_id(),
+ 			    timer_interrupt_broadcast_ipi_mask);
+-	__setup_APIC_LVTT(clocks, 0, irqen);
++	__setup_APIC_LVTT(calibration_result, 0, irqen);
+ 	/* Turn off PIT interrupt if we use APIC timer as main timer.
+ 	   Only works with the PM timer right now
+ 	   TBD fix it for HPET too. */
+@@ -859,7 +859,7 @@ void __init setup_boot_APIC_clock (void)
+ 	/*
+ 	 * Now set up the timer for real.
+ 	 */
+-	setup_APIC_timer(calibration_result);
++	setup_APIC_timer();
+ 
+ 	local_irq_enable();
+ }
+@@ -867,7 +867,7 @@ void __init setup_boot_APIC_clock (void)
+ void __cpuinit setup_secondary_APIC_clock(void)
+ {
+ 	local_irq_disable(); /* FIXME: Do we need this? --RR */
+-	setup_APIC_timer(calibration_result);
++	setup_APIC_timer();
+ 	local_irq_enable();
+ }
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
