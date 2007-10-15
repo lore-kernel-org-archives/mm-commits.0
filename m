@@ -1,51 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - clockevents-remove-unused-inline-function.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:17:47 -0700
-Message-ID: <200710150917.l9F9Hlsg027311@imap1.linux-foundation.org>
+Subject: - acpi-remove-the-useless-ifdef-code.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:28 -0700
+Message-ID: <200710150918.l9F9ISud027405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54067 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755697AbXJOJWX (ORCPT
+	by vger.kernel.org with ESMTP id S1756846AbXJOJXR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:22:23 -0400
+	Mon, 15 Oct 2007 05:23:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clockevents: Remove unused inline function
+     ACPI: remove the now unused ifdef code
 has been removed from the -mm tree.  Its filename was
-     clockevents-remove-unused-inline-function.patch
+     acpi-remove-the-useless-ifdef-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clockevents: Remove unused inline function
+Subject: ACPI: remove the now unused ifdef code
 From: Thomas Gleixner <tglx@linutronix.de>
+
+The conversion of x86-64 to clock events makes the
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+ n the timer broadcast functions useless. Remove it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/processor_idle.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN include/linux/clockchips.h~clockevents-remove-unused-inline-function include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-remove-unused-inline-function
-+++ a/include/linux/clockchips.h
-@@ -130,7 +130,6 @@ extern void clockevents_notify(unsigned 
+diff -puN drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-remove-the-useless-ifdef-code
++++ a/drivers/acpi/processor_idle.c
+@@ -295,21 +295,12 @@ static void acpi_timer_check_state(int s
+ 
+ static void acpi_propagate_timer_broadcast(struct acpi_processor *pr)
+ {
+-#ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 	unsigned long reason;
+ 
+ 	reason = pr->power.timer_broadcast_on_state < INT_MAX ?
+ 		CLOCK_EVT_NOTIFY_BROADCAST_ON : CLOCK_EVT_NOTIFY_BROADCAST_OFF;
+ 
+ 	clockevents_notify(reason, &pr->id);
+-#else
+-	cpumask_t mask = cpumask_of_cpu(pr->id);
+-
+-	if (pr->power.timer_broadcast_on_state < INT_MAX)
+-		on_each_cpu(switch_APIC_timer_to_ipi, &mask, 1, 1);
+-	else
+-		on_each_cpu(switch_ipi_to_APIC_timer, &mask, 1, 1);
+-#endif
+ }
+ 
+ /* Power(C) State timer broadcast control */
+@@ -317,8 +308,6 @@ static void acpi_state_timer_broadcast(s
+ 				       struct acpi_processor_cx *cx,
+ 				       int broadcast)
+ {
+-#ifdef CONFIG_GENERIC_CLOCKEVENTS
+-
+ 	int state = cx - pr->power.states;
+ 
+ 	if (state >= pr->power.timer_broadcast_on_state) {
+@@ -328,7 +317,6 @@ static void acpi_state_timer_broadcast(s
+ 			CLOCK_EVT_NOTIFY_BROADCAST_EXIT;
+ 		clockevents_notify(reason, &pr->id);
+ 	}
+-#endif
+ }
  
  #else
- 
--static inline void clockevents_resume_events(void) { }
- #define clockevents_notify(reason, arg) do { } while (0)
- 
- #endif
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
