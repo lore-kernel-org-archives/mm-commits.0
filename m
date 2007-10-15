@@ -1,187 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:39 -0700
-Message-ID: <200710150918.l9F9IdOP027428@imap1.linux-foundation.org>
+Subject: + task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch added to -mm tree
+Date: Mon, 15 Oct 2007 12:11:43 -0700
+Message-ID: <200710151911.l9FJBhhR020296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44466 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755227AbXJOJbJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757123AbXJOTLv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:31:09 -0400
+	Mon, 15 Oct 2007 15:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: venkatesh.pallipadi@intel.com, ak@suse.de, greg@kroah.com, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: pj@sgi.com, menage@google.com
 
 
 The patch titled
-     ich force hpet: ich7 or later quirk to force detect enable
-has been removed from the -mm tree.  Its filename was
-     ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable.patch
+     task containersv11 automatic userspace notification of idle containers fix
+has been added to the -mm tree.  Its filename is
+     task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ich force hpet: ich7 or later quirk to force detect enable
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: task containersv11 automatic userspace notification of idle containers fix
+From: Paul Jackson <pj@sgi.com>
 
-Force detect and/or enable HPET on ICH chipsets.  This patch just handles the
-detection part and following patches use this information.  Adds a function to
-repeat the force enabling during resume time.
+Need to include kmod.h to define UMH_WAIT_EXEC, at least
+for my configuration (sn2_defconfig).
 
-Using HPET this way, instead of PIT increases the time CPUs can reside in
-C-state when system is totally idle.  On my test system with Core 2 Duo,
-average C-state residency goes up from ~20mS to ~80mS.
-
-[akpm@linux-foundation.org: fix warning]
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/quirks.c |  102 ++++++++++++++++++++++++++++++++++++
- include/asm-i386/hpet.h   |    1 
- 2 files changed, 103 insertions(+)
+ kernel/cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/i386/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable arch/i386/kernel/quirks.c
---- a/arch/x86/kernel/quirks.c~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
-+++ a/arch/x86/kernel/quirks.c
-@@ -4,6 +4,8 @@
- #include <linux/pci.h>
- #include <linux/irq.h>
+diff -puN kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers-fix
++++ a/kernel/cgroup.c
+@@ -43,6 +43,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
+ #include <linux/sort.h>
++#include <linux/kmod.h>
+ #include <asm/atomic.h>
  
-+#include <asm/hpet.h>
-+
- #if defined(CONFIG_X86_IO_APIC) && defined(CONFIG_SMP) && defined(CONFIG_PCI)
- 
- static void __devinit quirk_intel_irqbalance(struct pci_dev *dev)
-@@ -47,3 +49,103 @@ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_IN
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7525_MCH,	quirk_intel_irqbalance);
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_E7520_MCH,	quirk_intel_irqbalance);
- #endif
-+
-+#if defined(CONFIG_HPET_TIMER)
-+unsigned long force_hpet_address;
-+
-+static void __iomem *rcba_base;
-+
-+void ich_force_hpet_resume(void)
-+{
-+	u32 val;
-+
-+	if (!force_hpet_address)
-+		return;
-+
-+	if (rcba_base == NULL)
-+		BUG();
-+
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		/* HPET disabled in HPTC. Trying to enable */
-+		writel(val | 0x80, rcba_base + 0x3404);
-+	}
-+
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80))
-+		BUG();
-+	else
-+		printk(KERN_DEBUG "Force enabled HPET at resume\n");
-+
-+	return;
-+}
-+
-+static void ich_force_enable_hpet(struct pci_dev *dev)
-+{
-+	u32 val;
-+	u32 uninitialized_var(rcba);
-+	int err = 0;
-+
-+	if (hpet_address || force_hpet_address)
-+		return;
-+
-+	pci_read_config_dword(dev, 0xF0, &rcba);
-+	rcba &= 0xFFFFC000;
-+	if (rcba == 0) {
-+		printk(KERN_DEBUG "RCBA disabled. Cannot force enable HPET\n");
-+		return;
-+	}
-+
-+	/* use bits 31:14, 16 kB aligned */
-+	rcba_base = ioremap_nocache(rcba, 0x4000);
-+	if (rcba_base == NULL) {
-+		printk(KERN_DEBUG "ioremap failed. Cannot force enable HPET\n");
-+		return;
-+	}
-+
-+	/* read the Function Disable register, dword mode only */
-+	val = readl(rcba_base + 0x3404);
-+
-+	if (val & 0x80) {
-+		/* HPET is enabled in HPTC. Just not reported by BIOS */
-+		val = val & 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+		iounmap(rcba_base);
-+		return;
-+	}
-+
-+	/* HPET disabled in HPTC. Trying to enable */
-+	writel(val | 0x80, rcba_base + 0x3404);
-+
-+	val = readl(rcba_base + 0x3404);
-+	if (!(val & 0x80)) {
-+		err = 1;
-+	} else {
-+		val = val & 0x3;
-+		force_hpet_address = 0xFED00000 | (val << 12);
-+	}
-+
-+	if (err) {
-+		force_hpet_address = 0;
-+		iounmap(rcba_base);
-+		printk(KERN_DEBUG "Failed to force enable HPET\n");
-+	} else {
-+		printk(KERN_DEBUG "Force enabled HPET at base address 0x%lx\n",
-+			       force_hpet_address);
-+	}
-+}
-+
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ESB2_0,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH6_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_1,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH7_31,
-+                         ich_force_enable_hpet);
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_ICH8_1,
-+                         ich_force_enable_hpet);
-+#endif
-diff -puN include/asm-i386/hpet.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable include/asm-i386/hpet.h
---- a/include/asm-x86/hpet_32.h~ich-force-hpet-ich7-or-later-quirk-to-force-detect-enable
-+++ a/include/asm-x86/hpet_32.h
-@@ -67,6 +67,7 @@ extern unsigned long hpet_address;
- extern int is_hpet_enabled(void);
- extern int hpet_enable(void);
- extern unsigned long hpet_readl(unsigned long a);
-+extern void ich_force_hpet_resume(void);
- 
- #ifdef CONFIG_HPET_EMULATE_RTC
- 
+ static DEFINE_MUTEX(cgroup_mutex);
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from pj@sgi.com are
 
-origin.patch
-git-acpi.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+cpuset-remove-sched-domain-hooks-from-cpusets.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+task-containers-enable-containers-by-default-in-some-configs.patch
+whitespace-fixes-cpuset.patch
+cpuset-sched_load_balance-flag.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
