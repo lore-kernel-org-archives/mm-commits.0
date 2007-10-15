@@ -1,51 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - git-mtd-borkage.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:55:36 -0700
-Message-ID: <200710150855.l9F8taPD026139@imap1.linux-foundation.org>
+Subject: - git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 01:59:07 -0700
+Message-ID: <200710150859.l9F8x7u2026225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34406 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751097AbXJOIzu (ORCPT
+	by vger.kernel.org with ESMTP id S1753267AbXJOJA2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 04:55:50 -0400
+	Mon, 15 Oct 2007 05:00:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gregkh@suse.de, kay.sievers@vrfy.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mtd-borkage
+     git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 has been removed from the -mm tree.  Its filename was
-     git-mtd-borkage.patch
+     git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-mtd-borkage
+Subject: git-wireless vs gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/onenand/onenand_base.c: In function 'do_otp_write':
-drivers/mtd/onenand/onenand_base.c:2068: error: 'struct mtd_oob_ops' has no member named 'databuf'
+my life sucks
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_base.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/ssb/main.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/onenand/onenand_base.c~git-mtd-borkage drivers/mtd/onenand/onenand_base.c
---- a/drivers/mtd/onenand/onenand_base.c~git-mtd-borkage
-+++ a/drivers/mtd/onenand/onenand_base.c
-@@ -2065,7 +2065,6 @@ static int do_otp_write(struct mtd_info 
+diff -puN drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct drivers/ssb/main.c
+--- a/drivers/ssb/main.c~git-wireless-vs-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct
++++ a/drivers/ssb/main.c
+@@ -320,22 +320,17 @@ static int ssb_bus_match(struct device *
+ 	return 0;
+ }
  
- 	ops.len = len;
- 	ops.ooblen = 0;
--	ops.databuf = pbuf;
- 	ops.oobbuf = NULL;
- 	ret = onenand_write_ops_nolock(mtd, to, &ops);
- 	*retlen = ops.retlen;
+-static int ssb_device_uevent(struct device *dev, char **envp, int num_envp,
+-			     char *buffer, int buffer_size)
++static int ssb_device_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct ssb_device *ssb_dev = dev_to_ssb_dev(dev);
+-	int ret, i = 0, length = 0;
++	int ret;
+ 
+ 	if (!dev)
+ 		return -ENODEV;
+ 
+-	ret = add_uevent_var(envp, num_envp, &i,
+-			     buffer, buffer_size, &length,
+-			     "MODALIAS=ssb:v%04Xid%04Xrev%02X",
++	ret = add_uevent_var(env, "MODALIAS=ssb:v%04Xid%04Xrev%02X",
+ 			     ssb_dev->id.vendor, ssb_dev->id.coreid,
+ 			     ssb_dev->id.revision);
+-	envp[i] = NULL;
+-
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,14 +96,11 @@ ide-arm-hack.patch
 git-md-accel-fixup.patch
 git-mips.patch
 git-mips-fixup.patch
-git-mtd-borkage.patch
-mtd-alaudac-warning-fix.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 git-nfs-fixup.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd.patch
 git-nfsd-fixup.patch
-git-jg-misc-vs-gregkh-pci-pci-skip-isa-ioresource-alignment-on-some-systems.patch
 git-sched.patch
 git-scsi-misc.patch
 git-scsi-misc-fixup.patch
