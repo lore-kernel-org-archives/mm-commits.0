@@ -1,105 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-apic-shuffle-calibration-around.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:05 -0700
-Message-ID: <200710150918.l9F9I5pZ027359@imap1.linux-foundation.org>
+Subject: - i386-hpet-sharing-optimize.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:33 -0700
+Message-ID: <200710150918.l9F9IXA6027413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51811 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39819 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757389AbXJOJYc (ORCPT
+	by vger.kernel.org with ESMTP id S1756947AbXJOJY3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:32 -0400
+	Mon, 15 Oct 2007 05:24:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Move apic calibration code around
+     i386/x86_64: cleanup the shared hpet code
 has been removed from the -mm tree.  Its filename was
-     x86_64-apic-shuffle-calibration-around.patch
+     i386-hpet-sharing-optimize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Move apic calibration code around
+Subject: i386/x86_64: cleanup the shared hpet code
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Let the calibration code fill in calibration_result directly and
-move the variable on top of the file.
+Remove hpet_readl/writel from vsyscall.h, where it does not belong anyway. 
+Use the hpet code itself.
 
-Fixup a printk w/o log level while at it.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ arch/i386/kernel/hpet.c       |    6 +-----
+ include/asm-i386/hpet.h       |    2 ++
+ include/asm-x86_64/vsyscall.h |    3 ---
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-shuffle-calibration-around arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-apic-shuffle-calibration-around
-+++ a/arch/x86/kernel/apic_64.c
-@@ -55,6 +55,8 @@ static struct resource lapic_resource = 
- 	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
- };
+diff -puN arch/i386/kernel/hpet.c~i386-hpet-sharing-optimize arch/i386/kernel/hpet.c
+--- a/arch/x86/kernel/hpet_32.c~i386-hpet-sharing-optimize
++++ a/arch/x86/kernel/hpet_32.c
+@@ -25,11 +25,7 @@
+ unsigned long hpet_address;
+ static void __iomem *hpet_virt_address;
  
-+static unsigned int calibration_result;
-+
- /*
-  * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
-  * IPIs in place of local APIC timers
-@@ -801,7 +803,7 @@ static void setup_APIC_timer(unsigned in
- 
- #define TICK_COUNT 100000000
- 
--static int __init calibrate_APIC_clock(void)
-+static void __init calibrate_APIC_clock(void)
+-/* Temporary hack. Cleanup after x86_64 clock events conversion */
+-#undef hpet_readl
+-#undef hpet_writel
+-
+-static inline unsigned long hpet_readl(unsigned long a)
++unsigned long hpet_readl(unsigned long a)
  {
- 	unsigned apic, apic_start;
- 	unsigned long tsc, tsc_start;
-@@ -835,17 +837,14 @@ static int __init calibrate_APIC_clock(v
- 		result = (apic_start - apic) * 1000L * tsc_khz /
- 					(tsc - tsc_start);
- 	}
--	printk("result %d\n", result);
--
-+	printk(KERN_DEBUG "APIC timer calibration result %d\n", result);
- 
- 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
- 		result / 1000 / 1000, result / 1000 % 1000);
- 
--	return result * APIC_DIVISOR / HZ;
-+	calibration_result = result * APIC_DIVISOR / HZ;
+ 	return readl(hpet_virt_address + a);
  }
+diff -puN include/asm-i386/hpet.h~i386-hpet-sharing-optimize include/asm-i386/hpet.h
+--- a/include/asm-x86/hpet_32.h~i386-hpet-sharing-optimize
++++ a/include/asm-x86/hpet_32.h
+@@ -66,6 +66,7 @@
+ extern unsigned long hpet_address;
+ extern int is_hpet_enabled(void);
+ extern int hpet_enable(void);
++extern unsigned long hpet_readl(unsigned long a);
  
--static unsigned int calibration_result;
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ 
+@@ -85,6 +86,7 @@ extern irqreturn_t hpet_rtc_interrupt(in
+ #else
+ 
+ static inline int hpet_enable(void) { return 0; }
++static inline unsigned long hpet_readl(unsigned long a) { return 0; }
+ 
+ #endif /* CONFIG_HPET_TIMER */
+ #endif /* _I386_HPET_H */
+diff -puN include/asm-x86_64/vsyscall.h~i386-hpet-sharing-optimize include/asm-x86_64/vsyscall.h
+--- a/include/asm-x86/vsyscall.h~i386-hpet-sharing-optimize
++++ a/include/asm-x86/vsyscall.h
+@@ -29,9 +29,6 @@ enum vsyscall_num {
+ #define VGETCPU_RDTSCP	1
+ #define VGETCPU_LSL	2
+ 
+-#define hpet_readl(a)           readl((const void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
+-#define hpet_writel(d,a)        writel(d, (void __iomem *)fix_to_virt(FIX_HPET_BASE) + a)
 -
- void __init setup_boot_APIC_clock (void)
- {
- 	if (disable_apic_timer) {
-@@ -858,7 +857,7 @@ void __init setup_boot_APIC_clock (void)
+ extern int __vgetcpu_mode;
+ extern volatile unsigned long __jiffies;
  
- 	local_irq_disable();
- 
--	calibration_result = calibrate_APIC_clock();
-+	calibrate_APIC_clock();
- 	/*
- 	 * Now set up the timer for real.
- 	 */
-@@ -965,8 +964,6 @@ void setup_APIC_extended_lvt(unsigned ch
- 	apic_write(reg, v);
- }
- 
--#undef APIC_DIVISOR
--
- /*
-  * Local timer interrupt handler. It does both profiling and
-  * process statistics/rescheduling.
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
