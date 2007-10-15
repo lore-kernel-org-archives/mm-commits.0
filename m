@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + ps3fb-clean-up-includes.patch added to -mm tree
-Date: Mon, 15 Oct 2007 14:36:11 -0700
-Message-ID: <200710152136.l9FLaBki026130@imap1.linux-foundation.org>
+Subject: + ps3fb-do-not-print-warnings-on-invalid-frame-numbers.patch added to -mm tree
+Date: Mon, 15 Oct 2007 14:36:09 -0700
+Message-ID: <200710152136.l9FLa95K026127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60233 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755497AbXJOVgP (ORCPT
+	by vger.kernel.org with ESMTP id S1753383AbXJOVgP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 15 Oct 2007 17:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net
 
 
 The patch titled
-     ps3fb: clean up includes
+     ps3fb: do not print warnings on invalid frame numbers
 has been added to the -mm tree.  Its filename is
-     ps3fb-clean-up-includes.patch
+     ps3fb-do-not-print-warnings-on-invalid-frame-numbers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ps3fb: clean up includes
+Subject: ps3fb: do not print warnings on invalid frame numbers
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Clean up includes
+Do not print warnings on invalid frame numbers, as this can be triggered from
+user space.
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |    8 --------
- 1 file changed, 8 deletions(-)
+ drivers/video/ps3fb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-clean-up-includes drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-clean-up-includes
+diff -puN drivers/video/ps3fb.c~ps3fb-do-not-print-warnings-on-invalid-frame-numbers drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-do-not-print-warnings-on-invalid-frame-numbers
 +++ a/drivers/video/ps3fb.c
-@@ -22,22 +22,14 @@
- #include <linux/errno.h>
- #include <linux/string.h>
- #include <linux/mm.h>
--#include <linux/tty.h>
--#include <linux/slab.h>
--#include <linux/vmalloc.h>
--#include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/console.h>
- #include <linux/ioctl.h>
--#include <linux/notifier.h>
--#include <linux/reboot.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
--
- #include <linux/uaccess.h>
- #include <linux/fb.h>
- #include <linux/init.h>
--#include <asm/time.h>
+@@ -389,8 +389,8 @@ static int ps3fb_sync(struct fb_info *in
+ 	yres = ps3fb_res[i].yres;
  
- #include <asm/abs_addr.h>
- #include <asm/lv1call.h>
+ 	if (frame > ps3fb.num_frames - 1) {
+-		dev_warn(info->device, "%s: invalid frame number (%u)\n",
+-			 __func__, frame);
++		dev_dbg(info->device, "%s: invalid frame number (%u)\n",
++			__func__, frame);
+ 		return -EINVAL;
+ 	}
+ 	offset = xres * yres * BPP * frame;
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
