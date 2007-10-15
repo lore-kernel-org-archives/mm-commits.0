@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata_piix-sata-2port-controller-port-map-fix.patch added to -mm tree
-Date: Mon, 15 Oct 2007 13:39:45 -0700
-Message-ID: <200710152039.l9FKdji6024001@imap1.linux-foundation.org>
+Subject: + ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch added to -mm tree
+Date: Mon, 15 Oct 2007 13:13:41 -0700
+Message-ID: <200710152013.l9FKDfD3022921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33675 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55503 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755577AbXJOUjr (ORCPT
+	by vger.kernel.org with ESMTP id S934490AbXJOUOV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 16:39:47 -0400
+	Mon, 15 Oct 2007 16:14:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jason.d.gaston@intel.com
+Cc: Pierre.Peiffer@bull.net, Nadia.Derbey@bull.net, pierre.peiffer@bull.net
 
 
 The patch titled
-     ata_piix: SATA 2port controller port map fix
+     IPC: fix error case when idr-cache is empty in ipcget()
 has been added to the -mm tree.  Its filename is
-     ata_piix-sata-2port-controller-port-map-fix.patch
+     ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,103 +26,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata_piix: SATA 2port controller port map fix
-From: Jason Gaston <jason.d.gaston@intel.com>
+Subject: IPC: fix error case when idr-cache is empty in ipcget()
+From: Pierre Peiffer <Pierre.Peiffer@bull.net>
 
-Add a port map for ICH9 and ICH8 SATA controllers that have only 2 ports
-available in that mode.
+With the use of idr to store the ipc, the case where the idr cache is
+empty, when idr_get_new is called (this may happen even if we call
+idr_pre_get() before), is not well handled: it lets
+semget()/shmget()/msgget() return ENOSPC when this cache is empty, what 1. 
+does not reflect the facts and 2.  does not conform to the man(s).
 
-Signed-off-by: Jason Gaston <jason.d.gaston@intel.com>
+This patch fixes this by retrying the whole process of allocation in this case.
+
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ata_piix.c |   35 ++++++++++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 5 deletions(-)
+ ipc/msg.c  |    4 ++--
+ ipc/sem.c  |    4 ++--
+ ipc/shm.c  |    5 +++--
+ ipc/util.c |   16 +++++++++++-----
+ 4 files changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN drivers/ata/ata_piix.c~ata_piix-sata-2port-controller-port-map-fix drivers/ata/ata_piix.c
---- a/drivers/ata/ata_piix.c~ata_piix-sata-2port-controller-port-map-fix
-+++ a/drivers/ata/ata_piix.c
-@@ -130,6 +130,7 @@ enum {
- 	ich8_sata_ahci		= 9,
- 	piix_pata_mwdma		= 10,	/* PIIX3 MWDMA only */
- 	tolapai_sata_ahci	= 11,
-+	ich9_2port_sata		= 12,
+diff -puN ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/msg.c
+--- a/ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
++++ a/ipc/msg.c
+@@ -203,10 +203,10 @@ static int newque(struct ipc_namespace *
+ 	 * ipc_addid() locks msq
+ 	 */
+ 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
+-	if (id == -1) {
++	if (id < 0) {
+ 		security_msg_queue_free(msq);
+ 		ipc_rcu_putref(msq);
+-		return -ENOSPC;
++		return id;
+ 	}
  
- 	/* constants for mapping table */
- 	P0			= 0,  /* port 0 */
-@@ -238,19 +239,19 @@ static const struct pci_device_id piix_p
- 	/* SATA Controller 1 IDE (ICH8) */
- 	{ 0x8086, 0x2820, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* SATA Controller 2 IDE (ICH8) */
--	{ 0x8086, 0x2825, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x2825, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich9_2port_sata },
- 	/* Mobile SATA Controller IDE (ICH8M) */
- 	{ 0x8086, 0x2828, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* SATA Controller IDE (ICH9) */
- 	{ 0x8086, 0x2920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* SATA Controller IDE (ICH9) */
--	{ 0x8086, 0x2921, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x2921, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich9_2port_sata },
- 	/* SATA Controller IDE (ICH9) */
--	{ 0x8086, 0x2926, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x2926, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich9_2port_sata },
- 	/* SATA Controller IDE (ICH9M) */
--	{ 0x8086, 0x2928, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x2928, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich9_2port_sata },
- 	/* SATA Controller IDE (ICH9M) */
--	{ 0x8086, 0x292d, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
-+	{ 0x8086, 0x292d, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich9_2port_sata },
- 	/* SATA Controller IDE (ICH9M) */
- 	{ 0x8086, 0x292e, PCI_ANY_ID, PCI_ANY_ID, 0, 0, ich8_sata_ahci },
- 	/* SATA Controller IDE (Tolapai) */
-@@ -448,6 +449,18 @@ static const struct piix_map_db tolapai_
- 	},
- };
+ 	msq->q_perm.id = msg_buildid(id, msq->q_perm.seq);
+diff -puN ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/sem.c
+--- a/ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
++++ a/ipc/sem.c
+@@ -283,10 +283,10 @@ static int newary(struct ipc_namespace *
+ 	}
  
-+static const struct piix_map_db ich9_2port_map_db = {
-+        .mask = 0x3,
-+        .port_enable = 0x3,
-+        .map = {
-+                /* PM   PS   SM   SS       MAP */
-+                {  P0,  NA,  P1,  NA }, /* 00b */
-+                {  RV,  RV,  RV,  RV }, /* 01b */
-+                {  RV,  RV,  RV,  RV }, /* 10b */
-+                {  RV,  RV,  RV,  RV },
-+        },
-+};
+ 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+-	if(id == -1) {
++	if (id < 0) {
+ 		security_sem_free(sma);
+ 		ipc_rcu_putref(sma);
+-		return -ENOSPC;
++		return id;
+ 	}
+ 	ns->used_sems += nsems;
+ 
+diff -puN ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/shm.c
+--- a/ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
++++ a/ipc/shm.c
+@@ -433,10 +433,11 @@ static int newseg(struct ipc_namespace *
+ 	if (IS_ERR(file))
+ 		goto no_file;
+ 
+-	error = -ENOSPC;
+ 	id = shm_addid(ns, shp);
+-	if(id == -1) 
++	if (id < 0) {
++		error = id;
+ 		goto no_id;
++	}
+ 
+ 	shp->shm_cprid = task_tgid_vnr(current);
+ 	shp->shm_lprid = 0;
+diff -puN ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/util.c
+--- a/ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
++++ a/ipc/util.c
+@@ -262,7 +262,7 @@ int ipc_get_maxid(struct ipc_ids *ids)
+  *	Add an entry 'new' to the IPC ids idr. The permissions object is
+  *	initialised and the first free entry is set up and the id assigned
+  *	is returned. The 'new' entry is returned in a locked state on success.
+- *	On failure the entry is not locked and -1 is returned.
++ *	On failure the entry is not locked and a negative err-code is returned.
+  *
+  *	Called with ipc_ids.rw_mutex held as a writer.
+  */
+@@ -275,11 +275,11 @@ int ipc_addid(struct ipc_ids* ids, struc
+ 		size = IPCMNI;
+ 
+ 	if (ids->in_use >= size)
+-		return -1;
++		return -ENOSPC;
+ 
+ 	err = idr_get_new(&ids->ipcs_idr, new, &id);
+ 	if (err)
+-		return -1;
++		return err;
+ 
+ 	ids->in_use++;
+ 
+@@ -311,7 +311,7 @@ int ipcget_new(struct ipc_namespace *ns,
+ 		struct ipc_ops *ops, struct ipc_params *params)
+ {
+ 	int err;
+-
++retry:
+ 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+ 
+ 	if (!err)
+@@ -321,6 +321,9 @@ int ipcget_new(struct ipc_namespace *ns,
+ 	err = ops->getnew(ns, params);
+ 	up_write(&ids->rw_mutex);
+ 
++	if (err == -EAGAIN)
++		goto retry;
 +
- static const struct piix_map_db *piix_map_db_table[] = {
- 	[ich5_sata]		= &ich5_map_db,
- 	[ich6_sata]		= &ich6_map_db,
-@@ -455,6 +468,7 @@ static const struct piix_map_db *piix_ma
- 	[ich6m_sata_ahci]	= &ich6m_map_db,
- 	[ich8_sata_ahci]	= &ich8_map_db,
- 	[tolapai_sata_ahci]	= &tolapai_map_db,
-+	[ich9_2port_sata]	= &ich9_2port_map_db,
- };
+ 	return err;
+ }
  
- static struct ata_port_info piix_port_info[] = {
-@@ -570,6 +584,17 @@ static struct ata_port_info piix_port_in
- 		.udma_mask	= ATA_UDMA6,
- 		.port_ops	= &piix_sata_ops,
- 	},
+@@ -374,7 +377,7 @@ int ipcget_public(struct ipc_namespace *
+ 	struct kern_ipc_perm *ipcp;
+ 	int flg = params->flg;
+ 	int err;
+-
++retry:
+ 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
+ 
+ 	/*
+@@ -411,6 +414,9 @@ int ipcget_public(struct ipc_namespace *
+ 	}
+ 	up_write(&ids->rw_mutex);
+ 
++	if (err == -EAGAIN)
++		goto retry;
 +
-+	/* ich9_2port_sata: 12: */
-+	{
-+		.sht		= &piix_sht,
-+		.flags		= PIIX_SATA_FLAGS | PIIX_FLAG_SCR |
-+				  PIIX_FLAG_AHCI,
-+		.pio_mask	= 0x1f,	/* pio0-4 */
-+		.mwdma_mask	= 0x07, /* mwdma0-2 */
-+		.udma_mask	= ATA_UDMA6,
-+		.port_ops	= &piix_sata_ops,
-+	},
- };
+ 	return err;
+ }
  
- static struct pci_bits piix_enable_bits[] = {
 _
 
-Patches currently in -mm which might be from jason.d.gaston@intel.com are
+Patches currently in -mm which might be from Pierre.Peiffer@bull.net are
 
-origin.patch
-ata_piix-sata-2port-controller-port-map-fix.patch
+ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
