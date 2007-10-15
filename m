@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-smart-battery-system-depend-on-acpi_sbs.patch added to -mm tree
-Date: Mon, 15 Oct 2007 12:35:36 -0700
-Message-ID: <200710151935.l9FJZapf021228@imap1.linux-foundation.org>
+Subject: + ipv4-kernel-panic-when-only-one-unsecured-port-available.patch added to -mm tree
+Date: Mon, 15 Oct 2007 12:49:23 -0700
+Message-ID: <200710151949.l9FJnSlC021810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34746 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49871 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756543AbXJOTg3 (ORCPT
+	by vger.kernel.org with ESMTP id S932657AbXJOT4S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 15:36:29 -0400
+	Mon, 15 Oct 2007 15:56:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, astarikovskiy@suse.de, cbou@mail.ru, lenb@kernel.org, vladimir.p.lebedev@intel.com
+Cc: aarapov@redhat.com, davem@davemloft.net
 
 
 The patch titled
-     Make Smart Battery System depend on ACPI_SBS ACPI_PROC_EVENT
+     ipv4: kernel panic when only one unsecured port available
 has been added to the -mm tree.  Its filename is
-     make-smart-battery-system-depend-on-acpi_sbs.patch
+     ipv4-kernel-panic-when-only-one-unsecured-port-available.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,53 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make Smart Battery System depend on ACPI_SBS ACPI_PROC_EVENT
-From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao <fernando@oss.ntt.co.jp>
+Subject: ipv4: kernel panic when only one unsecured port available
+From: Anton Arapov <aarapov@redhat.com>
 
-Playing with the latest -mm kernel I stumbled upon the following compile
-error:
+Steps to reproduce:
+Server:
+  [root@server ~]# cat /etc/exports
+  /export *(ro,insecure)
+// there is insecure ... I am using ports like "1024 to 61000"
+  [root@server ~] service nfs restart 
 
-  CHK     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-<stdin>:1389:2: warning: #warning syscall revokeat not implemented
-<stdin>:1393:2: warning: #warning syscall frevoke not implemented
-  CHK     include/linux/compile.h
-  LD      drivers/acpi/built-in.o
-  LD [M]  drivers/acpi/processor.o
-  CC [M]  drivers/acpi/sbs.o
-drivers/acpi/sbs.c: In function 'acpi_battery_add':
-drivers/acpi/sbs.c:825: warning: ignoring return value of 'device_create_file',\
- declared with attribute warn_unused_result
-drivers/acpi/sbs.c: In function 'acpi_sbs_callback':
-drivers/acpi/sbs.c:898: error: implicit declaration of function 'acpi_bus_gener\
-ate_proc_event4'
-make[2]: *** [drivers/acpi/sbs.o] Error 1
-make[1]: *** [drivers/acpi] Error 2
-make: *** [drivers] Error 2
+Client:
+  1.[root@client ~]# echo 32768 32768 > /proc/sys/net/ipv4/ip_local_port_range
+  32768   32768
+// two same numbers, for ex "32769 32769" etc.
+  2.[root@client ~]# cat /proc/sys/net/ipv4/ip_local_port_range
+  32768   32768
+  3.[root@client ~]# mount server:/export /import
+  
+Actual results:
+  Kernel always panics 
 
-The problem turned out to be that the sbs module is still using
-acpi_bus_generate_proc_event4(), which is part of the deprecated
-/proc/acpi/event interface.  This patch makes this dependency explicit.
+Patch prevents division by zero.  Kernel panics if only one unsecured port
+available.
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: Len Brown <lenb@kernel.org>
-Cc: <astarikovskiy@suse.de>
-Cc: <vladimir.p.lebedev@intel.com>
+Signed-off-by: Anton Arapov <aarapov@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ net/ipv4/inet_connection_sock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/Kconfig~make-smart-battery-system-depend-on-acpi_sbs drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~make-smart-battery-system-depend-on-acpi_sbs
-+++ a/drivers/acpi/Kconfig
-@@ -353,6 +353,7 @@ config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
- 	depends on POWER_SUPPLY
-+	depends on ACPI_PROC_EVENT
- 	help
- 	  This driver adds support for the Smart Battery System, another
- 	  type of access to battery information, found on some laptops.
+diff -puN net/ipv4/inet_connection_sock.c~ipv4-kernel-panic-when-only-one-unsecured-port-available net/ipv4/inet_connection_sock.c
+--- a/net/ipv4/inet_connection_sock.c~ipv4-kernel-panic-when-only-one-unsecured-port-available
++++ a/net/ipv4/inet_connection_sock.c
+@@ -93,7 +93,7 @@ int inet_csk_get_port(struct inet_hashin
+ 		int remaining, rover, low, high;
+ 
+ 		inet_get_local_port_range(&low, &high);
+-		remaining = high - low;
++		remaining = high - low + 1;
+ 		rover = net_random() % remaining + low;
+ 
+ 		do {
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from aarapov@redhat.com are
 
-make-smart-battery-system-depend-on-acpi_sbs.patch
-fix-config_debug_shirq-trigger-on-free_irq.patch
+ipv4-kernel-panic-when-only-one-unsecured-port-available.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
