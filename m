@@ -1,93 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:17:27 -0700
-Message-ID: <200710150917.l9F9HRMm027276@imap1.linux-foundation.org>
+Subject: - fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:17:06 -0700
+Message-ID: <200710150917.l9F9H6uv027245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53013 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755222AbXJOJSM (ORCPT
+	by vger.kernel.org with ESMTP id S1755101AbXJOJSQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:18:12 -0400
+	Mon, 15 Oct 2007 05:18:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haokexin@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, airlied@linux.ie, davej@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MTD: fix ctrl-alt-del can't reboot for intel flash bug
+     Fix "use after free" / "double free" bug in amd_create_gatt_pages / amd_free_gatt_pages
 has been removed from the -mm tree.  Its filename was
-     mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug.patch
+     fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MTD: fix ctrl-alt-del can't reboot for intel flash bug
-From: "Kevin Hao" <haokexin@gmail.com>
+Subject: Fix "use after free" / "double free" bug in amd_create_gatt_pages / amd_free_gatt_pages
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-When we press ctrl-alt-del,kernel_restart_prepare will revoke
-cfi_intelext_reboot which will set flash to read array mode,but later when
-device_shutdown is invoked which may put current work queue to sleep and
-other process may be sheduled to running and programming flash in not
-FL_READY mode again.So we cann't boot up if this flash is used for
-bootloader.
+Coverity spotted a "use after free" bug in
+drivers/char/agp/amd-k7-agp.c::amd_create_gatt_pages().
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+The problem is this:
+	If "entry = kzalloc(sizeof(struct amd_page_map), GFP_KERNEL);"
+fails, then there's a loop in the function to free all entries
+allocated so far and break out of the allocation loop. That in itself
+is pretty sane, but then the (now freed) 'tables' is assigned to
+amd_irongate_private.gatt_pages and 'retval' is set to -ENOMEM which
+causes amd_free_gatt_pages(); to be called at the end of the function.
+The problem with this is that amd_free_gatt_pages() will then loop
+'amd_irongate_private.num_tables' times and try to free each entry in
+tables[] - this is bad since tables has already been freed and
+furthermore it will call kfree(tables) at the end - a double free.
+
+This patch removes the freeing loop in amd_create_gatt_pages() and
+instead relies entirely on the call to amd_free_gatt_pages() to free
+everything we allocated in case of an error. It also sets
+amd_irongate_private.num_tables to the actual number of entries
+allocated instead of just using the value passed in from the caller -
+this ensures that amd_free_gatt_pages() will only attempt to free
+stuff that was actually allocated.
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |    9 ++++++---
- include/linux/mtd/flashchip.h       |    1 +
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/char/agp/amd-k7-agp.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -653,7 +653,7 @@ static int get_chip(struct map_info *map
-  resettime:
- 	timeo = jiffies + HZ;
-  retry:
--	if (chip->priv && (mode == FL_WRITING || mode == FL_ERASING || mode == FL_OTP_WRITE)) {
-+	if (chip->priv && (mode == FL_WRITING || mode == FL_ERASING || mode == FL_OTP_WRITE || mode == FL_SHUTDOWN)) {
- 		/*
- 		 * OK. We have possibility for contension on the write/erase
- 		 * operations which are global to the real chip and not per
-@@ -798,6 +798,9 @@ static int get_chip(struct map_info *map
- 		if (mode == FL_READY && chip->oldstate == FL_READY)
- 			return 0;
+diff -puN drivers/char/agp/amd-k7-agp.c~fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages drivers/char/agp/amd-k7-agp.c
+--- a/drivers/char/agp/amd-k7-agp.c~fix-use-after-free--double-free-bug-in-amd_create_gatt_pages--amd_free_gatt_pages
++++ a/drivers/char/agp/amd-k7-agp.c
+@@ -100,21 +100,16 @@ static int amd_create_gatt_pages(int nr_
  
-+	case FL_SHUTDOWN:
-+		/* The machine is rebooting now,so no one can get chip anymore */
-+		return -EIO;
- 	default:
- 	sleep:
- 		set_current_state(TASK_UNINTERRUPTIBLE);
-@@ -2409,10 +2412,10 @@ static int cfi_intelext_reset(struct mtd
- 		   and switch to array mode so any bootloader in
- 		   flash is accessible for soft reboot. */
- 		spin_lock(chip->mutex);
--		ret = get_chip(map, chip, chip->start, FL_SYNCING);
-+		ret = get_chip(map, chip, chip->start, FL_SHUTDOWN);
- 		if (!ret) {
- 			map_write(map, CMD(0xff), chip->start);
--			chip->state = FL_READY;
-+			chip->state = FL_SHUTDOWN;
+ 	for (i = 0; i < nr_tables; i++) {
+ 		entry = kzalloc(sizeof(struct amd_page_map), GFP_KERNEL);
++		tables[i] = entry;
+ 		if (entry == NULL) {
+-			while (i > 0) {
+-				kfree(tables[i-1]);
+-				i--;
+-			}
+-			kfree(tables);
+ 			retval = -ENOMEM;
+ 			break;
  		}
- 		spin_unlock(chip->mutex);
+-		tables[i] = entry;
+ 		retval = amd_create_page_map(entry);
+ 		if (retval != 0)
+ 			break;
  	}
-diff -puN include/linux/mtd/flashchip.h~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug include/linux/mtd/flashchip.h
---- a/include/linux/mtd/flashchip.h~mtd-fix-ctrl-alt-del-cant-reboot-for-intel-flash-bug
-+++ a/include/linux/mtd/flashchip.h
-@@ -40,6 +40,7 @@ typedef enum {
- 	FL_POINT,
- 	FL_XIP_WHILE_ERASING,
- 	FL_XIP_WHILE_WRITING,
-+	FL_SHUTDOWN,
- 	FL_UNKNOWN
- } flstate_t;
+-	amd_irongate_private.num_tables = nr_tables;
++	amd_irongate_private.num_tables = i;
+ 	amd_irongate_private.gatt_pages = tables;
  
+ 	if (retval != 0)
 _
 
-Patches currently in -mm which might be from haokexin@gmail.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
+git-alsa.patch
+git-agpgart.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-kbuild.patch
+git-nfs.patch
+git-scsi-misc.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+clean-up-duplicate-includes-in-mm.patch
+mm-no-need-to-cast-vmalloc-return-value-in-zone_wait_table_init.patch
+uml-remove-unneeded-void-cast.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+clean-up-duplicate-includes-in-drivers-spi.patch
+fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
+fbdev-update-documentation-fb-00-index.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-missing-00-index-file-for-documentation-vm-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
