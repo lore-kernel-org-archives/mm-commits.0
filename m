@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + hptiop-avoid-buffer-overflow-when-returning-sense-data.patch added to -mm tree
-Date: Sun, 14 Oct 2007 23:40:24 -0700
-Message-ID: <200710150640.l9F6eOhc021479@imap1.linux-foundation.org>
+Date: Mon, 15 Oct 2007 00:42:31 -0700
+Message-ID: <200710150742.l9F7gVvr023636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35495 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41542 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755591AbXJOGk2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751975AbXJOHmu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 02:40:28 -0400
+	Mon, 15 Oct 2007 03:42:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@highpoint-tech.com
+Cc: linux@highpoint-tech.com, James.Bottomley@steeleye.com, stable@kernel.org
 
 
 The patch titled
@@ -31,7 +31,15 @@ From: HighPoint Linux Team <linux@highpoint-tech.com>
 
 avoid buffer overflow when returning sense data.
 
+With current adapter firmware the driver is working but future firmware
+updates may return sense data larger than 96 bytes, causing overflow on
+scp->sense_buffer and a kernel crash.
+
+This fix should be backported to earlier kernels.
+
 Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
