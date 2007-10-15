@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-dynamic-pool-resize-failure-case-update.patch added to -mm tree
-Date: Mon, 15 Oct 2007 14:59:37 -0700
-Message-ID: <200710152159.l9FLxbUd027224@imap1.linux-foundation.org>
+Subject: + ipmi-documentation-fixes.patch added to -mm tree
+Date: Mon, 15 Oct 2007 14:54:05 -0700
+Message-ID: <200710152154.l9FLs6ST026982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758259AbXJOV7q (ORCPT
+	by vger.kernel.org with ESMTP id S1759755AbXJOVye (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 17:59:46 -0400
+	Mon, 15 Oct 2007 17:54:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, haveblue@us.ibm.com
+Cc: cminyard@mvista.com
 
 
 The patch titled
-     hugetlb: Fix dynamic pool resize failure case (update)
+     IPMI: documentation fixes
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-dynamic-pool-resize-failure-case-update.patch
+     ipmi-documentation-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlb: Fix dynamic pool resize failure case (update)
-From: Adam Litke <agl@us.ibm.com>
+Subject: IPMI: documentation fixes
+From: Corey Minyard <cminyard@mvista.com>
 
-Added a comment explaining the free logic in gather_surplus_pages.
+Clean up IPMI documentation to remove references to high-res timers and add
+info about the polling thread.  Also fix an doc error for a parameter.
 
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/IPMI.txt |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-dynamic-pool-resize-failure-case-update mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-dynamic-pool-resize-failure-case-update
-+++ a/mm/hugetlb.c
-@@ -303,6 +303,12 @@ free:
- 		if ((--needed) >= 0)
- 			enqueue_huge_page(page);
- 		else {
-+			/*
-+			 * Decrement the refcount and free the page using its
-+			 * destructor.  This must be done with hugetlb_lock
-+			 * unlocked which is safe because free_huge_page takes
-+			 * hugetlb_lock before deciding how to free the page.
-+			 */
- 			spin_unlock(&hugetlb_lock);
- 			put_page(page);
- 			spin_lock(&hugetlb_lock);
+diff -puN Documentation/IPMI.txt~ipmi-documentation-fixes Documentation/IPMI.txt
+--- a/Documentation/IPMI.txt~ipmi-documentation-fixes
++++ a/Documentation/IPMI.txt
+@@ -441,17 +441,20 @@ ACPI, and if none of those then a KCS de
+ 0xca2.  If you want to turn this off, set the "trydefaults" option to
+ false.
+ 
+-If you have high-res timers compiled into the kernel, the driver will
+-use them to provide much better performance.  Note that if you do not
+-have high-res timers enabled in the kernel and you don't have
+-interrupts enabled, the driver will run VERY slowly.  Don't blame me,
++If your IPMI interface does not support interrupts and is a KCS or
++SMIC interface, the IPMI driver will start a kernel thread for the
++interface to help speed things up.  This is a low-priority kernel
++thread that constantly polls the IPMI driver while an IPMI operation
++is in progress.  The force_kipmid module parameter will all the user to
++force this thread on or off.  If you force it off and don't have
++interrupts, the driver will run VERY slowly.  Don't blame me,
+ these interfaces suck.
+ 
+ The driver supports a hot add and remove of interfaces.  This way,
+ interfaces can be added or removed after the kernel is up and running.
+-This is done using /sys/modules/ipmi_si/hotmod, which is a write-only
+-parameter.  You write a string to this interface.  The string has the
+-format:
++This is done using /sys/modules/ipmi_si/parameters/hotmod, which is a
++write-only parameter.  You write a string to this interface.  The string
++has the format:
+    <op1>[:op2[:op3...]]
+ The "op"s are:
+    add|remove,kcs|bt|smic,mem|i/o,<address>[,<opt1>[,<opt2>[,...]]]
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-hugetlb-move-update_and_free_page.patch
-hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings.patch
-hugetlb-try-to-grow-hugetlb-pool-for-map_shared-mappings.patch
-hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
-hugetlb-allow-extending-ftruncate-on-hugetlbfs.patch
-hugetlbfs-read-support-fix-2-fix.patch
-hugetlb-fix-pool-resizing-corner-case-v2.patch
-hugetlb-fix-hugepage-allocation-with-memoryless-nodes.patch
-hugetlb-fix-dynamic-pool-resize-failure-case.patch
-hugetlb-fix-dynamic-pool-resize-failure-case-update.patch
+ipmi-dont-init-irq-until-ready.patch
+ipmi-remove-bogus-semaphore-from-watchdog.patch
+ipmi-documentation-fixes.patch
+ipmi-add-polled-interface.patch
+ipmi-fix-hotmod-remove-lock.patch
+ipmi-add-09-support.patch
