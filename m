@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-assembler-equivalents-to-__initdate_refok.patch added to -mm tree
-Date: Mon, 15 Oct 2007 13:03:48 -0700
-Message-ID: <200710152003.l9FK3mIg022480@imap1.linux-foundation.org>
+Subject: + add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver.patch added to -mm tree
+Date: Mon, 15 Oct 2007 13:01:46 -0700
+Message-ID: <200710152001.l9FK1kNp022344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41592 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755357AbXJOUED (ORCPT
+	by vger.kernel.org with ESMTP id S1765637AbXJOUCZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 16:04:03 -0400
+	Mon, 15 Oct 2007 16:02:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org
+Cc: mbroemme@plusserver.de, pazke@orbita1.ru
 
 
 The patch titled
-     Add assembler equivalents to __init{,date}_refok
+     Add support for Wacom WACF007 and WACF008 to serial pnp driver
 has been added to the -mm tree.  Its filename is
-     add-assembler-equivalents-to-__initdate_refok.patch
+     add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add assembler equivalents to __init{,date}_refok
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Add support for Wacom WACF007 and WACF008 to serial pnp driver
+From: Maik Broemme <mbroemme@plusserver.de>
 
-I need __INIT_REFOK to fix a MODPOST warning for a few MIPS configs which
-have to call init code from .text very early in the game due to bootloader
-issues.  __INITDATA_REFOK is just for consistency.
+Notebook manufacturer seems to built a newer Wacom pen enabled tablet to
+recent tablet pcs which are not recognized by the serial pnp driver.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Attached is a patch which makes the newer Wacom WACF007 and WACF008 tablets
+useable with the serial driver.  The device is fully compatible with it.
+
+Signed-off-by: Maik Broemme <mbroemme@plusserver.de>
+Cc: Andrey Panin <pazke@orbita1.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    2 ++
+ drivers/serial/8250_pnp.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/linux/init.h~add-assembler-equivalents-to-__initdate_refok include/linux/init.h
---- a/include/linux/init.h~add-assembler-equivalents-to-__initdate_refok
-+++ a/include/linux/init.h
-@@ -67,8 +67,10 @@
- 
- /* For assembly routines */
- #define __INIT		.section	".init.text","ax"
-+#define __INIT_REFOK	.section	".text.init.refok","ax"
- #define __FINIT		.previous
- #define __INITDATA	.section	".init.data","aw"
-+#define __INITDATA_REFOK .section	".data.init.refok","aw"
- 
- #ifndef __ASSEMBLY__
- /*
+diff -puN drivers/serial/8250_pnp.c~add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver
++++ a/drivers/serial/8250_pnp.c
+@@ -327,6 +327,8 @@ static const struct pnp_device_id pnp_de
+ 	{	"WACF004",		0	},
+ 	{	"WACF005",		0	},
+ 	{       "WACF006",              0       },
++	{       "WACF007",              0       },
++	{       "WACF008",              0       },
+ 	/* Compaq touchscreen */
+ 	{       "FPI2002",              0 },
+ 	/* Fujitsu Stylistic touchscreens */
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from mbroemme@plusserver.de are
 
-origin.patch
-add-assembler-equivalents-to-__initdate_refok.patch
-git-mips.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lk201-remove-obsolete-driver.patch
-fix-wrong-filename-reference-in-drivers-testingtxt.patch
-completely-remove-deprecated-irq-flags-sa_.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-break-elf_platform-and-stack-pointer-randomization-dependency.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver.patch
