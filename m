@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch added to -mm tree
-Date: Mon, 15 Oct 2007 14:23:54 -0700
-Message-ID: <200710152123.l9FLNsNQ025740@imap1.linux-foundation.org>
+Subject: + ipmi-add-09-support.patch added to -mm tree
+Date: Mon, 15 Oct 2007 14:54:15 -0700
+Message-ID: <200710152154.l9FLsFA4026997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51245 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40639 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757895AbXJOVYx (ORCPT
+	by vger.kernel.org with ESMTP id S1760144AbXJOVyo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 17:24:53 -0400
+	Mon, 15 Oct 2007 17:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.pyne@kdemail.net, aabdulla@nvidia.com, jeff@garzik.org, stable@kernel.org
+Cc: cminyard@mvista.com, liste@jordet.net
 
 
 The patch titled
-     forcedeth: fix MAC address detection on network card (regression in 2.6.23)
+     IPMI: add 0.9 support
 has been added to the -mm tree.  Its filename is
-     forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+     ipmi-add-09-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: forcedeth: fix MAC address detection on network card (regression in 2.6.23)
-From: Michael Pyne <michael.pyne@kdemail.net>
+Subject: IPMI: add 0.9 support
+From: Corey Minyard <cminyard@mvista.com>
 
-Partially revert a change to mac address detection introduced to the forcedeth
-driver.  The change was intended to correct mac address detection for newer
-nVidia chipsets where the mac address was stored in reverse order.  One of
-those chipsets appears to still have the mac address in reverse order (or at
-least, it does on my system).
+Add support for IPMI 0.9 systems to the IPMI driver.  Just handle a shorter
+get device ID command with less information.
 
-The change that broke mac address detection for my card was commit
-ef756b3e56c68a4d76d9d7b9a73fa8f4f739180f "forcedeth: mac address correct"
-
-My network card is an nVidia built-in Ethernet card, output from lspci as
-follows (with text and numeric ids):
-$ lspci | grep Ethernet
-00:07.0 Bridge: nVidia Corporation MCP61 Ethernet (rev a2)
-$ lspci -n | grep 07.0
-00:07.0 0680: 10de:03ef (rev a2)
-
-The vendor id is, of course, nVidia.  The device id corresponds to the
-NVIDIA_NVENET_19 entry.
-
-The included patch fixes the MAC address detection on my system.
-Interestingly, the MAC address appears to be in the range reserved for my
-motherboard manufacturer (Gigabyte) and not nVidia.
-
-Signed-off-by: Michael J. Pyne <michael.pyne@kdemail.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Stian Jordet <liste@jordet.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |   15 +-----------
+ include/linux/ipmi_smi.h         |   36 ++++++++++++++++++++++-------
+ 2 files changed, 30 insertions(+), 21 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623 drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623
-+++ a/drivers/net/forcedeth.c
-@@ -5521,7 +5521,7 @@ static struct pci_device_id pci_tbl[] = 
- 	},
- 	{	/* MCP61 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_19),
--		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT|DEV_HAS_CORRECT_MACADDR,
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
- 	},
- 	{	/* MCP65 Ethernet Controller */
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_20),
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-09-support drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-09-support
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2380,20 +2380,9 @@ static int try_get_dev_id(struct smi_inf
+ 	/* Otherwise, we got some data. */
+ 	resp_len = smi_info->handlers->get_result(smi_info->si_sm,
+ 						  resp, IPMI_MAX_MSG_LENGTH);
+-	if (resp_len < 14) {
+-		/* That's odd, it should be longer. */
+-		rv = -EINVAL;
+-		goto out;
+-	}
+-
+-	if ((resp[1] != IPMI_GET_DEVICE_ID_CMD) || (resp[2] != 0)) {
+-		/* That's odd, it shouldn't be able to fail. */
+-		rv = -EINVAL;
+-		goto out;
+-	}
+ 
+-	/* Record info from the get device id, in case we need it. */
+-	ipmi_demangle_device_id(resp+3, resp_len-3, &smi_info->device_id);
++	/* Check and record info from the get device id, in case we need it. */
++	rv = ipmi_demangle_device_id(resp, resp_len, &smi_info->device_id);
+ 
+  out:
+ 	kfree(resp);
+diff -puN include/linux/ipmi_smi.h~ipmi-add-09-support include/linux/ipmi_smi.h
+--- a/include/linux/ipmi_smi.h~ipmi-add-09-support
++++ a/include/linux/ipmi_smi.h
+@@ -148,26 +148,46 @@ struct ipmi_device_id {
+ 
+ /* Take a pointer to a raw data buffer and a length and extract device
+    id information from it.  The first byte of data must point to the
+-   byte from the get device id response after the completion code.
+-   The caller is responsible for making sure the length is at least
+-   11 and the command completed without error. */
+-static inline void ipmi_demangle_device_id(unsigned char *data,
+-					   unsigned int  data_len,
+-					   struct ipmi_device_id *id)
++   netfn << 2, the data should be of the format:
++      netfn << 2, cmd, completion code, data
++   as normally comes from a device interface. */
++static inline int ipmi_demangle_device_id(const unsigned char *data,
++					  unsigned int data_len,
++					  struct ipmi_device_id *id)
+ {
++	if (data_len < 9)
++		return -EINVAL;
++	if (data[0] != IPMI_NETFN_APP_RESPONSE << 2 ||
++	    data[1] != IPMI_GET_DEVICE_ID_CMD)
++		/* Strange, didn't get the response we expected. */
++		return -EINVAL;
++	if (data[2] != 0)
++		/* That's odd, it shouldn't be able to fail. */
++		return -EINVAL;
++
++	data += 3;
++	data_len -= 3;
+ 	id->device_id = data[0];
+ 	id->device_revision = data[1];
+ 	id->firmware_revision_1 = data[2];
+ 	id->firmware_revision_2 = data[3];
+ 	id->ipmi_version = data[4];
+ 	id->additional_device_support = data[5];
+-	id->manufacturer_id = data[6] | (data[7] << 8) | (data[8] << 16);
+-	id->product_id = data[9] | (data[10] << 8);
++	if (data_len >= 6) {
++		id->manufacturer_id = (data[6] | (data[7] << 8) |
++				       (data[8] << 16));
++		id->product_id = data[9] | (data[10] << 8);
++	} else {
++		id->manufacturer_id = 0;
++		id->product_id = 0;
++	}
+ 	if (data_len >= 15) {
+ 		memcpy(id->aux_firmware_revision, data+11, 4);
+ 		id->aux_firmware_revision_set = 1;
+ 	} else
+ 		id->aux_firmware_revision_set = 0;
++
++	return 0;
+ }
+ 
+ /* Add a low-level interface to the IPMI driver.  Note that if the
 _
 
-Patches currently in -mm which might be from michael.pyne@kdemail.net are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+ipmi-dont-init-irq-until-ready.patch
+ipmi-remove-bogus-semaphore-from-watchdog.patch
+ipmi-documentation-fixes.patch
+ipmi-add-polled-interface.patch
+ipmi-fix-hotmod-remove-lock.patch
+ipmi-add-09-support.patch
