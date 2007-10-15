@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + virtualization-of-sysv-msg-queues-is-incomplete.patch added to -mm tree
-Date: Mon, 15 Oct 2007 12:24:47 -0700
-Message-ID: <200710151924.l9FJOlEo020794@imap1.linux-foundation.org>
+Subject: + remap_file_pages-kernel-doc-corrections.patch added to -mm tree
+Date: Mon, 15 Oct 2007 12:26:50 -0700
+Message-ID: <200710151926.l9FJQo3g020895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758889AbXJOTZn (ORCPT
+	by vger.kernel.org with ESMTP id S1759839AbXJOT21 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 15:25:43 -0400
+	Mon, 15 Oct 2007 15:28:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dev@openvz.org, Nadia.Derbey@bull.net, alexey@openvz.org, ebiederm@xmission.com, pierre.peiffer@bull.net, serue@us.ibm.com
+Cc: randy.dunlap@oracle.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     virtualization of sysv msg queues is incomplete
+     remap_file_pages: kernel-doc corrections
 has been added to the -mm tree.  Its filename is
-     virtualization-of-sysv-msg-queues-is-incomplete.patch
+     remap_file_pages-kernel-doc-corrections.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,124 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: virtualization of sysv msg queues is incomplete
-From: Kirill Korotaev <dev@openvz.org>
+Subject: remap_file_pages: kernel-doc corrections
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Virtualization of sysv msg queues is incomplete: msg_hdrs and msg_bytes
-variables visible from userspace are global.  Let's make them
-per-namespace.
+Fix kernel-doc for sys_remap_file_pages() and add info to the 'prot' NOTE. 
+Rename __prot parameter to prot.
 
-Signed-off-by: Alexey Kuznetsov <alexey@openvz.org>
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h |    2 ++
- ipc/msg.c           |   21 ++++++++++-----------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ mm/fremap.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/ipc.h~virtualization-of-sysv-msg-queues-is-incomplete include/linux/ipc.h
---- a/include/linux/ipc.h~virtualization-of-sysv-msg-queues-is-incomplete
-+++ a/include/linux/ipc.h
-@@ -111,6 +111,8 @@ struct ipc_namespace {
- 	int		msg_ctlmax;
- 	int		msg_ctlmnb;
- 	int		msg_ctlmni;
-+	atomic_t	msg_bytes;
-+	atomic_t	msg_hdrs;
+diff -puN mm/fremap.c~remap_file_pages-kernel-doc-corrections mm/fremap.c
+--- a/mm/fremap.c~remap_file_pages-kernel-doc-corrections
++++ a/mm/fremap.c
+@@ -97,26 +97,28 @@ static int populate_range(struct mm_stru
  
- 	size_t		shm_ctlmax;
- 	size_t		shm_ctlall;
-diff -puN ipc/msg.c~virtualization-of-sysv-msg-queues-is-incomplete ipc/msg.c
---- a/ipc/msg.c~virtualization-of-sysv-msg-queues-is-incomplete
-+++ a/ipc/msg.c
-@@ -66,9 +66,6 @@ struct msg_sender {
- #define SEARCH_NOTEQUAL		3
- #define SEARCH_LESSEQUAL	4
- 
--static atomic_t msg_bytes =	ATOMIC_INIT(0);
--static atomic_t msg_hdrs =	ATOMIC_INIT(0);
--
- static struct ipc_ids init_msg_ids;
- 
- #define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
-@@ -88,6 +85,8 @@ static void __msg_init_ns(struct ipc_nam
- 	ns->msg_ctlmax = MSGMAX;
- 	ns->msg_ctlmnb = MSGMNB;
- 	ns->msg_ctlmni = MSGMNI;
-+	atomic_set(&ns->msg_bytes, 0);
-+	atomic_set(&ns->msg_hdrs, 0);
- 	ipc_init_ids(ids);
  }
  
-@@ -293,10 +292,10 @@ static void freeque(struct ipc_namespace
- 		struct msg_msg *msg = list_entry(tmp, struct msg_msg, m_list);
+-/***
+- * sys_remap_file_pages - remap arbitrary pages of a shared backing store
+- *                        file within an existing vma.
++/**
++ * sys_remap_file_pages - remap arbitrary pages of an existing VM_SHARED vma
+  * @start: start of the remapped virtual memory range
+  * @size: size of the remapped virtual memory range
+- * @prot: new protection bits of the range
+- * @pgoff: to be mapped page of the backing store file
++ * @prot: new protection bits of the range (see NOTE)
++ * @pgoff: to-be-mapped page of the backing store file
+  * @flags: 0 or MAP_NONBLOCKED - the later will cause no IO.
+  *
+- * this syscall works purely via pagetables, so it's the most efficient
++ * sys_remap_file_pages remaps arbitrary pages of an existing VM_SHARED vma
++ * (shared backing store file).
++ *
++ * This syscall works purely via pagetables, so it's the most efficient
+  * way to map the same (large) file into a given virtual window. Unlike
+  * mmap()/mremap() it does not create any new vmas. The new mappings are
+  * also safe across swapout.
+  *
+- * NOTE: the 'prot' parameter right now is ignored, and the vma's default
+- * protection is used. Arbitrary protections might be implemented in the
+- * future.
++ * NOTE: the 'prot' parameter right now is ignored (but must be zero),
++ * and the vma's default protection is used. Arbitrary protections
++ * might be implemented in the future.
+  */
+ asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
+-	unsigned long __prot, unsigned long pgoff, unsigned long flags)
++	unsigned long prot, unsigned long pgoff, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct address_space *mapping;
+@@ -125,7 +127,7 @@ asmlinkage long sys_remap_file_pages(uns
+ 	int err = -EINVAL;
+ 	int has_write_lock = 0;
  
- 		tmp = tmp->next;
--		atomic_dec(&msg_hdrs);
-+		atomic_dec(&ns->msg_hdrs);
- 		free_msg(msg);
- 	}
--	atomic_sub(msq->q_cbytes, &msg_bytes);
-+	atomic_sub(msq->q_cbytes, &ns->msg_bytes);
- 	security_msg_queue_free(msq);
- 	ipc_rcu_putref(msq);
- }
-@@ -463,8 +462,8 @@ asmlinkage long sys_msgctl(int msqid, in
- 		down_read(&msg_ids(ns).rw_mutex);
- 		if (cmd == MSG_INFO) {
- 			msginfo.msgpool = msg_ids(ns).in_use;
--			msginfo.msgmap = atomic_read(&msg_hdrs);
--			msginfo.msgtql = atomic_read(&msg_bytes);
-+			msginfo.msgmap = atomic_read(&ns->msg_hdrs);
-+			msginfo.msgtql = atomic_read(&ns->msg_bytes);
- 		} else {
- 			msginfo.msgmap = MSGMAP;
- 			msginfo.msgpool = MSGPOOL;
-@@ -735,8 +734,8 @@ long do_msgsnd(int msqid, long mtype, vo
- 		list_add_tail(&msg->m_list, &msq->q_messages);
- 		msq->q_cbytes += msgsz;
- 		msq->q_qnum++;
--		atomic_add(msgsz, &msg_bytes);
--		atomic_inc(&msg_hdrs);
-+		atomic_add(msgsz, &ns->msg_bytes);
-+		atomic_inc(&ns->msg_hdrs);
- 	}
- 
- 	err = 0;
-@@ -840,8 +839,8 @@ long do_msgrcv(int msqid, long *pmtype, 
- 			msq->q_rtime = get_seconds();
- 			msq->q_lrpid = task_tgid_vnr(current);
- 			msq->q_cbytes -= msg->m_ts;
--			atomic_sub(msg->m_ts, &msg_bytes);
--			atomic_dec(&msg_hdrs);
-+			atomic_sub(msg->m_ts, &ns->msg_bytes);
-+			atomic_dec(&ns->msg_hdrs);
- 			ss_wakeup(&msq->q_senders, 0);
- 			msg_unlock(msq);
- 			break;
+-	if (__prot)
++	if (prot)
+ 		return err;
+ 	/*
+ 	 * Sanitize the syscall parameters:
 _
 
-Patches currently in -mm which might be from dev@openvz.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-shrink_dcache_sb-speedup.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-virtualization-of-sysv-msg-queues-is-incomplete.patch
+origin.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+git-nfsd.patch
+git-scsi-misc.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+dontdiff-update-based-on-gitignore-updates.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+remap_file_pages-kernel-doc-corrections.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
