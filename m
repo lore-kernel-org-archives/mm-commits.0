@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch added to -mm tree
-Date: Mon, 15 Oct 2007 12:10:39 -0700
-Message-ID: <200710151910.l9FJAdXt020266@imap1.linux-foundation.org>
+Subject: + rtc-add-max_user_freq-to-sysfs.patch added to -mm tree
+Date: Mon, 15 Oct 2007 12:12:53 -0700
+Message-ID: <200710151912.l9FJCrOi020376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757720AbXJOTLW (ORCPT
+	by vger.kernel.org with ESMTP id S1757759AbXJOTN3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 15:11:22 -0400
+	Mon, 15 Oct 2007 15:13:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com
+Cc: bryan@kdzbn.homelinux.net, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     IPC: cleanup some code and wrong comments about semundo list managment
+     rtc: add max_user_freq to sysfs
 has been added to the -mm tree.  Its filename is
-     ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
+     rtc-add-max_user_freq-to-sysfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,126 +26,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IPC: cleanup some code and wrong comments about semundo list managment
-From: Pierre Peiffer <pierre.peiffer@bull.net>
+Subject: rtc: add max_user_freq to sysfs
+From: Bryan Kadzban <bryan@kdzbn.homelinux.net>
 
-Some comments about sem_undo_list seem wrong.
-About the comment above unlock_semundo:
-"... If task2 now exits before task1 releases the lock (by calling
-unlock_semundo()), then task1 will never call spin_unlock(). ..."
+drivers/char/rtc.c exposed a sysctl to change the maximum frequency at
+which a non-root user could ask the RTC to generate interrupts (via the
+RTC_IRQP_SET ioctl).  This value is no longer available under the new RTC
+subsystem, so add it to sysfs for each RTC device.
 
-This is just wrong, I see no reason for which task1 will not call
-spin_unlock... The rest of this comment is also wrong... Unless I
-miss something (of course).
+Works for me on x86_64 (both reads and writes), using rtc-cmos.
 
-Finally, (un)lock_semundo functions are useless, so remove them
-for simplification. (this avoids an useless if statement)
-
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Bryan Kadzban <bryan@kdzbn.homelinux.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   46 ++++++----------------------------------------
- 1 file changed, 6 insertions(+), 40 deletions(-)
+ drivers/rtc/rtc-sysfs.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN ipc/sem.c~ipc-cleanup-some-code-and-wrong-comments-about-semundo ipc/sem.c
---- a/ipc/sem.c~ipc-cleanup-some-code-and-wrong-comments-about-semundo
-+++ a/ipc/sem.c
-@@ -999,36 +999,6 @@ asmlinkage long sys_semctl (int semid, i
- 	}
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-max_user_freq-to-sysfs drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-add-max_user_freq-to-sysfs
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -73,11 +73,35 @@ rtc_sysfs_show_since_epoch(struct device
+ 	return retval;
  }
  
--static inline void lock_semundo(void)
--{
--	struct sem_undo_list *undo_list;
--
--	undo_list = current->sysvsem.undo_list;
--	if (undo_list)
--		spin_lock(&undo_list->lock);
--}
--
--/* This code has an interaction with copy_semundo().
-- * Consider; two tasks are sharing the undo_list. task1
-- * acquires the undo_list lock in lock_semundo().  If task2 now
-- * exits before task1 releases the lock (by calling
-- * unlock_semundo()), then task1 will never call spin_unlock().
-- * This leave the sem_undo_list in a locked state.  If task1 now creats task3
-- * and once again shares the sem_undo_list, the sem_undo_list will still be
-- * locked, and future SEM_UNDO operations will deadlock.  This case is
-- * dealt with in copy_semundo() by having it reinitialize the spin lock when 
-- * the refcnt goes from 1 to 2.
-- */
--static inline void unlock_semundo(void)
--{
--	struct sem_undo_list *undo_list;
--
--	undo_list = current->sysvsem.undo_list;
--	if (undo_list)
--		spin_unlock(&undo_list->lock);
--}
--
--
- /* If the task doesn't already have a undo_list, then allocate one
-  * here.  We guarantee there is only one thread using this undo list,
-  * and current is THE ONE
-@@ -1089,9 +1059,9 @@ static struct sem_undo *find_undo(struct
- 	if (error)
- 		return ERR_PTR(error);
++static ssize_t
++rtc_sysfs_show_max_user_freq(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	return sprintf(buf, "%d\n", to_rtc_device(dev)->max_user_freq);
++}
++
++static ssize_t
++rtc_sysfs_set_max_user_freq(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t n)
++{
++	struct rtc_device *rtc = to_rtc_device(dev);
++	unsigned long val = simple_strtoul(buf, NULL, 0);
++
++	if (val >= 4096 || val == 0)
++		return -EINVAL;
++
++	rtc->max_user_freq = (int)val;
++
++	return n;
++}
++
+ static struct device_attribute rtc_attrs[] = {
+ 	__ATTR(name, S_IRUGO, rtc_sysfs_show_name, NULL),
+ 	__ATTR(date, S_IRUGO, rtc_sysfs_show_date, NULL),
+ 	__ATTR(time, S_IRUGO, rtc_sysfs_show_time, NULL),
+ 	__ATTR(since_epoch, S_IRUGO, rtc_sysfs_show_since_epoch, NULL),
++	__ATTR(max_user_freq, S_IRUGO | S_IWUSR, rtc_sysfs_show_max_user_freq,
++			rtc_sysfs_set_max_user_freq),
+ 	{ },
+ };
  
--	lock_semundo();
-+	spin_lock(&ulp->lock);
- 	un = lookup_undo(ulp, semid);
--	unlock_semundo();
-+	spin_unlock(&ulp->lock);
- 	if (likely(un!=NULL))
- 		goto out;
- 
-@@ -1114,10 +1084,10 @@ static struct sem_undo *find_undo(struct
- 	new->semadj = (short *) &new[1];
- 	new->semid = semid;
- 
--	lock_semundo();
-+	spin_lock(&ulp->lock);
- 	un = lookup_undo(ulp, semid);
- 	if (un) {
--		unlock_semundo();
-+		spin_unlock(&ulp->lock);
- 		kfree(new);
- 		ipc_lock_by_ptr(&sma->sem_perm);
- 		ipc_rcu_putref(sma);
-@@ -1128,7 +1098,7 @@ static struct sem_undo *find_undo(struct
- 	ipc_rcu_putref(sma);
- 	if (sma->sem_perm.deleted) {
- 		sem_unlock(sma);
--		unlock_semundo();
-+		spin_unlock(&ulp->lock);
- 		kfree(new);
- 		un = ERR_PTR(-EIDRM);
- 		goto out;
-@@ -1139,7 +1109,7 @@ static struct sem_undo *find_undo(struct
- 	sma->undo = new;
- 	sem_unlock(sma);
- 	un = new;
--	unlock_semundo();
-+	spin_unlock(&ulp->lock);
- out:
- 	return un;
- }
-@@ -1315,10 +1285,6 @@ asmlinkage long sys_semop (int semid, st
- 
- /* If CLONE_SYSVSEM is set, establish sharing of SEM_UNDO state between
-  * parent and child tasks.
-- *
-- * See the notes above unlock_semundo() regarding the spin_lock_init()
-- * in this code.  Initialize the undo_list->lock here instead of get_undo_list()
-- * because of the reasoning in the comment above unlock_semundo.
-  */
- 
- int copy_semundo(unsigned long clone_flags, struct task_struct *tsk)
 _
 
-Patches currently in -mm which might be from pierre.peiffer@bull.net are
+Patches currently in -mm which might be from bryan@kdzbn.homelinux.net are
 
-ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
+rtc-add-max_user_freq-to-sysfs.patch
