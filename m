@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-support-for-new-termios.patch added to -mm tree
-Date: Mon, 15 Oct 2007 16:39:10 -0700
-Message-ID: <200710152339.l9FNdApw031268@imap1.linux-foundation.org>
+Subject: + sparc-support-for-new-termios-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:40:03 -0700
+Message-ID: <200710152340.l9FNe43l031303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763656AbXJOXj1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752923AbXJOXkS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 19:39:27 -0400
+	Mon, 15 Oct 2007 19:40:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, alan@redhat.com
+Cc: akpm@linux-foundation.org, alan@redhat.com, davem@davemloft.net
 
 
 The patch titled
-     sparc support for new termios
+     sparc-support-for-new-termios-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sparc-support-for-new-termios.patch
+     sparc-support-for-new-termios-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,308 +26,285 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sparc support for new termios
-From: Dave Miller <davem@davemloft.net>
+Subject: sparc-support-for-new-termios-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: David Miller <davem@davemloft.net>
-Signed-off-by: Alan Cox <alan@redhat.com>
+ERROR: need a space before the open parenthesis '('
+#83: FILE: include/asm-sparc/termios.h:118:
++	if((k)->c_lflag & ICANON) { \
+
+ERROR: need a space before the open parenthesis '('
+#104: FILE: include/asm-sparc/termios.h:139:
++	if(!((k)->c_lflag & ICANON)) { \
+
+ERROR: need a space before the open parenthesis '('
+#222: FILE: include/asm-sparc64/termios.h:161:
++	if((k)->c_lflag & ICANON) { \
+
+ERROR: need a space before the open parenthesis '('
+#241: FILE: include/asm-sparc64/termios.h:180:
++	if(!((k)->c_lflag & ICANON)) { \
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: Alan Cox <alan@redhat.com>
+Cc: Dave Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/ioctls.h     |    4 ++
- include/asm-sparc/termbits.h   |   15 ++++++++++
- include/asm-sparc/termios.h    |   44 ++++++++++++++++++++++++++++++-
- include/asm-sparc64/ioctls.h   |    4 ++
- include/asm-sparc64/termbits.h |   17 ++++++++++-
- include/asm-sparc64/termios.h  |   42 +++++++++++++++++++++++++++++
- 6 files changed, 123 insertions(+), 3 deletions(-)
+ include/asm-sparc/termios.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-sparc/ioctls.h~sparc-support-for-new-termios include/asm-sparc/ioctls.h
---- a/include/asm-sparc/ioctls.h~sparc-support-for-new-termios
-+++ a/include/asm-sparc/ioctls.h
-@@ -15,6 +15,10 @@
- #define TCSETS		_IOW('T', 9, struct termios)
- #define TCSETSW		_IOW('T', 10, struct termios)
- #define TCSETSF		_IOW('T', 11, struct termios)
-+#define TCGETS2		_IOR('T', 12, struct termios2)
-+#define TCSETS2		_IOW('T', 13, struct termios2)
-+#define TCSETSW2	_IOW('T', 14, struct termios2)
-+#define TCSETSF2	_IOW('T', 15, struct termios2)
- 
- /* Note that all the ioctls that are not available in Linux have a 
-  * double underscore on the front to: a) avoid some programs to
-diff -puN include/asm-sparc/termbits.h~sparc-support-for-new-termios include/asm-sparc/termbits.h
---- a/include/asm-sparc/termbits.h~sparc-support-for-new-termios
-+++ a/include/asm-sparc/termbits.h
-@@ -31,6 +31,18 @@ struct termios {
- #endif
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	cc_t _x_cc[2];                  /* padding to match ktermios */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-@@ -160,6 +172,7 @@ struct ktermios {
- #define CLOCAL	  0x00000800
- #define CBAUDEX   0x00001000
- /* We'll never see these speeds with the Zilogs, but for completeness... */
-+#define  BOTHER   0x00001000
- #define  B57600   0x00001001
- #define  B115200  0x00001002
- #define  B230400  0x00001003
-@@ -189,6 +202,8 @@ struct ktermios {
- #define CMSPAR	  0x40000000  /* mark or space (stick) parity */
- #define CRTSCTS	  0x80000000  /* flow control */
- 
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0x00000001
- #define ICANON	0x00000002
-diff -puN include/asm-sparc/termios.h~sparc-support-for-new-termios include/asm-sparc/termios.h
---- a/include/asm-sparc/termios.h~sparc-support-for-new-termios
+diff -puN include/asm-sparc/termios.h~sparc-support-for-new-termios-checkpatch-fixes include/asm-sparc/termios.h
+--- a/include/asm-sparc/termios.h~sparc-support-for-new-termios-checkpatch-fixes
 +++ a/include/asm-sparc/termios.h
-@@ -108,6 +108,48 @@ struct winsize {
- 
- #define user_termios_to_kernel_termios(k, u) \
- ({ \
-+	int err; \
-+	err  = get_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |= get_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |= get_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |= get_user((k)->c_line,  &(u)->c_line); \
-+	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
-+	if((k)->c_lflag & ICANON) { \
-+		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+	} else { \
-+		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+	} \
-+	err |= get_user((k)->c_ispeed,  &(u)->c_ispeed); \
-+	err |= get_user((k)->c_ospeed,  &(u)->c_ospeed); \
-+	err; \
-+})
-+
-+#define kernel_termios_to_user_termios(u, k) \
-+({ \
-+	int err; \
-+	err  = put_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |= put_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |= put_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |= put_user((k)->c_line, &(u)->c_line); \
-+	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
-+	if(!((k)->c_lflag & ICANON)) { \
-+		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+	} else { \
-+		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+	} \
-+	err |= put_user((k)->c_ispeed, &(u)->c_ispeed); \
-+	err |= put_user((k)->c_ospeed, &(u)->c_ospeed); \
-+	err; \
-+})
-+
-+#define user_termios_to_kernel_termios_1(k, u) \
-+({ \
- 	get_user((k)->c_iflag, &(u)->c_iflag); \
- 	get_user((k)->c_oflag, &(u)->c_oflag); \
- 	get_user((k)->c_cflag, &(u)->c_cflag); \
-@@ -124,7 +166,7 @@ struct winsize {
- 	0; \
- })
- 
--#define kernel_termios_to_user_termios(u, k) \
-+#define kernel_termios_to_user_termios_1(u, k) \
- ({ \
- 	put_user((k)->c_iflag, &(u)->c_iflag); \
- 	put_user((k)->c_oflag, &(u)->c_oflag); \
-diff -puN include/asm-sparc64/ioctls.h~sparc-support-for-new-termios include/asm-sparc64/ioctls.h
---- a/include/asm-sparc64/ioctls.h~sparc-support-for-new-termios
-+++ a/include/asm-sparc64/ioctls.h
-@@ -16,6 +16,10 @@
- #define TCSETS		_IOW('T', 9, struct termios)
- #define TCSETSW		_IOW('T', 10, struct termios)
- #define TCSETSF		_IOW('T', 11, struct termios)
-+#define TCGETS2		_IOR('T', 12, struct termios2)
-+#define TCSETS2		_IOW('T', 13, struct termios2)
-+#define TCSETSW2	_IOW('T', 14, struct termios2)
-+#define TCSETSF2	_IOW('T', 15, struct termios2)
- 
- /* Note that all the ioctls that are not available in Linux have a 
-  * double underscore on the front to: a) avoid some programs to
-diff -puN include/asm-sparc64/termbits.h~sparc-support-for-new-termios include/asm-sparc64/termbits.h
---- a/include/asm-sparc64/termbits.h~sparc-support-for-new-termios
-+++ a/include/asm-sparc64/termbits.h
-@@ -5,8 +5,6 @@
- 
- typedef unsigned char   cc_t;
- typedef unsigned int    speed_t;
--
--/* XXX is this right for sparc64?  it was an unsigned long... XXX */
- typedef unsigned int    tcflag_t;
- 
- #define NCC 8
-@@ -33,6 +31,18 @@ struct termios {
- #endif
- };
- 
-+struct termios2 {
-+	tcflag_t c_iflag;		/* input mode flags */
-+	tcflag_t c_oflag;		/* output mode flags */
-+	tcflag_t c_cflag;		/* control mode flags */
-+	tcflag_t c_lflag;		/* local mode flags */
-+	cc_t c_line;			/* line discipline */
-+	cc_t c_cc[NCCS];		/* control characters */
-+	cc_t _x_cc[2];                  /* padding to match ktermios */
-+	speed_t c_ispeed;		/* input speed */
-+	speed_t c_ospeed;		/* output speed */
-+};
-+
- struct ktermios {
- 	tcflag_t c_iflag;		/* input mode flags */
- 	tcflag_t c_oflag;		/* output mode flags */
-@@ -161,6 +171,7 @@ struct ktermios {
- #define HUPCL	  0x00000400
- #define CLOCAL	  0x00000800
- #define CBAUDEX   0x00001000
-+#define  BOTHER   0x00001000
- #define  B57600   0x00001001
- #define  B115200  0x00001002
- #define  B230400  0x00001003
-@@ -190,6 +201,8 @@ struct ktermios {
- #define CMSPAR    0x40000000  /* mark or space (stick) parity */
- #define CRTSCTS	  0x80000000  /* flow control */
- 
-+#define IBSHIFT	  16		/* Shift from CBAUD to CIBAUD */
-+
- /* c_lflag bits */
- #define ISIG	0x00000001
- #define ICANON	0x00000002
-diff -puN include/asm-sparc64/termios.h~sparc-support-for-new-termios include/asm-sparc64/termios.h
---- a/include/asm-sparc64/termios.h~sparc-support-for-new-termios
-+++ a/include/asm-sparc64/termios.h
-@@ -123,6 +123,8 @@ struct winsize {
- 		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
- 		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
- 	} \
-+	err |= get_user((k)->c_ispeed,  &(u)->c_ispeed); \
-+	err |= get_user((k)->c_ospeed,  &(u)->c_ospeed); \
- 	err; \
- })
- 
-@@ -142,6 +144,46 @@ struct winsize {
- 		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
- 		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
- 	} \
-+	err |= put_user((k)->c_ispeed, &(u)->c_ispeed); \
-+	err |= put_user((k)->c_ospeed, &(u)->c_ospeed); \
-+	err; \
-+})
-+
-+#define user_termios_to_kernel_termios_1(k, u) \
-+({ \
-+	int err; \
-+	err  = get_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |= get_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |= get_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |= get_user((k)->c_line,  &(u)->c_line); \
-+	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
-+	if((k)->c_lflag & ICANON) { \
-+		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+	} else { \
-+		err |= get_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |= get_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+	} \
-+	err; \
-+})
-+
-+#define kernel_termios_to_user_termios_1(u, k) \
-+({ \
-+	int err; \
-+	err  = put_user((k)->c_iflag, &(u)->c_iflag); \
-+	err |= put_user((k)->c_oflag, &(u)->c_oflag); \
-+	err |= put_user((k)->c_cflag, &(u)->c_cflag); \
-+	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
-+	err |= put_user((k)->c_line, &(u)->c_line); \
-+	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
-+	if(!((k)->c_lflag & ICANON)) { \
-+		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
-+		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
-+	} else { \
-+		err |= put_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
-+		err |= put_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
-+	} \
- 	err; \
- })
- 
+@@ -115,7 +115,7 @@ struct winsize {
+ 	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
+ 	err |= get_user((k)->c_line,  &(u)->c_line); \
+ 	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
+-	if((k)->c_lflag & ICANON) { \
++	if ((k)->c_lflag & ICANON) { \
+ 		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+ 		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+ 	} else { \
+@@ -136,7 +136,7 @@ struct winsize {
+ 	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
+ 	err |= put_user((k)->c_line, &(u)->c_line); \
+ 	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
+-	if(!((k)->c_lflag & ICANON)) { \
++	if (!((k)->c_lflag & ICANON)) { \
+ 		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+ 		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+ 	} else { \
+@@ -156,7 +156,7 @@ struct winsize {
+ 	get_user((k)->c_lflag, &(u)->c_lflag); \
+ 	get_user((k)->c_line,  &(u)->c_line); \
+ 	copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
+-	if((k)->c_lflag & ICANON) { \
++	if ((k)->c_lflag & ICANON) { \
+ 		get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
+ 		get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
+ 	} else { \
+@@ -174,7 +174,7 @@ struct winsize {
+ 	put_user((k)->c_lflag, &(u)->c_lflag); \
+ 	put_user((k)->c_line, &(u)->c_line); \
+ 	copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
+-	if(!((k)->c_lflag & ICANON)) { \
++	if (!((k)->c_lflag & ICANON)) { \
+ 		put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
+ 		put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
+ 	} else { \
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-net.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-net-dccp-fix-link-error-with-config_sysctl.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+git-agpgart.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+git-cifs.patch
+git-drm.patch
+git-dvb.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+git-input.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kbuild.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ata_piix-sata-2port-controller-port-map-fix-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+git-mips.patch
+git-mips-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfs-fixup.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd.patch
+git-nfsd-fixup.patch
+git-sched.patch
 git-scsi-misc.patch
+git-scsi-misc-fixup.patch
+qla2xxx-printk-fixes.patch
 git-block.patch
-sparc-fix-build-due-to-termios-changes.patch
+git-block-fixup.patch
+git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
 git-wireless.patch
-convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
-sparsemem-clean-up-spelling-error-in-comments.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-generic-virtual-memmap-support-for-sparsemem.patch
-sparc64-sparsemem_vmemmap-support.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-i-oat-new-device-ids.patch
-i-oat-rename-the-source-file.patch
-i-oat-code-cleanup-from-checkpatch-output.patch
-i-oat-split-pci-startup-from-dma-handling-code.patch
-i-oat-add-support-for-msi-and-msi-x.patch
-dca-add-direct-cache-access-driver.patch
-i-oat-add-dca-services.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lockdep-annotate-kprobes-irq-fiddling.patch
+git-wireless-fixup.patch
+git-wireless-ath5k-broke.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+fs-restore-nobh-checkpatch-fixes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
 lockdep-annotate-kprobes-irq-fiddling-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-update-dma-mapping-documentation.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-broken-netfilter-binary-sysctls.patch
-sysctl-update-sysctl_checks-list-of-binary-paths.patch
-bitops-introduce-lock-ops.patch
-sparc-support-for-new-termios.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+sparc-support-for-new-termios-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
