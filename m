@@ -1,36 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-apic-remove-bogus-pit-synchronization.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:03 -0700
-Message-ID: <200710150918.l9F9I3ZG027355@imap1.linux-foundation.org>
+Subject: - x86_64-apic-add-clockevents-functions.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:14 -0700
+Message-ID: <200710150918.l9F9IE56027379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58755 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755290AbXJOJYT (ORCPT
+	by vger.kernel.org with ESMTP id S1757452AbXJOJYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:24:19 -0400
+	Mon, 15 Oct 2007 05:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: remove pit synchronization
+     x86_64: Add (not yet used) clock event functions
 has been removed from the -mm tree.  Its filename was
-     x86_64-apic-remove-bogus-pit-synchronization.patch
+     x86_64-apic-add-clockevents-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: remove pit synchronization
+Subject: x86_64: Add (not yet used) clock event functions
 From: Thomas Gleixner <tglx@linutronix.de>
-
-The APIC timer setup code synchronizes the local APIC timer to the PIT/HPET. 
-This is pointless as the PIT and the local APIC timer frequency are not
-correlated and the APIC timer calibration can never be accurate enough to
-avoid that the local APIC timer and the PIT/HPET drift apart.
-
-Simply remove it.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
@@ -40,37 +33,136 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/apic.c |   18 ------------------
- 1 file changed, 18 deletions(-)
+ arch/x86_64/Kconfig       |    6 ++
+ arch/x86_64/kernel/apic.c |   79 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
-diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-remove-bogus-pit-synchronization arch/x86_64/kernel/apic.c
---- a/arch/x86/kernel/apic_64.c~x86_64-apic-remove-bogus-pit-synchronization
+diff -puN arch/x86_64/Kconfig~x86_64-apic-add-clockevents-functions arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~x86_64-apic-add-clockevents-functions
++++ a/arch/x86_64/Kconfig
+@@ -28,6 +28,10 @@ config GENERIC_TIME
+ 	bool
+ 	default y
+ 
++config GENERIC_CLOCKEVENTS_MIGR
++	bool
++	default y
++
+ config GENERIC_TIME_VSYSCALL
+ 	bool
+ 	default y
+@@ -130,6 +134,8 @@ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+ 
++source "kernel/time/Kconfig"
++
+ choice
+ 	prompt "Subarchitecture Type"
+ 	default X86_PC
+diff -puN arch/x86_64/kernel/apic.c~x86_64-apic-add-clockevents-functions arch/x86_64/kernel/apic.c
+--- a/arch/x86/kernel/apic_64.c~x86_64-apic-add-clockevents-functions
 +++ a/arch/x86/kernel/apic_64.c
-@@ -770,24 +770,6 @@ static void setup_APIC_timer(unsigned in
+@@ -25,6 +25,7 @@
+ #include <linux/sysdev.h>
+ #include <linux/module.h>
+ #include <linux/ioport.h>
++#include <linux/clockchips.h>
  
- 	local_irq_save(flags);
+ #include <asm/atomic.h>
+ #include <asm/smp.h>
+@@ -57,6 +58,77 @@ static struct resource lapic_resource = 
  
--	/* wait for irq slice */
--	if (hpet_address && hpet_use_timer) {
--		u32 trigger = hpet_readl(HPET_T0_CMP);
--		while (hpet_readl(HPET_T0_CMP) == trigger)
--			/* do nothing */ ;
--	} else {
--		int c1, c2;
--		outb_p(0x00, 0x43);
--		c2 = inb_p(0x40);
--		c2 |= inb_p(0x40) << 8;
--		do {
--			c1 = c2;
--			outb_p(0x00, 0x43);
--			c2 = inb_p(0x40);
--			c2 |= inb_p(0x40) << 8;
--		} while (c2 - c1 < 300);
--	}
--
- 	irqen = ! cpu_isset(smp_processor_id(),
- 			    timer_interrupt_broadcast_ipi_mask);
- 	__setup_APIC_LVTT(clocks, 0, irqen);
+ static unsigned int calibration_result;
+ 
++static int lapic_next_event(unsigned long delta,
++			    struct clock_event_device *evt);
++static void lapic_timer_setup(enum clock_event_mode mode,
++			      struct clock_event_device *evt);
++
++static void lapic_timer_broadcast(cpumask_t mask);
++
++static void __setup_APIC_LVTT(unsigned int clocks, int oneshot, int irqen);
++
++static struct clock_event_device lapic_clockevent = {
++	.name		= "lapic",
++	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT
++			| CLOCK_EVT_FEAT_C3STOP | CLOCK_EVT_FEAT_DUMMY,
++	.shift		= 32,
++	.set_mode	= lapic_timer_setup,
++	.set_next_event	= lapic_next_event,
++	.broadcast	= lapic_timer_broadcast,
++	.rating		= 100,
++	.irq		= -1,
++};
++static DEFINE_PER_CPU(struct clock_event_device, lapic_events);
++
++static int lapic_next_event(unsigned long delta,
++			    struct clock_event_device *evt)
++{
++	apic_write(APIC_TMICT, delta);
++	return 0;
++}
++
++static void lapic_timer_setup(enum clock_event_mode mode,
++			      struct clock_event_device *evt)
++{
++	unsigned long flags;
++	unsigned int v;
++
++	/* Lapic used as dummy for broadcast ? */
++	if (evt->features & CLOCK_EVT_FEAT_DUMMY)
++		return;
++
++	local_irq_save(flags);
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++	case CLOCK_EVT_MODE_ONESHOT:
++		__setup_APIC_LVTT(calibration_result,
++				  mode != CLOCK_EVT_MODE_PERIODIC, 1);
++		break;
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++		v = apic_read(APIC_LVTT);
++		v |= (APIC_LVT_MASKED | LOCAL_TIMER_VECTOR);
++		apic_write(APIC_LVTT, v);
++		break;
++	case CLOCK_EVT_MODE_RESUME:
++		/* Nothing to do here */
++		break;
++	}
++
++	local_irq_restore(flags);
++}
++
++/*
++ * Local APIC timer broadcast function
++ */
++static void lapic_timer_broadcast(cpumask_t mask)
++{
++#ifdef CONFIG_SMP
++	send_IPI_mask(mask, LOCAL_TIMER_VECTOR);
++#endif
++}
++
+ /*
+  * cpu_mask that denotes the CPUs that needs timer interrupt coming in as
+  * IPIs in place of local APIC timers
+@@ -846,6 +918,13 @@ static void __init calibrate_APIC_clock(
+ 	printk(KERN_INFO "Detected %d.%03d MHz APIC timer.\n",
+ 		result / 1000 / 1000, result / 1000 % 1000);
+ 
++	/* Calculate the scaled math multiplication factor */
++	lapic_clockevent.mult = div_sc(result, NSEC_PER_SEC, 32);
++	lapic_clockevent.max_delta_ns =
++		clockevent_delta2ns(0x7FFFFF, &lapic_clockevent);
++	lapic_clockevent.min_delta_ns =
++		clockevent_delta2ns(0xF, &lapic_clockevent);
++
+ 	calibration_result = result / HZ;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
