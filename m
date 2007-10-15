@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misc-phantom-add-comment-about-openhaptics.patch added to -mm tree
-Date: Mon, 15 Oct 2007 16:31:48 -0700
-Message-ID: <200710152331.l9FNVm3p030935@imap1.linux-foundation.org>
+Subject: + tgafb-fix-an-out-of-range-shift-in-mono-imageblit.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:33:57 -0700
+Message-ID: <200710152333.l9FNXw1c031057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60342 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760745AbXJOXbw (ORCPT
+	by vger.kernel.org with ESMTP id S1754890AbXJOXeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 19:31:52 -0400
+	Mon, 15 Oct 2007 19:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+Cc: macro@linux-mips.org, Jay.Estabrook@hp.com, adaplas@pol.net
 
 
 The patch titled
-     Misc: phantom, add comment about openhaptics
+     tgafb: fix an out-of-range shift in mono imageblit
 has been added to the -mm tree.  Its filename is
-     misc-phantom-add-comment-about-openhaptics.patch
+     tgafb-fix-an-out-of-range-shift-in-mono-imageblit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,75 +26,91 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Misc: phantom, add comment about openhaptics
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: tgafb: fix an out-of-range shift in mono imageblit
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+The pixel mask calculation in tgafb_mono_imageblit() uses a variable
+left-shift on a 32-bit data type by up to 32.  Shifting by the width of a data
+type or more produces an unpredictable result according to the C standard.
+
+Rather than widening the data type this fix makes sure the count is between 0
+and 31.  The reason is not to penalise 32-bit platforms with operation on a
+"long long" type for a marginal case that is meant not to happen (blitting an
+image of a zero width).
+
+The reason it has escaped for so long is the Alpha, being purely 64-bit, :-)
+does not mask the shift out to 32 bits.  This is a valid implementation --
+producing the correct result certainly falls within "unpredictable behaviour".
+ It does trigger on MIPS though and it is the recent merge of the TC support
+which only enabled the driver for use on anything other than the Alpha.  For
+MIPS when the width is 32 the mask ends up being 0 rather than 0xffffffff as
+it should be and the frame buffer is not updated.
+
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Jay Estabrook <Jay.Estabrook@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/phantom.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/tgafb.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/phantom.c~misc-phantom-add-comment-about-openhaptics drivers/misc/phantom.c
---- a/drivers/misc/phantom.c~misc-phantom-add-comment-about-openhaptics
-+++ a/drivers/misc/phantom.c
-@@ -9,6 +9,7 @@
-  *  You need an userspace library to cooperate with this driver. It (and other
-  *  info) may be obtained here:
-  *  http://www.fi.muni.cz/~xslaby/phantom.html
-+ *  or alternatively, you might use OpenHaptics provided by Sensable.
+diff -puN drivers/video/tgafb.c~tgafb-fix-an-out-of-range-shift-in-mono-imageblit drivers/video/tgafb.c
+--- a/drivers/video/tgafb.c~tgafb-fix-an-out-of-range-shift-in-mono-imageblit
++++ a/drivers/video/tgafb.c
+@@ -5,7 +5,7 @@
+  *	Copyright (C) 1997 Geert Uytterhoeven
+  *	Copyright (C) 1999,2000 Martin Lucina, Tom Zerucha
+  *	Copyright (C) 2002 Richard Henderson
+- *	Copyright (C) 2006 Maciej W. Rozycki
++ *	Copyright (C) 2006, 2007  Maciej W. Rozycki
+  *
+  *  This file is subject to the terms and conditions of the GNU General Public
+  *  License. See the file COPYING in the main directory of this archive for
+@@ -13,6 +13,7 @@
   */
  
- #include <linux/kernel.h>
+ #include <linux/bitrev.h>
++#include <linux/compiler.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/errno.h>
+@@ -654,6 +655,9 @@ tgafb_mono_imageblit(struct fb_info *inf
+ 	line_length = info->fix.line_length;
+ 	rincr = (width + 7) / 8;
+ 
++	/* A shift below cannot cope with.  */
++	if (unlikely(width == 0))
++		return;
+ 	/* Crop the image to the screen.  */
+ 	if (dx > vxres || dy > vyres)
+ 		return;
+@@ -709,9 +713,10 @@ tgafb_mono_imageblit(struct fb_info *inf
+ 		unsigned long bwidth;
+ 
+ 		/* Handle common case of imaging a single character, in
+-		   a font less than 32 pixels wide.  */
++		   a font less than or 32 pixels wide.  */
+ 
+-		pixelmask = (1 << width) - 1;
++		/* Avoid a shift by 32; width > 0 implied.  */
++		pixelmask = (2ul << (width - 1)) - 1;
+ 		pixelmask <<= shift;
+ 		__raw_writel(pixelmask, regs_base + TGA_PIXELMASK_REG);
+ 		wmb();
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-git-wireless-ath5k-broke.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-char-mxser_new-upgrade-to-110.patch
-char-mxser_new-move-to-pci_vdevice.patch
-char-mxser_new-remove-useless-comments-in-mxser_cards.patch
-mxser-remove-commented-crap.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-char-moxa-fix-and-optimise-empty-timer.patch
-char-cyclades-remove-bottom-half-processing.patch
-char-cyclades-make-the-isr-code-readable.patch
-char-cyclades-move-spin_lock-to-one-place.patch
-char-cyclades-fix-some-w-warnings.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
-char-moxa-cleanup-prints.patch
-char-moxa-function-names-cleanup.patch
-char-moxa-remove-sleep_on.patch
-char-rocket-switch-sleep_on-to-completion.patch
-char-rocket-fix-dynamic_dev-tty.patch
-char-rocket-dont-re-set-statics-to-0.patch
-char-rocket-remove-pci_read_config_dwordclass_revision.patch
-char-rocket-remove-potential-leak-in-module_init.patch
-char-rocket-fix-signed-unsigned-warning.patch
-misc-phantom-synchronize_irq-on-suspend.patch
-misc-phantom-add-comment-about-openhaptics.patch
-misc-phantom-improved-data-passing.patch
-fs-select-remove-unused-macros.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-remove-bits_to_type-macro.patch
-remove-bits_to_type-macro-fix.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-mips.patch
+include-linux-typesh-in-if_fddih.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+lk201-remove-obsolete-driver.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+drivers-video-kconfig-fix-fb_pmagb_b-dependencies.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+pmagb-b-fb-improve-diagnostics.patch
+tgafb-fix-an-out-of-range-shift-in-mono-imageblit.patch
+tgafb-remove-a-redundant-non-mono-test-in-mono-imageblit.patch
