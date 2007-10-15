@@ -1,79 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:55:04 -0700
-Message-ID: <200710150855.l9F8t4lF026131@imap1.linux-foundation.org>
+Subject: - git-mtd-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 01:55:10 -0700
+Message-ID: <200710150855.l9F8tAYd026135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46333 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58463 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbXJOIzR (ORCPT
+	by vger.kernel.org with ESMTP id S1751768AbXJOIzN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 04:55:17 -0400
+	Mon, 15 Oct 2007 04:55:13 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8tAcX006002
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:55:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus@drzeus.cx, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
+     git-mtd-fixup
 has been removed from the -mm tree.  Its filename was
-     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
+     git-mtd-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
+Subject: git-mtd-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-whoever merges second will need this..
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_bus.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/mtd/maps/physmap_of.c |    5 -----
+ drivers/mtd/nand/cafe_nand.c  |    5 -----
+ 2 files changed, 10 deletions(-)
 
-diff -puN drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc drivers/mmc/core/sdio_bus.c
---- a/drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
-+++ a/drivers/mmc/core/sdio_bus.c
-@@ -96,30 +96,21 @@ static int sdio_bus_match(struct device 
+diff -puN drivers/mtd/nand/cafe_nand.c~git-mtd-fixup drivers/mtd/nand/cafe_nand.c
+--- a/drivers/mtd/nand/cafe_nand.c~git-mtd-fixup
++++ a/drivers/mtd/nand/cafe_nand.c
+@@ -821,13 +821,8 @@ static void __devexit cafe_nand_remove(s
  }
  
- static int
--sdio_bus_uevent(struct device *dev, char **envp, int num_envp, char *buf,
--		int buf_size)
-+sdio_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
- {
- 	struct sdio_func *func = dev_to_sdio_func(dev);
--	int i = 0, length = 0;
+ static struct pci_device_id cafe_nand_tbl[] = {
+-<<<<<<< HEAD/drivers/mtd/nand/cafe_nand.c
+-	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_MEMORY_FLASH << 8, 0xFFFF0 },
+-	{ 0, }
+-=======
+ 	{ 0x11ab, 0x4100, PCI_ANY_ID, PCI_ANY_ID },
+ 	{ }
+->>>>>>> /drivers/mtd/nand/cafe_nand.c
+ };
  
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"SDIO_CLASS=%02X", func->class))
-+	if (add_uevent_var(env, "SDIO_CLASS=%02X", func->class))
- 		return -ENOMEM;
+ MODULE_DEVICE_TABLE(pci, cafe_nand_tbl);
+diff -puN drivers/mtd/maps/physmap_of.c~git-mtd-fixup drivers/mtd/maps/physmap_of.c
+--- a/drivers/mtd/maps/physmap_of.c~git-mtd-fixup
++++ a/drivers/mtd/maps/physmap_of.c
+@@ -232,11 +232,6 @@ static int __devinit of_flash_probe(stru
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info)
+ 		goto err_out;
+-<<<<<<< HEAD/drivers/mtd/maps/physmap_of.c
+-	memset(info, 0, sizeof(*info));
+-=======
+-	}
+->>>>>>> /drivers/mtd/maps/physmap_of.c
  
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"SDIO_ID=%04X:%04X", func->vendor, func->device))
-+	if (add_uevent_var(env, "SDIO_ID=%04X:%04X",
-+			func->vendor, func->device))
- 		return -ENOMEM;
- 
--	if (add_uevent_var(envp, num_envp, &i,
--			buf, buf_size, &length,
--			"MODALIAS=sdio:c%02Xv%04Xd%04X",
-+	if (add_uevent_var(env, "MODALIAS=sdio:c%02Xv%04Xd%04X",
- 			func->class, func->vendor, func->device))
- 		return -ENOMEM;
- 
--	envp[i] = NULL;
--
- 	return 0;
- }
+ 	dev_set_drvdata(&dev->dev, info);
  
 _
 
@@ -105,7 +98,6 @@ ide-arm-hack.patch
 git-md-accel-fixup.patch
 git-mips.patch
 git-mips-fixup.patch
-gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 git-mtd-fixup.patch
 git-mtd-borkage.patch
 mtd-alaudac-warning-fix.patch
