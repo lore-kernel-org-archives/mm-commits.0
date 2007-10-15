@@ -1,78 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - git-kbuild-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 01:48:25 -0700
-Message-ID: <200710150848.l9F8mQ5j025876@imap1.linux-foundation.org>
+Subject: - gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 01:55:04 -0700
+Message-ID: <200710150855.l9F8t4lF026131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34661 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756172AbXJOIs3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752546AbXJOIzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 04:48:29 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9F8mQ6G005801
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 01:48:27 -0700
+	Mon, 15 Oct 2007 04:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drzeus@drzeus.cx, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kbuild-fixup
+     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
 has been removed from the -mm tree.  Its filename was
-     git-kbuild-fixup.patch
+     gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-kbuild-fixup
+Subject: gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
 From: Andrew Morton <akpm@linux-foundation.org>
 
+whoever merges second will need this..
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                 |    4 ----
- scripts/mod/file2alias.c |    3 ---
- 2 files changed, 7 deletions(-)
+ drivers/mmc/core/sdio_bus.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN Makefile~git-kbuild-fixup Makefile
---- a/Makefile~git-kbuild-fixup
-+++ a/Makefile
-@@ -1196,12 +1196,8 @@ help:
- 	@echo  'Static analysers'
- 	@echo  '  checkstack      - Generate a list of stack hogs'
- 	@echo  '  namespacecheck  - Name space analysis on compiled kernel'
--<<<<<<< HEAD/Makefile
--	@if [ -r $(srctree)/include/asm-$(SRCARCH)/Kbuild ]; then \
--=======
- 	@echo  '  export_report   - List the usages of all exported symbols'
- 	@if [ -r $(srctree)/include/asm-$(ARCH)/Kbuild ]; then \
-->>>>>>> /Makefile
- 	 echo  '  headers_check   - Sanity check on exported headers'; \
- 	 fi
- 	@echo  ''
-diff -puN scripts/mod/file2alias.c~git-kbuild-fixup scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~git-kbuild-fixup
-+++ a/scripts/mod/file2alias.c
-@@ -643,7 +643,6 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct parisc_device_id), "parisc",
- 			 do_parisc_entry, mod);
--<<<<<<< HEAD/scripts/mod/file2alias.c
- 	else if (sym_is(symname, "__mod_sdio_device_table"))
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct sdio_device_id), "sdio",
-@@ -652,9 +651,7 @@ void handle_moddevtable(struct module *m
- 		do_table(symval, sym->st_size,
- 			 sizeof(struct ssb_device_id), "ssb",
- 			 do_ssb_entry, mod);
--=======
- 	free(zeros);
-->>>>>>> /scripts/mod/file2alias.c
+diff -puN drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc drivers/mmc/core/sdio_bus.c
+--- a/drivers/mmc/core/sdio_bus.c~gregkh-driver-driver-core-change-add_uevent_var-to-use-a-struct-vs-git-mmc
++++ a/drivers/mmc/core/sdio_bus.c
+@@ -96,30 +96,21 @@ static int sdio_bus_match(struct device 
  }
  
- /* Now add out buffered information to the generated C source */
+ static int
+-sdio_bus_uevent(struct device *dev, char **envp, int num_envp, char *buf,
+-		int buf_size)
++sdio_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct sdio_func *func = dev_to_sdio_func(dev);
+-	int i = 0, length = 0;
+ 
+-	if (add_uevent_var(envp, num_envp, &i,
+-			buf, buf_size, &length,
+-			"SDIO_CLASS=%02X", func->class))
++	if (add_uevent_var(env, "SDIO_CLASS=%02X", func->class))
+ 		return -ENOMEM;
+ 
+-	if (add_uevent_var(envp, num_envp, &i,
+-			buf, buf_size, &length,
+-			"SDIO_ID=%04X:%04X", func->vendor, func->device))
++	if (add_uevent_var(env, "SDIO_ID=%04X:%04X",
++			func->vendor, func->device))
+ 		return -ENOMEM;
+ 
+-	if (add_uevent_var(envp, num_envp, &i,
+-			buf, buf_size, &length,
+-			"MODALIAS=sdio:c%02Xv%04Xd%04X",
++	if (add_uevent_var(env, "MODALIAS=sdio:c%02Xv%04Xd%04X",
+ 			func->class, func->vendor, func->device))
+ 		return -ENOMEM;
+ 
+-	envp[i] = NULL;
+-
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,8 +99,6 @@ first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
 git-jg-misc-powernow-fix.patch
 git-kbuild.patch
-git-kbuild-fixup.patch
-git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
