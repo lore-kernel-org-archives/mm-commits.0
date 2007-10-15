@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-doesnt-need-class_device.patch added to -mm tree
-Date: Mon, 15 Oct 2007 16:10:01 -0700
-Message-ID: <200710152310.l9FNA1nH030107@imap1.linux-foundation.org>
+Subject: + param_sysfs_builtin-memchr-argument-fix.patch added to -mm tree
+Date: Mon, 15 Oct 2007 16:11:00 -0700
+Message-ID: <200710152311.l9FNB05D030113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47407 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751258AbXJOXKq (ORCPT
+	by vger.kernel.org with ESMTP id S1755113AbXJOXLg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 19:10:46 -0400
+	Mon, 15 Oct 2007 19:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tonyj@suse.de, dbrownell@users.sourceforge.net, greg@kroah.com
+Cc: hidave.darkstar@gmail.com, greg@kroah.com
 
 
 The patch titled
-     spi doesn't need class_device
+     param_sysfs_builtin memchr argument fix
 has been added to the -mm tree.  Its filename is
-     spi-doesnt-need-class_device.patch
+     param_sysfs_builtin-memchr-argument-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,166 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi doesn't need class_device
-From: Tony Jones <tonyj@suse.de>
+Subject: param_sysfs_builtin memchr argument fix
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Make the SPI framework and drivers stop using class_device.  Update docs
-accordingly ...  highlighting just which sysfs paths should be
-"safe"/stable.
+If memchr argument is longer than strlen(kp->name), there will be some
+weird result.
 
-Signed-off-by: Tony Jones <tonyj@suse.de>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+It will casuse duplicate filenames in sysfs for the "nousb".  kernel
+warning messages are as bellow:
+
+sysfs: duplicate filename 'usbcore' can not be created
+WARNING: at fs/sysfs/dir.c:416 sysfs_add_one()
+ [<c01c4750>] sysfs_add_one+0xa0/0xe0
+ [<c01c4ab8>] create_dir+0x48/0xb0
+ [<c01c4b69>] sysfs_create_dir+0x29/0x50
+ [<c024e0fb>] create_dir+0x1b/0x50
+ [<c024e3b6>] kobject_add+0x46/0x150
+ [<c024e2da>] kobject_init+0x3a/0x80
+ [<c053b880>] kernel_param_sysfs_setup+0x50/0xb0
+ [<c053b9ce>] param_sysfs_builtin+0xee/0x130
+ [<c053ba33>] param_sysfs_init+0x23/0x60
+ [<c024d062>] __next_cpu+0x12/0x20
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052a856>] do_initcalls+0x46/0x1e0
+ [<c01bdb12>] create_proc_entry+0x52/0x90
+ [<c0158d4c>] register_irq_proc+0x9c/0xc0
+ [<c01bda94>] proc_mkdir_mode+0x34/0x50
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052aa92>] kernel_init+0x62/0xb0
+ [<c0104f83>] kernel_thread_helper+0x7/0x14
+ =======================
+kobject_add failed for usbcore with -EEXIST, don't try to register things with the same name in the same directory.
+ [<c024e466>] kobject_add+0xf6/0x150
+ [<c053b880>] kernel_param_sysfs_setup+0x50/0xb0
+ [<c053b9ce>] param_sysfs_builtin+0xee/0x130
+ [<c053ba33>] param_sysfs_init+0x23/0x60
+ [<c024d062>] __next_cpu+0x12/0x20
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052a856>] do_initcalls+0x46/0x1e0
+ [<c01bdb12>] create_proc_entry+0x52/0x90
+ [<c0158d4c>] register_irq_proc+0x9c/0xc0
+ [<c01bda94>] proc_mkdir_mode+0x34/0x50
+ [<c052aa30>] kernel_init+0x0/0xb0
+ [<c052aa92>] kernel_init+0x62/0xb0
+ [<c0104f83>] kernel_thread_helper+0x7/0x14
+ =======================
+Module 'usbcore' failed to be added to sysfs, error number -17
+The system will be unstable now.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mmc_spi.c    |    4 ++--
- drivers/spi/atmel_spi.c       |   14 +++++++-------
- drivers/spi/mpc52xx_psc_spi.c |    2 +-
- drivers/spi/pxa2xx_spi.c      |    2 +-
- drivers/spi/spi_bfin5xx.c     |    2 +-
- drivers/spi/spi_imx.c         |    2 +-
- drivers/spi/spi_txx9.c        |    2 +-
- 7 files changed, 14 insertions(+), 14 deletions(-)
+ kernel/params.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/mmc_spi.c~spi-doesnt-need-class_device drivers/mmc/host/mmc_spi.c
---- a/drivers/mmc/host/mmc_spi.c~spi-doesnt-need-class_device
-+++ a/drivers/mmc/host/mmc_spi.c
-@@ -1280,8 +1280,8 @@ static int mmc_spi_probe(struct spi_devi
- 	if (!host->data)
- 		goto fail_nobuf1;
+diff -puN kernel/params.c~param_sysfs_builtin-memchr-argument-fix kernel/params.c
+--- a/kernel/params.c~param_sysfs_builtin-memchr-argument-fix
++++ a/kernel/params.c
+@@ -592,11 +592,17 @@ static void __init param_sysfs_builtin(v
  
--	if (spi->master->cdev.dev->dma_mask) {
--		struct device	*dev = spi->master->cdev.dev;
-+	if (spi->master->dev.parent->dma_mask) {
-+		struct device	*dev = spi->master->dev.parent;
+ 	for (i=0; i < __stop___param - __start___param; i++) {
+ 		char *dot;
++		size_t kplen;
  
- 		host->dma_dev = dev;
- 		host->ones_dma = dma_map_single(dev, ones,
-diff -puN drivers/spi/atmel_spi.c~spi-doesnt-need-class_device drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/atmel_spi.c
-@@ -211,7 +211,7 @@ static void atmel_spi_next_message(struc
- 	msg = list_entry(as->queue.next, struct spi_message, queue);
- 	spi = msg->spi;
+ 		kp = &__start___param[i];
++		kplen = strlen(kp->name);
  
--	dev_dbg(master->cdev.dev, "start message %p for %s\n",
-+	dev_dbg(master->dev.parent, "start message %p for %s\n",
- 			msg, spi->dev.bus_id);
- 
- 	/* select chip if it's not still active */
-@@ -266,10 +266,10 @@ static void atmel_spi_dma_unmap_xfer(str
- 				     struct spi_transfer *xfer)
- {
- 	if (xfer->tx_dma != INVALID_DMA_ADDRESS)
--		dma_unmap_single(master->cdev.dev, xfer->tx_dma,
-+		dma_unmap_single(master->dev.parent, xfer->tx_dma,
- 				 xfer->len, DMA_TO_DEVICE);
- 	if (xfer->rx_dma != INVALID_DMA_ADDRESS)
--		dma_unmap_single(master->cdev.dev, xfer->rx_dma,
-+		dma_unmap_single(master->dev.parent, xfer->rx_dma,
- 				 xfer->len, DMA_FROM_DEVICE);
- }
- 
-@@ -285,7 +285,7 @@ atmel_spi_msg_done(struct spi_master *ma
- 	list_del(&msg->queue);
- 	msg->status = status;
- 
--	dev_dbg(master->cdev.dev,
-+	dev_dbg(master->dev.parent,
- 		"xfer complete: %u bytes transferred\n",
- 		msg->actual_length);
- 
-@@ -348,7 +348,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		if (xfer->delay_usecs)
- 			udelay(xfer->delay_usecs);
- 
--		dev_warn(master->cdev.dev, "fifo overrun (%u/%u remaining)\n",
-+		dev_warn(master->dev.parent, "fifo overrun (%u/%u remaining)\n",
- 			 spi_readl(as, TCR), spi_readl(as, RCR));
- 
- 		/*
-@@ -363,7 +363,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 			if (spi_readl(as, SR) & SPI_BIT(TXEMPTY))
- 				break;
- 		if (!timeout)
--			dev_warn(master->cdev.dev,
-+			dev_warn(master->dev.parent,
- 				 "timeout waiting for TXEMPTY");
- 		while (spi_readl(as, SR) & SPI_BIT(RDRF))
- 			spi_readl(as, RDR);
-@@ -526,7 +526,7 @@ static int atmel_spi_transfer(struct spi
- 	struct atmel_spi	*as;
- 	struct spi_transfer	*xfer;
- 	unsigned long		flags;
--	struct device		*controller = spi->master->cdev.dev;
-+	struct device		*controller = spi->master->dev.parent;
- 
- 	as = spi_master_get_devdata(spi->master);
- 
-diff -puN drivers/spi/mpc52xx_psc_spi.c~spi-doesnt-need-class_device drivers/spi/mpc52xx_psc_spi.c
---- a/drivers/spi/mpc52xx_psc_spi.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/mpc52xx_psc_spi.c
-@@ -503,7 +503,7 @@ static int __init mpc52xx_psc_spi_do_pro
- 	INIT_LIST_HEAD(&mps->queue);
- 
- 	mps->workqueue = create_singlethread_workqueue(
--		master->cdev.dev->bus_id);
-+		master->dev.parent->bus_id);
- 	if (mps->workqueue == NULL) {
- 		ret = -EBUSY;
- 		goto free_irq;
-diff -puN drivers/spi/pxa2xx_spi.c~spi-doesnt-need-class_device drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1242,7 +1242,7 @@ static int __init init_queue(struct driv
- 
- 	INIT_WORK(&drv_data->pump_messages, pump_messages);
- 	drv_data->workqueue = create_singlethread_workqueue(
--					drv_data->master->cdev.dev->bus_id);
-+					drv_data->master->dev.parent->bus_id);
- 	if (drv_data->workqueue == NULL)
- 		return -EBUSY;
- 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-doesnt-need-class_device drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -1106,7 +1106,7 @@ static inline int init_queue(struct driv
- 	/* init messages workqueue */
- 	INIT_WORK(&drv_data->pump_messages, pump_messages);
- 	drv_data->workqueue =
--	    create_singlethread_workqueue(drv_data->master->cdev.dev->bus_id);
-+	    create_singlethread_workqueue(drv_data->master->dev.parent->bus_id);
- 	if (drv_data->workqueue == NULL)
- 		return -EBUSY;
- 
-diff -puN drivers/spi/spi_imx.c~spi-doesnt-need-class_device drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/spi_imx.c
-@@ -1374,7 +1374,7 @@ static int __init init_queue(struct driv
- 
- 	INIT_WORK(&drv_data->work, pump_messages);
- 	drv_data->workqueue = create_singlethread_workqueue(
--					drv_data->master->cdev.dev->bus_id);
-+					drv_data->master->dev.parent->bus_id);
- 	if (drv_data->workqueue == NULL)
- 		return -EBUSY;
- 
-diff -puN drivers/spi/spi_txx9.c~spi-doesnt-need-class_device drivers/spi/spi_txx9.c
---- a/drivers/spi/spi_txx9.c~spi-doesnt-need-class_device
-+++ a/drivers/spi/spi_txx9.c
-@@ -400,7 +400,7 @@ static int __init txx9spi_probe(struct p
- 		goto exit;
- 	}
- 
--	c->workqueue = create_singlethread_workqueue(master->cdev.dev->bus_id);
-+	c->workqueue = create_singlethread_workqueue(master->dev.parent->bus_id);
- 	if (!c->workqueue)
- 		goto exit;
- 	c->last_chipselect = -1;
+ 		/* We do not handle args without periods. */
+-		dot = memchr(kp->name, '.', MAX_KBUILD_MODNAME);
++		if (kplen > MAX_KBUILD_MODNAME) {
++			DEBUGP("kernel parameter name is too long: %s\n", kp->name);
++			continue;
++		}
++		dot = memchr(kp->name, '.', kplen);
+ 		if (!dot) {
+ 			DEBUGP("couldn't find period in %s\n", kp->name);
+ 			continue;
 _
 
-Patches currently in -mm which might be from tonyj@suse.de are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-spi-doesnt-need-class_device.patch
+zisofs-use-mutex-instead-of-semaphore.patch
+param_sysfs_builtin-memchr-argument-fix.patch
