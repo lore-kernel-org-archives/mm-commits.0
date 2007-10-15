@@ -1,95 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - i386-pit-remove-the-useless-ifdefs.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 02:18:30 -0700
-Message-ID: <200710150918.l9F9IUoX027410@imap1.linux-foundation.org>
+Subject: - jiffies-remove-unused-macros.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 02:18:24 -0700
+Message-ID: <200710150918.l9F9IOEF027402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48338 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756969AbXJOJXs (ORCPT
+	by vger.kernel.org with ESMTP id S1756673AbXJOJYA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 05:23:48 -0400
+	Mon, 15 Oct 2007 05:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, chrisw@sous-sol.org, johnstul@us.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: chrisw@sous-sol.org, ak@suse.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: Remove the useless #ifdef in i8253.h
+     jiffies: remove unused macros
 has been removed from the -mm tree.  Its filename was
-     i386-pit-remove-the-useless-ifdefs.patch
+     jiffies-remove-unused-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: Remove the useless #ifdef in i8253.h
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: jiffies: remove unused macros
+From: Chris Wright <chrisw@sous-sol.org>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+The x86 hpet cleanups allow removal of some unused macros.
+
 Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
 Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-i386/i8253.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/jiffies.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/asm-i386/i8253.h~i386-pit-remove-the-useless-ifdefs include/asm-i386/i8253.h
---- a/include/asm-x86/i8253_32.h~i386-pit-remove-the-useless-ifdefs
-+++ a/include/asm-x86/i8253_32.h
-@@ -8,12 +8,8 @@
+diff -puN include/linux/jiffies.h~jiffies-remove-unused-macros include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffies-remove-unused-macros
++++ a/include/linux/jiffies.h
+@@ -36,8 +36,6 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
  
- extern spinlock_t i8253_lock;
- 
--#ifdef CONFIG_GENERIC_CLOCKEVENTS
+-#define LATCH_HPET ((HPET_TICK_RATE + HZ/2) / HZ)
 -
- extern struct clock_event_device *global_clock_event;
+ /* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, the we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+@@ -53,13 +51,9 @@
+ /* HZ is the requested value. ACTHZ is actual HZ ("<< 8" is for accuracy) */
+ #define ACTHZ (SH_DIV (CLOCK_TICK_RATE, LATCH, 8))
  
- extern void setup_pit_timer(void);
- 
--#endif
+-#define ACTHZ_HPET (SH_DIV (HPET_TICK_RATE, LATCH_HPET, 8))
 -
- #endif	/* __ASM_I8253_H__ */
+ /* TICK_NSEC is the time between ticks in nsec assuming real ACTHZ */
+ #define TICK_NSEC (SH_DIV (1000000UL * 1000, ACTHZ, 8))
+ 
+-#define TICK_NSEC_HPET (SH_DIV(1000000UL * 1000, ACTHZ_HPET, 8))
+-
+ /* TICK_USEC is the time between ticks in usec assuming fake USER_HZ */
+ #define TICK_USEC ((1000000UL + USER_HZ/2) / USER_HZ)
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
 origin.patch
-git-acpi.patch
-git-arm.patch
-git-mips.patch
-provide-stubs-for-enable_irq_wake-and-disable_irq_wake.patch
-git-sched.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-frv-cleanup-struct-irqaction-initializers.patch
-m32r-cleanup-struct-irqaction-initializers.patch
-cris-cleanup-struct-irqaction-initializers.patch
-uml-eliminate-hz.patch
-uml-fix-timer-switching.patch
-uml-simplify-interval-setting.patch
-uml-separate-timer-initialization.patch
-uml-generic_time-support.patch
-uml-generic_clockevents-support.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
-uml-tickless-support.patch
-uml-tickless-support-fix.patch
-uml-eliminate-interrupts-in-the-idle-loop.patch
-uml-eliminate-sigalrm.patch
-uml-use-sec_per_sec-constants.patch
-v850-cleanup-struct-irqaction-initializers.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
+capabilityh-remove-include-of-currenth.patch
+file-capabilities-clear-fcaps-on-inode-change.patch
+capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
+security-cleanups.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+whitespace-fixes-capability-syscalls.patch
