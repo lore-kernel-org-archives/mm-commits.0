@@ -1,200 +1,325 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-fix-tag-3-parsing-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:16 -0700
-Message-ID: <200710162040.l9GKeGne015673@imap1.linux-foundation.org>
+Subject: - ecryptfs-convert-mmap-functions-to-use-persistent-file.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:02 -0700
+Message-ID: <200710162041.l9GKf2Z7015748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35322 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54734 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935788AbXJPVGX (ORCPT
+	by vger.kernel.org with ESMTP id S935170AbXJPVHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:06:23 -0400
+	Tue, 16 Oct 2007 17:07:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: fix Tag 3 parsing code
+     eCryptfs: convert mmap functions to use persistent file
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-tag-3-parsing-code.patch
+     ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: fix Tag 3 parsing code
+Subject: eCryptfs: convert mmap functions to use persistent file
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix up the Tag 3 parsing code to handle size limits and boundaries more
-explicitly.
+Convert readpage, prepare_write, and commit_write to use read_write.c
+routines.  Remove sync_page; I cannot think of a good reason for implementing
+that in eCryptfs.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   89 +++++++++++++++------------------------
- 1 file changed, 35 insertions(+), 54 deletions(-)
+ fs/ecryptfs/mmap.c |  199 ++++++++++++++++++++++---------------------
+ 1 file changed, 103 insertions(+), 96 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-3-parsing-code fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-3-parsing-code
-+++ a/fs/ecryptfs/keystore.c
-@@ -643,22 +643,30 @@ parse_tag_3_packet(struct ecryptfs_crypt
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-convert-mmap-functions-to-use-persistent-file fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-convert-mmap-functions-to-use-persistent-file
++++ a/fs/ecryptfs/mmap.c
+@@ -267,9 +267,78 @@ static void set_header_info(char *page_v
+ }
  
- 	(*packet_size) = 0;
- 	(*new_auth_tok) = NULL;
+ /**
++ * ecryptfs_copy_up_encrypted_with_header
++ * @page: Sort of a ``virtual'' representation of the encrypted lower
++ *        file. The actual lower file does not have the metadata in
++ *        the header. This is locked.
++ * @crypt_stat: The eCryptfs inode's cryptographic context
++ *
++ * The ``view'' is the version of the file that userspace winds up
++ * seeing, with the header information inserted.
++ */
++static int
++ecryptfs_copy_up_encrypted_with_header(struct page *page,
++				       struct ecryptfs_crypt_stat *crypt_stat)
++{
++	loff_t extent_num_in_page = 0;
++	loff_t num_extents_per_page = (PAGE_CACHE_SIZE
++				       / crypt_stat->extent_size);
++	int rc = 0;
++
++	while (extent_num_in_page < num_extents_per_page) {
++		loff_t view_extent_num = ((page->index * num_extents_per_page)
++					  + extent_num_in_page);
++
++		if (view_extent_num < crypt_stat->num_header_extents_at_front) {
++			/* This is a header extent */
++			char *page_virt;
++
++			page_virt = kmap_atomic(page, KM_USER0);
++			memset(page_virt, 0, PAGE_CACHE_SIZE);
++			/* TODO: Support more than one header extent */
++			if (view_extent_num == 0) {
++				rc = ecryptfs_read_xattr_region(
++					page_virt, page->mapping->host);
++				set_header_info(page_virt, crypt_stat);
++			}
++			kunmap_atomic(page_virt, KM_USER0);
++			flush_dcache_page(page);
++			if (rc) {
++				ClearPageUptodate(page);
++				printk(KERN_ERR "%s: Error reading xattr "
++				       "region; rc = [%d]\n", __FUNCTION__, rc);
++				goto out;
++			}
++			SetPageUptodate(page);
++		} else {
++			/* This is an encrypted data extent */
++			loff_t lower_offset =
++				((view_extent_num -
++				  crypt_stat->num_header_extents_at_front)
++				 * crypt_stat->extent_size);
++
++			rc = ecryptfs_read_lower_page_segment(
++				page, (lower_offset >> PAGE_CACHE_SHIFT),
++				(lower_offset & ~PAGE_CACHE_MASK),
++				crypt_stat->extent_size, page->mapping->host);
++			if (rc) {
++				printk(KERN_ERR "%s: Error attempting to read "
++				       "extent at offset [%lld] in the lower "
++				       "file; rc = [%d]\n", __FUNCTION__,
++				       lower_offset, rc);
++				goto out;
++			}
++		}
++		extent_num_in_page++;
++	}
++out:
++	return rc;
++}
++
++/**
+  * ecryptfs_readpage
+- * @file: This is an ecryptfs file
+- * @page: ecryptfs associated page to stick the read data into
++ * @file: An eCryptfs file
++ * @page: Page from eCryptfs inode mapping into which to stick the read data
+  *
+  * Read in a page, decrypting if necessary.
+  *
+@@ -277,59 +346,35 @@ static void set_header_info(char *page_v
+  */
+ static int ecryptfs_readpage(struct file *file, struct page *page)
+ {
++	struct ecryptfs_crypt_stat *crypt_stat =
++		&ecryptfs_inode_to_private(file->f_path.dentry->d_inode)->crypt_stat;
+ 	int rc = 0;
+-	struct ecryptfs_crypt_stat *crypt_stat;
+ 
+-	BUG_ON(!(file && file->f_path.dentry && file->f_path.dentry->d_inode));
+-	crypt_stat = &ecryptfs_inode_to_private(file->f_path.dentry->d_inode)
+-			->crypt_stat;
+ 	if (!crypt_stat
+ 	    || !(crypt_stat->flags & ECRYPTFS_ENCRYPTED)
+ 	    || (crypt_stat->flags & ECRYPTFS_NEW_FILE)) {
+ 		ecryptfs_printk(KERN_DEBUG,
+ 				"Passing through unencrypted page\n");
+-		rc = ecryptfs_do_readpage(file, page, page->index);
+-		if (rc) {
+-			ecryptfs_printk(KERN_ERR, "Error reading page; rc = "
+-					"[%d]\n", rc);
+-			goto out;
+-		}
++		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
++						      PAGE_CACHE_SIZE,
++						      page->mapping->host);
+ 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+-			int num_pages_in_header_region =
+-				(crypt_stat->extent_size
+-				 / PAGE_CACHE_SIZE);
 -
--	/* we check that:
--	 *   one byte for the Tag 3 ID flag
--	 *   two bytes for the body size
--	 * do not exceed the maximum_packet_size
-+	/**
-+	 *This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 3
-+	 *
-+	 * Tag 3 identifier (1 byte)
-+	 * Max Tag 3 packet size (max 3 bytes)
-+	 * Version (1 byte)
-+	 * Cipher code (1 byte)
-+	 * S2K specifier (1 byte)
-+	 * Hash identifier (1 byte)
-+	 * Salt (ECRYPTFS_SALT_SIZE)
-+	 * Hash iterations (1 byte)
-+	 * Encrypted key (arbitrary)
-+	 *
-+	 * (ECRYPTFS_SALT_SIZE + 7) minimum packet size
- 	 */
--	if (unlikely((*packet_size) + 3 > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+	if (max_packet_size < (ECRYPTFS_SALT_SIZE + 7)) {
-+		printk(KERN_ERR "Max packet size too large\n");
- 		rc = -EINVAL;
+-			if (page->index < num_pages_in_header_region) {
+-				char *page_virt;
+-
+-				page_virt = kmap_atomic(page, KM_USER0);
+-				memset(page_virt, 0, PAGE_CACHE_SIZE);
+-				if (page->index == 0) {
+-					rc = ecryptfs_read_xattr_region(
+-						page_virt, page->mapping->host);
+-					set_header_info(page_virt, crypt_stat);
+-				}
+-				kunmap_atomic(page_virt, KM_USER0);
+-				flush_dcache_page(page);
+-				if (rc) {
+-					printk(KERN_ERR "Error reading xattr "
+-					       "region\n");
+-					goto out;
+-				}
+-			} else {
+-				rc = ecryptfs_do_readpage(
+-					file, page,
+-					(page->index
+-					 - num_pages_in_header_region));
+-				if (rc) {
+-					printk(KERN_ERR "Error reading page; "
+-					       "rc = [%d]\n", rc);
+-					goto out;
+-				}
++			rc = ecryptfs_copy_up_encrypted_with_header(page,
++								    crypt_stat);
++			if (rc) {
++				printk(KERN_ERR "%s: Error attempting to copy "
++				       "the encrypted content from the lower "
++				       "file whilst inserting the metadata "
++				       "from the xattr into the header; rc = "
++				       "[%d]\n", __FUNCTION__, rc);
++				goto out;
+ 			}
++
+ 		} else {
+-			rc = ecryptfs_do_readpage(file, page, page->index);
++			rc = ecryptfs_read_lower_page_segment(
++				page, page->index, 0, PAGE_CACHE_SIZE,
++				page->mapping->host);
+ 			if (rc) {
+ 				printk(KERN_ERR "Error reading page; rc = "
+ 				       "[%d]\n", rc);
+@@ -344,10 +389,7 @@ static int ecryptfs_readpage(struct file
+ 			goto out;
+ 		}
+ 	}
+-	SetPageUptodate(page);
+ out:
+-	if (rc)
+-		ClearPageUptodate(page);
+ 	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16x]\n",
+ 			page->index);
+ 	unlock_page(page);
+@@ -403,9 +445,12 @@ static int ecryptfs_prepare_write(struct
+ 		goto out;	/* If we are writing a full page, it will be
+ 				   up to date. */
+ 	if (!PageUptodate(page))
+-		rc = ecryptfs_do_readpage(file, page, page->index);
++		rc = ecryptfs_read_lower_page_segment(page, page->index, 0,
++						      PAGE_CACHE_SIZE,
++						      page->mapping->host);
+ 	if (page->index != 0) {
+-		loff_t end_of_prev_pg_pos = page_offset(page) - 1;
++		loff_t end_of_prev_pg_pos =
++			(((loff_t)page->index << PAGE_CACHE_SHIFT) - 1);
+ 
+ 		if (end_of_prev_pg_pos > i_size_read(page->mapping->host)) {
+ 			rc = ecryptfs_truncate(file->f_path.dentry,
+@@ -633,18 +678,11 @@ static int ecryptfs_commit_write(struct 
+ 				 unsigned from, unsigned to)
+ {
+ 	loff_t pos;
+-	struct inode *inode;
+-	struct inode *lower_inode;
+-	struct file *lower_file;
+-	struct ecryptfs_crypt_stat *crypt_stat;
++	struct inode *ecryptfs_inode = page->mapping->host;
++	struct ecryptfs_crypt_stat *crypt_stat =
++		&ecryptfs_inode_to_private(file->f_path.dentry->d_inode)->crypt_stat;
+ 	int rc;
+ 
+-	inode = page->mapping->host;
+-	lower_inode = ecryptfs_inode_to_lower(inode);
+-	lower_file = ecryptfs_file_to_lower(file);
+-	mutex_lock(&lower_inode->i_mutex);
+-	crypt_stat = &ecryptfs_inode_to_private(file->f_path.dentry->d_inode)
+-				->crypt_stat;
+ 	if (crypt_stat->flags & ECRYPTFS_NEW_FILE) {
+ 		ecryptfs_printk(KERN_DEBUG, "ECRYPTFS_NEW_FILE flag set in "
+ 			"crypt_stat at memory location [%p]\n", crypt_stat);
+@@ -654,6 +692,7 @@ static int ecryptfs_commit_write(struct 
+ 	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
+ 			"(page w/ index = [0x%.16x], to = [%d])\n", page->index,
+ 			to);
++	/* Fills in zeros if 'to' goes beyond inode size */
+ 	rc = fill_zeros_to_end_of_page(page, to);
+ 	if (rc) {
+ 		ecryptfs_printk(KERN_WARNING, "Error attempting to fill "
+@@ -667,25 +706,17 @@ static int ecryptfs_commit_write(struct 
+ 				"index [0x%.16x])\n", page->index);
  		goto out;
  	}
--
--	/* check for Tag 3 identifyer - one byte */
- 	if (data[(*packet_size)++] != ECRYPTFS_TAG_3_PACKET_TYPE) {
--		ecryptfs_printk(KERN_ERR, "Enter w/ first byte != 0x%.2x\n",
--				ECRYPTFS_TAG_3_PACKET_TYPE);
-+		printk(KERN_ERR "First byte != 0x%.2x; invalid packet\n",
-+		       ECRYPTFS_TAG_3_PACKET_TYPE);
- 		rc = -EINVAL;
- 		goto out;
+-	inode->i_blocks = lower_inode->i_blocks;
+-	pos = page_offset(page) + to;
+-	if (pos > i_size_read(inode)) {
+-		i_size_write(inode, pos);
++	pos = (page->index << PAGE_CACHE_SHIFT) + to;
++	if (pos > i_size_read(ecryptfs_inode)) {
++		i_size_write(ecryptfs_inode, pos);
+ 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
+-				"[0x%.16x]\n", i_size_read(inode));
++				"[0x%.16x]\n", i_size_read(ecryptfs_inode));
  	}
-@@ -667,56 +675,36 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 	auth_tok_list_item =
- 	    kmem_cache_zalloc(ecryptfs_auth_tok_list_item_cache, GFP_KERNEL);
- 	if (!auth_tok_list_item) {
--		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		printk(KERN_ERR "Unable to allocate memory\n");
- 		rc = -ENOMEM;
- 		goto out;
- 	}
- 	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
+-	rc = ecryptfs_write_inode_size_to_metadata(inode);
++	rc = ecryptfs_write_inode_size_to_metadata(ecryptfs_inode);
+ 	if (rc)
+ 		printk(KERN_ERR "Error writing inode size to metadata; "
+ 		       "rc = [%d]\n", rc);
+-	lower_inode->i_mtime = lower_inode->i_ctime = CURRENT_TIME;
+-	mark_inode_dirty_sync(inode);
+ out:
+-	if (rc < 0)
+-		ClearPageUptodate(page);
+-	else
+-		SetPageUptodate(page);
+-	mutex_unlock(&lower_inode->i_mutex);
+ 	return rc;
+ }
+ 
+@@ -751,34 +782,10 @@ static sector_t ecryptfs_bmap(struct add
+ 	return rc;
+ }
+ 
+-static void ecryptfs_sync_page(struct page *page)
+-{
+-	struct inode *inode;
+-	struct inode *lower_inode;
+-	struct page *lower_page;
 -
--	/* check for body size - one to two bytes */
--	rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				 &length_size);
--	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
--				"rc = [%d]\n", rc);
-+	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				      &length_size))) {
-+		printk(KERN_WARNING "Error parsing packet length; rc = [%d]\n",
-+		       rc);
- 		goto out_free;
- 	}
--	if (unlikely(body_size < (0x05 + ECRYPTFS_SALT_SIZE))) {
--		ecryptfs_printk(KERN_WARNING, "Invalid body size ([%d])\n",
--				body_size);
-+	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
-+		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
- 	(*packet_size) += length_size;
+-	inode = page->mapping->host;
+-	lower_inode = ecryptfs_inode_to_lower(inode);
+-	/* NOTE: Recently swapped with grab_cache_page(), since
+-	 * sync_page() just makes sure that pending I/O gets done. */
+-	lower_page = find_lock_page(lower_inode->i_mapping, page->index);
+-	if (!lower_page) {
+-		ecryptfs_printk(KERN_DEBUG, "find_lock_page failed\n");
+-		return;
+-	}
+-	if (lower_page->mapping->a_ops->sync_page)
+-		lower_page->mapping->a_ops->sync_page(lower_page);
+-	ecryptfs_printk(KERN_DEBUG, "Unlocking page with index = [0x%.16x]\n",
+-			lower_page->index);
+-	unlock_page(lower_page);
+-	page_cache_release(lower_page);
+-}
 -
--	/* now we know the length of the remainting Tag 3 packet size:
--	 *   5 fix bytes for: version string, cipher, S2K ID, hash algo,
--	 *                    number of hash iterations
--	 *   ECRYPTFS_SALT_SIZE bytes for salt
--	 *   body_size bytes minus the stuff above is the encrypted key size
--	 */
- 	if (unlikely((*packet_size) + body_size > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+		printk(KERN_ERR "Packet size exceeds max\n");
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--
--	/* There are 5 characters of additional information in the
--	 * packet */
- 	(*new_auth_tok)->session_key.encrypted_key_size =
--		body_size - (0x05 + ECRYPTFS_SALT_SIZE);
--	ecryptfs_printk(KERN_DEBUG, "Encrypted key size = [%d]\n",
--			(*new_auth_tok)->session_key.encrypted_key_size);
--
--	/* Version 4 (from RFC2440) - one byte */
-+		(body_size - (ECRYPTFS_SALT_SIZE + 5));
- 	if (unlikely(data[(*packet_size)++] != 0x04)) {
--		ecryptfs_printk(KERN_DEBUG, "Unknown version number "
--				"[%d]\n", data[(*packet_size) - 1]);
-+		printk(KERN_WARNING "Unknown version number [%d]\n",
-+		       data[(*packet_size) - 1]);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--
--	/* cipher - one byte */
- 	ecryptfs_cipher_code_to_string(crypt_stat->cipher,
- 				       (u16)data[(*packet_size)]);
- 	/* A little extra work to differentiate among the AES key
-@@ -730,33 +718,26 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 			(*new_auth_tok)->session_key.encrypted_key_size;
- 	}
- 	ecryptfs_init_crypt_ctx(crypt_stat);
--	/* S2K identifier 3 (from RFC2440) */
- 	if (unlikely(data[(*packet_size)++] != 0x03)) {
--		ecryptfs_printk(KERN_ERR, "Only S2K ID 3 is currently "
--				"supported\n");
-+		printk(KERN_WARNING "Only S2K ID 3 is currently supported\n");
- 		rc = -ENOSYS;
- 		goto out_free;
- 	}
--
- 	/* TODO: finish the hash mapping */
--	/* hash algorithm - one byte */
- 	switch (data[(*packet_size)++]) {
- 	case 0x01: /* See RFC2440 for these numbers and their mappings */
- 		/* Choose MD5 */
--		/* salt - ECRYPTFS_SALT_SIZE bytes */
- 		memcpy((*new_auth_tok)->token.password.salt,
- 		       &data[(*packet_size)], ECRYPTFS_SALT_SIZE);
- 		(*packet_size) += ECRYPTFS_SALT_SIZE;
--
- 		/* This conversion was taken straight from RFC2440 */
--		/* number of hash iterations - one byte */
- 		(*new_auth_tok)->token.password.hash_iterations =
- 			((u32) 16 + (data[(*packet_size)] & 15))
- 				<< ((data[(*packet_size)] >> 4) + 6);
- 		(*packet_size)++;
--
--		/* encrypted session key -
--		 *   (body_size-5-ECRYPTFS_SALT_SIZE) bytes */
-+		/* Friendly reminder:
-+		 * (*new_auth_tok)->session_key.encrypted_key_size =
-+		 *         (body_size - (ECRYPTFS_SALT_SIZE + 5)); */
- 		memcpy((*new_auth_tok)->session_key.encrypted_key,
- 		       &data[(*packet_size)],
- 		       (*new_auth_tok)->session_key.encrypted_key_size);
-@@ -766,7 +747,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 			~ECRYPTFS_CONTAINS_DECRYPTED_KEY;
- 		(*new_auth_tok)->session_key.flags |=
- 			ECRYPTFS_CONTAINS_ENCRYPTED_KEY;
--		(*new_auth_tok)->token.password.hash_algo = 0x01;
-+		(*new_auth_tok)->token.password.hash_algo = 0x01; /* MD5 */
- 		break;
- 	default:
- 		ecryptfs_printk(KERN_ERR, "Unsupported hash algorithm: "
+ struct address_space_operations ecryptfs_aops = {
+ 	.writepage = ecryptfs_writepage,
+ 	.readpage = ecryptfs_readpage,
+ 	.prepare_write = ecryptfs_prepare_write,
+ 	.commit_write = ecryptfs_commit_write,
+ 	.bmap = ecryptfs_bmap,
+-	.sync_page = ecryptfs_sync_page,
+ };
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
