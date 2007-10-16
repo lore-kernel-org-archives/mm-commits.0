@@ -1,89 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-drivers-spi.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:39 -0700
-Message-ID: <200710162039.l9GKddF2015563@imap1.linux-foundation.org>
+Subject: - uml-definitively-kill-subprocesses-on-panic.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:14 -0700
+Message-ID: <200710162039.l9GKdEg4015525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58442 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936120AbXJPVHu (ORCPT
+	by vger.kernel.org with ESMTP id S935896AbXJPVIB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:50 -0400
+	Tue, 16 Oct 2007 17:08:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: ytht.net@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/spi/
+     uml: definitively kill subprocesses on panic
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-drivers-spi.patch
+     uml-definitively-kill-subprocesses-on-panic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/spi/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: uml: definitively kill subprocesses on panic
+From: Lepton Wu <ytht.net@gmail.com>
 
-This patch cleans up duplicate includes in
-	drivers/spi/
+In a stock 2.6.22.6 kernel, poweroff a user mode linux guest (2.6.22.6 running
+in skas0 mode) will halt the host linux.  I think the reason is the kernel
+thread abort because of a bug.  Then the sys_reboot in process of user mode
+linux guest is not trapped by the user mode linux kernel and is executed by
+host.  I think it is better to make sure all of our children process to quit
+when user mode linux kernel abort.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: David Brownell <david-b@pacbell.net>
+[ jdike - the kernel process needs to ignore SIGTERM, plus the waitpid/kill
+loop is needed to make sure that all of our children are dead before the
+kernel exits ]
+
+Signed-off-by: Lepton Wu <ytht.net@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c  |    1 -
- drivers/spi/spi_bfin5xx.c |    1 -
- 2 files changed, 2 deletions(-)
+ arch/um/os-Linux/skas/process.c |    2 -
+ arch/um/os-Linux/util.c         |   38 ++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -26,7 +26,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/spi/spi.h>
- #include <linux/workqueue.h>
--#include <linux/errno.h>
- #include <linux/delay.h>
+diff -puN arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic
++++ a/arch/um/os-Linux/skas/process.c
+@@ -177,7 +177,7 @@ static int userspace_tramp(void *stack)
  
- #include <asm/io.h>
-diff -puN drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -39,7 +39,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/spi/spi.h>
- #include <linux/workqueue.h>
--#include <linux/errno.h>
- #include <linux/delay.h>
+ 	ptrace(PTRACE_TRACEME, 0, 0, 0);
  
- #include <asm/io.h>
+-	init_new_thread_signals();
++	signal(SIGTERM, SIG_DFL);
+ 	err = set_interval();
+ 	if (err)
+ 		panic("userspace_tramp - setting timer failed, errno = %d\n",
+diff -puN arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/util.c
+--- a/arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic
++++ a/arch/um/os-Linux/util.c
+@@ -105,6 +105,44 @@ int setjmp_wrapper(void (*proc)(void *, 
+ 
+ void os_dump_core(void)
+ {
++	int pid;
++
+ 	signal(SIGSEGV, SIG_DFL);
++
++	/*
++	 * We are about to SIGTERM this entire process group to ensure that
++	 * nothing is around to run after the kernel exits.  The
++	 * kernel wants to abort, not die through SIGTERM, so we
++	 * ignore it here.
++	 */
++
++	signal(SIGTERM, SIG_IGN);
++	kill(0, SIGTERM);
++	/*
++	 * Most of the other processes associated with this UML are
++	 * likely sTopped, so give them a SIGCONT so they see the
++	 * SIGTERM.
++	 */
++	kill(0, SIGCONT);
++
++	/*
++	 * Now, having sent signals to everyone but us, make sure they
++	 * die by ptrace.  Processes can survive what's been done to
++	 * them so far - the mechanism I understand is receiving a
++	 * SIGSEGV and segfaulting immediately upon return.  There is
++	 * always a SIGSEGV pending, and (I'm guessing) signals are
++	 * processed in numeric order so the SIGTERM (signal 15 vs
++	 * SIGSEGV being signal 11) is never handled.
++	 *
++	 * Run a waitpid loop until we get some kind of error.
++	 * Hopefully, it's ECHILD, but there's not a lot we can do if
++	 * it's something else.  Tell os_kill_ptraced_process not to
++	 * wait for the child to report its death because there's
++	 * nothing reasonable to do if that fails.
++	 */
++
++	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0)
++		os_kill_ptraced_process(pid, 0);
++
+ 	abort();
+ }
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from ytht.net@gmail.com are
 
 origin.patch
-git-alsa.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+reiserfs-fix-kernel-panic-on-corrupted-directory.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
