@@ -1,57 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlbfs-read-support-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:37:37 -0700
-Message-ID: <200710160437.l9G4bbix009118@imap1.linux-foundation.org>
+Subject: - mm-mempolicyc-cleanups-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:38:54 -0700
+Message-ID: <200710160438.l9G4csrT009150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754230AbXJPEil (ORCPT
+	by vger.kernel.org with ESMTP id S1754279AbXJPEjF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:38:41 -0400
+	Tue, 16 Oct 2007 00:39:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bill.irwin@oracle.com, nickpiggin@yahoo.com.au, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bunk@stusta.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlbfs-read-support-fix
+     mm-mempolicyc-cleanups-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-read-support-fix.patch
+     mm-mempolicyc-cleanups-fix.patch
 
-This patch was dropped because it was folded into hugetlbfs-read-support.patch
+This patch was dropped because it was folded into mm-mempolicyc-cleanups.patch
 
 ------------------------------------------------------
-Subject: hugetlbfs-read-support-fix
+Subject: mm-mempolicyc-cleanups-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- nuke nasty gccism, do it the same way as we do it everywhere else
+mm/mempolicy.c: In function 'sys_get_mempolicy':
+mm/mempolicy.c:982: warning: 'pval' may be used uninitialized in this function
 
-- fix leak
-
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: William Irwin <bill.irwin@oracle.com>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -272,7 +272,9 @@ hugetlbfs_read(struct file *filp, char _
- 		 */
- 		ret = hugetlbfs_read_actor(page, offset, buf, len, nr);
- 		if (ret < 0) {
--			retval = retval ? : ret;
-+			if (retval == 0)
-+				retval = ret;
-+			page_cache_release(page);
- 			goto out;
- 		}
+diff -puN mm/mempolicy.c~mm-mempolicyc-cleanups-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-cleanups-fix
++++ a/mm/mempolicy.c
+@@ -994,7 +994,8 @@ asmlinkage long sys_get_mempolicy(int __
+ 				unsigned long maxnode,
+ 				unsigned long addr, unsigned long flags)
+ {
+-	int err, pval;
++	int err;
++	int uninitialized_var(pval);
+ 	nodemask_t nodes;
  
+ 	if (nmask != NULL && maxnode < MAX_NUMNODES)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +68,7 @@ categorize-gfp-flags.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support.patch
-hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups.patch
 mm-mempolicyc-cleanups-fix.patch
 mm-bdi-init-hooks.patch
 mm-per-device-dirty-threshold-warning-fix.patch
