@@ -1,99 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - add-in-sunos-41x-compatible-mode-for-ufs-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:04:28 -0700
-Message-ID: <200710162204.l9GM4S6X019946@imap1.linux-foundation.org>
+Subject: - core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:05:53 -0700
+Message-ID: <200710162205.l9GM5r2C020004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44192 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33790 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935529AbXJPWEk (ORCPT
+	by vger.kernel.org with ESMTP id S936404AbXJPWGs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:04:40 -0400
+	Tue, 16 Oct 2007 18:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeremy@goop.org, martin.pitt@ubuntu.com, nhorman@tuxdriver.com, wwoods@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-in-sunos-41x-compatible-mode-for-ufs-fix
+     core_pattern-fix-up-a-few-miscellaneous-bugs-fix
 has been removed from the -mm tree.  Its filename was
-     add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+     core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
 
-This patch was dropped because it was folded into add-in-sunos-41x-compatible-mode-for-ufs.patch
+This patch was dropped because it was folded into core_pattern-fix-up-a-few-miscellaneous-bugs.patch
 
 ------------------------------------------------------
-Subject: add-in-sunos-41x-compatible-mode-for-ufs-fix
+Subject: core_pattern-fix-up-a-few-miscellaneous-bugs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-coding style fixes
-
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
+Cc: <martin.pitt@ubuntu.com>
+Cc: <wwoods@redhat.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   11 ++++++-----
- fs/ufs/util.h  |    6 ++++--
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ fs/exec.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix fs/ufs/super.c
---- a/fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix
-+++ a/fs/ufs/super.c
-@@ -341,8 +341,8 @@ static int ufs_parse_options (char * opt
- 			ufs_set_opt (*mount_options, UFSTYPE_SUN);
- 			break;
- 		case Opt_type_sunos:
--			ufs_clear_opt (*mount_options, UFSTYPE);
--			ufs_set_opt (*mount_options, UFSTYPE_SUNOS);
-+			ufs_clear_opt(*mount_options, UFSTYPE);
-+			ufs_set_opt(*mount_options, UFSTYPE_SUNOS);
- 			break;
- 		case Opt_type_44bsd:
- 			ufs_clear_opt (*mount_options, UFSTYPE);
-@@ -659,8 +659,8 @@ static int ufs_fill_super(struct super_b
- 		ufs_set_opt (sbi->s_mount_opt, UFSTYPE_OLD);
- 	}
+diff -puN fs/exec.c~core_pattern-fix-up-a-few-miscellaneous-bugs-fix fs/exec.c
+--- a/fs/exec.c~core_pattern-fix-up-a-few-miscellaneous-bugs-fix
++++ a/fs/exec.c
+@@ -1771,16 +1771,17 @@ int do_coredump(long signr, int exit_cod
+ 			delimit++;
+ 		else
+ 			delimit = helper_argv[0];
+-		if (!strcmp(delimit, current->comm))
+-		{
+-			printk(KERN_NOTICE "Recursive core dump detected, Aborting\n");
++		if (!strcmp(delimit, current->comm)) {
++			printk(KERN_NOTICE "Recursive core dump detected, "
++					"aborting\n");
+ 			goto fail_unlock;
+ 		}
  
--	sbi->s_uspi = uspi =
--		kzalloc (sizeof(struct ufs_sb_private_info), GFP_KERNEL);
-+	uspi = kzalloc(sizeof(struct ufs_sb_private_info), GFP_KERNEL);
-+	sbi->s_uspi = uspi;
- 	if (!uspi)
- 		goto failed;
- 	uspi->s_dirblksize = UFS_SECTOR_SIZE;
-@@ -706,7 +706,8 @@ static int ufs_fill_super(struct super_b
- 		uspi->s_fsize = block_size = 1024;
- 		uspi->s_fmask = ~(1024 - 1);
- 		uspi->s_fshift = 10;
--		uspi->s_sbsize = super_block_size = 2048;
-+		uspi->s_sbsize = 2048;
-+		super_block_size = 2048;
- 		uspi->s_sbbase = 0;
- 		uspi->s_maxsymlinklen = 0; /* Not supported on disk */
- 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_SUNOS | UFS_CG_SUN;
-diff -puN fs/ufs/util.h~add-in-sunos-41x-compatible-mode-for-ufs-fix fs/ufs/util.h
---- a/fs/ufs/util.h~add-in-sunos-41x-compatible-mode-for-ufs-fix
-+++ a/fs/ufs/util.h
-@@ -212,7 +212,8 @@ ufs_set_inode_uid(struct super_block *sb
- 		break;
- 	case UFS_UID_EFT:
- 		inode->ui_u3.ui_sun.ui_uid = cpu_to_fs32(sb, value);
--		if (value > 0xFFFF) value = 0xFFFF;
-+		if (value > 0xFFFF)
-+			value = 0xFFFF;
- 		/* Fall through */
- 	default:
- 		inode->ui_u1.oldids.ui_suid = cpu_to_fs16(sb, value);
-@@ -245,7 +246,8 @@ ufs_set_inode_gid(struct super_block *sb
- 		break;
- 	case UFS_UID_EFT:
- 		inode->ui_u3.ui_sun.ui_gid = cpu_to_fs32(sb, value);
--		if (value > 0xFFFF) value = 0xFFFF;
-+		if (value > 0xFFFF)
-+			value = 0xFFFF;
- 		/* Fall through */
- 	default:
- 		inode->ui_u1.oldids.ui_sgid =  cpu_to_fs16(sb, value);
+ 		core_limit = RLIM_INFINITY;
+ 
+ 		/* SIGPIPE can happen, but it's just never processed */
+- 		if(call_usermodehelper_pipe(corename+1, helper_argv, NULL, &file)) {
++ 		if (call_usermodehelper_pipe(corename+1, helper_argv, NULL,
++				&file)) {
+  			printk(KERN_INFO "Core dump to %s pipe failed\n",
+ 			       corename);
+  			goto fail_unlock;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,7 +78,7 @@ driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
 do_sys_poll-simplify-playing-with-on-stack-data.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 add-in-sunos-41x-compatible-mode-for-ufs.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
 core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 deprecate-aout-elf-interpreters-fix.patch
