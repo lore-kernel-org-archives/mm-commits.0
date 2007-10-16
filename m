@@ -1,279 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - fs-fix-nobh-error-handling.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:40 -0700
-Message-ID: <200710162031.l9GKVeBR014521@imap1.linux-foundation.org>
+Subject: - ext2-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:29 -0700
+Message-ID: <200710162032.l9GKWT53014606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59384 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965833AbXJPVkU (ORCPT
+	by vger.kernel.org with ESMTP id S965834AbXJPVkY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:40:20 -0400
+	Tue, 16 Oct 2007 17:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: fix nobh error handling
+     ext2: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     fs-fix-nobh-error-handling.patch
+     ext2-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: fix nobh error handling
+Subject: ext2: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
-
-nobh mode error handling is not just pretty slack, it's wrong.
-
-One cannot zero out the whole page to ensure new blocks are zeroed, because
-it just brings the whole page "uptodate" with zeroes even if that may not
-be the correct uptodate data.  Also, other parts of the page may already
-contain dirty data which would get lost by zeroing it out.  Thirdly, the
-writeback of zeroes to the new blocks will also erase existing blocks.  All
-these conditions are pagecache and/or filesystem corruption.
-
-The problem comes about because we didn't keep track of which buffers
-actually are new or old.  However it is not enough just to keep only this
-state, because at the point we start dirtying parts of the page (new
-blocks, with zeroes), the handling of IO errors becomes impossible without
-buffers because the page may only be partially uptodate, in which case the
-page flags allone cannot capture the state of the parts of the page.
-
-So allocate all buffers for the page upfront, but leave them unattached so
-that they don't pick up any other references and can be freed when we're
-done.  If the error path is hit, then zero the new buffers as the regular
-buffer path does, then attach the buffers to the page so that it can
-actually be written out correctly and be subject to the normal IO error
-handling paths.
-
-As an upshot, we save 1K of kernel stack on ia64 or powerpc 64K page
-systems.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |  138 +++++++++++++++++++++++++++++---------------------
- 1 file changed, 82 insertions(+), 56 deletions(-)
+ fs/ext2/dir.c   |   55 ++++++++++++++++++++++++++++++----------------
+ fs/ext2/ext2.h  |    3 ++
+ fs/ext2/inode.c |   24 ++++++++++----------
+ 3 files changed, 53 insertions(+), 29 deletions(-)
 
-diff -puN fs/buffer.c~fs-fix-nobh-error-handling fs/buffer.c
---- a/fs/buffer.c~fs-fix-nobh-error-handling
-+++ a/fs/buffer.c
-@@ -2274,51 +2274,64 @@ int nobh_prepare_write(struct page *page
- 	struct inode *inode = page->mapping->host;
- 	const unsigned blkbits = inode->i_blkbits;
- 	const unsigned blocksize = 1 << blkbits;
--	struct buffer_head map_bh;
--	struct buffer_head *read_bh[MAX_BUF_PER_PAGE];
-+	struct buffer_head *head, *bh;
- 	unsigned block_in_page;
--	unsigned block_start;
-+	unsigned block_start, block_end;
- 	sector_t block_in_file;
- 	char *kaddr;
- 	int nr_reads = 0;
--	int i;
- 	int ret = 0;
- 	int is_mapped_to_disk = 1;
+diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-convert-to-new-aops
++++ a/fs/ext2/dir.c
+@@ -22,7 +22,9 @@
+  */
  
-+	if (page_has_buffers(page))
-+		return block_prepare_write(page, from, to, get_block);
-+
- 	if (PageMappedToDisk(page))
- 		return 0;
+ #include "ext2.h"
++#include <linux/buffer_head.h>
+ #include <linux/pagemap.h>
++#include <linux/swap.h>
  
-+	/*
-+	 * Allocate buffers so that we can keep track of state, and potentially
-+	 * attach them to the page if an error occurs. In the common case of
-+	 * no error, they will just be freed again without ever being attached
-+	 * to the page (which is all OK, because we're under the page lock).
-+	 *
-+	 * Be careful: the buffer linked list is a NULL terminated one, rather
-+	 * than the circular one we're used to.
-+	 */
-+	head = alloc_page_buffers(page, blocksize, 0);
-+	if (!head)
-+		return -ENOMEM;
-+
- 	block_in_file = (sector_t)page->index << (PAGE_CACHE_SHIFT - blkbits);
--	map_bh.b_page = page;
+ typedef struct ext2_dir_entry_2 ext2_dirent;
  
- 	/*
- 	 * We loop across all blocks in the page, whether or not they are
- 	 * part of the affected region.  This is so we can discover if the
- 	 * page is fully mapped-to-disk.
- 	 */
--	for (block_start = 0, block_in_page = 0;
-+	for (block_start = 0, block_in_page = 0, bh = head;
- 		  block_start < PAGE_CACHE_SIZE;
--		  block_in_page++, block_start += blocksize) {
--		unsigned block_end = block_start + blocksize;
-+		  block_in_page++, block_start += blocksize, bh = bh->b_this_page) {
- 		int create;
- 
--		map_bh.b_state = 0;
-+		block_end = block_start + blocksize;
-+		bh->b_state = 0;
- 		create = 1;
- 		if (block_start >= to)
- 			create = 0;
--		map_bh.b_size = blocksize;
- 		ret = get_block(inode, block_in_file + block_in_page,
--					&map_bh, create);
-+					bh, create);
- 		if (ret)
- 			goto failed;
--		if (!buffer_mapped(&map_bh))
-+		if (!buffer_mapped(bh))
- 			is_mapped_to_disk = 0;
--		if (buffer_new(&map_bh))
--			unmap_underlying_metadata(map_bh.b_bdev,
--							map_bh.b_blocknr);
--		if (PageUptodate(page))
-+		if (buffer_new(bh))
-+			unmap_underlying_metadata(bh->b_bdev, bh->b_blocknr);
-+		if (PageUptodate(page)) {
-+			set_buffer_uptodate(bh);
- 			continue;
--		if (buffer_new(&map_bh) || !buffer_mapped(&map_bh)) {
-+		}
-+		if (buffer_new(bh) || !buffer_mapped(bh)) {
- 			kaddr = kmap_atomic(page, KM_USER0);
- 			if (block_start < from)
- 				memset(kaddr+block_start, 0, from-block_start);
-@@ -2328,49 +2341,26 @@ int nobh_prepare_write(struct page *page
- 			kunmap_atomic(kaddr, KM_USER0);
- 			continue;
- 		}
--		if (buffer_uptodate(&map_bh))
-+		if (buffer_uptodate(bh))
- 			continue;	/* reiserfs does this */
- 		if (block_start < from || block_end > to) {
--			struct buffer_head *bh = alloc_buffer_head(GFP_NOFS);
--
--			if (!bh) {
--				ret = -ENOMEM;
--				goto failed;
--			}
--			bh->b_state = map_bh.b_state;
--			atomic_set(&bh->b_count, 0);
--			bh->b_this_page = NULL;
--			bh->b_page = page;
--			bh->b_blocknr = map_bh.b_blocknr;
--			bh->b_size = blocksize;
--			bh->b_data = (char *)(long)block_start;
--			bh->b_bdev = map_bh.b_bdev;
--			bh->b_private = NULL;
--			read_bh[nr_reads++] = bh;
-+			lock_buffer(bh);
-+			bh->b_end_io = end_buffer_read_nobh;
-+			submit_bh(READ, bh);
-+			nr_reads++;
- 		}
- 	}
- 
- 	if (nr_reads) {
--		struct buffer_head *bh;
--
- 		/*
- 		 * The page is locked, so these buffers are protected from
- 		 * any VM or truncate activity.  Hence we don't need to care
- 		 * for the buffer_head refcounts.
- 		 */
--		for (i = 0; i < nr_reads; i++) {
--			bh = read_bh[i];
--			lock_buffer(bh);
--			bh->b_end_io = end_buffer_read_nobh;
--			submit_bh(READ, bh);
--		}
--		for (i = 0; i < nr_reads; i++) {
--			bh = read_bh[i];
-+		for (bh = head; bh; bh = bh->b_this_page) {
- 			wait_on_buffer(bh);
- 			if (!buffer_uptodate(bh))
- 				ret = -EIO;
--			free_buffer_head(bh);
--			read_bh[i] = NULL;
- 		}
- 		if (ret)
- 			goto failed;
-@@ -2379,21 +2369,54 @@ int nobh_prepare_write(struct page *page
- 	if (is_mapped_to_disk)
- 		SetPageMappedToDisk(page);
- 
-+	do {
-+		bh = head;
-+		head = head->b_this_page;
-+		free_buffer_head(bh);
-+	} while (head);
-+
- 	return 0;
- 
- failed:
--	for (i = 0; i < nr_reads; i++) {
--		if (read_bh[i])
--			free_buffer_head(read_bh[i]);
--	}
--
- 	/*
--	 * Error recovery is pretty slack.  Clear the page and mark it dirty
--	 * so we'll later zero out any blocks which _were_ allocated.
-+	 * Error recovery is a bit difficult. We need to zero out blocks that
-+	 * were newly allocated, and dirty them to ensure they get written out.
-+	 * Buffers need to be attached to the page at this point, otherwise
-+	 * the handling of potential IO errors during writeout would be hard
-+	 * (could try doing synchronous writeout, but what if that fails too?)
- 	 */
--	zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
--	SetPageUptodate(page);
--	set_page_dirty(page);
-+	spin_lock(&page->mapping->private_lock);
-+	bh = head;
-+	block_start = 0;
-+	do {
-+		if (PageUptodate(page))
-+			set_buffer_uptodate(bh);
-+		if (PageDirty(page))
-+			set_buffer_dirty(bh);
-+
-+		block_end = block_start+blocksize;
-+		if (block_end <= from)
-+			goto next;
-+		if (block_start >= to)
-+			goto next;
-+
-+		if (buffer_new(bh)) {
-+			clear_buffer_new(bh);
-+			if (!buffer_uptodate(bh)) {
-+				zero_user_page(page, block_start, bh->b_size, KM_USER0);
-+				set_buffer_uptodate(bh);
-+			}
-+			mark_buffer_dirty(bh);
-+		}
-+next:
-+		block_start = block_end;
-+		if (!bh->b_this_page)
-+			bh->b_this_page = head;
-+		bh = bh->b_this_page;
-+	} while (bh != head);
-+	attach_page_buffers(page, head);
-+	spin_unlock(&page->mapping->private_lock);
-+
- 	return ret;
+@@ -61,16 +63,25 @@ ext2_last_byte(struct inode *inode, unsi
+ 	return last_byte;
  }
- EXPORT_SYMBOL(nobh_prepare_write);
-@@ -2408,6 +2431,9 @@ int nobh_commit_write(struct file *file,
- 	struct inode *inode = page->mapping->host;
- 	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
  
-+	if (page_has_buffers(page))
-+		return generic_commit_write(file, page, from, to);
+-static int ext2_commit_chunk(struct page *page, unsigned from, unsigned to)
++static int ext2_commit_chunk(struct page *page, loff_t pos, unsigned len)
+ {
+-	struct inode *dir = page->mapping->host;
++	struct address_space *mapping = page->mapping;
++	struct inode *dir = mapping->host;
+ 	int err = 0;
 +
- 	SetPageUptodate(page);
- 	set_page_dirty(page);
- 	if (pos > inode->i_size) {
+ 	dir->i_version++;
+-	page->mapping->a_ops->commit_write(NULL, page, from, to);
++	block_write_end(NULL, mapping, pos, len, len, page, NULL);
++
++	if (pos+len > dir->i_size) {
++		i_size_write(dir, pos+len);
++		mark_inode_dirty(dir);
++	}
++
+ 	if (IS_DIRSYNC(dir))
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
++
+ 	return err;
+ }
+ 
+@@ -412,16 +423,18 @@ ino_t ext2_inode_by_name(struct inode * 
+ void ext2_set_link(struct inode *dir, struct ext2_dir_entry_2 *de,
+ 			struct page *page, struct inode *inode)
+ {
+-	unsigned from = (char *) de - (char *) page_address(page);
+-	unsigned to = from + le16_to_cpu(de->rec_len);
++	loff_t pos = page_offset(page) +
++			(char *) de - (char *) page_address(page);
++	unsigned len = le16_to_cpu(de->rec_len);
+ 	int err;
+ 
+ 	lock_page(page);
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __ext2_write_begin(NULL, page->mapping, pos, len,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	BUG_ON(err);
+ 	de->inode = cpu_to_le32(inode->i_ino);
+-	ext2_set_de_type (de, inode);
+-	err = ext2_commit_chunk(page, from, to);
++	ext2_set_de_type(de, inode);
++	err = ext2_commit_chunk(page, pos, len);
+ 	ext2_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	EXT2_I(dir)->i_flags &= ~EXT2_BTREE_FL;
+@@ -444,7 +457,7 @@ int ext2_add_link (struct dentry *dentry
+ 	unsigned long npages = dir_pages(dir);
+ 	unsigned long n;
+ 	char *kaddr;
+-	unsigned from, to;
++	loff_t pos;
+ 	int err;
+ 
+ 	/*
+@@ -497,9 +510,10 @@ int ext2_add_link (struct dentry *dentry
+ 	return -EINVAL;
+ 
+ got_it:
+-	from = (char*)de - (char*)page_address(page);
+-	to = from + rec_len;
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	pos = page_offset(page) +
++		(char*)de - (char*)page_address(page);
++	err = __ext2_write_begin(NULL, page->mapping, pos, rec_len, 0,
++							&page, NULL);
+ 	if (err)
+ 		goto out_unlock;
+ 	if (de->inode) {
+@@ -509,10 +523,10 @@ got_it:
+ 		de = de1;
+ 	}
+ 	de->name_len = namelen;
+-	memcpy (de->name, name, namelen);
++	memcpy(de->name, name, namelen);
+ 	de->inode = cpu_to_le32(inode->i_ino);
+ 	ext2_set_de_type (de, inode);
+-	err = ext2_commit_chunk(page, from, to);
++	err = ext2_commit_chunk(page, pos, rec_len);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	EXT2_I(dir)->i_flags &= ~EXT2_BTREE_FL;
+ 	mark_inode_dirty(dir);
+@@ -537,6 +551,7 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	char *kaddr = page_address(page);
+ 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
+ 	unsigned to = ((char*)dir - kaddr) + le16_to_cpu(dir->rec_len);
++	loff_t pos;
+ 	ext2_dirent * pde = NULL;
+ 	ext2_dirent * de = (ext2_dirent *) (kaddr + from);
+ 	int err;
+@@ -553,13 +568,15 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	}
+ 	if (pde)
+ 		from = (char*)pde - (char*)page_address(page);
++	pos = page_offset(page) + from;
+ 	lock_page(page);
+-	err = mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __ext2_write_begin(NULL, page->mapping, pos, to - from, 0,
++							&page, NULL);
+ 	BUG_ON(err);
+ 	if (pde)
+-		pde->rec_len = cpu_to_le16(to-from);
++		pde->rec_len = cpu_to_le16(to - from);
+ 	dir->inode = 0;
+-	err = ext2_commit_chunk(page, from, to);
++	err = ext2_commit_chunk(page, pos, to - from);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
+ 	EXT2_I(inode)->i_flags &= ~EXT2_BTREE_FL;
+ 	mark_inode_dirty(inode);
+@@ -582,7 +599,9 @@ int ext2_make_empty(struct inode *inode,
+ 
+ 	if (!page)
+ 		return -ENOMEM;
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, chunk_size);
++
++	err = __ext2_write_begin(NULL, page->mapping, 0, chunk_size, 0,
++							&page, NULL);
+ 	if (err) {
+ 		unlock_page(page);
+ 		goto fail;
+diff -puN fs/ext2/ext2.h~ext2-convert-to-new-aops fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~ext2-convert-to-new-aops
++++ a/fs/ext2/ext2.h
+@@ -134,6 +134,9 @@ extern void ext2_truncate (struct inode 
+ extern int ext2_setattr (struct dentry *, struct iattr *);
+ extern void ext2_set_inode_flags(struct inode *inode);
+ extern void ext2_get_inode_flags(struct ext2_inode_info *);
++int __ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata);
+ 
+ /* ioctl.c */
+ extern int ext2_ioctl (struct inode *, struct file *, unsigned int,
+diff -puN fs/ext2/inode.c~ext2-convert-to-new-aops fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-convert-to-new-aops
++++ a/fs/ext2/inode.c
+@@ -642,18 +642,21 @@ ext2_readpages(struct file *file, struct
+ 	return mpage_readpages(mapping, pages, nr_pages, ext2_get_block);
+ }
+ 
+-static int
+-ext2_prepare_write(struct file *file, struct page *page,
+-			unsigned from, unsigned to)
++int __ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata)
+ {
+-	return block_prepare_write(page,from,to,ext2_get_block);
++	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++							ext2_get_block);
+ }
+ 
+ static int
+-ext2_nobh_prepare_write(struct file *file, struct page *page,
+-			unsigned from, unsigned to)
++ext2_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata)
+ {
+-	return nobh_prepare_write(page,from,to,ext2_get_block);
++	*pagep = NULL;
++	return __ext2_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
+ }
+ 
+ static int ext2_nobh_writepage(struct page *page,
+@@ -689,8 +692,8 @@ const struct address_space_operations ex
+ 	.readpages		= ext2_readpages,
+ 	.writepage		= ext2_writepage,
+ 	.sync_page		= block_sync_page,
+-	.prepare_write		= ext2_prepare_write,
+-	.commit_write		= generic_commit_write,
++	.write_begin		= ext2_write_begin,
++	.write_end		= generic_write_end,
+ 	.bmap			= ext2_bmap,
+ 	.direct_IO		= ext2_direct_IO,
+ 	.writepages		= ext2_writepages,
+@@ -707,8 +710,7 @@ const struct address_space_operations ex
+ 	.readpages		= ext2_readpages,
+ 	.writepage		= ext2_nobh_writepage,
+ 	.sync_page		= block_sync_page,
+-	.prepare_write		= ext2_nobh_prepare_write,
+-	.commit_write		= nobh_commit_write,
++	/* XXX: todo */
+ 	.bmap			= ext2_bmap,
+ 	.direct_IO		= ext2_direct_IO,
+ 	.writepages		= ext2_writepages,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
