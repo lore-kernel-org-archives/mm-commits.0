@@ -1,512 +1,515 @@
 From: akpm@linux-foundation.org
-Subject: - cirrusfb-remove-fields-from-cirrusfb_info.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:53 -0700
-Message-ID: <200710162043.l9GKhrw3016091@imap1.linux-foundation.org>
+Subject: - uml-stop-saving-process-fp-state.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:06 -0700
+Message-ID: <200710162037.l9GKb6SC015263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965767AbXJPVSI (ORCPT
+	by vger.kernel.org with ESMTP id S965540AbXJPVSP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:08 -0400
+	Tue, 16 Oct 2007 17:18:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: remove fields from cirrusfb_info
+     uml: stop saving process FP state
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-remove-fields-from-cirrusfb_info.patch
+     uml-stop-saving-process-fp-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cirrusfb: remove fields from cirrusfb_info
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: stop saving process FP state
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch removes unused or redundant fields from cirrusfb_info structure.
+Throw out a lot of code dealing with saving and restoring floating-point
+state.  In skas mode, where processes run in a restoring floating-point state
+on kernel entry and exit is pointless.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+This eliminates most of arch/um/os-Linux/sys-{i386,x86_64}/registers.c.  Most
+of what remained is now arch-indpendent, and can be moved up to
+arch/um/os-Linux/registers.c.  Both arches need the jmp_buf accessor
+get_thread_reg, and i386 needs {save,restore}_fp_regs because it cheats during
+sigreturn by getting the fp state using ptrace rather than copying it out of
+the process sigcontext.
+
+After this, it turns out that arch/um/include/skas/mode-skas.h is almost
+completely unneeded.  The declarations in it are variables which either don't
+exist or which don't have global scope.  The one exception is
+kill_off_processes_skas.  If that's removed, this header can be deleted.
+
+This uncovered a bug in user.h, which wasn't correctly making sure that a
+size_t definition was available to both userspace and kernelspace files.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |  149 ++++++++++++++++---------------------
- 1 file changed, 68 insertions(+), 81 deletions(-)
+ arch/um/include/os.h                    |    2 
+ arch/um/include/registers.h             |    2 
+ arch/um/include/skas/mode-skas.h        |    9 -
+ arch/um/include/sysdep-i386/ptrace.h    |   11 --
+ arch/um/include/user.h                  |    8 +
+ arch/um/os-Linux/Makefile               |    8 -
+ arch/um/os-Linux/registers.c            |   54 +++++++++++
+ arch/um/os-Linux/skas/mem.c             |    2 
+ arch/um/os-Linux/skas/process.c         |    8 -
+ arch/um/os-Linux/sys-i386/registers.c   |  108 ----------------------
+ arch/um/os-Linux/sys-x86_64/Makefile    |    2 
+ arch/um/os-Linux/sys-x86_64/registers.c |   75 ---------------
+ 12 files changed, 74 insertions(+), 215 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-fields-from-cirrusfb_info drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-remove-fields-from-cirrusfb_info
-+++ a/drivers/video/cirrusfb.c
-@@ -369,23 +369,14 @@ enum cirrusfb_dbg_reg_class {
+diff -puN arch/um/include/os.h~uml-stop-saving-process-fp-state arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-stop-saving-process-fp-state
++++ a/arch/um/include/os.h
+@@ -307,6 +307,8 @@ extern int protect(struct mm_id * mm_idp
+ extern int is_skas_winch(int pid, int fd, void *data);
+ extern int start_userspace(unsigned long stub_stack);
+ extern int copy_context_skas0(unsigned long stack, int pid);
++extern void save_registers(int pid, union uml_pt_regs *regs);
++extern void restore_registers(int pid, union uml_pt_regs *regs);
+ extern void userspace(union uml_pt_regs *regs);
+ extern void map_stub_pages(int fd, unsigned long code,
+ 			   unsigned long data, unsigned long stack);
+diff -puN arch/um/include/registers.h~uml-stop-saving-process-fp-state arch/um/include/registers.h
+--- a/arch/um/include/registers.h~uml-stop-saving-process-fp-state
++++ a/arch/um/include/registers.h
+@@ -15,7 +15,7 @@ extern int restore_fp_registers(int pid,
+ extern void save_registers(int pid, union uml_pt_regs *regs);
+ extern void restore_registers(int pid, union uml_pt_regs *regs);
+ extern void init_registers(int pid);
+-extern void get_safe_registers(unsigned long * regs, unsigned long * fp_regs);
++extern void get_safe_registers(unsigned long *regs);
+ extern unsigned long get_thread_reg(int reg, jmp_buf *buf);
  
- /* info about board */
- struct cirrusfb_info {
--	struct fb_info *info;
--
--	u8 __iomem *fbmem;
- 	u8 __iomem *regbase;
--	u8 __iomem *mem;
--	unsigned long size;
- 	enum cirrus_board btype;
- 	unsigned char SFR;	/* Shadow of special function register */
- 
--	unsigned long fbmem_phys;
--	unsigned long fbregs_phys;
--
- 	struct cirrusfb_regs currentmode;
- 	int blank_mode;
- 
- 	u32	pseudo_palette[16];
--	struct { u8 red, green, blue, pad; } palette[256];
- 
- #ifdef CONFIG_ZORRO
- 	struct zorro_dev *zdev;
-@@ -393,7 +384,7 @@ struct cirrusfb_info {
- #ifdef CONFIG_PCI
- 	struct pci_dev *pdev;
  #endif
--	void (*unmap)(struct cirrusfb_info *cinfo);
-+	void (*unmap)(struct fb_info *info);
- };
+diff -puN arch/um/include/skas/mode-skas.h~uml-stop-saving-process-fp-state arch/um/include/skas/mode-skas.h
+--- a/arch/um/include/skas/mode-skas.h~uml-stop-saving-process-fp-state
++++ a/arch/um/include/skas/mode-skas.h
+@@ -1,18 +1,11 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
+  * Licensed under the GPL
+  */
  
- static unsigned cirrusfb_def_mode = 1;
-@@ -536,7 +527,7 @@ static int cirrusfb_decode_var(const str
- 				struct cirrusfb_regs *regs,
- 				const struct fb_info *info);
- /*--- Internal routines ----------------------------------------------------*/
--static void init_vgachip(struct cirrusfb_info *cinfo);
-+static void init_vgachip(struct fb_info *info);
- static void switch_monitor(struct cirrusfb_info *cinfo, int on);
- static void WGen(const struct cirrusfb_info *cinfo,
- 		 int regnum, unsigned char val);
-@@ -645,7 +636,6 @@ static long cirrusfb_get_mclk(long freq,
- static int cirrusfb_check_var(struct fb_var_screeninfo *var,
- 			      struct fb_info *info)
- {
--	struct cirrusfb_info *cinfo = info->par;
- 	int nom, den;		/* translyting from pixels->bytes */
- 	int yres, i;
- 	static struct { int xres, yres; } modes[] =
-@@ -690,7 +680,7 @@ static int cirrusfb_check_var(struct fb_
- 		return -EINVAL;
- 	}
+ #ifndef __MODE_SKAS_H__
+ #define __MODE_SKAS_H__
  
--	if (var->xres * nom / den * var->yres > cinfo->size) {
-+	if (var->xres * nom / den * var->yres > info->screen_size) {
- 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
- 			"resolution too high to fit into video memory!\n",
- 			var->xres, var->yres, var->bits_per_pixel);
-@@ -704,7 +694,8 @@ static int cirrusfb_check_var(struct fb_
- 		printk(KERN_INFO
- 		     "cirrusfb: using maximum available virtual resolution\n");
- 		for (i = 0; modes[i].xres != -1; i++) {
--			if (modes[i].xres * nom / den * modes[i].yres < cinfo->size / 2)
-+			int size = modes[i].xres * nom / den * modes[i].yres;
-+			if (size < info->screen_size / 2)
- 				break;
- 		}
- 		if (modes[i].xres == -1) {
-@@ -1018,7 +1009,7 @@ static int cirrusfb_set_par_foo(struct f
- 	       var->xres, var->yres, var->bits_per_pixel);
- 	DPRINTK("pixclock: %d\n", var->pixclock);
- 
--	init_vgachip(cinfo);
-+	init_vgachip(info);
- 
- 	err = cirrusfb_decode_var(var, &regs, info);
- 	if (err) {
-@@ -1686,10 +1677,6 @@ static int cirrusfb_setcolreg(unsigned r
- 		return 0;
- 	}
- 
--	cinfo->palette[regno].red = red;
--	cinfo->palette[regno].green = green;
--	cinfo->palette[regno].blue = blue;
+-#include <sysdep/ptrace.h>
 -
- 	if (info->var.bits_per_pixel == 8)
- 		WClut(cinfo, regno, red >> 10, green >> 10, blue >> 10);
+-extern unsigned long exec_regs[];
+-extern unsigned long exec_fp_regs[];
+-extern unsigned long exec_fpx_regs[];
+-extern int have_fpx_regs;
+-
+ extern void kill_off_processes_skas(void);
  
-@@ -1848,8 +1835,9 @@ static int cirrusfb_blank(int blank_mode
- /****************************************************************************/
- /**** BEGIN Internal Routines ***********************************************/
- 
--static void init_vgachip(struct cirrusfb_info *cinfo)
-+static void init_vgachip(struct fb_info *info)
- {
-+	struct cirrusfb_info *cinfo = info->par;
- 	const struct cirrusfb_board_info_rec *bi;
- 
- 	DPRINTK("ENTER\n");
-@@ -1903,7 +1891,8 @@ static void init_vgachip(struct cirrusfb
- 		break;
- 	}
- 
--	assert(cinfo->size > 0); /* make sure RAM size set by this point */
-+	/* make sure RAM size set by this point */
-+	assert(info->screen_size > 0);
- 
- 	/* the P4 is not fully initialized here; I rely on it having been */
- 	/* inited under AmigaOS already, which seems to work just fine    */
-@@ -2089,7 +2078,7 @@ static void init_vgachip(struct cirrusfb
- 	WHDR(cinfo, 0);	/* Hidden DAC register: - */
- 
- 	printk(KERN_DEBUG "cirrusfb: This board has %ld bytes of DRAM memory\n",
--		cinfo->size);
-+		info->screen_size);
- 	DPRINTK("EXIT\n");
- 	return;
- }
-@@ -2150,24 +2139,25 @@ static void switch_monitor(struct cirrus
- /* Linux 2.6-style  accelerated functions */
- /******************************************/
- 
--static void cirrusfb_prim_fillrect(struct cirrusfb_info *cinfo,
-+static void cirrusfb_prim_fillrect(struct fb_info *info,
- 				   const struct fb_fillrect *region)
- {
-+	struct cirrusfb_info *cinfo = info->par;
- 	int m; /* bytes per pixel */
--	u32 color = (cinfo->info->fix.visual == FB_VISUAL_TRUECOLOR) ?
-+	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
- 		cinfo->pseudo_palette[region->color] : region->color;
- 
--	if (cinfo->info->var.bits_per_pixel == 1) {
-+	if (info->var.bits_per_pixel == 1) {
- 		cirrusfb_RectFill(cinfo->regbase,
--				  cinfo->info->var.bits_per_pixel,
-+				  info->var.bits_per_pixel,
- 				  region->dx / 8, region->dy,
- 				  region->width / 8, region->height,
- 				  color,
- 				  cinfo->currentmode.line_length);
- 	} else {
--		m = (cinfo->info->var.bits_per_pixel + 7) / 8;
-+		m = (info->var.bits_per_pixel + 7) / 8;
- 		cirrusfb_RectFill(cinfo->regbase,
--				  cinfo->info->var.bits_per_pixel,
-+				  info->var.bits_per_pixel,
- 				  region->dx * m, region->dy,
- 				  region->width * m, region->height,
- 				  color,
-@@ -2179,7 +2169,6 @@ static void cirrusfb_prim_fillrect(struc
- static void cirrusfb_fillrect(struct fb_info *info,
- 			      const struct fb_fillrect *region)
- {
--	struct cirrusfb_info *cinfo = info->par;
- 	struct fb_fillrect modded;
- 	int vxres, vyres;
- 
-@@ -2204,22 +2193,24 @@ static void cirrusfb_fillrect(struct fb_
- 	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
--	cirrusfb_prim_fillrect(cinfo, &modded);
-+	cirrusfb_prim_fillrect(info, &modded);
- }
- 
--static void cirrusfb_prim_copyarea(struct cirrusfb_info *cinfo,
-+static void cirrusfb_prim_copyarea(struct fb_info *info,
- 				   const struct fb_copyarea *area)
- {
-+	struct cirrusfb_info *cinfo = info->par;
- 	int m; /* bytes per pixel */
--	if (cinfo->info->var.bits_per_pixel == 1) {
--		cirrusfb_BitBLT(cinfo->regbase, cinfo->info->var.bits_per_pixel,
-+
-+	if (info->var.bits_per_pixel == 1) {
-+		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
- 				area->sx / 8, area->sy,
- 				area->dx / 8, area->dy,
- 				area->width / 8, area->height,
- 				cinfo->currentmode.line_length);
- 	} else {
--		m = (cinfo->info->var.bits_per_pixel + 7) / 8;
--		cirrusfb_BitBLT(cinfo->regbase, cinfo->info->var.bits_per_pixel,
-+		m = (info->var.bits_per_pixel + 7) / 8;
-+		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
- 				area->sx * m, area->sy,
- 				area->dx * m, area->dy,
- 				area->width * m, area->height,
-@@ -2231,9 +2222,9 @@ static void cirrusfb_prim_copyarea(struc
- static void cirrusfb_copyarea(struct fb_info *info,
- 			      const struct fb_copyarea *area)
- {
--	struct cirrusfb_info *cinfo = info->par;
- 	struct fb_copyarea modded;
- 	u32 vxres, vyres;
-+
- 	modded.sx = area->sx;
- 	modded.sy = area->sy;
- 	modded.dx = area->dx;
-@@ -2265,7 +2256,7 @@ static void cirrusfb_copyarea(struct fb_
- 	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
--	cirrusfb_prim_copyarea(cinfo, &modded);
-+	cirrusfb_prim_copyarea(info, &modded);
- }
- 
- static void cirrusfb_imageblit(struct fb_info *info,
-@@ -2363,18 +2354,19 @@ static void get_pci_addrs(const struct p
- 	DPRINTK("EXIT\n");
- }
- 
--static void cirrusfb_pci_unmap(struct cirrusfb_info *cinfo)
-+static void cirrusfb_pci_unmap(struct fb_info *info)
- {
-+	struct cirrusfb_info *cinfo = info->par;
- 	struct pci_dev *pdev = cinfo->pdev;
- 
--	iounmap(cinfo->fbmem);
-+	iounmap(info->screen_base);
- #if 0 /* if system didn't claim this region, we would... */
- 	release_mem_region(0xA0000, 65535);
  #endif
- 	if (release_io_ports)
- 		release_region(0x3C0, 32);
- 	pci_release_regions(pdev);
--	framebuffer_release(cinfo->info);
-+	framebuffer_release(info);
- }
- #endif /* CONFIG_PCI */
+diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-stop-saving-process-fp-state arch/um/include/sysdep-i386/ptrace.h
+--- a/arch/um/include/sysdep-i386/ptrace.h~uml-stop-saving-process-fp-state
++++ a/arch/um/include/sysdep-i386/ptrace.h
+@@ -219,14 +219,3 @@ struct syscall_args {
+         CHOOSE_MODE((&(r)->tt.faultinfo), (&(r)->skas.faultinfo))
  
-@@ -2386,21 +2378,20 @@ static void __devexit cirrusfb_zorro_unm
- 	if (cinfo->btype == BT_PICASSO4) {
- 		cinfo->regbase -= 0x600000;
- 		iounmap((void *)cinfo->regbase);
--		iounmap((void *)cinfo->fbmem);
-+		iounmap(info->screen_base);
- 	} else {
- 		if (zorro_resource_start(cinfo->zdev) > 0x01000000)
--			iounmap((void *)cinfo->fbmem);
-+			iounmap(info->screen_base);
- 	}
- 	framebuffer_release(cinfo->info);
- }
- #endif /* CONFIG_ZORRO */
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/user.h~uml-stop-saving-process-fp-state arch/um/include/user.h
+--- a/arch/um/include/user.h~uml-stop-saving-process-fp-state
++++ a/arch/um/include/user.h
+@@ -14,10 +14,12 @@
+  */
+ #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
  
--static int cirrusfb_set_fbinfo(struct cirrusfb_info *cinfo)
-+static int cirrusfb_set_fbinfo(struct fb_info *info)
+-/*
+- * This will provide the size_t definition in both kernel and userspace builds
+- */
++/* This is to get size_t */
++#ifdef __KERNEL__
+ #include <linux/types.h>
++#else
++#include <stddef.h>
++#endif
+ 
+ extern void panic(const char *fmt, ...)
+ 	__attribute__ ((format (printf, 1, 2)));
+diff -puN arch/um/os-Linux/Makefile~uml-stop-saving-process-fp-state arch/um/os-Linux/Makefile
+--- a/arch/um/os-Linux/Makefile~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/Makefile
+@@ -4,8 +4,8 @@
+ #
+ 
+ obj-y = aio.o elf_aux.o execvp.o file.o helper.o irq.o main.o mem.o process.o \
+-	sigio.o signal.o start_up.o time.o trap.o tty.o uaccess.o umid.o tls.o \
+-	user_syms.o util.o drivers/ sys-$(SUBARCH)/
++	registers.o sigio.o signal.o start_up.o time.o trap.o tty.o uaccess.o \
++	umid.o tls.o user_syms.o util.o drivers/ sys-$(SUBARCH)/
+ 
+ obj-$(CONFIG_MODE_SKAS) += skas/
+ 
+@@ -16,8 +16,8 @@ obj-$(CONFIG_TTY_LOG) += tty_log.o
+ user-objs-$(CONFIG_TTY_LOG) += tty_log.o
+ 
+ USER_OBJS := $(user-objs-y) aio.o elf_aux.o execvp.o file.o helper.o irq.o \
+-	main.o mem.o process.o sigio.o signal.o start_up.o time.o trap.o tty.o \
+-	tls.o uaccess.o umid.o util.o
++	main.o mem.o process.o registers.o sigio.o signal.o start_up.o time.o \
++	trap.o tty.o tls.o uaccess.o umid.o util.o
+ 
+ CFLAGS_user_syms.o += -DSUBARCH_$(SUBARCH)
+ 
+diff -puN /dev/null arch/um/os-Linux/registers.c
+--- /dev/null
++++ a/arch/um/os-Linux/registers.c
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (C) 2004 PathScale, Inc
++ * Licensed under the GPL
++ */
++
++#include <errno.h>
++#include <string.h>
++#include <sys/ptrace.h>
++#include "user.h"
++#include "sysdep/ptrace.h"
++
++/* This is set once at boot time and not changed thereafter */
++
++static unsigned long exec_regs[MAX_REG_NR];
++
++void init_thread_registers(union uml_pt_regs *to)
++{
++	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
++}
++
++void save_registers(int pid, union uml_pt_regs *regs)
++{
++	int err;
++
++	err = ptrace(PTRACE_GETREGS, pid, 0, regs->skas.regs);
++	if(err < 0)
++		panic("save_registers - saving registers failed, errno = %d\n",
++		      errno);
++}
++
++void restore_registers(int pid, union uml_pt_regs *regs)
++{
++	int err;
++
++	err = ptrace(PTRACE_SETREGS, pid, 0, regs->skas.regs);
++	if(err < 0)
++		panic("restore_registers - saving registers failed, "
++		      "errno = %d\n", errno);
++}
++
++void init_registers(int pid)
++{
++	int err;
++
++	err = ptrace(PTRACE_GETREGS, pid, 0, exec_regs);
++	if(err)
++		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
++		      errno);
++}
++
++void get_safe_registers(unsigned long *regs)
++{
++	memcpy(regs, exec_regs, sizeof(exec_regs));
++}
+diff -puN arch/um/os-Linux/skas/mem.c~uml-stop-saving-process-fp-state arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -44,7 +44,7 @@ static unsigned long syscall_regs[MAX_RE
+ 
+ static int __init init_syscall_regs(void)
  {
--	struct fb_info *info = cinfo->info;
-+	struct cirrusfb_info *cinfo = info->par;
- 	struct fb_var_screeninfo *var = &info->var;
+-	get_safe_registers(syscall_regs, NULL);
++	get_safe_registers(syscall_regs);
+ 	syscall_regs[REGS_IP_INDEX] = UML_CONFIG_STUB_CODE +
+ 		((unsigned long) &batch_syscall_stub -
+ 		 (unsigned long) &__syscall_stub_start);
+diff -puN arch/um/os-Linux/skas/process.c~uml-stop-saving-process-fp-state arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/skas/process.c
+@@ -357,11 +357,10 @@ void userspace(union uml_pt_regs *regs)
+ }
  
--	info->par = cinfo;
- 	info->pseudo_palette = cinfo->pseudo_palette;
- 	info->flags = FBINFO_DEFAULT
- 		    | FBINFO_HWACCEL_XPAN
-@@ -2410,7 +2401,6 @@ static int cirrusfb_set_fbinfo(struct ci
- 	if (noaccel)
- 		info->flags |= FBINFO_HWACCEL_DISABLED;
- 	info->fbops = &cirrusfb_ops;
--	info->screen_base = cinfo->fbmem;
- 	if (cinfo->btype == BT_GD5480) {
- 		if (var->bits_per_pixel == 16)
- 			info->screen_base += 1 * MB_;
-@@ -2424,9 +2414,9 @@ static int cirrusfb_set_fbinfo(struct ci
+ static unsigned long thread_regs[MAX_REG_NR];
+-static unsigned long thread_fp_regs[HOST_FP_SIZE];
  
- 	/* monochrome: only 1 memory plane */
- 	/* 8 bit and above: Use whole memory area */
--	info->fix.smem_start = cinfo->fbmem_phys;
--	info->fix.smem_len   =
--		(var->bits_per_pixel == 1) ? cinfo->size / 4 : cinfo->size;
-+	info->fix.smem_len   = info->screen_size;
-+	if (var->bits_per_pixel == 1)
-+		info->fix.smem_len /= 4;
- 	info->fix.type       = cinfo->currentmode.type;
- 	info->fix.type_aux   = 0;
- 	info->fix.visual     = cinfo->currentmode.visual;
-@@ -2436,7 +2426,6 @@ static int cirrusfb_set_fbinfo(struct ci
- 	info->fix.line_length = cinfo->currentmode.line_length;
+ static int __init init_thread_regs(void)
+ {
+-	get_safe_registers(thread_regs, thread_fp_regs);
++	get_safe_registers(thread_regs);
+ 	/* Set parent's instruction pointer to start of clone-stub */
+ 	thread_regs[REGS_IP_INDEX] = UML_CONFIG_STUB_CODE +
+ 				(unsigned long) stub_clone_handler -
+@@ -398,11 +397,6 @@ int copy_context_skas0(unsigned long new
+ 		panic("copy_context_skas0 : PTRACE_SETREGS failed, "
+ 		      "pid = %d, errno = %d\n", pid, -err);
  
- 	/* FIXME: map region at 0xB8000 if available, fill in here */
--	info->fix.mmio_start = cinfo->fbregs_phys;
- 	info->fix.mmio_len   = 0;
- 	info->fix.accel = FB_ACCEL_NONE;
+-	err = ptrace_setfpregs(pid, thread_fp_regs);
+-	if(err < 0)
+-		panic("copy_context_skas0 : PTRACE_SETFPREGS failed, "
+-		      "pid = %d, errno = %d\n", pid, -err);
+-
+ 	/* set a well known return code for detection of child write failure */
+ 	child_data->err = 12345678;
  
-@@ -2445,9 +2434,9 @@ static int cirrusfb_set_fbinfo(struct ci
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-stop-saving-process-fp-state arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -4,30 +4,10 @@
+  */
+ 
+ #include <errno.h>
+-#include <string.h>
+-#include "sysdep/ptrace_user.h"
+-#include "sysdep/ptrace.h"
+-#include "uml-config.h"
+-#include "skas_ptregs.h"
+-#include "registers.h"
++#include <sysdep/ptrace_user.h>
+ #include "longjmp.h"
+ #include "user.h"
+ 
+-/* These are set once at boot time and not changed thereafter */
+-
+-static unsigned long exec_regs[MAX_REG_NR];
+-static unsigned long exec_fp_regs[HOST_FP_SIZE];
+-static unsigned long exec_fpx_regs[HOST_XFP_SIZE];
+-static int have_fpx_regs = 1;
+-
+-void init_thread_registers(union uml_pt_regs *to)
+-{
+-	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
+-	memcpy(to->skas.fp, exec_fp_regs, sizeof(to->skas.fp));
+-	if(have_fpx_regs)
+-		memcpy(to->skas.xfp, exec_fpx_regs, sizeof(to->skas.xfp));
+-}
+-
+ /* XXX These need to use [GS]ETFPXREGS and copy_sc_{to,from}_user_skas needs
+  * to pass in a sufficiently large buffer
+  */
+@@ -45,92 +25,6 @@ int restore_fp_registers(int pid, unsign
  	return 0;
  }
  
--static int cirrusfb_register(struct cirrusfb_info *cinfo)
-+static int cirrusfb_register(struct fb_info *info)
+-static int move_registers(int pid, int int_op, union uml_pt_regs *regs,
+-			  int fp_op, unsigned long *fp_regs)
+-{
+-	if(ptrace(int_op, pid, 0, regs->skas.regs) < 0)
+-		return -errno;
+-
+-	if(ptrace(fp_op, pid, 0, fp_regs) < 0)
+-		return -errno;
+-
+-	return 0;
+-}
+-
+-void save_registers(int pid, union uml_pt_regs *regs)
+-{
+-	unsigned long *fp_regs;
+-	int err, fp_op;
+-
+-	if(have_fpx_regs){
+-		fp_op = PTRACE_GETFPXREGS;
+-		fp_regs = regs->skas.xfp;
+-	}
+-	else {
+-		fp_op = PTRACE_GETFPREGS;
+-		fp_regs = regs->skas.fp;
+-	}
+-
+-	err = move_registers(pid, PTRACE_GETREGS, regs, fp_op, fp_regs);
+-	if(err)
+-		panic("save_registers - saving registers failed, errno = %d\n",
+-		      -err);
+-}
+-
+-void restore_registers(int pid, union uml_pt_regs *regs)
+-{
+-	unsigned long *fp_regs;
+-	int err, fp_op;
+-
+-	if(have_fpx_regs){
+-		fp_op = PTRACE_SETFPXREGS;
+-		fp_regs = regs->skas.xfp;
+-	}
+-	else {
+-		fp_op = PTRACE_SETFPREGS;
+-		fp_regs = regs->skas.fp;
+-	}
+-
+-	err = move_registers(pid, PTRACE_SETREGS, regs, fp_op, fp_regs);
+-	if(err)
+-		panic("restore_registers - saving registers failed, "
+-		      "errno = %d\n", -err);
+-}
+-
+-void init_registers(int pid)
+-{
+-	int err;
+-
+-	memset(exec_regs, 0, sizeof(exec_regs));
+-	err = ptrace(PTRACE_GETREGS, pid, 0, exec_regs);
+-	if(err)
+-		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
+-		      errno);
+-
+-	errno = 0;
+-	err = ptrace(PTRACE_GETFPXREGS, pid, 0, exec_fpx_regs);
+-	if(!err)
+-		return;
+-	if(errno != EIO)
+-		panic("check_ptrace : PTRACE_GETFPXREGS failed, errno = %d",
+-		      errno);
+-
+-	have_fpx_regs = 0;
+-
+-	err = ptrace(PTRACE_GETFPREGS, pid, 0, exec_fp_regs);
+-	if(err)
+-		panic("check_ptrace : PTRACE_GETFPREGS failed, errno = %d",
+-		      errno);
+-}
+-
+-void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+-{
+-	memcpy(regs, exec_regs, sizeof(exec_regs));
+-	if(fp_regs != NULL)
+-		memcpy(fp_regs, exec_fp_regs,
+-		       HOST_FP_SIZE * sizeof(unsigned long));
+-}
+-
+ unsigned long get_thread_reg(int reg, jmp_buf *buf)
  {
--	struct fb_info *info;
-+	struct cirrusfb_info *cinfo = info->par;
- 	int err;
- 	enum cirrus_board btype;
+ 	switch(reg){
+diff -puN arch/um/os-Linux/sys-x86_64/Makefile~uml-stop-saving-process-fp-state arch/um/os-Linux/sys-x86_64/Makefile
+--- a/arch/um/os-Linux/sys-x86_64/Makefile~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/sys-x86_64/Makefile
+@@ -1,5 +1,5 @@
+ #
+-# Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
++# Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+ # Licensed under the GPL
+ #
  
-@@ -2456,13 +2445,12 @@ static int cirrusfb_register(struct cirr
- 	printk(KERN_INFO "cirrusfb: Driver for Cirrus Logic based "
- 		"graphic boards, v" CIRRUSFB_VERSION "\n");
+diff -puN arch/um/os-Linux/sys-x86_64/registers.c~uml-stop-saving-process-fp-state arch/um/os-Linux/sys-x86_64/registers.c
+--- a/arch/um/os-Linux/sys-x86_64/registers.c~uml-stop-saving-process-fp-state
++++ a/arch/um/os-Linux/sys-x86_64/registers.c
+@@ -1,23 +1,15 @@
+ /*
+- * Copyright (C) 2004 PathScale, Inc
++ * Copyright (C) 2006-2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
  
--	info = cinfo->info;
- 	btype = cinfo->btype;
+ #include <errno.h>
+ #include <sys/ptrace.h>
+-#include <string.h>
+-#include "ptrace_user.h"
+-#include "uml-config.h"
+-#include "skas_ptregs.h"
+-#include "registers.h"
++#define __FRAME_OFFSETS
++#include <asm/ptrace.h>
+ #include "longjmp.h"
+ #include "user.h"
  
- 	/* sanity checks */
- 	assert(btype != BT_NONE);
- 
--	DPRINTK("cirrusfb: (RAM start set to: 0x%p)\n", cinfo->fbmem);
-+	DPRINTK("cirrusfb: (RAM start set to: 0x%p)\n", info->screen_base);
- 
- 	/* Make pretend we've set the var so our structures are in a "good" */
- 	/* state, even though we haven't written the mode to the hw yet...  */
-@@ -2477,7 +2465,7 @@ static int cirrusfb_register(struct cirr
- 	}
- 
- 	/* set all the vital stuff */
--	cirrusfb_set_fbinfo(cinfo);
-+	cirrusfb_set_fbinfo(info);
- 
- 	err = register_framebuffer(info);
- 	if (err < 0) {
-@@ -2492,7 +2480,7 @@ static int cirrusfb_register(struct cirr
- err_dealloc_cmap:
- 	fb_dealloc_cmap(&info->cmap);
- err_unmap_cirrusfb:
--	cinfo->unmap(cinfo);
-+	cinfo->unmap(info);
- 	return err;
+-/* These are set once at boot time and not changed thereafter */
+-
+-static unsigned long exec_regs[MAX_REG_NR];
+-static unsigned long exec_fp_regs[HOST_FP_SIZE];
+-
+ int save_fp_registers(int pid, unsigned long *fp_regs)
+ {
+ 	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
+@@ -32,67 +24,6 @@ int restore_fp_registers(int pid, unsign
+ 	return 0;
  }
  
-@@ -2506,7 +2494,7 @@ static void __devexit cirrusfb_cleanup(s
- 	unregister_framebuffer(info);
- 	fb_dealloc_cmap(&info->cmap);
- 	printk("Framebuffer unregistered\n");
--	cinfo->unmap(cinfo);
-+	cinfo->unmap(info);
- 
- 	DPRINTK("EXIT\n");
- }
-@@ -2535,7 +2523,6 @@ static int cirrusfb_pci_register(struct 
- 	}
- 
- 	cinfo = info->par;
--	cinfo->info = info;
- 	cinfo->pdev = pdev;
- 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
- 
-@@ -2546,19 +2533,19 @@ static int cirrusfb_pci_register(struct 
- 	if (isPReP) {
- 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
- #ifdef CONFIG_PPC_PREP
--		get_prep_addrs(&board_addr, &cinfo->fbregs_phys);
-+		get_prep_addrs(&board_addr, &info->fix.mmio_start);
- #endif
- 	/* PReP dies if we ioremap the IO registers, but it works w/out... */
--		cinfo->regbase = (char __iomem *) cinfo->fbregs_phys;
-+		cinfo->regbase = (char __iomem *) info->fix.mmio_start;
- 	} else {
- 		DPRINTK("Attempt to get PCI info for Cirrus Graphics Card\n");
--		get_pci_addrs(pdev, &board_addr, &cinfo->fbregs_phys);
-+		get_pci_addrs(pdev, &board_addr, &info->fix.mmio_start);
- 		/* FIXME: this forces VGA.  alternatives? */
- 		cinfo->regbase = NULL;
- 	}
- 
- 	DPRINTK("Board address: 0x%lx, register address: 0x%lx\n",
--		board_addr, cinfo->fbregs_phys);
-+		board_addr, info->fix.mmio_start);
- 
- 	board_size = (btype == BT_GD5480) ?
- 		32 * MB_ : cirrusfb_get_memsize(cinfo->regbase);
-@@ -2582,24 +2569,24 @@ static int cirrusfb_pci_register(struct 
- 	if (request_region(0x3C0, 32, "cirrusfb"))
- 		release_io_ports = 1;
- 
--	cinfo->fbmem = ioremap(board_addr, board_size);
--	if (!cinfo->fbmem) {
-+	info->screen_base = ioremap(board_addr, board_size);
-+	if (!info->screen_base) {
- 		ret = -EIO;
- 		goto err_release_legacy;
- 	}
- 
--	cinfo->fbmem_phys = board_addr;
--	cinfo->size = board_size;
-+	info->fix.smem_start = board_addr;
-+	info->screen_size = board_size;
- 	cinfo->unmap = cirrusfb_pci_unmap;
- 
- 	printk(KERN_INFO " RAM (%lu kB) at 0xx%lx, ",
--		cinfo->size / KB_, board_addr);
-+		info->screen_size / KB_, board_addr);
- 	printk(KERN_INFO "Cirrus Logic chipset on PCI bus\n");
- 	pci_set_drvdata(pdev, info);
- 
--	ret = cirrusfb_register(cinfo);
-+	ret = cirrusfb_register(info);
- 	if (ret)
--		iounmap(cinfo->fbmem);
-+		iounmap(info->screen_base);
- 	return ret;
- 
- err_release_legacy:
-@@ -2677,7 +2664,7 @@ static int cirrusfb_zorro_register(struc
- 	cinfo->zdev = z;
- 	board_addr = zorro_resource_start(z);
- 	board_size = zorro_resource_len(z);
--	cinfo->size = size;
-+	info->screen_size = size;
- 
- 	if (!zorro_request_device(z, "cirrusfb")) {
- 		printk(KERN_ERR "cirrusfb: cannot reserve region 0x%lx, "
-@@ -2705,27 +2692,27 @@ static int cirrusfb_zorro_register(struc
- 		DPRINTK("cirrusfb: Virtual address for board set to: $%p\n",
- 			cinfo->regbase);
- 		cinfo->regbase += 0x600000;
--		cinfo->fbregs_phys = board_addr + 0x600000;
-+		info->fix.mmio_start = board_addr + 0x600000;
- 
--		cinfo->fbmem_phys = board_addr + 16777216;
--		cinfo->fbmem = ioremap(cinfo->fbmem_phys, 16777216);
--		if (!cinfo->fbmem)
-+		info->fix.smem_start = board_addr + 16777216;
-+		info->screen_base = ioremap(info->fix.smem_start, 16777216);
-+		if (!info->screen_base)
- 			goto err_unmap_regbase;
- 	} else {
- 		printk(KERN_INFO " REG at $%lx\n",
- 			(unsigned long) z2->resource.start);
- 
--		cinfo->fbmem_phys = board_addr;
-+		info->fix.smem_start = board_addr;
- 		if (board_addr > 0x01000000)
--			cinfo->fbmem = ioremap(board_addr, board_size);
-+			info->screen_base = ioremap(board_addr, board_size);
- 		else
--			cinfo->fbmem = (caddr_t) ZTWO_VADDR(board_addr);
--		if (!cinfo->fbmem)
-+			info->screen_base = (caddr_t) ZTWO_VADDR(board_addr);
-+		if (!info->screen_base)
- 			goto err_release_region;
- 
- 		/* set address for REG area of board */
- 		cinfo->regbase = (caddr_t) ZTWO_VADDR(z2->resource.start);
--		cinfo->fbregs_phys = z2->resource.start;
-+		info->fix.mmio_start = z2->resource.start;
- 
- 		DPRINTK("cirrusfb: Virtual address for board set to: $%p\n",
- 			cinfo->regbase);
-@@ -2738,10 +2725,10 @@ static int cirrusfb_zorro_register(struc
- 	ret = cirrusfb_register(cinfo);
- 	if (ret) {
- 		if (btype == BT_PICASSO4) {
--			iounmap(cinfo->fbmem);
-+			iounmap(info->screen_base);
- 			iounmap(cinfo->regbase - 0x600000);
- 		} else if (board_addr > 0x01000000)
--			iounmap(cinfo->fbmem);
-+			iounmap(info->screen_base);
- 	}
- 	return ret;
- 
+-void init_thread_registers(union uml_pt_regs *to)
+-{
+-	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
+-	memcpy(to->skas.fp, exec_fp_regs, sizeof(to->skas.fp));
+-}
+-
+-static int move_registers(int pid, int int_op, int fp_op,
+-			  union uml_pt_regs *regs)
+-{
+-	if(ptrace(int_op, pid, 0, regs->skas.regs) < 0)
+-		return -errno;
+-
+-	if(ptrace(fp_op, pid, 0, regs->skas.fp) < 0)
+-		return -errno;
+-
+-	return 0;
+-}
+-
+-void save_registers(int pid, union uml_pt_regs *regs)
+-{
+-	int err;
+-
+-	err = move_registers(pid, PTRACE_GETREGS, PTRACE_GETFPREGS, regs);
+-	if(err)
+-		panic("save_registers - saving registers failed, errno = %d\n",
+-		      -err);
+-}
+-
+-void restore_registers(int pid, union uml_pt_regs *regs)
+-{
+-	int err;
+-
+-	err = move_registers(pid, PTRACE_SETREGS, PTRACE_SETFPREGS, regs);
+-	if(err)
+-		panic("restore_registers - saving registers failed, "
+-		      "errno = %d\n", -err);
+-}
+-
+-void init_registers(int pid)
+-{
+-	int err;
+-
+-	err = ptrace(PTRACE_GETREGS, pid, 0, exec_regs);
+-	if(err)
+-		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
+-		      errno);
+-
+-	err = ptrace(PTRACE_GETFPREGS, pid, 0, exec_fp_regs);
+-	if(err)
+-		panic("check_ptrace : PTRACE_GETFPREGS failed, errno = %d",
+-		      errno);
+-}
+-
+-void get_safe_registers(unsigned long *regs, unsigned long *fp_regs)
+-{
+-	memcpy(regs, exec_regs, sizeof(exec_regs));
+-	if(fp_regs != NULL)
+-		memcpy(fp_regs, exec_fp_regs,
+-		       HOST_FP_SIZE * sizeof(unsigned long));
+-}
+-
+ unsigned long get_thread_reg(int reg, jmp_buf *buf)
+ {
+ 	switch(reg){
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
