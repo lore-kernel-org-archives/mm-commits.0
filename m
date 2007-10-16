@@ -1,333 +1,385 @@
 From: akpm@linux-foundation.org
-Subject: - memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:34:11 -0700
-Message-ID: <200710162034.l9GKYBX7014907@imap1.linux-foundation.org>
+Subject: - slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:12 -0700
+Message-ID: <200710162031.l9GKVCBN014483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35407 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33802 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965862AbXJPVlF (ORCPT
+	by vger.kernel.org with ESMTP id S1761926AbXJPVlw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:41:05 -0400
+	Tue, 16 Oct 2007 17:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memoryless nodes: fixup uses of node_online_map in generic code
+     SLUB: direct pass through of page size or higher kmalloc requests
 has been removed from the -mm tree.  Its filename was
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+     slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: memoryless nodes: fixup uses of node_online_map in generic code
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: SLUB: direct pass through of page size or higher kmalloc requests
+From: Christoph Lameter <clameter@sgi.com>
 
-Here's a cut at fixing up uses of the online node map in generic code. 
+This gets rid of all kmalloc caches larger than page size.  A kmalloc
+request larger than PAGE_SIZE > 2 is going to be passed through to the page
+allocator.  This works both inline where we will call __get_free_pages
+instead of kmem_cache_alloc and in __kmalloc.
 
-mm/shmem.c:shmem_parse_mpol()
+kfree is modified to check if the object is in a slab page. If not then
+the page is freed via the page allocator instead. Roughly similar to what
+SLOB does.
 
-	Ensure nodelist is subset of nodes with memory.
-	Use node_states[N_HIGH_MEMORY] as default for missing
-	nodelist for interleave policy.
+Advantages:
+- Reduces memory overhead for kmalloc array
+- Large kmalloc operations are faster since they do not
+  need to pass through the slab allocator to get to the
+  page allocator.
+- Performance increase of 10%-20% on alloc and 50% on free for
+  PAGE_SIZEd allocations.
+  SLUB must call page allocator for each alloc anyways since
+  the higher order pages which that allowed avoiding the page alloc calls
+  are not available in a reliable way anymore. So we are basically removing
+  useless slab allocator overhead.
+- Large kmallocs yields page aligned object which is what
+  SLAB did. Bad things like using page sized kmalloc allocations to
+  stand in for page allocate allocs can be transparently handled and are not
+  distinguishable from page allocator uses.
+- Checking for too large objects can be removed since
+  it is done by the page allocator.
 
-mm/shmem.c:shmem_fill_super()
+Drawbacks:
+- No accounting for large kmalloc slab allocations anymore
+- No debugging of large kmalloc slab allocations.
 
-	initialize policy_nodes to node_states[N_HIGH_MEMORY]
-
-mm/page-writeback.c:highmem_dirtyable_memory()
-
-	sum over nodes with memory
-
-mm/page_alloc.c:zlc_setup()
-
-	allowednodes - use nodes with memory.
-
-mm/page_alloc.c:default_zonelist_order()
-
-	average over nodes with memory.
-
-mm/page_alloc.c:find_next_best_node()
-
-	skip nodes w/o memory.
-	N_HIGH_MEMORY state mask may not be initialized at this time,
-	unless we want to depend on early_calculate_totalpages() [see
-	below].  Will ZONE_MOVABLE ever be configurable?
-
-mm/page_alloc.c:find_zone_movable_pfns_for_nodes()
-
-	spread kernelcore over nodes with memory.
-
-	This required calling early_calculate_totalpages()
-	unconditionally, and populating N_HIGH_MEMORY node
-	state therein from nodes in the early_node_map[].
-	If we can depend on this, we can eliminate the
-	population of N_HIGH_MEMORY mask from __build_all_zonelists()
-	and use the N_HIGH_MEMORY mask in find_next_best_node().
-
-mm/mempolicy.c:mpol_check_policy()
-
-	Ensure nodes specified for policy are subset of
-	nodes with memory.
-
-[akpm@linux-foundation.org: fix warnings]
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c      |    4 +-
- mm/page-writeback.c |    2 -
- mm/page_alloc.c     |   69 +++++++++++++++++++++++-------------------
- mm/shmem.c          |   13 ++++---
- 4 files changed, 50 insertions(+), 38 deletions(-)
+ include/linux/slub_def.h |   57 ++++++++++++++-------------------
+ mm/slub.c                |   63 ++++++++++++++++++++++---------------
+ 2 files changed, 62 insertions(+), 58 deletions(-)
 
-diff -puN mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code mm/mempolicy.c
---- a/mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code
-+++ a/mm/mempolicy.c
-@@ -126,7 +126,7 @@ static int mpol_check_policy(int mode, n
- 			return -EINVAL;
- 		break;
- 	}
--	return nodes_subset(*nodes, node_online_map) ? 0 : -EINVAL;
-+ 	return nodes_subset(*nodes, node_states[N_HIGH_MEMORY]) ? 0 : -EINVAL;
- }
- 
- /* Generate a custom zonelist for the BIND policy. */
-@@ -965,7 +965,7 @@ asmlinkage long sys_migrate_pages(pid_t 
- 		goto out;
- 	}
- 
--	if (!nodes_subset(new, node_online_map)) {
-+	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
- 		err = -EINVAL;
- 		goto out;
- 	}
-diff -puN mm/page-writeback.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code mm/page-writeback.c
---- a/mm/page-writeback.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code
-+++ a/mm/page-writeback.c
-@@ -126,7 +126,7 @@ static unsigned long highmem_dirtyable_m
- 	int node;
- 	unsigned long x = 0;
- 
--	for_each_online_node(node) {
-+	for_each_node_state(node, N_HIGH_MEMORY) {
- 		struct zone *z =
- 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
- 
-diff -puN mm/page_alloc.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code
-+++ a/mm/page_alloc.c
-@@ -1040,7 +1040,7 @@ int zone_watermark_ok(struct zone *z, in
-  *
-  * If the zonelist cache is present in the passed in zonelist, then
-  * returns a pointer to the allowed node mask (either the current
-- * tasks mems_allowed, or node_online_map.)
-+ * tasks mems_allowed, or node_states[N_HIGH_MEMORY].)
-  *
-  * If the zonelist cache is not available for this zonelist, does
-  * nothing and returns NULL.
-@@ -1069,7 +1069,7 @@ static nodemask_t *zlc_setup(struct zone
- 
- 	allowednodes = !in_interrupt() && (alloc_flags & ALLOC_CPUSET) ?
- 					&cpuset_current_mems_allowed :
--					&node_online_map;
-+					&node_states[N_HIGH_MEMORY];
- 	return allowednodes;
- }
- 
-@@ -1802,7 +1802,7 @@ static int find_next_best_node(int node,
- 		return node;
- 	}
- 
--	for_each_online_node(n) {
-+	for_each_node_state(n, N_HIGH_MEMORY) {
- 		cpumask_t tmp;
- 
- 		/* Don't want a node to appear more than once */
-@@ -1939,7 +1939,8 @@ static int default_zonelist_order(void)
-   	 * If there is a node whose DMA/DMA32 memory is very big area on
-  	 * local memory, NODE_ORDER may be suitable.
-          */
--	average_size = total_size / (num_online_nodes() + 1);
-+	average_size = total_size /
-+				(nodes_weight(node_states[N_HIGH_MEMORY]) + 1);
- 	for_each_online_node(nid) {
- 		low_kmem_size = 0;
- 		total_size = 0;
-@@ -2098,20 +2099,6 @@ static void build_zonelist_cache(pg_data
- 
- #endif	/* CONFIG_NUMA */
- 
--/* Any regular memory on that node ? */
--static void check_for_regular_memory(pg_data_t *pgdat)
--{
--#ifdef CONFIG_HIGHMEM
--	enum zone_type zone_type;
--
--	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
--		struct zone *zone = &pgdat->node_zones[zone_type];
--		if (zone->present_pages)
--			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
--	}
--#endif
--}
--
- /* return values int ....just for stop_machine_run() */
- static int __build_all_zonelists(void *dummy)
- {
-@@ -2122,11 +2109,6 @@ static int __build_all_zonelists(void *d
- 
- 		build_zonelists(pgdat);
- 		build_zonelist_cache(pgdat);
--
--		/* Any memory on that node */
--		if (pgdat->node_present_pages)
--			node_set_state(nid, N_HIGH_MEMORY);
--		check_for_regular_memory(pgdat);
- 	}
- 	return 0;
- }
-@@ -3282,16 +3264,24 @@ unsigned long __init find_max_pfn_with_a
- 	return max_pfn;
- }
- 
-+/*
-+ * early_calculate_totalpages()
-+ * Sum pages in active regions for movable zone.
-+ * Populate N_HIGH_MEMORY for calculating usable_nodes.
-+ */
- unsigned long __init early_calculate_totalpages(void)
- {
- 	int i;
- 	unsigned long totalpages = 0;
- 
--	for (i = 0; i < nr_nodemap_entries; i++)
--		totalpages += early_node_map[i].end_pfn -
-+	for (i = 0; i < nr_nodemap_entries; i++) {
-+		unsigned long pages = early_node_map[i].end_pfn -
- 						early_node_map[i].start_pfn;
--
--	return totalpages;
-+		totalpages += pages;
-+		if (pages)
-+			node_set_state(early_node_map[i].nid, N_HIGH_MEMORY);
-+	}
-+  	return totalpages;
- }
+diff -puN include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc
++++ a/include/linux/slub_def.h
+@@ -72,7 +72,7 @@ struct kmem_cache {
+  * We keep the general caches in an array of slab caches that are used for
+  * 2^x bytes of allocations.
+  */
+-extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
++extern struct kmem_cache kmalloc_caches[PAGE_SHIFT];
  
  /*
-@@ -3305,7 +3295,8 @@ void __init find_zone_movable_pfns_for_n
- 	int i, nid;
- 	unsigned long usable_startpfn;
- 	unsigned long kernelcore_node, kernelcore_remaining;
--	int usable_nodes = num_online_nodes();
-+	unsigned long totalpages = early_calculate_totalpages();
-+	int usable_nodes = nodes_weight(node_states[N_HIGH_MEMORY]);
+  * Sorry that the following has to be that ugly but some versions of GCC
+@@ -83,9 +83,6 @@ static __always_inline int kmalloc_index
+ 	if (!size)
+ 		return 0;
  
- 	/*
- 	 * If movablecore was specified, calculate what size of
-@@ -3316,7 +3307,6 @@ void __init find_zone_movable_pfns_for_n
- 	 * what movablecore would have allowed.
- 	 */
- 	if (required_movablecore) {
--		unsigned long totalpages = early_calculate_totalpages();
- 		unsigned long corepages;
+-	if (size > KMALLOC_MAX_SIZE)
+-		return -1;
+-
+ 	if (size <= KMALLOC_MIN_SIZE)
+ 		return KMALLOC_SHIFT_LOW;
  
- 		/*
-@@ -3341,7 +3331,7 @@ void __init find_zone_movable_pfns_for_n
- restart:
- 	/* Spread kernelcore memory as evenly as possible throughout nodes */
- 	kernelcore_node = required_kernelcore / usable_nodes;
--	for_each_online_node(nid) {
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
- 		/*
- 		 * Recalculate kernelcore_node if the division per node
- 		 * now exceeds what is necessary to satisfy the requested
-@@ -3433,6 +3423,20 @@ restart:
- 			roundup(zone_movable_pfn[nid], MAX_ORDER_NR_PAGES);
+@@ -102,6 +99,10 @@ static __always_inline int kmalloc_index
+ 	if (size <=        512) return 9;
+ 	if (size <=       1024) return 10;
+ 	if (size <=   2 * 1024) return 11;
++/*
++ * The following is only needed to support architectures with a larger page
++ * size than 4k.
++ */
+ 	if (size <=   4 * 1024) return 12;
+ 	if (size <=   8 * 1024) return 13;
+ 	if (size <=  16 * 1024) return 14;
+@@ -109,13 +110,9 @@ static __always_inline int kmalloc_index
+ 	if (size <=  64 * 1024) return 16;
+ 	if (size <= 128 * 1024) return 17;
+ 	if (size <= 256 * 1024) return 18;
+-	if (size <=  512 * 1024) return 19;
++	if (size <= 512 * 1024) return 19;
+ 	if (size <= 1024 * 1024) return 20;
+ 	if (size <=  2 * 1024 * 1024) return 21;
+-	if (size <=  4 * 1024 * 1024) return 22;
+-	if (size <=  8 * 1024 * 1024) return 23;
+-	if (size <= 16 * 1024 * 1024) return 24;
+-	if (size <= 32 * 1024 * 1024) return 25;
+ 	return -1;
+ 
+ /*
+@@ -140,19 +137,6 @@ static __always_inline struct kmem_cache
+ 	if (index == 0)
+ 		return NULL;
+ 
+-	/*
+-	 * This function only gets expanded if __builtin_constant_p(size), so
+-	 * testing it here shouldn't be needed.  But some versions of gcc need
+-	 * help.
+-	 */
+-	if (__builtin_constant_p(size) && index < 0) {
+-		/*
+-		 * Generate a link failure. Would be great if we could
+-		 * do something to stop the compile here.
+-		 */
+-		extern void __kmalloc_size_too_large(void);
+-		__kmalloc_size_too_large();
+-	}
+ 	return &kmalloc_caches[index];
  }
  
-+/* Any regular memory on that node ? */
-+static void check_for_regular_memory(pg_data_t *pgdat)
-+{
-+#ifdef CONFIG_HIGHMEM
-+	enum zone_type zone_type;
-+
-+	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
-+		if (zone->present_pages)
-+			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
-+	}
-+#endif
-+}
-+
- /**
-  * free_area_init_nodes - Initialise all pg_data_t and zone data
-  * @max_zone_pfn: an array of max PFNs for each zone
-@@ -3507,6 +3511,11 @@ void __init free_area_init_nodes(unsigne
- 		pg_data_t *pgdat = NODE_DATA(nid);
- 		free_area_init_node(nid, pgdat, NULL,
- 				find_min_pfn_for_node(nid), NULL);
-+
-+		/* Any memory on that node */
-+		if (pgdat->node_present_pages)
-+			node_set_state(nid, N_HIGH_MEMORY);
-+		check_for_regular_memory(pgdat);
- 	}
- }
+@@ -168,15 +152,21 @@ void *__kmalloc(size_t size, gfp_t flags
  
-diff -puN mm/shmem.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code mm/shmem.c
---- a/mm/shmem.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code
-+++ a/mm/shmem.c
-@@ -971,7 +971,7 @@ static inline int shmem_parse_mpol(char 
- 		*nodelist++ = '\0';
- 		if (nodelist_parse(nodelist, *policy_nodes))
- 			goto out;
--		if (!nodes_subset(*policy_nodes, node_online_map))
-+		if (!nodes_subset(*policy_nodes, node_states[N_HIGH_MEMORY]))
- 			goto out;
- 	}
- 	if (!strcmp(value, "default")) {
-@@ -996,9 +996,11 @@ static inline int shmem_parse_mpol(char 
- 			err = 0;
- 	} else if (!strcmp(value, "interleave")) {
- 		*policy = MPOL_INTERLEAVE;
--		/* Default to nodes online if no nodelist */
-+		/*
-+		 * Default to online nodes with memory if no nodelist
-+		 */
- 		if (!nodelist)
--			*policy_nodes = node_online_map;
-+			*policy_nodes = node_states[N_HIGH_MEMORY];
- 		err = 0;
- 	}
- out:
-@@ -1060,7 +1062,8 @@ shmem_alloc_page(gfp_t gfp, struct shmem
- 	return page;
- }
- #else
--static inline int shmem_parse_mpol(char *value, int *policy, nodemask_t *policy_nodes)
-+static inline int shmem_parse_mpol(char *value, int *policy,
-+						nodemask_t *policy_nodes)
+ static __always_inline void *kmalloc(size_t size, gfp_t flags)
  {
- 	return 1;
- }
-@@ -2238,7 +2241,7 @@ static int shmem_fill_super(struct super
- 	unsigned long blocks = 0;
- 	unsigned long inodes = 0;
- 	int policy = MPOL_DEFAULT;
--	nodemask_t policy_nodes = node_online_map;
-+	nodemask_t policy_nodes = node_states[N_HIGH_MEMORY];
+-	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+-		struct kmem_cache *s = kmalloc_slab(size);
++	if (__builtin_constant_p(size)) {
++		if (size > PAGE_SIZE / 2)
++			return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
  
- #ifdef CONFIG_TMPFS
- 	/*
+-		if (!s)
+-			return ZERO_SIZE_PTR;
++		if (!(flags & SLUB_DMA)) {
++			struct kmem_cache *s = kmalloc_slab(size);
++
++			if (!s)
++				return ZERO_SIZE_PTR;
+ 
+-		return kmem_cache_alloc(s, flags);
+-	} else
+-		return __kmalloc(size, flags);
++			return kmem_cache_alloc(s, flags);
++		}
++	}
++	return __kmalloc(size, flags);
+ }
+ 
+ #ifdef CONFIG_NUMA
+@@ -185,15 +175,16 @@ void *kmem_cache_alloc_node(struct kmem_
+ 
+ static __always_inline void *kmalloc_node(size_t size, gfp_t flags, int node)
+ {
+-	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
+-		struct kmem_cache *s = kmalloc_slab(size);
++	if (__builtin_constant_p(size) &&
++		size <= PAGE_SIZE / 2 && !(flags & SLUB_DMA)) {
++			struct kmem_cache *s = kmalloc_slab(size);
+ 
+ 		if (!s)
+ 			return ZERO_SIZE_PTR;
+ 
+ 		return kmem_cache_alloc_node(s, flags, node);
+-	} else
+-		return __kmalloc_node(size, flags, node);
++	}
++	return __kmalloc_node(size, flags, node);
+ }
+ #endif
+ 
+diff -puN mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc mm/slub.c
+--- a/mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc
++++ a/mm/slub.c
+@@ -2227,11 +2227,11 @@ EXPORT_SYMBOL(kmem_cache_destroy);
+  *		Kmalloc subsystem
+  *******************************************************************/
+ 
+-struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1] __cacheline_aligned;
++struct kmem_cache kmalloc_caches[PAGE_SHIFT] __cacheline_aligned;
+ EXPORT_SYMBOL(kmalloc_caches);
+ 
+ #ifdef CONFIG_ZONE_DMA
+-static struct kmem_cache *kmalloc_caches_dma[KMALLOC_SHIFT_HIGH + 1];
++static struct kmem_cache *kmalloc_caches_dma[PAGE_SHIFT];
+ #endif
+ 
+ static int __init setup_slub_min_order(char *str)
+@@ -2397,12 +2397,8 @@ static struct kmem_cache *get_slab(size_
+ 			return ZERO_SIZE_PTR;
+ 
+ 		index = size_index[(size - 1) / 8];
+-	} else {
+-		if (size > KMALLOC_MAX_SIZE)
+-			return NULL;
+-
++	} else
+ 		index = fls(size - 1);
+-	}
+ 
+ #ifdef CONFIG_ZONE_DMA
+ 	if (unlikely((flags & SLUB_DMA)))
+@@ -2414,9 +2410,15 @@ static struct kmem_cache *get_slab(size_
+ 
+ void *__kmalloc(size_t size, gfp_t flags)
+ {
+-	struct kmem_cache *s = get_slab(size, flags);
++	struct kmem_cache *s;
+ 
+-	if (ZERO_OR_NULL_PTR(s))
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
++
++	s = get_slab(size, flags);
++
++	if (unlikely(ZERO_OR_NULL_PTR(s)))
+ 		return s;
+ 
+ 	return slab_alloc(s, flags, -1, __builtin_return_address(0));
+@@ -2426,9 +2428,15 @@ EXPORT_SYMBOL(__kmalloc);
+ #ifdef CONFIG_NUMA
+ void *__kmalloc_node(size_t size, gfp_t flags, int node)
+ {
+-	struct kmem_cache *s = get_slab(size, flags);
++	struct kmem_cache *s;
+ 
+-	if (ZERO_OR_NULL_PTR(s))
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(flags | __GFP_COMP,
++							get_order(size));
++
++	s = get_slab(size, flags);
++
++	if (unlikely(ZERO_OR_NULL_PTR(s)))
+ 		return s;
+ 
+ 	return slab_alloc(s, flags, node, __builtin_return_address(0));
+@@ -2473,22 +2481,17 @@ EXPORT_SYMBOL(ksize);
+ 
+ void kfree(const void *x)
+ {
+-	struct kmem_cache *s;
+ 	struct page *page;
+ 
+-	/*
+-	 * This has to be an unsigned comparison. According to Linus
+-	 * some gcc version treat a pointer as a signed entity. Then
+-	 * this comparison would be true for all "negative" pointers
+-	 * (which would cover the whole upper half of the address space).
+-	 */
+ 	if (ZERO_OR_NULL_PTR(x))
+ 		return;
+ 
+ 	page = virt_to_head_page(x);
+-	s = page->slab;
+-
+-	slab_free(s, page, (void *)x, __builtin_return_address(0));
++	if (unlikely(!PageSlab(page))) {
++		put_page(page);
++		return;
++	}
++	slab_free(page->slab, page, (void *)x, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(kfree);
+ 
+@@ -2602,7 +2605,7 @@ void __init kmem_cache_init(void)
+ 		caches++;
+ 	}
+ 
+-	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
++	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++) {
+ 		create_kmalloc_cache(&kmalloc_caches[i],
+ 			"kmalloc", 1 << i, GFP_KERNEL);
+ 		caches++;
+@@ -2629,7 +2632,7 @@ void __init kmem_cache_init(void)
+ 	slab_state = UP;
+ 
+ 	/* Provide the correct kmalloc names now that the caches are up */
+-	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
++	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++)
+ 		kmalloc_caches[i]. name =
+ 			kasprintf(GFP_KERNEL, "kmalloc-%d", 1 << i);
+ 
+@@ -2790,7 +2793,12 @@ static struct notifier_block __cpuinitda
+ 
+ void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
+ {
+-	struct kmem_cache *s = get_slab(size, gfpflags);
++	struct kmem_cache *s;
++
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
++							get_order(size));
++	s = get_slab(size, gfpflags);
+ 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
+@@ -2801,7 +2809,12 @@ void *__kmalloc_track_caller(size_t size
+ void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
+ 					int node, void *caller)
+ {
+-	struct kmem_cache *s = get_slab(size, gfpflags);
++	struct kmem_cache *s;
++
++	if (unlikely(size > PAGE_SIZE / 2))
++		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
++							get_order(size));
++	s = get_slab(size, gfpflags);
+ 
+ 	if (ZERO_OR_NULL_PTR(s))
+ 		return s;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
