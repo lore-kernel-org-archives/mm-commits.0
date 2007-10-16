@@ -1,119 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: - revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:58 -0700
-Message-ID: <200710162031.l9GKVwW8014545@imap1.linux-foundation.org>
+Subject: - slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:17 -0700
+Message-ID: <200710162035.l9GKZHs4015047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51442 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39149 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965863AbXJPVes (ORCPT
+	by vger.kernel.org with ESMTP id S965802AbXJPVfd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:34:48 -0400
+	Tue, 16 Oct 2007 17:35:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
+To: clameter@sgi.com, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Revert 6527c2bdf1f833cc18e8f42bd97973d583e4aa83
+     SLUB: Avoid touching page struct when freeing to per cpu slab
 has been removed from the -mm tree.  Its filename was
-     revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+     slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Revert 6527c2bdf1f833cc18e8f42bd97973d583e4aa83
-From: Andrew Morton <akpm@osdl.org>
+Subject: SLUB: Avoid touching page struct when freeing to per cpu slab
+From: Christoph Lameter <clameter@sgi.com>
 
-This patch fixed the following bug:
+Set c->node to -1 if we allocate from a debug slab instead for SlabDebug
+which requires access the page struct cacheline.
 
-  When prefaulting in the pages in generic_file_buffered_write(), we only
-  faulted in the pages for the firts segment of the iovec.  If the second of
-  successive segment described a mmapping of the page into which we're
-  write()ing, and that page is not up-to-date, the fault handler tries to lock
-  the already-locked page (to bring it up to date) and deadlocks.
-
-  An exploit for this bug is in writev-deadlock-demo.c, in
-  http://www.zip.com.au/~akpm/linux/patches/stuff/ext3-tools.tar.gz.
-
-  (These demos assume blocksize < PAGE_CACHE_SIZE).
-
-The problem with this fix is that it takes the kernel back to doing a single
-prepare_write()/commit_write() per iovec segment.  So in the worst case we'll
-run prepare_write+commit_write 1024 times where we previously would have run
-it once. The other problem with the fix is that it fix all the locking problems.
-
-<insert numbers obtained via ext3-tools's writev-speed.c here>
-
-And apparently this change killed NFS overwrite performance, because, I
-suppose, it talks to the server for each prepare_write+commit_write.
-
-So just back that patch out - we'll be fixing the deadlock by other means.
-
-Nick says: also it only ever actually papered over the bug, because after
-faulting in the pages, they might be unmapped or reclaimed.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Tested-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ mm/slub.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/filemap.c~revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83 mm/filemap.c
---- a/mm/filemap.c~revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83
-+++ a/mm/filemap.c
-@@ -1865,21 +1865,14 @@ generic_file_buffered_write(struct kiocb
- 	do {
- 		unsigned long index;
- 		unsigned long offset;
-+		unsigned long maxlen;
- 		size_t copied;
+diff -puN mm/slub.c~slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab mm/slub.c
+--- a/mm/slub.c~slub-avoid-touching-page-struct-when-freeing-to-per-cpu-slab
++++ a/mm/slub.c
+@@ -1537,6 +1537,7 @@ debug:
  
- 		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
- 		index = pos >> PAGE_CACHE_SHIFT;
- 		bytes = PAGE_CACHE_SIZE - offset;
--
--		/* Limit the size of the copy to the caller's write size */
--		bytes = min(bytes, count);
--
--		/*
--		 * Limit the size of the copy to that of the current segment,
--		 * because fault_in_pages_readable() doesn't know how to walk
--		 * segments.
--		 */
--		bytes = min(bytes, cur_iov->iov_len - iov_base);
-+		if (bytes > count)
-+			bytes = count;
+ 	c->page->inuse++;
+ 	c->page->freelist = object[c->offset];
++	c->node = -1;
+ 	slab_unlock(c->page);
+ 	return object;
+ }
+@@ -1560,8 +1561,7 @@ static void __always_inline *slab_alloc(
  
- 		/*
- 		 * Bring in the user page that we will copy from _first_.
-@@ -1887,7 +1880,10 @@ generic_file_buffered_write(struct kiocb
- 		 * same page as we're writing to, without it being marked
- 		 * up-to-date.
- 		 */
--		fault_in_pages_readable(buf, bytes);
-+		maxlen = cur_iov->iov_len - iov_base;
-+		if (maxlen > bytes)
-+			maxlen = bytes;
-+		fault_in_pages_readable(buf, maxlen);
+ 	local_irq_save(flags);
+ 	c = get_cpu_slab(s, smp_processor_id());
+-	if (unlikely(!c->page || !c->freelist ||
+-					!node_match(c, node)))
++	if (unlikely(!c->freelist || !node_match(c, node)))
  
- 		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
- 		if (!page) {
+ 		object = __slab_alloc(s, gfpflags, node, addr, c);
+ 
+@@ -1670,7 +1670,7 @@ static void __always_inline slab_free(st
+ 	local_irq_save(flags);
+ 	debug_check_no_locks_freed(object, s->objsize);
+ 	c = get_cpu_slab(s, smp_processor_id());
+-	if (likely(page == c->page && !SlabDebug(page))) {
++	if (likely(page == c->page && c->node >= 0)) {
+ 		object[c->offset] = c->freelist;
+ 		c->freelist = object;
+ 	} else
+@@ -3250,12 +3250,16 @@ static unsigned long slab_objects(struct
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		struct page *page;
++		int node;
+ 		struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
+ 
+ 		if (!c)
+ 			continue;
+ 
+ 		page = c->page;
++		node = c->node;
++		if (node < 0)
++			continue;
+ 		if (page) {
+ 			if (flags & SO_CPU) {
+ 				int x = 0;
+@@ -3265,9 +3269,9 @@ static unsigned long slab_objects(struct
+ 				else
+ 					x = 1;
+ 				total += x;
+-				nodes[c->node] += x;
++				nodes[node] += x;
+ 			}
+-			per_cpu[c->node]++;
++			per_cpu[node]++;
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@osdl.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-ipwireless_cs.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-sync_sb_inodes-propagate-errors.patch
-ext2-reservations.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
