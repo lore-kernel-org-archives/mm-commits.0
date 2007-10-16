@@ -1,398 +1,341 @@
 From: akpm@linux-foundation.org
-Subject: - fs-new-cont-helpers.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:32:42 -0700
-Message-ID: <200710162032.l9GKWg9p014623@imap1.linux-foundation.org>
+Subject: - maps2-move-the-page-walker-code-to-lib.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:36:22 -0700
+Message-ID: <200710162136.l9GLaMrP018570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59353 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36024 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966146AbXJPVss (ORCPT
+	by vger.kernel.org with ESMTP id S966075AbXJPVst (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:48 -0400
+	Tue, 16 Oct 2007 17:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: new cont helpers
+     maps: move the page walker code to lib/
 has been removed from the -mm tree.  Its filename was
-     fs-new-cont-helpers.patch
+     maps2-move-the-page-walker-code-to-lib.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: fs: new cont helpers
-From: Nick Piggin <npiggin@suse.de>
+Subject: maps: move the page walker code to lib/
+From: Matt Mackall <mpm@selenic.com>
 
-Rework the generic block "cont" routines to handle the new aops.  Supporting
-cont_prepare_write would take quite a lot of code to support, so remove it
-instead (and we later convert all filesystems to use it).
+This lets it get shared outside of proc/ and linked in only when needed.
 
-write_begin gets passed AOP_FLAG_CONT_EXPAND when called from
-generic_cont_expand, so filesystems can avoid the old hacks they used.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+[akpm@linux-foundation.org: build fixes]
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |  198 ++++++++++++++++------------------
- include/linux/buffer_head.h |    5 
- include/linux/fs.h          |    1 
- mm/filemap.c                |    5 
- 4 files changed, 105 insertions(+), 104 deletions(-)
+ fs/proc/task_mmu.c |  117 -------------------------------------------
+ include/linux/mm.h |   10 +++
+ lib/Makefile       |    2 
+ lib/pagewalk.c     |  113 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 124 insertions(+), 118 deletions(-)
 
-diff -puN fs/buffer.c~fs-new-cont-helpers fs/buffer.c
---- a/fs/buffer.c~fs-new-cont-helpers
-+++ a/fs/buffer.c
-@@ -2156,14 +2156,14 @@ int block_read_full_page(struct page *pa
+diff -puN fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib
++++ a/fs/proc/task_mmu.c
+@@ -280,123 +280,6 @@ static int clear_refs_pte_range(pmd_t *p
+ 	return 0;
  }
  
- /* utility function for filesystems that need to do work on expanding
-- * truncates.  Uses prepare/commit_write to allow the filesystem to
-+ * truncates.  Uses filesystem pagecache writes to allow the filesystem to
-  * deal with the hole.  
-  */
--static int __generic_cont_expand(struct inode *inode, loff_t size,
--				 pgoff_t index, unsigned int offset)
-+int generic_cont_expand_simple(struct inode *inode, loff_t size)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct page *page;
-+	void *fsdata;
- 	unsigned long limit;
- 	int err;
- 
-@@ -2176,140 +2176,134 @@ static int __generic_cont_expand(struct 
- 	if (size > inode->i_sb->s_maxbytes)
- 		goto out;
- 
--	err = -ENOMEM;
--	page = grab_cache_page(mapping, index);
--	if (!page)
--		goto out;
--	err = mapping->a_ops->prepare_write(NULL, page, offset, offset);
--	if (err) {
--		/*
--		 * ->prepare_write() may have instantiated a few blocks
--		 * outside i_size.  Trim these off again.
--		 */
--		unlock_page(page);
--		page_cache_release(page);
--		vmtruncate(inode, inode->i_size);
-+	err = pagecache_write_begin(NULL, mapping, size, 0,
-+				AOP_FLAG_UNINTERRUPTIBLE|AOP_FLAG_CONT_EXPAND,
-+				&page, &fsdata);
-+	if (err)
- 		goto out;
--	}
- 
--	err = mapping->a_ops->commit_write(NULL, page, offset, offset);
-+	err = pagecache_write_end(NULL, mapping, size, 0, 0, page, fsdata);
-+	BUG_ON(err > 0);
- 
--	unlock_page(page);
--	page_cache_release(page);
--	if (err > 0)
--		err = 0;
- out:
- 	return err;
- }
- 
- int generic_cont_expand(struct inode *inode, loff_t size)
- {
--	pgoff_t index;
- 	unsigned int offset;
- 
- 	offset = (size & (PAGE_CACHE_SIZE - 1)); /* Within page */
- 
- 	/* ugh.  in prepare/commit_write, if from==to==start of block, we
--	** skip the prepare.  make sure we never send an offset for the start
--	** of a block
--	*/
-+	 * skip the prepare.  make sure we never send an offset for the start
-+	 * of a block.
-+	 * XXX: actually, this should be handled in those filesystems by
-+	 * checking for the AOP_FLAG_CONT_EXPAND flag.
-+	 */
- 	if ((offset & (inode->i_sb->s_blocksize - 1)) == 0) {
- 		/* caller must handle this extra byte. */
--		offset++;
-+		size++;
- 	}
--	index = size >> PAGE_CACHE_SHIFT;
+-struct mm_walk {
+-	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
+-	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
+-	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
+-	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
+-};
 -
--	return __generic_cont_expand(inode, size, index, offset);
+-static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
+-{
+-	pte_t *pte;
+-	int err;
+-
+-	for (pte = pte_offset_map(pmd, addr); addr != end;
+-	     addr += PAGE_SIZE, pte++) {
+-		if (pte_none(*pte))
+-			continue;
+-		err = walk->pte_entry(pte, addr, addr, private);
+-		if (err) {
+-			pte_unmap(pte);
+-			return err;
+-		}
+-	}
+-	pte_unmap(pte);
+-	return 0;
 -}
 -
--int generic_cont_expand_simple(struct inode *inode, loff_t size)
+-static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
 -{
--	loff_t pos = size - 1;
--	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
--	unsigned int offset = (pos & (PAGE_CACHE_SIZE - 1)) + 1;
+-	pmd_t *pmd;
+-	unsigned long next;
+-	int err;
 -
--	/* prepare/commit_write can handle even if from==to==start of block. */
--	return __generic_cont_expand(inode, size, index, offset);
-+	return generic_cont_expand_simple(inode, size);
- }
- 
--/*
-- * For moronic filesystems that do not allow holes in file.
-- * We may have to extend the file.
-- */
--
--int cont_prepare_write(struct page *page, unsigned offset,
--		unsigned to, get_block_t *get_block, loff_t *bytes)
-+int cont_expand_zero(struct file *file, struct address_space *mapping,
-+			loff_t pos, loff_t *bytes)
- {
--	struct address_space *mapping = page->mapping;
- 	struct inode *inode = mapping->host;
--	struct page *new_page;
--	pgoff_t pgpos;
--	long status;
--	unsigned zerofrom;
- 	unsigned blocksize = 1 << inode->i_blkbits;
-+	struct page *page;
-+	void *fsdata;
-+	pgoff_t index, curidx;
-+	loff_t curpos;
-+	unsigned zerofrom, offset, len;
-+	int err = 0;
- 
--	while(page->index > (pgpos = *bytes>>PAGE_CACHE_SHIFT)) {
--		status = -ENOMEM;
--		new_page = grab_cache_page(mapping, pgpos);
--		if (!new_page)
--			goto out;
--		/* we might sleep */
--		if (*bytes>>PAGE_CACHE_SHIFT != pgpos) {
--			unlock_page(new_page);
--			page_cache_release(new_page);
+-	for (pmd = pmd_offset(pud, addr); addr != end;
+-	     pmd++, addr = next) {
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none_or_clear_bad(pmd))
 -			continue;
+-		if (walk->pmd_entry) {
+-			err = walk->pmd_entry(pmd, addr, next, private);
+-			if (err)
+-				return err;
 -		}
--		zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+	index = pos >> PAGE_CACHE_SHIFT;
-+	offset = pos & ~PAGE_CACHE_MASK;
-+
-+	while (index > (curidx = (curpos = *bytes)>>PAGE_CACHE_SHIFT)) {
-+		zerofrom = curpos & ~PAGE_CACHE_MASK;
- 		if (zerofrom & (blocksize-1)) {
- 			*bytes |= (blocksize-1);
- 			(*bytes)++;
- 		}
--		status = __block_prepare_write(inode, new_page, zerofrom,
--						PAGE_CACHE_SIZE, get_block);
--		if (status)
--			goto out_unmap;
--		zero_user_page(new_page, zerofrom, PAGE_CACHE_SIZE - zerofrom,
--				KM_USER0);
--		generic_commit_write(NULL, new_page, zerofrom, PAGE_CACHE_SIZE);
--		unlock_page(new_page);
--		page_cache_release(new_page);
+-		if (walk->pte_entry) {
+-			err = walk_pte_range(pmd, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
 -	}
-+		len = PAGE_CACHE_SIZE - zerofrom;
- 
--	if (page->index < pgpos) {
--		/* completely inside the area */
--		zerofrom = offset;
--	} else {
--		/* page covers the boundary, find the boundary offset */
--		zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+		err = pagecache_write_begin(file, mapping, curpos, len,
-+						AOP_FLAG_UNINTERRUPTIBLE,
-+						&page, &fsdata);
-+		if (err)
-+			goto out;
-+		zero_user_page(page, zerofrom, len, KM_USER0);
-+		err = pagecache_write_end(file, mapping, curpos, len, len,
-+						page, fsdata);
-+		if (err < 0)
-+			goto out;
-+		BUG_ON(err != len);
-+		err = 0;
-+	}
- 
-+	/* page covers the boundary, find the boundary offset */
-+	if (index == curidx) {
-+		zerofrom = curpos & ~PAGE_CACHE_MASK;
- 		/* if we will expand the thing last block will be filled */
--		if (to > zerofrom && (zerofrom & (blocksize-1))) {
-+		if (offset <= zerofrom) {
-+			goto out;
-+		}
-+		if (zerofrom & (blocksize-1)) {
- 			*bytes |= (blocksize-1);
- 			(*bytes)++;
- 		}
-+		len = offset - zerofrom;
- 
--		/* starting below the boundary? Nothing to zero out */
--		if (offset <= zerofrom)
--			zerofrom = offset;
--	}
--	status = __block_prepare_write(inode, page, zerofrom, to, get_block);
--	if (status)
--		goto out1;
--	if (zerofrom < offset) {
--		zero_user_page(page, zerofrom, offset - zerofrom, KM_USER0);
--		__block_commit_write(inode, page, zerofrom, offset);
-+		err = pagecache_write_begin(file, mapping, curpos, len,
-+						AOP_FLAG_UNINTERRUPTIBLE,
-+						&page, &fsdata);
-+		if (err)
-+			goto out;
-+		zero_user_page(page, zerofrom, len, KM_USER0);
-+		err = pagecache_write_end(file, mapping, curpos, len, len,
-+						page, fsdata);
-+		if (err < 0)
-+			goto out;
-+		BUG_ON(err != len);
-+		err = 0;
- 	}
 -	return 0;
--out1:
--	ClearPageUptodate(page);
--	return status;
+-}
 -
--out_unmap:
--	ClearPageUptodate(new_page);
--	unlock_page(new_page);
--	page_cache_release(new_page);
- out:
--	return status;
-+	return err;
+-static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+-			  struct mm_walk *walk, void *private)
+-{
+-	pud_t *pud;
+-	unsigned long next;
+-	int err;
+-
+-	for (pud = pud_offset(pgd, addr); addr != end;
+-	     pud++, addr = next) {
+-		next = pud_addr_end(addr, end);
+-		if (pud_none_or_clear_bad(pud))
+-			continue;
+-		if (walk->pud_entry) {
+-			err = walk->pud_entry(pud, addr, next, private);
+-			if (err)
+-				return err;
+-		}
+-		if (walk->pmd_entry || walk->pte_entry) {
+-			err = walk_pmd_range(pud, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/*
+- * walk_page_range - walk a memory map's page tables with a callback
+- * @mm - memory map to walk
+- * @addr - starting address
+- * @end - ending address
+- * @action - callback invoked for every bottom-level (PTE) page table
+- * @private - private data passed to the callback function
+- *
+- * Recursively walk the page table for the memory area in a VMA, calling
+- * a callback for every bottom-level (PTE) page table.
+- */
+-static int walk_page_range(struct mm_struct *mm,
+-			   unsigned long addr, unsigned long end,
+-			   struct mm_walk *walk, void *private)
+-{
+-	pgd_t *pgd;
+-	unsigned long next;
+-	int err;
+-
+-	for (pgd = pgd_offset(mm, addr); addr != end;
+-	     pgd++, addr = next) {
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none_or_clear_bad(pgd))
+-			continue;
+-		if (walk->pgd_entry) {
+-			err = walk->pgd_entry(pgd, addr, next, private);
+-			if (err)
+-				return err;
+-		}
+-		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
+-			err = walk_pud_range(pgd, addr, next, walk, private);
+-			if (err)
+-				return err;
+-		}
+-	}
+-	return 0;
+-}
+-
+ static struct mm_walk smaps_walk = { .pmd_entry = smaps_pte_range };
+ 
+ static int show_smap(struct seq_file *m, void *v)
+diff -puN include/linux/mm.h~maps2-move-the-page-walker-code-to-lib include/linux/mm.h
+--- a/include/linux/mm.h~maps2-move-the-page-walker-code-to-lib
++++ a/include/linux/mm.h
+@@ -711,6 +711,16 @@ unsigned long unmap_vmas(struct mmu_gath
+ 		struct vm_area_struct *start_vma, unsigned long start_addr,
+ 		unsigned long end_addr, unsigned long *nr_accounted,
+ 		struct zap_details *);
++
++struct mm_walk {
++	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
++	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
++	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
++	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
++};
++
++int walk_page_range(struct mm_struct *, unsigned long addr, unsigned long end,
++		    struct mm_walk *walk, void *private);
+ void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
+ 		unsigned long end, unsigned long floor, unsigned long ceiling);
+ void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
+diff -puN lib/Makefile~maps2-move-the-page-walker-code-to-lib lib/Makefile
+--- a/lib/Makefile~maps2-move-the-page-walker-code-to-lib
++++ a/lib/Makefile
+@@ -7,7 +7,7 @@ lib-y := ctype.o string.o vsprintf.o kas
+ 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
+ 
+-lib-$(CONFIG_MMU) += ioremap.o
++lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
+ lib-$(CONFIG_SMP) += cpumask.o
+ 
+ lib-y	+= kobject.o kref.o klist.o
+diff -puN /dev/null lib/pagewalk.c
+--- /dev/null
++++ a/lib/pagewalk.c
+@@ -0,0 +1,113 @@
++#include <linux/mm.h>
++#include <linux/highmem.h>
++#include <linux/sched.h>
++
++static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
++{
++	pte_t *pte;
++	int err;
++
++	for (pte = pte_offset_map(pmd, addr); addr != end;
++	     addr += PAGE_SIZE, pte++) {
++		if (pte_none(*pte))
++			continue;
++		err = walk->pte_entry(pte, addr, addr, private);
++		if (err) {
++			pte_unmap(pte);
++			return err;
++		}
++	}
++	pte_unmap(pte);
++	return 0;
++}
++
++static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
++{
++	pmd_t *pmd;
++	unsigned long next;
++	int err;
++
++	for (pmd = pmd_offset(pud, addr); addr != end;
++	     pmd++, addr = next) {
++		next = pmd_addr_end(addr, end);
++		if (pmd_none_or_clear_bad(pmd))
++			continue;
++		if (walk->pmd_entry) {
++			err = walk->pmd_entry(pmd, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pte_entry) {
++			err = walk_pte_range(pmd, addr, next, walk, private);
++			if (err)
++				return err;
++		}
++	}
++	return 0;
++}
++
++static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
++			  struct mm_walk *walk, void *private)
++{
++	pud_t *pud;
++	unsigned long next;
++	int err;
++
++	for (pud = pud_offset(pgd, addr); addr != end;
++	     pud++, addr = next) {
++		next = pud_addr_end(addr, end);
++		if (pud_none_or_clear_bad(pud))
++			continue;
++		if (walk->pud_entry) {
++			err = walk->pud_entry(pud, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pmd_entry || walk->pte_entry) {
++			err = walk_pmd_range(pud, addr, next, walk, private);
++			if (err)
++				return err;
++		}
++	}
++	return 0;
 +}
 +
 +/*
-+ * For moronic filesystems that do not allow holes in file.
-+ * We may have to extend the file.
++ * walk_page_range - walk a memory map's page tables with a callback
++ * @mm - memory map to walk
++ * @addr - starting address
++ * @end - ending address
++ * @walk - set of callbacks to invoke for each level of the tree
++ * @private - private data passed to the callback function
++ *
++ * Recursively walk the page table for the memory area in a VMA, calling
++ * a callback for every bottom-level (PTE) page table.
 + */
-+int cont_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata,
-+			get_block_t *get_block, loff_t *bytes)
++int walk_page_range(struct mm_struct *mm,
++		    unsigned long addr, unsigned long end,
++		    struct mm_walk *walk, void *private)
 +{
-+	struct inode *inode = mapping->host;
-+	unsigned blocksize = 1 << inode->i_blkbits;
-+	unsigned zerofrom;
++	pgd_t *pgd;
++	unsigned long next;
 +	int err;
 +
-+	err = cont_expand_zero(file, mapping, pos, bytes);
-+	if (err)
-+		goto out;
-+
-+	zerofrom = *bytes & ~PAGE_CACHE_MASK;
-+	if (pos+len > *bytes && zerofrom & (blocksize-1)) {
-+		*bytes |= (blocksize-1);
-+		(*bytes)++;
++	for (pgd = pgd_offset(mm, addr); addr != end;
++	     pgd++, addr = next) {
++		next = pgd_addr_end(addr, end);
++		if (pgd_none_or_clear_bad(pgd))
++			continue;
++		if (walk->pgd_entry) {
++			err = walk->pgd_entry(pgd, addr, next, private);
++			if (err)
++				return err;
++		}
++		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
++			err = walk_pud_range(pgd, addr, next, walk, private);
++			if (err)
++				return err;
++		}
 +	}
-+
-+	*pagep = NULL;
-+	err = block_write_begin(file, mapping, pos, len,
-+				flags, pagep, fsdata, get_block);
-+out:
-+	return err;
- }
- 
- int block_prepare_write(struct page *page, unsigned from, unsigned to,
-@@ -3191,7 +3185,7 @@ EXPORT_SYMBOL(block_read_full_page);
- EXPORT_SYMBOL(block_sync_page);
- EXPORT_SYMBOL(block_truncate_page);
- EXPORT_SYMBOL(block_write_full_page);
--EXPORT_SYMBOL(cont_prepare_write);
-+EXPORT_SYMBOL(cont_write_begin);
- EXPORT_SYMBOL(end_buffer_read_sync);
- EXPORT_SYMBOL(end_buffer_write_sync);
- EXPORT_SYMBOL(file_fsync);
-diff -puN include/linux/buffer_head.h~fs-new-cont-helpers include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-new-cont-helpers
-+++ a/include/linux/buffer_head.h
-@@ -214,8 +214,9 @@ int generic_write_end(struct file *, str
- 				struct page *, void *);
- void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
- int block_prepare_write(struct page*, unsigned, unsigned, get_block_t*);
--int cont_prepare_write(struct page*, unsigned, unsigned, get_block_t*,
--				loff_t *);
-+int cont_write_begin(struct file *, struct address_space *, loff_t,
-+			unsigned, unsigned, struct page **, void **,
-+			get_block_t *, loff_t *);
- int generic_cont_expand(struct inode *inode, loff_t size);
- int generic_cont_expand_simple(struct inode *inode, loff_t size);
- int block_commit_write(struct page *page, unsigned from, unsigned to);
-diff -puN include/linux/fs.h~fs-new-cont-helpers include/linux/fs.h
---- a/include/linux/fs.h~fs-new-cont-helpers
-+++ a/include/linux/fs.h
-@@ -395,6 +395,7 @@ enum positive_aop_returns {
- };
- 
- #define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
-+#define AOP_FLAG_CONT_EXPAND		0x0002 /* called from cont_expand */
- 
- /*
-  * oh the beauties of C type declarations.
-diff -puN mm/filemap.c~fs-new-cont-helpers mm/filemap.c
---- a/mm/filemap.c~fs-new-cont-helpers
-+++ a/mm/filemap.c
-@@ -1684,6 +1684,7 @@ size_t iov_iter_copy_from_user_atomic(st
- 
- 	return copied;
- }
-+EXPORT_SYMBOL(iov_iter_copy_from_user_atomic);
- 
- /*
-  * This has the same sideeffects and return value as
-@@ -1710,6 +1711,7 @@ size_t iov_iter_copy_from_user(struct pa
- 	kunmap(page);
- 	return copied;
- }
-+EXPORT_SYMBOL(iov_iter_copy_from_user);
- 
- static void __iov_iter_advance_iov(struct iov_iter *i, size_t bytes)
- {
-@@ -1741,6 +1743,7 @@ void iov_iter_advance(struct iov_iter *i
- 	__iov_iter_advance_iov(i, bytes);
- 	i->count -= bytes;
- }
-+EXPORT_SYMBOL(iov_iter_advance);
- 
- /*
-  * Fault in the first iovec of the given iov_iter, to a maximum length
-@@ -1757,6 +1760,7 @@ int iov_iter_fault_in_readable(struct io
- 	bytes = min(bytes, i->iov->iov_len - i->iov_offset);
- 	return fault_in_pages_readable(buf, bytes);
- }
-+EXPORT_SYMBOL(iov_iter_fault_in_readable);
- 
- /*
-  * Return the count of just the current iov_iter segment.
-@@ -1769,6 +1773,7 @@ size_t iov_iter_single_seg_count(struct 
- 	else
- 		return min(i->count, iov->iov_len - i->iov_offset);
- }
-+EXPORT_SYMBOL(iov_iter_single_seg_count);
- 
- /*
-  * Performs necessary checks before doing a write
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
+maps2-add-proc-kpagemap-interface.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+lib-sortc-optimization.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
