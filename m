@@ -1,222 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:08:50 -0700
-Message-ID: <200710160408.l9G48oW2008024@imap1.linux-foundation.org>
+Subject: - introduce-write_begin-write_end-aops-fix2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:13:36 -0700
+Message-ID: <200710160413.l9G4DagJ008172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40687 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33337 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751829AbXJPEJA (ORCPT
+	by vger.kernel.org with ESMTP id S1750770AbXJPENl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:09:00 -0400
+	Tue, 16 Oct 2007 00:13:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move_tail_pages into lru_add_drain
+     introduce write_begin write_end aops fix2
 has been removed from the -mm tree.  Its filename was
-     mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain.patch
+     introduce-write_begin-write_end-aops-fix2.patch
 
-This patch was dropped because it was folded into mm-use-pagevec-to-rotate-reclaimable-page.patch
+This patch was dropped because it was folded into fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
 ------------------------------------------------------
-Subject: move_tail_pages into lru_add_drain
-From: Hugh Dickins <hugh@veritas.com>
+Subject: introduce write_begin write_end aops fix2
+From: Nick Piggin <npiggin@suse.de>
 
-a.k.a. mm-use-pagevec-to-rotate-reclaimable-page-cleanup-2.patch
+Callers should do the mark_page_accessed, as it is more flexible and in
+some contexts they don't want to be doing so, eg.  dir-in-pagecache writes
+into buffer cache (although that's debateable, it wouldn't be possible if
+write_end() did the mark_page_accessed()).
 
-Opinions may differ, but I'm uneasy with leaving pages to be rotated on
-their pagevecs for too long: although they're still visible via the LRU,
-their page counts are raised, which excludes them from some operations.
+Subsequent patches contain fixes either to take mark_page_accessed out of
+their write_end implementation, or in the case of dir-in-pagecache
+filesystems, I had incorrectly added a mark_page_accessed where there was
+previously none (it looks like the logical place to mark the page accessed,
+but changing behaviour is obviously wrong for this bugfix series).
 
-Memory hotplug and page migration clearly want to be draining them:
-but rather than add move_tail_pages calls in various places, won't we
-be safer just to drain them whenever we drain the lru_add pagevecs?
-
-So merge move_tail_pages into __lru_add_drain, which lets us remove
-cpu_movetail_callback.  Rename __lru_add_drain to drain_cpu_pagevecs,
-and correct the misleading "CPU is dead" comment found there.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/buffer.c  |    1 -
+ mm/filemap.c |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain include/linux/swap.h
---- a/include/linux/swap.h~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain
-+++ a/include/linux/swap.h
-@@ -185,7 +185,6 @@ extern void FASTCALL(mark_page_accessed(
- extern void lru_add_drain(void);
- extern int lru_add_drain_all(void);
- extern int rotate_reclaimable_page(struct page *page);
--extern void move_tail_pages(void);
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
-diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain mm/swap.c
---- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain
-+++ a/mm/swap.c
-@@ -32,6 +32,10 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
-+static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs) = { 0, };
-+
- /*
-  * This path almost never happens for VM activity - pages are normally
-  * freed via pagevecs.  But it gets used by networking.
-@@ -123,20 +127,6 @@ static void pagevec_move_tail(struct pag
- 	pagevec_reinit(pvec);
- }
- 
--static DEFINE_PER_CPU(struct pagevec, rotate_pvecs) = { 0, };
--
--void move_tail_pages(void)
--{
--	unsigned long flags;
--	struct pagevec *pvec;
--
--	local_irq_save(flags);
--	pvec = &__get_cpu_var(rotate_pvecs);
--	if (pagevec_count(pvec))
--		pagevec_move_tail(pvec);
--	local_irq_restore(flags);
--}
--
- /*
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-@@ -211,9 +201,6 @@ EXPORT_SYMBOL(mark_page_accessed);
-  * lru_cache_add: add a page to the page lists
-  * @page: the page to add
-  */
--static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
--static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
--
- void fastcall lru_cache_add(struct page *page)
- {
- 	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs);
-@@ -234,21 +221,37 @@ void fastcall lru_cache_add_active(struc
- 	put_cpu_var(lru_add_active_pvecs);
- }
- 
--static void __lru_add_drain(int cpu)
-+/*
-+ * Drain pages out of the cpu's pagevecs.
-+ * Either "cpu" is the current CPU, and preemption has already been
-+ * disabled; or "cpu" is being hot-unplugged, and is already dead.
-+ */
-+static void drain_cpu_pagevecs(int cpu)
- {
--	struct pagevec *pvec = &per_cpu(lru_add_pvecs, cpu);
-+	struct pagevec *pvec;
- 
--	/* CPU is dead, so no locking needed. */
-+	pvec = &per_cpu(lru_add_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add(pvec);
-+
- 	pvec = &per_cpu(lru_add_active_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add_active(pvec);
-+
-+	pvec = &per_cpu(lru_rotate_pvecs, cpu);
-+	if (pagevec_count(pvec)) {
-+		unsigned long flags;
-+
-+		/* No harm done if a racing interrupt already did this */
-+		local_irq_save(flags);
-+		pagevec_move_tail(pvec);
-+		local_irq_restore(flags);
-+	}
- }
- 
- void lru_add_drain(void)
- {
--	__lru_add_drain(get_cpu());
-+	drain_cpu_pagevecs(get_cpu());
- 	put_cpu();
- }
- 
-@@ -530,25 +533,8 @@ static int cpu_swap_callback(struct noti
- 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
- 		atomic_add(*committed, &vm_committed_space);
- 		*committed = 0;
--		__lru_add_drain((long)hcpu);
--	}
--	return NOTIFY_OK;
--}
--
--static int cpu_movetail_callback(struct notifier_block *nfb,
--				 unsigned long action, void *hcpu)
--{
--	unsigned long flags;
--	struct pagevec *pvec;
--
--	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
--		local_irq_save(flags);
--		pvec = &per_cpu(rotate_pvecs, (long)hcpu);
--		if (pagevec_count(pvec))
--			pagevec_move_tail(pvec);
--		local_irq_restore(flags);
-+		drain_cpu_pagevecs((long)hcpu);
+diff -puN fs/buffer.c~introduce-write_begin-write_end-aops-fix2 fs/buffer.c
+--- a/fs/buffer.c~introduce-write_begin-write_end-aops-fix2
++++ a/fs/buffer.c
+@@ -2052,7 +2052,6 @@ int generic_write_end(struct file *file,
  	}
--
- 	return NOTIFY_OK;
- }
- #endif /* CONFIG_HOTPLUG_CPU */
-@@ -572,6 +558,5 @@ void __init swap_setup(void)
- 	 */
- #ifdef CONFIG_HOTPLUG_CPU
- 	hotcpu_notifier(cpu_swap_callback, 0);
--	hotcpu_notifier(cpu_movetail_callback, 0);
- #endif
- }
-diff -puN mm/vmscan.c~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain mm/vmscan.c
---- a/mm/vmscan.c~mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain
-+++ a/mm/vmscan.c
-@@ -792,7 +792,6 @@ static unsigned long shrink_inactive_lis
  
- 	pagevec_init(&pvec, 1);
+ 	unlock_page(page);
+-	mark_page_accessed(page);
+ 	page_cache_release(page);
  
--	move_tail_pages();
- 	lru_add_drain();
- 	spin_lock_irq(&zone->lru_lock);
- 	do {
+ 	return copied;
+diff -puN mm/filemap.c~introduce-write_begin-write_end-aops-fix2 mm/filemap.c
+--- a/mm/filemap.c~introduce-write_begin-write_end-aops-fix2
++++ a/mm/filemap.c
+@@ -1914,6 +1914,7 @@ int pagecache_write_end(struct file *fil
+ 	int ret;
+ 
+ 	if (aops->write_end) {
++		mark_page_accessed(page);
+ 		ret = aops->write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 	} else {
+@@ -1923,6 +1924,7 @@ int pagecache_write_end(struct file *fil
+ 		flush_dcache_page(page);
+ 		ret = aops->commit_write(file, page, offset, offset+len);
+ 		unlock_page(page);
++		mark_page_accessed(page);
+ 		page_cache_release(page);
+ 		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
+ 
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
 mm-clarify-__add_to_swap_cache-locking.patch
 radix-tree-use-indirect-bit.patch
-mm-use-pagevec-to-rotate-reclaimable-page.patch
-mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain.patch
-introduce-write_begin-write_end-aops-important-fix.patch
+calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+fs-fix-nobh-error-handling.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-fix2.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+implement-simple-fs-aops-fix.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext2-convert-to-new-aops-fix.patch
+ext2-convert-to-new-aops-fix2.patch
+ext3-convert-to-new-aops.patch
+ext3-convert-to-new-aops-fix.patch
+ext3-convert-to-new-aops-fix-fix.patch
+ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops-fix-fix.patch
+xfs-convert-to-new-aops.patch
+gfs2-convert-to-new-aops-fix.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
 reiserfs-convert-to-new-aops-fix.patch
+reiserfs-convert-to-new-aops-fix2.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
+nfs-convert-to-new-aops.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
 hostfs-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+ufs-convert-to-new-aops-fix2.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops-fix2.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops-fix2.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
 affs-convert-to-new-aops-fix.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-mm-shmemc-make-3-functions-static.patch
-lib-percpu_counter_sub.patch
-mm-per-device-dirty-threshold-fix.patch
-ext2-reservations.patch
-fix-for-ext2-reservation.patch
-ext2-balloc-use-io_error-label.patch
-memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-shmem-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
-prio_tree-debugging-patch.patch
+affs-convert-to-new-aops-fix-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-restore-nobh.patch
+fs-restore-nobh-checkpatch-fixes.patch
+fs-remove-some-aop_truncated_page.patch
+make-swappiness-safer-to-use.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
