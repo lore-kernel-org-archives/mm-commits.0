@@ -1,70 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-initialize-persistent-lower-file-on-inode-create.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:06 -0700
-Message-ID: <200710162041.l9GKf6HR015759@imap1.linux-foundation.org>
+Subject: - uml-get-rid-of-do_longjmp.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:44 -0700
+Message-ID: <200710162037.l9GKbiVI015311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32870 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46539 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965363AbXJPVPI (ORCPT
+	by vger.kernel.org with ESMTP id S965802AbXJPVOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:15:08 -0400
+	Tue, 16 Oct 2007 17:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: initialize persistent lower file on inode create
+     uml: get rid of do_longjmp
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
+     uml-get-rid-of-do_longjmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: initialize persistent lower file on inode create
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: uml: get rid of do_longjmp
+From: Jeff Dike <jdike@addtoit.com>
 
-Initialize persistent lower file on inode create.
+do_longjmp used to be needed when UML didn't have its own implementation of
+setjmp and longjmp.  They came from libc, and couldn't be called directly from
+kernel code, as the libc jmp_buf couldn't be imported there.  do_longjmp was a
+userspace function which served to provide longjmp access to kernel code.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+This is gone, and a number of void * pointers can now be jmp_buf *.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/super.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/um/include/os.h               |    5 ++---
+ arch/um/include/um_uaccess.h       |    4 ++++
+ arch/um/include/uml_uaccess.h      |   24 ------------------------
+ arch/um/kernel/exec.c              |    2 +-
+ arch/um/kernel/mem.c               |    2 +-
+ arch/um/kernel/trap.c              |    6 +++---
+ arch/um/kernel/uaccess.c           |    2 +-
+ arch/um/os-Linux/process.c         |    2 +-
+ arch/um/os-Linux/trap.c            |    7 -------
+ arch/um/os-Linux/uaccess.c         |    2 +-
+ include/asm-um/processor-generic.h |    4 ++--
+ 11 files changed, 16 insertions(+), 44 deletions(-)
 
-diff -puN fs/ecryptfs/super.c~ecryptfs-initialize-persistent-lower-file-on-inode-create fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-initialize-persistent-lower-file-on-inode-create
-+++ a/fs/ecryptfs/super.c
-@@ -47,15 +47,16 @@ struct kmem_cache *ecryptfs_inode_info_c
-  */
- static struct inode *ecryptfs_alloc_inode(struct super_block *sb)
- {
--	struct ecryptfs_inode_info *ecryptfs_inode;
-+	struct ecryptfs_inode_info *inode_info;
- 	struct inode *inode = NULL;
+diff -puN arch/um/include/os.h~uml-get-rid-of-do_longjmp arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-get-rid-of-do_longjmp
++++ a/arch/um/include/os.h
+@@ -193,7 +193,7 @@ extern int os_getpid(void);
+ extern int os_getpgrp(void);
  
--	ecryptfs_inode = kmem_cache_alloc(ecryptfs_inode_info_cache,
--					  GFP_KERNEL);
--	if (unlikely(!ecryptfs_inode))
-+	inode_info = kmem_cache_alloc(ecryptfs_inode_info_cache, GFP_KERNEL);
-+	if (unlikely(!inode_info))
- 		goto out;
--	ecryptfs_init_crypt_stat(&ecryptfs_inode->crypt_stat);
--	inode = &ecryptfs_inode->vfs_inode;
-+	ecryptfs_init_crypt_stat(&inode_info->crypt_stat);
-+	mutex_init(&inode_info->lower_file_mutex);
-+	inode_info->lower_file = NULL;
-+	inode = &inode_info->vfs_inode;
- out:
- 	return inode;
+ extern void init_new_thread_signals(void);
+-extern int run_kernel_thread(int (*fn)(void *), void *arg, void **jmp_ptr);
++extern int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr);
+ 
+ extern int os_map_memory(void *virt, int fd, unsigned long long off,
+ 			 unsigned long len, int r, int w, int x);
+@@ -206,7 +206,7 @@ extern void os_flush_stdout(void);
+ 
+ /* uaccess.c */
+ extern unsigned long __do_user_copy(void *to, const void *from, int n,
+-				    void **fault_addr, void **fault_catcher,
++				    void **fault_addr, jmp_buf **fault_catcher,
+ 				    void (*op)(void *to, const void *from,
+ 					       int n), int *faulted_out);
+ 
+@@ -240,7 +240,6 @@ extern int set_signals(int enable);
+ 
+ /* trap.c */
+ extern void os_fill_handlinfo(struct kern_handlers h);
+-extern void do_longjmp(void *p, int val);
+ 
+ /* util.c */
+ extern void stack_protections(unsigned long address);
+diff -puN arch/um/include/um_uaccess.h~uml-get-rid-of-do_longjmp arch/um/include/um_uaccess.h
+--- a/arch/um/include/um_uaccess.h~uml-get-rid-of-do_longjmp
++++ a/arch/um/include/um_uaccess.h
+@@ -30,6 +30,10 @@
+ extern int copy_from_user(void *to, const void __user *from, int n);
+ extern int copy_to_user(void __user *to, const void *from, int n);
+ 
++extern int __do_copy_to_user(void *to, const void *from, int n,
++			     void **fault_addr, jmp_buf **fault_catcher);
++extern void __do_copy(void *to, const void *from, int n);
++
+ /*
+  * strncpy_from_user: - Copy a NUL terminated string from userspace.
+  * @dst:   Destination address, in kernel space.  This buffer must be at
+diff -puN arch/um/include/uml_uaccess.h~uml-get-rid-of-do_longjmp /dev/null
+--- a/arch/um/include/uml_uaccess.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#ifndef __UML_UACCESS_H__
+-#define __UML_UACCESS_H__
+-
+-extern int __do_copy_to_user(void *to, const void *from, int n,
+-			     void **fault_addr, void **fault_catcher);
+-void __do_copy(void *to, const void *from, int n);
+-
+-#endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/kernel/exec.c~uml-get-rid-of-do_longjmp arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/kernel/exec.c
+@@ -75,7 +75,7 @@ long um_execve(char *file, char __user *
+ 
+ 	err = execve1(file, argv, env);
+ 	if (!err)
+-		do_longjmp(current->thread.exec_buf, 1);
++		UML_LONGJMP(current->thread.exec_buf, 1);
+ 	return err;
  }
+ 
+diff -puN arch/um/kernel/mem.c~uml-get-rid-of-do_longjmp arch/um/kernel/mem.c
+--- a/arch/um/kernel/mem.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/kernel/mem.c
+@@ -17,7 +17,7 @@
+ #include "as-layout.h"
+ #include "kern.h"
+ #include "mem_user.h"
+-#include "uml_uaccess.h"
++#include "um_uaccess.h"
+ #include "os.h"
+ #include "linux/types.h"
+ #include "linux/string.h"
+diff -puN arch/um/kernel/trap.c~uml-get-rid-of-do_longjmp arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/kernel/trap.c
+@@ -149,7 +149,7 @@ unsigned long segv(struct faultinfo fi, 
+ 		   struct uml_pt_regs *regs)
+ {
+ 	struct siginfo si;
+-	void *catcher;
++	jmp_buf *catcher;
+ 	int err;
+ 	int is_write = FAULT_WRITE(fi);
+ 	unsigned long address = FAULT_ADDRESS(fi);
+@@ -181,7 +181,7 @@ unsigned long segv(struct faultinfo fi, 
+ 		return 0;
+ 	else if (catcher != NULL) {
+ 		current->thread.fault_addr = (void *) address;
+-		do_longjmp(catcher, 1);
++		UML_LONGJMP(catcher, 1);
+ 	}
+ 	else if (current->thread.fault_addr != NULL)
+ 		panic("fault_addr set but no fault catcher");
+@@ -233,7 +233,7 @@ void relay_signal(int sig, struct uml_pt
+ static void bus_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	if (current->thread.fault_catcher != NULL)
+-		do_longjmp(current->thread.fault_catcher, 1);
++		UML_LONGJMP(current->thread.fault_catcher, 1);
+ 	else relay_signal(sig, regs);
+ }
+ 
+diff -puN arch/um/kernel/uaccess.c~uml-get-rid-of-do_longjmp arch/um/kernel/uaccess.c
+--- a/arch/um/kernel/uaccess.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/kernel/uaccess.c
+@@ -18,7 +18,7 @@ void __do_copy(void *to, const void *fro
+ 
+ 
+ int __do_copy_to_user(void *to, const void *from, int n,
+-		      void **fault_addr, void **fault_catcher)
++		      void **fault_addr, jmp_buf **fault_catcher)
+ {
+ 	unsigned long fault;
+ 	int faulted;
+diff -puN arch/um/os-Linux/process.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/process.c
+--- a/arch/um/os-Linux/process.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/os-Linux/process.c
+@@ -249,7 +249,7 @@ void init_new_thread_signals(void)
+ 	init_irq_signals(1);
+ }
+ 
+-int run_kernel_thread(int (*fn)(void *), void *arg, void **jmp_ptr)
++int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr)
+ {
+ 	jmp_buf buf;
+ 	int n;
+diff -puN arch/um/os-Linux/trap.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/trap.c
+--- a/arch/um/os-Linux/trap.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/os-Linux/trap.c
+@@ -22,10 +22,3 @@ void os_fill_handlinfo(struct kern_handl
+ 	sig_info[SIGVTALRM] = h.timer_handler;
+ 	sig_info[SIGALRM] = h.timer_handler;
+ }
+-
+-void do_longjmp(void *b, int val)
+-{
+-	jmp_buf *buf = b;
+-
+-	UML_LONGJMP(buf, val);
+-}
+diff -puN arch/um/os-Linux/uaccess.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/uaccess.c
+--- a/arch/um/os-Linux/uaccess.c~uml-get-rid-of-do_longjmp
++++ a/arch/um/os-Linux/uaccess.c
+@@ -8,7 +8,7 @@
+ #include "longjmp.h"
+ 
+ unsigned long __do_user_copy(void *to, const void *from, int n,
+-			     void **fault_addr, void **fault_catcher,
++			     void **fault_addr, jmp_buf **fault_catcher,
+ 			     void (*op)(void *to, const void *from,
+ 					int n), int *faulted_out)
+ {
+diff -puN include/asm-um/processor-generic.h~uml-get-rid-of-do_longjmp include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~uml-get-rid-of-do_longjmp
++++ a/include/asm-um/processor-generic.h
+@@ -30,10 +30,10 @@ struct thread_struct {
+ 	struct pt_regs regs;
+ 	int singlestep_syscall;
+ 	void *fault_addr;
+-	void *fault_catcher;
++	jmp_buf *fault_catcher;
+ 	struct task_struct *prev_sched;
+ 	unsigned long temp_stack;
+-	void *exec_buf;
++	jmp_buf *exec_buf;
+ 	struct arch_thread arch;
+ 	jmp_buf switch_buf;
+ 	int mm_count;
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
