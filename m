@@ -1,73 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - frv-cleanup-struct-irqaction-initializers.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:20 -0700
-Message-ID: <200710162036.l9GKaKoD015176@imap1.linux-foundation.org>
+Subject: - mm-vmstatc-cleanups.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:12 -0700
+Message-ID: <200710162036.l9GKaClC015128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48802 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47312 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933821AbXJPVeU (ORCPT
+	by vger.kernel.org with ESMTP id S933653AbXJPVe1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:34:20 -0400
+	Tue, 16 Oct 2007 17:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FRV: cleanup struct irqaction initializers
+     mm/vmstat.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     frv-cleanup-struct-irqaction-initializers.patch
+     mm-vmstatc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: FRV: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm/vmstat.c: cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Howells <dhowells@redhat.com>
+This patch contains the following cleanups:
+- make the needlessly global setup_vmstat() static
+- remove the unused refresh_vm_stats()
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/time.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
-diff -puN arch/frv/kernel/time.c~frv-cleanup-struct-irqaction-initializers arch/frv/kernel/time.c
---- a/arch/frv/kernel/time.c~frv-cleanup-struct-irqaction-initializers
-+++ a/arch/frv/kernel/time.c
-@@ -43,7 +43,10 @@ unsigned long __delay_loops_MHz;
- static irqreturn_t timer_interrupt(int irq, void *dummy);
+diff -puN mm/vmstat.c~mm-vmstatc-cleanups mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-cleanups
++++ a/mm/vmstat.c
+@@ -353,23 +353,6 @@ void refresh_cpu_vm_stats(int cpu)
+ 	}
+ }
  
- static struct irqaction timer_irq  = {
--	timer_interrupt, IRQF_DISABLED, CPU_MASK_NONE, "timer", NULL, NULL
-+	.handler = timer_interrupt,
-+	.flags = IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "timer",
- };
+-static void __refresh_cpu_vm_stats(void *dummy)
+-{
+-	refresh_cpu_vm_stats(smp_processor_id());
+-}
+-
+-/*
+- * Consolidate all counters.
+- *
+- * Note that the result is less inaccurate but still inaccurate
+- * if concurrent processes are allowed to run.
+- */
+-void refresh_vm_stats(void)
+-{
+-	on_each_cpu(__refresh_cpu_vm_stats, NULL, 0, 1);
+-}
+-EXPORT_SYMBOL(refresh_vm_stats);
+-
+ #endif
  
- static inline int set_rtc_mmss(unsigned long nowtime)
+ #ifdef CONFIG_NUMA
+@@ -865,7 +848,7 @@ static int __cpuinit vmstat_cpuup_callba
+ static struct notifier_block __cpuinitdata vmstat_notifier =
+ 	{ &vmstat_cpuup_callback, NULL, 0 };
+ 
+-int __init setup_vmstat(void)
++static int __init setup_vmstat(void)
+ {
+ 	int cpu;
+ 
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
 git-acpi.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch
-replace-nt_prxfpreg-with-elf_core_xfpreg_type-define.patch
-powerpc-add-altivec-vmx-state-to-coredumps.patch
-time-simplify-smp_call_function_single-call-sequence.patch
+git-alsa.patch
+git-kvm.patch
+remove-fs-jffs2-ioctlc.patch
+parisc-extern-inline-static-inline.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+maps2-add-proc-kpagemap-interface.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
 kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+dontdiff-update-based-on-gitignore-updates.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
