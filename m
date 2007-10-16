@@ -1,180 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-convert-to-new-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:05 -0700
-Message-ID: <200710162033.l9GKX5Ql014752@imap1.linux-foundation.org>
+Subject: - make-swappiness-safer-to-use.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:34:18 -0700
+Message-ID: <200710162034.l9GKYIpg014926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37897 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965383AbXJPVwJ (ORCPT
+	by vger.kernel.org with ESMTP id S933734AbXJPVwQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:52:09 -0400
+	Tue, 16 Oct 2007 17:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, bfields@fieldses.org, mm-commits@vger.kernel.org
+To: andrea@suse.de, garloff@suse.de, npiggin@suse.de, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: convert to new aops
+     make swappiness safer to use
 has been removed from the -mm tree.  Its filename was
-     nfs-convert-to-new-aops.patch
+     make-swappiness-safer-to-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfs: convert to new aops
-From: Nick Piggin <npiggin@suse.de>
+Subject: make swappiness safer to use
+From: Andrea Arcangeli <andrea@suse.de>
 
-[akpm@linux-foundation.org: fix against git-nfs]
-[peterz@infradead.org: fix against git-nfs]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Swappiness isn't a safe sysctl.  Setting it to 0 for example can hang a
+system.  That's a corner case but even setting it to 10 or lower can waste
+enormous amounts of cpu without making much progress.  We've customers who
+wants to use swappiness but they can't because of the current
+implementation (if you change it so the system stops swapping it really
+stops swapping and nothing works sane anymore if you really had to swap
+something to make progress).
+
+This patch from Kurt Garloff makes swappiness safer to use (no more huge
+cpu usage or hangs with low swappiness values).
+
+I think the prev_priority can also be nuked since it wastes 4 bytes per
+zone (that would be an incremental patch but I wait the nr_scan_[in]active
+to be nuked first for similar reasons).  Clearly somebody at some point
+noticed how broken that thing was and they had to add min(priority,
+prev_priority) to give it some reliability, but they didn't go the last
+mile to nuke prev_priority too.  Calculating distress only in function of
+not-racy priority is correct and sure more than enough without having to
+add randomness into the equation.
+
+Patch is tested on older kernels but it compiles and it's quite simple
+so...
+
+Overall I'm not very satisified by the swappiness tweak, since it doesn't
+rally do anything with the dirty pagecache that may be inactive.  We need
+another kind of tweak that controls the inactive scan and tunes the
+can_writepage feature (not yet in mainline despite having submitted it a
+few times), not only the active one.  That new tweak will tell the kernel
+how hard to scan the inactive list for pure clean pagecache (something the
+mainline kernel isn't capable of yet).  We already have that feature
+working in all our enterprise kernels with the default reasonable tune, or
+they can't even run a readonly backup with tar without triggering huge
+write I/O.  I think it should be available also in mainline later.
+
+Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Kurt Garloff <garloff@suse.de>
+Signed-off-by: Andrea Arcangeli <andrea@suse.de>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c |   82 +++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 61 insertions(+), 21 deletions(-)
+ mm/vmscan.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff -puN fs/nfs/file.c~nfs-convert-to-new-aops fs/nfs/file.c
---- a/fs/nfs/file.c~nfs-convert-to-new-aops
-+++ a/fs/nfs/file.c
-@@ -306,27 +306,50 @@ nfs_fsync(struct file *file, struct dent
- }
+diff -puN mm/vmscan.c~make-swappiness-safer-to-use mm/vmscan.c
+--- a/mm/vmscan.c~make-swappiness-safer-to-use
++++ a/mm/vmscan.c
+@@ -932,6 +932,7 @@ static void shrink_active_list(unsigned 
+ 		long mapped_ratio;
+ 		long distress;
+ 		long swap_tendency;
++		long imbalance;
  
- /*
-- * This does the "real" work of the write. The generic routine has
-- * allocated the page, locked it, done all the page alignment stuff
-- * calculations etc. Now we should just copy the data from user
-- * space and write it back to the real medium..
-+ * This does the "real" work of the write. We must allocate and lock the
-+ * page to be sent back to the generic routine, which then copies the
-+ * data from user space.
-  *
-  * If the writer ends up delaying the write, the writer needs to
-  * increment the page use counts until he is done with the page.
-  */
--static int nfs_prepare_write(struct file *file, struct page *page, unsigned offset, unsigned to)
--{
--	return nfs_flush_incompatible(file, page);
-+static int nfs_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
-+{
-+	int ret;
-+	pgoff_t index;
-+	struct page *page;
-+	index = pos >> PAGE_CACHE_SHIFT;
-+
-+	page = __grab_cache_page(mapping, index);
-+	if (!page)
-+		return -ENOMEM;
-+	*pagep = page;
-+
-+	ret = nfs_flush_incompatible(file, page);
-+	if (ret) {
-+		unlock_page(page);
-+		page_cache_release(page);
-+	}
-+	return ret;
- }
+ 		if (zone_is_near_oom(zone))
+ 			goto force_reclaim_mapped;
+@@ -967,6 +968,46 @@ static void shrink_active_list(unsigned 
+ 		swap_tendency = mapped_ratio / 2 + distress + sc->swappiness;
  
--static int nfs_commit_write(struct file *file, struct page *page, unsigned offset, unsigned to)
-+static int nfs_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
- {
--	long status;
-+	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
-+	int status;
- 
- 	lock_kernel();
--	status = nfs_updatepage(file, page, offset, to-offset);
-+	status = nfs_updatepage(file, page, offset, copied);
- 	unlock_kernel();
--	return status;
+ 		/*
++		 * If there's huge imbalance between active and inactive
++		 * (think active 100 times larger than inactive) we should
++		 * become more permissive, or the system will take too much
++		 * cpu before it start swapping during memory pressure.
++		 * Distress is about avoiding early-oom, this is about
++		 * making swappiness graceful despite setting it to low
++		 * values.
++		 *
++		 * Avoid div by zero with nr_inactive+1, and max resulting
++		 * value is vm_total_pages.
++		 */
++		imbalance  = zone_page_state(zone, NR_ACTIVE);
++		imbalance /= zone_page_state(zone, NR_INACTIVE) + 1;
 +
-+	unlock_page(page);
-+	page_cache_release(page);
++		/*
++		 * Reduce the effect of imbalance if swappiness is low,
++		 * this means for a swappiness very low, the imbalance
++		 * must be much higher than 100 for this logic to make
++		 * the difference.
++		 *
++		 * Max temporary value is vm_total_pages*100.
++		 */
++		imbalance *= (vm_swappiness + 1);
++		imbalance /= 100;
 +
-+	return status < 0 ? status : copied;
- }
- 
- static void nfs_invalidate_page(struct page *page, unsigned long offset)
-@@ -354,8 +377,8 @@ const struct address_space_operations nf
- 	.set_page_dirty = __set_page_dirty_nobuffers,
- 	.writepage = nfs_writepage,
- 	.writepages = nfs_writepages,
--	.prepare_write = nfs_prepare_write,
--	.commit_write = nfs_commit_write,
-+	.write_begin = nfs_write_begin,
-+	.write_end = nfs_write_end,
- 	.invalidatepage = nfs_invalidate_page,
- 	.releasepage = nfs_release_page,
- #ifdef CONFIG_NFS_DIRECTIO
-@@ -369,18 +392,35 @@ static int nfs_vm_page_mkwrite(struct vm
- 	struct file *filp = vma->vm_file;
- 	unsigned pagelen;
- 	int ret = -EINVAL;
-+	void *fsdata;
-+	struct address_space *mapping;
-+	loff_t offset;
- 
- 	lock_page(page);
--	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
--		goto out_unlock;
-+	mapping = page->mapping;
-+	if (mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping) {
-+		unlock_page(page);
-+		return -EINVAL;
-+	}
- 	pagelen = nfs_page_length(page);
--	if (pagelen == 0)
--		goto out_unlock;
--	ret = nfs_prepare_write(filp, page, 0, pagelen);
--	if (!ret)
--		ret = nfs_commit_write(filp, page, 0, pagelen);
--out_unlock:
-+	offset = (loff_t)page->index << PAGE_CACHE_SHIFT;
- 	unlock_page(page);
++		/*
++		 * If not much of the ram is mapped, makes the imbalance
++		 * less relevant, it's high priority we refill the inactive
++		 * list with mapped pages only in presence of high ratio of
++		 * mapped pages.
++		 *
++		 * Max temporary value is vm_total_pages*100.
++		 */
++		imbalance *= mapped_ratio;
++		imbalance /= 100;
 +
-+	/*
-+	 * we can use mapping after releasing the page lock, because:
-+	 * we hold mmap_sem on the fault path, which should pin the vma
-+	 * which should pin the file, which pins the dentry which should
-+	 * hold a reference on inode.
-+	 */
++		/* apply imbalance feedback to swap_tendency */
++		swap_tendency += imbalance;
 +
-+	if (pagelen) {
-+		struct page *page2 = NULL;
-+		ret = nfs_write_begin(filp, mapping, offset, pagelen,
-+			       	0, &page2, &fsdata);
-+		if (!ret)
-+			ret = nfs_write_end(filp, mapping, offset, pagelen,
-+				       	pagelen, page2, fsdata);
-+	}
- 	return ret;
- }
- 
++		/*
+ 		 * Now use this metric to decide whether to start moving mapped
+ 		 * memory onto the inactive list.
+ 		 */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from andrea@suse.de are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
