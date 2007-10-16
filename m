@@ -1,40 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-convert-to-new-aops-fix-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:14:35 -0700
-Message-ID: <200710160414.l9G4EZAt008210@imap1.linux-foundation.org>
+Subject: - ext4-convert-to-new-aops-fix-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:14:50 -0700
+Message-ID: <200710160414.l9G4EomO008216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37796 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48998 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750984AbXJPEOk (ORCPT
+	by vger.kernel.org with ESMTP id S1752409AbXJPEOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:14:40 -0400
+	Tue, 16 Oct 2007 00:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3 convert to new aops fix fix
+     ext4 convert to new aops fix fix
 has been removed from the -mm tree.  Its filename was
-     ext3-convert-to-new-aops-fix-fix.patch
+     ext4-convert-to-new-aops-fix-fix.patch
 
-This patch was dropped because it was folded into ext3-convert-to-new-aops.patch
+This patch was dropped because it was folded into ext4-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: ext3 convert to new aops fix fix
+Subject: ext4 convert to new aops fix fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    3 ---
+ fs/ext4/inode.c |    3 ---
  1 files changed, 3 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix
-+++ a/fs/ext3/inode.c
+diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix-fix
++++ a/fs/ext4/inode.c
 @@ -36,7 +36,6 @@
  #include <linux/mpage.h>
  #include <linux/uio.h>
@@ -43,7 +43,7 @@ diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix fs/ext3/inode.c
  #include "xattr.h"
  #include "acl.h"
  
-@@ -1232,8 +1231,6 @@ static int ext3_generic_write_end(struct
+@@ -1230,8 +1229,6 @@ static int ext4_generic_write_end(struct
  
  	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
  
@@ -81,9 +81,7 @@ implement-simple-fs-aops.patch
 block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
 ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix-fix.patch
 ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
 ext4-convert-to-new-aops-fix-fix.patch
 xfs-convert-to-new-aops.patch
 gfs2-convert-to-new-aops-fix.patch
