@@ -1,343 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - tdfxfb-hardware-cursor.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:47 -0700
-Message-ID: <200710162042.l9GKglwH015916@imap1.linux-foundation.org>
+Subject: - pm3fb-header-file-reduction.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:58 -0700
+Message-ID: <200710162041.l9GKfw1M015835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934575AbXJPVQO (ORCPT
+	by vger.kernel.org with ESMTP id S935286AbXJPVQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:16:14 -0400
+	Tue, 16 Oct 2007 17:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tdfxfb: hardware cursor
+     pm3fb: header file reduction
 has been removed from the -mm tree.  Its filename was
-     tdfxfb-hardware-cursor.patch
+     pm3fb-header-file-reduction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tdfxfb: hardware cursor
+Subject: pm3fb: header file reduction
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds hardware cursor support to the tdfxfb driver.
+This patch removes constants named AAA_DISABLE with value 0. They are redudant
+and misleading ( a |= AAA_DISABLE does nothing and usually should be
+a &= ~AAA_ENABLE).
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |  169 +++++++++++++++++----------------------
- include/video/tdfx.h   |    8 -
- 2 files changed, 74 insertions(+), 103 deletions(-)
+ drivers/video/pm3fb.c |    5 ++---
+ include/video/pm3fb.h |   37 -------------------------------------
+ 2 files changed, 2 insertions(+), 40 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-hardware-cursor drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-hardware-cursor
-+++ a/drivers/video/tdfxfb.c
-@@ -67,7 +67,6 @@
- #include <linux/init.h>
- #include <linux/pci.h>
- #include <asm/io.h>
--#include <linux/timer.h>
- #include <linux/spinlock.h>
- 
- #include <video/tdfx.h>
-@@ -148,8 +147,9 @@ MODULE_DEVICE_TABLE(pci, tdfxfb_id_table
- /*
-  * Driver data
-  */
--static int  nopan   = 0;
--static int  nowrap  = 1;      // not implemented (yet)
-+static int nopan;
-+static int nowrap = 1;      /* not implemented (yet) */
-+static int hwcursor = 1;
- static char *mode_option __devinitdata = NULL;
- 
- /* -------------------------------------------------------------------------
-@@ -378,7 +378,7 @@ static void do_write_regs(struct fb_info
- 	tdfx_outl(par, VGAINIT0, reg->vgainit0);
- 	tdfx_outl(par, DACMODE, reg->dacmode);
- 	tdfx_outl(par, VIDDESKSTRIDE, reg->stride);
--	tdfx_outl(par, HWCURPATADDR, 0);
-+	tdfx_outl(par, HWCURPATADDR, reg->curspataddr);
- 
- 	tdfx_outl(par, VIDSCREENSIZE, reg->screensize);
- 	tdfx_outl(par, VIDDESKSTART, reg->startaddr);
-@@ -453,6 +453,7 @@ static int tdfxfb_check_var(struct fb_va
- 		DPRINTK("xoffset not supported\n");
- 		return -EINVAL;
+diff -puN drivers/video/pm3fb.c~pm3fb-header-file-reduction drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-header-file-reduction
++++ a/drivers/video/pm3fb.c
+@@ -886,7 +886,7 @@ static int pm3fb_set_par(struct fb_info 
+ 	if ((info->var.activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
+ 		par->video |= PM3VideoControl_ENABLE;
+ 	else {
+-		par->video |= PM3VideoControl_DISABLE;
++		par->video &= ~PM3VideoControl_ENABLE;
+ 		DPRINTK("PM3Video disabled\n");
  	}
-+	var->yoffset = 0;
+ 	switch (bpp) {
+@@ -911,8 +911,7 @@ static int pm3fb_set_par(struct fb_info 
  
- 	/* Banshee doesn't support interlace, but Voodoo4/5 and probably Voodoo3 do. */
- 	/* no direct information about device id now? use max_pixclock for this... */
-@@ -663,6 +664,9 @@ static int tdfxfb_set_par(struct fb_info
- 			VGAINIT0_EXTSHIFTOUT;
- 	reg.vgainit1 = tdfx_inl(par, VGAINIT1) & 0x1fffff;
- 
-+	if (hwcursor)
-+		reg.curspataddr = info->fix.smem_len;
-+
- 	reg.cursloc   = 0;
- 
- 	reg.cursc0    = 0;
-@@ -1012,11 +1016,25 @@ static void tdfxfb_imageblit(struct fb_i
- }
- #endif /* CONFIG_FB_3DFX_ACCEL */
- 
--#ifdef TDFX_HARDWARE_CURSOR
- static int tdfxfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- {
- 	struct tdfx_par *par = info->par;
--	unsigned long flags;
-+	u32 vidcfg;
-+
-+	if (!hwcursor)
-+		return -EINVAL;	/* just to force soft_cursor() call */
-+
-+	/* Too large of a cursor or wrong bpp :-( */
-+	if (cursor->image.width > 64 ||
-+	    cursor->image.height > 64 ||
-+	    cursor->image.depth > 1)
-+		return -EINVAL;
-+
-+	vidcfg = tdfx_inl(par, VIDPROCCFG);
-+	if (cursor->enable)
-+		tdfx_outl(par, VIDPROCCFG, vidcfg | VIDCFG_HWCURSOR_ENABLE);
-+	else
-+		tdfx_outl(par, VIDPROCCFG, vidcfg & ~VIDCFG_HWCURSOR_ENABLE);
- 
- 	/*
- 	 * If the cursor is not be changed this means either we want the
-@@ -1026,69 +1044,34 @@ static int tdfxfb_cursor(struct fb_info 
- 	if (!cursor->set)
- 		return 0;
- 
--	/* Too large of a cursor :-( */
--	if (cursor->image.width > 64 || cursor->image.height > 64)
--		return -ENXIO;
--
--	/*
--	 * If we are going to be changing things we should disable
--	 * the cursor first
--	 */
--	if (info->cursor.enable) {
--		spin_lock_irqsave(&par->DAClock, flags);
--		info->cursor.enable = 0;
--		del_timer(&(par->hwcursor.timer));
--		tdfx_outl(par, VIDPROCCFG, par->hwcursor.disable);
--		spin_unlock_irqrestore(&par->DAClock, flags);
--	}
--
--	/* Disable the Cursor */
--	if ((cursor->set && FB_CUR_SETCUR) && !cursor->enable)
--		return 0;
--
- 	/* fix cursor color - XFree86 forgets to restore it properly */
--	if (cursor->set && FB_CUR_SETCMAP) {
--		struct fb_cmap cmap = cursor->image.cmap;
-+	if (cursor->set & FB_CUR_SETCMAP) {
-+		struct fb_cmap cmap = info->cmap;
-+		u32 bg_idx = cursor->image.bg_color;
-+		u32 fg_idx = cursor->image.fg_color;
- 		unsigned long bg_color, fg_color;
- 
--		cmap.len = 2; /* Voodoo 3+ only support 2 color cursors */
--		fg_color = ((cmap.red[cmap.start] << 16) |
--			    (cmap.green[cmap.start] << 8) |
--			    (cmap.blue[cmap.start]));
--		bg_color = ((cmap.red[cmap.start + 1] << 16) |
--			    (cmap.green[cmap.start + 1] << 8) |
--			    (cmap.blue[cmap.start + 1]));
--		fb_copy_cmap(&cmap, &info->cursor.image.cmap);
--		spin_lock_irqsave(&par->DAClock, flags);
-+		fg_color = (((u32)cmap.red[fg_idx]   & 0xff00) << 8) |
-+			   (((u32)cmap.green[fg_idx] & 0xff00) << 0) |
-+			   (((u32)cmap.blue[fg_idx]  & 0xff00) >> 8);
-+		bg_color = (((u32)cmap.red[bg_idx]   & 0xff00) << 8) |
-+			   (((u32)cmap.green[bg_idx] & 0xff00) << 0) |
-+			   (((u32)cmap.blue[bg_idx]  & 0xff00) >> 8);
- 		banshee_make_room(par, 2);
- 		tdfx_outl(par, HWCURC0, bg_color);
- 		tdfx_outl(par, HWCURC1, fg_color);
--		spin_unlock_irqrestore(&par->DAClock, flags);
- 	}
- 
--	if (cursor->set && FB_CUR_SETPOS) {
--		int x, y;
-+	if (cursor->set & FB_CUR_SETPOS) {
-+		int x = cursor->image.dx;
-+		int y = cursor->image.dy - info->var.yoffset;
- 
--		x = cursor->image.dx;
--		y = cursor->image.dy;
--		y -= info->var.yoffset;
--		info->cursor.image.dx = x;
--		info->cursor.image.dy = y;
- 		x += 63;
- 		y += 63;
--		spin_lock_irqsave(&par->DAClock, flags);
- 		banshee_make_room(par, 1);
- 		tdfx_outl(par, HWCURLOC, (y << 16) + x);
--		spin_unlock_irqrestore(&par->DAClock, flags);
- 	}
--
--	/* Not supported so we fake it */
--	if (cursor->set && FB_CUR_SETHOT) {
--		info->cursor.hot.x = cursor->hot.x;
--		info->cursor.hot.y = cursor->hot.y;
--	}
--
--	if (cursor->set && FB_CUR_SETSHAPE) {
-+	if (cursor->set & (FB_CUR_SETIMAGE | FB_CUR_SETSHAPE)) {
- 		/*
- 		 * Voodoo 3 and above cards use 2 monochrome cursor patterns.
- 		 *    The reason is so the card can fetch 8 words at a time
-@@ -1096,7 +1079,7 @@ static int tdfxfb_cursor(struct fb_info 
- 		 * This reduces the number of times for access to draw the
- 		 * cursor for each screen refresh.
- 		 *    Each pattern is a bitmap of 64 bit wide and 64 bit high
--		 * (total of 8192 bits or 1024 Kbytes). The two patterns are
-+		 * (total of 8192 bits or 1024 bytes). The two patterns are
- 		 * stored in such a way that pattern 0 always resides in the
- 		 * lower half (least significant 64 bits) of a 128 bit word
- 		 * and pattern 1 the upper half. If you examine the data of
-@@ -1107,50 +1090,34 @@ static int tdfxfb_cursor(struct fb_info 
- 		 * (128 bits) which is the maximum cursor width times two for
- 		 * the two monochrome patterns.
- 		 */
--		u8 *cursorbase = (u8 *)info->cursor.image.data;
--		char *bitmap = (char *)cursor->image.data;
--		char *mask = (char *)cursor->mask;
--		int i, j, k, h = 0;
--
--		for (i = 0; i < 64; i++) {
--			if (i < cursor->image.height) {
--				j = (cursor->image.width + 7) >> 3;
--				k = 8 - j;
--
--				for (; j > 0; j--) {
--					/* Pattern 0. Copy the cursor bitmap to it */
--					fb_writeb(*bitmap, cursorbase + h);
--					bitmap++;
--					/* Pattern 1. Copy the cursor mask to it */
--					fb_writeb(*mask, cursorbase + h + 8);
--					mask++;
--					h++;
--				}
--				for (; k > 0; k--) {
--					fb_writeb(0, cursorbase + h);
--					fb_writeb(~0, cursorbase + h + 8);
--					h++;
--				}
--			} else {
--				fb_writel(0, cursorbase + h);
--				fb_writel(0, cursorbase + h + 4);
--				fb_writel(~0, cursorbase + h + 8);
--				fb_writel(~0, cursorbase + h + 12);
--				h += 16;
-+		u8 __iomem *cursorbase = info->screen_base + info->fix.smem_len;
-+		u8 *bitmap = (u8 *)cursor->image.data;
-+		u8 *mask = (u8 *)cursor->mask;
-+		int i;
-+
-+		fb_memset(cursorbase, 0, 1024);
-+
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int h = 0;
-+			int j = (cursor->image.width + 7) >> 3;
-+
-+			for (; j > 0; j--) {
-+				u8 data = *mask ^ *bitmap;
-+				if (cursor->rop == ROP_COPY)
-+					data = *mask & *bitmap;
-+				/* Pattern 0. Copy the cursor mask to it */
-+				fb_writeb(*mask, cursorbase + h);
-+				mask++;
-+				/* Pattern 1. Copy the cursor bitmap to it */
-+				fb_writeb(data, cursorbase + h + 8);
-+				bitmap++;
-+				h++;
- 			}
-+			cursorbase += 16;
- 		}
- 	}
--	/* Turn the cursor on */
--	cursor->enable = 1;
--	info->cursor = *cursor;
--	mod_timer(&par->hwcursor.timer, jiffies + HZ / 2);
--	spin_lock_irqsave(&par->DAClock, flags);
--	banshee_make_room(par, 1);
--	tdfx_outl(par, VIDPROCCFG, par->hwcursor.enable);
--	spin_unlock_irqrestore(&par->DAClock, flags);
+ /*	pm3fb_clear_memory(info, 0);*/
+ 	pm3fb_clear_colormap(par, 0, 0, 0);
+-	PM3_WRITE_DAC_REG(par, PM3RD_CursorMode,
+-			  PM3RD_CursorMode_CURSOR_DISABLE);
++	PM3_WRITE_DAC_REG(par, PM3RD_CursorMode, 0);
+ 	pm3fb_init_engine(info);
+ 	pm3fb_write_mode(info);
  	return 0;
- }
--#endif
+diff -puN include/video/pm3fb.h~pm3fb-header-file-reduction include/video/pm3fb.h
+--- a/include/video/pm3fb.h~pm3fb-header-file-reduction
++++ a/include/video/pm3fb.h
+@@ -55,7 +55,6 @@
+ 	#define PM3ByApertureMode_BYTESWAP_BADC			(1<<0)
+ 	#define PM3ByApertureMode_BYTESWAP_CDAB			(2<<0)
+ 	#define PM3ByApertureMode_BYTESWAP_DCBA			(3<<0)
+-	#define PM3ByApertureMode_PATCH_DISABLE			(0<<2)
+ 	#define PM3ByApertureMode_PATCH_ENABLE			(1<<2)
+ 	#define PM3ByApertureMode_FORMAT_RAW			(0<<3)
+ 	#define PM3ByApertureMode_FORMAT_YUYV			(1<<3)
+@@ -112,7 +111,6 @@
+ #define PM3VsStart						0x3048
+ #define PM3VsEnd						0x3050
+ #define PM3VideoControl						0x3058
+-	#define PM3VideoControl_DISABLE				(0<<0)
+ 	#define PM3VideoControl_ENABLE				(1<<0)
+ 	#define PM3VideoControl_BLANK_ACTIVE_HIGH		(0<<1)
+ 	#define PM3VideoControl_BLANK_ACTIVE_LOW		(1<<1)
+@@ -133,7 +131,6 @@
+ 	#define PM3VideoControl_BUFFER_SWAP_SYNCON_FRAMEBLANK	(0<<9)
+ 	#define PM3VideoControl_BUFFER_SWAP_FREE_RUNNING	(1<<9)
+ 	#define PM3VideoControl_BUFFER_SWAP_LIMITETO_FRAMERATE	(2<<9)
+-	#define PM3VideoControl_STEREO_DISABLE			(0<<11)
+ 	#define PM3VideoControl_STEREO_ENABLE			(1<<11)
+ 	#define PM3VideoControl_RIGHT_EYE_ACTIVE_HIGH		(0<<12)
+ 	#define PM3VideoControl_RIGHT_EYE_ACTIVE_LOW		(1<<12)
+@@ -142,12 +139,10 @@
+ 	#define PM3VideoControl_SYNC_MODE_INDEPENDENT		(0<<16)
+ 	#define PM3VideoControl_SYNC_MODE_SYNCTO_VSA		(1<<16)
+ 	#define PM3VideoControl_SYNC_MODE_SYNCTO_VSB		(2<<16)
+-	#define PM3VideoControl_PATCH_DISABLE			(0<<18)
+ 	#define PM3VideoControl_PATCH_ENABLE			(1<<18)
+ 	#define PM3VideoControl_PIXELSIZE_8BIT			(0<<19)
+ 	#define PM3VideoControl_PIXELSIZE_16BIT			(1<<19)
+ 	#define PM3VideoControl_PIXELSIZE_32BIT			(2<<19)
+-	#define PM3VideoControl_DISPLAY_DISABLE			(0<<21)
+ 	#define PM3VideoControl_DISPLAY_ENABLE			(1<<21)
+ 	#define PM3VideoControl_PATCH_OFFSET_X(off)	(((off)&0x3f)<<22)
+ 	#define PM3VideoControl_PATCH_OFFSET_Y(off)	(((off)&0x3f)<<28)
+@@ -159,10 +154,8 @@
+ #define PM3MiscControl						0x3088
  
- static struct fb_ops tdfxfb_ops = {
- 	.owner		= THIS_MODULE,
-@@ -1160,6 +1127,7 @@ static struct fb_ops tdfxfb_ops = {
- 	.fb_blank	= tdfxfb_blank,
- 	.fb_pan_display	= tdfxfb_pan_display,
- 	.fb_sync	= banshee_wait_idle,
-+	.fb_cursor	= tdfxfb_cursor,
- #ifdef CONFIG_FB_3DFX_ACCEL
- 	.fb_fillrect	= tdfxfb_fillrect,
- 	.fb_copyarea	= tdfxfb_copyarea,
-@@ -1272,6 +1240,11 @@ static int __devinit tdfxfb_probe(struct
- 				   FBINFO_HWACCEL_IMAGEBLIT |
- 				   FBINFO_READS_FAST;
- #endif
-+	/* reserve 8192 bits for cursor */
-+	/* the 2.4 driver says PAGE_MASK boundary is not enough for Voodoo4 */
-+	if (hwcursor)
-+		info->fix.smem_len = (info->fix.smem_len - 1024) &
-+					(PAGE_MASK << 1);
+ #define PM3VideoOverlayUpdate					0x3100
+-        #define PM3VideoOverlayUpdate_DISABLE                   (0<<0)
+         #define PM3VideoOverlayUpdate_ENABLE                    (1<<0)
+ #define PM3VideoOverlayMode					0x3108
+-	#define PM3VideoOverlayMode_DISABLE			(0<<0)
+ 	#define PM3VideoOverlayMode_ENABLE			(1<<0)
+         #define PM3VideoOverlayMode_BUFFERSYNC_MANUAL           (0<<1)
+         #define PM3VideoOverlayMode_BUFFERSYNC_VIDEOSTREAMA     (1<<1)
+@@ -250,25 +243,16 @@
+ #define PM3RD_IndexedData					0x4030
+ #define PM3RD_IndexControl					0x4038
+ 	#define PM3RD_IndexControl_AUTOINCREMENT_ENABLE		(1<<0)
+-	#define PM3RD_IndexControl_AUTOINCREMENT_DISABLE	(0<<0)
  
- 	if (!mode_option)
- 		mode_option = "640x480@60";
-@@ -1336,6 +1309,8 @@ static void tdfxfb_setup(char *options)
- 			nopan = 1;
- 		} else if (!strcmp(this_opt, "nowrap")) {
- 			nowrap = 1;
-+		} else if (!strcmp(this_opt, "hwcursor")) {
-+			hwcursor = simple_strtoul(opt + 9, NULL, 0);
- 		} else {
- 			mode_option = this_opt;
- 		}
-@@ -1394,5 +1369,9 @@ MODULE_AUTHOR("Hannu Mallat <hmallat@cc.
- MODULE_DESCRIPTION("3Dfx framebuffer device driver");
- MODULE_LICENSE("GPL");
+ /* Indirect Registers */
+ #define PM3RD_MiscControl					0x000
+-	#define PM3RD_MiscControl_HIGHCOLOR_RES_DISABLE		(0<<0)
+ 	#define PM3RD_MiscControl_HIGHCOLOR_RES_ENABLE		(1<<0)
+-	#define PM3RD_MiscControl_PIXELDOUBLE_DISABLE		(0<<1)
+ 	#define PM3RD_MiscControl_PIXELDOUBLE_ENABLE		(1<<1)
+-	#define PM3RD_MiscControl_LASTREAD_ADDR_DISABLE		(0<<2)
+ 	#define PM3RD_MiscControl_LASTREAD_ADDR_ENABLE		(1<<2)
+-	#define PM3RD_MiscControl_DIRECTCOLOR_DISABLE		(0<<3)
+ 	#define PM3RD_MiscControl_DIRECTCOLOR_ENABLE		(1<<3)
+-	#define PM3RD_MiscControl_OVERLAY_DISABLE		(0<<4)
+ 	#define PM3RD_MiscControl_OVERLAY_ENABLE		(1<<4)
+-	#define PM3RD_MiscControl_PIXELDOUBLE_BUFFER_DISABLE	(0<<5)
+ 	#define PM3RD_MiscControl_PIXELDOUBLE_BUFFER_ENABLE	(1<<5)
+-	#define PM3RD_MiscControl_VSB_OUTPUT_DISABLE		(0<<6)
+ 	#define PM3RD_MiscControl_VSB_OUTPUT_ENABLE		(1<<6)
+-	#define PM3RD_MiscControl_STEREODOUBLE_BUFFER_DISABLE	(0<<7)
+ 	#define PM3RD_MiscControl_STEREODOUBLE_BUFFER_ENABLE	(1<<7)
+ #define PM3RD_SyncControl					0x001
+ 	#define PM3RD_SyncControl_HSYNC_ACTIVE_LOW		(0<<0)
+@@ -288,15 +272,10 @@
+ #define PM3RD_DACControl					0x002
+ 	#define PM3RD_DACControl_DAC_POWER_ON			(0<<0)
+ 	#define PM3RD_DACControl_DAC_POWER_OFF			(1<<0)
+-	#define PM3RD_DACControl_SYNC_ON_GREEN_DISABLE		(0<<3)
+ 	#define PM3RD_DACControl_SYNC_ON_GREEN_ENABLE		(1<<3)
+-	#define PM3RD_DACControl_BLANK_RED_DAC_DISABLE		(0<<4)
+ 	#define PM3RD_DACControl_BLANK_RED_DAC_ENABLE		(1<<4)
+-	#define PM3RD_DACControl_BLANK_GREEN_DAC_DISABLE	(0<<5)
+ 	#define PM3RD_DACControl_BLANK_GREEN_DAC_ENABLE		(1<<5)
+-	#define PM3RD_DACControl_BLANK_BLUE_DAC_DISABLE		(0<<6)
+ 	#define PM3RD_DACControl_BLANK_BLUE_DAC_ENABLE		(1<<6)
+-	#define PM3RD_DACControl_BLANK_PEDESTAL_DISABLE		(0<<7)
+ 	#define PM3RD_DACControl_BLANK_PEDESTAL_ENABLE		(1<<7)
+ #define PM3RD_PixelSize						0x003
+ 	#define PM3RD_PixelSize_24_BIT_PIXELS			(4<<0)
+@@ -305,7 +284,6 @@
+ 	#define PM3RD_PixelSize_8_BIT_PIXELS			(0<<0)
+ #define PM3RD_ColorFormat					0x004
+ 	#define PM3RD_ColorFormat_LINEAR_COLOR_EXT_ENABLE	(1<<6)
+-	#define PM3RD_ColorFormat_LINEAR_COLOR_EXT_DISABLE	(0<<6)
+ 	#define PM3RD_ColorFormat_COLOR_ORDER_BLUE_LOW		(1<<5)
+ 	#define PM3RD_ColorFormat_COLOR_ORDER_RED_LOW		(0<<5)
+ 	#define PM3RD_ColorFormat_COLOR_FORMAT_MASK		(0x1f<<0)
+@@ -323,7 +301,6 @@
+ 	#define PM3RD_ColorFormat_565_FRONT_COLOR		(16<<0)
+ 	#define PM3RD_ColorFormat_565_BACK_COLOR		(17<<0)
+ #define PM3RD_CursorMode					0x005
+-	#define PM3RD_CursorMode_CURSOR_DISABLE			(0<<0)
+ 	#define PM3RD_CursorMode_CURSOR_ENABLE			(1<<0)
+ 	#define PM3RD_CursorMode_FORMAT_64x64_2BPE_P0123	(0<<2)
+ 	#define PM3RD_CursorMode_FORMAT_32x32_2BPE_P0		(1<<2)
+@@ -334,16 +311,12 @@
+ 	#define PM3RD_CursorMode_FORMAT_32x32_4BPE_P23		(6<<2)
+ 	#define PM3RD_CursorMode_TYPE_MS			(0<<4)
+ 	#define PM3RD_CursorMode_TYPE_X				(1<<4)
+-	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_DISABLE	(0<<6)
+ 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_ENABLE	(1<<6)
+ 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_3_COLOR	(2<<6)
+ 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_15_COLOR	(3<<6)
+ #define PM3RD_CursorControl					0x006
+-	#define PM3RD_CursorControl_DOUBLE_X_DISABLED		(0<<0)
+ 	#define PM3RD_CursorControl_DOUBLE_X_ENABLED		(1<<0)
+-	#define PM3RD_CursorControl_DOUBLE_Y_DISABLED		(0<<1)
+ 	#define PM3RD_CursorControl_DOUBLE_Y_ENABLED		(1<<1)
+-	#define PM3RD_CursorControl_READBACK_POS_DISABLED	(0<<2)
+ 	#define PM3RD_CursorControl_READBACK_POS_ENABLED	(1<<2)
  
-+module_param(hwcursor, int, 0644);
-+MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
-+			"(1=enable, 0=disable, default=1)");
-+
- module_init(tdfxfb_init);
- module_exit(tdfxfb_exit);
-diff -puN include/video/tdfx.h~tdfxfb-hardware-cursor include/video/tdfx.h
---- a/include/video/tdfx.h~tdfxfb-hardware-cursor
-+++ a/include/video/tdfx.h
-@@ -175,14 +175,6 @@ struct tdfx_par {
- 	u32 palette[16];
- 	void __iomem *regbase_virt;
- 	unsigned long iobase;
--
--	struct {
--		int w, u, d;
--		unsigned long enable, disable;
--		struct timer_list timer;
--	} hwcursor;
--
--	spinlock_t DAClock;
- };
+ #define PM3RD_CursorXLow					0x007
+@@ -354,16 +327,12 @@
+ #define PM3RD_CursorHotSpotY					0x00c
+ #define PM3RD_OverlayKey					0x00d
+ #define PM3RD_Pan						0x00e
+-	#define PM3RD_Pan_DISABLE				(0<<0)
+ 	#define PM3RD_Pan_ENABLE				(1<<0)
+-	#define PM3RD_Pan_GATE_DISABLE				(0<<1)
+ 	#define PM3RD_Pan_GATE_ENABLE				(1<<1)
+ #define PM3RD_Sense						0x00f
  
- #endif	/* __KERNEL__ */
+ #define PM3RD_CheckControl					0x018
+-	#define PM3RD_CheckControl_PIXEL_DISABLED		(0<<0)
+ 	#define PM3RD_CheckControl_PIXEL_ENABLED		(1<<0)
+-	#define PM3RD_CheckControl_LUT_DISABLED			(0<<1)
+ 	#define PM3RD_CheckControl_LUT_ENABLED			(1<<1)
+ #define PM3RD_CheckPixelRed					0x019
+ #define PM3RD_CheckPixelGreen					0x01a
+@@ -374,14 +343,12 @@
+ #define PM3RD_Scratch						0x01f
+ 
+ #define PM3RD_VideoOverlayControl				0x020
+-        #define PM3RD_VideoOverlayControl_DISABLE               (0<<0)
+         #define PM3RD_VideoOverlayControl_ENABLE                (1<<0)
+         #define PM3RD_VideoOverlayControl_MODE_MASK             (3<<1)
+         #define PM3RD_VideoOverlayControl_MODE_MAINKEY          (0<<1)
+         #define PM3RD_VideoOverlayControl_MODE_OVERLAYKEY       (1<<1)
+         #define PM3RD_VideoOverlayControl_MODE_ALWAYS           (2<<1)
+         #define PM3RD_VideoOverlayControl_MODE_BLEND            (3<<1)
+-        #define PM3RD_VideoOverlayControl_DIRECTCOLOR_DISABLED  (0<<3)
+         #define PM3RD_VideoOverlayControl_DIRECTCOLOR_ENABLED   (1<<3)
+         #define PM3RD_VideoOverlayControl_BLENDSRC_MAIN         (0<<4)
+         #define PM3RD_VideoOverlayControl_BLENDSRC_REGISTER     (1<<4)
+@@ -420,7 +387,6 @@
+ 	#define PM3RD_DClkControl_LOCKED			(1<<1)
+ 	#define PM3RD_DClkControl_NOT_LOCKED			(0<<1)
+ 	#define PM3RD_DClkControl_ENABLE			(1<<0)
+-	#define PM3RD_DClkControl_DISABLE			(0<<0)
+ #define PM3RD_DClk0PreScale					0x201
+ #define PM3RD_DClk0FeedbackScale				0x202
+ #define PM3RD_DClk0PostScale					0x203
+@@ -435,7 +401,6 @@
+ #define PM3RD_DClk3FeedbackScale				0x20b
+ #define PM3RD_DClk3PostScale					0x20c
+ #define PM3RD_KClkControl					0x20d
+-	#define PM3RD_KClkControl_DISABLE			(0<<0)
+ 	#define PM3RD_KClkControl_ENABLE			(1<<0)
+ 	#define PM3RD_KClkControl_NOT_LOCKED			(0<<1)
+ 	#define PM3RD_KClkControl_LOCKED			(1<<1)
+@@ -450,7 +415,6 @@
+ #define PM3RD_KClkFeedbackScale					0x20f
+ #define PM3RD_KClkPostScale					0x210
+ #define PM3RD_MClkControl					0x211
+-	#define PM3RD_MClkControl_DISABLE			(0<<0)
+ 	#define PM3RD_MClkControl_ENABLE			(1<<0)
+ 	#define PM3RD_MClkControl_NOT_LOCKED			(0<<1)
+ 	#define PM3RD_MClkControl_LOCKED			(1<<1)
+@@ -468,7 +432,6 @@
+ #define PM3RD_MClkFeedbackScale					0x213
+ #define PM3RD_MClkPostScale					0x214
+ #define PM3RD_SClkControl					0x215
+-	#define PM3RD_SClkControl_DISABLE			(0<<0)
+ 	#define PM3RD_SClkControl_ENABLE			(1<<0)
+ 	#define PM3RD_SClkControl_NOT_LOCKED			(0<<1)
+ 	#define PM3RD_SClkControl_LOCKED			(1<<1)
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
