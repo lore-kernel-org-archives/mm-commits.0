@@ -1,427 +1,447 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:53 -0700
-Message-ID: <200710162042.l9GKgrIV015925@imap1.linux-foundation.org>
+Subject: - tdfxfb-code-improvements.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:45 -0700
+Message-ID: <200710162042.l9GKgjNp015913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759387AbXJPVRI (ORCPT
+	by vger.kernel.org with ESMTP id S965386AbXJPVRQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:17:08 -0400
+	Tue, 16 Oct 2007 17:17:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm3fb: checkpatch fixes
+     tdfxfb: code improvements
 has been removed from the -mm tree.  Its filename was
-     pm3fb-checkpatch-fixes.patch
+     tdfxfb-code-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm3fb: checkpatch fixes
+Subject: tdfxfb: code improvements
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch fixes all errors detected by checkpatch.pl script in the pm3fb.c
-file.
+This patch improves source code mainly by killing redundant variable loads,
+reducing number of variables, simplifying conditional branches, etc.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |  152 +++++++++++++++++++++-------------------
- 1 file changed, 82 insertions(+), 70 deletions(-)
+ drivers/video/tdfxfb.c |  161 +++++++++++----------------------------
+ include/video/tdfx.h   |    3 
+ 2 files changed, 47 insertions(+), 117 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-checkpatch-fixes drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-checkpatch-fixes
-+++ a/drivers/video/pm3fb.c
-@@ -44,9 +44,10 @@
+diff -puN drivers/video/tdfxfb.c~tdfxfb-code-improvements drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-code-improvements
++++ a/drivers/video/tdfxfb.c
+@@ -63,12 +63,9 @@
+ #include <linux/string.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+-#include <linux/delay.h>
+-#include <linux/interrupt.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <linux/nvram.h>
+ #include <asm/io.h>
+ #include <linux/timer.h>
+ #include <linux/spinlock.h>
+@@ -159,26 +156,15 @@ static char *mode_option __devinitdata =
+  *                      Hardware-specific funcions
+  * ------------------------------------------------------------------------- */
  
- #undef PM3FB_MASTER_DEBUG
- #ifdef PM3FB_MASTER_DEBUG
--#define DPRINTK(a,b...)	printk(KERN_DEBUG "pm3fb: %s: " a, __FUNCTION__ , ## b)
-+#define DPRINTK(a, b...)	\
-+	printk(KERN_DEBUG "pm3fb: %s: " a, __FUNCTION__ , ## b)
- #else
--#define DPRINTK(a,b...)
-+#define DPRINTK(a, b...)
- #endif
- 
- #define PM3_PIXMAP_SIZE	(2048 * 4)
-@@ -55,11 +56,11 @@
-  * Driver data
-  */
- static char *mode_option __devinitdata;
--static int noaccel   __devinitdata = 0;
-+static int noaccel __devinitdata;
- 
- /* mtrr option */
- #ifdef CONFIG_MTRR
--static int nomtrr __devinitdata = 0;
-+static int nomtrr __devinitdata;
- #endif
- 
- /*
-@@ -72,7 +73,7 @@ static int nomtrr __devinitdata = 0;
- struct pm3_par {
- 	unsigned char	__iomem *v_regs;/* virtual address of p_regs */
- 	u32		video;		/* video flags before blanking */
--	u32		base;		/* screen base (xoffset+yoffset) in 128 bits unit */
-+	u32		base;		/* screen base in 128 bits unit */
- 	u32		palette[16];
- 	int		mtrr_handle;
- };
-@@ -376,7 +377,7 @@ static void pm3fb_init_engine(struct fb_
- 	pm3fb_sync(info);
- }
- 
--static void pm3fb_fillrect (struct fb_info *info,
-+static void pm3fb_fillrect(struct fb_info *info,
- 				const struct fb_fillrect *region)
+-#ifdef VGA_REG_IO
+-static inline u8 vga_inb(struct tdfx_par *par, u32 reg)
+-{
+-	return inb(reg);
+-}
+-
+-static inline void vga_outb(struct tdfx_par *par, u32 reg, u8 val)
+-{
+-	outb(val, reg);
+-}
+-#else
+ static inline u8 vga_inb(struct tdfx_par *par, u32 reg)
  {
- 	struct pm3_par *par = info->par;
-@@ -384,7 +385,7 @@ static void pm3fb_fillrect (struct fb_in
- 	int vxres, vyres;
- 	int rop;
- 	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
--		((u32*)info->pseudo_palette)[region->color] : region->color;
-+		((u32 *)info->pseudo_palette)[region->color] : region->color;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -403,18 +404,18 @@ static void pm3fb_fillrect (struct fb_in
- 
- 	memcpy(&modded, region, sizeof(struct fb_fillrect));
- 
--	if(!modded.width || !modded.height ||
--	   modded.dx >= vxres || modded.dy >= vyres)
-+	if (!modded.width || !modded.height ||
-+	    modded.dx >= vxres || modded.dy >= vyres)
- 		return;
- 
--	if(modded.dx + modded.width  > vxres)
-+	if (modded.dx + modded.width  > vxres)
- 		modded.width  = vxres - modded.dx;
--	if(modded.dy + modded.height > vyres)
-+	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
--	if(info->var.bits_per_pixel == 8)
-+	if (info->var.bits_per_pixel == 8)
- 		color |= color << 8;
--	if(info->var.bits_per_pixel <= 16)
-+	if (info->var.bits_per_pixel <= 16)
- 		color |= color << 16;
- 
- 	PM3_WAIT(par, 4);
-@@ -460,18 +461,18 @@ static void pm3fb_copyarea(struct fb_inf
- 	vxres = info->var.xres_virtual;
- 	vyres = info->var.yres_virtual;
- 
--	if(!modded.width || !modded.height ||
--	   modded.sx >= vxres || modded.sy >= vyres ||
--	   modded.dx >= vxres || modded.dy >= vyres)
-+	if (!modded.width || !modded.height ||
-+	    modded.sx >= vxres || modded.sy >= vyres ||
-+	    modded.dx >= vxres || modded.dy >= vyres)
- 		return;
- 
--	if(modded.sx + modded.width > vxres)
-+	if (modded.sx + modded.width > vxres)
- 		modded.width = vxres - modded.sx;
--	if(modded.dx + modded.width > vxres)
-+	if (modded.dx + modded.width > vxres)
- 		modded.width = vxres - modded.dx;
--	if(modded.sy + modded.height > vyres)
-+	if (modded.sy + modded.height > vyres)
- 		modded.height = vyres - modded.sy;
--	if(modded.dy + modded.height > vyres)
-+	if (modded.dy + modded.height > vyres)
- 		modded.height = vyres - modded.dy;
- 
- 	o_x = modded.sx - modded.dx;	/*(sx > dx ) ? (sx - dx) : (dx - sx); */
-@@ -517,7 +518,7 @@ static void pm3fb_imageblit(struct fb_in
- 	struct pm3_par *par = info->par;
- 	u32 height = image->height;
- 	u32 fgx, bgx;
--	const u32 *src = (const u32*)image->data;
-+	const u32 *src = (const u32 *)image->data;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -526,19 +527,19 @@ static void pm3fb_imageblit(struct fb_in
- 		return;
- 	}
- 	switch (info->fix.visual) {
--		case FB_VISUAL_PSEUDOCOLOR:
--			fgx = image->fg_color;
--			bgx = image->bg_color;
--			break;
--		case FB_VISUAL_TRUECOLOR:
--		default:
--			fgx = par->palette[image->fg_color];
--			bgx = par->palette[image->bg_color];
--			break;
-+	case FB_VISUAL_PSEUDOCOLOR:
-+		fgx = image->fg_color;
-+		bgx = image->bg_color;
-+		break;
-+	case FB_VISUAL_TRUECOLOR:
-+	default:
-+		fgx = par->palette[image->fg_color];
-+		bgx = par->palette[image->bg_color];
-+		break;
- 	}
--	if (image->depth != 1) {
-+	if (image->depth != 1)
- 		return cfb_imageblit(info, image);
--	}
+ 	return inb(par->iobase + reg - 0x300);
+ }
 +
- 	if (info->var.bits_per_pixel == 8) {
- 		fgx |= fgx << 8;
- 		bgx |= bgx << 8;
-@@ -607,7 +608,8 @@ static void pm3fb_imageblit(struct fb_in
- static void pm3fb_write_mode(struct fb_info *info)
+ static inline void vga_outb(struct tdfx_par *par, u32 reg, u8 val)
  {
- 	struct pm3_par *par = info->par;
--	char tempsync = 0x00, tempmisc = 0x00;
-+	char tempsync = 0x00;
-+	char tempmisc = 0x00;
- 	const u32 hsstart = info->var.right_margin;
- 	const u32 hsend = hsstart + info->var.hsync_len;
- 	const u32 hbend = hsend + info->var.left_margin;
-@@ -807,44 +809,54 @@ static int pm3fb_check_var(struct fb_var
- 	if (bpp != var->bits_per_pixel) {
- 		/* set predefined mode for bits_per_pixel settings */
+ 	outb(val, par->iobase + reg - 0x300);
+ }
+-#endif
  
--		switch(var->bits_per_pixel) {
-+		switch (var->bits_per_pixel) {
- 		case 8:
--			var->red.length = var->green.length = var->blue.length = 8;
--			var->red.offset = var->green.offset = var->blue.offset = 0;
-+			var->red.length = 8;
-+			var->green.length = 8;
-+			var->blue.length = 8;
-+			var->red.offset = 0;
-+			var->green.offset = 0;
-+			var->blue.offset = 0;
- 			var->transp.offset = 0;
- 			var->transp.length = 0;
- 			break;
- 		case 16:
--			var->red.length = var->blue.length = 5;
-+			var->red.length = 5;
-+			var->blue.length = 5;
- 			var->green.length = 6;
- 			var->transp.length = 0;
- 			break;
- 		case 32:
--			var->red.length = var->green.length = var->blue.length = 8;
-+			var->red.length = 8;
-+			var->green.length = 8;
-+			var->blue.length = 8;
- 			var->transp.length = 8;
- 			break;
- 		default:
--			DPRINTK("depth not supported: %u\n", var->bits_per_pixel);
-+			DPRINTK("depth not supported: %u\n",
-+				var->bits_per_pixel);
- 			return -EINVAL;
- 		}
- 	}
- 	/* it is assumed BGRA order */
--	if (var->bits_per_pixel > 8 )
--	{
-+	if (var->bits_per_pixel > 8 ) {
- 		var->blue.offset = 0;
- 		var->green.offset = var->blue.length;
- 		var->red.offset = var->green.offset + var->green.length;
- 		var->transp.offset = var->red.offset + var->red.length;
- 	}
--	var->height = var->width = -1;
-+	var->height = -1;
-+	var->width = -1;
+ static inline void gra_outb(struct tdfx_par *par, u32 idx, u8 val)
+ {
+@@ -279,11 +265,11 @@ static int banshee_wait_idle(struct fb_i
+ 	banshee_make_room(par, 1);
+ 	tdfx_outl(par, COMMAND_3D, COMMAND_3D_NOP);
  
- 	if (var->xres != var->xres_virtual) {
--		DPRINTK("virtual x resolution != physical x resolution not supported\n");
-+		DPRINTK("virtual x resolution != "
-+			"physical x resolution not supported\n");
- 		return -EINVAL;
- 	}
- 
- 	if (var->yres > var->yres_virtual) {
--		DPRINTK("virtual y resolution < physical y resolution not possible\n");
-+		DPRINTK("virtual y resolution < "
-+			"physical y resolution not possible\n");
- 		return -EINVAL;
- 	}
- 
-@@ -878,7 +890,8 @@ static int pm3fb_check_var(struct fb_var
- 	}
- 
- 	if (PICOS2KHZ(var->pixclock) > PM3_MAX_PIXCLOCK) {
--		DPRINTK("pixclock too high (%ldKHz)\n", PICOS2KHZ(var->pixclock));
-+		DPRINTK("pixclock too high (%ldKHz)\n",
-+			PICOS2KHZ(var->pixclock));
- 		return -EINVAL;
- 	}
- 
-@@ -895,7 +908,7 @@ static int pm3fb_set_par(struct fb_info 
- 	const u32 xres = (info->var.xres + 31) & ~31;
- 	const unsigned bpp = info->var.bits_per_pixel;
- 
--	par->base = pm3fb_shift_bpp(bpp,(info->var.yoffset * xres)
-+	par->base = pm3fb_shift_bpp(bpp, (info->var.yoffset * xres)
- 					+ info->var.xoffset);
- 	par->video = 0;
- 
-@@ -954,10 +967,9 @@ static int pm3fb_setcolreg(unsigned regn
- 	   return -EINVAL;
- 
- 	/* grayscale works only partially under directcolor */
--	if (info->var.grayscale) {
--	   /* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+	/* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+	if (info->var.grayscale)
- 	   red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
+- 	while (1) {
+-		i = (tdfx_inl(par, STATUS) & STATUS_BUSY) ? 0 : i + 1;
+- 		if (i == 3)
+- 			break;
 -	}
- 
- 	/* Directcolor:
- 	 *   var->{color}.offset contains start of bitfield
-@@ -971,8 +983,8 @@ static int pm3fb_setcolreg(unsigned regn
- 	 *
- 	 * Pseudocolor:
- 	 *	var->{color}.offset is 0
--	 *	var->{color}.length contains width of DAC or the number of unique
--	 *			colors available (color depth)
-+	 *	var->{color}.length contains width of DAC or the number
-+	 *			of unique colors available (color depth)
- 	 *	pseudo_palette is not used
- 	 *	RAMDAC[X] is programmed to (red, green, blue)
- 	 *	color depth = var->{color}.length
-@@ -982,7 +994,7 @@ static int pm3fb_setcolreg(unsigned regn
- 	 * This is the point where the color is converted to something that
- 	 * is acceptable by the hardware.
- 	 */
--#define CNVT_TOHW(val,width) ((((val)<<(width))+0x7FFF-(val))>>16)
-+#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF - (val)) >> 16)
- 	red = CNVT_TOHW(red, info->var.red.length);
- 	green = CNVT_TOHW(green, info->var.green.length);
- 	blue = CNVT_TOHW(blue, info->var.blue.length);
-@@ -1006,12 +1018,11 @@ static int pm3fb_setcolreg(unsigned regn
- 			break;
- 		case 16:
- 		case 32:
--			((u32*)(info->pseudo_palette))[regno] = v;
-+			((u32 *)(info->pseudo_palette))[regno] = v;
- 			break;
- 		}
- 		return 0;
--	}
--	else if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR)
-+	} else if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR)
- 		pm3fb_set_color(par, regno, red, green, blue);
- 
- 	return 0;
-@@ -1073,7 +1084,7 @@ static int pm3fb_blank(int blank_mode, s
- 	}
- 
- 	PM3_WAIT(par, 1);
--	PM3_WRITE_REG(par,PM3VideoControl, video);
-+	PM3_WRITE_REG(par, PM3VideoControl, video);
++	do {
++ 		if ((tdfx_inl(par, STATUS) & STATUS_BUSY) == 0)
++		       i++;
++	} while (i < 3);
++
  	return 0;
  }
  
-@@ -1104,7 +1115,8 @@ static struct fb_ops pm3fb_ops = {
- /* the pm3fb_fix.smem_start is also set */
- static unsigned long pm3fb_size_memory(struct pm3_par *par)
- {
--	unsigned long	memsize = 0, tempBypass, i, temp1, temp2;
-+	unsigned long	memsize = 0;
-+	unsigned long	tempBypass, i, temp1, temp2;
- 	unsigned char	__iomem *screen_mem;
+@@ -313,16 +299,17 @@ static u32 do_calc_pll(int freq, int *fr
+ 			 * Estimate value of n that produces target frequency
+ 			 * with current m and k
+ 			 */
+-			int n_estimated = (freq * (m + 2) * (1 << k) / fref) - 2;
++			int n_estimated = ((freq * (m + 2) << k) / fref) - 2;
  
- 	pm3fb_fix.smem_len = 64 * 1024l * 1024; /* request full aperture size */
-@@ -1132,7 +1144,9 @@ static unsigned long pm3fb_size_memory(s
- 	PM3_WAIT(par, 1);
- 	PM3_WRITE_REG(par, PM3MemBypassWriteMask, 0xFFFFFFFF);
+ 			/* Search neighborhood of estimated n */
+-			for (n = max(0, n_estimated - 1);
+-					n <= min(255, n_estimated + 1); n++) {
++			for (n = max(0, n_estimated);
++				n <= min(255, n_estimated + 1);
++				n++) {
+ 				/*
+ 				 * Calculate PLL freqency with current m, k and
+ 				 * estimated n
+ 				 */
+-				int f = fref * (n + 2) / (m + 2) / (1 << k);
++				int f = (fref * (n + 2) / (m + 2)) >> k;
+ 				int error = abs(f - freq);
  
--	/* pm3 split up memory, replicates, and do a lot of nasty stuff IMHO ;-) */
-+	/* pm3 split up memory, replicates, and do a lot of
-+	 * nasty stuff IMHO ;-)
-+	 */
- 	for (i = 0; i < 32; i++) {
- 		fb_writel(i * 0x00345678,
- 			  (screen_mem + (i * 1048576)));
-@@ -1189,8 +1203,9 @@ static int __devinit pm3fb_probe(struct 
- {
- 	struct fb_info *info;
- 	struct pm3_par *par;
--	struct device* device = &dev->dev; /* for pci drivers */
--	int err, retval = -ENXIO;
-+	struct device *device = &dev->dev; /* for pci drivers */
-+	int err;
-+	int retval = -ENXIO;
+ 				/*
+@@ -342,7 +329,7 @@ static u32 do_calc_pll(int freq, int *fr
+ 	n = best_n;
+ 	m = best_m;
+ 	k = best_k;
+-	*freq_out = fref * (n + 2) / (m + 2) / (1 << k);
++	*freq_out = (fref * (n + 2) / (m + 2)) >> k;
  
- 	err = pci_enable_device(dev);
- 	if (err) {
-@@ -1235,8 +1250,7 @@ static int __devinit pm3fb_probe(struct 
- 	/* Linear frame buffer - request region and map it. */
- 	pm3fb_fix.smem_start = pci_resource_start(dev, 1);
- 	pm3fb_fix.smem_len = pm3fb_size_memory(par);
--	if (!pm3fb_fix.smem_len)
--	{
-+	if (!pm3fb_fix.smem_len) {
- 		printk(KERN_WARNING "pm3fb: Can't find memory on board.\n");
- 		goto err_exit_mmio;
- 	}
-@@ -1255,11 +1269,10 @@ static int __devinit pm3fb_probe(struct 
- 	info->screen_size = pm3fb_fix.smem_len;
- 
- #ifdef CONFIG_MTRR
--	if (!nomtrr) {
-+	if (!nomtrr)
- 		par->mtrr_handle = mtrr_add(pm3fb_fix.smem_start,
- 						pm3fb_fix.smem_len,
- 						MTRR_TYPE_WRCOMB, 1);
--	}
- #endif
- 	info->fbops = &pm3fb_ops;
- 
-@@ -1275,8 +1288,8 @@ static int __devinit pm3fb_probe(struct 
- 			FBINFO_HWACCEL_FILLRECT;
- 
- 	if (noaccel) {
--	    	printk(KERN_DEBUG "disabling acceleration\n");
--  		info->flags |= FBINFO_HWACCEL_DISABLED;
-+		printk(KERN_DEBUG "disabling acceleration\n");
-+		info->flags |= FBINFO_HWACCEL_DISABLED;
- 	}
- 	info->pixmap.addr = kmalloc(PM3_PIXMAP_SIZE, GFP_KERNEL);
- 	if (!info->pixmap.addr) {
-@@ -1403,15 +1416,14 @@ static int __init pm3fb_setup(char *opti
- 	while ((this_opt = strsep(&options, ",")) != NULL) {
- 		if (!*this_opt)
- 			continue;
--		else if (!strncmp(this_opt, "noaccel", 7)) {
-+		else if (!strncmp(this_opt, "noaccel", 7))
- 			noaccel = 1;
- #ifdef CONFIG_MTRR
--		} else if (!strncmp(this_opt, "nomtrr", 6)) {
-+		else if (!strncmp(this_opt, "nomtrr", 6))
- 			nomtrr = 1;
- #endif
--		} else {
-+		else
- 			mode_option = this_opt;
--		}
- 	}
- 	return 0;
+ 	return (n << 8) | (m << 2) | k;
  }
+@@ -387,7 +374,7 @@ static void do_write_regs(struct fb_info
+ 	vga_enable_palette(par);
+ 	vga_enable_video(par);
+ 
+-	banshee_make_room(par, 11);
++	banshee_make_room(par, 9);
+ 	tdfx_outl(par, VGAINIT0, reg->vgainit0);
+ 	tdfx_outl(par, DACMODE, reg->dacmode);
+ 	tdfx_outl(par, VIDDESKSTRIDE, reg->stride);
+@@ -400,8 +387,8 @@ static void do_write_regs(struct fb_info
+ 	tdfx_outl(par, MISCINIT0, reg->miscinit0);
+ 
+ 	banshee_make_room(par, 8);
+-	tdfx_outl(par, SRCBASE, reg->srcbase);
+-	tdfx_outl(par, DSTBASE, reg->dstbase);
++	tdfx_outl(par, SRCBASE, reg->startaddr);
++	tdfx_outl(par, DSTBASE, reg->startaddr);
+ 	tdfx_outl(par, COMMANDEXTRA_2D, 0);
+ 	tdfx_outl(par, CLIP0MIN, 0);
+ 	tdfx_outl(par, CLIP0MAX, 0x0fff0fff);
+@@ -414,32 +401,24 @@ static void do_write_regs(struct fb_info
+ 
+ static unsigned long do_lfb_size(struct tdfx_par *par, unsigned short dev_id)
+ {
+-	u32 draminit0;
+-	u32 draminit1;
++	u32 draminit0 = tdfx_inl(par, DRAMINIT0);
++	u32 draminit1 = tdfx_inl(par, DRAMINIT1);
+ 	u32 miscinit1;
+-
+-	int num_chips;
++	int num_chips = (draminit0 & DRAMINIT0_SGRAM_NUM) ? 8 : 4;
+ 	int chip_size; /* in MB */
+-	u32 lfbsize;
+-	int has_sgram;
+-
+-	draminit0 = tdfx_inl(par, DRAMINIT0);
+-	draminit1 = tdfx_inl(par, DRAMINIT1);
+-
+-	num_chips = (draminit0 & DRAMINIT0_SGRAM_NUM) ? 8 : 4;
++	int has_sgram = draminit1 & DRAMINIT1_MEM_SDRAM;
+ 
+ 	if (dev_id < PCI_DEVICE_ID_3DFX_VOODOO5) {
+ 		/* Banshee/Voodoo3 */
+-		has_sgram = draminit1 & DRAMINIT1_MEM_SDRAM;
+ 		chip_size = 2;
+-		if (has_sgram)
+-			chip_size = (draminit0 & DRAMINIT0_SGRAM_TYPE) ? 2 : 1;
++		if (has_sgram && (draminit0 & DRAMINIT0_SGRAM_TYPE))
++			chip_size = 1;
+ 	} else {
+ 		/* Voodoo4/5 */
+ 		has_sgram = 0;
+-		chip_size = 1 << ((draminit0 & DRAMINIT0_SGRAM_TYPE_MASK) >> DRAMINIT0_SGRAM_TYPE_SHIFT);
++		chip_size = draminit0 & DRAMINIT0_SGRAM_TYPE_MASK;
++		chip_size = 1 << (chip_size >> DRAMINIT0_SGRAM_TYPE_SHIFT);
+ 	}
+-	lfbsize = num_chips * chip_size * 1024 * 1024;
+ 
+ 	/* disable block writes for SDRAM */
+ 	miscinit1 = tdfx_inl(par, MISCINIT1);
+@@ -448,7 +427,7 @@ static unsigned long do_lfb_size(struct 
+ 
+ 	banshee_make_room(par, 1);
+ 	tdfx_outl(par, MISCINIT1, miscinit1);
+-	return lfbsize;
++	return num_chips * chip_size * 1024l * 1024;
+ }
+ 
+ /* ------------------------------------------------------------------------- */
+@@ -548,17 +527,18 @@ static int tdfxfb_check_var(struct fb_va
+ static int tdfxfb_set_par(struct fb_info *info)
+ {
+ 	struct tdfx_par *par = info->par;
+-	u32 hdispend, hsyncsta, hsyncend, htotal;
++	u32 hdispend = info->var.xres;
++	u32 hsyncsta = hdispend + info->var.right_margin;
++	u32 hsyncend = hsyncsta + info->var.hsync_len;
++	u32 htotal   = hsyncend + info->var.left_margin;
+ 	u32 hd, hs, he, ht, hbs, hbe;
+ 	u32 vd, vs, ve, vt, vbs, vbe;
+ 	struct banshee_reg reg;
+ 	int fout, freq;
+-	u32 wd, cpp;
+-
+-	par->baseline = 0;
++	u32 wd;
++	u32 cpp = (info->var.bits_per_pixel + 7) >> 3;
+ 
+ 	memset(&reg, 0, sizeof(reg));
+-	cpp = (info->var.bits_per_pixel + 7) / 8;
+ 
+ 	reg.vidcfg = VIDCFG_VIDPROC_ENABLE | VIDCFG_DESK_ENABLE |
+ 		     VIDCFG_CURS_X11 |
+@@ -568,14 +548,8 @@ static int tdfxfb_set_par(struct fb_info
+ 	/* PLL settings */
+ 	freq = PICOS2KHZ(info->var.pixclock);
+ 
+-	reg.dacmode = 0;
+ 	reg.vidcfg &= ~VIDCFG_2X;
+ 
+-	hdispend = info->var.xres;
+-	hsyncsta = hdispend + info->var.right_margin;
+-	hsyncend = hsyncsta + info->var.hsync_len;
+-	htotal   = hsyncend + info->var.left_margin;
+-
+ 	if (freq > par->max_pixclock / 2) {
+ 		freq = freq > par->max_pixclock ? par->max_pixclock : freq;
+ 		reg.dacmode |= DACMODE_2X;
+@@ -598,11 +572,16 @@ static int tdfxfb_set_par(struct fb_info
+ 		vs  = vd + (info->var.lower_margin << 1);
+ 		ve  = vs + (info->var.vsync_len << 1);
+ 		vbe = vt = ve + (info->var.upper_margin << 1) - 1;
++		reg.screensize = info->var.xres | (info->var.yres << 13);
++		reg.vidcfg |= VIDCFG_HALF_MODE;
++		reg.crt[0x09] = 0x80;
+ 	} else {
+ 		vbs = vd = info->var.yres - 1;
+ 		vs  = vd + info->var.lower_margin;
+ 		ve  = vs + info->var.vsync_len;
+ 		vbe = vt = ve + info->var.upper_margin - 1;
++		reg.screensize = info->var.xres | (info->var.yres << 12);
++		reg.vidcfg &= ~VIDCFG_HALF_MODE;
+ 	}
+ 
+ 	/* this is all pretty standard VGA register stuffing */
+@@ -611,11 +590,6 @@ static int tdfxfb_set_par(struct fb_info
+ 			 info->var.xres < 480 ? 0x60 :
+ 			 info->var.xres < 768 ? 0xe0 : 0x20);
+ 
+-	reg.gra[0x00] = 0x00;
+-	reg.gra[0x01] = 0x00;
+-	reg.gra[0x02] = 0x00;
+-	reg.gra[0x03] = 0x00;
+-	reg.gra[0x04] = 0x00;
+ 	reg.gra[0x05] = 0x40;
+ 	reg.gra[0x06] = 0x05;
+ 	reg.gra[0x07] = 0x0f;
+@@ -638,10 +612,7 @@ static int tdfxfb_set_par(struct fb_info
+ 	reg.att[0x0e] = 0x0e;
+ 	reg.att[0x0f] = 0x0f;
+ 	reg.att[0x10] = 0x41;
+-	reg.att[0x11] = 0x00;
+ 	reg.att[0x12] = 0x0f;
+-	reg.att[0x13] = 0x00;
+-	reg.att[0x14] = 0x00;
+ 
+ 	reg.seq[0x00] = 0x03;
+ 	reg.seq[0x01] = 0x01; /* fixme: clkdiv2? */
+@@ -663,19 +634,11 @@ static int tdfxfb_set_par(struct fb_info
+ 			((vs & 0x100) >> 6) |
+ 			((vd & 0x100) >> 7) |
+ 			((vt & 0x100) >> 8);
+-	reg.crt[0x08] = 0x00;
+-	reg.crt[0x09] = 0x40 | ((vbs & 0x200) >> 4);
+-	reg.crt[0x0a] = 0x00;
+-	reg.crt[0x0b] = 0x00;
+-	reg.crt[0x0c] = 0x00;
+-	reg.crt[0x0d] = 0x00;
+-	reg.crt[0x0e] = 0x00;
+-	reg.crt[0x0f] = 0x00;
++	reg.crt[0x09] |= 0x40 | ((vbs & 0x200) >> 4);
+ 	reg.crt[0x10] = vs;
+ 	reg.crt[0x11] = (ve & 0x0f) | 0x20;
+ 	reg.crt[0x12] = vd;
+ 	reg.crt[0x13] = wd;
+-	reg.crt[0x14] = 0x00;
+ 	reg.crt[0x15] = vbs;
+ 	reg.crt[0x16] = vbe + 1;
+ 	reg.crt[0x17] = 0xc3;
+@@ -706,34 +669,15 @@ static int tdfxfb_set_par(struct fb_info
+ 	reg.cursc1    = 0xffffff;
+ 
+ 	reg.stride    = info->var.xres * cpp;
+-	reg.startaddr = par->baseline * reg.stride;
+-	reg.srcbase   = reg.startaddr;
+-	reg.dstbase   = reg.startaddr;
+-
+-	/* PLL settings */
+-	freq = PICOS2KHZ(info->var.pixclock);
++	reg.startaddr = info->var.yoffset * reg.stride
++			+ info->var.xoffset * cpp;
+ 
+-	reg.dacmode &= ~DACMODE_2X;
+-	reg.vidcfg  &= ~VIDCFG_2X;
+-	if (freq > par->max_pixclock / 2) {
+-		freq = freq > par->max_pixclock ? par->max_pixclock : freq;
+-		reg.dacmode |= DACMODE_2X;
+-		reg.vidcfg  |= VIDCFG_2X;
+-	}
+ 	reg.vidpll = do_calc_pll(freq, &fout);
+ #if 0
+ 	reg.mempll = do_calc_pll(..., &fout);
+ 	reg.gfxpll = do_calc_pll(..., &fout);
+ #endif
+ 
+-	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_DOUBLE) {
+-		reg.screensize = info->var.xres | (info->var.yres << 13);
+-		reg.vidcfg |= VIDCFG_HALF_MODE;
+-		reg.crt[0x09] |= 0x80;
+-	} else {
+-		reg.screensize = info->var.xres | (info->var.yres << 12);
+-		reg.vidcfg &= ~VIDCFG_HALF_MODE;
+-	}
+ 	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED)
+ 		reg.vidcfg |= VIDCFG_INTERLACE;
+ 	reg.miscinit0 = tdfx_inl(par, MISCINIT0);
+@@ -758,8 +702,7 @@ static int tdfxfb_set_par(struct fb_info
+ 	do_write_regs(info, &reg);
+ 
+ 	/* Now change fb_fix_screeninfo according to changes in par */
+-	info->fix.line_length =
+-		info->var.xres * ((info->var.bits_per_pixel + 7) >> 3);
++	info->fix.line_length = reg.stride;
+ 	info->fix.visual = (info->var.bits_per_pixel == 8)
+ 				? FB_VISUAL_PSEUDOCOLOR
+ 				: FB_VISUAL_TRUECOLOR;
+@@ -821,35 +764,28 @@ static int tdfxfb_setcolreg(unsigned reg
+ static int tdfxfb_blank(int blank, struct fb_info *info)
+ {
+ 	struct tdfx_par *par = info->par;
+-	u32 dacmode, state = 0, vgablank = 0;
++	int vgablank = 1;
++	u32 dacmode = tdfx_inl(par, DACMODE);
+ 
+-	dacmode = tdfx_inl(par, DACMODE);
++	dacmode &= ~(BIT(1) | BIT(3));
+ 
+ 	switch (blank) {
+ 	case FB_BLANK_UNBLANK: /* Screen: On; HSync: On, VSync: On */
+-		state    = 0;
+ 		vgablank = 0;
+ 		break;
+ 	case FB_BLANK_NORMAL: /* Screen: Off; HSync: On, VSync: On */
+-		state    = 0;
+-		vgablank = 1;
+ 		break;
+ 	case FB_BLANK_VSYNC_SUSPEND: /* Screen: Off; HSync: On, VSync: Off */
+-		state    = BIT(3);
+-		vgablank = 1;
++		dacmode |= BIT(3);
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND: /* Screen: Off; HSync: Off, VSync: On */
+-		state    = BIT(1);
+-		vgablank = 1;
++		dacmode |= BIT(1);
+ 		break;
+ 	case FB_BLANK_POWERDOWN: /* Screen: Off; HSync: Off, VSync: Off */
+-		state    = BIT(1) | BIT(3);
+-		vgablank = 1;
++		dacmode |= BIT(1) | BIT(3);
+ 		break;
+ 	}
+ 
+-	dacmode &= ~(BIT(1) | BIT(3));
+-	dacmode |= state;
+ 	banshee_make_room(par, 1);
+ 	tdfx_outl(par, DACMODE, dacmode);
+ 	if (vgablank)
+@@ -866,14 +802,13 @@ static int tdfxfb_pan_display(struct fb_
+ 			      struct fb_info *info)
+ {
+ 	struct tdfx_par *par = info->par;
+-	u32 addr;
++	u32 addr = var->yoffset * info->fix.line_length;
+ 
+ 	if (nopan || var->xoffset || (var->yoffset > var->yres_virtual))
+ 		return -EINVAL;
+ 	if ((var->yoffset + var->yres > var->yres_virtual && nowrap))
+ 		return -EINVAL;
+ 
+-	addr = var->yoffset * info->fix.line_length;
+ 	banshee_make_room(par, 1);
+ 	tdfx_outl(par, VIDDESKSTART, addr);
+ 
+@@ -962,7 +897,6 @@ static void tdfxfb_copyarea(struct fb_in
+ 		dx = 0;
+ 	}
+ 
+-
+ 	if (area->sx <= area->dx) {
+ 		//-X
+ 		blitcmd |= BIT(14);
+@@ -1061,8 +995,7 @@ static void tdfxfb_imageblit(struct fb_i
+ 
+ 	/* Send the leftovers now */
+ 	banshee_make_room(par, 3);
+-	i = size % 4;
+-	switch (i) {
++	switch (size % 4) {
+ 	case 0:
+ 		break;
+ 	case 1:
+diff -puN include/video/tdfx.h~tdfxfb-code-improvements include/video/tdfx.h
+--- a/include/video/tdfx.h~tdfxfb-code-improvements
++++ a/include/video/tdfx.h
+@@ -167,8 +167,6 @@ struct banshee_reg {
+ 	unsigned long clip0max;
+ 	unsigned long clip1min;
+ 	unsigned long clip1max;
+-	unsigned long srcbase;
+-	unsigned long dstbase;
+ 	unsigned long miscinit0;
+ };
+ 
+@@ -177,7 +175,6 @@ struct tdfx_par {
+ 	u32 palette[16];
+ 	void __iomem *regbase_virt;
+ 	unsigned long iobase;
+-	u32 baseline;
+ 
+ 	struct {
+ 		int w, u, d;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
