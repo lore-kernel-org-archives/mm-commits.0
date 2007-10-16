@@ -1,132 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - intel-fb-obvious-changes-and-corrections.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:44 -0700
-Message-ID: <200710162044.l9GKiiMC016171@imap1.linux-foundation.org>
+Subject: - connector-change-connectors-max-message-size.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:40 -0700
+Message-ID: <200710162041.l9GKfejl015813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52711 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965676AbXJPV01 (ORCPT
+	by vger.kernel.org with ESMTP id S965758AbXJPV1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:26:27 -0400
+	Tue, 16 Oct 2007 17:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khc@pm.waw.pl, adaplas@pol.net, sylvain.meyer@worldonline.fr, mm-commits@vger.kernel.org
+To: spock@gentoo.org, adaplas@gmail.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Intel FB: obvious changes and corrections
+     connector: change connector's max message size
 has been removed from the -mm tree.  Its filename was
-     intel-fb-obvious-changes-and-corrections.patch
+     connector-change-connectors-max-message-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Intel FB: obvious changes and corrections
-From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: connector: change connector's max message size
+From: Michal Januszewski <spock@gentoo.org>
 
-Intel FB: obvious changes and corrections
+Change the maximum message size to 16k to allow transfers of VBE
+data blocks from userspace.
 
-Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: <sylvain.meyer@worldonline.fr>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/intelfb/intelfb.h   |    5 ++++-
- drivers/video/intelfb/intelfbhw.c |   14 ++++++--------
- drivers/video/intelfb/intelfbhw.h |    4 +++-
- 3 files changed, 13 insertions(+), 10 deletions(-)
+ include/linux/connector.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/intelfb/intelfb.h~intel-fb-obvious-changes-and-corrections drivers/video/intelfb/intelfb.h
---- a/drivers/video/intelfb/intelfb.h~intel-fb-obvious-changes-and-corrections
-+++ a/drivers/video/intelfb/intelfb.h
-@@ -355,7 +355,10 @@ struct intelfb_info {
- 	struct intelfb_output_rec output[MAX_OUTPUTS];
- };
+diff -puN include/linux/connector.h~connector-change-connectors-max-message-size include/linux/connector.h
+--- a/include/linux/connector.h~connector-change-connectors-max-message-size
++++ a/include/linux/connector.h
+@@ -43,7 +43,7 @@
+ /*
+  * Maximum connector's message size.
+  */
+-#define CONNECTOR_MAX_MSG_SIZE 	1024
++#define CONNECTOR_MAX_MSG_SIZE		16384
  
--#define IS_I9XX(dinfo) (((dinfo)->chipset == INTEL_915G)||(dinfo->chipset == INTEL_915GM)||((dinfo)->chipset == INTEL_945G)||(dinfo->chipset==INTEL_945GM))
-+#define IS_I9XX(dinfo) (((dinfo)->chipset == INTEL_915G) ||	\
-+			((dinfo)->chipset == INTEL_915GM) ||	\
-+			((dinfo)->chipset == INTEL_945G) ||	\
-+			((dinfo)->chipset==INTEL_945GM))
- 
- #ifndef FBIO_WAITFORVSYNC
- #define FBIO_WAITFORVSYNC	_IOW('F', 0x20, __u32)
-diff -puN drivers/video/intelfb/intelfbhw.c~intel-fb-obvious-changes-and-corrections drivers/video/intelfb/intelfbhw.c
---- a/drivers/video/intelfb/intelfbhw.c~intel-fb-obvious-changes-and-corrections
-+++ a/drivers/video/intelfb/intelfbhw.c
-@@ -434,14 +434,14 @@ void intelfbhw_setcolreg(struct intelfb_
- 			 unsigned red, unsigned green, unsigned blue,
- 			 unsigned transp)
- {
-+	u32 palette_reg = (dinfo->pipe == PIPE_A) ?
-+			  PALETTE_A : PALETTE_B;
-+
- #if VERBOSE > 0
- 	DBG_MSG("intelfbhw_setcolreg: %d: (%d, %d, %d)\n",
- 		regno, red, green, blue);
- #endif
- 
--	u32 palette_reg = (dinfo->pipe == PIPE_A) ?
--			  PALETTE_A : PALETTE_B;
--
- 	OUTREG(palette_reg + (regno << 2),
- 	       (red << PALETTE_8_RED_SHIFT) |
- 	       (green << PALETTE_8_GREEN_SHIFT) |
-@@ -1305,8 +1305,8 @@ int intelfbhw_program_mode(struct intelf
- 
- 	count = 0;
- 	do {
--		tmp_val[count%3] = INREG(0x70000);
--		if ((tmp_val[0] == tmp_val[1]) && (tmp_val[1]==tmp_val[2]))
-+		tmp_val[count % 3] = INREG(PIPEA_DSL);
-+		if ((tmp_val[0] == tmp_val[1]) && (tmp_val[1] == tmp_val[2]))
- 			break;
- 		count++;
- 		udelay(1);
-@@ -2004,7 +2004,6 @@ intelfbhw_enable_irq(struct intelfb_info
- 
- void
- intelfbhw_disable_irq(struct intelfb_info *dinfo) {
--	u16 tmp;
- 
- 	if (test_and_clear_bit(0, &dinfo->irq_flags)) {
- 		if (dinfo->vsync.pan_display) {
-@@ -2016,8 +2015,7 @@ intelfbhw_disable_irq(struct intelfb_inf
- 		OUTREG16(IMR, 0xffff);
- 		OUTREG16(IER, 0x0);
- 
--		tmp = INREG16(IIR);
--		OUTREG16(IIR, tmp);
-+		OUTREG16(IIR, INREG16(IIR)); /* clear IRQ requests */
- 		spin_unlock_irq(&dinfo->int_lock);
- 
- 		free_irq(dinfo->pdev->irq, dinfo);
-diff -puN drivers/video/intelfb/intelfbhw.h~intel-fb-obvious-changes-and-corrections drivers/video/intelfb/intelfbhw.h
---- a/drivers/video/intelfb/intelfbhw.h~intel-fb-obvious-changes-and-corrections
-+++ a/drivers/video/intelfb/intelfbhw.h
-@@ -93,7 +93,7 @@
- #define IIR			0x20A4
- #define IMR			0x20A8
- #define VSYNC_PIPE_A_INTERRUPT		(1 << 7)
--#define PIPE_A_EVENT_INTERRUPT		(1 << 4)
-+#define PIPE_A_EVENT_INTERRUPT		(1 << 6)
- #define VSYNC_PIPE_B_INTERRUPT		(1 << 5)
- #define PIPE_B_EVENT_INTERRUPT		(1 << 4)
- #define HOST_PORT_EVENT_INTERRUPT	(1 << 3)
-@@ -276,6 +276,8 @@
- #define DVOB_SRCDIM		0x61144
- #define DVOC_SRCDIM		0x61164
- 
-+#define PIPEA_DSL		0x70000
-+#define PIPEB_DSL		0x71000
- #define PIPEACONF		0x70008
- #define PIPEBCONF		0x71008
- #define PIPECONF_ENABLE			(1 << 31)
+ /*
+  * idx and val are unique identifiers which 
 _
 
-Patches currently in -mm which might be from khc@pm.waw.pl are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
-git-wireless.patch
