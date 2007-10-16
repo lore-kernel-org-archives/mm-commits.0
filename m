@@ -1,69 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-statfs-improvement-for-block-and-inode-free-count.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:41:24 -0700
-Message-ID: <200710162241.l9GMfO41021504@imap1.linux-foundation.org>
+Subject: - writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:44:50 -0700
+Message-ID: <200710162244.l9GMioqI021660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57053 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39026 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761425AbXJPWmA (ORCPT
+	by vger.kernel.org with ESMTP id S1751984AbXJPWpH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:42:00 -0400
+	Tue, 16 Oct 2007 18:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, adilger@clusterfs.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, dgc@sgi.com, kenchen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2 statfs improvement for block and inode free count
+     writeback-remove-pages_skipped-accounting-in-__block_write_full_page fix
 has been removed from the -mm tree.  Its filename was
-     ext2-statfs-improvement-for-block-and-inode-free-count.patch
+     writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
 
 ------------------------------------------------------
-Subject: ext2 statfs improvement for block and inode free count
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: writeback-remove-pages_skipped-accounting-in-__block_write_full_page fix
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-More statfs() improvements for ext2.  ext2 already maintains percpu
-counters for free blocks and inodes.  Derive free block count and inode
-count by summing up percpu counters, instead of counting up all the groups
-in the filesystem each time.
+On Wed, Oct 03, 2007 at 07:55:18AM +1000, David Chinner wrote:
+> >
+> > do not quite agree with each other. The page writeback should be skipped for
+> > 'locked buffer', but here it is 'clean buffer'!
+>
+> Ok, so that means we need an equivalent fix in xfs_start_page_writeback()
+> as it will skip pages with clean buffers just like this. Something like
+> this (untested)?
 
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Acked-by: Andreas Dilger <adilger@clusterfs.com>
+Sure OK - as long as it is 'no write because of clean buffer'.
+The only user of pages_skipped is obviously using that semantics.
+
+Cc: Ken Chen <kenchen@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Signed-off-by: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/xfs/linux-2.6/xfs_aops.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-statfs-improvement-for-block-and-inode-free-count fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-statfs-improvement-for-block-and-inode-free-count
-+++ a/fs/ext2/super.c
-@@ -1150,13 +1150,13 @@ static int ext2_statfs (struct dentry * 
- 	buf->f_type = EXT2_SUPER_MAGIC;
- 	buf->f_bsize = sb->s_blocksize;
- 	buf->f_blocks = le32_to_cpu(es->s_blocks_count) - sbi->s_overhead_last;
--	buf->f_bfree = ext2_count_free_blocks(sb);
-+	buf->f_bfree = percpu_counter_sum(&sbi->s_freeblocks_counter);
- 	es->s_free_blocks_count = cpu_to_le32(buf->f_bfree);
- 	buf->f_bavail = buf->f_bfree - le32_to_cpu(es->s_r_blocks_count);
- 	if (buf->f_bfree < le32_to_cpu(es->s_r_blocks_count))
- 		buf->f_bavail = 0;
- 	buf->f_files = le32_to_cpu(es->s_inodes_count);
--	buf->f_ffree = ext2_count_free_inodes(sb);
-+	buf->f_ffree = percpu_counter_sum(&sbi->s_freeinodes_counter);
- 	es->s_free_inodes_count = cpu_to_le32(buf->f_ffree);
- 	buf->f_namelen = EXT2_NAME_LEN;
- 	fsid = le64_to_cpup((void *)es->s_uuid) ^
+diff -puN fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix fs/xfs/linux-2.6/xfs_aops.c
+--- a/fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix
++++ a/fs/xfs/linux-2.6/xfs_aops.c
+@@ -415,10 +415,9 @@ xfs_start_page_writeback(
+ 		clear_page_dirty_for_io(page);
+ 	set_page_writeback(page);
+ 	unlock_page(page);
+-	if (!buffers) {
++	/* If no buffers on the page are to be written, finish it here */
++	if (!buffers)
+ 		end_page_writeback(page);
+-		wbc->pages_skipped++;	/* We didn't write this page */
+-	}
+ }
+ 
+ static inline int bio_add_buffer(struct bio *bio, struct buffer_head *bh)
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-aio-account-i-o-wait-time-properly.patch
-fix-for-ext2-reservation.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-mem-controller-gfp-mask-fix.patch
-powerpc-add-scaled-time-accounting-speedup.patch
+convert-ill-defined-log2-to-ilog2.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
+writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
