@@ -1,74 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:31:40 -0700
-Message-ID: <200710160431.l9G4VeBE008915@imap1.linux-foundation.org>
+Subject: - flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:31:43 -0700
+Message-ID: <200710160431.l9G4VhLd008918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47292 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753924AbXJPEbv (ORCPT
+	by vger.kernel.org with ESMTP id S1753840AbXJPEbv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 00:31:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, davem@davemloft.net, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     small fix for ia64 icache sync patch
+     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
 has been removed from the -mm tree.  Its filename was
-     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+     flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
 
 This patch was dropped because it was folded into flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
 
 ------------------------------------------------------
-Subject: small fix for ia64 icache sync patch
+Subject: flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix update
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Fixing 2 small issues pointed by Tony Luck.
-
-* removing redundant BUG_ON in __ia64_sync_icache_dcache().
-* check pte_present() first.
+* add pte_present_exec_user()
+* remove pte_user
+* fixed comments.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c        |    2 --
- include/asm-ia64/pgtable.h |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/asm-ia64/pgtable.h |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix
-+++ a/arch/ia64/mm/init.c
-@@ -60,8 +60,6 @@ __ia64_sync_icache_dcache (pte_t pte)
- 	struct page *page;
- 	unsigned long order;
- 
--	BUG_ON(!pte_exec(pte));
--
- 	page = pte_page(pte);
- 	addr = (unsigned long) page_address(page);
- 
-diff -puN include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix include/asm-ia64/pgtable.h
---- a/include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix
+diff -puN include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update include/asm-ia64/pgtable.h
+--- a/include/asm-ia64/pgtable.h~flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update
 +++ a/include/asm-ia64/pgtable.h
-@@ -327,8 +327,8 @@ ia64_phys_addr_valid (unsigned long addr
+@@ -297,7 +297,6 @@ ia64_phys_addr_valid (unsigned long addr
+ /*
+  * The following have defined behavior only work if pte_present() is true.
+  */
+-#define pte_user(pte)	((pte_val(pte) & _PAGE_PL_MASK) == _PAGE_PL_3)
+ #define pte_write(pte)	((unsigned) (((pte_val(pte) & _PAGE_AR_MASK) >> _PAGE_AR_SHIFT) - 2) <= 4)
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+@@ -324,14 +323,20 @@ ia64_phys_addr_valid (unsigned long addr
+  *  set_pte() is also called by the kernel, but we can expect that the kernel
+  *  flushes icache explicitly if necessary.
+  */
++#define pte_present_exec_user(pte)\
++	((pte_val(pte) & (_PAGE_P | _PAGE_PL_MASK | _PAGE_AR_RX)) == \
++		(_PAGE_P | _PAGE_PL_3 | _PAGE_AR_RX))
++
  extern void __ia64_sync_icache_dcache(pte_t pteval);
  static inline void set_pte(pte_t *ptep, pte_t pteval)
  {
--	if (pte_exec(pteval) &&    // flush only new executable page.
--	    pte_present(pteval) && // swap out ?
-+	if (pte_present(pteval) &&// swap out ?
-+	    pte_exec(pteval) &&    // flush only new executable page.
- 	    pte_user(pteval) &&    // ignore kernel page
- 	    (!pte_present(*ptep) ||// do_no_page or swap in, migration,
- 		pte_pfn(*ptep) != pte_pfn(pteval))) // do_wp_page(), page copy
+-	if (pte_present(pteval) &&// swap out ?
+-	    pte_exec(pteval) &&    // flush only new executable page.
+-	    pte_user(pteval) &&    // ignore kernel page
+-	    (!pte_present(*ptep) ||// do_no_page or swap in, migration,
+-		pte_pfn(*ptep) != pte_pfn(pteval))) // do_wp_page(), page copy
++	/* page is present && page is user  && page is executable
++	 * && (page swapin or new page or page migraton
++	 *	|| copy_on_write with page copying.)
++	 */
++	if (pte_present_exec_user(pteval) &&
++	    (!pte_present(*ptep) ||
++		pte_pfn(*ptep) != pte_pfn(pteval)))
+ 		/* load_module() calles flush_icache_range() explicitly*/
+ 		__ia64_sync_icache_dcache(pteval);
+ 	*ptep = pteval;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -96,7 +104,6 @@ memoryless-nodes-fix-gfp_thisnode-behavior.patch
 memoryless-nodes-use-n_high_memory-for-cpusets.patch
 flush-cache-before-installing-new-page-at-migraton.patch
 flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
 flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
 memory-unplug-v7-memory-hotplug-cleanup.patch
 memory-unplug-v7-memory-hotplug-cleanup-fix.patch
