@@ -1,137 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:59:56 -0700
-Message-ID: <200710160459.l9G4xuZP009930@imap1.linux-foundation.org>
+Subject: - fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 22:00:50 -0700
+Message-ID: <200710160500.l9G50o2i010035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755928AbXJPFAD (ORCPT
+	by vger.kernel.org with ESMTP id S1757445AbXJPFBG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 01:00:03 -0400
+	Tue, 16 Oct 2007 01:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev-fb_create_modedb-non-static-int-first-=-1-fix
+     fbcon: Convert struct font_desc to use ISO C initializers (update)
 has been removed from the -mm tree.  Its filename was
-     fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+     fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.pa=
+tch
 
-This patch was dropped because it was folded into fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+This patch was dropped because it was folded into fbcon-convert-struct-=
+font_desc-to-use-iso-c-initializers.patch
 
 ------------------------------------------------------
-Subject: fbdev-fb_create_modedb-non-static-int-first-=-1-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbcon: Convert struct font_desc to use ISO C initializers (upd=
+ate)
+=46rom: Ralf Baechle <ralf@linux-mips.org>
 
-Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Akpm's patch "newport_con warning fix" got me to look at the console
+drivers again and one thing that I noticed was that none of the fonts
+was using ISO initializers for it's fonts.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmon.c |    2 --
- 1 files changed, 2 deletions(-)
+ drivers/video/backlight/cr_bllcd.c |  146 +--------------------------
+ 1 files changed, 10 insertions(+), 136 deletions(-)
 
-diff -puN drivers/video/fbmon.c~fbdev-fb_create_modedb-non-static-int-first-=-1-fix drivers/video/fbmon.c
---- a/drivers/video/fbmon.c~fbdev-fb_create_modedb-non-static-int-first-=-1-fix
-+++ a/drivers/video/fbmon.c
-@@ -593,8 +593,6 @@ static struct fb_videomode *fb_create_mo
- 	unsigned char *block;
- 	int num = 0, i, first = 1;
- 
--;
+diff -puN drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_=
+desc-to-use-iso-c-initializers-update drivers/video/backlight/cr_bllcd.=
+c
+--- a/drivers/video/backlight/cr_bllcd.c~fbcon-convert-struct-font_desc=
+-to-use-iso-c-initializers-update
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -25,7 +25,6 @@
+  * Authors:
+  *   Thomas Hellstrom <thomas-at-tungstengraphics-dot-com>
+  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
+- *   Michel D=E4nzer <michel-at-tungstengraphics-dot-com>
+  */
+=20
+ #include <linux/module.h>
+@@ -39,8 +38,6 @@
+ #include <linux/pci.h>
+ #include <asm/uaccess.h>
+=20
+-#define MODULE_NAME "cr_bllcd"
 -
- 	mode = kzalloc(50 * sizeof(struct fb_videomode), GFP_KERNEL);
- 	if (mode == NULL)
- 		return NULL;
+ /* The LVDS- and panel power controls sits on the
+  * GPIO port of the ISA bridge.
+  */
+@@ -54,25 +51,19 @@
+ #define CRVML_PANEL_ON      0x00000002
+ #define CRVML_BACKLIGHT_OFF 0x00000004
+=20
++/* The PLL Clock register sits on Host bridge */
++#define CRVML_DEVICE_MCH   0x5001
++#define CRVML_REG_MCHBAR   0x44
++#define CRVML_REG_MCHEN    0x54
++#define CRVML_MCHEN_BIT    (1 << 28)
++#define CRVML_MCHMAP_SIZE  4096
++#define CRVML_REG_CLOCK    0xc3c
++#define CRVML_CLOCK_SHIFT  8
++#define CRVML_CLOCK_MASK   0x00000f00
++
+ static struct pci_dev *lpc_dev;
+ static u32 gpio_bar;
+=20
+-#ifdef CONFIG_PM
+-
+-#define NUM_LPC_EXTRA_CONFIG_SPACE 45
+-static int lpc_saved_config_space[NUM_LPC_EXTRA_CONFIG_SPACE];
+-
+-#define CRVML_REG_RCBABAR   0xF0
+-#define CRVML_RCBAEN_BIT    (1 << 0)
+-#define CRVML_RCBAMAP_SIZE  16384
+-static u32 rcba_bar;
+-static void __iomem *rcba_regs_base;
+-
+-#define REGSAVE_SIZE (CRVML_RCBAMAP_SIZE + 4)
+-static u32 *regsave;
+-
+-#endif /* CONFIG_PM */
+-
+ struct cr_panel {
+ 	struct backlight_device *cr_backlight_device;
+ 	struct lcd_device *cr_lcd_device;
+@@ -178,94 +169,6 @@ static struct lcd_ops cr_lcd_ops =3D {
+ 	.set_power =3D cr_lcd_set_power,
+ };
+=20
+-#ifdef CONFIG_PM
+-
+-static int cr_backlight_suspend(struct platform_device *pdev,
+-				pm_message_t state)
+-{
+-	int i;
+-	int reg;
+-	int saveidx =3D 0;
+-
+-	printk(KERN_DEBUG MODULE_NAME ": suspending to state: %d\n",
+-	       state.event);
+-
+-	regsave =3D kmalloc(REGSAVE_SIZE, GFP_ATOMIC);
+-
+-	if (!regsave) {
+-		printk(KERN_ERR MODULE_NAME
+-		       ": Could not allocate %d bytes for saving registers\n",
+-		       REGSAVE_SIZE);
+-		return -ENOMEM;
+-	}
+-
+-	/* Save registers and config space */
+-
+-	regsave[saveidx++] =3D inl(gpio_bar + CRVML_PANEL_PORT);
+-
+-	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
+-		regsave[saveidx++] =3D ioread32(rcba_regs_base + reg);
+-
+-	pci_save_state(lpc_dev);
+-	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++)
+-		pci_read_config_dword(lpc_dev, (i + 16) * 4,
+-				      &lpc_saved_config_space[i]);
+-	pci_disable_device(lpc_dev);
+-	pci_set_power_state(lpc_dev, pci_choose_state(lpc_dev, state));
+-
+-	pdev->dev.power.power_state =3D state;
+-
+-	return 0;
+-}
+-
+-static int cr_backlight_resume(struct platform_device *pdev)
+-{
+-	int i;
+-	int reg;
+-	int val;
+-	int restoreidx =3D 0;
+-
+-	if (pdev->dev.power.power_state.event =3D=3D PM_EVENT_ON)
+-		return 0;
+-
+-	pci_set_power_state(lpc_dev, PCI_D0);
+-	pci_restore_state(lpc_dev);
+-	for (i =3D 0; i < NUM_LPC_EXTRA_CONFIG_SPACE; i++) {
+-		if (i =3D=3D 0x70 / 4)
+-			continue;
+-
+-		pci_read_config_dword(lpc_dev, (i + 16) * 4, &val);
+-		if (val !=3D lpc_saved_config_space[i]) {
+-			printk(KERN_DEBUG MODULE_NAME ": Writing back config "
+-			       "space on device %s at offset %x (was %x, "
+-			       "writing %x)\n", pci_name(lpc_dev), (i + 16),
+-			       val, lpc_saved_config_space[i]);
+-			pci_write_config_dword(lpc_dev, (i + 16) * 4,
+-					       lpc_saved_config_space[i]);
+-		}
+-	}
+-	if (pci_enable_device(lpc_dev))
+-		return -1;
+-
+-	outl(regsave[restoreidx++], gpio_bar + CRVML_PANEL_PORT);
+-
+-	for (reg =3D 0; reg < CRVML_RCBAMAP_SIZE; reg +=3D 4)
+-		iowrite32(regsave[restoreidx++], rcba_regs_base + reg);
+-
+-	/* Flush posted writes */
+-	ioread32(rcba_regs_base);
+-
+-	kfree(regsave);
+-
+-	pdev->dev.power.power_state =3D PMSG_ON;
+-
+-	printk(KERN_DEBUG MODULE_NAME ": resumed\n");
+-
+-	return 0;
+-}
+-
+-#endif /* CONFIG_PM */
+-
+ static int cr_backlight_probe(struct platform_device *pdev)
+ {
+ 	struct backlight_device *bdp;
+@@ -325,26 +228,6 @@ static int cr_backlight_probe(struct pla
+=20
+ 	platform_set_drvdata(pdev, crp);
+=20
+-#ifdef CONFIG_PM
+-	pci_read_config_dword(lpc_dev, CRVML_REG_RCBABAR, &rcba_bar);
+-
+-	if (!(rcba_bar & CRVML_RCBAEN_BIT)) {
+-		printk(KERN_ERR MODULE_NAME
+-		       ": Carillo Ranch LPC device RCBA BAR was not enabled\n");
+-		pci_dev_put(lpc_dev);
+-		return -ENODEV;
+-	}
+-
+-	rcba_regs_base =3D
+-	    ioremap_nocache(rcba_bar, CRVML_RCBAMAP_SIZE);
+-	if (!rcba_regs_base) {
+-		printk(KERN_ERR MODULE_NAME
+-		       ": Could not map Carillo Ranch RCBA BAR\n");
+-		pci_dev_put(lpc_dev);
+-		return -ENODEV;
+-	}
+-#endif /* CONFIG_PM */
+-
+ 	return 0;
+ }
+=20
+@@ -358,11 +241,6 @@ static int cr_backlight_remove(struct pl
+ 	cr_lcd_set_power(crp->cr_lcd_device, FB_BLANK_POWERDOWN);
+ 	backlight_device_unregister(crp->cr_backlight_device);
+ 	lcd_device_unregister(crp->cr_lcd_device);
+-	platform_set_drvdata(pdev, NULL);
+-#ifdef CONFIG_PM
+-	iounmap(rcba_regs_base);
+-#endif
+-	kfree(crp);
+ 	pci_dev_put(lpc_dev);
+=20
+ 	return 0;
+@@ -374,10 +252,6 @@ static struct platform_driver cr_backlig
+ 	.driver =3D {
+ 		   .name =3D "cr_backlight",
+ 		   },
+-#ifdef CONFIG_PM
+-	.suspend =3D cr_backlight_suspend,
+-	.resume =3D cr_backlight_resume,
+-#endif
+ };
+=20
+ static struct platform_device *crp;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-slow-down-printk-during-boot.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-mm-use-pagevec-to-rotate-reclaimable-page.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-nfs-convert-to-new-aops.patch
-fs-restore-nobh.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-categorize-gfp-flags.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support.patch
-mm-mempolicyc-cleanups.patch
-uml-fix-stub-address-calculations.patch
-uml-arch-um-drivers-formatting.patch
-ecryptfs-printk-warning-fixes.patch
-rtc-cmos-probe-cleanup.patch
-tdfxfb-mtrr-support.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
+add-assembler-equivalents-to-__initdate_refok.patch
+move-a-few-definitions-to-au1000_xxs1500c.patch
+serial_txx9-cleanup-includes.patch
+during-vm-oom-condition-kill-all-threads-in-process-group.patch
+rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
+vt-fix-warnings-in-selectionh.patch
 export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
 drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
-fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+replace-__attribute_pure__-with-__pure.patch
