@@ -1,50 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:32:00 -0700
-Message-ID: <200710162232.l9GMW092021114@imap1.linux-foundation.org>
+Subject: - ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:31:03 -0700
+Message-ID: <200710162231.l9GMV3o1021099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38934 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965820AbXJPWcj (ORCPT
+	by vger.kernel.org with ESMTP id S1751189AbXJPWfs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:32:39 -0400
+	Tue, 16 Oct 2007 18:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adilger@clusterfs.com, linux-ext4@vger.kernel.org, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
+     ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+     ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-char-ip2-fix-used-uninitd-bug.patch
+This patch was dropped because it was folded into ext3-lighten-up-resize-transaction-requirements.patch
 
 ------------------------------------------------------
-Subject: drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
+Subject: ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+ERROR: do not use assignment in if condition
+#58: FILE: fs/ext3/resize.c:173:
++		if ((err = ext3_journal_restart(handle, EXT3_MAX_TRANS_DATA)))
+
+ERROR: use tabs not spaces
+#60: FILE: fs/ext3/resize.c:175:
++^I$
+
+ERROR: do not use assignment in if condition
+#60: FILE: fs/ext3/resize.c:175:
++	        if ((err = ext3_journal_get_write_access(handle, bh)))
+
+ERROR: use tabs not spaces
+#62: FILE: fs/ext3/resize.c:177:
+$
+
+ERROR: do not use assignment in if condition
+#87: FILE: fs/ext3/resize.c:233:
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+
+ERROR: do not use assignment in if condition
+#97: FILE: fs/ext3/resize.c:261:
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+
+ERROR: do not use assignment in if condition
+#108: FILE: fs/ext3/resize.c:286:
++		if ((err = extend_or_restart_transaction(handle, 1, bh)))
+
+ERROR: do not use assignment in if condition
+#119: FILE: fs/ext3/resize.c:298:
++	if ((err = extend_or_restart_transaction(handle, 2, bh)))
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
-+++ a/drivers/char/ip2/ip2main.c
-@@ -619,7 +619,7 @@ ip2_loadmain(int *iop, int *irqp, unsign
- 					ip2config.irq[i] = pci_dev_i->irq;
- 				} else {	// ann error
- 					ip2config.addr[i] = 0;
--					printk( KERN_ERR "IP2: PCI board %d not found\n", i );
-+					printk(KERN_ERR "IP2: PCI board %d not found\n", i);
- 				} 
- 			}
- #else
+diff -puN fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes
++++ a/fs/ext3/resize.c
+@@ -170,11 +170,13 @@ static int extend_or_restart_transaction
+ 	if (err < 0)
+ 		return err;
+ 	if (err) {
+-		if ((err = ext3_journal_restart(handle, EXT3_MAX_TRANS_DATA)))
++		err = ext3_journal_restart(handle, EXT3_MAX_TRANS_DATA);
++		if (err)
+ 			return err;
+-	        if ((err = ext3_journal_get_write_access(handle, bh)))
++		err = ext3_journal_get_write_access(handle, bh);
++		if (err)
+ 			return err;
+-        }
++	}
+ 
+ 	return 0;
+ }
+@@ -230,7 +232,8 @@ static int setup_new_group_blocks(struct
+ 
+ 		ext3_debug("update backup group %#04lx (+%d)\n", block, bit);
+ 
+-		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++		err = extend_or_restart_transaction(handle, 1, bh);
++		if (err)
+ 			goto exit_bh;
+ 
+ 		gdb = sb_getblk(sb, block);
+@@ -258,7 +261,8 @@ static int setup_new_group_blocks(struct
+ 
+ 		ext3_debug("clear reserved block %#04lx (+%d)\n", block, bit);
+ 
+-		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++		err = extend_or_restart_transaction(handle, 1, bh);
++		if (err)
+ 			goto exit_bh;
+ 
+ 		if (IS_ERR(gdb = bclean(handle, sb, block))) {
+@@ -283,7 +287,8 @@ static int setup_new_group_blocks(struct
+ 
+ 		ext3_debug("clear inode block %#04lx (+%d)\n", block, bit);
+ 
+-		if ((err = extend_or_restart_transaction(handle, 1, bh)))
++		err = extend_or_restart_transaction(handle, 1, bh);
++		if (err)
+ 			goto exit_bh;
+ 
+ 		if (IS_ERR(it = bclean(handle, sb, block))) {
+@@ -295,7 +300,8 @@ static int setup_new_group_blocks(struct
+ 		ext3_set_bit(bit, bh->b_data);
+ 	}
+ 
+-	if ((err = extend_or_restart_transaction(handle, 2, bh)))
++	err = extend_or_restart_transaction(handle, 2, bh);
++	if (err)
+ 		goto exit_bh;
+ 
+ 	mark_bitmap_end(input->blocks_count, EXT3_BLOCKS_PER_GROUP(sb),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +157,7 @@ reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
 userc-ifdef-mq_bytes.patch
 ext3-lighten-up-resize-transaction-requirements.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
 drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
