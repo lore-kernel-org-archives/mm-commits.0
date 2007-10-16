@@ -1,63 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-logo-disable-logo-at-boot-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 22:02:45 -0700
-Message-ID: <200710160502.l9G52jvk010085@imap1.linux-foundation.org>
+Subject: - fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 22:03:30 -0700
+Message-ID: <200710160503.l9G53UMl010100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53213 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35103 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757286AbXJPFCv (ORCPT
+	by vger.kernel.org with ESMTP id S1752294AbXJPFDn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 01:02:51 -0400
+	Tue, 16 Oct 2007 01:03:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@gmail.com, pisa@cmp.felk.cvut.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon-logo-disable-logo-at-boot-fix
+     fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fbcon-logo-disable-logo-at-boot-fix.patch
+     fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fbcon-logo-disable-logo-at-boot.patch
+This patch was dropped because it was folded into fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch
 
 ------------------------------------------------------
-Subject: fbcon-logo-disable-logo-at-boot-fix
+Subject: fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- Make nologo static
+ERROR: do not use C99 // comments
+#30: FILE: drivers/video/cfbcopyarea.c:97:
++		// Different alignment for source and dest
 
-- Fix checkpatch warning
+ERROR: no space after that open parenthesis '('
+#63: FILE: drivers/video/cfbcopyarea.c:124:
++			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
+
+ERROR: no space after that open parenthesis '('
+#92: FILE: drivers/video/cfbcopyarea.c:151:
++			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
+
+WARNING: line over 80 characters
+#125: FILE: drivers/video/cfbcopyarea.c:189:
++					d1 = fb_rev_pixels_in_long(d1, bswapmask);
+
+ERROR: no space after that open parenthesis '('
+#129: FILE: drivers/video/cfbcopyarea.c:193:
++				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
+
+ERROR: no space after that open parenthesis '('
+#165: FILE: drivers/video/cfbcopyarea.c:292:
++			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
+
+ERROR: no space after that open parenthesis '('
+#193: FILE: drivers/video/cfbcopyarea.c:315:
++			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
+
+WARNING: line over 80 characters
+#228: FILE: drivers/video/cfbcopyarea.c:355:
++					d1 = fb_rev_pixels_in_long(d1, bswapmask);
+
+ERROR: no space after that open parenthesis '('
+#232: FILE: drivers/video/cfbcopyarea.c:359:
++				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
+
+ERROR: need a space before the open parenthesis '('
+#256: FILE: drivers/video/fb_draw.h:88:
++	if(bswapmask & 1)
+
+ERROR: need a space before the open parenthesis '('
+#258: FILE: drivers/video/fb_draw.h:90:
++	if(bswapmask & 2)
+
+ERROR: need a space before the open parenthesis '('
+#260: FILE: drivers/video/fb_draw.h:92:
++	if(bswapmask & 3)
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
 Cc: Antonino Daplas <adaplas@gmail.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Pavel Pisa <pisa@cmp.felk.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/video/cfbcopyarea.c |   20 +++++++++++---------
+ drivers/video/fb_draw.h     |    6 +++---
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot-fix drivers/video/console/newport_con.c
---- a/drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot-fix
-+++ a/drivers/video/console/newport_con.c
-@@ -98,7 +98,7 @@ static inline void newport_init_cmap(voi
+diff -puN drivers/video/cfbcopyarea.c~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes drivers/video/cfbcopyarea.c
+--- a/drivers/video/cfbcopyarea.c~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes
++++ a/drivers/video/cfbcopyarea.c
+@@ -94,7 +94,7 @@ bitcpy(unsigned long __iomem *dst, int d
+ 				FB_WRITEL( comp( FB_READL(src), FB_READL(dst), last), dst);
+ 		}
+ 	} else {
+-		// Different alignment for source and dest
++		/* Different alignment for source and dest */
+ 		unsigned long d0, d1;
+ 		int m;
+ 
+@@ -121,7 +121,7 @@ bitcpy(unsigned long __iomem *dst, int d
+ 				d0 = d0<<left | d1>>right;
+ 			}
+ 			d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
++			FB_WRITEL(comp(d0, FB_READL(dst), first), dst);
+ 		} else {
+ 			// Multiple destination words
+ 			/** We must always remember the last value read, because in case
+@@ -148,7 +148,7 @@ bitcpy(unsigned long __iomem *dst, int d
+ 				n -= bits - dst_idx;
+ 			}
+ 			d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
++			FB_WRITEL(comp(d0, FB_READL(dst), first), dst);
+ 			d0 = d1;
+ 
+ 			// Main chunk
+@@ -186,11 +186,12 @@ bitcpy(unsigned long __iomem *dst, int d
+ 				} else {
+ 					// 2 source words
+ 					d1 = FB_READL(src);
+-					d1 = fb_rev_pixels_in_long(d1, bswapmask);
++					d1 = fb_rev_pixels_in_long(d1,
++								bswapmask);
+ 					d0 = d0<<left | d1>>right;
+ 				}
+ 				d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
++				FB_WRITEL(comp(d0, FB_READL(dst), last), dst);
+ 			}
+ 		}
  	}
- }
- 
--static struct linux_logo * newport_show_logo(void)
-+static struct linux_logo *newport_show_logo(void)
+@@ -289,7 +290,7 @@ bitcpy_rev(unsigned long __iomem *dst, i
+ 				d0 = d0>>right | d1<<left;
+ 			}
+ 			d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
++			FB_WRITEL(comp(d0, FB_READL(dst), first), dst);
+ 		} else {
+ 			// Multiple destination words
+ 			/** We must always remember the last value read, because in case
+@@ -312,7 +313,7 @@ bitcpy_rev(unsigned long __iomem *dst, i
+ 				d0 = d0>>right | d1<<left;
+ 			}
+ 			d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-			FB_WRITEL( comp(d0, FB_READL(dst), first), dst);
++			FB_WRITEL(comp(d0, FB_READL(dst), first), dst);
+ 			d0 = d1;
+ 			dst--;
+ 			n -= dst_idx+1;
+@@ -352,11 +353,12 @@ bitcpy_rev(unsigned long __iomem *dst, i
+ 				} else {
+ 					// 2 source words
+ 					d1 = FB_READL(src);
+-					d1 = fb_rev_pixels_in_long(d1, bswapmask);
++					d1 = fb_rev_pixels_in_long(d1,
++								bswapmask);
+ 					d0 = d0>>right | d1<<left;
+ 				}
+ 				d0 = fb_rev_pixels_in_long(d0, bswapmask);
+-				FB_WRITEL( comp(d0, FB_READL(dst), last), dst);
++				FB_WRITEL(comp(d0, FB_READL(dst), last), dst);
+ 			}
+ 		}
+ 	}
+diff -puN drivers/video/fb_draw.h~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes drivers/video/fb_draw.h
+--- a/drivers/video/fb_draw.h~fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes
++++ a/drivers/video/fb_draw.h
+@@ -85,11 +85,11 @@ pixel_to_pat( u32 bpp, u32 pixel)
+ static inline unsigned long fb_rev_pixels_in_long(unsigned long val,
+ 						  u32 bswapmask)
  {
- #ifdef CONFIG_LOGO_SGI_CLUT224
- 	const struct linux_logo *logo = fb_find_logo(8);
-diff -puN drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot-fix drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot-fix
-+++ a/drivers/video/logo/logo.c
-@@ -34,7 +34,7 @@ extern const struct linux_logo logo_supe
- extern const struct linux_logo logo_superh_clut224;
- extern const struct linux_logo logo_m32r_clut224;
- 
--int nologo;
-+static int nologo;
- module_param(nologo, bool, 0);
- MODULE_PARM_DESC(nologo, "Disables startup logo");
+-	if(bswapmask & 1)
++	if (bswapmask & 1)
+ 		val = comp(val >> 1, val << 1, REV_PIXELS_MASK1);
+-	if(bswapmask & 2)
++	if (bswapmask & 2)
+ 		val = comp(val >> 2, val << 2, REV_PIXELS_MASK2);
+-	if(bswapmask & 3)
++	if (bswapmask & 3)
+ 		val = comp(val >> 4, val << 4, REV_PIXELS_MASK4);
+ }
  
 _
 
@@ -89,7 +212,7 @@ intel-fb-support-for-interlaced-video-modes.patch
 export-font_vga_8x16.patch
 drivers-video-pmag-ba-fbc-improve-diagnostics.patch
 fbcon-logo-disable-logo-at-boot.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
+fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch
 fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
 md-software-raid-autodetect-dev-list-not-array.patch
 do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
