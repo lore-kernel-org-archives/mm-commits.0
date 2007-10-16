@@ -1,224 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - oom-do-not-take-callback_mutex-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:44:01 -0700
-Message-ID: <200710162144.l9GLi2vO019009@imap1.linux-foundation.org>
+Subject: - mm-revert-kernel_ds-buffered-write-optimisation.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:54 -0700
+Message-ID: <200710162031.l9GKVsmx014539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60430 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35374 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966203AbXJPVpC (ORCPT
+	by vger.kernel.org with ESMTP id S1753651AbXJPVps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:45:02 -0400
+	Tue, 16 Oct 2007 17:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrea@suse.de, clameter@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom-do-not-take-callback_mutex-fix
+     mm: revert KERNEL_DS buffered write optimisation
 has been removed from the -mm tree.  Its filename was
-     oom-do-not-take-callback_mutex-fix.patch
+     mm-revert-kernel_ds-buffered-write-optimisation.patch
 
-This patch was dropped because it was folded into oom-do-not-take-callback_mutex.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom-do-not-take-callback_mutex-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: revert KERNEL_DS buffered write optimisation
+From: Nick Piggin <npiggin@suse.de>
 
-put this back - hotplug-cpu-migrate-a-task-within-its-cpuset.patch uses it.
+Revert the patch from Neil Brown to optimise NFSD writev handling.
 
-Cc: Andrea Arcangeli <andrea@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    6 ++++++
- kernel/cpuset.c        |   27 +++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ mm/filemap.c |   32 +++++++++++++-------------------
+ 1 file changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix include/linux/cpuset.h
---- a/include/linux/cpuset.h~oom-do-not-take-callback_mutex-fix
-+++ a/include/linux/cpuset.h
-@@ -59,6 +59,9 @@ extern void __cpuset_memory_pressure_bum
- extern const struct file_operations proc_cpuset_operations;
- extern char *cpuset_task_status_allowed(struct task_struct *task, char *buffer);
+diff -puN mm/filemap.c~mm-revert-kernel_ds-buffered-write-optimisation mm/filemap.c
+--- a/mm/filemap.c~mm-revert-kernel_ds-buffered-write-optimisation
++++ a/mm/filemap.c
+@@ -1874,27 +1874,21 @@ generic_file_buffered_write(struct kiocb
+ 		/* Limit the size of the copy to the caller's write size */
+ 		bytes = min(bytes, count);
  
-+extern void cpuset_lock(void);
-+extern void cpuset_unlock(void);
+-		/* We only need to worry about prefaulting when writes are from
+-		 * user-space.  NFSd uses vfs_writev with several non-aligned
+-		 * segments in the vector, and limiting to one segment a time is
+-		 * a noticeable performance for re-write
++		/*
++		 * Limit the size of the copy to that of the current segment,
++		 * because fault_in_pages_readable() doesn't know how to walk
++		 * segments.
+ 		 */
+-		if (!segment_eq(get_fs(), KERNEL_DS)) {
+-			/*
+-			 * Limit the size of the copy to that of the current
+-			 * segment, because fault_in_pages_readable() doesn't
+-			 * know how to walk segments.
+-			 */
+-			bytes = min(bytes, cur_iov->iov_len - iov_base);
++		bytes = min(bytes, cur_iov->iov_len - iov_base);
 +
- extern int cpuset_mem_spread_node(void);
++		/*
++		 * Bring in the user page that we will copy from _first_.
++		 * Otherwise there's a nasty deadlock on copying from the
++		 * same page as we're writing to, without it being marked
++		 * up-to-date.
++		 */
++		fault_in_pages_readable(buf, bytes);
  
- static inline int cpuset_do_page_mem_spread(void)
-@@ -125,6 +128,9 @@ static inline char *cpuset_task_status_a
- 	return buffer;
- }
- 
-+static inline void cpuset_lock(void) {}
-+static inline void cpuset_unlock(void) {}
-+
- static inline int cpuset_mem_spread_node(void)
- {
- 	return 0;
-diff -puN kernel/cpuset.c~oom-do-not-take-callback_mutex-fix kernel/cpuset.c
---- a/kernel/cpuset.c~oom-do-not-take-callback_mutex-fix
-+++ a/kernel/cpuset.c
-@@ -2521,6 +2521,33 @@ int __cpuset_zone_allowed_hardwall(struc
- }
- 
- /**
-+ * cpuset_lock - lock out any changes to cpuset structures
-+ *
-+ * The out of memory (oom) code needs to mutex_lock cpusets
-+ * from being changed while it scans the tasklist looking for a
-+ * task in an overlapping cpuset.  Expose callback_mutex via this
-+ * cpuset_lock() routine, so the oom code can lock it, before
-+ * locking the task list.  The tasklist_lock is a spinlock, so
-+ * must be taken inside callback_mutex.
-+ */
-+
-+void cpuset_lock(void)
-+{
-+	mutex_lock(&callback_mutex);
-+}
-+
-+/**
-+ * cpuset_unlock - release lock on cpuset changes
-+ *
-+ * Undo the lock taken in a previous cpuset_lock() call.
-+ */
-+
-+void cpuset_unlock(void)
-+{
-+	mutex_unlock(&callback_mutex);
-+}
-+
-+/**
-  * cpuset_mem_spread_node() - On which node to begin search for a page
-  *
-  * If a task is marked PF_SPREAD_PAGE or PF_SPREAD_SLAB (as for
+-			/*
+-			 * Bring in the user page that we will copy from
+-			 * _first_.  Otherwise there's a nasty deadlock on
+-			 * copying from the same page as we're writing to,
+-			 * without it being marked up-to-date.
+-			 */
+-			fault_in_pages_readable(buf, bytes);
+-		}
+ 		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
+ 		if (!page) {
+ 			status = -ENOMEM;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
 powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
