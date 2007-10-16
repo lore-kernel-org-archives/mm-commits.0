@@ -1,77 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:47 -0700
-Message-ID: <200710162030.l9GKUlo3014435@imap1.linux-foundation.org>
+Subject: - slubcearly_kmem_cache_node_alloc-shouldnt-be.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:30:37 -0700
+Message-ID: <200710162030.l9GKUbeW014424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37949 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59293 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966189AbXJPVnh (ORCPT
+	by vger.kernel.org with ESMTP id S966166AbXJPVnb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:43:37 -0400
+	Tue, 16 Oct 2007 17:43:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in include/linux/memory_hotplug.h
+     slub.c:early_kmem_cache_node_alloc() shouldn't be __init
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+     slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in include/linux/memory_hotplug.h
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: slub.c:early_kmem_cache_node_alloc() shouldn't be __init
+From: Adrian Bunk <bunk@stusta.de>
 
-This patch cleans up duplicate includes in
-	include/linux/memory_hotplug.h
+WARNING: mm/built-in.o(.text+0x24bd3): Section mismatch: reference to .init.text:early_kmem_cache_node_alloc (between 'init_kmem_cache_nodes' and 'calculate_sizes')
+...
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slub.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~clean-up-duplicate-includes-in-include-linux-memory_hotplugh
-+++ a/include/linux/memory_hotplug.h
-@@ -3,7 +3,6 @@
- 
- #include <linux/mmzone.h>
- #include <linux/spinlock.h>
--#include <linux/mmzone.h>
- #include <linux/notifier.h>
- 
- struct page;
+diff -puN mm/slub.c~slubcearly_kmem_cache_node_alloc-shouldnt-be mm/slub.c
+--- a/mm/slub.c~slubcearly_kmem_cache_node_alloc-shouldnt-be
++++ a/mm/slub.c
+@@ -1878,8 +1878,8 @@ static void init_kmem_cache_node(struct 
+  * Note that this function only works on the kmalloc_node_cache
+  * when allocating for the kmalloc_node_cache.
+  */
+-static struct kmem_cache_node * __init early_kmem_cache_node_alloc(gfp_t gfpflags,
+-								int node)
++static struct kmem_cache_node *early_kmem_cache_node_alloc(gfp_t gfpflags,
++							   int node)
+ {
+ 	struct page *page;
+ 	struct kmem_cache_node *n;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
+git-acpi.patch
 git-alsa.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+git-kvm.patch
+remove-fs-jffs2-ioctlc.patch
+parisc-extern-inline-static-inline.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+maps2-add-proc-kpagemap-interface.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+dontdiff-update-based-on-gitignore-updates.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
