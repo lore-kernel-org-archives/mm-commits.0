@@ -1,100 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-fix-incorrect-timings-in-some-modedb-entries.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:43 -0700
-Message-ID: <200710162042.l9GKghAI015910@imap1.linux-foundation.org>
+Subject: - vfb-make-virtual-framebuffer-mmapable.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:44:07 -0700
+Message-ID: <200710162044.l9GKi7j4016115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38587 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936096AbXJPVHw (ORCPT
+	by vger.kernel.org with ESMTP id S936057AbXJPVIB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:52 -0400
+	Tue, 16 Oct 2007 17:08:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, johnlumby@hotmail.com, mm-commits@vger.kernel.org
+To: ilya.yanok@gmail.com, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: Fix incorrect timings in some modedb entries
+     vfb: make virtual framebuffer mmapable
 has been removed from the -mm tree.  Its filename was
-     fbdev-fix-incorrect-timings-in-some-modedb-entries.patch
+     vfb-make-virtual-framebuffer-mmapable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: Fix incorrect timings in some modedb entries
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: vfb: make virtual framebuffer mmapable
+From: Ilya Yanok <ilya.yanok@gmail.com>
 
-Reported by: John Lumby <johnlumby@hotmail.com>
+Changed things:
 
-Some of the entries in the mode database does not match the comments and/or
-the refresh field.  Adjust the timings so they match with both the comments
-and the refresh rate.
+1. vmalloc()/vfree() replaced with rvmalloc()/rvfree() (taken from
+   drivers/media/video/se401.c)
 
+2. mmap method implemented (mostly taken from drivers/media/video/se401.c)
+
+3. smem_start and smem_len fields of struct fb_fix_screeninfo initialized.
+    (smem_start initialized with virtual address, don't know if it is really
+   bad...)
+
+[adaplas: sparse warning fix]
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/vfb.c |   78 +++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 74 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/modedb.c~fbdev-fix-incorrect-timings-in-some-modedb-entries drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-fix-incorrect-timings-in-some-modedb-entries
-+++ a/drivers/video/modedb.c
-@@ -72,7 +72,7 @@ static const struct fb_videomode modedb[
- 	0, FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1152x864 @ 89 Hz interlaced, 44 kHz hsync */
--	NULL, 69, 1152, 864, 15384, 96, 16, 110, 1, 216, 10,
-+	NULL, 89, 1152, 864, 15384, 96, 16, 110, 1, 216, 10,
- 	0, FB_VMODE_INTERLACED
-     }, {
- 	/* 800x600 @ 72 Hz, 48.0 kHz hsync */
-@@ -120,11 +120,11 @@ static const struct fb_videomode modedb[
- 	0, FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1400x1050 @ 60Hz, 63.9 kHz hsync */
--	NULL, 68, 1400, 1050, 9259, 136, 40, 13, 1, 112, 3,
-+	NULL, 60, 1400, 1050, 9259, 136, 40, 13, 1, 112, 3,
- 	0, FB_VMODE_NONINTERLACED   	
-     }, {
- 	/* 1400x1050 @ 75,107 Hz, 82,392 kHz +hsync +vsync*/
--	NULL, 75, 1400, 1050, 9271, 120, 56, 13, 0, 112, 3,
-+	NULL, 75, 1400, 1050, 7190, 120, 56, 23, 10, 112, 13,
- 	FB_SYNC_HOR_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1400x1050 @ 60 Hz, ? kHz +hsync +vsync*/
-@@ -253,7 +253,7 @@ static const struct fb_videomode modedb[
- 	FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1152x768, 60 Hz, PowerBook G4 Titanium I and II */
--	NULL, 60, 1152, 768, 15386, 158, 26, 29, 3, 136, 6,
-+	NULL, 60, 1152, 768, 14047, 158, 26, 29, 3, 136, 6,
- 	FB_SYNC_HOR_HIGH_ACT|FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED
-     }, {
- 	/* 1366x768, 60 Hz, 47.403 kHz hsync, WXGA 16:9 aspect ratio */
-@@ -306,7 +306,7 @@ const struct fb_videomode vesa_modes[] =
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
- 	  FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
-         /* 12 1024x768i-43 VESA */
--	{ NULL, 53, 1024, 768, 22271, 56, 8, 41, 0, 176, 8,
-+	{ NULL, 43, 1024, 768, 22271, 56, 8, 41, 0, 176, 8,
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
- 	  FB_VMODE_INTERLACED, FB_MODE_IS_VESA },
- 	/* 13 1024x768-60 VESA */
-@@ -383,7 +383,7 @@ const struct fb_videomode vesa_modes[] =
- 	{ NULL, 60, 1920, 1440, 4273, 344, 128, 56, 1, 200, 3,
- 	  FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
- 	/* 33 1920x1440-75 VESA */
--	{ NULL, 60, 1920, 1440, 3367, 352, 144, 56, 1, 224, 3,
-+	{ NULL, 75, 1920, 1440, 3367, 352, 144, 56, 1, 224, 3,
- 	  FB_SYNC_VERT_HIGH_ACT, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
- };
- EXPORT_SYMBOL(vesa_modes);
+diff -puN drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable drivers/video/vfb.c
+--- a/drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable
++++ a/drivers/video/vfb.c
+@@ -37,6 +37,48 @@ static void *videomemory;
+ static u_long videomemorysize = VIDEOMEMSIZE;
+ module_param(videomemorysize, ulong, 0);
+ 
++/**********************************************************************
++ *
++ * Memory management
++ *
++ **********************************************************************/
++static void *rvmalloc(unsigned long size)
++{
++	void *mem;
++	unsigned long adr;
++
++	size = PAGE_ALIGN(size);
++	mem = vmalloc_32(size);
++	if (!mem)
++		return NULL;
++
++	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
++	adr = (unsigned long) mem;
++	while (size > 0) {
++		SetPageReserved(vmalloc_to_page((void *)adr));
++		adr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++
++	return mem;
++}
++
++static void rvfree(void *mem, unsigned long size)
++{
++	unsigned long adr;
++
++	if (!mem)
++		return;
++
++	adr = (unsigned long) mem;
++	while ((long) size > 0) {
++		ClearPageReserved(vmalloc_to_page((void *)adr));
++		adr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++	vfree(mem);
++}
++
+ static struct fb_var_screeninfo vfb_default __initdata = {
+ 	.xres =		640,
+ 	.yres =		480,
+@@ -371,7 +413,33 @@ static int vfb_pan_display(struct fb_var
+ static int vfb_mmap(struct fb_info *info,
+ 		    struct vm_area_struct *vma)
+ {
+-	return -EINVAL;
++	unsigned long start = vma->vm_start;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long page, pos;
++
++	if (offset + size > info->fix.smem_len) {
++		return -EINVAL;
++	}
++
++	pos = (unsigned long)info->fix.smem_start + offset;
++
++	while (size > 0) {
++		page = vmalloc_to_pfn((void *)pos);
++		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
++			return -EAGAIN;
++		}
++		start += PAGE_SIZE;
++		pos += PAGE_SIZE;
++		if (size > PAGE_SIZE)
++			size -= PAGE_SIZE;
++		else
++			size = 0;
++	}
++
++	vma->vm_flags |= VM_RESERVED;	/* avoid to swap out this VMA */
++	return 0;
++
+ }
+ 
+ #ifndef MODULE
+@@ -406,7 +474,7 @@ static int __init vfb_probe(struct platf
+ 	/*
+ 	 * For real video cards we use ioremap.
+ 	 */
+-	if (!(videomemory = vmalloc(videomemorysize)))
++	if (!(videomemory = rvmalloc(videomemorysize)))
+ 		return retval;
+ 
+ 	/*
+@@ -429,6 +497,8 @@ static int __init vfb_probe(struct platf
+ 
+ 	if (!retval || (retval == 4))
+ 		info->var = vfb_default;
++	vfb_fix.smem_start = (unsigned long) videomemory;
++	vfb_fix.smem_len = videomemorysize;
+ 	info->fix = vfb_fix;
+ 	info->pseudo_palette = info->par;
+ 	info->par = NULL;
+@@ -452,7 +522,7 @@ err2:
+ err1:
+ 	framebuffer_release(info);
+ err:
+-	vfree(videomemory);
++	rvfree(videomemory, videomemorysize);
+ 	return retval;
+ }
+ 
+@@ -462,7 +532,7 @@ static int vfb_remove(struct platform_de
+ 
+ 	if (info) {
+ 		unregister_framebuffer(info);
+-		vfree(videomemory);
++		rvfree(videomemory, videomemorysize);
+ 		framebuffer_release(info);
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from ilya.yanok@gmail.com are
 
 origin.patch
-fbcon-delay-the-start-of-the-cursor-timer-until-a-con_switch.patch
-cyber2000fb-checkpatch-fixes.patch
