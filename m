@@ -1,265 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: - spi-driver-runtime-footprint-shrinkage.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:46 -0700
-Message-ID: <200710162039.l9GKdkiQ015589@imap1.linux-foundation.org>
+Subject: - pxafb-add-support-for-other-palette-formats.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:27 -0700
+Message-ID: <200710162042.l9GKgRRe015885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48331 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933584AbXJPVPj (ORCPT
+	by vger.kernel.org with ESMTP id S965770AbXJPVOy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:15:39 -0400
+	Tue, 16 Oct 2007 17:14:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: hjk@linutronix.de, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPI driver runtime footprint shrinkage
+     pxafb: Add support for other palette formats
 has been removed from the -mm tree.  Its filename was
-     spi-driver-runtime-footprint-shrinkage.patch
+     pxafb-add-support-for-other-palette-formats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPI driver runtime footprint shrinkage
-From: David Brownell <david-b@pacbell.net>
+Subject: pxafb: Add support for other palette formats
+From: Hans J. Koch <hjk@linutronix.de>
 
-Shrink the runtime footprint of various SPI drivers:
+This patch adds support for the other three palette formats possible with
+the PXA LCD controller. This is required on boards where an LCD is connected
+with all its 18 bits. With this patch, it's possible to use an 8-bit mode
+with 18-bit palette entries. This used to be possible in 2.4 kernels but
+disappeared in 2.6. With current kernels, you can only get wrong colours
+out of an LCD connected this way.
 
-  - Move the probe() routine into the init section where practical,
-    using platform_driver_probe() to make that safe.  This often saves
-    around 1KB.  Using platform_driver_probe() can also be a correctness
-    fix, if the probe routine is already marked __init but the driver
-    struct keeps a dangling pointer to it after init section removal.
+Users can choose the palette format by doing something like this
+in their board definition:
 
-  - Likewise move remove() routines into the exit sections.
+static struct pxafb_mach_info my_fb_info = {
+        [...]
+        .lccr3          = LCCR3_OutEnH | LCCR3_PixFlEdg | LCCR3_PDFOR_3,
+        .lccr4          = LCCR4_PAL_FOR_2,
+        [...]
+};
 
-These changes would be inappropriate iff the platform devices were
-actually hotpluggable (e.g. they're found on optional addon cards,
-or in an FPGA that's dynamically reprogrammed).  In these cases,
-that's not the situation; it's an SOC controller and the only device
-is initialized before these drivers.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap_uwire.c  |    9 ++++-----
- drivers/spi/pxa2xx_spi.c  |   11 ++++-------
- drivers/spi/spi_imx.c     |   11 +++++------
- drivers/spi/spi_mpc83xx.c |    7 +++----
- drivers/spi/spi_s3c24xx.c |    9 ++++-----
- 5 files changed, 20 insertions(+), 27 deletions(-)
+ drivers/video/pxafb.c               |   64 +++++++++++++++++++-------
+ drivers/video/pxafb.h               |    2 
+ include/asm-arm/arch-pxa/pxa-regs.h |   11 ++++
+ include/asm-arm/arch-pxa/pxafb.h    |    7 ++
+ 4 files changed, 68 insertions(+), 16 deletions(-)
 
-diff -puN drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage drivers/spi/omap_uwire.c
---- a/drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/omap_uwire.c
-@@ -481,7 +481,7 @@ static void uwire_off(struct uwire_spi *
- 	spi_master_put(uwire->bitbang.master);
- }
- 
--static int uwire_probe(struct platform_device *pdev)
-+static int __init uwire_probe(struct platform_device *pdev)
+diff -puN drivers/video/pxafb.c~pxafb-add-support-for-other-palette-formats drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~pxafb-add-support-for-other-palette-formats
++++ a/drivers/video/pxafb.c
+@@ -108,20 +108,38 @@ pxafb_setpalettereg(u_int regno, u_int r
+ 		       u_int trans, struct fb_info *info)
  {
- 	struct spi_master	*master;
- 	struct uwire_spi	*uwire;
-@@ -525,7 +525,7 @@ static int uwire_probe(struct platform_d
- 	return status;
- }
+ 	struct pxafb_info *fbi = (struct pxafb_info *)info;
+-	u_int val, ret = 1;
++	u_int val;
  
--static int uwire_remove(struct platform_device *pdev)
-+static int __exit uwire_remove(struct platform_device *pdev)
- {
- 	struct uwire_spi	*uwire = dev_get_drvdata(&pdev->dev);
- 	int			status;
-@@ -543,8 +543,7 @@ static struct platform_driver uwire_driv
- 		.bus		= &platform_bus_type,
- 		.owner		= THIS_MODULE,
- 	},
--	.probe		= uwire_probe,
--	.remove		= uwire_remove,
-+	.remove		= __exit_p(uwire_remove),
- 	// suspend ... unuse ck
- 	// resume ... use ck
- };
-@@ -566,7 +565,7 @@ static int __init omap_uwire_init(void)
- 		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
+-	if (regno < fbi->palette_size) {
+-		if (fbi->fb.var.grayscale) {
+-			val = ((blue >> 8) & 0x00ff);
+-		} else {
+-			val  = ((red   >>  0) & 0xf800);
+-			val |= ((green >>  5) & 0x07e0);
+-			val |= ((blue  >> 11) & 0x001f);
+-		}
++	if (regno >= fbi->palette_size)
++		return 1;
++
++	if (fbi->fb.var.grayscale) {
++		fbi->palette_cpu[regno] = ((blue >> 8) & 0x00ff);
++		return 0;
++	}
++
++	switch (fbi->lccr4 & LCCR4_PAL_FOR_MASK) {
++	case LCCR4_PAL_FOR_0:
++		val  = ((red   >>  0) & 0xf800);
++		val |= ((green >>  5) & 0x07e0);
++		val |= ((blue  >> 11) & 0x001f);
+ 		fbi->palette_cpu[regno] = val;
+-		ret = 0;
++		break;
++	case LCCR4_PAL_FOR_1:
++		val  = ((red   << 8) & 0x00f80000);
++		val |= ((green >> 0) & 0x0000fc00);
++		val |= ((blue  >> 8) & 0x000000f8);
++		((u32*)(fbi->palette_cpu))[regno] = val;
++		break;
++	case LCCR4_PAL_FOR_2:
++		val  = ((red   << 8) & 0x00fc0000);
++		val |= ((green >> 0) & 0x0000fc00);
++		val |= ((blue  >> 8) & 0x000000fc);
++		((u32*)(fbi->palette_cpu))[regno] = val;
++		break;
  	}
- 
--	return platform_driver_register(&uwire_driver);
-+	return platform_driver_probe(&uwire_driver, uwire_probe);
+-	return ret;
++
++	return 0;
  }
  
- static void __exit omap_uwire_exit(void)
-diff -puN drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1229,7 +1229,7 @@ static void cleanup(struct spi_device *s
- 	kfree(chip);
+ static int
+@@ -363,7 +381,10 @@ static int pxafb_set_par(struct fb_info 
+ 	else
+ 		fbi->palette_size = var->bits_per_pixel == 1 ? 4 : 1 << var->bits_per_pixel;
+ 
+-	palette_mem_size = fbi->palette_size * sizeof(u16);
++	if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
++		palette_mem_size = fbi->palette_size * sizeof(u16);
++	else
++		palette_mem_size = fbi->palette_size * sizeof(u32);
+ 
+ 	pr_debug("pxafb: palette_mem_size = 0x%08lx\n", palette_mem_size);
+ 
+@@ -680,7 +701,13 @@ static int pxafb_activate_var(struct fb_
+ 
+ 	fbi->dmadesc_palette_cpu->fsadr = fbi->palette_dma;
+ 	fbi->dmadesc_palette_cpu->fidr  = 0;
+-	fbi->dmadesc_palette_cpu->ldcmd = (fbi->palette_size * 2) | LDCMD_PAL;
++	if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
++		fbi->dmadesc_palette_cpu->ldcmd = fbi->palette_size *
++							sizeof(u16);
++	else
++		fbi->dmadesc_palette_cpu->ldcmd = fbi->palette_size *
++							sizeof(u32);
++	fbi->dmadesc_palette_cpu->ldcmd |= LDCMD_PAL;
+ 
+ 	if (var->bits_per_pixel == 16) {
+ 		/* palette shouldn't be loaded in true-color mode */
+@@ -719,6 +746,8 @@ static int pxafb_activate_var(struct fb_
+ 	fbi->reg_lccr1 = new_regs.lccr1;
+ 	fbi->reg_lccr2 = new_regs.lccr2;
+ 	fbi->reg_lccr3 = new_regs.lccr3;
++	fbi->reg_lccr4 = LCCR4 & (~LCCR4_PAL_FOR_MASK);
++	fbi->reg_lccr4 |= (fbi->lccr4 & LCCR4_PAL_FOR_MASK);
+ 	set_hsync_time(fbi, pcd);
+ 	local_irq_restore(flags);
+ 
+@@ -825,6 +854,7 @@ static void pxafb_enable_controller(stru
+ 	pr_debug("LCCR1 0x%08x\n", (unsigned int) LCCR1);
+ 	pr_debug("LCCR2 0x%08x\n", (unsigned int) LCCR2);
+ 	pr_debug("LCCR3 0x%08x\n", (unsigned int) LCCR3);
++	pr_debug("LCCR4 0x%08x\n", (unsigned int) LCCR4);
  }
  
--static int init_queue(struct driver_data *drv_data)
-+static int __init init_queue(struct driver_data *drv_data)
- {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1317,7 +1317,7 @@ static int destroy_queue(struct driver_d
- 	return 0;
- }
- 
--static int pxa2xx_spi_probe(struct platform_device *pdev)
-+static int __init pxa2xx_spi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct pxa2xx_spi_master *platform_info;
-@@ -1621,8 +1621,7 @@ static struct platform_driver driver = {
- 		.bus = &platform_bus_type,
- 		.owner = THIS_MODULE,
- 	},
--	.probe = pxa2xx_spi_probe,
--	.remove = __devexit_p(pxa2xx_spi_remove),
-+	.remove = pxa2xx_spi_remove,
- 	.shutdown = pxa2xx_spi_shutdown,
- 	.suspend = pxa2xx_spi_suspend,
- 	.resume = pxa2xx_spi_resume,
-@@ -1630,9 +1629,7 @@ static struct platform_driver driver = {
- 
- static int __init pxa2xx_spi_init(void)
- {
--	platform_driver_register(&driver);
+ static void pxafb_disable_controller(struct pxafb_info *fbi)
+@@ -1094,10 +1124,13 @@ static int __init pxafb_map_video_memory
+ 		 * dma_writecombine_mmap)
+ 		 */
+ 		fbi->fb.fix.smem_start = fbi->screen_dma;
 -
--	return 0;
-+	return platform_driver_probe(&driver, pxa2xx_spi_probe);
- }
- module_init(pxa2xx_spi_init);
+ 		fbi->palette_size = fbi->fb.var.bits_per_pixel == 8 ? 256 : 16;
  
-diff -puN drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_imx.c
---- a/drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_imx.c
-@@ -1361,7 +1361,7 @@ static void cleanup(struct spi_device *s
- 	kfree(spi_get_ctldata(spi));
- }
+-		palette_mem_size = fbi->palette_size * sizeof(u16);
++		if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
++			palette_mem_size = fbi->palette_size * sizeof(u16);
++		else
++			palette_mem_size = fbi->palette_size * sizeof(u32);
++
+ 		pr_debug("pxafb: palette_mem_size = 0x%08lx\n", palette_mem_size);
  
--static int init_queue(struct driver_data *drv_data)
-+static int __init init_queue(struct driver_data *drv_data)
- {
- 	INIT_LIST_HEAD(&drv_data->queue);
- 	spin_lock_init(&drv_data->lock);
-@@ -1444,7 +1444,7 @@ static int destroy_queue(struct driver_d
- 	return 0;
- }
+ 		fbi->palette_cpu = (u16 *)(fbi->map_cpu + PAGE_SIZE - palette_mem_size);
+@@ -1160,6 +1193,7 @@ static struct pxafb_info * __init pxafb_
  
--static int spi_imx_probe(struct platform_device *pdev)
-+static int __init spi_imx_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct spi_imx_master *platform_info;
-@@ -1622,7 +1622,7 @@ err_no_mem:
- 	return status;
- }
+ 	fbi->lccr0			= inf->lccr0;
+ 	fbi->lccr3			= inf->lccr3;
++	fbi->lccr4			= inf->lccr4;
+ 	fbi->state			= C_STARTUP;
+ 	fbi->task_state			= (u_char)-1;
  
--static int __devexit spi_imx_remove(struct platform_device *pdev)
-+static int __exit spi_imx_remove(struct platform_device *pdev)
- {
- 	struct driver_data *drv_data = platform_get_drvdata(pdev);
- 	int irq;
-@@ -1739,8 +1739,7 @@ static struct platform_driver driver = {
- 		.bus = &platform_bus_type,
- 		.owner = THIS_MODULE,
- 	},
--	.probe = spi_imx_probe,
--	.remove = __devexit_p(spi_imx_remove),
-+	.remove = __exit_p(spi_imx_remove),
- 	.shutdown = spi_imx_shutdown,
- 	.suspend = spi_imx_suspend,
- 	.resume = spi_imx_resume,
-@@ -1748,7 +1747,7 @@ static struct platform_driver driver = {
+diff -puN drivers/video/pxafb.h~pxafb-add-support-for-other-palette-formats drivers/video/pxafb.h
+--- a/drivers/video/pxafb.h~pxafb-add-support-for-other-palette-formats
++++ a/drivers/video/pxafb.h
+@@ -71,6 +71,7 @@ struct pxafb_info {
  
- static int __init spi_imx_init(void)
- {
--	return platform_driver_register(&driver);
-+	return platform_driver_probe(&driver, spi_imx_probe);
- }
- module_init(spi_imx_init);
+ 	u_int			lccr0;
+ 	u_int			lccr3;
++	u_int			lccr4;
+ 	u_int			cmap_inverse:1,
+ 				cmap_static:1,
+ 				unused:30;
+@@ -79,6 +80,7 @@ struct pxafb_info {
+ 	u_int			reg_lccr1;
+ 	u_int			reg_lccr2;
+ 	u_int			reg_lccr3;
++	u_int			reg_lccr4;
  
-diff -puN drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -511,7 +511,7 @@ err:
- 	return ret;
- }
+ 	unsigned long	hsync_time;
  
--static int __devexit mpc83xx_spi_remove(struct platform_device *dev)
-+static int __exit mpc83xx_spi_remove(struct platform_device *dev)
- {
- 	struct mpc83xx_spi *mpc83xx_spi;
- 	struct spi_master *master;
-@@ -529,8 +529,7 @@ static int __devexit mpc83xx_spi_remove(
+diff -puN include/asm-arm/arch-pxa/pxa-regs.h~pxafb-add-support-for-other-palette-formats include/asm-arm/arch-pxa/pxa-regs.h
+--- a/include/asm-arm/arch-pxa/pxa-regs.h~pxafb-add-support-for-other-palette-formats
++++ a/include/asm-arm/arch-pxa/pxa-regs.h
+@@ -1823,6 +1823,7 @@
+ #define LCCR1		__REG(0x44000004)  /* LCD Controller Control Register 1 */
+ #define LCCR2		__REG(0x44000008)  /* LCD Controller Control Register 2 */
+ #define LCCR3		__REG(0x4400000C)  /* LCD Controller Control Register 3 */
++#define LCCR4		__REG(0x44000010)  /* LCD Controller Control Register 3 */
+ #define DFBR0		__REG(0x44000020)  /* DMA Channel 0 Frame Branch Register */
+ #define DFBR1		__REG(0x44000024)  /* DMA Channel 1 Frame Branch Register */
+ #define LCSR		__REG(0x44000038)  /* LCD Controller Status Register */
+@@ -1836,6 +1837,16 @@
+ #define LCCR3_8BPP (3 << 24)
+ #define LCCR3_16BPP (4 << 24)
  
- MODULE_ALIAS("mpc83xx_spi");			/* for platform bus hotplug */
- static struct platform_driver mpc83xx_spi_driver = {
--	.probe = mpc83xx_spi_probe,
--	.remove = __devexit_p(mpc83xx_spi_remove),
-+	.remove = __exit_p(mpc83xx_spi_remove),
- 	.driver = {
- 		   .name = "mpc83xx_spi",
- 	},
-@@ -538,7 +537,7 @@ static struct platform_driver mpc83xx_sp
++#define LCCR3_PDFOR_0 (0 << 30)
++#define LCCR3_PDFOR_1 (1 << 30)
++#define LCCR3_PDFOR_2 (2 << 30)
++#define LCCR3_PDFOR_3 (3 << 30)
++
++#define LCCR4_PAL_FOR_0 (0 << 15)
++#define LCCR4_PAL_FOR_1 (1 << 15)
++#define LCCR4_PAL_FOR_2 (2 << 15)
++#define LCCR4_PAL_FOR_MASK (3 << 15)
++
+ #define FDADR0		__REG(0x44000200)  /* DMA Channel 0 Frame Descriptor Address Register */
+ #define FSADR0		__REG(0x44000204)  /* DMA Channel 0 Frame Source Address Register */
+ #define FIDR0		__REG(0x44000208)  /* DMA Channel 0 Frame ID Register */
+diff -puN include/asm-arm/arch-pxa/pxafb.h~pxafb-add-support-for-other-palette-formats include/asm-arm/arch-pxa/pxafb.h
+--- a/include/asm-arm/arch-pxa/pxafb.h~pxafb-add-support-for-other-palette-formats
++++ a/include/asm-arm/arch-pxa/pxafb.h
+@@ -70,7 +70,12 @@ struct pxafb_mach_info {
+ 	 *      LCCR3_HSP, LCCR3_VSP, LCCR0_Pcd(x), LCCR3_Bpp
+ 	 */
+ 	u_int		lccr3;
+-
++	/* The following should be defined in LCCR4
++	 *	LCCR4_PAL_FOR_0 or LCCR4_PAL_FOR_1 or LCCR4_PAL_FOR_2
++	 *
++	 * All other bits in LCCR4 should be left alone.
++	 */
++	u_int		lccr4;
+ 	void (*pxafb_backlight_power)(int);
+ 	void (*pxafb_lcd_power)(int, struct fb_var_screeninfo *);
  
- static int __init mpc83xx_spi_init(void)
- {
--	return platform_driver_register(&mpc83xx_spi_driver);
-+	return platform_driver_probe(&mpc83xx_spi_driver, mpc83xx_spi_probe);
- }
- 
- static void __exit mpc83xx_spi_exit(void)
-diff -puN drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -233,7 +233,7 @@ static irqreturn_t s3c24xx_spi_irq(int i
- 	return IRQ_HANDLED;
- }
- 
--static int s3c24xx_spi_probe(struct platform_device *pdev)
-+static int __init s3c24xx_spi_probe(struct platform_device *pdev)
- {
- 	struct s3c24xx_spi *hw;
- 	struct spi_master *master;
-@@ -382,7 +382,7 @@ static int s3c24xx_spi_probe(struct plat
- 	return err;
- }
- 
--static int s3c24xx_spi_remove(struct platform_device *dev)
-+static int __exit s3c24xx_spi_remove(struct platform_device *dev)
- {
- 	struct s3c24xx_spi *hw = platform_get_drvdata(dev);
- 
-@@ -429,8 +429,7 @@ static int s3c24xx_spi_resume(struct pla
- 
- MODULE_ALIAS("s3c2410_spi");			/* for platform bus hotplug */
- static struct platform_driver s3c24xx_spidrv = {
--	.probe		= s3c24xx_spi_probe,
--	.remove		= s3c24xx_spi_remove,
-+	.remove		= __exit_p(s3c24xx_spi_remove),
- 	.suspend	= s3c24xx_spi_suspend,
- 	.resume		= s3c24xx_spi_resume,
- 	.driver		= {
-@@ -441,7 +440,7 @@ static struct platform_driver s3c24xx_sp
- 
- static int __init s3c24xx_spi_init(void)
- {
--        return platform_driver_register(&s3c24xx_spidrv);
-+        return platform_driver_probe(&s3c24xx_spidrv, s3c24xx_spi_probe);
- }
- 
- static void __exit s3c24xx_spi_exit(void)
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from hjk@linutronix.de are
 
 origin.patch
-acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
