@@ -1,353 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-add-proc-pid-pagemap-interface.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:34 -0700
-Message-ID: <200710162136.l9GLaYs6018600@imap1.linux-foundation.org>
+Subject: - cpuset-remove-sched-domain-hooks-from-cpusets.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:36 -0700
+Message-ID: <200710162039.l9GKda5g015558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37679 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53331 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934310AbXJPVhY (ORCPT
+	by vger.kernel.org with ESMTP id S934983AbXJPVh3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:37:24 -0400
+	Tue, 16 Oct 2007 17:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: pj@sgi.com, clameter@engr.sgi.com, dino@in.ibm.com, mingo@elte.hu, nickpiggin@yahoo.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps: add /proc/pid/pagemap interface
+     cpuset: remove sched domain hooks from cpusets
 has been removed from the -mm tree.  Its filename was
-     maps2-add-proc-pid-pagemap-interface.patch
+     cpuset-remove-sched-domain-hooks-from-cpusets.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: maps: add /proc/pid/pagemap interface
-From: Matt Mackall <mpm@selenic.com>
+Subject: cpuset: remove sched domain hooks from cpusets
+From: Paul Jackson <pj@sgi.com>
 
-This interface provides a mapping for each page in an address space to its
-physical page frame number, allowing precise determination of what pages are
-mapped and what pages are shared between processes.
+Remove the cpuset hooks that defined sched domains depending on the setting
+of the 'cpu_exclusive' flag.
 
-[akpm@linux-foundation.org: warning fix]
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+The cpu_exclusive flag can only be set on a child if it is set on the
+parent.
+
+This made that flag painfully unsuitable for use as a flag defining a
+partitioning of a system.
+
+It was entirely unobvious to a cpuset user what partitioning of sched
+domains they would be causing when they set that one cpu_exclusive bit on
+one cpuset, because it depended on what CPUs were in the remainder of that
+cpusets siblings and child cpusets, after subtracting out other
+cpu_exclusive cpusets.
+
+Furthermore, there was no way on production systems to query the
+result.
+
+Using the cpu_exclusive flag for this was simply wrong from the get go.
+
+Fortunately, it was sufficiently borked that so far as I know, almost no
+successful use has been made of this.  One real time group did use it to
+affectively isolate CPUs from any load balancing efforts.  They are willing
+to adapt to alternative mechanisms for this, such as someway to manipulate
+the list of isolated CPUs on a running system.  They can do without this
+present cpu_exclusive based mechanism while we develop an alternative.
+
+There is a real risk, to the best of my understanding, of users
+accidentally setting up a partitioned scheduler domains, inhibiting desired
+load balancing across all their CPUs, due to the nonobvious (from the
+cpuset perspective) side affects of the cpu_exclusive flag.
+
+Furthermore, since there was no way on a running system to see what one was
+doing with sched domains, this change will be invisible to any using code. 
+Unless they have real insight to the scheduler load balancing choices, they
+will be unable to detect that this change has been made in the kernel's
+behaviour.
+
+Initial discussion on lkml of this patch has generated much comment.  My
+(probably controversial) take on that discussion is that it has reached a
+rough concensus that the current cpuset cpu_exclusive mechanism for
+defining sched domains is borked.  There is no concensus on the
+replacement.  But since we can remove this mechanism, and since its
+continued presence risks causing unwanted partitioning of the schedulers
+load balancing, we should remove it while we can, as we proceed to work the
+replacement scheduler domain mechanisms.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Christoph Lameter <clameter@engr.sgi.com>
+Cc: Dinakar Guniguntala <dino@in.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |    8 +
- fs/proc/internal.h |    2 
- fs/proc/task_mmu.c |  209 +++++++++++++++++++++++++++++++++++++++++++
- init/Kconfig       |   10 ++
- 4 files changed, 228 insertions(+), 1 deletion(-)
+ Documentation/cpusets.txt |   17 -------
+ include/linux/sched.h     |    3 -
+ kernel/cpuset.c           |   84 ------------------------------------
+ kernel/sched.c            |   29 ------------
+ 4 files changed, 2 insertions(+), 131 deletions(-)
 
-diff -puN fs/proc/base.c~maps2-add-proc-pid-pagemap-interface fs/proc/base.c
---- a/fs/proc/base.c~maps2-add-proc-pid-pagemap-interface
-+++ a/fs/proc/base.c
-@@ -635,7 +635,7 @@ out_no_task:
- }
- #endif
+diff -puN Documentation/cpusets.txt~cpuset-remove-sched-domain-hooks-from-cpusets Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpuset-remove-sched-domain-hooks-from-cpusets
++++ a/Documentation/cpusets.txt
+@@ -87,9 +87,6 @@ This can be especially valuable on:
+       and a database), or
+     * NUMA systems running large HPC applications with demanding
+       performance characteristics.
+-    * Also cpu_exclusive cpusets are useful for servers running orthogonal
+-      workloads such as RT applications requiring low latency and HPC
+-      applications that are throughput sensitive
  
--static loff_t mem_lseek(struct file * file, loff_t offset, int orig)
-+loff_t mem_lseek(struct file * file, loff_t offset, int orig)
- {
- 	switch (orig) {
- 	case 0:
-@@ -2039,6 +2039,9 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",      S_IRUGO, smaps),
- #endif
-+#ifdef CONFIG_PROC_PAGEMAP
-+	REG("pagemap",    S_IRUSR, pagemap),
-+#endif
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",       S_IRUGO|S_IXUGO, attr_dir),
-@@ -2329,6 +2332,9 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",     S_IRUGO, smaps),
- #endif
-+#ifdef CONFIG_PROC_PAGEMAP
-+	REG("pagemap",    S_IRUSR, pagemap),
-+#endif
- #endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",      S_IRUGO|S_IXUGO, attr_dir),
-diff -puN fs/proc/internal.h~maps2-add-proc-pid-pagemap-interface fs/proc/internal.h
---- a/fs/proc/internal.h~maps2-add-proc-pid-pagemap-interface
-+++ a/fs/proc/internal.h
-@@ -50,11 +50,13 @@ extern int proc_tid_stat(struct task_str
- extern int proc_tgid_stat(struct task_struct *, char *);
- extern int proc_pid_status(struct task_struct *, char *);
- extern int proc_pid_statm(struct task_struct *, char *);
-+extern loff_t mem_lseek(struct file * file, loff_t offset, int orig);
+ These subsets, or "soft partitions" must be able to be dynamically
+ adjusted, as the job mix changes, without impacting other concurrently
+@@ -132,8 +129,6 @@ Cpusets extends these two mechanisms as 
+  - A cpuset may be marked exclusive, which ensures that no other
+    cpuset (except direct ancestors and descendents) may contain
+    any overlapping CPUs or Memory Nodes.
+-   Also a cpu_exclusive cpuset would be associated with a sched
+-   domain.
+  - You can list all the tasks (by pid) attached to any cpuset.
  
- extern const struct file_operations proc_maps_operations;
- extern const struct file_operations proc_numa_maps_operations;
- extern const struct file_operations proc_smaps_operations;
- extern const struct file_operations proc_clear_refs_operations;
-+extern const struct file_operations proc_pagemap_operations;
+ The implementation of cpusets requires a few, simple hooks
+@@ -145,9 +140,6 @@ into the rest of the kernel, none in per
+    allowed in that tasks cpuset.
+  - in sched.c migrate_all_tasks(), to keep migrating tasks within
+    the CPUs allowed by their cpuset, if possible.
+- - in sched.c, a new API partition_sched_domains for handling
+-   sched domain changes associated with cpu_exclusive cpusets
+-   and related changes in both sched.c and arch/ia64/kernel/domain.c
+  - in the mbind and set_mempolicy system calls, to mask the requested
+    Memory Nodes by what's allowed in that tasks cpuset.
+  - in page_alloc.c, to restrict memory to allowed nodes.
+@@ -232,15 +224,6 @@ If a cpuset is cpu or mem exclusive, no 
+ a direct ancestor or descendent, may share any of the same CPUs or
+ Memory Nodes.
  
- void free_proc_entry(struct proc_dir_entry *de);
- 
-diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface
-+++ a/fs/proc/task_mmu.c
-@@ -5,6 +5,7 @@
- #include <linux/highmem.h>
- #include <linux/ptrace.h>
- #include <linux/pagemap.h>
-+#include <linux/ptrace.h>
- #include <linux/mempolicy.h>
- 
- #include <asm/elf.h>
-@@ -530,3 +531,211 @@ const struct file_operations proc_numa_m
+-A cpuset that is cpu_exclusive has a scheduler (sched) domain
+-associated with it.  The sched domain consists of all CPUs in the
+-current cpuset that are not part of any exclusive child cpusets.
+-This ensures that the scheduler load balancing code only balances
+-against the CPUs that are in the sched domain as defined above and
+-not all of the CPUs in the system. This removes any overhead due to
+-load balancing code trying to pull tasks outside of the cpu_exclusive
+-cpuset only to be prevented by the tasks' cpus_allowed mask.
+-
+ A cpuset that is mem_exclusive restricts kernel allocations for
+ page, buffer and other data commonly shared by the kernel across
+ multiple users.  All cpusets, whether mem_exclusive or not, restrict
+diff -puN include/linux/sched.h~cpuset-remove-sched-domain-hooks-from-cpusets include/linux/sched.h
+--- a/include/linux/sched.h~cpuset-remove-sched-domain-hooks-from-cpusets
++++ a/include/linux/sched.h
+@@ -729,9 +729,6 @@ struct sched_domain {
+ #endif
  };
- #endif
  
-+#ifdef CONFIG_PROC_PAGEMAP
-+struct pagemapread {
-+	struct mm_struct *mm;
-+	unsigned long next;
-+	unsigned long *buf;
-+	pte_t *ptebuf;
-+	unsigned long pos;
-+	size_t count;
-+	int index;
-+	char __user *out;
-+};
-+
-+static int flush_pagemap(struct pagemapread *pm)
-+{
-+	int n = min(pm->count, pm->index * sizeof(unsigned long));
-+	if (copy_to_user(pm->out, pm->buf, n))
-+		return -EFAULT;
-+	pm->out += n;
-+	pm->pos += n;
-+	pm->count -= n;
-+	pm->index = 0;
-+	cond_resched();
-+	return 0;
-+}
-+
-+static int add_to_pagemap(unsigned long addr, unsigned long pfn,
-+			  struct pagemapread *pm)
-+{
-+	pm->buf[pm->index++] = pfn;
-+	pm->next = addr + PAGE_SIZE;
-+	if (pm->index * sizeof(unsigned long) >= PAGE_SIZE ||
-+	    pm->index * sizeof(unsigned long) >= pm->count)
-+		return flush_pagemap(pm);
-+	return 0;
-+}
-+
-+static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			     void *private)
-+{
-+	struct pagemapread *pm = private;
-+	pte_t *pte;
+-extern int partition_sched_domains(cpumask_t *partition1,
+-				    cpumask_t *partition2);
+-
+ #endif	/* CONFIG_SMP */
+ 
+ /*
+diff -puN kernel/cpuset.c~cpuset-remove-sched-domain-hooks-from-cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-remove-sched-domain-hooks-from-cpusets
++++ a/kernel/cpuset.c
+@@ -755,68 +755,13 @@ static int validate_change(const struct 
+ }
+ 
+ /*
+- * For a given cpuset cur, partition the system as follows
+- * a. All cpus in the parent cpuset's cpus_allowed that are not part of any
+- *    exclusive child cpusets
+- * b. All cpus in the current cpuset's cpus_allowed that are not part of any
+- *    exclusive child cpusets
+- * Build these two partitions by calling partition_sched_domains
+- *
+- * Call with manage_mutex held.  May nest a call to the
+- * lock_cpu_hotplug()/unlock_cpu_hotplug() pair.
+- * Must not be called holding callback_mutex, because we must
+- * not call lock_cpu_hotplug() while holding callback_mutex.
+- */
+-
+-static void update_cpu_domains(struct cpuset *cur)
+-{
+-	struct cpuset *c, *par = cur->parent;
+-	cpumask_t pspan, cspan;
+-
+-	if (par == NULL || cpus_empty(cur->cpus_allowed))
+-		return;
+-
+-	/*
+-	 * Get all cpus from parent's cpus_allowed not part of exclusive
+-	 * children
+-	 */
+-	pspan = par->cpus_allowed;
+-	list_for_each_entry(c, &par->children, sibling) {
+-		if (is_cpu_exclusive(c))
+-			cpus_andnot(pspan, pspan, c->cpus_allowed);
+-	}
+-	if (!is_cpu_exclusive(cur)) {
+-		cpus_or(pspan, pspan, cur->cpus_allowed);
+-		if (cpus_equal(pspan, cur->cpus_allowed))
+-			return;
+-		cspan = CPU_MASK_NONE;
+-	} else {
+-		if (cpus_empty(pspan))
+-			return;
+-		cspan = cur->cpus_allowed;
+-		/*
+-		 * Get all cpus from current cpuset's cpus_allowed not part
+-		 * of exclusive children
+-		 */
+-		list_for_each_entry(c, &cur->children, sibling) {
+-			if (is_cpu_exclusive(c))
+-				cpus_andnot(cspan, cspan, c->cpus_allowed);
+-		}
+-	}
+-
+-	lock_cpu_hotplug();
+-	partition_sched_domains(&pspan, &cspan);
+-	unlock_cpu_hotplug();
+-}
+-
+-/*
+  * Call with manage_mutex held.  May take callback_mutex during call.
+  */
+ 
+ static int update_cpumask(struct cpuset *cs, char *buf)
+ {
+ 	struct cpuset trialcs;
+-	int retval, cpus_unchanged;
++	int retval;
+ 
+ 	/* top_cpuset.cpus_allowed tracks cpu_online_map; it's read-only */
+ 	if (cs == &top_cpuset)
+@@ -843,12 +788,9 @@ static int update_cpumask(struct cpuset 
+ 	retval = validate_change(cs, &trialcs);
+ 	if (retval < 0)
+ 		return retval;
+-	cpus_unchanged = cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed);
+ 	mutex_lock(&callback_mutex);
+ 	cs->cpus_allowed = trialcs.cpus_allowed;
+ 	mutex_unlock(&callback_mutex);
+-	if (is_cpu_exclusive(cs) && !cpus_unchanged)
+-		update_cpu_domains(cs);
+ 	return 0;
+ }
+ 
+@@ -1085,7 +1027,7 @@ static int update_flag(cpuset_flagbits_t
+ {
+ 	int turning_on;
+ 	struct cpuset trialcs;
+-	int err, cpu_exclusive_changed;
 +	int err;
-+
-+	pte = pte_offset_map(pmd, addr);
-+
-+#ifdef CONFIG_HIGHPTE
-+	/* copy PTE directory to temporary buffer and unmap it */
-+	memcpy(pm->ptebuf, pte, PAGE_ALIGN((unsigned long)pte) - (unsigned long)pte);
-+	pte_unmap(pte);
-+	pte = pm->ptebuf;
-+#endif
-+
-+	for (; addr != end; pte++, addr += PAGE_SIZE) {
-+		if (addr < pm->next)
-+			continue;
-+		if (!pte_present(*pte))
-+			err = add_to_pagemap(addr, -1, pm);
-+		else
-+			err = add_to_pagemap(addr, pte_pfn(*pte), pm);
-+		if (err)
-+			return err;
-+	}
-+
-+#ifndef CONFIG_HIGHPTE
-+	pte_unmap(pte - 1);
-+#endif
-+
-+	return 0;
-+}
-+
-+static int pagemap_fill(struct pagemapread *pm, unsigned long end)
-+{
-+	int ret;
-+
-+	while (pm->next != end) {
-+		ret = add_to_pagemap(pm->next, -1UL, pm);
-+		if (ret)
-+			return ret;
-+	}
-+	return 0;
-+}
-+
-+static struct mm_walk pagemap_walk = { .pmd_entry = pagemap_pte_range };
-+
-+/*
-+ * /proc/pid/pagemap - an array mapping virtual pages to pfns
-+ *
-+ * For each page in the address space, this file contains one long
-+ * representing the corresponding physical page frame number (PFN) or
-+ * -1 if the page isn't present. This allows determining precisely
-+ * which pages are mapped and comparing mapped pages between
-+ * processes.
-+ *
-+ * Efficient users of this interface will use /proc/pid/maps to
-+ * determine which areas of memory are actually mapped and llseek to
-+ * skip over unmapped regions.
-+ *
-+ * The first 4 bytes of this file form a simple header:
-+ *
-+ * first byte:   0 for big endian, 1 for little
-+ * second byte:  page shift (eg 12 for 4096 byte pages)
-+ * third byte:   entry size in bytes (currently either 4 or 8)
-+ * fourth byte:  header size
-+ */
-+static ssize_t pagemap_read(struct file *file, char __user *buf,
-+			    size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
-+	unsigned long src = *ppos;
-+	unsigned long *page;
-+	unsigned long addr, end, vend, svpfn, evpfn;
-+	struct mm_struct *mm;
-+	struct vm_area_struct *vma;
-+	struct pagemapread pm;
-+	int ret = -ESRCH;
-+
-+	if (!task)
-+		goto out_no_task;
-+
-+	ret = -EACCES;
-+	if (!ptrace_may_attach(task))
-+		goto out;
-+
-+	ret = -EIO;
-+	svpfn = src / sizeof(unsigned long) - 1;
-+	addr = PAGE_SIZE * svpfn;
-+	if ((svpfn + 1) * sizeof(unsigned long) != src)
-+		goto out;
-+	evpfn = min((src + count) / sizeof(unsigned long),
-+		    ((~0UL) >> PAGE_SHIFT) + 1);
-+	count = (evpfn - svpfn) * sizeof(unsigned long);
-+	end = PAGE_SIZE * evpfn;
-+
-+	ret = -ENOMEM;
-+	page = kzalloc(PAGE_SIZE, GFP_USER);
-+	if (!page)
-+		goto out;
-+
-+#ifdef CONFIG_HIGHPTE
-+	pm.ptebuf = kzalloc(PAGE_SIZE, GFP_USER);
-+	if (!pm.ptebuf)
-+		goto out_free;
-+#endif
-+
-+	ret = 0;
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out_freepte;
-+
-+	pm.mm = mm;
-+	pm.next = addr;
-+	pm.buf = page;
-+	pm.pos = src;
-+	pm.count = count;
-+	pm.index = 0;
-+	pm.out = buf;
-+
-+	if (svpfn == -1) {
-+		add_to_pagemap(pm.next, 0, &pm);
-+		((char *)page)[0] = (ntohl(1) != 1);
-+		((char *)page)[1] = PAGE_SHIFT;
-+		((char *)page)[2] = sizeof(unsigned long);
-+		((char *)page)[3] = sizeof(unsigned long);
-+	}
-+
-+	down_read(&mm->mmap_sem);
-+	vma = find_vma(mm, pm.next);
-+	while (pm.count > 0 && vma) {
-+		if (!ptrace_may_attach(task)) {
-+			ret = -EIO;
-+			goto out_mm;
-+		}
-+		vend = min(vma->vm_start - 1, end - 1) + 1;
-+		ret = pagemap_fill(&pm, vend);
-+		if (ret || !pm.count)
-+			break;
-+		vend = min(vma->vm_end - 1, end - 1) + 1;
-+		ret = walk_page_range(mm, vma->vm_start, vend,
-+				      &pagemap_walk, &pm);
-+		vma = vma->vm_next;
-+	}
-+	up_read(&mm->mmap_sem);
-+
-+	ret = pagemap_fill(&pm, end);
-+
-+	*ppos = pm.pos;
-+	if (!ret)
-+		ret = pm.pos - src;
-+
-+out_mm:
-+	mmput(mm);
-+out_freepte:
-+#ifdef CONFIG_HIGHPTE
-+	kfree(pm.ptebuf);
-+out_free:
-+#endif
-+	kfree(page);
-+out:
-+	put_task_struct(task);
-+out_no_task:
-+	return ret;
-+}
-+
-+const struct file_operations proc_pagemap_operations = {
-+	.llseek		= mem_lseek, /* borrow this */
-+	.read		= pagemap_read,
-+};
-+#endif
-diff -puN init/Kconfig~maps2-add-proc-pid-pagemap-interface init/Kconfig
---- a/init/Kconfig~maps2-add-proc-pid-pagemap-interface
-+++ a/init/Kconfig
-@@ -613,6 +613,16 @@ config PROC_CLEAR_REFS
-           working set size. Disabling this interface will reduce
-           the size of the kernel for small machines.
  
-+config PROC_PAGEMAP
-+	default y
-+	bool "Enable /proc/pid/pagemap support" if EMBEDDED && PROC_FS && MMU
-+	help
-+	  The /proc/pid/pagemap interface allows reading the
-+          kernel's virtual memory to page frame mapping to determine which
-+          individual pages a process has mapped and which pages it shares
-+          with other processes. Disabling this interface will reduce the
-+          size of the kernel for small machines.
-+
- endmenu		# General setup
+ 	turning_on = (simple_strtoul(buf, NULL, 10) != 0);
  
- config RT_MUTEXES
+@@ -1098,14 +1040,10 @@ static int update_flag(cpuset_flagbits_t
+ 	err = validate_change(cs, &trialcs);
+ 	if (err < 0)
+ 		return err;
+-	cpu_exclusive_changed =
+-		(is_cpu_exclusive(cs) != is_cpu_exclusive(&trialcs));
+ 	mutex_lock(&callback_mutex);
+ 	cs->flags = trialcs.flags;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	if (cpu_exclusive_changed)
+-                update_cpu_domains(cs);
+ 	return 0;
+ }
+ 
+@@ -1965,17 +1903,6 @@ static int cpuset_mkdir(struct inode *di
+ 	return cpuset_create(c_parent, dentry->d_name.name, mode | S_IFDIR);
+ }
+ 
+-/*
+- * Locking note on the strange update_flag() call below:
+- *
+- * If the cpuset being removed is marked cpu_exclusive, then simulate
+- * turning cpu_exclusive off, which will call update_cpu_domains().
+- * The lock_cpu_hotplug() call in update_cpu_domains() must not be
+- * made while holding callback_mutex.  Elsewhere the kernel nests
+- * callback_mutex inside lock_cpu_hotplug() calls.  So the reverse
+- * nesting would risk an ABBA deadlock.
+- */
+-
+ static int cpuset_rmdir(struct inode *unused_dir, struct dentry *dentry)
+ {
+ 	struct cpuset *cs = dentry->d_fsdata;
+@@ -1995,13 +1922,6 @@ static int cpuset_rmdir(struct inode *un
+ 		mutex_unlock(&manage_mutex);
+ 		return -EBUSY;
+ 	}
+-	if (is_cpu_exclusive(cs)) {
+-		int retval = update_flag(CS_CPU_EXCLUSIVE, cs, "0");
+-		if (retval < 0) {
+-			mutex_unlock(&manage_mutex);
+-			return retval;
+-		}
+-	}
+ 	parent = cs->parent;
+ 	mutex_lock(&callback_mutex);
+ 	set_bit(CS_REMOVED, &cs->flags);
+diff -puN kernel/sched.c~cpuset-remove-sched-domain-hooks-from-cpusets kernel/sched.c
+--- a/kernel/sched.c~cpuset-remove-sched-domain-hooks-from-cpusets
++++ a/kernel/sched.c
+@@ -6348,35 +6348,6 @@ static void detach_destroy_domains(const
+ 	arch_destroy_sched_domains(cpu_map);
+ }
+ 
+-/*
+- * Partition sched domains as specified by the cpumasks below.
+- * This attaches all cpus from the cpumasks to the NULL domain,
+- * waits for a RCU quiescent period, recalculates sched
+- * domain information and then attaches them back to the
+- * correct sched domains
+- * Call with hotplug lock held
+- */
+-int partition_sched_domains(cpumask_t *partition1, cpumask_t *partition2)
+-{
+-	cpumask_t change_map;
+-	int err = 0;
+-
+-	cpus_and(*partition1, *partition1, cpu_online_map);
+-	cpus_and(*partition2, *partition2, cpu_online_map);
+-	cpus_or(change_map, *partition1, *partition2);
+-
+-	/* Detach sched domains from all of the affected cpus */
+-	detach_destroy_domains(&change_map);
+-	if (!cpus_empty(*partition1))
+-		err = build_sched_domains(partition1);
+-	if (!err && !cpus_empty(*partition2))
+-		err = build_sched_domains(partition2);
+-
+-	register_sched_domain_sysctl();
+-
+-	return err;
+-}
+-
+ #if defined(CONFIG_SCHED_MC) || defined(CONFIG_SCHED_SMT)
+ static int arch_reinit_sched_domains(void)
+ {
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from pj@sgi.com are
 
 origin.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
-maps2-add-proc-kpagemap-interface.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-lib-sortc-optimization.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+git-scsi-misc.patch
+git-scsi-misc-include-fix.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+task-containers-enable-containers-by-default-in-some-configs.patch
+whitespace-fixes-cpuset.patch
+cpuset-sched_load_balance-flag.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+control-groups-replace-cont-with-cgrp-and-other-misc.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
