@@ -1,124 +1,264 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-fix-usb-content.patch added to -mm tree
-Date: Mon, 15 Oct 2007 17:43:35 -0700
-Message-ID: <200710160043.l9G0hZWf001119@imap1.linux-foundation.org>
+Subject: - git-arm-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:05:00 -0700
+Message-ID: <200710160205.l9G251sj003807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33534 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760038AbXJPAom (ORCPT
+	by vger.kernel.org with ESMTP id S1755534AbXJPCFE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 20:44:42 -0400
+	Mon, 15 Oct 2007 22:05:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G251HO014839
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:05:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, rob@landley.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: fix usb content
-has been added to the -mm tree.  Its filename is
-     docbook-fix-usb-content.patch
+     git-arm-fixup
+has been removed from the -mm tree.  Its filename was
+     git-arm-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: docbook: fix usb content
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: git-arm-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix USB docbook warnings.
-
-Warning(linux-2.6.23-git8//include/linux/usb/gadget.h:487): No description found for parameter 'g'
-Warning(linux-2.6.23-git8//include/linux/usb/gadget.h:506): No description found for parameter 'g'
-
-Warning(linux-2.6.23-git8//drivers/usb/core/hub.c:1416): No description found for parameter 'usb_dev'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hub.c     |    6 +++++-
- include/linux/usb/gadget.h |    4 ++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ drivers/net/smc91x.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/usb/core/hub.c~docbook-fix-usb-content drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~docbook-fix-usb-content
-+++ a/drivers/usb/core/hub.c
-@@ -1405,7 +1405,11 @@ fail:
- 
- 
- /**
-- * Similar to usb_disconnect()
-+ * usb_deauthorize_device - deauthorize a device (usbcore-internal)
-+ * @usb_dev: USB device
-+ *
-+ * Move the USB device to a very basic state where interfaces are disabled
-+ * and the device is in fact unconfigured and unusable.
-  *
-  * We share a lock (that we have) with device_del(), so we need to
-  * defer its call.
-diff -puN include/linux/usb/gadget.h~docbook-fix-usb-content include/linux/usb/gadget.h
---- a/include/linux/usb/gadget.h~docbook-fix-usb-content
-+++ a/include/linux/usb/gadget.h
-@@ -481,7 +481,7 @@ static inline void *get_gadget_data (str
- 
- /**
-  * gadget_is_dualspeed - return true iff the hardware handles high speed
-- * @gadget: controller that might support both high and full speeds
-+ * @g: controller that might support both high and full speeds
+diff -puN drivers/net/smc91x.c~git-arm-fixup drivers/net/smc91x.c
+--- a/drivers/net/smc91x.c~git-arm-fixup
++++ a/drivers/net/smc91x.c
+@@ -173,7 +173,6 @@ MODULE_LICENSE("GPL");
   */
- static inline int gadget_is_dualspeed(struct usb_gadget *g)
- {
-@@ -497,7 +497,7 @@ static inline int gadget_is_dualspeed(st
+ #define MII_DELAY		1
  
- /**
-  * gadget_is_otg - return true iff the hardware is OTG-ready
-- * @gadget: controller that might have a Mini-AB connector
-+ * @g: controller that might have a Mini-AB connector
-  *
-  * This is a runtime test, since kernels with a USB-OTG stack sometimes
-  * run on boards which only have a Mini-B (or Mini-A) connector.
+-<<<<<<< HEAD/drivers/net/smc91x.c
+ /* store this information for the driver.. */
+ struct smc_local {
+ 	/*
+@@ -217,8 +216,6 @@ struct smc_local {
+ 	void __iomem *datacs;
+ };
+ 
+-=======
+->>>>>>> /drivers/net/smc91x.c
+ #if SMC_DEBUG > 0
+ #define DBG(n, args...)					\
+ 	do {						\
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+slow-down-printk-during-boot.patch
+git-acpi.patch
+acpi-add-reboot-mechanism.patch
 git-alsa.patch
-fix-auditscc-kernel-doc.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm-fixup.patch
+git-cifs.patch
+git-powerpc-galak.patch
+revert-gregkh-driver-spi-convert-from-class_device-to-device-for-spi.patch
+git-dvb.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
 git-kbuild.patch
-git-nfsd.patch
-git-scsi-misc.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ata_piix-sata-2port-controller-port-map-fix-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+git-mips-fixup.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfs-fixup.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd-fixup.patch
+git-sched.patch
+git-scsi-misc-fixup.patch
+qla2xxx-printk-fixes.patch
+git-block.patch
+git-block-fixup.patch
+sparc-support-for-new-termios-checkpatch-fixes.patch
 git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-wireless-ath5k-broke.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64-fix-2.patch
+git-xfs.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops.patch
+git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+fs-restore-nobh-checkpatch-fixes.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support-fix.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+uml-clocksource-support-fix.patch
+uml-tickless-support-fix.patch
+uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
 send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-video-gfx-merge-kconfig-menus.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-remap_file_pages-kernel-doc-corrections.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-docbook-fix-kernel-api-content.patch
-docbook-fix-libata-content.patch
-docbook-fix-usb-content.patch
-docbook-fix-filesystems-content.patch
-hook-up-group-scheduler-with-control-groups.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+lockdep-annotate-kprobes-irq-fiddling-fix.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup-checkpatch-fixes.patch
+tdfxfb-mtrr-support-fix.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
