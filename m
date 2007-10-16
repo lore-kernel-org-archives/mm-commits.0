@@ -1,302 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - mm-use-pagevec-to-rotate-reclaimable-page.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:51 -0700
-Message-ID: <200710162031.l9GKVpqr014536@imap1.linux-foundation.org>
+Subject: - memory-hotplug-hot-add-with-sparsemem-vmemmap.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:38 -0700
+Message-ID: <200710162035.l9GKZcb2015077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33594 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42061 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965828AbXJPVkc (ORCPT
+	by vger.kernel.org with ESMTP id S965810AbXJPVkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:40:32 -0400
+	Tue, 16 Oct 2007 17:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: use pagevec to rotate reclaimable page
+     memory hotplug: Hot-add with sparsemem-vmemmap
 has been removed from the -mm tree.  Its filename was
-     mm-use-pagevec-to-rotate-reclaimable-page.patch
+     memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: use pagevec to rotate reclaimable page
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: memory hotplug: Hot-add with sparsemem-vmemmap
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-While running some memory intensive load, system response deteriorated just
-after swap-out started.
+This patch is to avoid panic when memory hot-add is executed with
+sparsemem-vmemmap.  Current vmemmap-sparsemem code doesn't support memory
+hot-add.  Vmemmap must be populated when hot-add.  This is for
+2.6.23-rc2-mm2.
 
-The cause of this problem is that when a PG_reclaim page is moved to the tail
-of the inactive LRU list in rotate_reclaimable_page(), lru_lock spin lock is
-acquired every page writeback .  This deteriorates system performance and
-makes interrupt hold off time longer when swap-out started.
+Todo: # Even if this patch is applied, the message "[xxxx-xxxx] potential
+        offnode page_structs" is displayed. To allocate memmap on its node,
+        memmap (and pgdat) must be initialized itself like chicken and
+        egg relationship.
 
-Following patch solves this problem.  I use pagevec in rotating reclaimable
-pages to mitigate LRU spin lock contention and reduce interrupt hold off time.
+      # vmemmap_unpopulate will be necessary for followings.
+         - For cancel hot-add due to error.
+         - For unplug.
 
-I did a test that allocating and touching pages in multiple processes, and
-pinging to the test machine in flooding mode to measure response under memory
-intensive load.
-
-The test result is:
-
-	-2.6.23-rc5
-	--- testmachine ping statistics ---
-	3000 packets transmitted, 3000 received, 0% packet loss, time 53222ms
-	rtt min/avg/max/mdev = 0.074/0.652/172.228/7.176 ms, pipe 11, ipg/ewma 
-17.746/0.092 ms
-
-	-2.6.23-rc5-patched
-	--- testmachine ping statistics ---
-	3000 packets transmitted, 3000 received, 0% packet loss, time 51924ms
-	rtt min/avg/max/mdev = 0.072/0.108/3.884/0.114 ms, pipe 2, ipg/ewma 
-17.314/0.091 ms
-
-Max round-trip-time was improved.
-
-The test machine spec is that 4CPU(3.16GHz, Hyper-threading enabled)
-8GB memory , 8GB swap.
-
-
-I did ping test again to observe performance deterioration caused by taking 
-a ref.
-
-	-2.6.23-rc6-with-modifiedpatch
-	--- testmachine ping statistics ---
-	3000 packets transmitted, 3000 received, 0% packet loss, time 53386ms
-	rtt min/avg/max/mdev = 0.074/0.110/4.716/0.147 ms, pipe 2, ipg/ewma 17.801/0.129 ms
-
-The result for my original patch is as follows.
-
-	-2.6.23-rc5-with-originalpatch
-	--- testmachine ping statistics ---
-	3000 packets transmitted, 3000 received, 0% packet loss, time 51924ms
-	rtt min/avg/max/mdev = 0.072/0.108/3.884/0.114 ms, pipe 2, ipg/ewma 17.314/0.091 ms
-
-The influence to response was small.
-
-[akpm@linux-foundation.org: fix uninitalised var warning]
-[hugh@veritas.com: fix locking]
-[randy.dunlap@oracle.com: fix function declaration]
-[hugh@veritas.com: fix BUG at include/linux/mm.h:220!]
-[hugh@veritas.com: kill redundancy in rotate_reclaimable_page]
-[hugh@veritas.com: move_tail_pages into lru_add_drain]
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |  104 +++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 74 insertions(+), 30 deletions(-)
+ include/linux/mm.h  |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
+ mm/sparse.c         |   25 ++++++++++++++++++++++---
+ 3 files changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page mm/swap.c
---- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page
-+++ a/mm/swap.c
-@@ -32,6 +32,10 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
+diff -puN include/linux/mm.h~memory-hotplug-hot-add-with-sparsemem-vmemmap include/linux/mm.h
+--- a/include/linux/mm.h~memory-hotplug-hot-add-with-sparsemem-vmemmap
++++ a/include/linux/mm.h
+@@ -1147,7 +1147,7 @@ extern int randomize_va_space;
  
-+static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
-+static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs) = { 0, };
-+
- /*
-  * This path almost never happens for VM activity - pages are normally
-  * freed via pagevecs.  But it gets used by networking.
-@@ -92,23 +96,47 @@ void put_pages_list(struct list_head *pa
- EXPORT_SYMBOL(put_pages_list);
+ const char * arch_vma_name(struct vm_area_struct *vma);
  
- /*
-+ * pagevec_move_tail() must be called with IRQ disabled.
-+ * Otherwise this may cause nasty races.
-+ */
-+static void pagevec_move_tail(struct pagevec *pvec)
-+{
-+	int i;
-+	int pgmoved = 0;
-+	struct zone *zone = NULL;
-+
-+	for (i = 0; i < pagevec_count(pvec); i++) {
-+		struct page *page = pvec->pages[i];
-+		struct zone *pagezone = page_zone(page);
-+
-+		if (pagezone != zone) {
-+			if (zone)
-+				spin_unlock(&zone->lru_lock);
-+			zone = pagezone;
-+			spin_lock(&zone->lru_lock);
-+		}
-+		if (PageLRU(page) && !PageActive(page)) {
-+			list_move_tail(&page->lru, &zone->inactive_list);
-+			pgmoved++;
-+		}
-+	}
-+	if (zone)
-+		spin_unlock(&zone->lru_lock);
-+	__count_vm_events(PGROTATED, pgmoved);
-+	release_pages(pvec->pages, pvec->nr, pvec->cold);
-+	pagevec_reinit(pvec);
-+}
-+
-+/*
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-- * inactive list.  The page still has PageWriteback set, which will pin it.
-- *
-- * We don't expect many pages to come through here, so don't bother batching
-- * things up.
-- *
-- * To avoid placing the page at the tail of the LRU while PG_writeback is still
-- * set, this function will clear PG_writeback before performing the page
-- * motion.  Do that inside the lru lock because once PG_writeback is cleared
-- * we may not touch the page.
-+ * inactive list.
-  *
-  * Returns zero if it cleared PG_writeback.
-  */
- int rotate_reclaimable_page(struct page *page)
- {
--	struct zone *zone;
-+	struct pagevec *pvec;
- 	unsigned long flags;
- 
- 	if (PageLocked(page))
-@@ -120,15 +148,16 @@ int rotate_reclaimable_page(struct page 
- 	if (!PageLRU(page))
- 		return 1;
- 
--	zone = page_zone(page);
--	spin_lock_irqsave(&zone->lru_lock, flags);
--	if (PageLRU(page) && !PageActive(page)) {
--		list_move_tail(&page->lru, &zone->inactive_list);
--		__count_vm_event(PGROTATED);
--	}
-+	page_cache_get(page);
-+	local_irq_save(flags);
-+	pvec = &__get_cpu_var(lru_rotate_pvecs);
-+	if (!pagevec_add(pvec, page))
-+		pagevec_move_tail(pvec);
-+	local_irq_restore(flags);
-+
- 	if (!test_clear_page_writeback(page))
- 		BUG();
--	spin_unlock_irqrestore(&zone->lru_lock, flags);
-+
+-struct page *sparse_early_mem_map_populate(unsigned long pnum, int nid);
++struct page *sparse_mem_map_populate(unsigned long pnum, int nid);
+ pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+ pud_t *vmemmap_pud_populate(pgd_t *pgd, unsigned long addr, int node);
+ pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+diff -puN mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap
++++ a/mm/sparse-vmemmap.c
+@@ -137,7 +137,7 @@ int __meminit vmemmap_populate_basepages
  	return 0;
  }
  
-@@ -172,9 +201,6 @@ EXPORT_SYMBOL(mark_page_accessed);
-  * lru_cache_add: add a page to the page lists
-  * @page: the page to add
-  */
--static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs) = { 0, };
--static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs) = { 0, };
--
- void fastcall lru_cache_add(struct page *page)
+-struct page __init *sparse_early_mem_map_populate(unsigned long pnum, int nid)
++struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
  {
- 	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs);
-@@ -195,21 +221,37 @@ void fastcall lru_cache_add_active(struc
- 	put_cpu_var(lru_add_active_pvecs);
+ 	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
+ 	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
+diff -puN mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap mm/sparse.c
+--- a/mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap
++++ a/mm/sparse.c
+@@ -259,7 +259,7 @@ static unsigned long *sparse_early_usema
  }
  
--static void __lru_add_drain(int cpu)
-+/*
-+ * Drain pages out of the cpu's pagevecs.
-+ * Either "cpu" is the current CPU, and preemption has already been
-+ * disabled; or "cpu" is being hot-unplugged, and is already dead.
-+ */
-+static void drain_cpu_pagevecs(int cpu)
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-struct page __init *sparse_early_mem_map_populate(unsigned long pnum, int nid)
++struct page __init *sparse_mem_map_populate(unsigned long pnum, int nid)
  {
--	struct pagevec *pvec = &per_cpu(lru_add_pvecs, cpu);
-+	struct pagevec *pvec;
+ 	struct page *map;
  
--	/* CPU is dead, so no locking needed. */
-+	pvec = &per_cpu(lru_add_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add(pvec);
-+
- 	pvec = &per_cpu(lru_add_active_pvecs, cpu);
- 	if (pagevec_count(pvec))
- 		__pagevec_lru_add_active(pvec);
-+
-+	pvec = &per_cpu(lru_rotate_pvecs, cpu);
-+	if (pagevec_count(pvec)) {
-+		unsigned long flags;
-+
-+		/* No harm done if a racing interrupt already did this */
-+		local_irq_save(flags);
-+		pagevec_move_tail(pvec);
-+		local_irq_restore(flags);
-+	}
+@@ -284,7 +284,7 @@ struct page __init *sparse_early_mem_map
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
+ 
+-	map = sparse_early_mem_map_populate(pnum, nid);
++	map = sparse_mem_map_populate(pnum, nid);
+ 	if (map)
+ 		return map;
+ 
+@@ -322,6 +322,18 @@ void __init sparse_init(void)
  }
  
- void lru_add_drain(void)
+ #ifdef CONFIG_MEMORY_HOTPLUG
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
++						 unsigned long nr_pages)
++{
++	/* This will make the necessary allocations eventually. */
++	return sparse_mem_map_populate(pnum, nid);
++}
++static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
++{
++	return; /* XXX: Not implemented yet */
++}
++#else
+ static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
  {
--	__lru_add_drain(get_cpu());
-+	drain_cpu_pagevecs(get_cpu());
- 	put_cpu();
+ 	struct page *page, *ret;
+@@ -344,6 +356,12 @@ got_map_ptr:
+ 	return ret;
  }
  
-@@ -256,6 +298,7 @@ void release_pages(struct page **pages, 
- 	int i;
- 	struct pagevec pages_to_free;
- 	struct zone *zone = NULL;
-+	unsigned long uninitialized_var(flags);
- 
- 	pagevec_init(&pages_to_free, cold);
- 	for (i = 0; i < nr; i++) {
-@@ -263,7 +306,7 @@ void release_pages(struct page **pages, 
- 
- 		if (unlikely(PageCompound(page))) {
- 			if (zone) {
--				spin_unlock_irq(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 				zone = NULL;
- 			}
- 			put_compound_page(page);
-@@ -277,9 +320,10 @@ void release_pages(struct page **pages, 
- 			struct zone *pagezone = page_zone(page);
- 			if (pagezone != zone) {
- 				if (zone)
--					spin_unlock_irq(&zone->lru_lock);
-+					spin_unlock_irqrestore(&zone->lru_lock,
-+									flags);
- 				zone = pagezone;
--				spin_lock_irq(&zone->lru_lock);
-+				spin_lock_irqsave(&zone->lru_lock, flags);
- 			}
- 			VM_BUG_ON(!PageLRU(page));
- 			__ClearPageLRU(page);
-@@ -288,7 +332,7 @@ void release_pages(struct page **pages, 
- 
- 		if (!pagevec_add(&pages_to_free, page)) {
- 			if (zone) {
--				spin_unlock_irq(&zone->lru_lock);
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
- 				zone = NULL;
- 			}
- 			__pagevec_free(&pages_to_free);
-@@ -296,7 +340,7 @@ void release_pages(struct page **pages, 
-   		}
- 	}
- 	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
- 	pagevec_free(&pages_to_free);
++static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
++						  unsigned long nr_pages)
++{
++	return __kmalloc_section_memmap(nr_pages);
++}
++
+ static int vaddr_in_vmalloc_area(void *addr)
+ {
+ 	if (addr >= (void *)VMALLOC_START &&
+@@ -360,6 +378,7 @@ static void __kfree_section_memmap(struc
+ 		free_pages((unsigned long)memmap,
+ 			   get_order(sizeof(struct page) * nr_pages));
  }
-@@ -489,7 +533,7 @@ static int cpu_swap_callback(struct noti
- 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
- 		atomic_add(*committed, &vm_committed_space);
- 		*committed = 0;
--		__lru_add_drain((long)hcpu);
-+		drain_cpu_pagevecs((long)hcpu);
- 	}
- 	return NOTIFY_OK;
- }
++#endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ /*
+  * returns the number of sections whose mem_maps were properly
+@@ -382,7 +401,7 @@ int sparse_add_one_section(struct zone *
+ 	 * plus, it does a kmalloc
+ 	 */
+ 	sparse_index_init(section_nr, pgdat->node_id);
+-	memmap = __kmalloc_section_memmap(nr_pages);
++	memmap = kmalloc_section_memmap(section_nr, pgdat->node_id, nr_pages);
+ 	usemap = __kmalloc_section_usemap();
+ 
+ 	pgdat_resize_lock(pgdat, &flags);
 _
 
-Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
