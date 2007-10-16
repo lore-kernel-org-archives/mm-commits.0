@@ -1,104 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - mm-add-end_buffer_read-helper-function.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:38 -0700
-Message-ID: <200710162031.l9GKVcOM014518@imap1.linux-foundation.org>
+Subject: - readahead-remove-several-readahead-macros.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:04 -0700
+Message-ID: <200710162031.l9GKV4RO014465@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965998AbXJPVpC (ORCPT
+	by vger.kernel.org with ESMTP id S966047AbXJPVpI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:45:02 -0400
+	Tue, 16 Oct 2007 17:45:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add end_buffer_read helper function
+     readahead: remove several readahead macros
 has been removed from the -mm tree.  Its filename was
-     mm-add-end_buffer_read-helper-function.patch
+     readahead-remove-several-readahead-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: add end_buffer_read helper function
-From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: readahead: remove several readahead macros
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Move duplicated code from end_buffer_read_XXX methods to separate helper
-function.
+Remove VM_MAX_CACHE_HIT, MAX_RA_PAGES and MIN_RA_PAGES.
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/readahead.c     |   10 +---------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN fs/buffer.c~mm-add-end_buffer_read-helper-function fs/buffer.c
---- a/fs/buffer.c~mm-add-end_buffer_read-helper-function
-+++ a/fs/buffer.c
-@@ -110,10 +110,14 @@ static void buffer_io_error(struct buffe
- }
+diff -puN include/linux/mm.h~readahead-remove-several-readahead-macros include/linux/mm.h
+--- a/include/linux/mm.h~readahead-remove-several-readahead-macros
++++ a/include/linux/mm.h
+@@ -1106,8 +1106,6 @@ int write_one_page(struct page *page, in
+ /* readahead.c */
+ #define VM_MAX_READAHEAD	128	/* kbytes */
+ #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
+-#define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
+-					 * turning readahead off */
  
- /*
-- * Default synchronous end-of-IO handler..  Just mark it up-to-date and
-- * unlock the buffer. This is what ll_rw_block uses too.
-+ * End-of-IO handler helper function which does not touch the bh after
-+ * unlocking it.
-+ * Note: unlock_buffer() sort-of does touch the bh after unlocking it, but
-+ * a race there is benign: unlock_buffer() only use the bh's address for
-+ * hashing after unlocking the buffer, so it doesn't actually touch the bh
-+ * itself.
-  */
--void end_buffer_read_sync(struct buffer_head *bh, int uptodate)
-+static void __end_buffer_read_notouch(struct buffer_head *bh, int uptodate)
- {
- 	if (uptodate) {
- 		set_buffer_uptodate(bh);
-@@ -122,6 +126,15 @@ void end_buffer_read_sync(struct buffer_
- 		clear_buffer_uptodate(bh);
- 	}
- 	unlock_buffer(bh);
-+}
-+
-+/*
-+ * Default synchronous end-of-IO handler..  Just mark it up-to-date and
-+ * unlock the buffer. This is what ll_rw_block uses too.
-+ */
-+void end_buffer_read_sync(struct buffer_head *bh, int uptodate)
-+{
-+	__end_buffer_read_notouch(bh, uptodate);
- 	put_bh(bh);
+ int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
+ 			pgoff_t offset, unsigned long nr_to_read);
+diff -puN mm/readahead.c~readahead-remove-several-readahead-macros mm/readahead.c
+--- a/mm/readahead.c~readahead-remove-several-readahead-macros
++++ a/mm/readahead.c
+@@ -22,16 +22,8 @@ void default_unplug_io_fn(struct backing
  }
+ EXPORT_SYMBOL(default_unplug_io_fn);
  
-@@ -2245,21 +2258,10 @@ out_unlock:
-  * nobh_prepare_write()'s prereads are special: the buffer_heads are freed
-  * immediately, while under the page lock.  So it needs a special end_io
-  * handler which does not touch the bh after unlocking it.
-- *
-- * Note: unlock_buffer() sort-of does touch the bh after unlocking it, but
-- * a race there is benign: unlock_buffer() only use the bh's address for
-- * hashing after unlocking the buffer, so it doesn't actually touch the bh
-- * itself.
-  */
- static void end_buffer_read_nobh(struct buffer_head *bh, int uptodate)
- {
--	if (uptodate) {
--		set_buffer_uptodate(bh);
--	} else {
--		/* This happens, due to failed READA attempts. */
--		clear_buffer_uptodate(bh);
--	}
--	unlock_buffer(bh);
-+	__end_buffer_read_notouch(bh, uptodate);
- }
- 
- /*
+-/*
+- * Convienent macros for min/max read-ahead pages.
+- * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
+- * The latter is necessary for systems with large page size(i.e. 64k).
+- */
+-#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
+-#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
+-
+ struct backing_dev_info default_backing_dev_info = {
+-	.ra_pages	= MAX_RA_PAGES,
++	.ra_pages	= VM_MAX_READAHEAD * 1024 / PAGE_CACHE_SIZE,
+ 	.state		= 0,
+ 	.capabilities	= BDI_CAP_MAP_COPY,
+ 	.unplug_io_fn	= default_unplug_io_fn,
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-git-md-accel.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+convert-ill-defined-log2-to-ilog2.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
+writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
