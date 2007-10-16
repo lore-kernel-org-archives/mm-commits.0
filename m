@@ -1,153 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-fix-filesystems-content.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:46:10 -0700
-Message-ID: <200710162046.l9GKkAe3016339@imap1.linux-foundation.org>
+Subject: - ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:32 -0700
+Message-ID: <200710162045.l9GKjWvw016274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47230 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965267AbXJPU5g (ORCPT
+	by vger.kernel.org with ESMTP id S965793AbXJPU5E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:36 -0400
+	Tue, 16 Oct 2007 16:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, rob@landley.net, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: fix filesystems content
+     ps3fb: fix possible overlap of GPU command buffer and frame buffer
 has been removed from the -mm tree.  Its filename was
-     docbook-fix-filesystems-content.patch
+     ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: docbook: fix filesystems content
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ps3fb: fix possible overlap of GPU command buffer and frame buffer
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Fix filesystems docbook warnings.
+ps3fb: In the case of non-fullscreen video modes, there was a partial overlap
+of the GPU command buffer and the frame buffer. Fix and cleanup various issues
+with overlap and alignment:
+  - Move the GPU command buffer from the beginning to the end of video memory
+  - Exclude the GPU command buffer from the actual frame buffer memory
+  - Align the start of the virtual frame buffer to PAGE_SIZE instead of to 64
+    KiB, and don't waste memory if it's already aligned (for fullscreen modes)
+  - Take into account the alignment when checking memory requirements and
+    maximum number of frames
+  - Make sure fb_fix_screeninfo.smem_start always points to the virtual frame
+    buffer start, so we don't have to compensate for that in ps3fb_mmap()
 
-Warning(linux-2.6.23-git8//fs/debugfs/file.c:241): No description found for parameter 'name'
-Warning(linux-2.6.23-git8//fs/debugfs/file.c:241): No description found for parameter 'mode'
-Warning(linux-2.6.23-git8//fs/debugfs/file.c:241): No description found for parameter 'parent'
-Warning(linux-2.6.23-git8//fs/debugfs/file.c:241): No description found for parameter 'value'
-Warning(linux-2.6.23-git8//include/linux/jbd.h:404): No description found for parameter 'h_lockdep_map'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Rob Landley <rob@landley.net>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/debugfs/file.c   |   41 +++++++++++++++++++++++++++++++++++------
- include/linux/jbd.h |    1 +
- 2 files changed, 36 insertions(+), 6 deletions(-)
+ drivers/video/ps3fb.c |   66 +++++++++++++++++++++++-----------------
+ 1 file changed, 39 insertions(+), 27 deletions(-)
 
-diff -puN fs/debugfs/file.c~docbook-fix-filesystems-content fs/debugfs/file.c
---- a/fs/debugfs/file.c~docbook-fix-filesystems-content
-+++ a/fs/debugfs/file.c
-@@ -227,15 +227,24 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_x16, debugf
+diff -puN drivers/video/ps3fb.c~ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer
++++ a/drivers/video/ps3fb.c
+@@ -52,7 +52,7 @@
+ #define L1GPU_DISPLAY_SYNC_VSYNC		2
  
- DEFINE_SIMPLE_ATTRIBUTE(fops_x32, debugfs_u32_get, debugfs_u32_set, "0x%08llx\n");
+ #define DDR_SIZE				(0)	/* used no ddr */
+-#define GPU_OFFSET				(64 * 1024)
++#define GPU_CMD_BUF_SIZE			(64 * 1024)
+ #define GPU_IOIF				(0x0d000000UL)
  
--/**
-- * debugfs_create_x8 - create a debugfs file that is used to read and write an unsigned 8-bit value
-- * debugfs_create_x16 - create a debugfs file that is used to read and write an unsigned 16-bit value
-- * debugfs_create_x32 - create a debugfs file that is used to read and write an unsigned 32-bit value
-+/*
-+ * debugfs_create_x{8,16,32} - create a debugfs file that is used to read and write an unsigned {8,16,32}-bit value
-  *
-- * These functions are exactly the same as the above functions, (but use a hex
-- * output for the decimal challenged) for details look at the above unsigned
-+ * These functions are exactly the same as the above functions (but use a hex
-+ * output for the decimal challenged). For details look at the above unsigned
-  * decimal functions.
-  */
+ #define PS3FB_FULL_MODE_BIT			0x80
+@@ -117,6 +117,7 @@ struct ps3fb_priv {
+ 
+ 	u64 context_handle, memory_handle;
+ 	void *xdr_ea;
++	size_t xdr_size;
+ 	struct gpu_driver_info *dinfo;
+ 	u32 res_index;
+ 
+@@ -280,9 +281,20 @@ static const struct fb_videomode ps3fb_m
+ #define Y_OFF(i)	(ps3fb_res[i].yoff)	/* top/bottom margin (pixel) */
+ #define WIDTH(i)	(ps3fb_res[i].xres)	/* width of FB */
+ #define HEIGHT(i)	(ps3fb_res[i].yres)	/* height of FB */
+-#define BPP	4		/* number of bytes per pixel */
+-#define VP_OFF(i)	(WIDTH(i) * Y_OFF(i) * BPP + X_OFF(i) * BPP)
+-#define FB_OFF(i)	(GPU_OFFSET - VP_OFF(i) % GPU_OFFSET)
++#define BPP		4			/* number of bytes per pixel */
 +
-+/**
-+ * debugfs_create_x8 - create a debugfs file that is used to read and write an unsigned 8-bit value
-+ * @name: a pointer to a string containing the name of the file to create.
-+ * @mode: the permission that the file should have
-+ * @parent: a pointer to the parent dentry for this file.  This should be a
-+ *          directory dentry if set.  If this parameter is %NULL, then the
-+ *          file will be created in the root of the debugfs filesystem.
-+ * @value: a pointer to the variable that the file should read to and write
-+ *         from.
++/* Start of the virtual frame buffer (relative to fullscreen ) */
++#define VP_OFF(i)	((WIDTH(i) * Y_OFF(i) + X_OFF(i)) * BPP)
++
++/*
++ * Start of the virtual frame buffer (relative to start of video memory)
++ * This is PAGE_SIZE aligned for easier mmap()
 + */
- struct dentry *debugfs_create_x8(const char *name, mode_t mode,
- 				 struct dentry *parent, u8 *value)
- {
-@@ -243,6 +252,16 @@ struct dentry *debugfs_create_x8(const c
- }
- EXPORT_SYMBOL_GPL(debugfs_create_x8);
++#define VFB_OFF(i)	PAGE_ALIGN(VP_OFF(i))
++
++/* Start of the fullscreen frame buffer (relative to start of video memory) */
++#define FB_OFF(i)	(-VP_OFF(i) & ~PAGE_MASK)
++
  
-+/**
-+ * debugfs_create_x16 - create a debugfs file that is used to read and write an unsigned 16-bit value
-+ * @name: a pointer to a string containing the name of the file to create.
-+ * @mode: the permission that the file should have
-+ * @parent: a pointer to the parent dentry for this file.  This should be a
-+ *          directory dentry if set.  If this parameter is %NULL, then the
-+ *          file will be created in the root of the debugfs filesystem.
-+ * @value: a pointer to the variable that the file should read to and write
-+ *         from.
-+ */
- struct dentry *debugfs_create_x16(const char *name, mode_t mode,
- 				 struct dentry *parent, u16 *value)
- {
-@@ -250,6 +269,16 @@ struct dentry *debugfs_create_x16(const 
- }
- EXPORT_SYMBOL_GPL(debugfs_create_x16);
+ static int ps3fb_mode;
+ module_param(ps3fb_mode, int, 0);
+@@ -517,7 +529,8 @@ static int ps3fb_check_var(struct fb_var
  
-+/**
-+ * debugfs_create_x32 - create a debugfs file that is used to read and write an unsigned 32-bit value
-+ * @name: a pointer to a string containing the name of the file to create.
-+ * @mode: the permission that the file should have
-+ * @parent: a pointer to the parent dentry for this file.  This should be a
-+ *          directory dentry if set.  If this parameter is %NULL, then the
-+ *          file will be created in the root of the debugfs filesystem.
-+ * @value: a pointer to the variable that the file should read to and write
-+ *         from.
-+ */
- struct dentry *debugfs_create_x32(const char *name, mode_t mode,
- 				 struct dentry *parent, u32 *value)
- {
-diff -puN include/linux/jbd.h~docbook-fix-filesystems-content include/linux/jbd.h
---- a/include/linux/jbd.h~docbook-fix-filesystems-content
-+++ a/include/linux/jbd.h
-@@ -358,6 +358,7 @@ struct jbd_revoke_table_s;
-  * @h_sync: flag for sync-on-close
-  * @h_jdata: flag to force data journaling
-  * @h_aborted: flag indicating fatal error on handle
-+ * @h_lockdep_map: lockdep info for debugging lock problems
-  **/
+ 	/* Memory limit */
+ 	i = ps3fb_get_res_table(var->xres, var->yres, mode);
+-	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP > ps3fb_videomemory.size) {
++	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP >
++	    ps3fb.xdr_size - VFB_OFF(i)) {
+ 		dev_dbg(info->device, "Not enough memory\n");
+ 		return -ENOMEM;
+ 	}
+@@ -549,12 +562,13 @@ static int ps3fb_set_par(struct fb_info 
+ 	i = ps3fb_get_res_table(info->var.xres, info->var.yres, mode);
+ 	ps3fb.res_index = i;
  
- /* Docbook can't yet cope with the bit fields, but will leave the documentation
+-	offset = FB_OFF(i) + VP_OFF(i);
+-	info->fix.smem_len = ps3fb_videomemory.size - offset;
++	offset = VFB_OFF(i);
++	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
++	info->fix.smem_len = ps3fb.xdr_size - offset;
+ 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
+-	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
++	memset(ps3fb.xdr_ea, 0, ps3fb.xdr_size);
+ 
+-	ps3fb.num_frames = ps3fb_videomemory.size/
++	ps3fb.num_frames = info->fix.smem_len/
+ 			   (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
+ 
+ 	/* Keep the special bits we cannot set using fb_var_screeninfo */
+@@ -596,18 +610,13 @@ static int ps3fb_setcolreg(unsigned int 
+ static int ps3fb_mmap(struct fb_info *info, struct vm_area_struct *vma)
+ {
+ 	unsigned long size, offset;
+-	int i;
+-
+-	i = ps3fb_get_res_table(info->var.xres, info->var.yres, ps3fb_mode);
+-	if (i == -1)
+-		return -EINVAL;
+ 
+ 	size = vma->vm_end - vma->vm_start;
+ 	offset = vma->vm_pgoff << PAGE_SHIFT;
+ 	if (offset + size > info->fix.smem_len)
+ 		return -EINVAL;
+ 
+-	offset += info->fix.smem_start + FB_OFF(i) + VP_OFF(i);
++	offset += info->fix.smem_start;
+ 	if (remap_pfn_range(vma, vma->vm_start, offset >> PAGE_SHIFT,
+ 			    size, vma->vm_page_prot))
+ 		return -EAGAIN;
+@@ -899,8 +908,9 @@ static int ps3fb_xdr_settings(u64 xdr_lp
+ 
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_FB_SETUP,
+-					   xdr_lpar, ps3fb_videomemory.size,
+-					   GPU_IOIF, 0);
++					   xdr_lpar + ps3fb.xdr_size,
++					   GPU_CMD_BUF_SIZE,
++					   GPU_IOIF + ps3fb.xdr_size, 0);
+ 	if (status) {
+ 		dev_err(dev,
+ 			"%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
+@@ -1038,29 +1048,31 @@ static int __devinit ps3fb_probe(struct 
+ 	if (retval)
+ 		goto err_iounmap_dinfo;
+ 
+-	/* xdr frame buffer */
++	/* XDR frame buffer */
+ 	ps3fb.xdr_ea = ps3fb_videomemory.address;
+ 	xdr_lpar = ps3_mm_phys_to_lpar(__pa(ps3fb.xdr_ea));
++
++	/* Clear memory to prevent kernel info leakage into userspace */
++	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
++
++	/* The GPU command buffer is at the end of video memory */
++	ps3fb.xdr_size = ps3fb_videomemory.size - GPU_CMD_BUF_SIZE;
++
+ 	retval = ps3fb_xdr_settings(xdr_lpar, &dev->core);
+ 	if (retval)
+ 		goto err_free_irq;
+ 
+-	/*
+-	 * ps3fb must clear memory to prevent kernel info
+-	 * leakage into userspace
+-	 */
+-	memset(ps3fb.xdr_ea, 0, ps3fb_videomemory.size);
+ 	info = framebuffer_alloc(sizeof(u32) * 16, &dev->core);
+ 	if (!info)
+ 		goto err_free_irq;
+ 
+-	offset = FB_OFF(ps3fb.res_index) + VP_OFF(ps3fb.res_index);
++	offset = VFB_OFF(ps3fb.res_index);
+ 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
+ 	info->fbops = &ps3fb_ops;
+ 
+ 	info->fix = ps3fb_fix;
+-	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
+-	info->fix.smem_len = ps3fb_videomemory.size - offset;
++	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
++	info->fix.smem_len = ps3fb.xdr_size - offset;
+ 	info->pseudo_palette = info->par;
+ 	info->par = NULL;
+ 	info->flags = FBINFO_DEFAULT | FBINFO_READS_FAST;
+@@ -1086,7 +1098,7 @@ static int __devinit ps3fb_probe(struct 
+ 
+ 	dev_info(info->device, "%s %s, using %lu KiB of video memory\n",
+ 		 dev_driver_string(info->dev), info->dev->bus_id,
+-		 ps3fb_videomemory.size >> 10);
++		 ps3fb.xdr_size >> 10);
+ 
+ 	task = kthread_run(ps3fbd, info, DEVICE_NAME);
+ 	if (IS_ERR(task)) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-remap_file_pages-kernel-doc-corrections.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
