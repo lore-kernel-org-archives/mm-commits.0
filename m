@@ -1,79 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-write_begin-write_end-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:13:36 -0700
-Message-ID: <200710160413.l9G4DagJ008172@imap1.linux-foundation.org>
+Subject: - introduce-write_begin-write_end-aops-important-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:13:33 -0700
+Message-ID: <200710160413.l9G4DX6S008169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750770AbXJPENl (ORCPT
+	by vger.kernel.org with ESMTP id S1750984AbXJPENn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:13:41 -0400
+	Tue, 16 Oct 2007 00:13:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce write_begin write_end aops fix2
+     introduce write_begin write_end aops important fix
 has been removed from the -mm tree.  Its filename was
-     introduce-write_begin-write_end-aops-fix2.patch
+     introduce-write_begin-write_end-aops-important-fix.patch
 
 This patch was dropped because it was folded into fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
 ------------------------------------------------------
-Subject: introduce write_begin write_end aops fix2
+Subject: introduce write_begin write_end aops important fix
 From: Nick Piggin <npiggin@suse.de>
 
-Callers should do the mark_page_accessed, as it is more flexible and in
-some contexts they don't want to be doing so, eg.  dir-in-pagecache writes
-into buffer cache (although that's debateable, it wouldn't be possible if
-write_end() did the mark_page_accessed()).
+Credit for these next 4 patches goes to Hugh. He found and fixed the
+problem, I just split them up and added a bit of a changelog and
+hopefully no new bugs.
 
-Subsequent patches contain fixes either to take mark_page_accessed out of
-their write_end implementation, or in the case of dir-in-pagecache
-filesystems, I had incorrectly added a mark_page_accessed where there was
-previously none (it looks like the logical place to mark the page accessed,
-but changing behaviour is obviously wrong for this bugfix series).
+When running kbuild stress testing, it data corruptions on ext2 were
+noticed occasionally.
 
+The page being written to by write(2) was being unlocked in generic_write_end
+before updating i_size, and that renders an extending-write vulnerable to have
+its newly written data zeroed out if writepage comes at the wrong time and
+finds the page unlocked but i_size is not yet updated.
+
+Fortunately ext3 wasn't affected by this bug, but ext2 and others using
+generic_write_end would be.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c  |    1 -
- mm/filemap.c |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/buffer.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN fs/buffer.c~introduce-write_begin-write_end-aops-fix2 fs/buffer.c
---- a/fs/buffer.c~introduce-write_begin-write_end-aops-fix2
+diff -puN fs/buffer.c~introduce-write_begin-write_end-aops-important-fix fs/buffer.c
+--- a/fs/buffer.c~introduce-write_begin-write_end-aops-important-fix
 +++ a/fs/buffer.c
-@@ -2052,7 +2052,6 @@ int generic_write_end(struct file *file,
+@@ -2039,19 +2039,22 @@ int generic_write_end(struct file *file,
+ 
+ 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
+-	unlock_page(page);
+-	mark_page_accessed(page); /* XXX: put this in caller? */
+-	page_cache_release(page);
+-
+ 	/*
+ 	 * No need to use i_size_read() here, the i_size
+ 	 * cannot change under us because we hold i_mutex.
++	 *
++	 * But it's important to update i_size while still holding page lock:
++	 * page writeout could otherwise come in and zero beyond i_size.
+ 	 */
+ 	if (pos+copied > inode->i_size) {
+ 		i_size_write(inode, pos+copied);
+ 		mark_inode_dirty(inode);
  	}
  
- 	unlock_page(page);
--	mark_page_accessed(page);
- 	page_cache_release(page);
- 
++	unlock_page(page);
++	mark_page_accessed(page);
++	page_cache_release(page);
++
  	return copied;
-diff -puN mm/filemap.c~introduce-write_begin-write_end-aops-fix2 mm/filemap.c
---- a/mm/filemap.c~introduce-write_begin-write_end-aops-fix2
-+++ a/mm/filemap.c
-@@ -1914,6 +1914,7 @@ int pagecache_write_end(struct file *fil
- 	int ret;
- 
- 	if (aops->write_end) {
-+		mark_page_accessed(page);
- 		ret = aops->write_end(file, mapping, pos, len, copied,
- 							page, fsdata);
- 	} else {
-@@ -1923,6 +1924,7 @@ int pagecache_write_end(struct file *fil
- 		flush_dcache_page(page);
- 		ret = aops->commit_write(file, page, offset, offset+len);
- 		unlock_page(page);
-+		mark_page_accessed(page);
- 		page_cache_release(page);
- 		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
- 
+ }
+ EXPORT_SYMBOL(generic_write_end);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -98,6 +102,7 @@ mm-fix-pagecache-write-deadlocks.patch
 mm-buffered-write-iterator.patch
 fs-fix-data-loss-on-error.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+introduce-write_begin-write_end-aops-important-fix.patch
 introduce-write_begin-write_end-aops-fix2.patch
 mm-restore-kernel_ds-optimisations.patch
 implement-simple-fs-aops.patch
