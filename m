@@ -1,101 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410fb-byte-ordering-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:29 -0700
-Message-ID: <200710162043.l9GKhTxK016053@imap1.linux-foundation.org>
+Subject: - pm3fb-3-small-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:02 -0700
+Message-ID: <200710162042.l9GKg23P015847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49454 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45395 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935101AbXJPVHl (ORCPT
+	by vger.kernel.org with ESMTP id S935829AbXJPVHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:41 -0400
+	Tue, 16 Oct 2007 17:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410fb: byte ordering fixes
+     pm3fb: 3 small fixes
 has been removed from the -mm tree.  Its filename was
-     s3c2410fb-byte-ordering-fixes.patch
+     pm3fb-3-small-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3c2410fb: byte ordering fixes
+Subject: pm3fb: 3 small fixes
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch sets correct bits related to the byte ordering of the
-framebuffer.  This was tested on little endian kernel only.  The big endian
-kernel may require different settings.
-
-The patch also adds 32 bpp mode which is called 24 bpp by Samsung.  One
-pixel takes 32 bits but only 24 bits are used in this mode.
+This patch contains 3 small improvements:
+- it corrects scan line width calculation in pm3fb_imageblit()
+- it corrects mmio mapping for big endian machines
+- it enables panning acceleration constants
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ drivers/video/pm3fb.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-byte-ordering-fixes drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-byte-ordering-fixes
-+++ a/drivers/video/s3c2410fb.c
-@@ -265,8 +265,8 @@ static int s3c2410fb_check_var(struct fb
- 			var->blue.length	= 5;
- 		}
- 		break;
--	case 24:
--		/* 24 bpp 888 */
-+	case 32:
-+		/* 24 bpp 888 and 8 dummy */
- 		var->red.length		= 8;
- 		var->red.offset		= 16;
- 		var->green.length	= 8;
-@@ -274,8 +274,6 @@ static int s3c2410fb_check_var(struct fb
- 		var->blue.length	= 8;
- 		var->blue.offset	= 0;
- 		break;
--
--
- 	}
- 	return 0;
- }
-@@ -374,11 +372,21 @@ static void s3c2410fb_calculate_tft_lcd_
- 		break;
- 	case 8:
- 		regs->lcdcon1 |= S3C2410_LCDCON1_TFT8BPP;
-+		regs->lcdcon5 |= S3C2410_LCDCON5_BSWP |
-+				 S3C2410_LCDCON5_FRM565;
-+		regs->lcdcon5 &= ~S3C2410_LCDCON5_HWSWP;
- 		break;
- 	case 16:
- 		regs->lcdcon1 |= S3C2410_LCDCON1_TFT16BPP;
-+		regs->lcdcon5 &= ~S3C2410_LCDCON5_BSWP;
-+		regs->lcdcon5 |= S3C2410_LCDCON5_HWSWP;
-+		break;
-+	case 32:
-+		regs->lcdcon1 |= S3C2410_LCDCON1_TFT24BPP;
-+		regs->lcdcon5 &= ~(S3C2410_LCDCON5_BSWP |
-+				   S3C2410_LCDCON5_HWSWP |
-+				   S3C2410_LCDCON5_BPP24BL);
- 		break;
--
- 	default:
- 		/* invalid pixel depth */
- 		dev_err(fbi->dev, "invalid bpp %d\n",
-@@ -475,7 +483,9 @@ static int s3c2410fb_set_par(struct fb_i
- 	struct fb_var_screeninfo *var = &info->var;
+diff -puN drivers/video/pm3fb.c~pm3fb-3-small-fixes drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-3-small-fixes
++++ a/drivers/video/pm3fb.c
+@@ -558,7 +558,8 @@ static void pm3fb_imageblit(struct fb_in
  
- 	switch (var->bits_per_pixel) {
-+	case 32:
- 	case 16:
-+	case 12:
- 		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 		break;
- 	case 1:
+ 
+ 	while (height--) {
+-		int width = ((image->width + 7) >> 3) + info->pixmap.scan_align;
++		int width = ((image->width + 7) >> 3)
++				+ info->pixmap.scan_align - 1;
+ 		width >>= 2;
+ 
+ 		while (width >= PM3_FIFO_SIZE) {
+@@ -1194,6 +1195,10 @@ static int __devinit pm3fb_probe(struct 
+ 	 */
+ 	pm3fb_fix.mmio_start = pci_resource_start(dev, 0);
+ 	pm3fb_fix.mmio_len = PM3_REGS_SIZE;
++#if defined(__BIG_ENDIAN)
++	pm3fb_fix.mmio_start += PM3_REGS_SIZE;
++	DPRINTK("Adjusting register base for big-endian.\n");
++#endif
+ 
+ 	/* Registers - request region and map it. */
+ 	if (!request_mem_region(pm3fb_fix.mmio_start, pm3fb_fix.mmio_len,
+@@ -1210,10 +1215,6 @@ static int __devinit pm3fb_probe(struct 
+ 		goto err_exit_neither;
+ 	}
+ 
+-#if defined(__BIG_ENDIAN)
+-	pm3fb_fix.mmio_start += PM3_REGS_SIZE;
+-	DPRINTK("Adjusting register base for big-endian.\n");
+-#endif
+ 	/* Linear frame buffer - request region and map it. */
+ 	pm3fb_fix.smem_start = pci_resource_start(dev, 1);
+ 	pm3fb_fix.smem_len = pm3fb_size_memory(par);
+@@ -1243,7 +1244,8 @@ static int __devinit pm3fb_probe(struct 
+ 	info->fix = pm3fb_fix;
+ 	info->pseudo_palette = par->palette;
+ 	info->flags = FBINFO_DEFAULT |
+-/*			FBINFO_HWACCEL_YPAN |*/
++			FBINFO_HWACCEL_XPAN |
++			FBINFO_HWACCEL_YPAN |
+ 			FBINFO_HWACCEL_COPYAREA |
+ 			FBINFO_HWACCEL_IMAGEBLIT |
+ 			FBINFO_HWACCEL_FILLRECT;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
