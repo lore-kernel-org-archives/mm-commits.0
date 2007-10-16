@@ -1,41 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: - sysv-convert-to-new-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:20:13 -0700
-Message-ID: <200710160420.l9G4KD4o008513@imap1.linux-foundation.org>
+Subject: - minix-convert-to-new-aops-fix2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:20:31 -0700
+Message-ID: <200710160420.l9G4KVFZ008519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42579 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54298 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752922AbXJPEUR (ORCPT
+	by vger.kernel.org with ESMTP id S1752502AbXJPEUf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:20:17 -0400
+	Tue, 16 Oct 2007 00:20:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysv convert to new aops fix2
+     minix convert to new aops fix2
 has been removed from the -mm tree.  Its filename was
-     sysv-convert-to-new-aops-fix2.patch
+     minix-convert-to-new-aops-fix2.patch
 
-This patch was dropped because it was folded into sysv-convert-to-new-aops.patch
+This patch was dropped because it was folded into minix-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: sysv convert to new aops fix2
+Subject: minix convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/dir.c |    1 -
+ fs/minix/dir.c |    1 -
  1 files changed, 1 deletion(-)
 
-diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops-fix2 fs/sysv/dir.c
---- a/fs/sysv/dir.c~sysv-convert-to-new-aops-fix2
-+++ a/fs/sysv/dir.c
-@@ -53,7 +53,6 @@ static int dir_commit_chunk(struct page 
+diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix2 fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-convert-to-new-aops-fix2
++++ a/fs/minix/dir.c
+@@ -65,7 +65,6 @@ static int dir_commit_chunk(struct page 
  		err = write_one_page(page, 1);
  	else
  		unlock_page(page);
@@ -93,9 +93,7 @@ jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
 udf-convert-to-new-aops.patch
 sysv-convert-to-new-aops.patch
-sysv-convert-to-new-aops-fix2.patch
 minix-convert-to-new-aops.patch
-minix-convert-to-new-aops-fix.patch
 minix-convert-to-new-aops-fix2.patch
 jfs-convert-to-new-aops.patch
 fs-adfs-convert-to-new-aops.patch
