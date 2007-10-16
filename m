@@ -1,48 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:15:31 -0700
-Message-ID: <200710160415.l9G4FVP3008297@imap1.linux-foundation.org>
+Subject: - ext4-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:14:47 -0700
+Message-ID: <200710160414.l9G4EljB008213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50323 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752688AbXJPEPg (ORCPT
+	by vger.kernel.org with ESMTP id S1752695AbXJPEPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:15:36 -0400
+	Tue, 16 Oct 2007 00:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2 convert to new aops fix
+     ext4-convert-to-new-aops fix
 has been removed from the -mm tree.  Its filename was
-     gfs2-convert-to-new-aops-fix.patch
+     ext4-convert-to-new-aops-fix.patch
 
-This patch was dropped because it was folded into gfs2-convert-to-new-aops.patch
+This patch was dropped because it was folded into ext4-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: gfs2 convert to new aops fix
+Subject: ext4-convert-to-new-aops fix
 From: Nick Piggin <npiggin@suse.de>
 
+Don't move journal_stop from under page lock.
+
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Badari Pulavarty <pbadari@gmail.com>
+Cc: Dmitriy Monakhov <dmonakhov@sw.ru>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_address.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ext4/inode.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 37 insertions(+), 7 deletions(-)
 
-diff -puN fs/gfs2/ops_address.c~gfs2-convert-to-new-aops-fix fs/gfs2/ops_address.c
---- a/fs/gfs2/ops_address.c~gfs2-convert-to-new-aops-fix
-+++ a/fs/gfs2/ops_address.c
-@@ -521,7 +521,6 @@ static int gfs2_stuffed_write_end(struct
- 	if (!PageUptodate(page))
- 		SetPageUptodate(page);
- 	unlock_page(page);
--	mark_page_accessed(page);
- 	page_cache_release(page);
+diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix
++++ a/fs/ext4/inode.c
+@@ -36,6 +36,7 @@
+ #include <linux/mpage.h>
+ #include <linux/uio.h>
+ #include <linux/bio.h>
++#include <linux/swap.h> /* mark_page_accessed */
+ #include "xattr.h"
+ #include "acl.h"
  
- 	if (inode->i_size < to) {
+@@ -1215,6 +1216,31 @@ static int write_end_fn(handle_t *handle
+ }
+ 
+ /*
++ * Generic write_end handler for ordered and writeback ext4 journal modes.
++ * We can't use generic_write_end, because that unlocks the page and we need to
++ * unlock the page after ext4_journal_stop, but ext4_journal_stop must run
++ * after block_write_end.
++ */
++static int ext4_generic_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
++{
++	struct inode *inode = file->f_mapping->host;
++
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++
++	mark_page_accessed(page);
++
++	if (pos+copied > inode->i_size) {
++		i_size_write(inode, pos+copied);
++		mark_inode_dirty(inode);
++	}
++
++	return copied;
++}
++
++/*
+  * We need to pick up the new inode size which generic_commit_write gave us
+  * `file' can be NULL - eg, when called from page_symlink().
+  *
+@@ -1248,17 +1274,17 @@ static int ext4_ordered_write_end(struct
+ 		new_i_size = pos + copied;
+ 		if (new_i_size > EXT4_I(inode)->i_disksize)
+ 			EXT4_I(inode)->i_disksize = new_i_size;
+-		copied = generic_write_end(file, mapping, pos, len, copied,
++		copied = ext4_generic_write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 		if (copied < 0)
+ 			ret = copied;
+-	} else {
+-		unlock_page(page);
+-		page_cache_release(page);
+ 	}
+ 	ret2 = ext4_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1276,7 +1302,7 @@ static int ext4_writeback_write_end(stru
+ 	if (new_i_size > EXT4_I(inode)->i_disksize)
+ 		EXT4_I(inode)->i_disksize = new_i_size;
+ 
+-	copied = generic_write_end(file, mapping, pos, len, copied,
++	copied = ext4_generic_write_end(file, mapping, pos, len, copied,
+ 							page, fsdata);
+ 	if (copied < 0)
+ 		ret = copied;
+@@ -1284,6 +1310,9 @@ static int ext4_writeback_write_end(stru
+ 	ret2 = ext4_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
+ }
+ 
+@@ -1311,8 +1340,6 @@ static int ext4_journalled_write_end(str
+ 				to, &partial, write_end_fn);
+ 	if (!partial)
+ 		SetPageUptodate(page);
+-	unlock_page(page);
+-	page_cache_release(page);
+ 	if (pos+copied > inode->i_size)
+ 		i_size_write(inode, pos+copied);
+ 	EXT4_I(inode)->i_state |= EXT4_STATE_JDATA;
+@@ -1326,6 +1353,9 @@ static int ext4_journalled_write_end(str
+ 	ret2 = ext4_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
++	unlock_page(page);
++	page_cache_release(page);
++
+ 	return ret ? ret : copied;
+ }
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -73,8 +170,9 @@ block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
 ext3-convert-to-new-aops.patch
 ext4-convert-to-new-aops.patch
+ext4-convert-to-new-aops-fix.patch
+ext4-convert-to-new-aops-fix-fix.patch
 xfs-convert-to-new-aops.patch
-gfs2-convert-to-new-aops.patch
 gfs2-convert-to-new-aops-fix.patch
 fs-new-cont-helpers.patch
 fat-convert-to-new-aops.patch
