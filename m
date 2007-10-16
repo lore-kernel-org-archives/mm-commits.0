@@ -1,314 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-pagecache-write-deadlocks.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:32:10 -0700
-Message-ID: <200710162032.l9GKWA9J014575@imap1.linux-foundation.org>
+Subject: - mm-write-iovec-cleanup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:08 -0700
+Message-ID: <200710162032.l9GKW8aY014571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54928 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965851AbXJPVky (ORCPT
+	by vger.kernel.org with ESMTP id S965848AbXJPVk7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:40:54 -0400
+	Tue, 16 Oct 2007 17:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix pagecache write deadlocks
+     mm: write iovec cleanup
 has been removed from the -mm tree.  Its filename was
-     mm-fix-pagecache-write-deadlocks.patch
+     mm-write-iovec-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: fix pagecache write deadlocks
+Subject: mm: write iovec cleanup
 From: Nick Piggin <npiggin@suse.de>
 
-Modify the core write() code so that it won't take a pagefault while holding a
-lock on the pagecache page. There are a number of different deadlocks possible
-if we try to do such a thing:
-
-1.  generic_buffered_write
-2.   lock_page
-3.    prepare_write
-4.     unlock_page+vmtruncate
-5.     copy_from_user
-6.      mmap_sem(r)
-7.       handle_mm_fault
-8.        lock_page (filemap_nopage)
-9.    commit_write
-10.  unlock_page
-
-a. sys_munmap / sys_mlock / others
-b.  mmap_sem(w)
-c.   make_pages_present
-d.    get_user_pages
-e.     handle_mm_fault
-f.      lock_page (filemap_nopage)
-
-2,8	- recursive deadlock if page is same
-2,8;2,8	- ABBA deadlock is page is different
-2,6;b,f	- ABBA deadlock if page is same
-
-The solution is as follows:
-1.  If we find the destination page is uptodate, continue as normal, but use
-    atomic usercopies which do not take pagefaults and do not zero the uncopied
-    tail of the destination. The destination is already uptodate, so we can
-    commit_write the full length even if there was a partial copy: it does not
-    matter that the tail was not modified, because if it is dirtied and written
-    back to disk it will not cause any problems (uptodate *means* that the
-    destination page is as new or newer than the copy on disk).
-
-1a. The above requires that fault_in_pages_readable correctly returns access
-    information, because atomic usercopies cannot distinguish between
-    non-present pages in a readable mapping, from lack of a readable mapping.
-
-2.  If we find the destination page is non uptodate, unlock it (this could be
-    made slightly more optimal), then allocate a temporary page to copy the
-    source data into. Relock the destination page and continue with the copy.
-    However, instead of a usercopy (which might take a fault), copy the data
-    from the pinned temporary page via the kernel address space.
-
-(also, rename maxlen to seglen, because it was confusing)
-
-This increases the CPU/memory copy cost by almost 50% on the affected
-workloads. That will be solved by introducing a new set of pagecache write
-aops in a subsequent patch.
+Hide some of the open-coded nr_segs tests into the iovec helpers.  This is all
+to simplify generic_file_buffered_write, because that gets more complex in the
+next patch.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   11 ++-
- mm/filemap.c            |  122 ++++++++++++++++++++++++++++++++------
- 2 files changed, 112 insertions(+), 21 deletions(-)
+ mm/filemap.c     |   36 ++++-----------
+ mm/filemap.h     |  104 ++++++++++++++++++++++-----------------------
+ mm/filemap_xip.c |   17 +++----
+ 3 files changed, 69 insertions(+), 88 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-fix-pagecache-write-deadlocks include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-fix-pagecache-write-deadlocks
-+++ a/include/linux/pagemap.h
-@@ -219,6 +219,9 @@ static inline int fault_in_pages_writeab
- {
- 	int ret;
- 
-+	if (unlikely(size == 0))
-+		return 0;
-+
- 	/*
- 	 * Writing zeroes into userspace here is OK, because we know that if
- 	 * the zero gets there, we'll be overwriting it.
-@@ -238,19 +241,23 @@ static inline int fault_in_pages_writeab
- 	return ret;
- }
- 
--static inline void fault_in_pages_readable(const char __user *uaddr, int size)
-+static inline int fault_in_pages_readable(const char __user *uaddr, int size)
- {
- 	volatile char c;
- 	int ret;
- 
-+	if (unlikely(size == 0))
-+		return 0;
-+
- 	ret = __get_user(c, uaddr);
- 	if (ret == 0) {
- 		const char __user *end = uaddr + size - 1;
- 
- 		if (((unsigned long)uaddr & PAGE_MASK) !=
- 				((unsigned long)end & PAGE_MASK))
--		 	__get_user(c, end);
-+		 	ret = __get_user(c, end);
- 	}
-+	return ret;
- }
- 
- #endif /* _LINUX_PAGEMAP_H */
-diff -puN mm/filemap.c~mm-fix-pagecache-write-deadlocks mm/filemap.c
---- a/mm/filemap.c~mm-fix-pagecache-write-deadlocks
+diff -puN mm/filemap.c~mm-write-iovec-cleanup mm/filemap.c
+--- a/mm/filemap.c~mm-write-iovec-cleanup
 +++ a/mm/filemap.c
-@@ -1826,11 +1826,12 @@ generic_file_buffered_write(struct kiocb
- 	filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, written);
+@@ -1823,12 +1823,7 @@ generic_file_buffered_write(struct kiocb
+ 	/*
+ 	 * handle partial DIO write.  Adjust cur_iov if needed.
+ 	 */
+-	if (likely(nr_segs == 1))
+-		buf = iov->iov_base + written;
+-	else {
+-		filemap_set_next_iovec(&cur_iov, &iov_offset, written);
+-		buf = cur_iov->iov_base + iov_offset;
+-	}
++	filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, written);
  
  	do {
-+		struct page *src_page;
  		struct page *page;
- 		pgoff_t index;		/* Pagecache index for current page */
- 		unsigned long offset;	/* Offset into pagecache page */
--		unsigned long maxlen;	/* Bytes remaining in current iovec */
--		size_t bytes;		/* Bytes to write to page */
-+		unsigned long seglen;	/* Bytes remaining in current iovec */
-+		unsigned long bytes;	/* Bytes to write to page */
+@@ -1838,6 +1833,7 @@ generic_file_buffered_write(struct kiocb
+ 		size_t bytes;		/* Bytes to write to page */
  		size_t copied;		/* Bytes copied from user */
  
- 		buf = cur_iov->iov_base + iov_offset;
-@@ -1840,20 +1841,30 @@ generic_file_buffered_write(struct kiocb
- 		if (bytes > count)
- 			bytes = count;
- 
--		maxlen = cur_iov->iov_len - iov_offset;
--		if (maxlen > bytes)
--			maxlen = bytes;
-+		/*
-+		 * a non-NULL src_page indicates that we're doing the
-+		 * copy via get_user_pages and kmap.
-+		 */
-+		src_page = NULL;
-+
-+		seglen = cur_iov->iov_len - iov_offset;
-+		if (seglen > bytes)
-+			seglen = bytes;
- 
--#ifndef CONFIG_DEBUG_VM
- 		/*
- 		 * Bring in the user page that we will copy from _first_.
- 		 * Otherwise there's a nasty deadlock on copying from the
- 		 * same page as we're writing to, without it being marked
- 		 * up-to-date.
-+		 *
-+		 * Not only is this an optimisation, but it is also required
-+		 * to check that the address is actually valid, when atomic
-+		 * usercopies are used, below.
- 		 */
--		fault_in_pages_readable(buf, maxlen);
--#endif
--
-+		if (unlikely(fault_in_pages_readable(buf, seglen))) {
-+			status = -EFAULT;
-+			break;
-+		}
- 
- 		page = __grab_cache_page(mapping, index);
- 		if (!page) {
-@@ -1861,32 +1872,104 @@ generic_file_buffered_write(struct kiocb
- 			break;
- 		}
- 
-+		/*
-+		 * non-uptodate pages cannot cope with short copies, and we
-+		 * cannot take a pagefault with the destination page locked.
-+		 * So pin the source page to copy it.
-+		 */
-+		if (!PageUptodate(page)) {
-+			unlock_page(page);
-+
-+			src_page = alloc_page(GFP_KERNEL);
-+			if (!src_page) {
-+				page_cache_release(page);
-+				status = -ENOMEM;
-+				break;
-+			}
-+
-+			/*
-+			 * Cannot get_user_pages with a page locked for the
-+			 * same reason as we can't take a page fault with a
-+			 * page locked (as explained below).
-+			 */
-+			copied = filemap_copy_from_user(src_page, offset,
-+					cur_iov, nr_segs, iov_offset, bytes);
-+			if (unlikely(copied == 0)) {
-+				status = -EFAULT;
-+				page_cache_release(page);
-+				page_cache_release(src_page);
-+				break;
-+			}
-+			bytes = copied;
-+
-+			lock_page(page);
-+			/*
-+			 * Can't handle the page going uptodate here, because
-+			 * that means we would use non-atomic usercopies, which
-+			 * zero out the tail of the page, which can cause
-+			 * zeroes to become transiently visible. We could just
-+			 * use a non-zeroing copy, but the APIs aren't too
-+			 * consistent.
-+			 */
-+			if (unlikely(!page->mapping || PageUptodate(page))) {
-+				unlock_page(page);
-+				page_cache_release(page);
-+				page_cache_release(src_page);
-+				continue;
-+			}
-+
-+		}
-+
- 		status = a_ops->prepare_write(file, page, offset, offset+bytes);
++		buf = cur_iov->iov_base + iov_offset;
+ 		offset = (pos & (PAGE_CACHE_SIZE - 1));
+ 		index = pos >> PAGE_CACHE_SHIFT;
+ 		bytes = PAGE_CACHE_SIZE - offset;
+@@ -1869,13 +1865,10 @@ generic_file_buffered_write(struct kiocb
  		if (unlikely(status))
  			goto fs_write_aop_error;
  
--		copied = filemap_copy_from_user(page, offset,
-+		if (!src_page) {
-+			/*
-+			 * Must not enter the pagefault handler here, because
-+			 * we hold the page lock, so we might recursively
-+			 * deadlock on the same lock, or get an ABBA deadlock
-+			 * against a different lock, or against the mmap_sem
-+			 * (which nests outside the page lock).  So increment
-+			 * preempt count, and use _atomic usercopies.
-+			 *
-+			 * The page is uptodate so we are OK to encounter a
-+			 * short copy: if unmodified parts of the page are
-+			 * marked dirty and written out to disk, it doesn't
-+			 * really matter.
-+			 */
-+			pagefault_disable();
-+			copied = filemap_copy_from_user_atomic(page, offset,
- 					cur_iov, nr_segs, iov_offset, bytes);
-+			pagefault_enable();
-+		} else {
-+			void *src, *dst;
-+			src = kmap_atomic(src_page, KM_USER0);
-+			dst = kmap_atomic(page, KM_USER1);
-+			memcpy(dst + offset, src + offset, bytes);
-+			kunmap_atomic(dst, KM_USER1);
-+			kunmap_atomic(src, KM_USER0);
-+			copied = bytes;
-+		}
+-		if (likely(nr_segs == 1))
+-			copied = filemap_copy_from_user(page, offset,
+-							buf, bytes);
+-		else
+-			copied = filemap_copy_from_user_iovec(page, offset,
+-						cur_iov, iov_offset, bytes);
++		copied = filemap_copy_from_user(page, offset,
++					cur_iov, nr_segs, iov_offset, bytes);
  		flush_dcache_page(page);
- 
++
  		status = a_ops->commit_write(file, page, offset, offset+bytes);
  		if (unlikely(status < 0 || status == AOP_TRUNCATED_PAGE))
  			goto fs_write_aop_error;
--		if (unlikely(copied != bytes)) {
--			status = -EFAULT;
--			goto fs_write_aop_error;
--		}
+@@ -1886,20 +1879,11 @@ generic_file_buffered_write(struct kiocb
  		if (unlikely(status > 0)) /* filesystem did partial write */
--			copied = status;
-+			copied = min_t(size_t, copied, status);
+ 			copied = status;
+ 
+-		if (likely(copied > 0)) {
+-			written += copied;
+-			count -= copied;
+-			pos += copied;
+-			buf += copied;
+-			if (unlikely(nr_segs > 1)) {
+-				filemap_set_next_iovec(&cur_iov,
+-						&iov_offset, copied);
+-				if (count)
+-					buf = cur_iov->iov_base + iov_offset;
+-			} else {
+-				iov_offset += copied;
+-			}
+-		}
++		written += copied;
++		count -= copied;
++		pos += copied;
++		filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, copied);
 +
-+		unlock_page(page);
-+		mark_page_accessed(page);
-+		page_cache_release(page);
-+		if (src_page)
-+			page_cache_release(src_page);
- 
- 		written += copied;
- 		count -= copied;
- 		pos += copied;
- 		filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, copied);
- 
--		unlock_page(page);
--		mark_page_accessed(page);
--		page_cache_release(page);
- 		balance_dirty_pages_ratelimited(mapping);
- 		cond_resched();
- 		continue;
-@@ -1895,6 +1978,8 @@ fs_write_aop_error:
- 		if (status != AOP_TRUNCATED_PAGE)
- 			unlock_page(page);
+ 		unlock_page(page);
+ 		mark_page_accessed(page);
  		page_cache_release(page);
-+		if (src_page)
-+			page_cache_release(src_page);
+diff -puN mm/filemap.h~mm-write-iovec-cleanup mm/filemap.h
+--- a/mm/filemap.h~mm-write-iovec-cleanup
++++ a/mm/filemap.h
+@@ -22,82 +22,82 @@ __filemap_copy_from_user_iovec_inatomic(
  
- 		/*
- 		 * prepare_write() may have instantiated a few blocks
-@@ -1907,7 +1992,6 @@ fs_write_aop_error:
- 			continue;
- 		else
- 			break;
+ /*
+  * Copy as much as we can into the page and return the number of bytes which
+- * were sucessfully copied.  If a fault is encountered then clear the page
+- * out to (offset+bytes) and return the number of bytes which were copied.
+- *
+- * NOTE: For this to work reliably we really want copy_from_user_inatomic_nocache
+- * to *NOT* zero any tail of the buffer that it failed to copy.  If it does,
+- * and if the following non-atomic copy succeeds, then there is a small window
+- * where the target page contains neither the data before the write, nor the
+- * data after the write (it contains zero).  A read at this time will see
+- * data that is inconsistent with any ordering of the read and the write.
+- * (This has been detected in practice).
++ * were sucessfully copied.  If a fault is encountered then return the number of
++ * bytes which were copied.
+  */
+ static inline size_t
+-filemap_copy_from_user(struct page *page, unsigned long offset,
+-			const char __user *buf, unsigned bytes)
++filemap_copy_from_user_atomic(struct page *page, unsigned long offset,
++			const struct iovec *iov, unsigned long nr_segs,
++			size_t base, size_t bytes)
+ {
+ 	char *kaddr;
+-	int left;
++	size_t copied;
+ 
+ 	kaddr = kmap_atomic(page, KM_USER0);
+-	left = __copy_from_user_inatomic_nocache(kaddr + offset, buf, bytes);
++	if (likely(nr_segs == 1)) {
++		int left;
++		char __user *buf = iov->iov_base + base;
++		left = __copy_from_user_inatomic_nocache(kaddr + offset,
++							buf, bytes);
++		copied = bytes - left;
++	} else {
++		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
++							iov, base, bytes);
++	}
+ 	kunmap_atomic(kaddr, KM_USER0);
+ 
+-	if (left != 0) {
+-		/* Do it the slow way */
+-		kaddr = kmap(page);
+-		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
+-		kunmap(page);
+-	}
+-	return bytes - left;
++	return copied;
+ }
+ 
+ /*
+- * This has the same sideeffects and return value as filemap_copy_from_user().
+- * The difference is that on a fault we need to memset the remainder of the
+- * page (out to offset+bytes), to emulate filemap_copy_from_user()'s
+- * single-segment behaviour.
++ * This has the same sideeffects and return value as
++ * filemap_copy_from_user_atomic().
++ * The difference is that it attempts to resolve faults.
+  */
+ static inline size_t
+-filemap_copy_from_user_iovec(struct page *page, unsigned long offset,
+-			const struct iovec *iov, size_t base, size_t bytes)
++filemap_copy_from_user(struct page *page, unsigned long offset,
++			const struct iovec *iov, unsigned long nr_segs,
++			 size_t base, size_t bytes)
+ {
+ 	char *kaddr;
+ 	size_t copied;
+ 
+-	kaddr = kmap_atomic(page, KM_USER0);
+-	copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset, iov,
+-							 base, bytes);
+-	kunmap_atomic(kaddr, KM_USER0);
+-	if (copied != bytes) {
+-		kaddr = kmap(page);
+-		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset, iov,
+-								 base, bytes);
+-		if (bytes - copied)
+-			memset(kaddr + offset + copied, 0, bytes - copied);
+-		kunmap(page);
++	kaddr = kmap(page);
++	if (likely(nr_segs == 1)) {
++		int left;
++		char __user *buf = iov->iov_base + base;
++		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
++		copied = bytes - left;
++	} else {
++		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
++							iov, base, bytes);
+ 	}
++	kunmap(page);
+ 	return copied;
+ }
+ 
+ static inline void
+-filemap_set_next_iovec(const struct iovec **iovp, size_t *basep, size_t bytes)
++filemap_set_next_iovec(const struct iovec **iovp, unsigned long nr_segs,
++						 size_t *basep, size_t bytes)
+ {
+-	const struct iovec *iov = *iovp;
+-	size_t base = *basep;
 -
- 	} while (count);
- 	*ppos = pos;
+-	while (bytes) {
+-		int copy = min(bytes, iov->iov_len - base);
+-
+-		bytes -= copy;
+-		base += copy;
+-		if (iov->iov_len == base) {
+-			iov++;
+-			base = 0;
++	if (likely(nr_segs == 1)) {
++		*basep += bytes;
++	} else {
++		const struct iovec *iov = *iovp;
++		size_t base = *basep;
++
++		while (bytes) {
++			int copy = min(bytes, iov->iov_len - base);
++
++			bytes -= copy;
++			base += copy;
++			if (iov->iov_len == base) {
++				iov++;
++				base = 0;
++			}
+ 		}
++		*iovp = iov;
++		*basep = base;
+ 	}
+-	*iovp = iov;
+-	*basep = base;
+ }
+ #endif
+diff -puN mm/filemap_xip.c~mm-write-iovec-cleanup mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-write-iovec-cleanup
++++ a/mm/filemap_xip.c
+@@ -15,7 +15,6 @@
+ #include <linux/rmap.h>
+ #include <linux/sched.h>
+ #include <asm/tlbflush.h>
+-#include "filemap.h"
+ 
+ /*
+  * We do use our own empty page to avoid interference with other users
+@@ -288,6 +287,7 @@ __xip_file_write(struct file *filp, cons
+ 		unsigned long index;
+ 		unsigned long offset;
+ 		size_t copied;
++		char *kaddr;
+ 
+ 		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
+ 		index = pos >> PAGE_CACHE_SHIFT;
+@@ -295,14 +295,6 @@ __xip_file_write(struct file *filp, cons
+ 		if (bytes > count)
+ 			bytes = count;
+ 
+-		/*
+-		 * Bring in the user page that we will copy from _first_.
+-		 * Otherwise there's a nasty deadlock on copying from the
+-		 * same page as we're writing to, without it being marked
+-		 * up-to-date.
+-		 */
+-		fault_in_pages_readable(buf, bytes);
+-
+ 		page = a_ops->get_xip_page(mapping,
+ 					   index*(PAGE_SIZE/512), 0);
+ 		if (IS_ERR(page) && (PTR_ERR(page) == -ENODATA)) {
+@@ -319,8 +311,13 @@ __xip_file_write(struct file *filp, cons
+ 			break;
+ 		}
+ 
+-		copied = filemap_copy_from_user(page, offset, buf, bytes);
++		fault_in_pages_readable(buf, bytes);
++		kaddr = kmap_atomic(page, KM_USER0);
++		copied = bytes -
++			__copy_from_user_inatomic_nocache(kaddr, buf, bytes);
++		kunmap_atomic(kaddr, KM_USER0);
+ 		flush_dcache_page(page);
++
+ 		if (likely(copied > 0)) {
+ 			status = copied;
  
 _
 
