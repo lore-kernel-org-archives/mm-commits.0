@@ -1,210 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-set-up-and-destroy-persistent-lower-file.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:56 -0700
-Message-ID: <200710162040.l9GKeuUx015732@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-data-types.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:04 -0700
+Message-ID: <200710162041.l9GKf4vn015753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50974 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935975AbXJPVGl (ORCPT
+	by vger.kernel.org with ESMTP id S935676AbXJPVGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:06:41 -0400
+	Tue, 16 Oct 2007 17:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: set up and destroy persistent lower file
+     eCryptfs: fix data types
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-set-up-and-destroy-persistent-lower-file.patch
+     ecryptfs-fix-data-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: set up and destroy persistent lower file
+Subject: eCryptfs: fix data types
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-This patch sets up and destroys the persistent lower file for each eCryptfs
-inode.
+Update data types and add casts in order to avoid potential overflow
+issues.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |   23 ++++++++++++--
- fs/ecryptfs/main.c  |   65 ++++++++++++++++++++++++++++++++++++++++++
- fs/ecryptfs/super.c |   22 ++++++++++++--
- 3 files changed, 103 insertions(+), 7 deletions(-)
+ fs/ecryptfs/crypto.c     |   21 +++++++++++----------
+ fs/ecryptfs/mmap.c       |    5 +++--
+ fs/ecryptfs/read_write.c |   11 +++++++----
+ 3 files changed, 21 insertions(+), 16 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-set-up-and-destroy-persistent-lower-file
-+++ a/fs/ecryptfs/inode.c
-@@ -119,10 +119,23 @@ ecryptfs_do_create(struct inode *directo
- 	}
- 	rc = ecryptfs_create_underlying_file(lower_dir_dentry->d_inode,
- 					     ecryptfs_dentry, mode, nd);
--	if (unlikely(rc)) {
--		ecryptfs_printk(KERN_ERR,
--				"Failure to create underlying file\n");
--		goto out_lock;
-+	if (rc) {
-+		struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
-+		struct ecryptfs_inode_info *inode_info =
-+			ecryptfs_inode_to_private(ecryptfs_inode);
-+
-+		printk(KERN_WARNING "%s: Error creating underlying file; "
-+		       "rc = [%d]; checking for existing\n", __FUNCTION__, rc);
-+		if (inode_info) {
-+			mutex_lock(&inode_info->lower_file_mutex);
-+			if (!inode_info->lower_file) {
-+				mutex_unlock(&inode_info->lower_file_mutex);
-+				printk(KERN_ERR "%s: Failure to set underlying "
-+				       "file; rc = [%d]\n", __FUNCTION__, rc);
-+				goto out_lock;
-+			}
-+			mutex_unlock(&inode_info->lower_file_mutex);
-+		}
- 	}
- 	rc = ecryptfs_interpose(lower_dentry, ecryptfs_dentry,
- 				directory_inode->i_sb, 0);
-@@ -252,6 +265,8 @@ ecryptfs_create(struct inode *directory_
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-fix-data-types fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-fix-data-types
++++ a/fs/ecryptfs/crypto.c
+@@ -149,7 +149,7 @@ out:
+  * ecryptfs_derive_iv
+  * @iv: destination for the derived iv vale
+  * @crypt_stat: Pointer to crypt_stat struct for the current inode
+- * @offset: Offset of the page whose's iv we are to derive
++ * @offset: Offset of the extent whose IV we are to derive
+  *
+  * Generate the initialization vector from the given root IV and page
+  * offset.
+@@ -157,7 +157,7 @@ out:
+  * Returns zero on success; non-zero on error.
+  */
+ static int ecryptfs_derive_iv(char *iv, struct ecryptfs_crypt_stat *crypt_stat,
+-			      pgoff_t offset)
++			      loff_t offset)
  {
+ 	int rc = 0;
+ 	char dst[MD5_DIGEST_SIZE];
+@@ -173,7 +173,7 @@ static int ecryptfs_derive_iv(char *iv, 
+ 	 * hashing business. -Halcrow */
+ 	memcpy(src, crypt_stat->root_iv, crypt_stat->iv_bytes);
+ 	memset((src + crypt_stat->iv_bytes), 0, 16);
+-	snprintf((src + crypt_stat->iv_bytes), 16, "%ld", offset);
++	snprintf((src + crypt_stat->iv_bytes), 16, "%lld", offset);
+ 	if (unlikely(ecryptfs_verbosity > 0)) {
+ 		ecryptfs_printk(KERN_DEBUG, "source:\n");
+ 		ecryptfs_dump_hex(src, (crypt_stat->iv_bytes + 16));
+@@ -497,11 +497,11 @@ static int ecryptfs_encrypt_extent(struc
+ 				   struct page *page,
+ 				   unsigned long extent_offset)
+ {
+-	unsigned long extent_base;
++	loff_t extent_base;
+ 	char extent_iv[ECRYPTFS_MAX_IV_BYTES];
  	int rc;
  
-+	/* ecryptfs_do_create() calls ecryptfs_interpose(), which opens
-+	 * the crypt_stat->lower_file (persistent file) */
- 	rc = ecryptfs_do_create(directory_inode, ecryptfs_dentry, mode, nd);
- 	if (unlikely(rc)) {
- 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
-diff -puN fs/ecryptfs/main.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-set-up-and-destroy-persistent-lower-file
-+++ a/fs/ecryptfs/main.c
-@@ -99,6 +99,64 @@ void __ecryptfs_printk(const char *fmt, 
- }
+-	extent_base = (page->index
++	extent_base = (((loff_t)page->index)
+ 		       * (PAGE_CACHE_SIZE / crypt_stat->extent_size));
+ 	rc = ecryptfs_derive_iv(extent_iv, crypt_stat,
+ 				(extent_base + extent_offset));
+@@ -605,8 +605,9 @@ int ecryptfs_encrypt_page(struct page *p
+ 			goto out;
+ 		}
+ 		ecryptfs_lower_offset_for_extent(
+-			&offset, ((page->index * (PAGE_CACHE_SIZE
+-						  / crypt_stat->extent_size))
++			&offset, ((((loff_t)page->index)
++				   * (PAGE_CACHE_SIZE
++				      / crypt_stat->extent_size))
+ 				  + extent_offset), crypt_stat);
+ 		rc = ecryptfs_write_lower(ecryptfs_inode, enc_extent_virt,
+ 					  offset, crypt_stat->extent_size);
+@@ -628,11 +629,11 @@ static int ecryptfs_decrypt_extent(struc
+ 				   struct page *enc_extent_page,
+ 				   unsigned long extent_offset)
+ {
+-	unsigned long extent_base;
++	loff_t extent_base;
+ 	char extent_iv[ECRYPTFS_MAX_IV_BYTES];
+ 	int rc;
  
- /**
-+ * ecryptfs_init_persistent_file
-+ * @ecryptfs_dentry: Fully initialized eCryptfs dentry object, with
-+ *                   the lower dentry and the lower mount set
-+ *
-+ * eCryptfs only ever keeps a single open file for every lower
-+ * inode. All I/O operations to the lower inode occur through that
-+ * file. When the first eCryptfs dentry that interposes with the first
-+ * lower dentry for that inode is created, this function creates the
-+ * persistent file struct and associates it with the eCryptfs
-+ * inode. When the eCryptfs inode is destroyed, the file is closed.
-+ *
-+ * The persistent file will be opened with read/write permissions, if
-+ * possible. Otherwise, it is opened read-only.
-+ *
-+ * This function does nothing if a lower persistent file is already
-+ * associated with the eCryptfs inode.
-+ *
-+ * Returns zero on success; non-zero otherwise
-+ */
-+int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
-+{
-+	struct ecryptfs_inode_info *inode_info =
-+		ecryptfs_inode_to_private(ecryptfs_dentry->d_inode);
-+	int rc = 0;
-+
-+	mutex_lock(&inode_info->lower_file_mutex);
-+	if (!inode_info->lower_file) {
-+		struct dentry *lower_dentry;
-+		struct vfsmount *lower_mnt =
-+			ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
-+
-+		lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
-+		/* Corresponding dput() and mntput() are done when the
-+		 * persistent file is fput() when the eCryptfs inode
-+		 * is destroyed. */
-+		dget(lower_dentry);
-+		mntget(lower_mnt);
-+		inode_info->lower_file = dentry_open(lower_dentry,
-+						     lower_mnt,
-+						     (O_RDWR | O_LARGEFILE));
-+		if (IS_ERR(inode_info->lower_file))
-+			inode_info->lower_file = dentry_open(lower_dentry,
-+							     lower_mnt,
-+							     (O_RDONLY
-+							      | O_LARGEFILE));
-+		if (IS_ERR(inode_info->lower_file)) {
-+			printk(KERN_ERR "Error opening lower persistent file "
-+			       "for lower_dentry [0x%p] and lower_mnt [0x%p]\n",
-+			       lower_dentry, lower_mnt);
-+			rc = PTR_ERR(inode_info->lower_file);
-+			inode_info->lower_file = NULL;
-+		}
-+	}
-+	mutex_unlock(&inode_info->lower_file_mutex);
-+	return rc;
-+}
-+
-+/**
-  * ecryptfs_interpose
-  * @lower_dentry: Existing dentry in the lower filesystem
-  * @dentry: ecryptfs' dentry
-@@ -155,6 +213,13 @@ int ecryptfs_interpose(struct dentry *lo
- 	/* This size will be overwritten for real files w/ headers and
- 	 * other metadata */
- 	fsstack_copy_inode_size(inode, lower_inode);
-+	rc = ecryptfs_init_persistent_file(dentry);
-+	if (rc) {
-+		printk(KERN_ERR "%s: Error attempting to initialize the "
-+		       "persistent file for the dentry with name [%s]; "
-+		       "rc = [%d]\n", __FUNCTION__, dentry->d_name.name, rc);
-+		goto out;
-+	}
- out:
- 	return rc;
- }
-diff -puN fs/ecryptfs/super.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/super.c
---- a/fs/ecryptfs/super.c~ecryptfs-set-up-and-destroy-persistent-lower-file
-+++ a/fs/ecryptfs/super.c
-@@ -27,6 +27,7 @@
- #include <linux/mount.h>
- #include <linux/key.h>
- #include <linux/seq_file.h>
-+#include <linux/file.h>
- #include <linux/crypto.h>
- #include "ecryptfs_kernel.h"
+-	extent_base = (page->index
++	extent_base = (((loff_t)page->index)
+ 		       * (PAGE_CACHE_SIZE / crypt_stat->extent_size));
+ 	rc = ecryptfs_derive_iv(extent_iv, crypt_stat,
+ 				(extent_base + extent_offset));
+@@ -1471,7 +1472,7 @@ ecryptfs_write_metadata_to_contents(stru
+ 	while (current_header_page < header_pages) {
+ 		loff_t offset;
  
-@@ -63,9 +64,10 @@ out:
-  * ecryptfs_destroy_inode
-  * @inode: The ecryptfs inode
-  *
-- * This is used during the final destruction of the inode.
-- * All allocation of memory related to the inode, including allocated
-- * memory in the crypt_stat struct, will be released here.
-+ * This is used during the final destruction of the inode.  All
-+ * allocation of memory related to the inode, including allocated
-+ * memory in the crypt_stat struct, will be released here. This
-+ * function also fput()'s the persistent file for the lower inode.
-  * There should be no chance that this deallocation will be missed.
-  */
- static void ecryptfs_destroy_inode(struct inode *inode)
-@@ -73,6 +75,20 @@ static void ecryptfs_destroy_inode(struc
- 	struct ecryptfs_inode_info *inode_info;
+-		offset = (current_header_page << PAGE_CACHE_SHIFT);
++		offset = (((loff_t)current_header_page) << PAGE_CACHE_SHIFT);
+ 		if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode,
+ 					       page_virt, offset,
+ 					       PAGE_CACHE_SIZE))) {
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-fix-data-types fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-fix-data-types
++++ a/fs/ecryptfs/mmap.c
+@@ -286,7 +286,8 @@ ecryptfs_copy_up_encrypted_with_header(s
+ 	int rc = 0;
  
- 	inode_info = ecryptfs_inode_to_private(inode);
-+	mutex_lock(&inode_info->lower_file_mutex);
-+	if (inode_info->lower_file) {
-+		struct dentry *lower_dentry =
-+			inode_info->lower_file->f_dentry;
-+
-+		BUG_ON(!lower_dentry);
-+		if (lower_dentry->d_inode) {
-+			fput(inode_info->lower_file);
-+			inode_info->lower_file = NULL;
-+			d_drop(lower_dentry);
-+			d_delete(lower_dentry);
-+		}
-+	}
-+	mutex_unlock(&inode_info->lower_file_mutex);
- 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
- 	kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
- }
+ 	while (extent_num_in_page < num_extents_per_page) {
+-		loff_t view_extent_num = ((page->index * num_extents_per_page)
++		loff_t view_extent_num = ((((loff_t)page->index)
++					   * num_extents_per_page)
+ 					  + extent_num_in_page);
+ 
+ 		if (view_extent_num < crypt_stat->num_header_extents_at_front) {
+@@ -706,7 +707,7 @@ static int ecryptfs_commit_write(struct 
+ 				"index [0x%.16x])\n", page->index);
+ 		goto out;
+ 	}
+-	pos = (page->index << PAGE_CACHE_SHIFT) + to;
++	pos = (((loff_t)page->index) << PAGE_CACHE_SHIFT) + to;
+ 	if (pos > i_size_read(ecryptfs_inode)) {
+ 		i_size_write(ecryptfs_inode, pos);
+ 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
+diff -puN fs/ecryptfs/read_write.c~ecryptfs-fix-data-types fs/ecryptfs/read_write.c
+--- a/fs/ecryptfs/read_write.c~ecryptfs-fix-data-types
++++ a/fs/ecryptfs/read_write.c
+@@ -87,7 +87,8 @@ int ecryptfs_write_lower_page_segment(st
+ 	loff_t offset;
+ 	int rc;
+ 
+-	offset = (page_for_lower->index << PAGE_CACHE_SHIFT) + offset_in_page;
++	offset = ((((off_t)page_for_lower->index) << PAGE_CACHE_SHIFT)
++		  + offset_in_page);
+ 	virt = kmap(page_for_lower);
+ 	rc = ecryptfs_write_lower(ecryptfs_inode, virt, offset, size);
+ 	kunmap(page_for_lower);
+@@ -117,7 +118,8 @@ int ecryptfs_write(struct file *ecryptfs
+ {
+ 	struct page *ecryptfs_page;
+ 	char *ecryptfs_page_virt;
+-	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t ecryptfs_file_size =
++		i_size_read(ecryptfs_file->f_dentry->d_inode);
+ 	loff_t data_offset = 0;
+ 	loff_t pos;
+ 	int rc = 0;
+@@ -277,7 +279,7 @@ int ecryptfs_read_lower_page_segment(str
+ 	loff_t offset;
+ 	int rc;
+ 
+-	offset = ((page_index << PAGE_CACHE_SHIFT) + offset_in_page);
++	offset = ((((loff_t)page_index) << PAGE_CACHE_SHIFT) + offset_in_page);
+ 	virt = kmap(page_for_ecryptfs);
+ 	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
+ 	kunmap(page_for_ecryptfs);
+@@ -306,7 +308,8 @@ int ecryptfs_read(char *data, loff_t off
+ {
+ 	struct page *ecryptfs_page;
+ 	char *ecryptfs_page_virt;
+-	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t ecryptfs_file_size =
++		i_size_read(ecryptfs_file->f_dentry->d_inode);
+ 	loff_t data_offset = 0;
+ 	loff_t pos;
+ 	int rc = 0;
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
