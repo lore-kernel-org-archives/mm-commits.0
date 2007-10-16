@@ -1,64 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfs-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:06:53 -0700
-Message-ID: <200710160206.l9G26r8v003857@imap1.linux-foundation.org>
+Subject: - git-scsi-misc-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:07:00 -0700
+Message-ID: <200710160207.l9G2704P003860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55038 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756177AbXJPCGz (ORCPT
+	by vger.kernel.org with ESMTP id S1756190AbXJPCHD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:06:55 -0400
+	Mon, 15 Oct 2007 22:07:03 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G26rZm014891
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G271D5014921
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:06:54 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:07:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs-fixup
+     git-scsi-misc-fixup
 has been removed from the -mm tree.  Its filename was
-     git-nfs-fixup.patch
+     git-scsi-misc-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-nfs-fixup
+Subject: git-scsi-misc-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtsock.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/scsi/scsi_sysfs.c   |   46 +++++++++++++++++++---------------
+ scsi/aic94xx/aic94xx_task.c |    0 
+ 2 files changed, 26 insertions(+), 20 deletions(-)
 
-diff -puN net/sunrpc/xprtsock.c~git-nfs-fixup net/sunrpc/xprtsock.c
---- a/net/sunrpc/xprtsock.c~git-nfs-fixup
-+++ a/net/sunrpc/xprtsock.c
-@@ -1349,20 +1349,10 @@ static struct lock_class_key xs_slock_ke
- static inline void xs_reclassify_socket4(struct socket *sock)
- {
- 	struct sock *sk = sock->sk;
--<<<<<<< HEAD/net/sunrpc/xprtsock.c
--	BUG_ON(sock_owned_by_user(sk));
--	switch (sk->sk_family) {
--	case AF_INET:
--		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFS",
--			&xs_slock_key[0], "sk_lock-AF_INET-NFS", &xs_key[0]);
--		break;
--=======
- 
--	BUG_ON(sk->sk_lock.owner != NULL);
- 	sock_lock_init_class_and_name(sk, "slock-AF_INET-RPC",
- 		&xs_slock_key[0], "sk_lock-AF_INET-RPC", &xs_key[0]);
+diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -624,26 +624,32 @@ sdev_show_media_change_notify(struct dev
  }
-->>>>>>> /net/sunrpc/xprtsock.c
+ static DEVICE_ATTR(media_change_notify, S_IRUGO, sdev_show_media_change_notify, NULL);
  
- static inline void xs_reclassify_socket6(struct socket *sock)
- {
+-/* Default template for device attributes.  May NOT be modified */
+-static struct device_attribute *scsi_sysfs_sdev_attrs[] = {
+-	&dev_attr_device_blocked,
+-	&dev_attr_queue_depth,
+-	&dev_attr_queue_type,
+-	&dev_attr_type,
+-	&dev_attr_scsi_level,
+-	&dev_attr_vendor,
+-	&dev_attr_model,
+-	&dev_attr_rev,
+-	&dev_attr_rescan,
+-	&dev_attr_delete,
+-	&dev_attr_state,
+-	&dev_attr_timeout,
+-	&dev_attr_iocounterbits,
+-	&dev_attr_iorequest_cnt,
+-	&dev_attr_iodone_cnt,
+-	&dev_attr_ioerr_cnt,
+-	&dev_attr_modalias,
+-	&dev_attr_media_change_notify,
++static struct attribute *scsi_sdev_attrs[] = {
++	&dev_attr_device_blocked.attr,
++	&dev_attr_type.attr,
++	&dev_attr_scsi_level.attr,
++	&dev_attr_vendor.attr,
++	&dev_attr_model.attr,
++	&dev_attr_rev.attr,
++	&dev_attr_rescan.attr,
++	&dev_attr_delete.attr,
++	&dev_attr_state.attr,
++	&dev_attr_timeout.attr,
++	&dev_attr_iocounterbits.attr,
++	&dev_attr_iorequest_cnt.attr,
++	&dev_attr_iodone_cnt.attr,
++	&dev_attr_ioerr_cnt.attr,
++	&dev_attr_modalias.attr,
++	&dev_attr_media_change_notify.attr,
++	NULL
++};
++
++static struct attribute_group scsi_sdev_attr_group = {
++	.attrs =	scsi_sdev_attrs,
++};
++
++static struct attribute_group *scsi_sdev_attr_groups[] = {
++	&scsi_sdev_attr_group,
+ 	NULL
+ };
+ 
+diff -puN drivers/scsi/aic94xx/aic94xx_task.c~git-scsi-misc-fixup drivers/scsi/aic94xx/aic94xx_task.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +119,6 @@ ide-arm-hack.patch
 git-md-accel-fixup.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfs-fixup.patch
 git-nfs-vs-git-unionfs.patch
 git-nfsd-fixup.patch
 git-sched.patch
