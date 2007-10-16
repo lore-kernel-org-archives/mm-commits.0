@@ -1,76 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:14:17 -0700
-Message-ID: <200710160414.l9G4EHmE008195@imap1.linux-foundation.org>
+Subject: - ext2-convert-to-new-aops-fix2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:14:19 -0700
+Message-ID: <200710160414.l9G4EJW1008201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763264AbXJPEOV (ORCPT
+	by vger.kernel.org with ESMTP id S1763413AbXJPEOX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:14:21 -0400
+	Tue, 16 Oct 2007 00:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2 convert to new aops fix
+     ext2 convert to new aops fix2
 has been removed from the -mm tree.  Its filename was
-     ext2-convert-to-new-aops-fix.patch
+     ext2-convert-to-new-aops-fix2.patch
 
 This patch was dropped because it was folded into ext2-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: ext2 convert to new aops fix
+Subject: ext2 convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
-
-These are some write_begin aops conversion fixes for the current -mm tree.  I
-didn't quite get it building, but did compile test at least.
-
-Patches all address the same silly bug in my directory pagecache conversions.
-
-ext2 directory code has a conversion overflow.  Spotted by Hugh Dickins. 
-Probably would hurt anyone in practice unless they are using >4GB directories,
-but must fix.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ fs/ext2/dir.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops-fix fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-convert-to-new-aops-fix
+diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops-fix2 fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-convert-to-new-aops-fix2
 +++ a/fs/ext2/dir.c
-@@ -424,7 +424,7 @@ ino_t ext2_inode_by_name(struct inode * 
- void ext2_set_link(struct inode *dir, struct ext2_dir_entry_2 *de,
- 			struct page *page, struct inode *inode)
- {
--	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
-+	loff_t pos = page_offset(page) +
- 			(char *) de - (char *) page_address(page);
- 	unsigned len = le16_to_cpu(de->rec_len);
- 	int err;
-@@ -511,7 +511,7 @@ int ext2_add_link (struct dentry *dentry
- 	return -EINVAL;
+@@ -81,7 +81,6 @@ static int ext2_commit_chunk(struct page
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
+-	mark_page_accessed(page);
  
- got_it:
--	pos = (page->index << PAGE_CACHE_SHIFT) +
-+	pos = page_offset(page) +
- 		(char*)de - (char*)page_address(page);
- 	err = __ext2_write_begin(NULL, page->mapping, pos, rec_len, 0,
- 							&page, NULL);
-@@ -569,7 +569,7 @@ int ext2_delete_entry (struct ext2_dir_e
- 	}
- 	if (pde)
- 		from = (char*)pde - (char*)page_address(page);
--	pos = (page->index << PAGE_CACHE_SHIFT) + from;
-+	pos = page_offset(page) + from;
- 	lock_page(page);
- 	err = __ext2_write_begin(NULL, page->mapping, pos, to - from, 0,
- 							&page, NULL);
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -99,7 +71,6 @@ mm-restore-kernel_ds-optimisations.patch
 implement-simple-fs-aops.patch
 block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix.patch
 ext2-convert-to-new-aops-fix2.patch
 ext3-convert-to-new-aops.patch
 ext3-convert-to-new-aops-fix.patch
