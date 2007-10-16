@@ -1,168 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - slab-allocators-fail-if-ksize-is-called-with-a-null-parameter.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:35 -0700
-Message-ID: <200710162031.l9GKVZoZ014513@imap1.linux-foundation.org>
+Subject: - add-node-states-sysfs-class-attributes-v5.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:14 -0700
+Message-ID: <200710162036.l9GKaEs5015132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53563 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965508AbXJPVgw (ORCPT
+	by vger.kernel.org with ESMTP id S934697AbXJPVhE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:36:52 -0400
+	Tue, 16 Oct 2007 17:37:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mpm@selenic.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Slab allocators: fail if ksize is called with a NULL parameter
+     mm: add node states sysfs class attributeS
 has been removed from the -mm tree.  Its filename was
-     slab-allocators-fail-if-ksize-is-called-with-a-null-parameter.patch
+     add-node-states-sysfs-class-attributes-v5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Slab allocators: fail if ksize is called with a NULL parameter
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mm: add node states sysfs class attributeS
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-A NULL pointer means that the object was not allocated.  One cannot
-determine the size of an object that has not been allocated.  Currently we
-return 0 but we really should BUG() on attempts to determine the size of
-something nonexistent.
+Add a per node state sysfs class attribute file to /sys/devices/system/node
+to display node state masks.
 
-krealloc() interprets NULL to mean a zero sized object.  Handle that
-separately in krealloc().
+E.g., on a 4-cell HP ia64 NUMA platform, we have 5 nodes: 4 representing
+the actual hardware cells and one memory-only pseudo-node representing a
+small amount [512MB] of "hardware interleaved" memory.  With this patch, in
+/sys/devices/system/node we see:
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Matt Mackall <mpm@selenic.com>
+#ls -1F /sys/devices/system/node
+has_cpu
+has_normal_memory
+node0/
+node1/
+node2/
+node3/
+node4/
+online
+possible
+#cat /sys/devices/system/node/possible
+0-255
+#cat /sys/devices/system/node/online
+0-4
+#cat /sys/devices/system/node/has_normal_memory
+0-4
+#cat /sys/devices/system/node/has_cpu
+0-3
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 ++-
- mm/slob.c |    3 ++-
- mm/slub.c |    3 ++-
- mm/util.c |    6 ++++--
- 4 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/base/node.c |   91 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 90 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter mm/slab.c
---- a/mm/slab.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter
-+++ a/mm/slab.c
-@@ -4446,7 +4446,8 @@ const struct seq_operations slabstats_op
-  */
- size_t ksize(const void *objp)
- {
--	if (unlikely(ZERO_OR_NULL_PTR(objp)))
-+	BUG_ON(!objp);
-+	if (unlikely(objp == ZERO_SIZE_PTR))
- 		return 0;
+diff -puN drivers/base/node.c~add-node-states-sysfs-class-attributes-v5 drivers/base/node.c
+--- a/drivers/base/node.c~add-node-states-sysfs-class-attributes-v5
++++ a/drivers/base/node.c
+@@ -12,6 +12,7 @@
+ #include <linux/topology.h>
+ #include <linux/nodemask.h>
+ #include <linux/cpu.h>
++#include <linux/device.h>
  
- 	return obj_size(virt_to_cache(objp));
-diff -puN mm/slob.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter mm/slob.c
---- a/mm/slob.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter
-+++ a/mm/slob.c
-@@ -484,7 +484,8 @@ size_t ksize(const void *block)
- {
- 	struct slob_page *sp;
+ static struct sysdev_class node_class = {
+ 	set_kset_name("node"),
+@@ -232,8 +233,96 @@ void unregister_one_node(int nid)
+ 	unregister_node(&node_devices[nid]);
+ }
  
--	if (unlikely(ZERO_OR_NULL_PTR(block)))
-+	BUG_ON(!block);
-+	if (unlikely(block == ZERO_SIZE_PTR))
- 		return 0;
- 
- 	sp = (struct slob_page *)virt_to_page(block);
-diff -puN mm/slub.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter mm/slub.c
---- a/mm/slub.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter
-+++ a/mm/slub.c
-@@ -2449,7 +2449,8 @@ size_t ksize(const void *object)
- 	struct page *page;
- 	struct kmem_cache *s;
- 
--	if (unlikely(ZERO_OR_NULL_PTR(object)))
-+	BUG_ON(!object);
-+	if (unlikely(object == ZERO_SIZE_PTR))
- 		return 0;
- 
- 	page = get_object_page(object);
-diff -puN mm/util.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter mm/util.c
---- a/mm/util.c~slab-allocators-fail-if-ksize-is-called-with-a-null-parameter
-+++ a/mm/util.c
-@@ -81,14 +81,16 @@ EXPORT_SYMBOL(kmemdup);
- void *krealloc(const void *p, size_t new_size, gfp_t flags)
- {
- 	void *ret;
--	size_t ks;
-+	size_t ks = 0;
- 
- 	if (unlikely(!new_size)) {
- 		kfree(p);
- 		return ZERO_SIZE_PTR;
- 	}
- 
--	ks = ksize(p);
-+	if (p)
-+		ks = ksize(p);
++/*
++ * node states attributes
++ */
 +
- 	if (ks >= new_size)
- 		return (void *)p;
- 
++static ssize_t print_nodes_state(enum node_states state, char *buf)
++{
++	int n;
++
++	n = nodelist_scnprintf(buf, PAGE_SIZE, node_states[state]);
++	if (n > 0 && PAGE_SIZE > n + 1) {
++		*(buf + n++) = '\n';
++		*(buf + n++) = '\0';
++	}
++	return n;
++}
++
++static ssize_t print_nodes_possible(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_POSSIBLE, buf);
++}
++
++static ssize_t print_nodes_online(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_ONLINE, buf);
++}
++
++static ssize_t print_nodes_has_normal_memory(struct sysdev_class *class,
++						char *buf)
++{
++	return print_nodes_state(N_NORMAL_MEMORY, buf);
++}
++
++static ssize_t print_nodes_has_cpu(struct sysdev_class *class, char *buf)
++{
++	return print_nodes_state(N_CPU, buf);
++}
++
++static SYSDEV_CLASS_ATTR(possible, 0444, print_nodes_possible, NULL);
++static SYSDEV_CLASS_ATTR(online, 0444, print_nodes_online, NULL);
++static SYSDEV_CLASS_ATTR(has_normal_memory, 0444, print_nodes_has_normal_memory,
++									NULL);
++static SYSDEV_CLASS_ATTR(has_cpu, 0444, print_nodes_has_cpu, NULL);
++
++#ifdef CONFIG_HIGHMEM
++static ssize_t print_nodes_has_high_memory(struct sysdev_class *class,
++						 char *buf)
++{
++	return print_nodes_state(N_HIGH_MEMORY, buf);
++}
++
++static SYSDEV_CLASS_ATTR(has_high_memory, 0444, print_nodes_has_high_memory,
++									 NULL);
++#endif
++
++struct sysdev_class_attribute *node_state_attr[] = {
++	&attr_possible,
++	&attr_online,
++	&attr_has_normal_memory,
++#ifdef CONFIG_HIGHMEM
++	&attr_has_high_memory,
++#endif
++	&attr_has_cpu,
++};
++
++static int node_states_init(void)
++{
++	int i;
++	int err = 0;
++
++	for (i = 0;  i < NR_NODE_STATES; i++) {
++		int ret;
++		ret = sysdev_class_create_file(&node_class, node_state_attr[i]);
++		if (!err)
++			err = ret;
++	}
++	return err;
++}
++
+ static int __init register_node_type(void)
+ {
+-	return sysdev_class_register(&node_class);
++	int ret;
++
++	ret = sysdev_class_register(&node_class);
++	if (!ret)
++		ret = node_states_init();
++
++	/*
++	 * Note:  we're not going to unregister the node class if we fail
++	 * to register the node state class attribute files.
++	 */
++	return ret;
+ }
+ postcore_initcall(register_node_type);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
-slub-simplify-irq-off-handling.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
-mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-documentation-vm-slabinfoc-clean-up-this-code.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
-bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
