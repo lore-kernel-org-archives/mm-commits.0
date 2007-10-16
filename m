@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:03:50 -0700
-Message-ID: <200710160403.l9G43os2007805@imap1.linux-foundation.org>
+Subject: - readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:03:46 -0700
+Message-ID: <200710160403.l9G43kqm007802@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48632 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33553 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753330AbXJPEES (ORCPT
+	by vger.kernel.org with ESMTP id S1753749AbXJPEET (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:04:18 -0400
+	Tue, 16 Oct 2007 00:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, peterz@infradead.org, rusty@rustcorp.com.au, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
+     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
 has been removed from the -mm tree.  Its filename was
-     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
+     readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 
 This patch was dropped because it was folded into readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
 
 ------------------------------------------------------
-Subject: readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
+Subject: readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
@@ -31,60 +31,21 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c |    2 +-
- fs/ext4/dir.c |    2 +-
- fs/splice.c   |    2 +-
- mm/filemap.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2 fs/ext3/dir.c
---- a/fs/ext3/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
-+++ a/fs/ext3/dir.c
-@@ -143,7 +143,7 @@ static int ext3_readdir(struct file * fi
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
- 					index, 1);
--			filp->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
-+			filp->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
- 			bh = ext3_bread(NULL, inode, blk, 0, &err);
- 		}
- 
-diff -puN fs/ext4/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2 fs/ext4/dir.c
---- a/fs/ext4/dir.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
-+++ a/fs/ext4/dir.c
-@@ -142,7 +142,7 @@ static int ext4_readdir(struct file * fi
- 					sb->s_bdev->bd_inode->i_mapping,
- 					&filp->f_ra, filp,
- 					index, 1);
--			filp->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
-+			filp->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
- 			bh = ext4_bread(NULL, inode, blk, 0, &err);
- 		}
- 
-diff -puN fs/splice.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2 fs/splice.c
---- a/fs/splice.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
-+++ a/fs/splice.c
-@@ -454,7 +454,7 @@ fill_it:
- 	 */
- 	while (page_nr < nr_pages)
- 		page_cache_release(pages[page_nr++]);
--	in->f_ra.prev_pos = index << PAGE_CACHE_SHIFT;
-+	in->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
- 
- 	if (spd.nr_pages)
- 		return splice_to_pipe(pipe, &spd);
-diff -puN mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2 mm/filemap.c
---- a/mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2
+diff -puN mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix mm/filemap.c
+--- a/mm/filemap.c~readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix
 +++ a/mm/filemap.c
-@@ -1059,7 +1059,7 @@ out:
- 	_ra->prev_pos <<= PAGE_CACHE_SHIFT;
- 	_ra->prev_pos |= prev_offset;
+@@ -1397,7 +1397,7 @@ retry_find:
+ 	 * Found the page and have a reference on it.
+ 	 */
+ 	mark_page_accessed(page);
+-	ra->prev_pos = page->index << PAGE_CACHE_SHIFT;
++	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
+ 	vmf->page = page;
+ 	return ret | VM_FAULT_LOCKED;
  
--	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
-+	*ppos = ((loff_t)index << PAGE_CACHE_SHIFT) + offset;
- 	if (cached_page)
- 		page_cache_release(cached_page);
- 	if (filp)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +55,7 @@ slow-down-printk-during-boot.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 mm-use-pagevec-to-rotate-reclaimable-page-fix.patch
