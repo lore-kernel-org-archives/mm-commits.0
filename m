@@ -1,483 +1,323 @@
 From: akpm@linux-foundation.org
-Subject: - fs-restore-nobh.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:35 -0700
-Message-ID: <200710162033.l9GKXZR5014806@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:39 -0700
+Message-ID: <200710162033.l9GKXd66014814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42048 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56830 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934879AbXJPVzo (ORCPT
+	by vger.kernel.org with ESMTP id S965765AbXJPV4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:55:44 -0400
+	Tue, 16 Oct 2007 17:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, pbadari@us.ibm.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, Lee.Schermerhorn@hp.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, serge@hallyn.com, mm-commits@vger
 
 
 The patch titled
-     fs: restore nobh
+     Memoryless nodes: Generic management of nodemasks for various purposes
 has been removed from the -mm tree.  Its filename was
-     fs-restore-nobh.patch
+     memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: restore nobh
-From: Nick Piggin <npiggin@suse.de>
+Subject: Memoryless nodes: Generic management of nodemasks for various purposes
+From: Christoph Lameter <clameter@sgi.com>
 
-Implement nobh in new aops.  This is a bit tricky.  FWIW, nobh_truncate is
-now implemented in a way that does not create blocks in sparse regions,
-which is a silly thing for it to have been doing (isn't it?)
+Why do we need to support memoryless nodes?
 
-ext2 survives fsx and fsstress. jfs is converted as well... ext3
-should be easy to do (but not done yet).
+KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
 
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+> For fujitsu, problem is called "empty" node.
+> 
+> When ACPI's SRAT table includes "possible nodes", ia64 bootstrap(acpi_numa_init)
+> creates nodes, which includes no memory, no cpu.
+> 
+> I tried to remove empty-node in past, but that was denied.
+> It was because we can hot-add cpu to the empty node.
+> (node-hotplug triggered by cpu is not implemented now. and it will be ugly.)
+> 
+> 
+> For HP, (Lee can comment on this later), they have memory-less-node.
+> As far as I hear, HP's machine can have following configration.
+> 
+> (example)
+> Node0: CPU0   memory AAA MB
+> Node1: CPU1   memory AAA MB
+> Node2: CPU2   memory AAA MB
+> Node3: CPU3   memory AAA MB
+> Node4: Memory XXX GB
+> 
+> AAA is very small value (below 16MB)  and will be omitted by ia64 bootstrap.
+> After boot, only Node 4 has valid memory (but have no cpu.)
+> 
+> Maybe this is memory-interleave by firmware config.
+
+
+Christoph Lameter <clameter@sgi.com> wrote:
+
+> Future SGI platforms (actually also current one can have but nothing like 
+> that is deployed to my knowledge) have nodes with only cpus. Current SGI 
+> platforms have nodes with just I/O that we so far cannot manage in the 
+> core. So the arch code maps them to the nearest memory node.
+
+
+Lee Schermerhorn <Lee.Schermerhorn@hp.com> wrote:
+
+> For the HP platforms, we can configure each cell with from 0% to 100%
+> "cell local memory".  When we configure with <100% CLM, the "missing
+> percentages" are interleaved by hardware on a cache-line granularity to
+> improve bandwidth at the expense of latency for numa-challenged
+> applications [and OSes, but not our problem ;-)].  When we boot Linux on
+> such a config, all of the real nodes have no memory--it all resides in a
+> single interleaved pseudo-node.  
+> 
+> When we boot Linux on a 100% CLM configuration [== NUMA], we still have
+> the interleaved pseudo-node.  It contains a few hundred MB stolen from
+> the real nodes to contain the DMA zone.  [Interleaved memory resides at
+> phys addr 0].  The memoryless-nodes patches, along with the zoneorder
+> patches, support this config as well.
+> 
+> Also, when we boot a NUMA config with the "mem=" command line,
+> specifying less memory than actually exists, Linux takes the excluded
+> memory "off the top" rather than distributing it across the nodes.  This
+> can result in memoryless nodes, as well.
+> 
+
+
+This patch:
+
+Preparation for memoryless node patches.
+
+Provide a generic way to keep nodemasks describing various characteristics of
+NUMA nodes.
+
+Remove the node_online_map and the node_possible map and realize the same
+functionality using two nodes stats: N_POSSIBLE and N_ONLINE.
+
+[Lee.Schermerhorn@hp.com: Initialize N_*_MEMORY and N_CPU masks for non-NUMA config]
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@skynet.ie>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |  229 ++++++++++++++++++++++------------
- fs/ext2/inode.c             |   20 ++
- fs/jfs/inode.c              |    7 -
- include/linux/buffer_head.h |   10 +
- 4 files changed, 178 insertions(+), 88 deletions(-)
+ include/linux/nodemask.h |   87 ++++++++++++++++++++++++++++++-------
+ mm/page_alloc.c          |   20 +++++---
+ 2 files changed, 85 insertions(+), 22 deletions(-)
 
-diff -puN fs/buffer.c~fs-restore-nobh fs/buffer.c
---- a/fs/buffer.c~fs-restore-nobh
-+++ a/fs/buffer.c
-@@ -2369,7 +2369,7 @@ out_unlock:
- }
+diff -puN include/linux/nodemask.h~memoryless-nodes-generic-management-of-nodemasks-for-various-purposes include/linux/nodemask.h
+--- a/include/linux/nodemask.h~memoryless-nodes-generic-management-of-nodemasks-for-various-purposes
++++ a/include/linux/nodemask.h
+@@ -338,31 +338,81 @@ static inline void __nodes_remap(nodemas
+ #endif /* MAX_NUMNODES */
  
  /*
-- * nobh_prepare_write()'s prereads are special: the buffer_heads are freed
-+ * nobh_write_begin()'s prereads are special: the buffer_heads are freed
-  * immediately, while under the page lock.  So it needs a special end_io
-  * handler which does not touch the bh after unlocking it.
-  */
-@@ -2379,16 +2379,45 @@ static void end_buffer_read_nobh(struct 
- }
- 
- /*
-+ * Attach the singly-linked list of buffers created by nobh_write_begin, to
-+ * the page (converting it to circular linked list and taking care of page
-+ * dirty races).
++ * Bitmasks that are kept for all the nodes.
 + */
-+static void attach_nobh_buffers(struct page *page, struct buffer_head *head)
-+{
-+	struct buffer_head *bh;
-+
-+	BUG_ON(!PageLocked(page));
-+
-+	spin_lock(&page->mapping->private_lock);
-+	bh = head;
-+	do {
-+		if (PageDirty(page))
-+			set_buffer_dirty(bh);
-+		if (!bh->b_this_page)
-+			bh->b_this_page = head;
-+		bh = bh->b_this_page;
-+	} while (bh != head);
-+	attach_page_buffers(page, head);
-+	spin_unlock(&page->mapping->private_lock);
-+}
++enum node_states {
++	N_POSSIBLE,	/* The node could become online at some point */
++	N_ONLINE,	/* The node is online */
++	NR_NODE_STATES
++};
 +
 +/*
-  * On entry, the page is fully not uptodate.
-  * On exit the page is fully uptodate in the areas outside (from,to)
+  * The following particular system nodemasks and operations
+  * on them manage all possible and online nodes.
   */
--int nobh_prepare_write(struct page *page, unsigned from, unsigned to,
-+int nobh_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata,
- 			get_block_t *get_block)
- {
--	struct inode *inode = page->mapping->host;
-+	struct inode *inode = mapping->host;
- 	const unsigned blkbits = inode->i_blkbits;
- 	const unsigned blocksize = 1 << blkbits;
- 	struct buffer_head *head, *bh;
-+	struct page *page;
-+	pgoff_t index;
-+	unsigned from, to;
- 	unsigned block_in_page;
- 	unsigned block_start, block_end;
- 	sector_t block_in_file;
-@@ -2397,8 +2426,23 @@ int nobh_prepare_write(struct page *page
- 	int ret = 0;
- 	int is_mapped_to_disk = 1;
  
--	if (page_has_buffers(page))
--		return block_prepare_write(page, from, to, get_block);
-+	index = pos >> PAGE_CACHE_SHIFT;
-+	from = pos & (PAGE_CACHE_SIZE - 1);
-+	to = from + len;
-+
-+	page = __grab_cache_page(mapping, index);
-+	if (!page)
-+		return -ENOMEM;
-+	*pagep = page;
-+	*fsdata = NULL;
-+
-+	if (page_has_buffers(page)) {
-+		unlock_page(page);
-+		page_cache_release(page);
-+		*pagep = NULL;
-+		return block_write_begin(file, mapping, pos, len, flags, pagep,
-+					fsdata, get_block);
-+	}
+-extern nodemask_t node_online_map;
+-extern nodemask_t node_possible_map;
++extern nodemask_t node_states[NR_NODE_STATES];
  
- 	if (PageMappedToDisk(page))
- 		return 0;
-@@ -2413,8 +2457,10 @@ int nobh_prepare_write(struct page *page
- 	 * than the circular one we're used to.
- 	 */
- 	head = alloc_page_buffers(page, blocksize, 0);
--	if (!head)
--		return -ENOMEM;
-+	if (!head) {
-+		ret = -ENOMEM;
-+		goto out_release;
-+	}
- 
- 	block_in_file = (sector_t)page->index << (PAGE_CACHE_SHIFT - blkbits);
- 
-@@ -2483,15 +2529,12 @@ int nobh_prepare_write(struct page *page
- 	if (is_mapped_to_disk)
- 		SetPageMappedToDisk(page);
- 
--	do {
--		bh = head;
--		head = head->b_this_page;
--		free_buffer_head(bh);
--	} while (head);
-+	*fsdata = head; /* to be released by nobh_write_end */
- 
- 	return 0;
- 
- failed:
-+	BUG_ON(!ret);
- 	/*
- 	 * Error recovery is a bit difficult. We need to zero out blocks that
- 	 * were newly allocated, and dirty them to ensure they get written out.
-@@ -2499,64 +2542,57 @@ failed:
- 	 * the handling of potential IO errors during writeout would be hard
- 	 * (could try doing synchronous writeout, but what if that fails too?)
- 	 */
--	spin_lock(&page->mapping->private_lock);
--	bh = head;
--	block_start = 0;
--	do {
--		if (PageUptodate(page))
--			set_buffer_uptodate(bh);
--		if (PageDirty(page))
--			set_buffer_dirty(bh);
-+	attach_nobh_buffers(page, head);
-+	page_zero_new_buffers(page, from, to);
- 
--		block_end = block_start+blocksize;
--		if (block_end <= from)
--			goto next;
--		if (block_start >= to)
--			goto next;
-+out_release:
-+	unlock_page(page);
-+	page_cache_release(page);
-+	*pagep = NULL;
- 
--		if (buffer_new(bh)) {
--			clear_buffer_new(bh);
--			if (!buffer_uptodate(bh)) {
--				zero_user_page(page, block_start, bh->b_size, KM_USER0);
--				set_buffer_uptodate(bh);
--			}
--			mark_buffer_dirty(bh);
--		}
--next:
--		block_start = block_end;
--		if (!bh->b_this_page)
--			bh->b_this_page = head;
--		bh = bh->b_this_page;
--	} while (bh != head);
--	attach_page_buffers(page, head);
--	spin_unlock(&page->mapping->private_lock);
-+	if (pos + len > inode->i_size)
-+		vmtruncate(inode, inode->i_size);
- 
- 	return ret;
- }
--EXPORT_SYMBOL(nobh_prepare_write);
-+EXPORT_SYMBOL(nobh_write_begin);
- 
--/*
-- * Make sure any changes to nobh_commit_write() are reflected in
-- * nobh_truncate_page(), since it doesn't call commit_write().
-- */
--int nobh_commit_write(struct file *file, struct page *page,
--		unsigned from, unsigned to)
-+int nobh_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
- {
- 	struct inode *inode = page->mapping->host;
--	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
-+	struct buffer_head *head = NULL;
-+	struct buffer_head *bh;
- 
--	if (page_has_buffers(page))
--		return generic_commit_write(file, page, from, to);
-+	if (!PageMappedToDisk(page)) {
-+		if (unlikely(copied < len) && !page_has_buffers(page))
-+			attach_nobh_buffers(page, head);
-+		if (page_has_buffers(page))
-+			return generic_write_end(file, mapping, pos, len,
-+						copied, page, fsdata);
-+	}
- 
- 	SetPageUptodate(page);
- 	set_page_dirty(page);
--	if (pos > inode->i_size) {
--		i_size_write(inode, pos);
-+	if (pos+copied > inode->i_size) {
-+		i_size_write(inode, pos+copied);
- 		mark_inode_dirty(inode);
- 	}
--	return 0;
-+
-+	unlock_page(page);
-+	page_cache_release(page);
-+
-+	head = fsdata;
-+	while (head) {
-+		bh = head;
-+		head = head->b_this_page;
-+		free_buffer_head(bh);
-+	}
-+
-+	return copied;
- }
--EXPORT_SYMBOL(nobh_commit_write);
-+EXPORT_SYMBOL(nobh_write_end);
- 
- /*
-  * nobh_writepage() - based on block_full_write_page() except
-@@ -2609,44 +2645,79 @@ out:
- }
- EXPORT_SYMBOL(nobh_writepage);
- 
--/*
-- * This function assumes that ->prepare_write() uses nobh_prepare_write().
-- */
--int nobh_truncate_page(struct address_space *mapping, loff_t from)
-+int nobh_truncate_page(struct address_space *mapping,
-+			loff_t from, get_block_t *get_block)
- {
--	struct inode *inode = mapping->host;
--	unsigned blocksize = 1 << inode->i_blkbits;
- 	pgoff_t index = from >> PAGE_CACHE_SHIFT;
- 	unsigned offset = from & (PAGE_CACHE_SIZE-1);
--	unsigned to;
-+	unsigned blocksize;
-+	sector_t iblock;
-+	unsigned length, pos;
-+	struct inode *inode = mapping->host;
- 	struct page *page;
--	const struct address_space_operations *a_ops = mapping->a_ops;
--	int ret = 0;
-+	struct buffer_head map_bh;
-+	int err;
- 
--	if ((offset & (blocksize - 1)) == 0)
--		goto out;
-+	blocksize = 1 << inode->i_blkbits;
-+	length = offset & (blocksize - 1);
-+
-+	/* Block boundary? Nothing to do */
-+	if (!length)
-+		return 0;
-+
-+	length = blocksize - length;
-+	iblock = (sector_t)index << (PAGE_CACHE_SHIFT - inode->i_blkbits);
- 
--	ret = -ENOMEM;
- 	page = grab_cache_page(mapping, index);
-+	err = -ENOMEM;
- 	if (!page)
- 		goto out;
- 
--	to = (offset + blocksize) & ~(blocksize - 1);
--	ret = a_ops->prepare_write(NULL, page, offset, to);
--	if (ret == 0) {
--		zero_user_page(page, offset, PAGE_CACHE_SIZE - offset,
--				KM_USER0);
--		/*
--		 * It would be more correct to call aops->commit_write()
--		 * here, but this is more efficient.
--		 */
--		SetPageUptodate(page);
--		set_page_dirty(page);
-+	if (page_has_buffers(page)) {
-+has_buffers:
-+		unlock_page(page);
-+		page_cache_release(page);
-+		return block_truncate_page(mapping, from, get_block);
-+	}
-+
-+	/* Find the buffer that contains "offset" */
-+	pos = blocksize;
-+	while (offset >= pos) {
-+		iblock++;
-+		pos += blocksize;
- 	}
-+
-+	err = get_block(inode, iblock, &map_bh, 0);
-+	if (err)
-+		goto unlock;
-+	/* unmapped? It's a hole - nothing to do */
-+	if (!buffer_mapped(&map_bh))
-+		goto unlock;
-+
-+	/* Ok, it's mapped. Make sure it's up-to-date */
-+	if (!PageUptodate(page)) {
-+		err = mapping->a_ops->readpage(NULL, page);
-+		if (err) {
-+			page_cache_release(page);
-+			goto out;
-+		}
-+		lock_page(page);
-+		if (!PageUptodate(page)) {
-+			err = -EIO;
-+			goto unlock;
-+		}
-+		if (page_has_buffers(page))
-+			goto has_buffers;
-+	}
-+	zero_user_page(page, offset, length, KM_USER0);
-+	set_page_dirty(page);
-+	err = 0;
-+
-+unlock:
- 	unlock_page(page);
- 	page_cache_release(page);
- out:
--	return ret;
-+	return err;
- }
- EXPORT_SYMBOL(nobh_truncate_page);
- 
-diff -puN fs/ext2/inode.c~fs-restore-nobh fs/ext2/inode.c
---- a/fs/ext2/inode.c~fs-restore-nobh
-+++ a/fs/ext2/inode.c
-@@ -659,6 +659,20 @@ ext2_write_begin(struct file *file, stru
- 	return __ext2_write_begin(file, mapping, pos, len, flags, pagep,fsdata);
- }
- 
-+static int
-+ext2_nobh_write_begin(struct file *file, struct address_space *mapping,
-+		loff_t pos, unsigned len, unsigned flags,
-+		struct page **pagep, void **fsdata)
+ #if MAX_NUMNODES > 1
+-#define num_online_nodes()	nodes_weight(node_online_map)
+-#define num_possible_nodes()	nodes_weight(node_possible_map)
+-#define node_online(node)	node_isset((node), node_online_map)
+-#define node_possible(node)	node_isset((node), node_possible_map)
+-#define first_online_node	first_node(node_online_map)
+-#define next_online_node(nid)	next_node((nid), node_online_map)
++static inline int node_state(int node, enum node_states state)
 +{
-+	/*
-+	 * Dir-in-pagecache still uses ext2_write_begin. Would have to rework
-+	 * directory handling code to pass around offsets rather than struct
-+	 * pages in order to make this work easily.
-+	 */
-+	return nobh_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+							ext2_get_block);
++	return node_isset(node, node_states[state]);
 +}
 +
- static int ext2_nobh_writepage(struct page *page,
- 			struct writeback_control *wbc)
- {
-@@ -710,7 +724,8 @@ const struct address_space_operations ex
- 	.readpages		= ext2_readpages,
- 	.writepage		= ext2_nobh_writepage,
- 	.sync_page		= block_sync_page,
--	/* XXX: todo */
-+	.write_begin		= ext2_nobh_write_begin,
-+	.write_end		= nobh_write_end,
- 	.bmap			= ext2_bmap,
- 	.direct_IO		= ext2_direct_IO,
- 	.writepages		= ext2_writepages,
-@@ -927,7 +942,8 @@ void ext2_truncate (struct inode * inode
- 	if (mapping_is_xip(inode->i_mapping))
- 		xip_truncate_page(inode->i_mapping, inode->i_size);
- 	else if (test_opt(inode->i_sb, NOBH))
--		nobh_truncate_page(inode->i_mapping, inode->i_size);
-+		nobh_truncate_page(inode->i_mapping,
-+				inode->i_size, ext2_get_block);
- 	else
- 		block_truncate_page(inode->i_mapping,
- 				inode->i_size, ext2_get_block);
-diff -puN fs/jfs/inode.c~fs-restore-nobh fs/jfs/inode.c
---- a/fs/jfs/inode.c~fs-restore-nobh
-+++ a/fs/jfs/inode.c
-@@ -279,8 +279,7 @@ static int jfs_write_begin(struct file *
- 				loff_t pos, unsigned len, unsigned flags,
- 				struct page **pagep, void **fsdata)
- {
--	*pagep = NULL;
--	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+	return nobh_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
- 				jfs_get_block);
- }
++static inline void node_set_state(int node, enum node_states state)
++{
++	__node_set(node, &node_states[state]);
++}
++
++static inline void node_clear_state(int node, enum node_states state)
++{
++	__node_clear(node, &node_states[state]);
++}
++
++static inline int num_node_state(enum node_states state)
++{
++	return nodes_weight(node_states[state]);
++}
++
++#define for_each_node_state(__node, __state) \
++	for_each_node_mask((__node), node_states[__state])
++
++#define first_online_node	first_node(node_states[N_ONLINE])
++#define next_online_node(nid)	next_node((nid), node_states[N_ONLINE])
++
+ extern int nr_node_ids;
+ #else
+-#define num_online_nodes()	1
+-#define num_possible_nodes()	1
+-#define node_online(node)	((node) == 0)
+-#define node_possible(node)	((node) == 0)
++
++static inline int node_state(int node, enum node_states state)
++{
++	return node == 0;
++}
++
++static inline void node_set_state(int node, enum node_states state)
++{
++}
++
++static inline void node_clear_state(int node, enum node_states state)
++{
++}
++
++static inline int num_node_state(enum node_states state)
++{
++	return 1;
++}
++
++#define for_each_node_state(node, __state) \
++	for ( (node) = 0; (node) == 0; (node) = 1)
++
+ #define first_online_node	0
+ #define next_online_node(nid)	(MAX_NUMNODES)
+ #define nr_node_ids		1
++
+ #endif
  
-@@ -306,7 +305,7 @@ const struct address_space_operations jf
- 	.writepages	= jfs_writepages,
- 	.sync_page	= block_sync_page,
- 	.write_begin	= jfs_write_begin,
--	.write_end	= generic_write_end,
-+	.write_end	= nobh_write_end,
- 	.bmap		= jfs_bmap,
- 	.direct_IO	= jfs_direct_IO,
- };
-@@ -359,7 +358,7 @@ void jfs_truncate(struct inode *ip)
- {
- 	jfs_info("jfs_truncate: size = 0x%lx", (ulong) ip->i_size);
++#define node_online_map 	node_states[N_ONLINE]
++#define node_possible_map 	node_states[N_POSSIBLE]
++
+ #define any_online_node(mask)			\
+ ({						\
+ 	int node;				\
+@@ -372,10 +422,15 @@ extern int nr_node_ids;
+ 	node;					\
+ })
  
--	block_truncate_page(ip->i_mapping, ip->i_size, jfs_get_block);
-+	nobh_truncate_page(ip->i_mapping, ip->i_size, jfs_get_block);
+-#define node_set_online(node)	   set_bit((node), node_online_map.bits)
+-#define node_set_offline(node)	   clear_bit((node), node_online_map.bits)
++#define num_online_nodes()	num_node_state(N_ONLINE)
++#define num_possible_nodes()	num_node_state(N_POSSIBLE)
++#define node_online(node)	node_state((node), N_ONLINE)
++#define node_possible(node)	node_state((node), N_POSSIBLE)
++
++#define node_set_online(node)	   node_set_state((node), N_ONLINE)
++#define node_set_offline(node)	   node_clear_state((node), N_ONLINE)
  
- 	IWRITE_LOCK(ip, RDWRLOCK_NORMAL);
- 	jfs_truncate_nolock(ip, ip->i_size);
-diff -puN include/linux/buffer_head.h~fs-restore-nobh include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-restore-nobh
-+++ a/include/linux/buffer_head.h
-@@ -226,9 +226,13 @@ sector_t generic_block_bmap(struct addre
- int generic_commit_write(struct file *, struct page *, unsigned, unsigned);
- int block_truncate_page(struct address_space *, loff_t, get_block_t *);
- int file_fsync(struct file *, struct dentry *, int);
--int nobh_prepare_write(struct page*, unsigned, unsigned, get_block_t*);
--int nobh_commit_write(struct file *, struct page *, unsigned, unsigned);
--int nobh_truncate_page(struct address_space *, loff_t);
-+int nobh_write_begin(struct file *, struct address_space *,
-+				loff_t, unsigned, unsigned,
-+				struct page **, void **, get_block_t*);
-+int nobh_write_end(struct file *, struct address_space *,
-+				loff_t, unsigned, unsigned,
-+				struct page *, void *);
-+int nobh_truncate_page(struct address_space *, loff_t, get_block_t *);
- int nobh_writepage(struct page *page, get_block_t *get_block,
-                         struct writeback_control *wbc);
+-#define for_each_node(node)	   for_each_node_mask((node), node_possible_map)
+-#define for_each_online_node(node) for_each_node_mask((node), node_online_map)
++#define for_each_node(node)	   for_each_node_state(node, N_POSSIBLE)
++#define for_each_online_node(node) for_each_node_state(node, N_ONLINE)
  
+ #endif /* __LINUX_NODEMASK_H */
+diff -puN mm/page_alloc.c~memoryless-nodes-generic-management-of-nodemasks-for-various-purposes mm/page_alloc.c
+--- a/mm/page_alloc.c~memoryless-nodes-generic-management-of-nodemasks-for-various-purposes
++++ a/mm/page_alloc.c
+@@ -47,13 +47,21 @@
+ #include "internal.h"
+ 
+ /*
+- * MCD - HACK: Find somewhere to initialize this EARLY, or make this
+- * initializer cleaner
++ * Array of node states.
+  */
+-nodemask_t node_online_map __read_mostly = { { [0] = 1UL } };
+-EXPORT_SYMBOL(node_online_map);
+-nodemask_t node_possible_map __read_mostly = NODE_MASK_ALL;
+-EXPORT_SYMBOL(node_possible_map);
++nodemask_t node_states[NR_NODE_STATES] __read_mostly = {
++	[N_POSSIBLE] = NODE_MASK_ALL,
++	[N_ONLINE] = { { [0] = 1UL } },
++#ifndef CONFIG_NUMA
++	[N_NORMAL_MEMORY] = { { [0] = 1UL } },
++#ifdef CONFIG_HIGHMEM
++	[N_HIGH_MEMORY] = { { [0] = 1UL } },
++#endif
++	[N_CPU] = { { [0] = 1UL } },
++#endif	/* NUMA */
++};
++EXPORT_SYMBOL(node_states);
++
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+ long nr_swap_pages;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
 bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
