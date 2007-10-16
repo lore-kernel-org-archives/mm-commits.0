@@ -1,131 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - mm-clean-up-buffered-write-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:32:00 -0700
-Message-ID: <200710162032.l9GKW0FS014548@imap1.linux-foundation.org>
+Subject: - revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:58 -0700
+Message-ID: <200710162031.l9GKVwW8014545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51442 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966077AbXJPVev (ORCPT
+	by vger.kernel.org with ESMTP id S965863AbXJPVes (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:34:51 -0400
+	Tue, 16 Oct 2007 17:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: clean up buffered write code
+     Revert 6527c2bdf1f833cc18e8f42bd97973d583e4aa83
 has been removed from the -mm tree.  Its filename was
-     mm-clean-up-buffered-write-code.patch
+     revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: clean up buffered write code
+Subject: Revert 6527c2bdf1f833cc18e8f42bd97973d583e4aa83
 From: Andrew Morton <akpm@osdl.org>
 
-Rename some variables and fix some types.
+This patch fixed the following bug:
 
-Signed-off-by: Andrew Morton <akpm@osdl.org>
+  When prefaulting in the pages in generic_file_buffered_write(), we only
+  faulted in the pages for the firts segment of the iovec.  If the second of
+  successive segment described a mmapping of the page into which we're
+  write()ing, and that page is not up-to-date, the fault handler tries to lock
+  the already-locked page (to bring it up to date) and deadlocks.
+
+  An exploit for this bug is in writev-deadlock-demo.c, in
+  http://www.zip.com.au/~akpm/linux/patches/stuff/ext3-tools.tar.gz.
+
+  (These demos assume blocksize < PAGE_CACHE_SIZE).
+
+The problem with this fix is that it takes the kernel back to doing a single
+prepare_write()/commit_write() per iovec segment.  So in the worst case we'll
+run prepare_write+commit_write 1024 times where we previously would have run
+it once. The other problem with the fix is that it fix all the locking problems.
+
+<insert numbers obtained via ext3-tools's writev-speed.c here>
+
+And apparently this change killed NFS overwrite performance, because, I
+suppose, it talks to the server for each prepare_write+commit_write.
+
+So just back that patch out - we'll be fixing the deadlock by other means.
+
+Nick says: also it only ever actually papered over the bug, because after
+faulting in the pages, they might be unmapped or reclaimed.
+
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ mm/filemap.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN mm/filemap.c~mm-clean-up-buffered-write-code mm/filemap.c
---- a/mm/filemap.c~mm-clean-up-buffered-write-code
+diff -puN mm/filemap.c~revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83 mm/filemap.c
+--- a/mm/filemap.c~revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83
 +++ a/mm/filemap.c
-@@ -1838,16 +1838,15 @@ generic_file_buffered_write(struct kiocb
- 		size_t count, ssize_t written)
- {
- 	struct file *file = iocb->ki_filp;
--	struct address_space * mapping = file->f_mapping;
-+	struct address_space *mapping = file->f_mapping;
- 	const struct address_space_operations *a_ops = mapping->a_ops;
- 	struct inode 	*inode = mapping->host;
- 	long		status = 0;
- 	struct page	*page;
- 	struct page	*cached_page = NULL;
--	size_t		bytes;
- 	struct pagevec	lru_pvec;
- 	const struct iovec *cur_iov = iov; /* current iovec */
--	size_t		iov_base = 0;	   /* offset in the current iovec */
-+	size_t		iov_offset = 0;	   /* offset in the current iovec */
- 	char __user	*buf;
- 
- 	pagevec_init(&lru_pvec, 0);
-@@ -1858,31 +1857,33 @@ generic_file_buffered_write(struct kiocb
- 	if (likely(nr_segs == 1))
- 		buf = iov->iov_base + written;
- 	else {
--		filemap_set_next_iovec(&cur_iov, &iov_base, written);
--		buf = cur_iov->iov_base + iov_base;
-+		filemap_set_next_iovec(&cur_iov, &iov_offset, written);
-+		buf = cur_iov->iov_base + iov_offset;
- 	}
- 
+@@ -1865,21 +1865,14 @@ generic_file_buffered_write(struct kiocb
  	do {
--		unsigned long index;
--		unsigned long offset;
--		unsigned long maxlen;
--		size_t copied;
-+		pgoff_t index;		/* Pagecache index for current page */
-+		unsigned long offset;	/* Offset into pagecache page */
-+		unsigned long maxlen;	/* Bytes remaining in current iovec */
-+		size_t bytes;		/* Bytes to write to page */
-+		size_t copied;		/* Bytes copied from user */
+ 		unsigned long index;
+ 		unsigned long offset;
++		unsigned long maxlen;
+ 		size_t copied;
  
--		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
-+		offset = (pos & (PAGE_CACHE_SIZE - 1));
+ 		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
  		index = pos >> PAGE_CACHE_SHIFT;
  		bytes = PAGE_CACHE_SIZE - offset;
- 		if (bytes > count)
- 			bytes = count;
+-
+-		/* Limit the size of the copy to the caller's write size */
+-		bytes = min(bytes, count);
+-
+-		/*
+-		 * Limit the size of the copy to that of the current segment,
+-		 * because fault_in_pages_readable() doesn't know how to walk
+-		 * segments.
+-		 */
+-		bytes = min(bytes, cur_iov->iov_len - iov_base);
++		if (bytes > count)
++			bytes = count;
  
-+		maxlen = cur_iov->iov_len - iov_offset;
-+		if (maxlen > bytes)
-+			maxlen = bytes;
-+
  		/*
  		 * Bring in the user page that we will copy from _first_.
- 		 * Otherwise there's a nasty deadlock on copying from the
+@@ -1887,7 +1880,10 @@ generic_file_buffered_write(struct kiocb
  		 * same page as we're writing to, without it being marked
  		 * up-to-date.
  		 */
--		maxlen = cur_iov->iov_len - iov_base;
--		if (maxlen > bytes)
--			maxlen = bytes;
- 		fault_in_pages_readable(buf, maxlen);
+-		fault_in_pages_readable(buf, bytes);
++		maxlen = cur_iov->iov_len - iov_base;
++		if (maxlen > bytes)
++			maxlen = bytes;
++		fault_in_pages_readable(buf, maxlen);
  
  		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
-@@ -1913,7 +1914,7 @@ generic_file_buffered_write(struct kiocb
- 							buf, bytes);
- 		else
- 			copied = filemap_copy_from_user_iovec(page, offset,
--						cur_iov, iov_base, bytes);
-+						cur_iov, iov_offset, bytes);
- 		flush_dcache_page(page);
- 		status = a_ops->commit_write(file, page, offset, offset+bytes);
- 		if (status == AOP_TRUNCATED_PAGE) {
-@@ -1931,12 +1932,12 @@ generic_file_buffered_write(struct kiocb
- 				buf += status;
- 				if (unlikely(nr_segs > 1)) {
- 					filemap_set_next_iovec(&cur_iov,
--							&iov_base, status);
-+							&iov_offset, status);
- 					if (count)
- 						buf = cur_iov->iov_base +
--							iov_base;
-+							iov_offset;
- 				} else {
--					iov_base += status;
-+					iov_offset += status;
- 				}
- 			}
- 		}
+ 		if (!page) {
 _
 
 Patches currently in -mm which might be from akpm@osdl.org are
