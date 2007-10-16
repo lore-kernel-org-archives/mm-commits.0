@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:25:30 -0700
-Message-ID: <200710162225.l9GMPUgZ020904@imap1.linux-foundation.org>
+Subject: - tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:27:29 -0700
+Message-ID: <200710162227.l9GMRUrI020936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46318 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935517AbXJPW0N (ORCPT
+	by vger.kernel.org with ESMTP id S1765198AbXJPW1r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:26:13 -0400
+	Tue, 16 Oct 2007 18:27:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com, ytht.net@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
+     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
 has been removed from the -mm tree.  Its filename was
-     reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 
-This patch was dropped because it was folded into reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+This patch was dropped because it was folded into tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
 
 ------------------------------------------------------
-Subject: reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
+Subject: tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Lepton Wu <ytht.net@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/char/tty_ioctl.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
-+++ a/fs/reiserfs/super.c
-@@ -280,15 +280,17 @@ static int finish_unfinished(struct supe
- 			REISERFS_I(inode)->i_flags |= i_link_saved_unlink_mask;
- 			/* not completed unlink (rmdir) found */
- 			reiserfs_info(s, "Removing %k..", INODE_PKEY(inode));
--			if(memcmp(&last_inode_key, INODE_PKEY(inode),
--				  sizeof(last_inode_key))){
-+			if (memcmp(&last_inode_key, INODE_PKEY(inode),
-+					sizeof(last_inode_key))){
- 				last_inode_key = *INODE_PKEY(inode);
- 				/* removal gets completed in iput */
- 				retval = 0;
- 			} else {
--				reiserfs_warning(s, "Dead loop in finish_unfinished detected, just remove save link\n");
-+				reiserfs_warning(s, "Dead loop in "
-+						"finish_unfinished detected, "
-+						"just remove save link\n");
- 				retval = remove_save_link_only(s,
--							       &save_link_key, 0);
-+							&save_link_key, 0);
- 			}
- 		}
+diff -puN drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
++++ a/drivers/char/tty_ioctl.c
+@@ -292,20 +292,19 @@ void tty_termios_encode_baud_rate(struct
+ 		termios->c_cflag |= (BOTHER << IBSHIFT);
+ #else
+ 	if (ifound == -1 || ofound == -1) {
+-		static int warned = 0;
++		static int warned;
+ 		if (!warned++)
+-			printk(KERN_WARNING "tty: Unable to return correct speed data as your architecture needs updating.\n");
++			printk(KERN_WARNING "tty: Unable to return correct "
++			  "speed data as your architecture needs updating.\n");
+ 	}
+ #endif
+ }
+-
+ EXPORT_SYMBOL_GPL(tty_termios_encode_baud_rate);
  
+ void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud)
+ {
+ 	tty_termios_encode_baud_rate(tty->termios, ibaud, obaud);
+ }
+-
+ EXPORT_SYMBOL_GPL(tty_encode_baud_rate);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,9 +86,7 @@ pie-executable-randomization.patch
 binfmt_flat-warning-fixes.patch
 i2o-fix-defined-but-not-used-build-warnings.patch
 reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 userc-ifdef-mq_bytes-fix.patch
