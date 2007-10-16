@@ -1,145 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - pm2fb-panning-and-hardware-cursor-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:05 -0700
-Message-ID: <200710162044.l9GKi5IY016112@imap1.linux-foundation.org>
+Subject: - sm501fb-update-suspend-and-resume-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:17 -0700
+Message-ID: <200710162042.l9GKgHiE015873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41736 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59521 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935236AbXJPVIU (ORCPT
+	by vger.kernel.org with ESMTP id S935182AbXJPVI0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:08:20 -0400
+	Tue, 16 Oct 2007 17:08:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm2fb: panning and hardware cursor fixes
+     sm501fb: update suspend and resume code
 has been removed from the -mm tree.  Its filename was
-     pm2fb-panning-and-hardware-cursor-fixes.patch
+     sm501fb-update-suspend-and-resume-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm2fb: panning and hardware cursor fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: sm501fb: update suspend and resume code
+From: Ben Dooks <ben-linux@fluff.org>
 
-This patch:
-- disallows setting of virtual height above 2048 as it does
-  not work for accelerated copyarea and imageblit
-- fixes blinking of pm2v cursor by pushing cursor outside
-  the display (x=2047)
-- fixes hardware cursor position on Permedia 2 chips with
-  panning enabled
-- enables hardware cursor by default
+The suspend and resume code is failing to restore the CRT control
+register, thus causing the CRT data-path to get changed if the
+SM501 experiences a reset over suspend.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Also move some of the debug messages to dev_dbg() level and ensure
+that the suspend code does not try and restore anything it did not
+manage to save.
+
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |   35 +++++++++++++++++++----------------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ drivers/video/sm501fb.c |   35 +++++++++++++++++++++++++++++++----
+ 1 file changed, 31 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-panning-and-hardware-cursor-fixes
-+++ a/drivers/video/pm2fb.c
-@@ -66,7 +66,7 @@
- /*
-  * Driver data
-  */
--static int hwcursor;
-+static int hwcursor = 1;
- static char *mode __devinitdata;
+diff -puN drivers/video/sm501fb.c~sm501fb-update-suspend-and-resume-code drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-update-suspend-and-resume-code
++++ a/drivers/video/sm501fb.c
+@@ -62,6 +62,8 @@ struct sm501fb_info {
+ 	struct resource		*regs_res;	/* registers resource */
+ 	struct sm501_platdata_fb *pdata;	/* our platform data */
  
- /*
-@@ -587,6 +587,11 @@ static int pm2fb_check_var(struct fb_var
- 		return -EINVAL;
++	unsigned long		 pm_crt_ctrl;	/* pm: crt ctrl save */
++
+ 	int			 irq;
+ 	int			 swap_endian;	/* set to swap rgb=>bgr */
+ 	void __iomem		*regs;		/* remapped registers */
+@@ -1687,9 +1689,11 @@ static int sm501fb_suspend_fb(struct sm5
+ 		goto err_nocursor;
  	}
  
-+	/* permedia cannot blit over 2048 */
-+	if (var->yres_virtual > 2047) {
-+		var->yres_virtual = 2047;
-+	}
++	dev_dbg(info->dev, "suspending screen to %p\n", par->store_fb);
++	dev_dbg(info->dev, "suspending cursor to %p\n", par->store_cursor);
 +
- 	if (var->xoffset) {
- 		DPRINTK("xoffset not supported\n");
- 		return -EINVAL;
-@@ -1258,12 +1263,21 @@ static int pm2vfb_cursor(struct fb_info 
+ 	memcpy_fromio(par->store_fb, par->screen.k_addr, par->screen.size);
+ 	memcpy_fromio(par->store_cursor, par->cursor.k_addr, par->cursor.size);
+-
+ 	/* blank the relevant interface to ensure unit power minimised */
+ 	(par->ops.fb_blank)(FB_BLANK_POWERDOWN, fbi);
+ 
+@@ -1697,9 +1701,9 @@ static int sm501fb_suspend_fb(struct sm5
+ 
+  err_nocursor:
+ 	vfree(par->store_fb);
++	par->store_fb = NULL;
+ 
+ 	return -ENOMEM;
+-
+ }
+ 
+ static void sm501fb_resume_fb(struct sm501fb_info *info,
+@@ -1717,8 +1721,16 @@ static void sm501fb_resume_fb(struct sm5
+ 
+ 	/* restore the data */
+ 
+-	memcpy_toio(par->screen.k_addr, par->store_fb, par->screen.size);
+-	memcpy_toio(par->cursor.k_addr, par->store_cursor, par->cursor.size);
++	dev_dbg(info->dev, "restoring screen from %p\n", par->store_fb);
++	dev_dbg(info->dev, "restoring cursor from %p\n", par->store_cursor);
++
++	if (par->store_fb)
++		memcpy_toio(par->screen.k_addr, par->store_fb,
++			    par->screen.size);
++
++	if (par->store_cursor)
++		memcpy_toio(par->cursor.k_addr, par->store_cursor,
++			    par->cursor.size);
+ 
+ 	vfree(par->store_fb);
+ 	vfree(par->store_cursor);
+@@ -1731,6 +1743,9 @@ static int sm501fb_suspend(struct platfo
  {
- 	struct pm2fb_par *par = info->par;
- 	u8 mode = PM2F_CURSORMODE_TYPE_X;
-+	int x = cursor->image.dx - info->var.xoffset;
-+	int y = cursor->image.dy - info->var.yoffset;
+ 	struct sm501fb_info *info = platform_get_drvdata(pdev);
  
- 	if (cursor->enable)
- 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
- 
- 	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_MODE, mode);
- 
-+	if (!cursor->enable)
-+		x = 2047;	/* push it outside display */
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
-+	pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
++	/* store crt control to resume with */
++	info->pm_crt_ctrl = readl(info->regs + SM501_DC_CRT_CONTROL);
 +
- 	/*
- 	 * If the cursor is not be changed this means either we want the
- 	 * current cursor state (if enable is set) or we want to query what
-@@ -1272,16 +1286,6 @@ static int pm2vfb_cursor(struct fb_info 
- 	if (!cursor->set)
- 		return 0;
+ 	sm501fb_suspend_fb(info, HEAD_CRT);
+ 	sm501fb_suspend_fb(info, HEAD_PANEL);
  
--	if (cursor->set & FB_CUR_SETPOS) {
--		int x = cursor->image.dx - info->var.xoffset;
--		int y = cursor->image.dy - info->var.yoffset;
--
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_LOW, x & 0xff);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HIGH, (x >> 8) & 0xf);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_LOW, y & 0xff);
--		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_Y_HIGH, (y >> 8) & 0xf);
--	}
--
- 	if (cursor->set & FB_CUR_SETHOT) {
- 		pm2v_RDAC_WR(par, PM2VI_RD_CURSOR_X_HOT,
- 			     cursor->hot.x & 0x3f);
-@@ -1373,7 +1377,7 @@ static int pm2fb_cursor(struct fb_info *
- 	if (par->type == PM2_TYPE_PERMEDIA2V)
- 		return pm2vfb_cursor(info, cursor);
+@@ -1740,12 +1755,24 @@ static int sm501fb_suspend(struct platfo
+ 	return 0;
+ }
  
--	mode = 0;
-+	mode = 0x40;
- 	if (cursor->enable)
- 		 mode = 0x43;
++#define SM501_CRT_CTRL_SAVE (SM501_DC_CRT_CONTROL_TVP |        \
++			     SM501_DC_CRT_CONTROL_SEL)
++
++
+ static int sm501fb_resume(struct platform_device *pdev)
+ {
+ 	struct sm501fb_info *info = platform_get_drvdata(pdev);
++	unsigned long crt_ctrl;
  
-@@ -1388,10 +1392,9 @@ static int pm2fb_cursor(struct fb_info *
- 		return 0;
+ 	sm501_unit_power(info->dev->parent, SM501_GATE_DISPLAY, 1);
  
- 	if (cursor->set & FB_CUR_SETPOS) {
--		int x, y;
-+		int x = cursor->image.dx - info->var.xoffset + 63;
-+		int y = cursor->image.dy - info->var.yoffset + 63;
++	/* restore the items we want to be saved for crt control */
++
++	crt_ctrl = readl(info->regs + SM501_DC_CRT_CONTROL);
++	crt_ctrl &= ~SM501_CRT_CTRL_SAVE;
++	crt_ctrl |= info->pm_crt_ctrl & SM501_CRT_CTRL_SAVE;
++	writel(crt_ctrl, info->regs + SM501_DC_CRT_CONTROL);
++
+ 	sm501fb_resume_fb(info, HEAD_CRT);
+ 	sm501fb_resume_fb(info, HEAD_PANEL);
  
--		x = cursor->image.dx + 63;
--		y = cursor->image.dy + 63;
- 		WAIT_FIFO(par, 4);
- 		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
- 		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
-@@ -1838,7 +1841,7 @@ module_param(noaccel, bool, 0);
- MODULE_PARM_DESC(noaccel, "Disable acceleration");
- module_param(hwcursor, int, 0644);
- MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
--			"(1=enable, 0=disable, default=0)");
-+			"(1=enable, 0=disable, default=1)");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "Disable MTRR support (0 or 1=disabled) (default=0)");
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
