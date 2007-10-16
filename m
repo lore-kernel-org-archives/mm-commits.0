@@ -1,221 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: - pm2fb-permedia-2v-initialization-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:13 -0700
-Message-ID: <200710162042.l9GKgDRK015867@imap1.linux-foundation.org>
+Subject: - uml-replace-clone-with-fork.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:55 -0700
+Message-ID: <200710162037.l9GKbtcn015326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33085 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965093AbXJPVN0 (ORCPT
+	by vger.kernel.org with ESMTP id S964941AbXJPVMa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:13:26 -0400
+	Tue, 16 Oct 2007 17:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm2fb: Permedia 2V initialization fixes
+     uml: replace clone with fork
 has been removed from the -mm tree.  Its filename was
-     pm2fb-permedia-2v-initialization-fixes.patch
+     uml-replace-clone-with-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm2fb: Permedia 2V initialization fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: replace clone with fork
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch:
-- initializes correctly the Permedia2V chip if it is not initialized by BIOS
-- puts back clock frequency for the ELSA WINNER board to 100kHz
-- fixes returned error values from setcolreg() function
-- uses more general classes for PCI ids
+Convert the boot-time host ptrace testing from clone to fork.  They were
+essentially doing fork anyway.  This cleans up the code a bit, and makes
+valgrind a bit happier about grinding it.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c     |   42 +++++++++++++++---------------------
- include/video/permedia2.h |    1 
- 2 files changed, 19 insertions(+), 24 deletions(-)
+ arch/um/os-Linux/start_up.c |   55 ++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-permedia-2v-initialization-fixes drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-permedia-2v-initialization-fixes
-+++ a/drivers/video/pm2fb.c
-@@ -343,7 +343,7 @@ static void reset_card(struct pm2fb_par*
+diff -puN arch/um/os-Linux/start_up.c~uml-replace-clone-with-fork arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-replace-clone-with-fork
++++ a/arch/um/os-Linux/start_up.c
+@@ -25,7 +25,7 @@
+ #include "registers.h"
+ #include "skas_ptrace.h"
  
- static void reset_config(struct pm2fb_par* p)
+-static int ptrace_child(void *arg)
++static int ptrace_child(void)
  {
--	WAIT_FIFO(p, 52);
-+	WAIT_FIFO(p, 53);
- 	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG) &
- 			~(PM2F_VGA_ENABLE | PM2F_VGA_FIXED));
- 	pm2_WR(p, PM2R_BYPASS_WRITE_MASK, ~(0L));
-@@ -380,6 +380,7 @@ static void reset_config(struct pm2fb_pa
- 	pm2_WR(p, PM2R_STATISTICS_MODE, 0);
- 	pm2_WR(p, PM2R_SCISSOR_MODE, 0);
- 	pm2_WR(p, PM2R_FILTER_MODE, PM2F_SYNCHRONIZATION);
-+	pm2_WR(p, PM2R_RD_PIXEL_MASK, 0xff);
- 	switch (p->type) {
- 	case PM2_TYPE_PERMEDIA2:
- 		pm2_RDAC_WR(p, PM2I_RD_MODE_CONTROL, 0); /* no overlay */
-@@ -393,11 +394,6 @@ static void reset_config(struct pm2fb_pa
- 		break;
- 	case PM2_TYPE_PERMEDIA2V:
- 		pm2v_RDAC_WR(p, PM2VI_RD_MISC_CONTROL, 1); /* 8bit */
--		pm2v_RDAC_WR(p, PM2I_RD_COLOR_KEY_CONTROL, 0);
--		pm2v_RDAC_WR(p, PM2I_RD_OVERLAY_KEY, 0);
--		pm2v_RDAC_WR(p, PM2I_RD_RED_KEY, 0);
--		pm2v_RDAC_WR(p, PM2I_RD_GREEN_KEY, 0);
--		pm2v_RDAC_WR(p, PM2I_RD_BLUE_KEY, 0);
- 		break;
- 	}
+ 	int ret;
+ 	int pid = os_getpid(), ppid = getppid();
+@@ -90,31 +90,23 @@ static void non_fatal(char *fmt, ...)
+ 	fflush(stdout);
  }
-@@ -532,7 +528,7 @@ static void set_video(struct pm2fb_par* 
- 	vsync &= ~(PM2F_HSYNC_MASK | PM2F_VSYNC_MASK);
- 	vsync |= PM2F_HSYNC_ACT_HIGH | PM2F_VSYNC_ACT_HIGH;
  
--	WAIT_FIFO(p, 5);
-+	WAIT_FIFO(p, 3);
- 	pm2_WR(p, PM2R_VIDEO_CONTROL, vsync);
+-static int start_ptraced_child(void **stack_out)
++static int start_ptraced_child(void)
+ {
+-	void *stack;
+-	unsigned long sp;
+ 	int pid, n, status;
  
- 	switch (p->type) {
-@@ -551,7 +547,6 @@ static void set_video(struct pm2fb_par* 
- 		if ((video & PM2F_VSYNC_MASK) == PM2F_VSYNC_ACT_LOW)
- 			tmp |= 4; /* invert vsync */
- 		pm2v_RDAC_WR(p, PM2VI_RD_SYNC_CONTROL, tmp);
--		pm2v_RDAC_WR(p, PM2VI_RD_MISC_CONTROL, 1);
- 		break;
- 	}
+-	stack = mmap(NULL, UM_KERN_PAGE_SIZE,
+-		     PROT_READ | PROT_WRITE | PROT_EXEC,
+-		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-	if (stack == MAP_FAILED)
+-		fatal_perror("check_ptrace : mmap failed");
+-
+-	sp = (unsigned long) stack + UM_KERN_PAGE_SIZE - sizeof(void *);
+-	pid = clone(ptrace_child, (void *) sp, SIGCHLD, NULL);
+-	if (pid < 0)
+-		fatal_perror("start_ptraced_child : clone failed");
++	pid = fork();
++	if (pid == 0)
++		ptrace_child();
++	else if (pid < 0)
++		fatal_perror("start_ptraced_child : fork failed");
+ 
+ 	CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
+ 	if (n < 0)
+-		fatal_perror("check_ptrace : clone failed");
++		fatal_perror("check_ptrace : waitpid failed");
+ 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP))
+ 		fatal("check_ptrace : expected SIGSTOP, got status = %d",
+ 		      status);
+ 
+-	*stack_out = stack;
+ 	return pid;
  }
-@@ -686,6 +681,7 @@ static int pm2fb_set_par(struct fb_info 
- 	u32 txtmap = 0;
- 	u32 pixsize = 0;
- 	u32 clrformat = 0;
-+	u32 misc = 1; /* 8-bit DAC */
- 	u32 xres = (info->var.xres + 31) & ~31;
- 	int data64;
  
-@@ -767,7 +763,7 @@ static int pm2fb_set_par(struct fb_info 
- 	switch (depth) {
- 	case 8:
- 		pm2_WR(par, PM2R_FB_READ_PIXEL, 0);
--		clrformat = 0x0e;
-+		clrformat = 0x2e;
- 		break;
- 	case 16:
- 		pm2_WR(par, PM2R_FB_READ_PIXEL, 1);
-@@ -775,6 +771,7 @@ static int pm2fb_set_par(struct fb_info 
- 		txtmap = PM2F_TEXTEL_SIZE_16;
- 		pixsize = 1;
- 		clrformat = 0x70;
-+		misc |= 8;
- 		break;
- 	case 32:
- 		pm2_WR(par, PM2R_FB_READ_PIXEL, 2);
-@@ -782,6 +779,7 @@ static int pm2fb_set_par(struct fb_info 
- 		txtmap = PM2F_TEXTEL_SIZE_32;
- 		pixsize = 2;
- 		clrformat = 0x20;
-+		misc |= 8;
- 		break;
- 	case 24:
- 		pm2_WR(par, PM2R_FB_READ_PIXEL, 4);
-@@ -789,6 +787,7 @@ static int pm2fb_set_par(struct fb_info 
- 		txtmap = PM2F_TEXTEL_SIZE_24;
- 		pixsize = 4;
- 		clrformat = 0x20;
-+		misc |= 8;
- 		break;
+@@ -124,8 +116,7 @@ static int start_ptraced_child(void **st
+  * So only for SYSEMU features we test mustpanic, while normal host features
+  * must work anyway!
+  */
+-static int stop_ptraced_child(int pid, void *stack, int exitcode,
+-			      int mustexit)
++static int stop_ptraced_child(int pid, int exitcode, int mustexit)
+ {
+ 	int status, n, ret = 0;
+ 
+@@ -145,8 +136,6 @@ static int stop_ptraced_child(int pid, v
+ 		ret = -1;
  	}
- 	pm2_WR(par, PM2R_FB_WRITE_MODE, PM2F_FB_WRITE_ENABLE);
-@@ -813,7 +812,7 @@ static int pm2fb_set_par(struct fb_info 
- 	pm2_WR(par, PM2R_SCREEN_BASE, base);
- 	wmb();
- 	set_video(par, video);
--	WAIT_FIFO(par, 6);
-+	WAIT_FIFO(par, 10);
- 	switch (par->type) {
- 	case PM2_TYPE_PERMEDIA2:
- 		pm2_RDAC_WR(par, PM2I_RD_COLOR_MODE, clrmode);
-@@ -821,10 +820,11 @@ static int pm2fb_set_par(struct fb_info 
- 			        (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
- 		break;
- 	case PM2_TYPE_PERMEDIA2V:
-+		pm2v_RDAC_WR(par, PM2VI_RD_DAC_CONTROL, 0);
- 		pm2v_RDAC_WR(par, PM2VI_RD_PIXEL_SIZE, pixsize);
- 		pm2v_RDAC_WR(par, PM2VI_RD_COLOR_FORMAT, clrformat);
--		pm2v_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
--			         (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
-+		pm2v_RDAC_WR(par, PM2VI_RD_MISC_CONTROL, misc);
-+		pm2v_RDAC_WR(par, PM2VI_RD_OVERLAY_KEY, 0);
- 		break;
+ 
+-	if (munmap(stack, UM_KERN_PAGE_SIZE) < 0)
+-		fatal_perror("check_ptrace : munmap failed");
+ 	return ret;
+ }
+ 
+@@ -198,13 +187,12 @@ __uml_setup("nosysemu", nosysemu_cmd_par
+ 
+ static void __init check_sysemu(void)
+ {
+-	void *stack;
+ 	unsigned long regs[MAX_REG_NR];
+ 	int pid, n, status, count=0;
+ 
+ 	non_fatal("Checking syscall emulation patch for ptrace...");
+ 	sysemu_supported = 0;
+-	pid = start_ptraced_child(&stack);
++	pid = start_ptraced_child();
+ 
+ 	if (ptrace(PTRACE_SYSEMU, pid, 0, 0) < 0)
+ 		goto fail;
+@@ -231,7 +219,7 @@ static void __init check_sysemu(void)
+ 		goto fail;
  	}
- 	set_pixclock(par, pixclock);
-@@ -855,7 +855,7 @@ static int pm2fb_setcolreg(unsigned regn
- 	struct pm2fb_par *par = info->par;
  
- 	if (regno >= info->cmap.len)  /* no. of hw registers */
--		return 1;
-+		return -EINVAL;
- 	/*
- 	 * Program hardware... do anything you want with transp
- 	 */
-@@ -914,7 +914,7 @@ static int pm2fb_setcolreg(unsigned regn
- 		u32 v;
+-	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
++	if (stop_ptraced_child(pid, 0, 0) < 0)
+ 		goto fail_stopped;
  
- 		if (regno >= 16)
--			return 1;
-+			return -EINVAL;
+ 	sysemu_supported = 1;
+@@ -239,7 +227,7 @@ static void __init check_sysemu(void)
+ 	set_using_sysemu(!force_sysemu_disabled);
  
- 		v = (red << info->var.red.offset) |
- 			(green << info->var.green.offset) |
-@@ -1341,7 +1341,7 @@ static int __devinit pm2fb_probe(struct 
- 			DPRINTK("We have not been initialized by VGA BIOS "
- 				"and are running on an Elsa Winner 2000 Office\n");
- 			DPRINTK("Initializing card timings manually...\n");
--			default_par->memclock = 70000;
-+			default_par->memclock = 100000;
+ 	non_fatal("Checking advanced syscall emulation patch for ptrace...");
+-	pid = start_ptraced_child(&stack);
++	pid = start_ptraced_child();
+ 
+ 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
+ 		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
+@@ -271,7 +259,7 @@ static void __init check_sysemu(void)
+ 			fatal("check_ptrace : expected SIGTRAP or "
+ 			      "(SIGTRAP | 0x80), got status = %d", status);
+ 	}
+-	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
++	if (stop_ptraced_child(pid, 0, 0) < 0)
+ 		goto fail_stopped;
+ 
+ 	sysemu_supported = 2;
+@@ -282,18 +270,17 @@ static void __init check_sysemu(void)
+ 	return;
+ 
+ fail:
+-	stop_ptraced_child(pid, stack, 1, 0);
++	stop_ptraced_child(pid, 1, 0);
+ fail_stopped:
+ 	non_fatal("missing\n");
+ }
+ 
+ static void __init check_ptrace(void)
+ {
+-	void *stack;
+ 	int pid, syscall, n, status;
+ 
+ 	non_fatal("Checking that ptrace can change system call numbers...");
+-	pid = start_ptraced_child(&stack);
++	pid = start_ptraced_child();
+ 
+ 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
+ 		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
+@@ -323,7 +310,7 @@ static void __init check_ptrace(void)
+ 			break;
  		}
- 		if (pdev->subsystem_vendor == 0x3d3d &&
- 			pdev->subsystem_device == 0x0100) {
-@@ -1491,17 +1491,11 @@ static void __devexit pm2fb_remove(struc
+ 	}
+-	stop_ptraced_child(pid, stack, 0, 1);
++	stop_ptraced_child(pid, 0, 1);
+ 	non_fatal("OK\n");
+ 	check_sysemu();
+ }
+@@ -403,11 +390,10 @@ __uml_setup("noptraceldt", noptraceldt_c
+ static inline void check_skas3_ptrace_faultinfo(void)
+ {
+ 	struct ptrace_faultinfo fi;
+-	void *stack;
+ 	int pid, n;
  
- static struct pci_device_id pm2fb_id_table[] = {
- 	{ PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_TVP4020,
--	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
--	  0xff0000, 0 },
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
- 	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2,
--	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
--	  0xff0000, 0 },
--	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
--	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
--	  0xff0000, 0 },
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
- 	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
--	  PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_NOT_DEFINED_VGA << 8,
--	  0xff00, 0 },
-+	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
- 	{ 0, }
- };
+ 	non_fatal("  - PTRACE_FAULTINFO...");
+-	pid = start_ptraced_child(&stack);
++	pid = start_ptraced_child();
  
-diff -puN include/video/permedia2.h~pm2fb-permedia-2v-initialization-fixes include/video/permedia2.h
---- a/include/video/permedia2.h~pm2fb-permedia-2v-initialization-fixes
-+++ a/include/video/permedia2.h
-@@ -153,6 +153,7 @@
- #define PM2VI_RD_CURSOR_Y_HIGH				0x00A
- #define PM2VI_RD_CURSOR_X_HOT				0x00B
- #define PM2VI_RD_CURSOR_Y_HOT				0x00C
-+#define PM2VI_RD_OVERLAY_KEY				0x00D
- #define PM2VI_RD_CLK0_PRESCALE				0x201
- #define PM2VI_RD_CLK0_FEEDBACK				0x202
- #define PM2VI_RD_CLK0_POSTSCALE				0x203
+ 	n = ptrace(PTRACE_FAULTINFO, pid, 0, &fi);
+ 	if (n < 0) {
+@@ -425,13 +411,12 @@ static inline void check_skas3_ptrace_fa
+ 	}
+ 
+ 	init_registers(pid);
+-	stop_ptraced_child(pid, stack, 1, 1);
++	stop_ptraced_child(pid, 1, 1);
+ }
+ 
+ static inline void check_skas3_ptrace_ldt(void)
+ {
+ #ifdef PTRACE_LDT
+-	void *stack;
+ 	int pid, n;
+ 	unsigned char ldtbuf[40];
+ 	struct ptrace_ldt ldt_op = (struct ptrace_ldt) {
+@@ -440,7 +425,7 @@ static inline void check_skas3_ptrace_ld
+ 		.bytecount = sizeof(ldtbuf)};
+ 
+ 	non_fatal("  - PTRACE_LDT...");
+-	pid = start_ptraced_child(&stack);
++	pid = start_ptraced_child();
+ 
+ 	n = ptrace(PTRACE_LDT, pid, 0, (unsigned long) &ldt_op);
+ 	if (n < 0) {
+@@ -458,7 +443,7 @@ static inline void check_skas3_ptrace_ld
+ 			non_fatal("found, but use is disabled\n");
+ 	}
+ 
+-	stop_ptraced_child(pid, stack, 1, 1);
++	stop_ptraced_child(pid, 1, 1);
+ #else
+ 	/* PTRACE_LDT might be disabled via cmdline option.
+ 	 * We want to override this, else we might use the stub
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
