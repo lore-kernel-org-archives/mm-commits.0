@@ -1,616 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:10 -0700
-Message-ID: <200710162035.l9GKZBv2015035@imap1.linux-foundation.org>
+Subject: - rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:30 -0700
+Message-ID: <200710162041.l9GKfUPA015797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965774AbXJPVdZ (ORCPT
+	by vger.kernel.org with ESMTP id S965402AbXJPVdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:33:25 -0400
+	Tue, 16 Oct 2007 17:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: lkml@rtr.ca, a.zummo@towertech.it, david-b@pacbell.net, mlord@pobox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Avoid page struct cacheline bouncing due to remote frees to cpu slab
+     rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
 has been removed from the -mm tree.  Its filename was
-     slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab.patch
+     rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: Avoid page struct cacheline bouncing due to remote frees to cpu slab
-From: Christoph Lameter <clameter@sgi.com>
+Subject: rtc: fix readback from /sys/class/rtc/rtc?/wakealarm
+From: Mark Lord <lkml@rtr.ca>
 
-A remote free may access the same page struct that also contains the lockless
-freelist for the cpu slab. If objects have a short lifetime and are freed by
-a different processor then remote frees back to the slab from which we are
-currently allocating are frequent. The cacheline with the page struct needs
-to be repeately acquired in exclusive mode by both the allocating thread and
-the freeing thread. If this is frequent enough then performance will suffer
-because of cacheline bouncing.
+Fix readback of RTC alarms on platforms which return -1 in
+non-hardware-supported RTC alarm fields.
 
-This patchset puts the lockless_freelist pointer in its own cacheline. In
-order to make that happen we introduce a per cpu structure called
-kmem_cache_cpu.
+To fill in the missing (-1) values, we grab an RTC timestamp along with the
+RTC alarm value, and use the timestamp fields to populate the missing alarm
+fields.
 
-Instead of keeping an array of pointers to page structs we now keep an array
-to a per cpu structure that--among other things--contains the pointer to the
-lockless freelist. The freeing thread can then keep possession of exclusive
-access to the page struct cacheline while the allocating thread keeps its
-exclusive access to the cacheline containing the per cpu structure.
+To counter field-wrap races (since the timestamp and alarm are not read
+together atomically), we read the RTC timestamp both before and after
+reading the RTC alarm value, and then check for wrapped fields --> if any
+have wrapped, we know we have a possible inconsistency, so we loop and
+reread the timestamp and alarm again.
 
-This works as long as the allocating cpu is able to service its request
-from the lockless freelist. If the lockless freelist runs empty then the
-allocating thread needs to acquire exclusive access to the cacheline with
-the page struct lock the slab.
+Wrapped fields in the RTC timestamps are an issue because rtc-cmos.c, for
+example, also gets/uses an RTC timestamp internally while fetching the RTC
+alarm.  If our timestamp here wasn't the same (minutes and higher) as what
+was used internally there, then we might end up populating the -1 fields
+with inconsistent values.
 
-The allocating thread will then check if new objects were freed to the per
-cpu slab. If so it will keep the slab as the cpu slab and continue with the
-recently remote freed objects. So the allocating thread can take a series
-of just freed remote pages and dish them out again. Ideally allocations
-could be just recycling objects in the same slab this way which will lead
-to an ideal allocation / remote free pattern.
+This fixes readbacks from /sys/class/rtc/rtc?/wakealarm, as well as other
+code paths which call rtc_read_alarm().
 
-The number of objects that can be handled in this way is limited by the
-capacity of one slab. Increasing slab size via slub_min_objects/
-slub_max_order may increase the number of objects and therefore performance.
-
-If the allocating thread runs out of objects and finds that no objects were
-put back by the remote processor then it will retrieve a new slab (from the
-partial lists or from the page allocator) and start with a whole
-new set of objects while the remote thread may still be freeing objects to
-the old cpu slab. This may then repeat until the new slab is also exhausted.
-If remote freeing has freed objects in the earlier slab then that earlier
-slab will now be on the partial freelist and the allocating thread will
-pick that slab next for allocation. So the loop is extended. However,
-both threads need to take the list_lock to make the swizzling via
-the partial list happen.
-
-It is likely that this kind of scheme will keep the objects being passed
-around to a small set that can be kept in the cpu caches leading to increased
-performance.
-
-More code cleanups become possible:
-
-- Instead of passing a cpu we can now pass a kmem_cache_cpu structure around.
-  Allows reducing the number of parameters to various functions.
-- Can define a new node_match() function for NUMA to encapsulate locality
-  checks.
-
-Effect on allocations:
-
-Cachelines touched before this patch:
-
-	Write:	page cache struct and first cacheline of object
-
-Cachelines touched after this patch:
-
-	Write:	kmem_cache_cpu cacheline and first cacheline of object
-	Read: page cache struct (but see later patch that avoids touching
-		that cacheline)
-
-The handling when the lockless alloc list runs empty gets to be a bit more
-complicated since another cacheline has now to be written to. But that is
-halfway out of the hot path.
-
-Effect on freeing:
-
-Cachelines touched before this patch:
-
-	Write: page_struct and first cacheline of object
-
-Cachelines touched after this patch depending on how we free:
-
-  Write(to cpu_slab):	kmem_cache_cpu struct and first cacheline of object
-  Write(to other):	page struct and first cacheline of object
-
-  Read(to cpu_slab):	page struct to id slab etc. (but see later patch that
-  			avoids touching the page struct on free)
-  Read(to other):	cpu local kmem_cache_cpu struct to verify its not
-  			the cpu slab.
-
-Summary:
-
-Pro:
-	- Distinct cachelines so that concurrent remote frees and local
-	  allocs on a cpuslab can occur without cacheline bouncing.
-	- Avoids potential bouncing cachelines because of neighboring
-	  per cpu pointer updates in kmem_cache's cpu_slab structure since
-	  it now grows to a cacheline (Therefore remove the comment
-	  that talks about that concern).
-
-Cons:
-	- Freeing objects now requires the reading of one additional
-	  cacheline. That can be mitigated for some cases by the following
-	  patches but its not possible to completely eliminate these
-	  references.
-
-	- Memory usage grows slightly.
-
-	The size of each per cpu object is blown up from one word
-	(pointing to the page_struct) to one cacheline with various data.
-	So this is NR_CPUS*NR_SLABS*L1_BYTES more memory use. Lets say
-	NR_SLABS is 100 and a cache line size of 128 then we have just
-	increased SLAB metadata requirements by 12.8k per cpu.
-	(Another later patch reduces these requirements)
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    9 +
- mm/slub.c                |  190 ++++++++++++++++++++++---------------
- 2 files changed, 124 insertions(+), 75 deletions(-)
+ drivers/rtc/interface.c |   83 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 82 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/slub_def.h~slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab
-+++ a/include/linux/slub_def.h
-@@ -11,6 +11,13 @@
- #include <linux/workqueue.h>
- #include <linux/kobject.h>
- 
-+struct kmem_cache_cpu {
-+	void **freelist;
-+	struct page *page;
-+	int node;
-+	/* Lots of wasted space */
-+} ____cacheline_aligned_in_smp;
-+
- struct kmem_cache_node {
- 	spinlock_t list_lock;	/* Protect partial list and nr_partial */
- 	unsigned long nr_partial;
-@@ -54,7 +61,7 @@ struct kmem_cache {
- 	int defrag_ratio;
- 	struct kmem_cache_node *node[MAX_NUMNODES];
- #endif
--	struct page *cpu_slab[NR_CPUS];
-+	struct kmem_cache_cpu cpu_slab[NR_CPUS];
- };
- 
- /*
-diff -puN mm/slub.c~slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab mm/slub.c
---- a/mm/slub.c~slub-avoid-page-struct-cacheline-bouncing-due-to-remote-frees-to-cpu-slab
-+++ a/mm/slub.c
-@@ -90,7 +90,7 @@
-  * 			One use of this flag is to mark slabs that are
-  * 			used for allocations. Then such a slab becomes a cpu
-  * 			slab. The cpu slab may be equipped with an additional
-- * 			lockless_freelist that allows lockless access to
-+ * 			freelist that allows lockless access to
-  * 			free objects in addition to the regular freelist
-  * 			that requires the slab lock.
-  *
-@@ -140,11 +140,6 @@ static inline void ClearSlabDebug(struct
- /*
-  * Issues still to be resolved:
-  *
-- * - The per cpu array is updated for each new slab and and is a remote
-- *   cacheline for most nodes. This could become a bouncing cacheline given
-- *   enough frequent updates. There are 16 pointers in a cacheline, so at
-- *   max 16 cpus could compete for the cacheline which may be okay.
-- *
-  * - Support PAGE_ALLOC_DEBUG. Should be easy to do.
-  *
-  * - Variable sizing of the per node arrays
-@@ -277,6 +272,11 @@ static inline struct kmem_cache_node *ge
- #endif
+diff -puN drivers/rtc/interface.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-fix-readback-from-sys-class-rtc-rtc-wakealarm
++++ a/drivers/rtc/interface.c
+@@ -100,7 +100,7 @@ int rtc_set_mmss(struct rtc_device *rtc,
  }
+ EXPORT_SYMBOL_GPL(rtc_set_mmss);
  
-+static inline struct kmem_cache_cpu *get_cpu_slab(struct kmem_cache *s, int cpu)
+-int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
++static int rtc_read_alarm_internal(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
+ {
+ 	int err;
+ 
+@@ -120,6 +120,87 @@ int rtc_read_alarm(struct rtc_device *rt
+ 	mutex_unlock(&rtc->ops_lock);
+ 	return err;
+ }
++
++int rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 +{
-+	return &s->cpu_slab[cpu];
++	int err;
++	struct rtc_time before, now;
++	int first_time = 1;
++
++	/* The lower level RTC driver may not be capable of filling
++	 * in all fields of the rtc_time struct (eg. rtc-cmos),
++	 * and so might instead return -1 in some fields.
++	 * We deal with that here by grabbing a current RTC timestamp
++	 * and using values from that for any missing (-1) values.
++	 *
++	 * But this can be racey, because some fields of the RTC timestamp
++	 * may have wrapped in the interval since we read the RTC alarm,
++	 * which would lead to us inserting inconsistent values in place
++	 * of the -1 fields.
++	 *
++	 * Reading the alarm and timestamp in the reverse sequence
++	 * would have the same race condition, and not solve the issue.
++	 *
++	 * So, we must first read the RTC timestamp,
++	 * then read the RTC alarm value,
++	 * and then read a second RTC timestamp.
++	 *
++	 * If any fields of the second timestamp have changed
++	 * when compared with the first timestamp, then we know
++	 * our timestamp may be inconsistent with that used by
++	 * the low-level rtc_read_alarm_internal() function.
++	 *
++	 * So, when the two timestamps disagree, we just loop and do
++	 * the process again to get a fully consistent set of values.
++	 *
++	 * This could all instead be done in the lower level driver,
++	 * but since more than one lower level RTC implementation needs it,
++	 * then it's probably best best to do it here instead of there..
++	 */
++
++	/* Get the "before" timestamp */
++	err = rtc_read_time(rtc, &before);
++	if (err < 0)
++		return err;
++	do {
++		if (!first_time)
++			memcpy(&before, &now, sizeof(struct rtc_time));
++		first_time = 0;
++
++		/* get the RTC alarm values, which may be incomplete */
++		err = rtc_read_alarm_internal(rtc, alarm);
++		if (err)
++			return err;
++		if (!alarm->enabled)
++			return 0;
++
++		/* get the "after" timestamp, to detect wrapped fields */
++		err = rtc_read_time(rtc, &now);
++		if (err < 0)
++			return err;
++
++		/* note that tm_sec is a "don't care" value here: */
++	} while (   before.tm_min   != now.tm_min
++		 || before.tm_hour  != now.tm_hour
++		 || before.tm_mon   != now.tm_mon
++		 || before.tm_year  != now.tm_year
++		 || before.tm_isdst != now.tm_isdst);
++
++	/* Fill in any missing alarm fields using the timestamp */
++	if (alarm->time.tm_sec == -1)
++		alarm->time.tm_sec = now.tm_sec;
++	if (alarm->time.tm_min == -1)
++		alarm->time.tm_min = now.tm_min;
++	if (alarm->time.tm_hour == -1)
++		alarm->time.tm_hour = now.tm_hour;
++	if (alarm->time.tm_mday == -1)
++		alarm->time.tm_mday = now.tm_mday;
++	if (alarm->time.tm_mon == -1)
++		alarm->time.tm_mon = now.tm_mon;
++	if (alarm->time.tm_year == -1)
++		alarm->time.tm_year = now.tm_year;
++	return 0;
 +}
-+
- static inline int check_valid_pointer(struct kmem_cache *s,
- 				struct page *page, const void *object)
- {
-@@ -1387,33 +1387,34 @@ static void unfreeze_slab(struct kmem_ca
- /*
-  * Remove the cpu slab
-  */
--static void deactivate_slab(struct kmem_cache *s, struct page *page, int cpu)
-+static void deactivate_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
- {
-+	struct page *page = c->page;
- 	/*
- 	 * Merge cpu freelist into freelist. Typically we get here
- 	 * because both freelists are empty. So this is unlikely
- 	 * to occur.
- 	 */
--	while (unlikely(page->lockless_freelist)) {
-+	while (unlikely(c->freelist)) {
- 		void **object;
+ EXPORT_SYMBOL_GPL(rtc_read_alarm);
  
- 		/* Retrieve object from cpu_freelist */
--		object = page->lockless_freelist;
--		page->lockless_freelist = page->lockless_freelist[page->offset];
-+		object = c->freelist;
-+		c->freelist = c->freelist[page->offset];
- 
- 		/* And put onto the regular freelist */
- 		object[page->offset] = page->freelist;
- 		page->freelist = object;
- 		page->inuse--;
- 	}
--	s->cpu_slab[cpu] = NULL;
-+	c->page = NULL;
- 	unfreeze_slab(s, page);
- }
- 
--static inline void flush_slab(struct kmem_cache *s, struct page *page, int cpu)
-+static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
- {
--	slab_lock(page);
--	deactivate_slab(s, page, cpu);
-+	slab_lock(c->page);
-+	deactivate_slab(s, c);
- }
- 
- /*
-@@ -1422,18 +1423,17 @@ static inline void flush_slab(struct kme
-  */
- static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)
- {
--	struct page *page = s->cpu_slab[cpu];
-+	struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
- 
--	if (likely(page))
--		flush_slab(s, page, cpu);
-+	if (likely(c && c->page))
-+		flush_slab(s, c);
- }
- 
- static void flush_cpu_slab(void *d)
- {
- 	struct kmem_cache *s = d;
--	int cpu = smp_processor_id();
- 
--	__flush_cpu_slab(s, cpu);
-+	__flush_cpu_slab(s, smp_processor_id());
- }
- 
- static void flush_all(struct kmem_cache *s)
-@@ -1450,6 +1450,19 @@ static void flush_all(struct kmem_cache 
- }
- 
- /*
-+ * Check if the objects in a per cpu structure fit numa
-+ * locality expectations.
-+ */
-+static inline int node_match(struct kmem_cache_cpu *c, int node)
-+{
-+#ifdef CONFIG_NUMA
-+	if (node != -1 && c->node != node)
-+		return 0;
-+#endif
-+	return 1;
-+}
-+
-+/*
-  * Slow path. The lockless freelist is empty or we need to perform
-  * debugging duties.
-  *
-@@ -1467,45 +1480,46 @@ static void flush_all(struct kmem_cache 
-  * we need to allocate a new slab. This is slowest path since we may sleep.
-  */
- static void *__slab_alloc(struct kmem_cache *s,
--		gfp_t gfpflags, int node, void *addr, struct page *page)
-+		gfp_t gfpflags, int node, void *addr, struct kmem_cache_cpu *c)
- {
- 	void **object;
--	int cpu = smp_processor_id();
-+	struct page *new;
- 
--	if (!page)
-+	if (!c->page)
- 		goto new_slab;
- 
--	slab_lock(page);
--	if (unlikely(node != -1 && page_to_nid(page) != node))
-+	slab_lock(c->page);
-+	if (unlikely(!node_match(c, node)))
- 		goto another_slab;
- load_freelist:
--	object = page->freelist;
-+	object = c->page->freelist;
- 	if (unlikely(!object))
- 		goto another_slab;
--	if (unlikely(SlabDebug(page)))
-+	if (unlikely(SlabDebug(c->page)))
- 		goto debug;
- 
--	object = page->freelist;
--	page->lockless_freelist = object[page->offset];
--	page->inuse = s->objects;
--	page->freelist = NULL;
--	slab_unlock(page);
-+	object = c->page->freelist;
-+	c->freelist = object[c->page->offset];
-+	c->page->inuse = s->objects;
-+	c->page->freelist = NULL;
-+	c->node = page_to_nid(c->page);
-+	slab_unlock(c->page);
- 	return object;
- 
- another_slab:
--	deactivate_slab(s, page, cpu);
-+	deactivate_slab(s, c);
- 
- new_slab:
--	page = get_partial(s, gfpflags, node);
--	if (page) {
--		s->cpu_slab[cpu] = page;
-+	new = get_partial(s, gfpflags, node);
-+	if (new) {
-+		c->page = new;
- 		goto load_freelist;
- 	}
- 
--	page = new_slab(s, gfpflags, node);
--	if (page) {
--		cpu = smp_processor_id();
--		if (s->cpu_slab[cpu]) {
-+	new = new_slab(s, gfpflags, node);
-+	if (new) {
-+		c = get_cpu_slab(s, smp_processor_id());
-+		if (c->page) {
- 			/*
- 			 * Someone else populated the cpu_slab while we
- 			 * enabled interrupts, or we have gotten scheduled
-@@ -1513,34 +1527,32 @@ new_slab:
- 			 * requested node even if __GFP_THISNODE was
- 			 * specified. So we need to recheck.
- 			 */
--			if (node == -1 ||
--				page_to_nid(s->cpu_slab[cpu]) == node) {
-+			if (node_match(c, node)) {
- 				/*
- 				 * Current cpuslab is acceptable and we
- 				 * want the current one since its cache hot
- 				 */
--				discard_slab(s, page);
--				page = s->cpu_slab[cpu];
--				slab_lock(page);
-+				discard_slab(s, new);
-+				slab_lock(c->page);
- 				goto load_freelist;
- 			}
- 			/* New slab does not fit our expectations */
--			flush_slab(s, s->cpu_slab[cpu], cpu);
-+			flush_slab(s, c);
- 		}
--		slab_lock(page);
--		SetSlabFrozen(page);
--		s->cpu_slab[cpu] = page;
-+		slab_lock(new);
-+		SetSlabFrozen(new);
-+		c->page = new;
- 		goto load_freelist;
- 	}
- 	return NULL;
- debug:
--	object = page->freelist;
--	if (!alloc_debug_processing(s, page, object, addr))
-+	object = c->page->freelist;
-+	if (!alloc_debug_processing(s, c->page, object, addr))
- 		goto another_slab;
- 
--	page->inuse++;
--	page->freelist = object[page->offset];
--	slab_unlock(page);
-+	c->page->inuse++;
-+	c->page->freelist = object[c->page->offset];
-+	slab_unlock(c->page);
- 	return object;
- }
- 
-@@ -1557,20 +1569,20 @@ debug:
- static void __always_inline *slab_alloc(struct kmem_cache *s,
- 		gfp_t gfpflags, int node, void *addr)
- {
--	struct page *page;
- 	void **object;
- 	unsigned long flags;
-+	struct kmem_cache_cpu *c;
- 
- 	local_irq_save(flags);
--	page = s->cpu_slab[smp_processor_id()];
--	if (unlikely(!page || !page->lockless_freelist ||
--			(node != -1 && page_to_nid(page) != node)))
-+	c = get_cpu_slab(s, smp_processor_id());
-+	if (unlikely(!c->page || !c->freelist ||
-+					!node_match(c, node)))
- 
--		object = __slab_alloc(s, gfpflags, node, addr, page);
-+		object = __slab_alloc(s, gfpflags, node, addr, c);
- 
- 	else {
--		object = page->lockless_freelist;
--		page->lockless_freelist = object[page->offset];
-+		object = c->freelist;
-+		c->freelist = object[c->page->offset];
- 	}
- 	local_irq_restore(flags);
- 
-@@ -1668,13 +1680,14 @@ static void __always_inline slab_free(st
- {
- 	void **object = (void *)x;
- 	unsigned long flags;
-+	struct kmem_cache_cpu *c;
- 
- 	local_irq_save(flags);
- 	debug_check_no_locks_freed(object, s->objsize);
--	if (likely(page == s->cpu_slab[smp_processor_id()] &&
--						!SlabDebug(page))) {
--		object[page->offset] = page->lockless_freelist;
--		page->lockless_freelist = object;
-+	c = get_cpu_slab(s, smp_processor_id());
-+	if (likely(page == c->page && !SlabDebug(page))) {
-+		object[page->offset] = c->freelist;
-+		c->freelist = object;
- 	} else
- 		__slab_free(s, page, x, addr);
- 
-@@ -1862,6 +1875,24 @@ static unsigned long calculate_alignment
- 	return ALIGN(align, sizeof(void *));
- }
- 
-+static void init_kmem_cache_cpu(struct kmem_cache *s,
-+			struct kmem_cache_cpu *c)
-+{
-+	c->page = NULL;
-+	c->freelist = NULL;
-+	c->node = 0;
-+}
-+
-+static inline int alloc_kmem_cache_cpus(struct kmem_cache *s, gfp_t flags)
-+{
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu)
-+		init_kmem_cache_cpu(s, get_cpu_slab(s, cpu));
-+
-+	return 1;
-+}
-+
- static void init_kmem_cache_node(struct kmem_cache_node *n)
- {
- 	n->nr_partial = 0;
-@@ -2111,8 +2142,10 @@ static int kmem_cache_open(struct kmem_c
- #ifdef CONFIG_NUMA
- 	s->defrag_ratio = 100;
- #endif
-+	if (!init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
-+		goto error;
- 
--	if (init_kmem_cache_nodes(s, gfpflags & ~SLUB_DMA))
-+	if (alloc_kmem_cache_cpus(s, gfpflags & ~SLUB_DMA))
- 		return 1;
- error:
- 	if (flags & SLAB_PANIC)
-@@ -2646,7 +2679,7 @@ void __init kmem_cache_init(void)
- #endif
- 
- 	kmem_size = offsetof(struct kmem_cache, cpu_slab) +
--				nr_cpu_ids * sizeof(struct page *);
-+				nr_cpu_ids * sizeof(struct kmem_cache_cpu);
- 
- 	printk(KERN_INFO "SLUB: Genslabs=%d, HWalign=%d, Order=%d-%d, MinObjects=%d,"
- 		" CPUs=%d, Nodes=%d\n",
-@@ -3248,11 +3281,14 @@ static unsigned long slab_objects(struct
- 	per_cpu = nodes + nr_node_ids;
- 
- 	for_each_possible_cpu(cpu) {
--		struct page *page = s->cpu_slab[cpu];
--		int node;
-+		struct page *page;
-+		struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
- 
-+		if (!c)
-+			continue;
-+
-+		page = c->page;
- 		if (page) {
--			node = page_to_nid(page);
- 			if (flags & SO_CPU) {
- 				int x = 0;
- 
-@@ -3261,9 +3297,9 @@ static unsigned long slab_objects(struct
- 				else
- 					x = 1;
- 				total += x;
--				nodes[node] += x;
-+				nodes[c->node] += x;
- 			}
--			per_cpu[node]++;
-+			per_cpu[c->node]++;
- 		}
- 	}
- 
-@@ -3309,13 +3345,19 @@ static int any_slab_objects(struct kmem_
- 	int node;
- 	int cpu;
- 
--	for_each_possible_cpu(cpu)
--		if (s->cpu_slab[cpu])
-+	for_each_possible_cpu(cpu) {
-+		struct kmem_cache_cpu *c = get_cpu_slab(s, cpu);
-+
-+		if (c && c->page)
- 			return 1;
-+	}
- 
--	for_each_node(node) {
-+	for_each_online_node(node) {
- 		struct kmem_cache_node *n = get_node(s, node);
- 
-+		if (!n)
-+			continue;
-+
- 		if (n->nr_partial || atomic_long_read(&n->nr_slabs))
- 			return 1;
- 	}
+ int rtc_set_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from lkml@rtr.ca are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
-slub-simplify-irq-off-handling.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
-mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-documentation-vm-slabinfoc-clean-up-this-code.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
-bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
