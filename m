@@ -1,65 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:27:29 -0700
-Message-ID: <200710162227.l9GMRUrI020936@imap1.linux-foundation.org>
+Subject: - userc-ifdef-mq_bytes-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:28:13 -0700
+Message-ID: <200710162228.l9GMSDGE020945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35767 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765198AbXJPW1r (ORCPT
+	by vger.kernel.org with ESMTP id S933746AbXJPW2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:27:47 -0400
+	Tue, 16 Oct 2007 18:28:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
+     userc-ifdef-mq_bytes-fix
 has been removed from the -mm tree.  Its filename was
-     tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+     userc-ifdef-mq_bytes-fix.patch
 
-This patch was dropped because it was folded into tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+This patch was dropped because it was folded into userc-ifdef-mq_bytes.patch
 
 ------------------------------------------------------
-Subject: tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
+Subject: userc-ifdef-mq_bytes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Cox <alan@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/user.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-expose-new-methods-needed-for-drivers-to-get-termios-fix
-+++ a/drivers/char/tty_ioctl.c
-@@ -292,20 +292,19 @@ void tty_termios_encode_baud_rate(struct
- 		termios->c_cflag |= (BOTHER << IBSHIFT);
- #else
- 	if (ifound == -1 || ofound == -1) {
--		static int warned = 0;
-+		static int warned;
- 		if (!warned++)
--			printk(KERN_WARNING "tty: Unable to return correct speed data as your architecture needs updating.\n");
-+			printk(KERN_WARNING "tty: Unable to return correct "
-+			  "speed data as your architecture needs updating.\n");
- 	}
+diff -puN kernel/user.c~userc-ifdef-mq_bytes-fix kernel/user.c
+--- a/kernel/user.c~userc-ifdef-mq_bytes-fix
++++ a/kernel/user.c
+@@ -340,8 +340,9 @@ struct user_struct * alloc_uid(struct us
+ 		atomic_set(&new->inotify_watches, 0);
+ 		atomic_set(&new->inotify_devs, 0);
  #endif
- }
 -
- EXPORT_SYMBOL_GPL(tty_termios_encode_baud_rate);
++#ifdef CONFIG_POSIX_MQUEUE
+ 		new->mq_bytes = 0;
++#endif
+ 		new->locked_shm = 0;
  
- void tty_encode_baud_rate(struct tty_struct *tty, speed_t ibaud, speed_t obaud)
- {
- 	tty_termios_encode_baud_rate(tty->termios, ibaud, obaud);
- }
--
- EXPORT_SYMBOL_GPL(tty_encode_baud_rate);
- 
- /**
+ 		if (alloc_uid_keyring(new, current) < 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,8 +73,7 @@ binfmt_flat-warning-fixes.patch
 i2o-fix-defined-but-not-used-build-warnings.patch
 reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes.patch
 userc-ifdef-mq_bytes-fix.patch
 f_dupfd_cloexec-implementation-fix-2.patch
 ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
