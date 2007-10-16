@@ -1,87 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-max_user_freq-to-sysfs.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:35 -0700
-Message-ID: <200710162041.l9GKfZsU015804@imap1.linux-foundation.org>
+Subject: - uml-move-userspace-code-to-userspace-file.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:45 -0700
+Message-ID: <200710162036.l9GKajFP015214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34675 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933025AbXJPVXX (ORCPT
+	by vger.kernel.org with ESMTP id S933284AbXJPVXm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:23:23 -0400
+	Tue, 16 Oct 2007 17:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan@kdzbn.homelinux.net, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: add max_user_freq to sysfs
+     uml: move userspace code to userspace file
 has been removed from the -mm tree.  Its filename was
-     rtc-add-max_user_freq-to-sysfs.patch
+     uml-move-userspace-code-to-userspace-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rtc: add max_user_freq to sysfs
-From: Bryan Kadzban <bryan@kdzbn.homelinux.net>
+Subject: uml: move userspace code to userspace file
+From: Jeff Dike <jdike@addtoit.com>
 
-drivers/char/rtc.c exposed a sysctl to change the maximum frequency at
-which a non-root user could ask the RTC to generate interrupts (via the
-RTC_IRQP_SET ioctl).  This value is no longer available under the new RTC
-subsystem, so add it to sysfs for each RTC device.
+Move some code from a kernelspace file to a userspace file where it fits
+better.  This enables some tidying which is the subject of a later patch.
 
-Works for me on x86_64 (both reads and writes), using rtc-cmos.
-
-Signed-off-by: Bryan Kadzban <bryan@kdzbn.homelinux.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sysfs.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/um/drivers/chan_kern.c |   48 ---------------------------------
+ arch/um/drivers/chan_user.c |   49 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 48 deletions(-)
 
-diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-max_user_freq-to-sysfs drivers/rtc/rtc-sysfs.c
---- a/drivers/rtc/rtc-sysfs.c~rtc-add-max_user_freq-to-sysfs
-+++ a/drivers/rtc/rtc-sysfs.c
-@@ -73,11 +73,35 @@ rtc_sysfs_show_since_epoch(struct device
- 	return retval;
- }
+diff -puN arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_kern.c
+--- a/arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file
++++ a/arch/um/drivers/chan_kern.c
+@@ -89,54 +89,6 @@ static const struct chan_ops not_configg
+ };
+ #endif /* CONFIG_NOCONFIG_CHAN */
  
-+static ssize_t
-+rtc_sysfs_show_max_user_freq(struct device *dev, struct device_attribute *attr,
-+		char *buf)
+-void generic_close(int fd, void *unused)
+-{
+-	os_close_file(fd);
+-}
+-
+-int generic_read(int fd, char *c_out, void *unused)
+-{
+-	int n;
+-
+-	n = os_read_file(fd, c_out, sizeof(*c_out));
+-
+-	if(n == -EAGAIN)
+-		return 0;
+-	else if(n == 0)
+-		return -EIO;
+-	return n;
+-}
+-
+-/* XXX Trivial wrapper around os_write_file */
+-
+-int generic_write(int fd, const char *buf, int n, void *unused)
+-{
+-	return os_write_file(fd, buf, n);
+-}
+-
+-int generic_window_size(int fd, void *unused, unsigned short *rows_out,
+-			unsigned short *cols_out)
+-{
+-	int rows, cols;
+-	int ret;
+-
+-	ret = os_window_size(fd, &rows, &cols);
+-	if(ret < 0)
+-		return ret;
+-
+-	ret = ((*rows_out != rows) || (*cols_out != cols));
+-
+-	*rows_out = rows;
+-	*cols_out = cols;
+-
+-	return ret;
+-}
+-
+-void generic_free(void *data)
+-{
+-	kfree(data);
+-}
+-
+ static void tty_receive_char(struct tty_struct *tty, char ch)
+ {
+ 	if(tty == NULL) return;
+diff -puN arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file
++++ a/arch/um/drivers/chan_user.c
+@@ -19,6 +19,55 @@
+ #include "os.h"
+ #include "choose-mode.h"
+ #include "mode.h"
++#include "um_malloc.h"
++
++void generic_close(int fd, void *unused)
 +{
-+	return sprintf(buf, "%d\n", to_rtc_device(dev)->max_user_freq);
++	os_close_file(fd);
 +}
 +
-+static ssize_t
-+rtc_sysfs_set_max_user_freq(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t n)
++int generic_read(int fd, char *c_out, void *unused)
 +{
-+	struct rtc_device *rtc = to_rtc_device(dev);
-+	unsigned long val = simple_strtoul(buf, NULL, 0);
++	int n;
 +
-+	if (val >= 4096 || val == 0)
-+		return -EINVAL;
++	n = os_read_file(fd, c_out, sizeof(*c_out));
 +
-+	rtc->max_user_freq = (int)val;
-+
++	if(n == -EAGAIN)
++		return 0;
++	else if(n == 0)
++		return -EIO;
 +	return n;
 +}
 +
- static struct device_attribute rtc_attrs[] = {
- 	__ATTR(name, S_IRUGO, rtc_sysfs_show_name, NULL),
- 	__ATTR(date, S_IRUGO, rtc_sysfs_show_date, NULL),
- 	__ATTR(time, S_IRUGO, rtc_sysfs_show_time, NULL),
- 	__ATTR(since_epoch, S_IRUGO, rtc_sysfs_show_since_epoch, NULL),
-+	__ATTR(max_user_freq, S_IRUGO | S_IWUSR, rtc_sysfs_show_max_user_freq,
-+			rtc_sysfs_set_max_user_freq),
- 	{ },
- };
++/* XXX Trivial wrapper around os_write_file */
++
++int generic_write(int fd, const char *buf, int n, void *unused)
++{
++	return os_write_file(fd, buf, n);
++}
++
++int generic_window_size(int fd, void *unused, unsigned short *rows_out,
++			unsigned short *cols_out)
++{
++	int rows, cols;
++	int ret;
++
++	ret = os_window_size(fd, &rows, &cols);
++	if(ret < 0)
++		return ret;
++
++	ret = ((*rows_out != rows) || (*cols_out != cols));
++
++	*rows_out = rows;
++	*cols_out = cols;
++
++	return ret;
++}
++
++void generic_free(void *data)
++{
++	kfree(data);
++}
  
+ int generic_console_write(int fd, const char *buf, int n)
+ {
 _
 
-Patches currently in -mm which might be from bryan@kdzbn.homelinux.net are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
