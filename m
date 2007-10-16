@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:29:49 -0700
-Message-ID: <200710162029.l9GKTn1D014342@imap1.linux-foundation.org>
+Subject: - ps3fb-clean-up-includes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:28 -0700
+Message-ID: <200710162045.l9GKjS4I016267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55471 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54402 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965633AbXJPUc3 (ORCPT
+	by vger.kernel.org with ESMTP id S934926AbXJPU44 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:32:29 -0400
+	Tue, 16 Oct 2007 16:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: James.Bottomley@SteelEye.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, htejun@gmail.com, jgarzik@pobox.com, linux@dominikbrodowski.net, protasnb@gmail.com, rmk@arm.linux.org.uk
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce DMA_MASK_NONE as a signal for unable to do DMA
+     ps3fb: clean up includes
 has been removed from the -mm tree.  Its filename was
-     introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
+     ps3fb-clean-up-includes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: introduce DMA_MASK_NONE as a signal for unable to do DMA
-From: James Bottomley <James.Bottomley@SteelEye.com>
+Subject: ps3fb: clean up includes
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Some devices are incapable of DMA and need to be recognised as such. 
-Introduce a NONE dma mask to facilitate this plus an inline function:
-is_device_dma_capable() to check this.
+Clean up includes
 
-Signed-off-by: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Natalie Protasevich <protasnb@gmail.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/video/ps3fb.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~introduce-dma_mask_none-as-a-signal-for-unable-to-do include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~introduce-dma_mask_none-as-a-signal-for-unable-to-do
-+++ a/include/linux/dma-mapping.h
-@@ -24,6 +24,8 @@ enum dma_data_direction {
- #define DMA_28BIT_MASK	0x000000000fffffffULL
- #define DMA_24BIT_MASK	0x0000000000ffffffULL
+diff -puN drivers/video/ps3fb.c~ps3fb-clean-up-includes drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-clean-up-includes
++++ a/drivers/video/ps3fb.c
+@@ -22,22 +22,14 @@
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
+-#include <linux/tty.h>
+-#include <linux/slab.h>
+-#include <linux/vmalloc.h>
+-#include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/console.h>
+ #include <linux/ioctl.h>
+-#include <linux/notifier.h>
+-#include <linux/reboot.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+-
+ #include <linux/uaccess.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+-#include <asm/time.h>
  
-+#define DMA_MASK_NONE	0x0ULL
-+
- static inline int valid_dma_direction(int dma_direction)
- {
- 	return ((dma_direction == DMA_BIDIRECTIONAL) ||
-@@ -31,6 +33,11 @@ static inline int valid_dma_direction(in
- 		(dma_direction == DMA_FROM_DEVICE));
- }
- 
-+static inline int is_device_dma_capable(struct device *dev)
-+{
-+	return dev->dma_mask != NULL && *dev->dma_mask != DMA_MASK_NONE;
-+}
-+
- #ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
- #else
+ #include <asm/abs_addr.h>
+ #include <asm/lv1call.h>
 _
 
-Patches currently in -mm which might be from James.Bottomley@SteelEye.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-scsi-misc.patch
-git-scsi-misc-gdth-fix.patch
-change-struct-marker-users.patch
