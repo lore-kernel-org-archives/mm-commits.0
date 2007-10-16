@@ -1,95 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - smb-convert-to-new-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:07 -0700
-Message-ID: <200710162033.l9GKX7lc014759@imap1.linux-foundation.org>
+Subject: - with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:03 -0700
+Message-ID: <200710162033.l9GKX3dj014749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935407AbXJPViw (ORCPT
+	by vger.kernel.org with ESMTP id S936034AbXJPVjL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:38:52 -0400
+	Tue, 16 Oct 2007 17:39:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smbfs: convert to new aops
+     With reiserfs no longer using the weird generic_cont_expand, remove it completely.
 has been removed from the -mm tree.  Its filename was
-     smb-convert-to-new-aops.patch
+     with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: smbfs: convert to new aops
+Subject: With reiserfs no longer using the weird generic_cont_expand, remove it completely.
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/smbfs/file.c |   34 +++++++++++++++++++++++++---------
- 1 file changed, 25 insertions(+), 9 deletions(-)
+ fs/buffer.c                 |   20 --------------------
+ include/linux/buffer_head.h |    1 -
+ 2 files changed, 21 deletions(-)
 
-diff -puN fs/smbfs/file.c~smb-convert-to-new-aops fs/smbfs/file.c
---- a/fs/smbfs/file.c~smb-convert-to-new-aops
-+++ a/fs/smbfs/file.c
-@@ -292,29 +292,45 @@ out:
-  * If the writer ends up delaying the write, the writer needs to
-  * increment the page use counts until he is done with the page.
-  */
--static int smb_prepare_write(struct file *file, struct page *page, 
--			     unsigned offset, unsigned to)
+diff -puN fs/buffer.c~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely fs/buffer.c
+--- a/fs/buffer.c~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely
++++ a/fs/buffer.c
+@@ -2189,25 +2189,6 @@ out:
+ 	return err;
+ }
+ 
+-int generic_cont_expand(struct inode *inode, loff_t size)
 -{
-+static int smb_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
-+{
-+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
-+	*pagep = __grab_cache_page(mapping, index);
-+	if (!*pagep)
-+		return -ENOMEM;
- 	return 0;
- }
- 
--static int smb_commit_write(struct file *file, struct page *page,
--			    unsigned offset, unsigned to)
-+static int smb_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
+-	unsigned int offset;
+-
+-	offset = (size & (PAGE_CACHE_SIZE - 1)); /* Within page */
+-
+-	/* ugh.  in prepare/commit_write, if from==to==start of block, we
+-	 * skip the prepare.  make sure we never send an offset for the start
+-	 * of a block.
+-	 * XXX: actually, this should be handled in those filesystems by
+-	 * checking for the AOP_FLAG_CONT_EXPAND flag.
+-	 */
+-	if ((offset & (inode->i_sb->s_blocksize - 1)) == 0) {
+-		/* caller must handle this extra byte. */
+-		size++;
+-	}
+-	return generic_cont_expand_simple(inode, size);
+-}
+-
+ int cont_expand_zero(struct file *file, struct address_space *mapping,
+ 			loff_t pos, loff_t *bytes)
  {
- 	int status;
-+	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
- 
--	status = -EFAULT;
- 	lock_kernel();
--	status = smb_updatepage(file, page, offset, to-offset);
-+	status = smb_updatepage(file, page, offset, copied);
- 	unlock_kernel();
-+
-+	if (!status) {
-+		if (!PageUptodate(page) && copied == PAGE_CACHE_SIZE)
-+			SetPageUptodate(page);
-+		status = copied;
-+	}
-+
-+	unlock_page(page);
-+	page_cache_release(page);
-+
- 	return status;
- }
- 
- const struct address_space_operations smb_file_aops = {
- 	.readpage = smb_readpage,
- 	.writepage = smb_writepage,
--	.prepare_write = smb_prepare_write,
--	.commit_write = smb_commit_write
-+	.write_begin = smb_write_begin,
-+	.write_end = smb_write_end,
- };
- 
- /* 
+@@ -3192,7 +3173,6 @@ EXPORT_SYMBOL(file_fsync);
+ EXPORT_SYMBOL(fsync_bdev);
+ EXPORT_SYMBOL(generic_block_bmap);
+ EXPORT_SYMBOL(generic_commit_write);
+-EXPORT_SYMBOL(generic_cont_expand);
+ EXPORT_SYMBOL(generic_cont_expand_simple);
+ EXPORT_SYMBOL(init_buffer);
+ EXPORT_SYMBOL(invalidate_bdev);
+diff -puN include/linux/buffer_head.h~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely
++++ a/include/linux/buffer_head.h
+@@ -217,7 +217,6 @@ int block_prepare_write(struct page*, un
+ int cont_write_begin(struct file *, struct address_space *, loff_t,
+ 			unsigned, unsigned, struct page **, void **,
+ 			get_block_t *, loff_t *);
+-int generic_cont_expand(struct inode *inode, loff_t size);
+ int generic_cont_expand_simple(struct inode *inode, loff_t size);
+ int block_commit_write(struct page *page, unsigned from, unsigned to);
+ int block_page_mkwrite(struct vm_area_struct *vma, struct page *page,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
