@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - uml-dont-use-glibc-asm-userh.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:13 -0700
-Message-ID: <200710162038.l9GKcDUg015422@imap1.linux-foundation.org>
+Subject: - uml-time-build-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:54 -0700
+Message-ID: <200710162038.l9GKcsnc015492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37637 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57402 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936122AbXJPVHu (ORCPT
+	by vger.kernel.org with ESMTP id S936116AbXJPVHu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 17:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,79 +15,90 @@ To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: don't use glibc asm/user.h
+     uml: time build fix
 has been removed from the -mm tree.  Its filename was
-     uml-dont-use-glibc-asm-userh.patch
+     uml-time-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: don't use glibc asm/user.h
+Subject: uml: time build fix
 From: Jeff Dike <jdike@addtoit.com>
 
-Stop including asm/user.h from libc - it seems to be disappearing from
-distros.  It's replaced with sys/user.h which defines user_fpregs_struct and
-user_fpxregs_struct instead of user_i387_struct and struct user_fxsr_struct on
-i386.
+Put back an implementation of timeval_to_ns in arch/um/os-Linux/time.c. 
+tglx pointed out in his review of tickless support that there was a
+perfectly good implementation of it in linux/time.h.  The problem is that
+this is userspace code which can't pull in kernel headers and there doesn't
+seem to be a libc version.
 
-As a bonus, on x86_64, I get to dump some stupid typedefs which were needed in
-order to get asm/user.h to compile.
+So, I'm copying the version from linux/time.h rather than resurrecting my
+version.  This causes some declaration changes as it now returns a signed
+value rather than an unsigned value.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/user-offsets.c   |    6 +++---
- arch/um/sys-x86_64/user-offsets.c |    9 +--------
- 2 files changed, 4 insertions(+), 11 deletions(-)
+ arch/um/include/os.h    |    4 ++--
+ arch/um/os-Linux/time.c |   22 +++++++++++++++++++---
+ 2 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN arch/um/sys-i386/user-offsets.c~uml-dont-use-glibc-asm-userh arch/um/sys-i386/user-offsets.c
---- a/arch/um/sys-i386/user-offsets.c~uml-dont-use-glibc-asm-userh
-+++ a/arch/um/sys-i386/user-offsets.c
-@@ -2,9 +2,9 @@
- #include <stddef.h>
- #include <signal.h>
- #include <sys/poll.h>
-+#include <sys/user.h>
- #include <sys/mman.h>
- #include <asm/ptrace.h>
--#include <asm/user.h>
+diff -puN arch/um/include/os.h~uml-time-build-fix arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-time-build-fix
++++ a/arch/um/include/os.h
+@@ -254,9 +254,9 @@ extern void os_dump_core(void);
+ extern void idle_sleep(unsigned long long nsecs);
+ extern int set_interval(void);
+ extern int timer_one_shot(int ticks);
+-extern unsigned long long disable_timer(void);
++extern long long disable_timer(void);
+ extern void uml_idle_timer(void);
+-extern unsigned long long os_nsecs(void);
++extern long long os_nsecs(void);
  
- #define DEFINE(sym, val) \
- 	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-@@ -48,8 +48,8 @@ void foo(void)
- 	OFFSET(HOST_SC_FP_ST, _fpstate, _st);
- 	OFFSET(HOST_SC_FXSR_ENV, _fpstate, _fxsr_env);
+ /* skas/mem.c */
+ extern long run_syscall_stub(struct mm_id * mm_idp,
+diff -puN arch/um/os-Linux/time.c~uml-time-build-fix arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-time-build-fix
++++ a/arch/um/os-Linux/time.c
+@@ -39,7 +39,23 @@ int timer_one_shot(int ticks)
+ 	return 0;
+ }
  
--	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_i387_struct));
--	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fxsr_struct));
-+	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_fpregs_struct));
-+	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fpxregs_struct));
+-unsigned long long disable_timer(void)
++/**
++ * timeval_to_ns - Convert timeval to nanoseconds
++ * @ts:		pointer to the timeval variable to be converted
++ *
++ * Returns the scalar nanosecond representation of the timeval
++ * parameter.
++ *
++ * Ripped from linux/time.h because it's a kernel header, and thus
++ * unusable from here.
++ */
++static inline long long timeval_to_ns(const struct timeval *tv)
++{
++	return ((long long) tv->tv_sec * UM_NSEC_PER_SEC) +
++		tv->tv_usec * UM_NSEC_PER_USEC;
++}
++
++long long disable_timer(void)
+ {
+ 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
  
- 	DEFINE(HOST_IP, EIP);
- 	DEFINE(HOST_SP, UESP);
-diff -puN arch/um/sys-x86_64/user-offsets.c~uml-dont-use-glibc-asm-userh arch/um/sys-x86_64/user-offsets.c
---- a/arch/um/sys-x86_64/user-offsets.c~uml-dont-use-glibc-asm-userh
-+++ a/arch/um/sys-x86_64/user-offsets.c
-@@ -3,17 +3,10 @@
- #include <signal.h>
- #include <sys/poll.h>
- #include <sys/mman.h>
-+#include <sys/user.h>
- #define __FRAME_OFFSETS
- #include <asm/ptrace.h>
- #include <asm/types.h>
--/* For some reason, x86_64 defines u64 and u32 only in <pci/types.h>, which I
-- * refuse to include here, even though they're used throughout the headers.
-- * These are used in asm/user.h, and that include can't be avoided because of
-- * the sizeof(struct user_regs_struct) below.
-- */
--typedef __u64 u64;
--typedef __u32 u32;
--#include <asm/user.h>
+@@ -47,10 +63,10 @@ unsigned long long disable_timer(void)
+ 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
+ 		       "errno = %d\n", errno);
  
- #define DEFINE(sym, val) \
-         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-	return tv_to_nsec(&time.it_value);
++	return timeval_to_ns(&time.it_value);
+ }
+ 
+-unsigned long long os_nsecs(void)
++long long os_nsecs(void)
+ {
+ 	struct timeval tv;
+ 
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
