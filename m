@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-md-accel-fixup.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:10:48 -0700
-Message-ID: <200710162010.l9GKAmuq013507@imap1.linux-foundation.org>
+Subject: - git-watchdog-fixup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:11:20 -0700
+Message-ID: <200710162011.l9GKBKWd013523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35616 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34842 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935602AbXJPULR (ORCPT
+	by vger.kernel.org with ESMTP id S935666AbXJPULX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:11:17 -0400
+	Tue, 16 Oct 2007 16:11:23 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKAnin024034
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKBLhJ024062
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:10:50 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:11:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-md-accel-fixup
+     git-watchdog-fixup
 has been removed from the -mm tree.  Its filename was
-     git-md-accel-fixup.patch
+     git-watchdog-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-md-accel-fixup
+Subject: git-watchdog-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-md-accel-fixup
-+++ a/drivers/md/raid5.c
-@@ -3888,13 +3888,8 @@ static void raid5_align_endio(struct bio
- 	if (!error && uptodate) {
- 		bio_endio(raid_bi, 0);
- 		if (atomic_dec_and_test(&conf->active_aligned_reads))
--<<<<<<< HEAD/drivers/md/raid5.c
--			wake_up(&conf->wait_for_stripe);
--		return;
+diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
+--- a/drivers/Kconfig~git-watchdog-fixup
++++ a/drivers/Kconfig
+@@ -58,13 +58,10 @@ source "drivers/power/Kconfig"
+ 
+ source "drivers/hwmon/Kconfig"
+ 
+-<<<<<<< HEAD/drivers/Kconfig
+ source "drivers/ssb/Kconfig"
+ 
 -=======
- 			wake_up(&conf->wait_for_queue);
--		return 0;
-->>>>>>> /drivers/md/raid5.c
-+		return;
- 	}
+ source "drivers/watchdog/Kconfig"
  
+->>>>>>> /drivers/Kconfig
+ source "drivers/mfd/Kconfig"
  
+ source "drivers/media/Kconfig"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +71,6 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
-git-md-accel-fixup.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 git-nfs-vs-git-unionfs.patch
@@ -80,7 +78,6 @@ git-nfsd-fixup.patch
 qla2xxx-printk-fixes.patch
 sparc-support-for-new-termios-checkpatch-fixes.patch
 git-unionfs.patch
-git-v9fs-fixup.patch
 git-watchdog-fixup.patch
 git-wireless.patch
 git-wireless-fixup.patch
