@@ -1,95 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-block-cpqarraycciss-kill-unused-var.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:46:06 -0700
-Message-ID: <200710162046.l9GKk6SF016333@imap1.linux-foundation.org>
+Subject: - ecryptfs-fix-tag-11-writing-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:20 -0700
+Message-ID: <200710162040.l9GKeKa5015679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43094 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53226 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965417AbXJPVDu (ORCPT
+	by vger.kernel.org with ESMTP id S932468AbXJPVEQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:03:50 -0400
+	Tue, 16 Oct 2007 17:04:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jens.axboe@oracle.com, jgarzik@redhat.com, mike.miller@hp.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/block/cpqarray,cciss: kill unused var
+     eCryptfs: fix Tag 11 writing code
 has been removed from the -mm tree.  Its filename was
-     drivers-block-cpqarraycciss-kill-unused-var.patch
+     ecryptfs-fix-tag-11-writing-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/block/cpqarray,cciss: kill unused var
-From: Jeff Garzik <jeff@garzik.org>
+Subject: eCryptfs: fix Tag 11 writing code
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-The recent bio work and subsequent fixups created unused variables.
+Fix up the Tag 11 writing code to handle size limits and boundaries more
+explicitly.  It looks like the packet length was 1 shorter than it should have
+been, chopping off the last byte of the key identifier.  This is largely
+inconsequential, since it is not much more likely that a key identifier
+collision will occur with 7 bytes rather than 8.  This patch fixes the packet
+to use the full number of bytes that were originally intended to be used for
+the key identifier.
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c    |    1 -
- drivers/block/cpqarray.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ fs/ecryptfs/keystore.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cciss.c
---- a/drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var
-+++ a/drivers/block/cciss.c
-@@ -1191,7 +1191,6 @@ static inline void complete_buffers(stru
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code
++++ a/fs/ecryptfs/keystore.c
+@@ -1449,47 +1449,52 @@ out:
+  * Returns zero on success; non-zero on error.
+  */
+ static int
+-write_tag_11_packet(char *dest, int max, char *contents, size_t contents_length,
+-		    size_t *packet_length)
++write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
++		    size_t contents_length, size_t *packet_length)
  {
- 	while (bio) {
- 		struct bio *xbh = bio->bi_next;
--		int nr_sectors = bio_sectors(bio);
+ 	size_t packet_size_length;
++	size_t max_packet_size;
+ 	int rc = 0;
  
- 		bio->bi_next = NULL;
- 		bio_endio(bio, status ? 0 : -EIO);
-diff -puN drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var
-+++ a/drivers/block/cpqarray.c
-@@ -981,9 +981,8 @@ static void start_io(ctlr_info_t *h)
- static inline void complete_buffers(struct bio *bio, int ok)
- {
- 	struct bio *xbh;
--	while(bio) {
--		int nr_sectors = bio_sectors(bio);
+ 	(*packet_length) = 0;
+-	if ((13 + contents_length) > max) {
++	/* This format is inspired by OpenPGP; see RFC 2440
++	 * packet tag 11 */
++	max_packet_size = (1                   /* Tag 11 identifier */
++			   + 3                 /* Max Tag 11 packet size */
++			   + 1                 /* Binary format specifier */
++			   + 1                 /* Filename length */
++			   + 8                 /* Filename ("_CONSOLE") */
++			   + 4                 /* Modification date */
++			   + contents_length); /* Literal data */
++	if (max_packet_size > (*remaining_bytes)) {
++		printk(KERN_ERR "Packet length larger than maximum allowable; "
++		       "need up to [%d] bytes, but there are only [%d] "
++		       "available\n", max_packet_size, (*remaining_bytes));
+ 		rc = -EINVAL;
+-		ecryptfs_printk(KERN_ERR, "Packet length larger than "
+-				"maximum allowable\n");
+ 		goto out;
+ 	}
+-	/* General packet header */
+-	/* Packet tag */
+ 	dest[(*packet_length)++] = ECRYPTFS_TAG_11_PACKET_TYPE;
+-	/* Packet length */
+ 	rc = write_packet_length(&dest[(*packet_length)],
+-				 (13 + contents_length), &packet_size_length);
++				 (max_packet_size - 4), &packet_size_length);
+ 	if (rc) {
+-		ecryptfs_printk(KERN_ERR, "Error generating tag 11 packet "
+-				"header; cannot generate packet length\n");
++		printk(KERN_ERR "Error generating tag 11 packet header; cannot "
++		       "generate packet length. rc = [%d]\n", rc);
+ 		goto out;
+ 	}
+ 	(*packet_length) += packet_size_length;
+-	/* Tag 11 specific */
+-	/* One-octet field that describes how the data is formatted */
+-	dest[(*packet_length)++] = 0x62; /* binary data */
+-	/* One-octet filename length followed by filename */
++	dest[(*packet_length)++] = 0x62; /* binary data format specifier */
+ 	dest[(*packet_length)++] = 8;
+ 	memcpy(&dest[(*packet_length)], "_CONSOLE", 8);
+ 	(*packet_length) += 8;
+-	/* Four-octet number indicating modification date */
+ 	memset(&dest[(*packet_length)], 0x00, 4);
+ 	(*packet_length) += 4;
+-	/* Remainder is literal data */
+ 	memcpy(&dest[(*packet_length)], contents, contents_length);
+ 	(*packet_length) += contents_length;
+  out:
+ 	if (rc)
+ 		(*packet_length) = 0;
++	else
++		(*remaining_bytes) -= (*packet_length);
+ 	return rc;
+ }
  
-+	while (bio) {
- 		xbh = bio->bi_next;
- 		bio->bi_next = NULL;
- 		
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-jg-misc.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-scsi-expose-an-support-to-user-space.patch
-libata-expose-an-to-user-space.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-tokenring-3c359c-fixed-array-index-problem.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-scsi-use-notifier-chain-for-asynchronous-event.patch
-git-wireless.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-unify-dma_bit_mask-definitions-v31.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-intel-iommu-fix-for-iommu-early-crash-2.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
-s2io-rename-bit-macro.patch
-define-global-bit-macro.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
