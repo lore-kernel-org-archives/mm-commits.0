@@ -1,223 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: - vt-vgacon-check-if-screen-resize-request-comes-from-userspace.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:52 -0700
-Message-ID: <200710162044.l9GKiqcf016203@imap1.linux-foundation.org>
+Subject: - ecryptfs-set-up-and-destroy-persistent-lower-file.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:56 -0700
+Message-ID: <200710162040.l9GKeuUx015732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758790AbXJPVGs (ORCPT
+	by vger.kernel.org with ESMTP id S935975AbXJPVGl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:06:48 -0400
+	Tue, 16 Oct 2007 17:06:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vt/vgacon: Check if screen resize request comes from userspace
+     eCryptfs: set up and destroy persistent lower file
 has been removed from the -mm tree.  Its filename was
-     vt-vgacon-check-if-screen-resize-request-comes-from-userspace.patch
+     ecryptfs-set-up-and-destroy-persistent-lower-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vt/vgacon: Check if screen resize request comes from userspace
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: eCryptfs: set up and destroy persistent lower file
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Various console drivers are able to resize the screen via the con_resize()
-hook.  This hook is also visible in userspace via the TIOCWINSZ, VT_RESIZE and
-VT_RESIZEX ioctl's.  One particular utility, SVGATextMode, expects that
-con_resize() of the VGA console will always return success even if the
-resulting screen is not compatible with the hardware.  However, this
-particular behavior of the VGA console, as reported in Kernel Bugzilla Bug
-7513, can cause undefined behavior if the user starts with a console size
-larger than 80x25.
+This patch sets up and destroys the persistent lower file for each eCryptfs
+inode.
 
-To work around this problem, add an extra parameter to con_resize().  This
-parameter is ignored by drivers except for vgacon.  If this parameter is
-non-zero, then the resize request came from a VT_RESIZE or VT_RESIZEX ioctl
-and vgacon will always return success.  If this parameter is zero, vgacon will
-return -EINVAL if the requested size is not compatible with the hardware.  The
-latter is the more correct behavior.
-
-With this change, SVGATextMode should still work correctly while in-kernel and
-stty resize calls can expect correct behavior from vgacon.
-
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c                       |   13 +++++++++----
- drivers/char/vt_ioctl.c                 |   15 +++++++++++++--
- drivers/usb/misc/sisusbvga/sisusb_con.c |    3 ++-
- drivers/video/console/fbcon.c           |    2 +-
- drivers/video/console/vgacon.c          |    7 ++++---
- include/linux/console.h                 |    3 ++-
- include/linux/console_struct.h          |    1 +
- 7 files changed, 32 insertions(+), 12 deletions(-)
+ fs/ecryptfs/inode.c |   23 ++++++++++++--
+ fs/ecryptfs/main.c  |   65 ++++++++++++++++++++++++++++++++++++++++++
+ fs/ecryptfs/super.c |   22 ++++++++++++--
+ 3 files changed, 103 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/vt.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/char/vt.c
---- a/drivers/char/vt.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/drivers/char/vt.c
-@@ -750,13 +750,15 @@ int vc_allocate(unsigned int currcons)	/
- 	return 0;
- }
- 
--static inline int resize_screen(struct vc_data *vc, int width, int height)
-+static inline int resize_screen(struct vc_data *vc, int width, int height,
-+				int user)
- {
- 	/* Resizes the resolution of the display adapater */
- 	int err = 0;
- 
- 	if (vc->vc_mode != KD_GRAPHICS && vc->vc_sw->con_resize)
--		err = vc->vc_sw->con_resize(vc, width, height);
-+		err = vc->vc_sw->con_resize(vc, width, height, user);
-+
- 	return err;
- }
- 
-@@ -772,7 +774,7 @@ int vc_resize(struct vc_data *vc, unsign
- 	unsigned long old_origin, new_origin, new_scr_end, rlth, rrem, err = 0;
- 	unsigned int old_cols, old_rows, old_row_size, old_screen_size;
- 	unsigned int new_cols, new_rows, new_row_size, new_screen_size;
--	unsigned int end;
-+	unsigned int end, user;
- 	unsigned short *newscreen;
- 
- 	WARN_CONSOLE_UNLOCKED();
-@@ -780,6 +782,9 @@ int vc_resize(struct vc_data *vc, unsign
- 	if (!vc)
- 		return -ENXIO;
- 
-+	user = vc->vc_resize_user;
-+	vc->vc_resize_user = 0;
-+
- 	if (cols > VC_RESIZE_MAXCOL || lines > VC_RESIZE_MAXROW)
- 		return -EINVAL;
- 
-@@ -800,7 +805,7 @@ int vc_resize(struct vc_data *vc, unsign
- 	old_row_size = vc->vc_size_row;
- 	old_screen_size = vc->vc_screenbuf_size;
- 
--	err = resize_screen(vc, new_cols, new_rows);
-+	err = resize_screen(vc, new_cols, new_rows, user);
- 	if (err) {
- 		kfree(newscreen);
- 		return err;
-diff -puN drivers/char/vt_ioctl.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/drivers/char/vt_ioctl.c
-@@ -847,14 +847,24 @@ int vt_ioctl(struct tty_struct *tty, str
- 	case VT_RESIZE:
- 	{
- 		struct vt_sizes __user *vtsizes = up;
-+		struct vc_data *vc;
-+
- 		ushort ll,cc;
- 		if (!perm)
- 			return -EPERM;
- 		if (get_user(ll, &vtsizes->v_rows) ||
- 		    get_user(cc, &vtsizes->v_cols))
- 			return -EFAULT;
--		for (i = 0; i < MAX_NR_CONSOLES; i++)
--			vc_lock_resize(vc_cons[i].d, cc, ll);
-+
-+		for (i = 0; i < MAX_NR_CONSOLES; i++) {
-+			vc = vc_cons[i].d;
-+
-+			if (vc) {
-+				vc->vc_resize_user = 1;
-+				vc_lock_resize(vc_cons[i].d, cc, ll);
-+			}
-+		}
-+
- 		return 0;
+diff -puN fs/ecryptfs/inode.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-set-up-and-destroy-persistent-lower-file
++++ a/fs/ecryptfs/inode.c
+@@ -119,10 +119,23 @@ ecryptfs_do_create(struct inode *directo
  	}
- 
-@@ -900,6 +910,7 @@ int vt_ioctl(struct tty_struct *tty, str
- 				vc_cons[i].d->vc_scan_lines = vlin;
- 			if (clin)
- 				vc_cons[i].d->vc_font.height = clin;
-+			vc_cons[i].d->vc_resize_user = 1;
- 			vc_resize(vc_cons[i].d, cc, ll);
- 			release_console_sem();
- 		}
-diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/usb/misc/sisusbvga/sisusb_con.c
---- a/drivers/usb/misc/sisusbvga/sisusb_con.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
-@@ -1042,7 +1042,8 @@ sisusbcon_set_origin(struct vc_data *c)
- 
- /* Interface routine */
- static int
--sisusbcon_resize(struct vc_data *c, unsigned int newcols, unsigned int newrows)
-+sisusbcon_resize(struct vc_data *c, unsigned int newcols, unsigned int newrows,
-+		 unsigned int user)
+ 	rc = ecryptfs_create_underlying_file(lower_dir_dentry->d_inode,
+ 					     ecryptfs_dentry, mode, nd);
+-	if (unlikely(rc)) {
+-		ecryptfs_printk(KERN_ERR,
+-				"Failure to create underlying file\n");
+-		goto out_lock;
++	if (rc) {
++		struct inode *ecryptfs_inode = ecryptfs_dentry->d_inode;
++		struct ecryptfs_inode_info *inode_info =
++			ecryptfs_inode_to_private(ecryptfs_inode);
++
++		printk(KERN_WARNING "%s: Error creating underlying file; "
++		       "rc = [%d]; checking for existing\n", __FUNCTION__, rc);
++		if (inode_info) {
++			mutex_lock(&inode_info->lower_file_mutex);
++			if (!inode_info->lower_file) {
++				mutex_unlock(&inode_info->lower_file_mutex);
++				printk(KERN_ERR "%s: Failure to set underlying "
++				       "file; rc = [%d]\n", __FUNCTION__, rc);
++				goto out_lock;
++			}
++			mutex_unlock(&inode_info->lower_file_mutex);
++		}
+ 	}
+ 	rc = ecryptfs_interpose(lower_dentry, ecryptfs_dentry,
+ 				directory_inode->i_sb, 0);
+@@ -252,6 +265,8 @@ ecryptfs_create(struct inode *directory_
  {
- 	struct sisusb_usb_data *sisusb;
- 	int fh;
-diff -puN drivers/video/console/fbcon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/drivers/video/console/fbcon.c
-@@ -2168,7 +2168,7 @@ static __inline__ void updatescrollmode(
+ 	int rc;
+ 
++	/* ecryptfs_do_create() calls ecryptfs_interpose(), which opens
++	 * the crypt_stat->lower_file (persistent file) */
+ 	rc = ecryptfs_do_create(directory_inode, ecryptfs_dentry, mode, nd);
+ 	if (unlikely(rc)) {
+ 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
+diff -puN fs/ecryptfs/main.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-set-up-and-destroy-persistent-lower-file
++++ a/fs/ecryptfs/main.c
+@@ -99,6 +99,64 @@ void __ecryptfs_printk(const char *fmt, 
  }
  
- static int fbcon_resize(struct vc_data *vc, unsigned int width, 
--			unsigned int height)
-+			unsigned int height, unsigned int user)
- {
- 	struct fb_info *info = registered_fb[con2fb_map[vc->vc_num]];
- 	struct fbcon_ops *ops = info->fbcon_par;
-diff -puN drivers/video/console/vgacon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/video/console/vgacon.c
---- a/drivers/video/console/vgacon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/drivers/video/console/vgacon.c
-@@ -1278,13 +1278,14 @@ static int vgacon_font_get(struct vc_dat
- #endif
+ /**
++ * ecryptfs_init_persistent_file
++ * @ecryptfs_dentry: Fully initialized eCryptfs dentry object, with
++ *                   the lower dentry and the lower mount set
++ *
++ * eCryptfs only ever keeps a single open file for every lower
++ * inode. All I/O operations to the lower inode occur through that
++ * file. When the first eCryptfs dentry that interposes with the first
++ * lower dentry for that inode is created, this function creates the
++ * persistent file struct and associates it with the eCryptfs
++ * inode. When the eCryptfs inode is destroyed, the file is closed.
++ *
++ * The persistent file will be opened with read/write permissions, if
++ * possible. Otherwise, it is opened read-only.
++ *
++ * This function does nothing if a lower persistent file is already
++ * associated with the eCryptfs inode.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_init_persistent_file(struct dentry *ecryptfs_dentry)
++{
++	struct ecryptfs_inode_info *inode_info =
++		ecryptfs_inode_to_private(ecryptfs_dentry->d_inode);
++	int rc = 0;
++
++	mutex_lock(&inode_info->lower_file_mutex);
++	if (!inode_info->lower_file) {
++		struct dentry *lower_dentry;
++		struct vfsmount *lower_mnt =
++			ecryptfs_dentry_to_lower_mnt(ecryptfs_dentry);
++
++		lower_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry);
++		/* Corresponding dput() and mntput() are done when the
++		 * persistent file is fput() when the eCryptfs inode
++		 * is destroyed. */
++		dget(lower_dentry);
++		mntget(lower_mnt);
++		inode_info->lower_file = dentry_open(lower_dentry,
++						     lower_mnt,
++						     (O_RDWR | O_LARGEFILE));
++		if (IS_ERR(inode_info->lower_file))
++			inode_info->lower_file = dentry_open(lower_dentry,
++							     lower_mnt,
++							     (O_RDONLY
++							      | O_LARGEFILE));
++		if (IS_ERR(inode_info->lower_file)) {
++			printk(KERN_ERR "Error opening lower persistent file "
++			       "for lower_dentry [0x%p] and lower_mnt [0x%p]\n",
++			       lower_dentry, lower_mnt);
++			rc = PTR_ERR(inode_info->lower_file);
++			inode_info->lower_file = NULL;
++		}
++	}
++	mutex_unlock(&inode_info->lower_file_mutex);
++	return rc;
++}
++
++/**
+  * ecryptfs_interpose
+  * @lower_dentry: Existing dentry in the lower filesystem
+  * @dentry: ecryptfs' dentry
+@@ -155,6 +213,13 @@ int ecryptfs_interpose(struct dentry *lo
+ 	/* This size will be overwritten for real files w/ headers and
+ 	 * other metadata */
+ 	fsstack_copy_inode_size(inode, lower_inode);
++	rc = ecryptfs_init_persistent_file(dentry);
++	if (rc) {
++		printk(KERN_ERR "%s: Error attempting to initialize the "
++		       "persistent file for the dentry with name [%s]; "
++		       "rc = [%d]\n", __FUNCTION__, dentry->d_name.name, rc);
++		goto out;
++	}
+ out:
+ 	return rc;
+ }
+diff -puN fs/ecryptfs/super.c~ecryptfs-set-up-and-destroy-persistent-lower-file fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~ecryptfs-set-up-and-destroy-persistent-lower-file
++++ a/fs/ecryptfs/super.c
+@@ -27,6 +27,7 @@
+ #include <linux/mount.h>
+ #include <linux/key.h>
+ #include <linux/seq_file.h>
++#include <linux/file.h>
+ #include <linux/crypto.h>
+ #include "ecryptfs_kernel.h"
  
- static int vgacon_resize(struct vc_data *c, unsigned int width,
--				unsigned int height)
-+			 unsigned int height, unsigned int user)
- {
- 	if (width % 2 || width > ORIG_VIDEO_COLS ||
- 	    height > (ORIG_VIDEO_LINES * vga_default_font_height)/
- 	    c->vc_font.height)
--		/* let svgatextmode tinker with video timings */
--		return 0;
-+		/* let svgatextmode tinker with video timings and
-+		   return success */
-+		return (user) ? 0 : -EINVAL;
+@@ -63,9 +64,10 @@ out:
+  * ecryptfs_destroy_inode
+  * @inode: The ecryptfs inode
+  *
+- * This is used during the final destruction of the inode.
+- * All allocation of memory related to the inode, including allocated
+- * memory in the crypt_stat struct, will be released here.
++ * This is used during the final destruction of the inode.  All
++ * allocation of memory related to the inode, including allocated
++ * memory in the crypt_stat struct, will be released here. This
++ * function also fput()'s the persistent file for the lower inode.
+  * There should be no chance that this deallocation will be missed.
+  */
+ static void ecryptfs_destroy_inode(struct inode *inode)
+@@ -73,6 +75,20 @@ static void ecryptfs_destroy_inode(struc
+ 	struct ecryptfs_inode_info *inode_info;
  
- 	if (CON_IS_VISIBLE(c) && !vga_is_gfx) /* who knows */
- 		vgacon_doresize(c, width, height);
-diff -puN include/linux/console.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace include/linux/console.h
---- a/include/linux/console.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/include/linux/console.h
-@@ -45,7 +45,8 @@ struct consw {
- 	int	(*con_font_get)(struct vc_data *, struct console_font *);
- 	int	(*con_font_default)(struct vc_data *, struct console_font *, char *);
- 	int	(*con_font_copy)(struct vc_data *, int);
--	int	(*con_resize)(struct vc_data *, unsigned int, unsigned int);
-+	int     (*con_resize)(struct vc_data *, unsigned int, unsigned int,
-+			       unsigned int);
- 	int	(*con_set_palette)(struct vc_data *, unsigned char *);
- 	int	(*con_scrolldelta)(struct vc_data *, int);
- 	int	(*con_set_origin)(struct vc_data *);
-diff -puN include/linux/console_struct.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace include/linux/console_struct.h
---- a/include/linux/console_struct.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
-+++ a/include/linux/console_struct.h
-@@ -100,6 +100,7 @@ struct vc_data {
- 	unsigned char 	vc_G1_charset;
- 	unsigned char 	vc_saved_G0;
- 	unsigned char 	vc_saved_G1;
-+	unsigned int    vc_resize_user;         /* resize request from user */
- 	unsigned int	vc_bell_pitch;		/* Console bell pitch */
- 	unsigned int	vc_bell_duration;	/* Console bell duration */
- 	struct vc_data **vc_display_fg;		/* [!] Ptr to var holding fg console for this display */
+ 	inode_info = ecryptfs_inode_to_private(inode);
++	mutex_lock(&inode_info->lower_file_mutex);
++	if (inode_info->lower_file) {
++		struct dentry *lower_dentry =
++			inode_info->lower_file->f_dentry;
++
++		BUG_ON(!lower_dentry);
++		if (lower_dentry->d_inode) {
++			fput(inode_info->lower_file);
++			inode_info->lower_file = NULL;
++			d_drop(lower_dentry);
++			d_delete(lower_dentry);
++		}
++	}
++	mutex_unlock(&inode_info->lower_file_mutex);
+ 	ecryptfs_destroy_crypt_stat(&inode_info->crypt_stat);
+ 	kmem_cache_free(ecryptfs_inode_info_cache, inode_info);
+ }
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-fbcon-delay-the-start-of-the-cursor-timer-until-a-con_switch.patch
-cyber2000fb-checkpatch-fixes.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
