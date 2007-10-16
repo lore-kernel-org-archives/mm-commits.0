@@ -1,294 +1,345 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-copyarea-and-partial-imageblit-suppor.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:53 -0700
-Message-ID: <200710162041.l9GKfrYh015829@imap1.linux-foundation.org>
+Subject: - s3c2410fb-use-new-margin-fields.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:13 -0700
+Message-ID: <200710162043.l9GKhDSN016024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39379 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50248 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965115AbXJPVPG (ORCPT
+	by vger.kernel.org with ESMTP id S964910AbXJPVPf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:15:06 -0400
+	Tue, 16 Oct 2007 17:15:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm3fb: copyarea and partial imageblit suppor
+     s3c2410fb: use new margin fields
 has been removed from the -mm tree.  Its filename was
-     pm3fb-copyarea-and-partial-imageblit-suppor.patch
+     s3c2410fb-use-new-margin-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm3fb: copyarea and partial imageblit suppor
+Subject: s3c2410fb: use new margin fields
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds accelerated copyarea and partially accelerated imageblit
-functions. There is also fixed one register address in the pm3fb.h file.
+This patch makes use of margins fields in the s3c2410fb_display
+structure.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |  180 +++++++++++++++++++++++++++++++++++++---
- include/video/pm3fb.h |    5 -
- 2 files changed, 173 insertions(+), 12 deletions(-)
+ drivers/video/s3c2410fb.c |  234 ++++++++++++++++++++----------------
+ 1 file changed, 136 insertions(+), 98 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-copyarea-and-partial-imageblit-suppor drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-copyarea-and-partial-imageblit-suppor
-+++ a/drivers/video/pm3fb.c
-@@ -276,15 +276,22 @@ static void pm3fb_init_engine(struct fb_
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-use-new-margin-fields drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-use-new-margin-fields
++++ a/drivers/video/s3c2410fb.c
+@@ -197,6 +197,14 @@ static int s3c2410fb_check_var(struct fb
+ 		return -EINVAL;
+ 	}
  
- 	PM3_WAIT(par, 2);
- 	{
--		unsigned long rm = 1;
-+		/* invert bits in bitmask */
-+		unsigned long rm = 1 | (3 << 7);
- 		switch (info->var.bits_per_pixel) {
- 		case 8:
- 			PM3_WRITE_REG(par, PM3PixelSize,
- 					   PM3PixelSize_GLOBAL_8BIT);
-+#ifdef __BIG_ENDIAN
-+			rm |= 3 << 15;
-+#endif
- 			break;
- 		case 16:
- 			PM3_WRITE_REG(par, PM3PixelSize,
- 					   PM3PixelSize_GLOBAL_16BIT);
-+#ifdef __BIG_ENDIAN
-+			rm |= 2 << 15;
-+#endif
- 			break;
- 		case 32:
- 			PM3_WRITE_REG(par, PM3PixelSize,
-@@ -394,18 +401,18 @@ static void pm3fb_fillrect (struct fb_in
- 		color |= color << 16;
- 
- 	PM3_WAIT(par, 4);
--
-+	/* ROP Ox3 is GXcopy */
- 	PM3_WRITE_REG(par, PM3Config2D,
--				  PM3Config2D_UseConstantSource |
--				  PM3Config2D_ForegroundROPEnable |
--				  (PM3Config2D_ForegroundROP(0x3)) |	/* Ox3 is GXcopy */
--				  PM3Config2D_FBWriteEnable);
-+			PM3Config2D_UseConstantSource |
-+			PM3Config2D_ForegroundROPEnable |
-+			(PM3Config2D_ForegroundROP(0x3)) |
-+			PM3Config2D_FBWriteEnable);
- 
- 	PM3_WRITE_REG(par, PM3ForegroundColor, color);
- 
- 	PM3_WRITE_REG(par, PM3RectanglePosition,
--		      (PM3RectanglePosition_XOffset(modded.dx)) |
--		      (PM3RectanglePosition_YOffset(modded.dy)));
-+			(PM3RectanglePosition_XOffset(modded.dx)) |
-+			(PM3RectanglePosition_YOffset(modded.dy)));
- 
- 	PM3_WRITE_REG(par, PM3Render2D,
- 		      PM3Render2D_XPositive |
-@@ -415,6 +422,154 @@ static void pm3fb_fillrect (struct fb_in
- 		      (PM3Render2D_Width(modded.width)) |
- 		      (PM3Render2D_Height(modded.height)));
++	/* it is always the size as the display */
++	var->xres_virtual = display->xres;
++	var->yres_virtual = display->yres;
++
++	/* copy lcd settings */
++	var->left_margin = display->left_margin;
++	var->right_margin = display->right_margin;
++
+ 	var->transp.offset = 0;
+ 	var->transp.length = 0;
+ 	/* set r/g/b positions */
+@@ -270,125 +278,152 @@ static int s3c2410fb_check_var(struct fb
+ 	return 0;
  }
-+
-+static void pm3fb_copyarea(struct fb_info *info,
-+				const struct fb_copyarea *area)
+ 
++/* s3c2410fb_calculate_stn_lcd_regs
++ *
++ * calculate register values from var settings
++ */
++static void s3c2410fb_calculate_stn_lcd_regs(const struct fb_info *info,
++					     struct s3c2410fb_hw *regs)
 +{
-+	struct pm3_par *par = info->par;
-+	struct fb_copyarea modded;
-+	u32 vxres, vyres;
-+	int x_align, o_x, o_y;
++	const struct s3c2410fb_info *fbi = info->par;
++	const struct fb_var_screeninfo *var = &info->var;
++	int type = regs->lcdcon1 & ~S3C2410_LCDCON1_TFT;
++	int hs = var->xres >> 2;
++	unsigned wdly = (var->left_margin >> 4) - 1;
 +
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return;
-+	if (info->flags & FBINFO_HWACCEL_DISABLED) {
-+		cfb_copyarea(info, area);
-+		return;
++	dprintk("%s: var->xres  = %d\n", __FUNCTION__, var->xres);
++	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
++	dprintk("%s: var->bpp   = %d\n", __FUNCTION__, var->bits_per_pixel);
++
++	if (type != S3C2410_LCDCON1_STN4)
++		hs >>= 1;
++
++	regs->lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
++
++	switch (var->bits_per_pixel) {
++	case 1:
++		regs->lcdcon1 |= S3C2410_LCDCON1_STN1BPP;
++		break;
++	case 2:
++		regs->lcdcon1 |= S3C2410_LCDCON1_STN2GREY;
++		break;
++	case 4:
++		regs->lcdcon1 |= S3C2410_LCDCON1_STN4GREY;
++		break;
++	case 8:
++		regs->lcdcon1 |= S3C2410_LCDCON1_STN8BPP;
++		hs *= 3;
++		break;
++	case 12:
++		regs->lcdcon1 |= S3C2410_LCDCON1_STN12BPP;
++		hs *= 3;
++		break;
++
++	default:
++		/* invalid pixel depth */
++		dev_err(fbi->dev, "invalid bpp %d\n",
++			var->bits_per_pixel);
 +	}
++	/* update X/Y info */
++	dprintk("setting vert: up=%d, low=%d, sync=%d\n",
++		var->upper_margin, var->lower_margin, var->vsync_len);
 +
-+	memcpy(&modded, area, sizeof(struct fb_copyarea));
++	dprintk("setting horz: lft=%d, rt=%d, sync=%d\n",
++		var->left_margin, var->right_margin, var->hsync_len);
 +
-+	vxres = info->var.xres_virtual;
-+	vyres = info->var.yres_virtual;
++	regs->lcdcon2 &= ~S3C2410_LCDCON2_LINEVAL(0x3ff);
++	regs->lcdcon2 |=  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
 +
-+	if(!modded.width || !modded.height ||
-+	   modded.sx >= vxres || modded.sy >= vyres ||
-+	   modded.dx >= vxres || modded.dy >= vyres)
-+		return;
++	if (wdly > 3)
++		wdly = 3;
 +
-+	if(modded.sx + modded.width > vxres)
-+		modded.width = vxres - modded.sx;
-+	if(modded.dx + modded.width > vxres)
-+		modded.width = vxres - modded.dx;
-+	if(modded.sy + modded.height > vyres)
-+		modded.height = vyres - modded.sy;
-+	if(modded.dy + modded.height > vyres)
-+		modded.height = vyres - modded.dy;
-+
-+	o_x = modded.sx - modded.dx;	/*(sx > dx ) ? (sx - dx) : (dx - sx); */
-+	o_y = modded.sy - modded.dy;	/*(sy > dy ) ? (sy - dy) : (dy - sy); */
-+
-+	x_align = (modded.sx & 0x1f);
-+
-+	PM3_WAIT(par, 6);
-+
-+	PM3_WRITE_REG(par, PM3Config2D,
-+			PM3Config2D_UserScissorEnable |
-+			PM3Config2D_ForegroundROPEnable |
-+			PM3Config2D_Blocking |
-+			(PM3Config2D_ForegroundROP(0x3)) | /* Ox3 is GXcopy */
-+			PM3Config2D_FBWriteEnable);
-+
-+	PM3_WRITE_REG(par, PM3ScissorMinXY,
-+			((modded.dy & 0x0fff) << 16) | (modded.dx & 0x0fff));
-+	PM3_WRITE_REG(par, PM3ScissorMaxXY,
-+			(((modded.dy + modded.height) & 0x0fff) << 16) |
-+			((modded.dx + modded.width) & 0x0fff));
-+
-+	PM3_WRITE_REG(par, PM3FBSourceReadBufferOffset,
-+			PM3FBSourceReadBufferOffset_XOffset(o_x) |
-+			PM3FBSourceReadBufferOffset_YOffset(o_y));
-+
-+	PM3_WRITE_REG(par, PM3RectanglePosition,
-+			(PM3RectanglePosition_XOffset(modded.dx - x_align)) |
-+			(PM3RectanglePosition_YOffset(modded.dy)));
-+
-+	PM3_WRITE_REG(par, PM3Render2D,
-+			((modded.sx > modded.dx) ? PM3Render2D_XPositive : 0) |
-+			((modded.sy > modded.dy) ? PM3Render2D_YPositive : 0) |
-+			PM3Render2D_Operation_Normal |
-+			PM3Render2D_SpanOperation |
-+			PM3Render2D_FBSourceReadEnable |
-+			(PM3Render2D_Width(modded.width + x_align)) |
-+			(PM3Render2D_Height(modded.height)));
++	regs->lcdcon3 =	S3C2410_LCDCON3_WDLY(wdly) |
++			S3C2410_LCDCON3_LINEBLANK(var->right_margin / 8) |
++			S3C2410_LCDCON3_HOZVAL(hs - 1);
 +}
 +
-+static void pm3fb_imageblit(struct fb_info *info, const struct fb_image *image)
++/* s3c2410fb_calculate_tft_lcd_regs
++ *
++ * calculate register values from var settings
++ */
++static void s3c2410fb_calculate_tft_lcd_regs(const struct fb_info *info,
++					     struct s3c2410fb_hw *regs)
 +{
-+	struct pm3_par *par = info->par;
-+	u32 height = image->height;
-+	u32 fgx, bgx;
-+	const u32 *src = (const u32*)image->data;
++	const struct s3c2410fb_info *fbi = info->par;
++	const struct fb_var_screeninfo *var = &info->var;
 +
-+	switch (info->fix.visual) {
-+		case FB_VISUAL_PSEUDOCOLOR:
-+			fgx = image->fg_color;
-+			bgx = image->bg_color;
-+			break;
-+		case FB_VISUAL_TRUECOLOR:
-+		default:
-+			fgx = par->palette[image->fg_color];
-+			bgx = par->palette[image->bg_color];
-+			break;
++	dprintk("%s: var->xres  = %d\n", __FUNCTION__, var->xres);
++	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
++	dprintk("%s: var->bpp   = %d\n", __FUNCTION__, var->bits_per_pixel);
++
++	regs->lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
++
++	switch (var->bits_per_pixel) {
++	case 1:
++		regs->lcdcon1 |= S3C2410_LCDCON1_TFT1BPP;
++		break;
++	case 2:
++		regs->lcdcon1 |= S3C2410_LCDCON1_TFT2BPP;
++		break;
++	case 4:
++		regs->lcdcon1 |= S3C2410_LCDCON1_TFT4BPP;
++		break;
++	case 8:
++		regs->lcdcon1 |= S3C2410_LCDCON1_TFT8BPP;
++		break;
++	case 16:
++		regs->lcdcon1 |= S3C2410_LCDCON1_TFT16BPP;
++		break;
++
++	default:
++		/* invalid pixel depth */
++		dev_err(fbi->dev, "invalid bpp %d\n",
++			var->bits_per_pixel);
 +	}
-+	if (image->depth != 1 || (image->width & 0x1f)) {
-+		return cfb_imageblit(info, image);
-+	}
-+	if (info->var.bits_per_pixel == 8) {
-+		fgx |= fgx << 8;
-+		bgx |= bgx << 8;
-+	}
-+	if (info->var.bits_per_pixel <= 16) {
-+		fgx |= fgx << 16;
-+		bgx |= bgx << 16;
-+	}
++	/* update X/Y info */
++	dprintk("setting vert: up=%d, low=%d, sync=%d\n",
++		var->upper_margin, var->lower_margin, var->vsync_len);
 +
-+	PM3_WAIT(par, 5);
++	dprintk("setting horz: lft=%d, rt=%d, sync=%d\n",
++		var->left_margin, var->right_margin, var->hsync_len);
 +
-+	PM3_WRITE_REG(par, PM3ForegroundColor, fgx);
-+	PM3_WRITE_REG(par, PM3BackgroundColor, bgx);
++	regs->lcdcon2 &= ~S3C2410_LCDCON2_LINEVAL(0x3ff);
++	regs->lcdcon2 |=  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
 +
-+	/* ROP Ox3 is GXcopy */
-+	PM3_WRITE_REG(par, PM3Config2D,
-+			PM3Config2D_UseConstantSource |
-+			PM3Config2D_ForegroundROPEnable |
-+			(PM3Config2D_ForegroundROP(0x3)) |
-+			PM3Config2D_OpaqueSpan |
-+			PM3Config2D_FBWriteEnable);
-+	PM3_WRITE_REG(par, PM3RectanglePosition,
-+			(PM3RectanglePosition_XOffset(image->dx)) |
-+			(PM3RectanglePosition_YOffset(image->dy)));
-+	PM3_WRITE_REG(par, PM3Render2D,
-+			PM3Render2D_XPositive |
-+			PM3Render2D_YPositive |
-+			PM3Render2D_Operation_SyncOnBitMask |
-+			PM3Render2D_SpanOperation |
-+			(PM3Render2D_Width(image->width)) |
-+			(PM3Render2D_Height(image->height)));
-+
-+
-+	while (height--) {
-+		u32 width = (image->width + 31) >> 5;
-+
-+		while (width >= PM3_FIFO_SIZE) {
-+			int i = PM3_FIFO_SIZE - 1;
-+
-+			PM3_WAIT(par, PM3_FIFO_SIZE);
-+			while (i--) {
-+				PM3_WRITE_REG(par, PM3BitMaskPattern, *src);
-+				src++;
-+			}
-+			width -= PM3_FIFO_SIZE - 1;
-+		}
-+
-+		PM3_WAIT(par, width + 1);
-+		while (width--) {
-+			PM3_WRITE_REG(par, PM3BitMaskPattern, *src);
-+			src++;
-+		}
-+	}
++	regs->lcdcon3 = S3C2410_LCDCON3_HBPD(var->right_margin - 1) |
++			S3C2410_LCDCON3_HFPD(var->left_margin - 1) |
++			S3C2410_LCDCON3_HOZVAL(var->xres - 1);
 +}
- /* end of acceleration functions */
- 
- /* write the mode to registers */
-@@ -907,8 +1062,8 @@ static struct fb_ops pm3fb_ops = {
- 	.fb_setcolreg	= pm3fb_setcolreg,
- 	.fb_pan_display	= pm3fb_pan_display,
- 	.fb_fillrect	= pm3fb_fillrect,
--	.fb_copyarea	= cfb_copyarea,
--	.fb_imageblit	= cfb_imageblit,
-+	.fb_copyarea	= pm3fb_copyarea,
-+	.fb_imageblit	= pm3fb_imageblit,
- 	.fb_blank	= pm3fb_blank,
- 	.fb_sync	= pm3fb_sync,
- };
-@@ -1080,7 +1235,10 @@ static int __devinit pm3fb_probe(struct 
- 	info->fix = pm3fb_fix;
- 	info->pseudo_palette = par->palette;
- 	info->flags = FBINFO_DEFAULT |
--			FBINFO_HWACCEL_FILLRECT;/* | FBINFO_HWACCEL_YPAN;*/
-+/*			FBINFO_HWACCEL_YPAN |*/
-+			FBINFO_HWACCEL_COPYAREA |
-+			FBINFO_HWACCEL_IMAGEBLIT |
-+			FBINFO_HWACCEL_FILLRECT;
- 
- 	/*
- 	 * This should give a reasonable default video mode. The following is
-diff -puN include/video/pm3fb.h~pm3fb-copyarea-and-partial-imageblit-suppor include/video/pm3fb.h
---- a/include/video/pm3fb.h~pm3fb-copyarea-and-partial-imageblit-suppor
-+++ a/include/video/pm3fb.h
-@@ -849,7 +849,7 @@
- 	#define PM3Render_FBSourceRead_Enable			(1<<27)
- #define PM3RasterizerMode					0x80a0
- #define PM3RasterizerModeAnd					0xaba0
--#define PM3RasterizerModeOr					0xabb8
-+#define PM3RasterizerModeOr					0xaba8
- #define PM3RectangleHeight					0x94e0
- #define PM3Render						0x8038
- #define PM3RepeatLine						0x9328
-@@ -1116,6 +1116,9 @@
- /* ***** pm3fb useful define and macro ***** */
- /* ***************************************** */
- 
-+/* fifo size in chip */
-+#define PM3_FIFO_SIZE 120
 +
- /* max size of options */
- #define PM3_OPTIONS_SIZE 256
+ /* s3c2410fb_activate_var
+  *
+  * activate (set) the controller from the given framebuffer
+  * information
+  */
+-static void s3c2410fb_activate_var(struct fb_info *info,
+-				   struct fb_var_screeninfo *var)
++static void s3c2410fb_activate_var(struct fb_info *info)
+ {
+ 	struct s3c2410fb_info *fbi = info->par;
++	struct fb_var_screeninfo *var = &info->var;
+ 	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
+ 	struct s3c2410fb_display *display = mach_info->displays +
+ 					    fbi->current_display;
+-	int hs;
+ 
+-	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
++	/* set display type */
+ 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
+-
+-	dprintk("%s: var->xres  = %d\n", __FUNCTION__, var->xres);
+-	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
+-	dprintk("%s: var->bpp   = %d\n", __FUNCTION__, var->bits_per_pixel);
+-
+ 	fbi->regs.lcdcon1 |= display->type;
+ 
+-	if (display->type == S3C2410_LCDCON1_TFT)
+-		switch (var->bits_per_pixel) {
+-		case 1:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT1BPP;
+-			break;
+-		case 2:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT2BPP;
+-			break;
+-		case 4:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT4BPP;
+-			break;
+-		case 8:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT8BPP;
+-			break;
+-		case 16:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT16BPP;
+-			break;
+-
+-		default:
+-			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n",
+-				var->bits_per_pixel);
+-		}
+-	else
+-		switch (var->bits_per_pixel) {
+-		case 1:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_STN1BPP;
+-			break;
+-		case 2:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_STN2GREY;
+-			break;
+-		case 4:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_STN4GREY;
+-			break;
+-		case 8:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_STN8BPP;
+-			break;
+-		case 12:
+-			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_STN12BPP;
+-			break;
+-
+-		default:
+-			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n",
+-				var->bits_per_pixel);
+-		}
+-
+ 	/* check to see if we need to update sync/borders */
+ 
+ 	if (!mach_info->fixed_syncs) {
+-		dprintk("setting vert: up=%d, low=%d, sync=%d\n",
+-			var->upper_margin, var->lower_margin, var->vsync_len);
+-
+-		dprintk("setting horz: lft=%d, rt=%d, sync=%d\n",
+-			var->left_margin, var->right_margin, var->hsync_len);
+-
+ 		fbi->regs.lcdcon2 =
+ 			S3C2410_LCDCON2_VBPD(var->upper_margin - 1) |
+ 			S3C2410_LCDCON2_VFPD(var->lower_margin - 1) |
+ 			S3C2410_LCDCON2_VSPW(var->vsync_len - 1);
+ 
+-		fbi->regs.lcdcon3 =
+-			S3C2410_LCDCON3_HBPD(var->right_margin - 1) |
+-			S3C2410_LCDCON3_HFPD(var->left_margin - 1);
+-
+ 		fbi->regs.lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
+ 		fbi->regs.lcdcon4 |=  S3C2410_LCDCON4_HSPW(var->hsync_len - 1);
+ 	}
+ 
+-	/* update X/Y info */
+-
+-	fbi->regs.lcdcon2 &= ~S3C2410_LCDCON2_LINEVAL(0x3ff);
+-	fbi->regs.lcdcon2 |=  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
+-
+-	switch (display->type) {
+-	case S3C2410_LCDCON1_DSCAN4:
+-	case S3C2410_LCDCON1_STN8:
+-		hs = var->xres / 8;
+-		break;
+-	case S3C2410_LCDCON1_STN4:
+-		hs = var->xres / 4;
+-		break;
+-	default:
+-	case S3C2410_LCDCON1_TFT:
+-		hs = var->xres;
+-		break;
+-	}
+-
+-	/* Special cases : STN color displays */
+-	if (((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) == S3C2410_LCDCON1_STN8BPP) ||
+-	    ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) == S3C2410_LCDCON1_STN12BPP))
+-		hs = hs * 3;
+-
+-	fbi->regs.lcdcon3 &= ~S3C2410_LCDCON3_HOZVAL(0x7ff);
+-	fbi->regs.lcdcon3 |=  S3C2410_LCDCON3_HOZVAL(hs - 1);
+-
+ 	if (var->pixclock > 0) {
+ 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
+ 
+@@ -406,6 +441,11 @@ static void s3c2410fb_activate_var(struc
+ 		fbi->regs.lcdcon1 |=  S3C2410_LCDCON1_CLKVAL(clkdiv);
+ 	}
+ 
++	if (display->type == S3C2410_LCDCON1_TFT)
++		s3c2410fb_calculate_tft_lcd_regs(info, &fbi->regs);
++	else
++		s3c2410fb_calculate_stn_lcd_regs(info, &fbi->regs);
++
+ 	/* write new registers */
+ 
+ 	dprintk("new register set:\n");
+@@ -452,7 +492,7 @@ static int s3c2410fb_set_par(struct fb_i
+ 
+ 	/* activate this new configuration */
+ 
+-	s3c2410fb_activate_var(info, var);
++	s3c2410fb_activate_var(info);
+ 	return 0;
+ }
+ 
+@@ -848,6 +888,8 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.yres	    = display->yres;
+ 	fbinfo->var.yres_virtual    = display->yres;
+ 	fbinfo->var.bits_per_pixel  = display->bpp;
++	fbinfo->var.left_margin	    = display->left_margin;
++	fbinfo->var.right_margin    = display->right_margin;
+ 
+ 	fbinfo->var.upper_margin    =
+ 				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
+@@ -856,10 +898,6 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.vsync_len	    =
+ 				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
+ 
+-	fbinfo->var.left_margin	    =
+-				S3C2410_LCDCON3_GET_HFPD(mregs->lcdcon3) + 1;
+-	fbinfo->var.right_margin    =
+-				S3C2410_LCDCON3_GET_HBPD(mregs->lcdcon3) + 1;
+ 	fbinfo->var.hsync_len	    =
+ 				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
  
 _
 
