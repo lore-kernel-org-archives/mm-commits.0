@@ -1,440 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - memory-unplug-v7-page-offline.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:32 -0700
-Message-ID: <200710162035.l9GKZW57015068@imap1.linux-foundation.org>
+Subject: - mm-mempolicyc-cleanups.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:10 -0700
+Message-ID: <200710162036.l9GKaAHr015125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965804AbXJPVfo (ORCPT
+	by vger.kernel.org with ESMTP id S933879AbXJPVfV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:35:44 -0400
+	Tue, 16 Oct 2007 17:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory unplug: page offline
+     mm/mempolicy.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     memory-unplug-v7-page-offline.patch
+     mm-mempolicyc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: memory unplug: page offline
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm/mempolicy.c: cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Logic.
- - set all pages in  [start,end)  as isolated migration-type.
-   by this, all free pages in the range will be not-for-use.
- - Migrate all LRU pages in the range.
- - Test all pages in the range's refcnt is zero or not.
+This patch contains the following cleanups:
+- every file should include the headers containing the prototypes for
+  its global functions
+- make the follosing needlessly global functions static:
+  - migrate_to_node()
+  - do_mbind()
+  - sp_alloc()
+  - mpol_rebind_policy()
 
-Todo:
- - allocate migration destination page from better area.
- - confirm page_count(page)== 0 && PageReserved(page) page is safe to be freed..
- (I don't like this kind of page but..
- - Find out pages which cannot be migrated.
- - more running tests.
- - Use reclaim for unplugging other memory type area.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+[akpm@linux-foundation.org: fix uninitialised var warning]
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig              |    3 
- include/linux/kernel.h         |    1 
- include/linux/memory_hotplug.h |    5 
- mm/Kconfig                     |    5 
- mm/memory_hotplug.c            |  254 +++++++++++++++++++++++++++++++
- mm/page_alloc.c                |   47 +++++
- 6 files changed, 314 insertions(+), 1 deletion(-)
+ include/linux/mempolicy.h |    6 ------
+ mm/mempolicy.c            |   28 ++++++++++++++++++----------
+ 2 files changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN arch/ia64/Kconfig~memory-unplug-v7-page-offline arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~memory-unplug-v7-page-offline
-+++ a/arch/ia64/Kconfig
-@@ -305,6 +305,9 @@ config HOTPLUG_CPU
- config ARCH_ENABLE_MEMORY_HOTPLUG
- 	def_bool y
+diff -puN include/linux/mempolicy.h~mm-mempolicyc-cleanups include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicyc-cleanups
++++ a/include/linux/mempolicy.h
+@@ -144,7 +144,6 @@ struct mempolicy *mpol_shared_policy_loo
  
-+config ARCH_ENABLE_MEMORY_HOTREMOVE
-+	def_bool y
-+
- config SCHED_SMT
- 	bool "SMT scheduler support"
- 	depends on SMP
-diff -puN include/linux/kernel.h~memory-unplug-v7-page-offline include/linux/kernel.h
---- a/include/linux/kernel.h~memory-unplug-v7-page-offline
-+++ a/include/linux/kernel.h
-@@ -35,6 +35,7 @@ extern const char linux_proc_banner[];
- #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
- #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
- #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
-+#define IS_ALIGNED(x,a)		(((x) % ((typeof(x))(a))) == 0)
+ extern void numa_default_policy(void);
+ extern void numa_policy_init(void);
+-extern void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *new);
+ extern void mpol_rebind_task(struct task_struct *tsk,
+ 					const nodemask_t *new);
+ extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
+@@ -236,11 +235,6 @@ static inline void numa_default_policy(v
+ {
+ }
  
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
- 
-diff -puN include/linux/memory_hotplug.h~memory-unplug-v7-page-offline include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-unplug-v7-page-offline
-+++ a/include/linux/memory_hotplug.h
-@@ -58,7 +58,10 @@ extern int add_one_highpage(struct page 
- extern void online_page(struct page *page);
- /* VM interface that may be used by firmware interface */
- extern int online_pages(unsigned long, unsigned long);
+-static inline void mpol_rebind_policy(struct mempolicy *pol,
+-					const nodemask_t *new)
+-{
+-}
 -
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+extern int offline_pages(unsigned long, unsigned long, unsigned long);
-+extern void __offline_isolated_pages(unsigned long, unsigned long);
-+#endif
- /* reasonably generic interface to expand the physical pages in a zone  */
- extern int __add_pages(struct zone *zone, unsigned long start_pfn,
- 	unsigned long nr_pages);
-diff -puN mm/Kconfig~memory-unplug-v7-page-offline mm/Kconfig
---- a/mm/Kconfig~memory-unplug-v7-page-offline
-+++ a/mm/Kconfig
-@@ -139,6 +139,11 @@ config MEMORY_HOTPLUG_SPARSE
- 	def_bool y
- 	depends on SPARSEMEM && MEMORY_HOTPLUG
- 
-+config MEMORY_HOTREMOVE
-+	bool "Allow for memory hot remove"
-+	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
-+	depends on MIGRATION
-+
- # Heavily threaded applications may benefit from splitting the mm-wide
- # page_table_lock, so that faults on different parts of the user address
- # space can be handled with less contention: split it at this NR_CPUS.
-diff -puN mm/memory_hotplug.c~memory-unplug-v7-page-offline mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-unplug-v7-page-offline
-+++ a/mm/memory_hotplug.c
-@@ -23,6 +23,9 @@
- #include <linux/vmalloc.h>
- #include <linux/ioport.h>
- #include <linux/cpuset.h>
-+#include <linux/delay.h>
-+#include <linux/migrate.h>
-+#include <linux/page-isolation.h>
+ static inline void mpol_rebind_task(struct task_struct *tsk,
+ 					const nodemask_t *new)
+ {
+diff -puN mm/mempolicy.c~mm-mempolicyc-cleanups mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-cleanups
++++ a/mm/mempolicy.c
+@@ -87,6 +87,7 @@
+ #include <linux/migrate.h>
+ #include <linux/rmap.h>
+ #include <linux/security.h>
++#include <linux/syscalls.h>
  
  #include <asm/tlbflush.h>
+ #include <asm/uaccess.h>
+@@ -108,6 +109,9 @@ struct mempolicy default_policy = {
+ 	.policy = MPOL_DEFAULT,
+ };
  
-@@ -302,3 +305,254 @@ error:
- 	return ret;
++static void mpol_rebind_policy(struct mempolicy *pol,
++                               const nodemask_t *newmask);
++
+ /* Do sanity checking on a policy */
+ static int mpol_check_policy(int mode, nodemask_t *nodes)
+ {
+@@ -459,7 +463,7 @@ static void mpol_set_task_struct_flag(vo
  }
- EXPORT_SYMBOL_GPL(add_memory);
-+
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+/*
-+ * Confirm all pages in a range [start, end) is belongs to the same zone.
-+ */
-+static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long pfn;
-+	struct zone *zone = NULL;
-+	struct page *page;
-+	int i;
-+	for (pfn = start_pfn;
-+	     pfn < end_pfn;
-+	     pfn += MAX_ORDER_NR_PAGES) {
-+		i = 0;
-+		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
-+		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
-+			i++;
-+		if (i == MAX_ORDER_NR_PAGES)
-+			continue;
-+		page = pfn_to_page(pfn + i);
-+		if (zone && page_zone(page) != zone)
-+			return 0;
-+		zone = page_zone(page);
-+	}
-+	return 1;
-+}
-+
-+/*
-+ * Scanning pfn is much easier than scanning lru list.
-+ * Scan pfn from start to end and Find LRU page.
-+ */
-+int scan_lru_pages(unsigned long start, unsigned long end)
-+{
-+	unsigned long pfn;
-+	struct page *page;
-+	for (pfn = start; pfn < end; pfn++) {
-+		if (pfn_valid(pfn)) {
-+			page = pfn_to_page(pfn);
-+			if (PageLRU(page))
-+				return pfn;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static struct page *
-+hotremove_migrate_alloc(struct page *page,
-+			unsigned long private,
-+			int **x)
-+{
-+	/* This should be improoooooved!! */
-+	return alloc_page(GFP_HIGHUSER_PAGECACHE);
-+}
-+
-+
-+#define NR_OFFLINE_AT_ONCE_PAGES	(256)
-+static int
-+do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long pfn;
-+	struct page *page;
-+	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
-+	int not_managed = 0;
-+	int ret = 0;
-+	LIST_HEAD(source);
-+
-+	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
-+		if (!pfn_valid(pfn))
-+			continue;
-+		page = pfn_to_page(pfn);
-+		if (!page_count(page))
-+			continue;
-+		/*
-+		 * We can skip free pages. And we can only deal with pages on
-+		 * LRU.
-+		 */
-+		ret = isolate_lru_page(page, &source);
-+		if (!ret) { /* Success */
-+			move_pages--;
-+		} else {
-+			/* Becasue we don't have big zone->lock. we should
-+			   check this again here. */
-+			if (page_count(page))
-+				not_managed++;
-+#ifdef CONFIG_DEBUG_VM
-+			printk(KERN_INFO "removing from LRU failed"
-+					 " %lx/%d/%lx\n",
-+				pfn, page_count(page), page->flags);
-+#endif
-+		}
-+	}
-+	ret = -EBUSY;
-+	if (not_managed) {
-+		if (!list_empty(&source))
-+			putback_lru_pages(&source);
-+		goto out;
-+	}
-+	ret = 0;
-+	if (list_empty(&source))
-+		goto out;
-+	/* this function returns # of failed pages */
-+	ret = migrate_pages(&source, hotremove_migrate_alloc, 0);
-+
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * remove from free_area[] and mark all as Reserved.
-+ */
-+static int
-+offline_isolated_pages_cb(unsigned long start, unsigned long nr_pages,
-+			void *data)
-+{
-+	__offline_isolated_pages(start, start + nr_pages);
-+	return 0;
-+}
-+
-+static void
-+offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	walk_memory_resource(start_pfn, end_pfn - start_pfn, NULL,
-+				offline_isolated_pages_cb);
-+}
-+
-+/*
-+ * Check all pages in range, recoreded as memory resource, are isolated.
-+ */
-+static int
-+check_pages_isolated_cb(unsigned long start_pfn, unsigned long nr_pages,
-+			void *data)
-+{
-+	int ret;
-+	long offlined = *(long *)data;
-+	ret = test_pages_isolated(start_pfn, start_pfn + nr_pages);
-+	offlined = nr_pages;
-+	if (!ret)
-+		*(long *)data += offlined;
-+	return ret;
-+}
-+
-+static long
-+check_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	long offlined = 0;
-+	int ret;
-+
-+	ret = walk_memory_resource(start_pfn, end_pfn - start_pfn, &offlined,
-+			check_pages_isolated_cb);
-+	if (ret < 0)
-+		offlined = (long)ret;
-+	return offlined;
-+}
-+
-+extern void drain_all_local_pages(void);
-+
-+int offline_pages(unsigned long start_pfn,
-+		  unsigned long end_pfn, unsigned long timeout)
-+{
-+	unsigned long pfn, nr_pages, expire;
-+	long offlined_pages;
-+	int ret, drain, retry_max;
-+	struct zone *zone;
-+
-+	BUG_ON(start_pfn >= end_pfn);
-+	/* at least, alignment against pageblock is necessary */
-+	if (!IS_ALIGNED(start_pfn, pageblock_nr_pages))
-+		return -EINVAL;
-+	if (!IS_ALIGNED(end_pfn, pageblock_nr_pages))
-+		return -EINVAL;
-+	/* This makes hotplug much easier...and readable.
-+	   we assume this for now. .*/
-+	if (!test_pages_in_a_zone(start_pfn, end_pfn))
-+		return -EINVAL;
-+	/* set above range as isolated */
-+	ret = start_isolate_page_range(start_pfn, end_pfn);
-+	if (ret)
-+		return ret;
-+	nr_pages = end_pfn - start_pfn;
-+	pfn = start_pfn;
-+	expire = jiffies + timeout;
-+	drain = 0;
-+	retry_max = 5;
-+repeat:
-+	/* start memory hot removal */
-+	ret = -EAGAIN;
-+	if (time_after(jiffies, expire))
-+		goto failed_removal;
-+	ret = -EINTR;
-+	if (signal_pending(current))
-+		goto failed_removal;
-+	ret = 0;
-+	if (drain) {
-+		lru_add_drain_all();
-+		flush_scheduled_work();
-+		cond_resched();
-+		drain_all_local_pages();
-+	}
-+
-+	pfn = scan_lru_pages(start_pfn, end_pfn);
-+	if (pfn) { /* We have page on LRU */
-+		ret = do_migrate_range(pfn, end_pfn);
-+		if (!ret) {
-+			drain = 1;
-+			goto repeat;
-+		} else {
-+			if (ret < 0)
-+				if (--retry_max == 0)
-+					goto failed_removal;
-+			yield();
-+			drain = 1;
-+			goto repeat;
-+		}
-+	}
-+	/* drain all zone's lru pagevec, this is asyncronous... */
-+	lru_add_drain_all();
-+	flush_scheduled_work();
-+	yield();
-+	/* drain pcp pages , this is synchrouns. */
-+	drain_all_local_pages();
-+	/* check again */
-+	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
-+	if (offlined_pages < 0) {
-+		ret = -EBUSY;
-+		goto failed_removal;
-+	}
-+	printk(KERN_INFO "Offlined Pages %ld\n", offlined_pages);
-+	/* Ok, all of our target is islaoted.
-+	   We cannot do rollback at this point. */
-+	offline_isolated_pages(start_pfn, end_pfn);
-+	/* reset pagetype flags */
-+	start_isolate_page_range(start_pfn, end_pfn);
-+	/* removal success */
-+	zone = page_zone(pfn_to_page(start_pfn));
-+	zone->present_pages -= offlined_pages;
-+	zone->zone_pgdat->node_present_pages -= offlined_pages;
-+	totalram_pages -= offlined_pages;
-+	num_physpages -= offlined_pages;
-+	vm_total_pages = nr_free_pagecache_pages();
-+	writeback_set_ratelimit();
-+	return 0;
-+
-+failed_removal:
-+	printk(KERN_INFO "memory offlining %lx to %lx failed\n",
-+		start_pfn, end_pfn);
-+	/* pushback to free area */
-+	undo_isolate_page_range(start_pfn, end_pfn);
-+	return ret;
-+}
-+#endif /* CONFIG_MEMORY_HOTREMOVE */
-diff -puN mm/page_alloc.c~memory-unplug-v7-page-offline mm/page_alloc.c
---- a/mm/page_alloc.c~memory-unplug-v7-page-offline
-+++ a/mm/page_alloc.c
-@@ -4477,3 +4477,50 @@ void unset_migratetype_isolate(struct pa
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ /* Set the process memory policy */
+-long do_set_mempolicy(int mode, nodemask_t *nodes)
++static long do_set_mempolicy(int mode, nodemask_t *nodes)
+ {
+ 	struct mempolicy *new;
+ 
+@@ -519,8 +523,8 @@ static int lookup_node(struct mm_struct 
  }
-+
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+/*
-+ * All pages in the range must be isolated before calling this.
-+ */
-+void
-+__offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	struct page *page;
-+	struct zone *zone;
-+	int order, i;
-+	unsigned long pfn;
-+	unsigned long flags;
-+	/* find the first valid pfn */
-+	for (pfn = start_pfn; pfn < end_pfn; pfn++)
-+		if (pfn_valid(pfn))
-+			break;
-+	if (pfn == end_pfn)
-+		return;
-+	zone = page_zone(pfn_to_page(pfn));
-+	spin_lock_irqsave(&zone->lock, flags);
-+	pfn = start_pfn;
-+	while (pfn < end_pfn) {
-+		if (!pfn_valid(pfn)) {
-+			pfn++;
-+			continue;
-+		}
-+		page = pfn_to_page(pfn);
-+		BUG_ON(page_count(page));
-+		BUG_ON(!PageBuddy(page));
-+		order = page_order(page);
-+#ifdef CONFIG_DEBUG_VM
-+		printk(KERN_INFO "remove from free list %lx %d %lx\n",
-+		       pfn, 1 << order, end_pfn);
-+#endif
-+		list_del(&page->lru);
-+		rmv_page_order(page);
-+		zone->free_area[order].nr_free--;
-+		__mod_zone_page_state(zone, NR_FREE_PAGES,
-+				      - (1UL << order));
-+		for (i = 0; i < (1 << order); i++)
-+			SetPageReserved((page+i));
-+		pfn += (1 << order);
-+	}
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+}
-+#endif
+ 
+ /* Retrieve NUMA policy */
+-long do_get_mempolicy(int *policy, nodemask_t *nmask,
+-			unsigned long addr, unsigned long flags)
++static long do_get_mempolicy(int *policy, nodemask_t *nmask,
++			     unsigned long addr, unsigned long flags)
+ {
+ 	int err;
+ 	struct mm_struct *mm = current->mm;
+@@ -611,7 +615,8 @@ static struct page *new_node_page(struct
+  * Migrate pages from one node to a target node.
+  * Returns error or the number of pages not migrated.
+  */
+-int migrate_to_node(struct mm_struct *mm, int source, int dest, int flags)
++static int migrate_to_node(struct mm_struct *mm, int source, int dest,
++			   int flags)
+ {
+ 	nodemask_t nmask;
+ 	LIST_HEAD(pagelist);
+@@ -742,8 +747,9 @@ static struct page *new_vma_page(struct 
+ }
+ #endif
+ 
+-long do_mbind(unsigned long start, unsigned long len,
+-		unsigned long mode, nodemask_t *nmask, unsigned long flags)
++static long do_mbind(unsigned long start, unsigned long len,
++		     unsigned long mode, nodemask_t *nmask,
++		     unsigned long flags)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+@@ -988,7 +994,8 @@ asmlinkage long sys_get_mempolicy(int __
+ 				unsigned long maxnode,
+ 				unsigned long addr, unsigned long flags)
+ {
+-	int err, pval;
++	int err;
++	int uninitialized_var(pval);
+ 	nodemask_t nodes;
+ 
+ 	if (nmask != NULL && maxnode < MAX_NUMNODES)
+@@ -1537,8 +1544,8 @@ static void sp_delete(struct shared_poli
+ 	kmem_cache_free(sn_cache, n);
+ }
+ 
+-struct sp_node *
+-sp_alloc(unsigned long start, unsigned long end, struct mempolicy *pol)
++static struct sp_node *sp_alloc(unsigned long start, unsigned long end,
++				struct mempolicy *pol)
+ {
+ 	struct sp_node *n = kmem_cache_alloc(sn_cache, GFP_KERNEL);
+ 
+@@ -1716,7 +1723,8 @@ void numa_default_policy(void)
+ }
+ 
+ /* Migrate a policy to a different set of nodes */
+-void mpol_rebind_policy(struct mempolicy *pol, const nodemask_t *newmask)
++static void mpol_rebind_policy(struct mempolicy *pol,
++			       const nodemask_t *newmask)
+ {
+ 	nodemask_t *mpolmask;
+ 	nodemask_t tmp;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-git-sh.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
+git-acpi.patch
+git-alsa.patch
+git-kvm.patch
+remove-fs-jffs2-ioctlc.patch
+parisc-extern-inline-static-inline.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+maps2-add-proc-kpagemap-interface.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+dontdiff-update-based-on-gitignore-updates.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
