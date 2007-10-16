@@ -1,83 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:02:45 -0700
-Message-ID: <200710160402.l9G42jlB007771@imap1.linux-foundation.org>
+Subject: - ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:02:49 -0700
+Message-ID: <200710160402.l9G42nVV007777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36099 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57687 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751008AbXJPEDX (ORCPT
+	by vger.kernel.org with ESMTP id S1751011AbXJPEDc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:03:23 -0400
+	Tue, 16 Oct 2007 00:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, benh@kernel.crashing.org, clameter@sgi.com, haveblue@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, benh@kernel.crashing.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmemmap ppc64: convert VMM_* macros to a real function
+     vmemmap ppc64: convert to new config options
 has been removed from the -mm tree.  Its filename was
-     ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+     ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
 
 This patch was dropped because it was folded into ppc64-sparsemem_vmemmap-support.patch
 
 ------------------------------------------------------
-Subject: vmemmap ppc64: convert VMM_* macros to a real function
+Subject: vmemmap ppc64: convert to new config options
 From: Andy Whitcroft <apw@shadowen.org>
 
-The code to convert an address within the vmemmap to the start of the section
-is currently implemented using macros.  Convert these over to a new helper
-function, clarifying the code and gaining type checking.
+Convert over to the new Kconfig options.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/init_64.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ arch/powerpc/Kconfig      |    9 +--------
+ arch/powerpc/mm/init_64.c |    3 +--
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function arch/powerpc/mm/init_64.c
---- a/arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function
+diff -puN arch/powerpc/Kconfig~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options
++++ a/arch/powerpc/Kconfig
+@@ -295,6 +295,7 @@ config ARCH_FLATMEM_ENABLE
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+ 	depends on PPC64
++	select SPARSEMEM_VMEMMAP_ENABLE
+ 
+ config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y
+@@ -305,14 +306,6 @@ config ARCH_POPULATES_NODE_MAP
+ 
+ source "mm/Kconfig"
+ 
+-config SPARSEMEM_VMEMMAP
+-	def_bool y
+-	depends on SPARSEMEM
+-
+-config ARCH_POPULATES_SPARSEMEM_VMEMMAP
+-	def_bool y
+-	depends on SPARSEMEM_VMEMMAP
+-
+ config ARCH_MEMORY_PROBE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
+diff -puN arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options arch/powerpc/mm/init_64.c
+--- a/arch/powerpc/mm/init_64.c~ppc64-sparsemem_vmemmap-support-convert-to-new-config-options
 +++ a/arch/powerpc/mm/init_64.c
-@@ -187,14 +187,19 @@ void pgtable_cache_init(void)
- #ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP
+@@ -184,8 +184,7 @@ void pgtable_cache_init(void)
+ 	}
+ }
  
+-#ifdef CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP
+-
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
  /*
-- * Convert an address within the vmemmap into a pfn.  Note that we have
-- * to do this by hand as the proffered address may not be correctly aligned.
-+ * Given an address within the vmemmap, determine the pfn of the page that
-+ * represents the start of the section it is within.  Note that we have to
-+ * do this by hand as the proffered address may not be correctly aligned.
-  * Subtraction of non-aligned pointers produces undefined results.
-  */
--#define VMM_SECTION(addr) \
--		(((((unsigned long)(addr)) - ((unsigned long)(vmemmap))) / \
--		sizeof(struct page)) >> PFN_SECTION_SHIFT)
--#define VMM_SECTION_PAGE(addr)	(VMM_SECTION(addr) << PFN_SECTION_SHIFT)
-+unsigned long __meminit vmemmap_section_start(struct page *page)
-+{
-+	unsigned long offset = ((unsigned long)page) -
-+						((unsigned long)(vmemmap));
-+
-+	/* Return the pfn of the start of the section. */
-+	return (offset / sizeof(struct page)) & PAGE_SECTION_MASK;
-+}
- 
- /*
-  * Check if this vmemmap page is already initialised.  If any section
-@@ -206,7 +211,7 @@ int __meminit vmemmap_populated(unsigned
- 	unsigned long end = start + page_size;
- 
- 	for (; start < end; start += (PAGES_PER_SECTION * sizeof(struct page)))
--		if (pfn_valid(VMM_SECTION_PAGE(start)))
-+		if (pfn_valid(vmemmap_section_start(start)))
- 			return 1;
- 
- 	return 0;
+  * Given an address within the vmemmap, determine the pfn of the page that
+  * represents the start of the section it is within.  Note that we have to
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -90,8 +91,6 @@ x86_64-sparsemem_vmemmap-2m-page-size-support.patch
 ia64-sparsemem_vmemmap-16k-page-size-support.patch
 sparc64-sparsemem_vmemmap-support.patch
 ppc64-sparsemem_vmemmap-support.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
-ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix.patch
 ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
 update-n_high_memory-node-state-for-memory-hotadd-fix.patch
 add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
