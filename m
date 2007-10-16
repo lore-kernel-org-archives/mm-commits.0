@@ -1,121 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - uml-coredumping-floating-point-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:21 -0700
-Message-ID: <200710162038.l9GKcLnh015435@imap1.linux-foundation.org>
+Subject: - pm3fb-imageblit-improved.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:00 -0700
+Message-ID: <200710162042.l9GKg0E8015838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43723 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754609AbXJPVH6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754543AbXJPVIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:58 -0400
+	Tue, 16 Oct 2007 17:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: coredumping floating point fixes
+     pm3fb: imageblit improved
 has been removed from the -mm tree.  Its filename was
-     uml-coredumping-floating-point-fixes.patch
+     pm3fb-imageblit-improved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: coredumping floating point fixes
-From: Jeff Dike <jdike@addtoit.com>
+Subject: pm3fb: imageblit improved
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix core dumping of floating point state.  ELF_CORE_COPY_FPREGS gets a
-definitions, and as a result, dump_fpu no longer needs to exist.  Also,
-elf_fpregset_t needed a real definition.
+This patch removes the pm3_imageblit() restriction to blit only images with
+width divisable by 32.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/ptrace.c   |   22 ----------------------
- include/asm-um/elf-i386.h   |   12 +++++++++++-
- include/asm-um/elf-x86_64.h |    2 +-
- 3 files changed, 12 insertions(+), 24 deletions(-)
+ drivers/video/pm3fb.c |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN arch/um/sys-i386/ptrace.c~uml-coredumping-floating-point-fixes arch/um/sys-i386/ptrace.c
---- a/arch/um/sys-i386/ptrace.c~uml-coredumping-floating-point-fixes
-+++ a/arch/um/sys-i386/ptrace.c
-@@ -205,28 +205,6 @@ int set_fpxregs(struct user_fxsr_struct 
- 	return restore_fpx_registers(userspace_pid[cpu], fpregs);
- }
+diff -puN drivers/video/pm3fb.c~pm3fb-imageblit-improved drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-imageblit-improved
++++ a/drivers/video/pm3fb.c
+@@ -46,6 +46,8 @@
+ #define DPRINTK(a,b...)
+ #endif
  
--#ifdef notdef
--int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu)
--{
--	fpu->cwd = (((SC_FP_CW(PT_REGS_SC(regs)) & 0xffff) << 16) |
--		    (SC_FP_SW(PT_REGS_SC(regs)) & 0xffff));
--	fpu->swd = SC_FP_CSSEL(PT_REGS_SC(regs)) & 0xffff;
--	fpu->twd = SC_FP_IPOFF(PT_REGS_SC(regs));
--	fpu->fip = SC_FP_CSSEL(PT_REGS_SC(regs)) & 0xffff;
--	fpu->fcs = SC_FP_DATAOFF(PT_REGS_SC(regs));
--	fpu->foo = SC_FP_DATASEL(PT_REGS_SC(regs));
--	fpu->fos = 0;
--	memcpy(fpu->st_space, (void *) SC_FP_ST(PT_REGS_SC(regs)),
--	       sizeof(fpu->st_space));
--	return 1;
--}
--#endif
--
--int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpu )
--{
--	return 1;
--}
--
- long subarch_ptrace(struct task_struct *child, long request, long addr,
- 		    long data)
- {
-diff -puN include/asm-um/elf-i386.h~uml-coredumping-floating-point-fixes include/asm-um/elf-i386.h
---- a/include/asm-um/elf-i386.h~uml-coredumping-floating-point-fixes
-+++ a/include/asm-um/elf-i386.h
-@@ -5,7 +5,8 @@
- #ifndef __UM_ELF_I386_H
- #define __UM_ELF_I386_H
- 
--#include <asm/user.h>
-+#include <linux/sched.h>
-+#include "skas.h"
- 
- #define R_386_NONE	0
- #define R_386_32	1
-@@ -75,6 +76,15 @@ typedef struct user_i387_struct elf_fpre
- 	pr_reg[16] = PT_REGS_SS(regs);		\
- } while(0);
- 
-+static inline int elf_core_copy_fpregs(struct task_struct *t,
-+				       elf_fpregset_t *fpu)
-+{
-+	int cpu = ((struct thread_info *) t->stack)->cpu;
-+	return save_fp_registers(userspace_pid[cpu], (unsigned long *) fpu);
-+}
++#define PM3_PIXMAP_SIZE	(2048 * 4)
 +
-+#define ELF_CORE_COPY_FPREGS(t, fpu) elf_core_copy_fpregs(t, fpu)
-+
- extern long elf_aux_hwcap;
- #define ELF_HWCAP (elf_aux_hwcap)
- 
-diff -puN include/asm-um/elf-x86_64.h~uml-coredumping-floating-point-fixes include/asm-um/elf-x86_64.h
---- a/include/asm-um/elf-x86_64.h~uml-coredumping-floating-point-fixes
-+++ a/include/asm-um/elf-x86_64.h
-@@ -36,7 +36,7 @@ typedef unsigned long elf_greg_t;
- #define ELF_NGREG (sizeof (struct user_regs_struct) / sizeof(elf_greg_t))
- typedef elf_greg_t elf_gregset_t[ELF_NGREG];
- 
--typedef struct { } elf_fpregset_t;
-+typedef struct user_i387_struct elf_fpregset_t;
- 
  /*
-  * This is used to ensure we don't load something for the wrong architecture.
+  * Driver data
+  */
+@@ -513,7 +515,7 @@ static void pm3fb_imageblit(struct fb_in
+ 			bgx = par->palette[image->bg_color];
+ 			break;
+ 	}
+-	if (image->depth != 1 || (image->width & 0x1f)) {
++	if (image->depth != 1) {
+ 		return cfb_imageblit(info, image);
+ 	}
+ 	if (info->var.bits_per_pixel == 8) {
+@@ -525,18 +527,24 @@ static void pm3fb_imageblit(struct fb_in
+ 		bgx |= bgx << 16;
+ 	}
+ 
+-	PM3_WAIT(par, 5);
++	PM3_WAIT(par, 7);
+ 
+ 	PM3_WRITE_REG(par, PM3ForegroundColor, fgx);
+ 	PM3_WRITE_REG(par, PM3BackgroundColor, bgx);
+ 
+ 	/* ROP Ox3 is GXcopy */
+ 	PM3_WRITE_REG(par, PM3Config2D,
++			PM3Config2D_UserScissorEnable |
+ 			PM3Config2D_UseConstantSource |
+ 			PM3Config2D_ForegroundROPEnable |
+ 			(PM3Config2D_ForegroundROP(0x3)) |
+ 			PM3Config2D_OpaqueSpan |
+ 			PM3Config2D_FBWriteEnable);
++	PM3_WRITE_REG(par, PM3ScissorMinXY,
++			((image->dy & 0x0fff) << 16) | (image->dx & 0x0fff));
++	PM3_WRITE_REG(par, PM3ScissorMaxXY,
++			(((image->dy + image->height) & 0x0fff) << 16) |
++			((image->dx + image->width) & 0x0fff));
+ 	PM3_WRITE_REG(par, PM3RectanglePosition,
+ 			(PM3RectanglePosition_XOffset(image->dx)) |
+ 			(PM3RectanglePosition_YOffset(image->dy)));
+@@ -550,7 +558,8 @@ static void pm3fb_imageblit(struct fb_in
+ 
+ 
+ 	while (height--) {
+-		u32 width = (image->width + 31) >> 5;
++		int width = ((image->width + 7) >> 3) + info->pixmap.scan_align;
++		width >>= 2;
+ 
+ 		while (width >= PM3_FIFO_SIZE) {
+ 			int i = PM3_FIFO_SIZE - 1;
+@@ -1239,6 +1248,17 @@ static int __devinit pm3fb_probe(struct 
+ 			FBINFO_HWACCEL_IMAGEBLIT |
+ 			FBINFO_HWACCEL_FILLRECT;
+ 
++	info->pixmap.addr = kmalloc(PM3_PIXMAP_SIZE, GFP_KERNEL);
++	if (!info->pixmap.addr) {
++		retval = -ENOMEM;
++		goto err_exit_pixmap;
++	}
++	info->pixmap.size = PM3_PIXMAP_SIZE;
++	info->pixmap.buf_align = 4;
++	info->pixmap.scan_align = 4;
++	info->pixmap.access_align = 32;
++	info->pixmap.flags = FB_PIXMAP_SYSTEM;
++
+ 	/*
+ 	 * This should give a reasonable default video mode. The following is
+ 	 * done when we can set a video mode.
+@@ -1275,6 +1295,8 @@ static int __devinit pm3fb_probe(struct 
+  err_exit_all:
+ 	fb_dealloc_cmap(&info->cmap);
+  err_exit_both:
++	kfree(info->pixmap.addr);
++ err_exit_pixmap:
+ 	iounmap(info->screen_base);
+ 	release_mem_region(pm3fb_fix.smem_start, pm3fb_fix.smem_len);
+  err_exit_mmio:
+@@ -1305,6 +1327,7 @@ static void __devexit pm3fb_remove(struc
+ 		release_mem_region(fix->mmio_start, fix->mmio_len);
+ 
+ 		pci_set_drvdata(dev, NULL);
++		kfree(info->pixmap.addr);
+ 		framebuffer_release(info);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
