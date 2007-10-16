@@ -1,53 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-wireless-ath5k-broke.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:11:36 -0700
-Message-ID: <200710162011.l9GKBawj013530@imap1.linux-foundation.org>
+Subject: + git-watchdog-fixup.patch added to -mm tree
+Date: Tue, 16 Oct 2007 13:13:34 -0700
+Message-ID: <200710162013.l9GKDYMY013689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49389 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751507AbXJPUMV (ORCPT
+	by vger.kernel.org with ESMTP id S932967AbXJPUNh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:12:21 -0400
+	Tue, 16 Oct 2007 16:13:37 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKDYsb024280
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:13:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-wireless-ath5k-broke
-has been removed from the -mm tree.  Its filename was
-     git-wireless-ath5k-broke.patch
+     git-watchdog-fixup
+has been added to the -mm tree.  Its filename is
+     git-watchdog-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-ath5k-broke
+Subject: git-watchdog-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-make[3]: *** No rule to make target `drivers/net/wireless/ath5k_base.o', needed by `drivers/net/wireless/arlan.o'.  Stop.
-
-probably just a mismerge, but I've had it with this stuff.
-
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/Kconfig |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~git-wireless-ath5k-broke drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-wireless-ath5k-broke
-+++ a/drivers/net/wireless/Kconfig
-@@ -625,6 +625,7 @@ config P54_PCI
- config ATH5K
- 	tristate "Atheros 5xxx wireless cards support"
- 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
-+	depends on BROKEN
- 	default m
- 	---help---
- 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
+diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
+--- a/drivers/Kconfig~git-watchdog-fixup
++++ a/drivers/Kconfig
+@@ -58,11 +58,9 @@ source "drivers/power/Kconfig"
+ 
+ source "drivers/hwmon/Kconfig"
+ 
+-<<<<<<< HEAD:drivers/Kconfig
+ source "drivers/ssb/Kconfig"
+-=======
++
+ source "drivers/watchdog/Kconfig"
+->>>>>>> FETCH_HEAD:drivers/Kconfig
+ 
+ source "drivers/mfd/Kconfig"
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,8 +81,8 @@ git-nfsd-fixup.patch
 qla2xxx-printk-fixes.patch
 sparc-support-for-new-termios-checkpatch-fixes.patch
 git-unionfs.patch
+git-watchdog-fixup.patch
 git-wireless.patch
-git-wireless-ath5k-broke.patch
 revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
 intel_cacheinfo-misc-section-annotation-fixes.patch
